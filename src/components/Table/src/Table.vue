@@ -1,0 +1,56 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { ElTable, ElTableColumn, ElPagination, ElSpace, ElButton, ElPopover, ElCheckbox, ElCheckboxGroup } from 'element-plus'
+const props = defineProps({
+  columns: { type: Array, default: () => [] },
+  data: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  rowKey: { type: String, default: 'id' },
+  selectable: { type: Boolean, default: false },
+  pagination: { type: Object, default: null },
+  tableProps: { type: Object, default: () => ({}) },
+  autoOverflowTooltip: { type: Boolean, default: true },
+  showRefresh: { type: Boolean, default: true },
+  refreshLoading: { type: Boolean, default: false },
+  showColumnSetting: { type: Boolean, default: true }
+})
+const emit = defineEmits(['refresh','selection-change','update:pagination','column-change'])
+const selectedColumnKeys = ref([] as any[])
+watch(() => props.columns, (cols: any[]) => { selectedColumnKeys.value = cols.filter((c: any) => !c.hidden).map((c: any) => c.key) }, { immediate: true })
+watch(() => selectedColumnKeys.value, (keys: any[]) => { emit('column-change', keys) })
+const visibleColumns = computed(() => (props.columns as any[]).filter((c: any) => selectedColumnKeys.value.includes(c.key)))
+const page = ref(props.pagination ? { ...(props.pagination as any) } : null)
+watch(() => props.pagination, (p: any) => { page.value = p ? { ...p } : null }, { immediate: true, deep: true })
+const onSizeChange = (size: number) => { if (!page.value) return; (page.value as any).page_size = size; (page.value as any).current_page = 1; emit('update:pagination', { ...(page.value as any) }) }
+const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value as any).current_page = cur; emit('update:pagination', { ...(page.value as any) }) }
+</script>
+<template>
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <ElSpace>
+        <slot name="toolbar" />
+        <ElButton v-if="props.showRefresh" :loading="props.refreshLoading" type="primary" text @click="emit('refresh')">刷新</ElButton>
+        <ElPopover v-if="props.showColumnSetting" placement="bottom" width="220" trigger="click">
+          <template #reference><ElButton text>列设置</ElButton></template>
+          <ElCheckboxGroup v-model="selectedColumnKeys">
+            <div v-for="col in (props.columns as any[])" :key="col.key" style="margin:4px 0;">
+              <ElCheckbox :label="col.key">{{ col.label }}</ElCheckbox>
+            </div>
+          </ElCheckboxGroup>
+        </ElPopover>
+      </ElSpace>
+    </div>
+    <ElTable :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">
+      <ElTableColumn v-if="props.selectable" type="selection" width="48" />
+      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
+        <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
+      </ElTableColumn>
+    </ElTable>
+    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10,20,50,100]" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
+  </div>
+</template>
+<style scoped>
+.table-wrapper{display:flex;flex-direction:column}
+.table-toolbar{display:flex;justify-content:space-between;margin-bottom:8px}
+.table-footer{display:flex;justify-content:flex-end;margin-top:8px}
+</style>
