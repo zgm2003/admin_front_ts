@@ -12,7 +12,8 @@ const messages = {
       back: '返回',
       success: { login: '登录成功', register: '注册成功', editPassword: '修改成功', sendCode: '发送成功（长时间没收到检查垃圾箱┭┮﹏┭┮）' },
       language: '语言', zh: '中文', en: '英文',
-      actions: { add: '新增', edit: '编辑', del: '删除', save: '保存', cancel: '取消', confirm: '确认', query: '查询', export: '导出', batchDelete: '批量删除', batchEdit: '批量修改', action: '操作' }
+      actions: { add: '新增', edit: '编辑', del: '删除', save: '保存', cancel: '取消', confirm: '确认', query: '查询', export: '导出', batchDelete: '批量删除', batchEdit: '批量修改', action: '操作' },
+      quickEntry: '快速入口'
     },
     menu: { home: '首页', user: '用户', system: '系统管理', userManager: '用户管理', role: '角色管理', permission: '菜单管理', systemLog: '系统日志', test: '测试页' },
     header: { projectConfig: '项目配置', theme: '主题', systemTheme: '系统主题', headerTheme: '头部主题', menuTheme: '菜单主题', display: '界面显示', breadcrumb: '面包屑', hamburger: '折叠图标', fullscreen: '全屏图标', tab: '标签页', uniqueOpen: '手风琴', footer: '页脚', clearAndReset: '清除缓存并重置', resetLight: '恢复明亮默认', resetDark: '恢复暗黑默认', logoutTitle: '温馨提示', logoutText: '是否退出本系统？', cancel: '取消', ok: '确定' },
@@ -34,7 +35,8 @@ const messages = {
       back: 'Back',
       success: { login: 'Signed in successfully', register: 'Registered successfully', editPassword: 'Password updated', sendCode: 'Code sent successfully' },
       language: 'Language', zh: 'Chinese', en: 'English',
-      actions: { add: 'Add', edit: 'Edit', del: 'Delete', save: 'Save', cancel: 'Cancel', confirm: 'Confirm', query: 'Query', export: 'Export', batchDelete: 'Batch Delete', batchEdit: 'Batch Edit', action: 'Actions' }
+      actions: { add: 'Add', edit: 'Edit', del: 'Delete', save: 'Save', cancel: 'Cancel', confirm: 'Confirm', query: 'Query', export: 'Export', batchDelete: 'Batch Delete', batchEdit: 'Batch Edit', action: 'Actions' },
+      quickEntry: 'Quick Entry'
     },
     menu: { home: 'Home', user: 'User', system: 'System', userManager: 'User Manager', role: 'Role Manager', permission: 'Permission', systemLog: 'System Log', test: 'Test' },
     header: { projectConfig: 'Project Settings', theme: 'Theme', systemTheme: 'System Theme', headerTheme: 'Header Theme', menuTheme: 'Menu Theme', display: 'Display', breadcrumb: 'Breadcrumb', hamburger: 'Hamburger', fullscreen: 'Fullscreen', tab: 'Tab', uniqueOpen: 'Accordion', footer: 'Footer', clearAndReset: 'Clear cache and reset', resetLight: 'Reset Light', resetDark: 'Reset Dark', logoutTitle: 'Reminder', logoutText: 'Exit the system?', cancel: 'Cancel', ok: 'OK' },
