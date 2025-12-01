@@ -25,9 +25,7 @@
             :to="{ path: item.path }"
             replace
         >
-          <el-text :style="{ color: headerTextColor }">
-            {{ item.label }}
-          </el-text>
+          <el-text :style="{ color: headerTextColor }">{{ getBreadcrumbLabel(item) }}</el-text>
         </el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -199,6 +197,19 @@ const predefineColors = ref([
   '#11a983', '#13c2c2', '#6959CD', '#f5222d', '#fa541c', '#fa8c16',
   '#faad14', '#fadb14', '#a0d911', '#52c41a', '#1890ff', '#40a9ff', '#69c0ff'
 ]);
+
+const MENU_I18N_MAP = {
+  '/home': 'menu.home',
+  '/userManager': 'menu.userManager',
+  '/role': 'menu.role',
+  '/permission': 'menu.permission',
+  '/logs': 'menu.systemLog',
+  '/test': 'menu.test'
+}
+function getBreadcrumbLabel(item) {
+  const key = MENU_I18N_MAP[item.path]
+  return key ? t(key) : item.label
+}
 
 // 初始化主题状态
 onMounted(() => {
