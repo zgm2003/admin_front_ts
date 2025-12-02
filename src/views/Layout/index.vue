@@ -32,4 +32,10 @@ const isMobile = useMediaQuery('(max-width: 768px)')
 .el-container { height: 100vh; overflow: hidden }
 .el-header, .el-main, .el-footer { padding: 0 }
 :deep(.el-drawer__body) { padding: 0 }
+@media (max-width: 768px) {
+  .el-header{
+    display: flex;
+    align-items: center;
+  }
+}
 </style>

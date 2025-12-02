@@ -74,7 +74,7 @@
       <!-- 用户下拉菜单 -->
       <el-dropdown @command="handleUserCommand">
       <span class="el-dropdown-link">
-        <el-avatar :src="userStore.avatar" size="large"/>
+        <el-avatar :src="userStore.avatar" :size="isMobile ? 'small' : 'large'"/>
       </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -174,8 +174,8 @@
 
 <script setup>
 import {ref, onMounted, computed} from 'vue';
-import {useMenuStore} from '@/store/menu.js';
-import {useUserStore} from '@/store/user.js';
+import {useMenuStore} from '@/store/menu.ts';
+import {useUserStore} from '@/store/user.ts';
 import {ElNotification, ElDivider, ElMessage} from 'element-plus';
 import {useRouter} from 'vue-router';
 import {clearAllCookies} from '@/utils/cookie';
@@ -385,7 +385,9 @@ function copyConfig() {
 }
 
 @media (max-width: 768px) {
-  .header-bar { padding: 0 6px; }
+  .header-bar { 
+    padding: 0 6px;
+  }
   :deep(.el-space) { flex-wrap: wrap; }
 }
 

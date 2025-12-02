@@ -24,9 +24,9 @@
 </template>
 
 <script setup>
-import { useMenuStore } from '@/store/menu.js';
-import { useUserStore } from '@/store/user.js';
-import MenuItem from '@/components/MenuItem.vue';
+import { useMenuStore } from '@/store/menu.ts';
+import { useUserStore } from '@/store/user.ts';
+import MenuItem from '@/components/MenuItem';
 
 const menuStore = useMenuStore();
 const userStore = useUserStore();

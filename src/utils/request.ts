@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosHeaders } from 'axios'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { ElNotification } from 'element-plus'
@@ -11,8 +11,13 @@ service.interceptors.request.use(
   (config) => {
     const token = Cookies.get('token')
     const platform = import.meta.env.VITE_PLATFORM || (/(Android|iPhone|iPad|iPod|Windows Phone)/i.test(navigator.userAgent) ? 'mobile' : 'web')
-    if (token) config.headers = { ...(config.headers || {}), Authorization: `Bearer ${token}` }
-    config.headers = { ...(config.headers || {}), Platform: platform }
+    const setHeader = (name: string, value: any) => {
+      const h: any = config.headers
+      if (h && typeof h.set === 'function') (h as AxiosHeaders).set(name, value)
+      else config.headers = { ...(config.headers as any || {}), [name]: value }
+    }
+    if (token) setHeader('Authorization', `Bearer ${token}`)
+    setHeader('Platform', platform)
     return config
   },
   (error) => Promise.reject(error)
@@ -53,4 +58,20 @@ service.interceptors.response.use(
   }
 )
 
-export default service
+type AnyObject = Record<string, any>
+const request = {
+  get<T = any>(url: string, config?: AnyObject): Promise<T> {
+    return service.get(url, config as any).then((res: any) => res as T)
+  },
+  post<T = any>(url: string, data?: AnyObject, config?: AnyObject): Promise<T> {
+    return service.post(url, data as any, config as any).then((res: any) => res as T)
+  },
+  put<T = any>(url: string, data?: AnyObject, config?: AnyObject): Promise<T> {
+    return service.put(url, data as any, config as any).then((res: any) => res as T)
+  },
+  delete<T = any>(url: string, config?: AnyObject): Promise<T> {
+    return service.delete(url, config as any).then((res: any) => res as T)
+  },
+}
+
+export default request

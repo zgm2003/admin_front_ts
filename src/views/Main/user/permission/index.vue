@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { addApi, delApi, editApi, listApi, initApi, batchEditApi, statusApi } from '@/api/user/permission'
-import IconSelect from '@/components/IconSelect.vue'
+import IconSelect from '@/components/IconSelect'
 import { ElNotification } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'

@@ -2,7 +2,7 @@
 import { onBeforeUnmount, computed, nextTick, ref, watch, shallowRef } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { ElMessage } from 'element-plus'
-import { getCosUploadToken, uploadFileToCos } from '@/utils/cosUpload.js'
+import { getCosUploadToken, uploadFileToCos } from '@/utils/cosUpload'
 
 const props = defineProps({ editorId: { type: String, default: 'wangeditor-1' }, height: { type: [Number, String], default: '500px' }, editorConfig: { type: Object, default: () => undefined }, modelValue: { type: String, default: '' }, uploadFolder: { type: String, default: 'article' }, useCosUpload: { type: Boolean, default: true } })
 const emit = defineEmits(['change','update:modelValue'])

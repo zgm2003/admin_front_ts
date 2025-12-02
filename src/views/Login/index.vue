@@ -1,6 +1,6 @@
 <script setup>
 import { defineAsyncComponent, ref } from 'vue'
-import ParticleBackground from '@/components/ParticleBackground.vue'
+import ParticleBackground from '@/components/ParticleBackground'
 const LoginVue = defineAsyncComponent({ loader: () => import('./components/Login.vue') })
 const RegisterVue = defineAsyncComponent({ loader: () => import('./components/Register.vue') })
 const currentView = ref('login')

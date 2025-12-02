@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElTable, ElTableColumn, ElPagination, ElSpace, ElButton, ElPopover, ElCheckbox, ElCheckboxGroup } from 'element-plus'
+import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
+import ColumnSetting from './components/ColumnSetting.vue'
+import TableActions from './components/TableActions.vue'
 const props = defineProps({
   columns: { type: Array, default: () => [] },
   data: { type: Array, default: () => [] },
@@ -11,8 +13,8 @@ const props = defineProps({
   tableProps: { type: Object, default: () => ({}) },
   autoOverflowTooltip: { type: Boolean, default: true },
   showRefresh: { type: Boolean, default: true },
-  refreshLoading: { type: Boolean, default: false },
-  showColumnSetting: { type: Boolean, default: true }
+  showColumnSetting: { type: Boolean, default: true },
+  refreshLoading: { type: Boolean, default: false }
 })
 const emit = defineEmits(['refresh','selection-change','update:pagination','column-change'])
 const selectedColumnKeys = ref([] as any[])
@@ -29,15 +31,8 @@ const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value 
     <div class="table-toolbar">
       <ElSpace>
         <slot name="toolbar" />
-        <ElButton v-if="props.showRefresh" :loading="props.refreshLoading" type="primary" text @click="emit('refresh')">刷新</ElButton>
-        <ElPopover v-if="props.showColumnSetting" placement="bottom" width="220" trigger="click">
-          <template #reference><ElButton text>列设置</ElButton></template>
-          <ElCheckboxGroup v-model="selectedColumnKeys">
-            <div v-for="col in (props.columns as any[])" :key="col.key" style="margin:4px 0;">
-              <ElCheckbox :label="col.key">{{ col.label }}</ElCheckbox>
-            </div>
-          </ElCheckboxGroup>
-        </ElPopover>
+        <TableActions :show-refresh="props.showRefresh" :refresh-loading="props.refreshLoading" @refresh="emit('refresh')" />
+        <ColumnSetting v-if="props.showColumnSetting" v-model="selectedColumnKeys" :columns="(props.columns as any[])" />
       </ElSpace>
     </div>
     <ElTable :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">

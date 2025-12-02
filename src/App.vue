@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CustomLoading from '@/components/CustomLoading.vue'
+import CustomLoading from '@/components/CustomLoading'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'

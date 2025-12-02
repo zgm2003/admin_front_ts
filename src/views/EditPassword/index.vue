@@ -1,6 +1,6 @@
 <script setup>
 import { defineAsyncComponent, ref } from 'vue'
-import ParticleBackground from '@/components/ParticleBackground.vue'
+import ParticleBackground from '@/components/ParticleBackground'
 const ForgetPasswordVue = defineAsyncComponent({ loader: () => import('./components/ForgetPassword.vue') })
 const EditPasswordVue = defineAsyncComponent({ loader: () => import('./components/EditPassword.vue') })
 const status = ref(true)

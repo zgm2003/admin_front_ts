@@ -5,7 +5,7 @@ import { initPersonalApi, editPersonalApi } from '@/api/user/users'
 import { useRoute, useRouter } from 'vue-router'
 import { setupDynamicRoutes } from '@/router'
 import 'element-plus/theme-chalk/display.css'
-import UpImg from '@/components/UpImg.vue'
+import UpImg from '@/components/UpImg'
 const router = useRouter()
 const route = useRoute()
 const sexArr = ref([])
