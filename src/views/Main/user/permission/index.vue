@@ -14,7 +14,7 @@ const permissionTypeArr = ref([])
 const init = () => { initApi().then((data:any) => { permissionTree.value = data.dict.permission_tree; permissionTypeArr.value = data.dict.permission_type_arr }).catch(()=>{}) }
 init()
 const addBoxShow = ref(false)
-const addForm = ref({ name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'' })
+const addForm = ref({ name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'', i18n_key:'' })
 const add = () => { addForm.value = { name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'' }; addBoxShow.value = true }
 const confirmAdd = () => { const param = addForm.value; addApi(param).then(()=>{ ElNotification.success({ message:'新增成功' }); addBoxShow.value = false; getList(); init() }).catch(()=>{}) }
 const listLoading = ref(false)
@@ -25,8 +25,8 @@ getList()
 const tableRef = ref()
 const handleRowClick = (row:any) => { (tableRef.value as any).toggleRowSelection(row) }
 const editBoxShow = ref(false)
-const editForm = ref({ id:'', name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'' })
-const edit = (current:any) => { editForm.value = { id:current.id, name:current.name, parent_id:current.parent_id, icon:current.icon, path:current.path, component:current.component, actions:current.actions, type:current.type, code:current.code }; editBoxShow.value = true }
+const editForm = ref({ id:'', name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'', i18n_key:'' })
+const edit = (current:any) => { editForm.value = { id:current.id, name:current.name, parent_id:current.parent_id, icon:current.icon, path:current.path, component:current.component, actions:current.actions, type:current.type, code:current.code, i18n_key:current.i18n_key }; editBoxShow.value = true }
 const confirmEdit = () => { const data = editForm.value; editApi(data).then(()=>{ ElNotification.success({ message:'编辑成功' }); editBoxShow.value = false; getList(); init() }).catch(()=>{}) }
 const confirmDel = async (current:any) => {
   try { await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
@@ -86,6 +86,7 @@ const changStatus = (row:any) => { if (row.status === undefined) { ElNotificatio
           <el-radio-group v-model="addForm.type"><el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{ item.label }}</el-radio></el-radio-group>
         </el-form-item>
         <el-form-item label="父级菜单"><el-tree-select v-model="addForm.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true :render-after-expand="false" /></el-form-item>
+        <el-form-item label="i18n_key" required v-if="addForm.type === 1 || addForm.type === 2"><el-input v-model="addForm.i18n_key" style="width:100%" clearable /></el-form-item>
         <el-form-item label="名称" required><el-input v-model="addForm.name" style="width:100%" clearable /></el-form-item>
         <el-form-item label="ICON" v-if="addForm.type === 1 || addForm.type === 2"><el-input v-model="addForm.icon" style="width:80%" clearable /><el-button icon="Setting" @click="openAddIconSelect">选择</el-button></el-form-item>
         <el-form-item label="路由" v-if="addForm.type === 2"><el-input v-model="addForm.path" style="width:100%" clearable /></el-form-item>
@@ -102,6 +103,7 @@ const changStatus = (row:any) => { if (row.status === undefined) { ElNotificatio
           <el-radio-group v-model="editForm.type"><el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{ item.label }}</el-radio></el-radio-group>
         </el-form-item>
         <el-form-item label="父级菜单"><el-tree-select v-model="editForm.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true :render-after-expand="false" /></el-form-item>
+        <el-form-item label="i18n_key" required v-if="editForm.type === 1 || editForm.type === 2"><el-input v-model="editForm.i18n_key" style="width:100%" clearable /></el-form-item>
         <el-form-item label="名称" required><el-input v-model="editForm.name" style="width:100%" clearable /></el-form-item>
         <el-form-item label="ICON" v-if="editForm.type === 1 || editForm.type === 2"><el-input v-model="editForm.icon" style="width:80%" clearable /><el-button icon="Setting" @click="openEditIconSelect">选择</el-button></el-form-item>
         <el-form-item label="路由" v-if="editForm.type === 2"><el-input v-model="editForm.path" style="width:100%" clearable /></el-form-item>

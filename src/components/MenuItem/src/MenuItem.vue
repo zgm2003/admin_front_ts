@@ -22,26 +22,14 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMenuStore } from '@/store/menu';
 import { useI18n } from 'vue-i18n'
+import { resolveMenuLabel } from '@/utils/menuI18n'
 
 const props = defineProps({ item: { type: Object, required: true } })
 const router = useRouter();
 const menuStore = useMenuStore();
 const { t } = useI18n()
 
-const MENU_I18N_BY_PATH = { '/home': 'menu.home', '/userManager': 'menu.userManager', '/role': 'menu.role', '/permission': 'menu.permission', '/logs': 'menu.systemLog', '/test': 'menu.test' }
-const MENU_I18N_BY_LABEL = { '用户': 'menu.user', '系统管理': 'menu.system' }
-const MENU_GROUP_I18N_BY_INDEX = { '1': 'menu.user', '13': 'menu.system' }
-
-const displayLabel = computed(() => {
-  if (props.item.i18nKey) return t(props.item.i18nKey)
-  const pathKey = props.item.path && (MENU_I18N_BY_PATH as any)[props.item.path]
-  if (pathKey) return t(pathKey)
-  const idxKey = (MENU_GROUP_I18N_BY_INDEX as any)[props.item.index]
-  if (idxKey) return t(idxKey)
-  const normLabel = (props.item.label || '').trim()
-  const labelKey = (MENU_I18N_BY_LABEL as any)[normLabel]
-  return labelKey ? t(labelKey) : props.item.label
-})
+const displayLabel = computed(() => resolveMenuLabel(t, props.item))
 
 const hasChildren = computed(() => props.item.children && props.item.children.length > 0)
 

@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/store/menu';
 import { useI18n } from 'vue-i18n'
+import { resolveMenuLabel } from '@/utils/menuI18n'
 
 const menuStore = useMenuStore();
 
@@ -11,20 +12,7 @@ const { t, locale } = useI18n()
 
 const tags = computed(() => menuStore.tabList);
 
-const MENU_I18N_MAP = {
-  '/home': 'menu.home',
-  '/userManager': 'menu.userManager',
-  '/role': 'menu.role',
-  '/permission': 'menu.permission',
-  '/logs': 'menu.systemLog',
-  '/test': 'menu.test'
-}
-
-function getTagLabel(tag) {
-  if (tag.i18nKey) return t(tag.i18nKey)
-  const key = MENU_I18N_MAP[tag.path]
-  return key ? t(key) : tag.label
-}
+function getTagLabel(tag) { return resolveMenuLabel(t, tag) }
 
 const handleClose = (tag) => {
   menuStore.closeTag(tag);

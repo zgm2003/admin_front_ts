@@ -182,6 +182,7 @@ import {clearAllCookies} from '@/utils/cookie';
 import {toggleDarkMode} from '@/utils/theme';
 import {useMediaQuery} from "@vueuse/core";
 import { useI18n } from 'vue-i18n'
+import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
 
 const menuStore = useMenuStore();
@@ -198,19 +199,7 @@ const predefineColors = ref([
   '#faad14', '#fadb14', '#a0d911', '#52c41a', '#1890ff', '#40a9ff', '#69c0ff'
 ]);
 
-const MENU_I18N_MAP = {
-  '/home': 'menu.home',
-  '/userManager': 'menu.userManager',
-  '/role': 'menu.role',
-  '/permission': 'menu.permission',
-  '/logs': 'menu.systemLog',
-  '/test': 'menu.test'
-}
-function getBreadcrumbLabel(item) {
-  if (item.i18nKey) return t(item.i18nKey)
-  const key = MENU_I18N_MAP[item.path]
-  return key ? t(key) : item.label
-}
+function getBreadcrumbLabel(item) { return resolveMenuLabel(t, item) }
 
 // 初始化主题状态
 onMounted(() => {
