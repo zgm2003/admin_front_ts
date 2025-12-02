@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { delApi, listApi, initApi } from '@/api/system/logs'
-import { ElNotification } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
@@ -20,11 +20,18 @@ getList()
 const onSelectionChange = (selection:any[]) => { selectedIds.value = selection.map((item:any)=>item.id) }
 const refresh = () => { getList() }
 const onPageChange = (p:any) => { page.value = p; getList() }
-const tableRef = ref()
-const handleRowClick = (row:any) => { (tableRef.value as any).toggleRowSelection(row) }
-const confirmDel = (current:any) => { const param = { id: current.id }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{}) }
+const confirmDel = async (current:any) => {
+  try { await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: current.id }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{})
+}
 const selectedIds = ref([] as any[])
-const batchDel = () => { const param = { id: selectedIds.value }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{}) }
+const batchDel = async () => {
+  if (!selectedIds.value || selectedIds.value.length === 0) { ElNotification.error({ message:'请至少选择一个记录' }); return }
+  try { await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: selectedIds.value }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{})
+}
 </script>
 
 <template>
@@ -55,7 +62,7 @@ const batchDel = () => { const param = { id: selectedIds.value }; delApi(param).
           { key: 'actions', label: t('common.actions.action'), width: 180 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #cell-is_success="{ row }"><el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{ row.is_success === 1 ? '成功' : '失败' }}</el-tag></template>
-        <template #cell-actions="{ row }"><el-popconfirm title="确定删除嘛?" @confirm="confirmDel(row)"><template #reference><el-button type="danger" text v-if="userStore.can('role.del')">{{ t('common.actions.del') }}</el-button></template></el-popconfirm></template>
+        <template #cell-actions="{ row }"><el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button></template>
       </AppTable>
     </div>
   </div>

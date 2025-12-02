@@ -9,6 +9,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   rowKey: { type: String, default: 'id' },
   selectable: { type: Boolean, default: false },
+  rowClickSelect: { type: Boolean, default: true },
   pagination: { type: Object, default: null },
   tableProps: { type: Object, default: () => ({}) },
   autoOverflowTooltip: { type: Boolean, default: true },
@@ -25,6 +26,8 @@ const page = ref(props.pagination ? { ...(props.pagination as any) } : null)
 watch(() => props.pagination, (p: any) => { page.value = p ? { ...p } : null }, { immediate: true, deep: true })
 const onSizeChange = (size: number) => { if (!page.value) return; (page.value as any).page_size = size; (page.value as any).current_page = 1; emit('update:pagination', { ...(page.value as any) }) }
 const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value as any).current_page = cur; emit('update:pagination', { ...(page.value as any) }) }
+const tableRef = ref<any>(null)
+const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect === false) return; (tableRef.value as any)?.toggleRowSelection(row) }
 </script>
 <template>
   <div class="table-wrapper">
@@ -35,7 +38,7 @@ const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value 
         <ColumnSetting v-if="props.showColumnSetting" v-model="selectedColumnKeys" :columns="(props.columns as any[])" />
       </ElSpace>
     </div>
-    <ElTable :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">
+    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
       <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { listListApi, initListApi, editListApi, delListApi, batchEditListApi, exportListApi } from '@/api/user/users'
-import { ElNotification } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import UpImg from '@/components/UpImg'
 import { useUserStore } from '@/store/user'
 import { AppTable } from '@/components/Table'
@@ -24,16 +24,23 @@ getList()
 const onSelectionChange = (selection:any[]) => { selectedIds.value = selection.map((item:any)=>item.id) }
 const refresh = () => { getList() }
 const onPageChange = (p:any) => { page.value = p; getList() }
-const tableRef = ref()
-const handleRowClick = (row:any) => { (tableRef.value as any).toggleRowSelection(row) }
 const editBoxShow = ref(false)
 const editForm = ref({ id:'', phone:'', avatar:'', role_id:'', username:'', email:'', sex:'', address:'', detail_address:'', desc:'' })
 const edit = (current:any) => { editForm.value = { id: current.id, phone: current.phone, avatar: current.avatar, role_id: current.role_id, username: current.username, email: current.email, sex: current.sex, address: current.address, detail_address: current.detail_address, desc: current.desc }; editBoxShow.value = true }
 const handleUploadSuccess = (url:string) => { editForm.value.avatar = url }
 const confirmEdit = () => { const data = editForm.value; editListApi(data).then(()=>{ ElNotification.success({ message:'编辑成功' }); editBoxShow.value = false; getList() }).catch(()=>{}) }
-const confirmDel = (current:any) => { const param = { id: current.id }; delListApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{}) }
+const confirmDel = async (current:any) => {
+  try { await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: current.id }
+  delListApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{})
+}
 const selectedIds = ref([] as any[])
-const batchDel = () => { const param = { id: selectedIds.value }; delListApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{}) }
+const batchDel = async () => {
+  if (!selectedIds.value || selectedIds.value.length === 0) { ElNotification.error({ message:'请至少选择一个用户' }); return }
+  try { await ElMessageBox.confirm('确定批量删除选中用户吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: selectedIds.value }
+  delListApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{})
+}
 const batchEditBoxShow = ref(false)
 const batchEditForm = ref({ ids:[], field:'', sex:'', address:'', detail_address:'' })
 const batchEdit = () => { if (selectedIds.value.length === 0) { ElNotification.error({ message:'请至少选择一个用户' }); return } batchEditForm.value = { ids: selectedIds.value, field:'', sex:'', address:'', detail_address:'' }; batchEditBoxShow.value = true }
@@ -80,7 +87,7 @@ const exportExcel = () => { if (selectedIds.value.length === 0){ ElNotification.
         <template #cell-role_name="{ row }"><el-tag :type="row.role_id === 1 ? 'success' : 'danger'">{{ row.role_name }}</el-tag></template>
         <template #cell-desc="{ row }"><el-text v-html="row.desc"></el-text></template>
         <template #cell-is_expired="{ row }"><el-tag :type="row.is_expired === '未过期' ? 'success' : 'danger'">{{ row.is_expired }}</el-tag></template>
-        <template #cell-actions="{ row }"><el-button type="primary" @click="edit(row)" text v-if="userStore.can('user.edit')">{{ t('common.actions.edit') }}</el-button><el-popconfirm title="确定删除嘛?" @confirm="confirmDel(row)"><template #reference><el-button type="danger" text v-if="userStore.can('user.del')">{{ t('common.actions.del') }}</el-button></template></el-popconfirm></template>
+        <template #cell-actions="{ row }"><el-button type="primary" @click="edit(row)" text v-if="userStore.can('user.edit')">{{ t('common.actions.edit') }}</el-button><el-button type="danger" text v-if="userStore.can('user.del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button></template>
       </AppTable>
     </div>
   </div>

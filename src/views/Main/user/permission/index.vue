@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { addApi, delApi, editApi, listApi, initApi, batchEditApi, statusApi } from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
-import { ElNotification } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 const userStore = useUserStore()
@@ -28,10 +28,19 @@ const editBoxShow = ref(false)
 const editForm = ref({ id:'', name:'', parent_id:'', icon:'', path:'', component:'', actions:[], type:'', code:'' })
 const edit = (current:any) => { editForm.value = { id:current.id, name:current.name, parent_id:current.parent_id, icon:current.icon, path:current.path, component:current.component, actions:current.actions, type:current.type, code:current.code }; editBoxShow.value = true }
 const confirmEdit = () => { const data = editForm.value; editApi(data).then(()=>{ ElNotification.success({ message:'编辑成功' }); editBoxShow.value = false; getList(); init() }).catch(()=>{}) }
-const confirmDel = (current:any) => { const param = { id: current.id }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{}) }
+const confirmDel = async (current:any) => {
+  try { await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: current.id }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{})
+}
 const selectedIds = ref([] as any[])
 const handleSelectionChange = (selection:any[]) => { selectedIds.value = selection.map((item:any)=>item.id) }
-const batchDel = () => { const param = { id: selectedIds.value }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{}) }
+const batchDel = async () => {
+  if (!selectedIds.value || selectedIds.value.length === 0) { ElNotification.error({ message:'请至少选择一个记录' }); return }
+  try { await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: selectedIds.value }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{})
+}
 const iconAddSelect = ref<any>(null)
 const openAddIconSelect = () => { iconAddSelect.value.show() }
 const confirmAddIcon = (iconName:string) => { addForm.value.icon = iconName }
@@ -65,7 +74,7 @@ const changStatus = (row:any) => { if (row.status === undefined) { ElNotificatio
         <el-table-column label="是否启用" align="center"><template #default="scope"><el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" @change="changStatus(scope.row)" /></template></el-table-column>
         <el-table-column label="类型" align="center"><template #default="scope"><el-tag effect="dark" v-if="scope.row.type===1" type="success">{{ scope.row.type_name }}</el-tag><el-tag effect="dark" v-if="scope.row.type===2" type="primary">{{ scope.row.type_name }}</el-tag><el-tag effect="dark" v-if="scope.row.type===3" type="danger">{{ scope.row.type_name }}</el-tag></template></el-table-column>
         <el-table-column label="CODE" align="center" prop="code" />
-        <el-table-column label="操作" align="center" min-width="180" fixed="right" header-align="center"><template #default="scope"><el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑</el-button><el-popconfirm title="确定删除嘛?" @confirm="confirmDel(scope.row)"><template #reference><el-button type="danger" text v-if="userStore.can('permission.del')">删除</el-button></template></el-popconfirm></template></el-table-column>
+        <el-table-column label="操作" align="center" min-width="180" fixed="right" header-align="center"><template #default="scope"><el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑</el-button><el-button type="danger" text v-if="userStore.can('permission.del')" @click="confirmDel(scope.row)">删除</el-button></template></el-table-column>
       </el-table>
     </div>
   </div>

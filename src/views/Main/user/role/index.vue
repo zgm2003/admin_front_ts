@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { addApi, delApi, editApi, listApi, initApi } from '@/api/user/role'
-import { ElNotification } from 'element-plus'
+import { ElNotification, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
@@ -25,14 +25,21 @@ const selectedIds = ref([] as any[])
 const onSelectionChange = (selection:any[]) => { selectedIds.value = selection.map((item:any) => item.id) }
 const refresh = () => { getList() }
 const onPageChange = (p:any) => { page.value = p; getList() }
-const tableRef = ref()
-const handleRowClick = (row:any) => { (tableRef.value as any).toggleRowSelection(row) }
 const editBoxShow = ref(false)
 const editForm = ref({ id:'', name:'', permission_id:'' })
 const edit = (current:any) => { editForm.value = { id: current.id, name: current.name, permission_id: current.permission_id }; editBoxShow.value = true }
 const confirmEdit = () => { const data = editForm.value; editApi(data).then(()=>{ ElNotification.success({ message:'编辑成功' }); editBoxShow.value = false; getList() }).catch(()=>{}) }
-const confirmDel = (current:any) => { const param = { id: current.id }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{}) }
-const batchDel = () => { const param = { id: selectedIds.value }; delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{}) }
+const confirmDel = async (current:any) => {
+  try { await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: current.id }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList(); init() }).catch(()=>{})
+}
+const batchDel = async () => {
+  if (!selectedIds.value || selectedIds.value.length === 0) { ElNotification.error({ message:'请至少选择一个记录' }); return }
+  try { await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' }) } catch { return }
+  const param = { id: selectedIds.value }
+  delApi(param).then(()=>{ ElNotification.success({ message:'删除成功' }); getList() }).catch(()=>{})
+}
 const props = { multiple:true, emitPath:false, checkStrictly:true }
 </script>
 
@@ -53,7 +60,7 @@ const props = { multiple:true, emitPath:false, checkStrictly:true }
       <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>
-          <el-popconfirm title="确定删除嘛?" @confirm="confirmDel(row)"><template #reference><el-button type="danger" text v-if="userStore.can('role.del')">删除</el-button></template></el-popconfirm>
+          <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">删除</el-button>
         </template>
       </AppTable>
     </div>

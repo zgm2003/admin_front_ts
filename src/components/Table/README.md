@@ -42,6 +42,7 @@ import { AppTable } from '@/components/Table'
 - `loading: boolean` 加载中
 - `rowKey: string` 行唯一键（默认 `id`）
 - `selectable: boolean` 是否显示选择列
+- `rowClickSelect: boolean` 可选，支持勾选时点击整行切换选中（默认 `true`）
 - `pagination: { current_page: number; page_size: number; total: number } | null` 分页对象，传入即显示分页
 - `showRefresh: boolean` 是否显示刷新按钮（默认 `true`）
 - `showColumnSetting: boolean` 是否显示列设置（默认 `true`）
@@ -95,6 +96,7 @@ function onRefresh() {
     row-key="id"
     :pagination="page"
     selectable
+    :row-click-select="true"
     @refresh="onRefresh"
     @update:pagination="onPageChange"
   >
