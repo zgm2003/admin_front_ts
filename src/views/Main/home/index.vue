@@ -47,7 +47,7 @@ const gotToPersonal = () => router.push({ name: 'personal', query: { user_id: us
         </div>
       </template>
       <el-row :gutter="16" class="quick">
-        <el-col v-for="e in entries" :key="e.path" :span="6">
+        <el-col v-for="e in entries" :key="e.path" :xs="24" :sm="12" :md="8" :lg="6">
           <el-card class="quick-card" @click="goTo(e.path)" shadow="hover">
             <div class="quick-item">
               <el-icon :style="{ color: e.color, fontSize: '24px' }"><component :is="e.icon"/></el-icon>
@@ -69,4 +69,10 @@ const gotToPersonal = () => router.push({ name: 'personal', query: { user_id: us
 .quick{margin-top:16px}
 .quick-card{cursor:pointer}
 .quick-item{display:flex;align-items:center;gap:12px}
+@media (max-width:768px){
+  .home{padding:12px}
+  .hero{flex-direction:column; align-items:flex-start; gap:12px}
+  .hero-text{margin-left:0}
+  .hero-actions{width:100%}
+}
 </style>

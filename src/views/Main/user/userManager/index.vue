@@ -44,7 +44,7 @@ const exportExcel = () => { if (selectedIds.value.length === 0){ ElNotification.
 
 <template>
   <div class="box" style="margin-left:10px;">
-    <el-form :inline="true" :model="searchForm">
+    <el-form :inline="true" :model="searchForm" class="filters">
       <el-form-item>
         <el-dropdown>
           <el-button type="primary">{{ t('common.actions.batchEdit') }}<el-icon class="el-icon--right"><arrow-right/></el-icon></el-button>
@@ -116,4 +116,11 @@ const exportExcel = () => { if (selectedIds.value.length === 0){ ElNotification.
 .box{display:flex;flex-direction:column;height:100%}
 .table{flex:1 1 auto;min-height:0;overflow:auto}
 .fenye{flex:0 0 auto;margin-left:30%;margin-top:10px}
+@media (max-width:768px){
+  .filters{flex-wrap:wrap}
+  .filters :deep(.el-form-item){width:auto;margin-right:8px}
+  .filters :deep(.el-input),
+  .filters :deep(.el-select-v2),
+  .filters :deep(.el-cascader){width:160px !important}
+}
 </style>

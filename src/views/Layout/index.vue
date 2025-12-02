@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import Aside from '@/views/Layout/components/Aside.vue'
 import Header from '@/views/Layout/components/Header.vue'
 import TabTag from '@/views/Layout/components/TabTag.vue'
@@ -9,7 +10,7 @@ import { useMenuStore } from '@/store/menu'
 
 const userStore = useUserStore()
 const menuStore = useMenuStore()
-const isMobile = ref(false)
+const isMobile = useMediaQuery('(max-width: 768px)')
 </script>
 <template>
   <el-container v-loading="userStore.loading">
@@ -19,7 +20,7 @@ const isMobile = ref(false)
     <el-aside width="auto" v-else><Aside /></el-aside>
     <el-container>
       <el-header><Header /></el-header>
-      <TabTag style="margin-left: 10px;" v-if="menuStore.tabtag" />
+      <TabTag style="margin-left: 10px;" v-if="menuStore.tabtag && !isMobile" />
       <el-main>
         <router-view />
       </el-main>

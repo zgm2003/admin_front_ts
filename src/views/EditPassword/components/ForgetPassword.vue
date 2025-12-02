@@ -35,8 +35,7 @@ const back = () => { router.go(-1) }
   </el-card>
 </template>
 <style scoped lang="less">
-.loginCard{ width:100%; max-width:520px; margin:6vh auto; padding:32px; border-radius:18px; backdrop-filter: blur(12px); background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.55)); box-shadow: 0 20px 60px rgba(0,0,0,0.15); border:1px solid rgba(255,255,255,0.6) }
-:global(.dark) .loginCard{ background: linear-gradient(135deg, rgba(32,32,32,0.75), rgba(22,22,22,0.6)); border-color: rgba(255,255,255,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.4) }
+.loginCard{ width:100%; max-width:520px; margin:6vh auto; padding:32px; border-radius:18px; background: var(--el-card-bg-color); box-shadow: var(--el-box-shadow-light); border:1px solid var(--el-border-color) }
 .one{ width:100%; display:flex; justify-content: space-between }
 h2{ letter-spacing:1px; margin-bottom:18px }
 @media (max-width:768px){ .loginCard{ margin:4vh auto; padding:24px; border-radius:16px } }

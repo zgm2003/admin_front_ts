@@ -66,7 +66,7 @@ const MENU_GROUP_I18N_BY_INDEX = {
 }
 
 const displayLabel = computed(() => {
-  const _lang = locale.value
+  if (props.item.i18nKey) return t(props.item.i18nKey)
   const pathKey = props.item.path && MENU_I18N_BY_PATH[props.item.path]
   if (pathKey) return t(pathKey)
   const idxKey = MENU_GROUP_I18N_BY_INDEX[props.item.index]

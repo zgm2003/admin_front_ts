@@ -17,7 +17,7 @@
     </el-button>
 
     <!-- 面包屑 -->
-    <div v-if="menuStore.breadcrumb" class="breadcrumb-wrapper">
+    <div v-if="menuStore.breadcrumb && !isMobile" class="breadcrumb-wrapper">
       <el-breadcrumb separator-icon="ArrowRight">
         <el-breadcrumb-item
             v-for="item in menuStore.tabList"
@@ -46,7 +46,7 @@
 
       <!-- 全屏按钮 -->
       <el-button
-          v-if="menuStore.screenfull"
+          v-if="menuStore.screenfull && !isMobile"
           @click="toggleFullScreen"
           icon="FullScreen"
           circle
@@ -207,6 +207,7 @@ const MENU_I18N_MAP = {
   '/test': 'menu.test'
 }
 function getBreadcrumbLabel(item) {
+  if (item.i18nKey) return t(item.i18nKey)
   const key = MENU_I18N_MAP[item.path]
   return key ? t(key) : item.label
 }
@@ -371,6 +372,8 @@ function copyConfig() {
 .header-bar {
   display: flex;
   align-items: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .flex-grow {
@@ -379,6 +382,11 @@ function copyConfig() {
 
 .breadcrumb-wrapper {
   margin-right: 16px;
+}
+
+@media (max-width: 768px) {
+  .header-bar { padding: 0 6px; }
+  :deep(.el-space) { flex-wrap: wrap; }
 }
 
 .setting-drawer {

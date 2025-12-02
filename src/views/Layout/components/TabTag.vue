@@ -21,7 +21,7 @@ const MENU_I18N_MAP = {
 }
 
 function getTagLabel(tag) {
-  const _lang = locale.value
+  if (tag.i18nKey) return t(tag.i18nKey)
   const key = MENU_I18N_MAP[tag.path]
   return key ? t(key) : tag.label
 }
