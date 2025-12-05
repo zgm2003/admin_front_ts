@@ -34,7 +34,6 @@
     <div class="flex-grow"></div>
     <el-space size="large">
 
-
       <!-- 暗黑/明亮切换 -->
       <el-switch
           v-model="isDark"
@@ -74,7 +73,7 @@
       <!-- 用户下拉菜单 -->
       <el-dropdown @command="handleUserCommand">
       <span class="el-dropdown-link">
-        <el-avatar :src="userStore.avatar" :size="isMobile ? 'small' : 'large'"/>
+        <el-avatar :src="userStore.avatar" size="small"/>
       </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -363,6 +362,7 @@ function copyConfig() {
   align-items: center;
   min-width: 0;
   overflow: hidden;
+  margin: 10px 0;
 }
 
 .flex-grow {
