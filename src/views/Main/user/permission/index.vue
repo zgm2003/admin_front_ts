@@ -21,31 +21,13 @@ const init = () => {
   })
 }
 init()
-const addBoxShow = ref(false)
-const addForm = ref({
-  name: '',
-  parent_id: '',
-  icon: '',
-  path: '',
-  component: '',
-  actions: [],
-  type: '',
-  code: '',
-  i18n_key: ''
-})
+const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
+const form = ref({ id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '' })
 const add = () => {
-  addForm.value = {name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: ''};
-  addBoxShow.value = true
-}
-const confirmAdd = () => {
-  const param = addForm.value;
-  addApi(param).then(() => {
-    ElNotification.success({message: '新增成功'});
-    addBoxShow.value = false;
-    getList();
-    init()
-  }).catch(() => {
-  })
+  dialogMode.value = 'add'
+  form.value = { id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '' }
+  dialogVisible.value = true
 }
 const listLoading = ref(false)
 const listData = ref([])
@@ -65,43 +47,34 @@ const tableRef = ref()
 const handleRowClick = (row: any) => {
   (tableRef.value as any).toggleRowSelection(row)
 }
-const editBoxShow = ref(false)
-const editForm = ref({
-  id: '',
-  name: '',
-  parent_id: '',
-  icon: '',
-  path: '',
-  component: '',
-  actions: [],
-  type: '',
-  code: '',
-  i18n_key: ''
-})
 const edit = (current: any) => {
-  editForm.value = {
-    id: current.id,
-    name: current.name,
-    parent_id: current.parent_id,
-    icon: current.icon,
-    path: current.path,
-    component: current.component,
-    actions: current.actions,
-    type: current.type,
-    code: current.code,
-    i18n_key: current.i18n_key
-  };
-  editBoxShow.value = true
+  dialogMode.value = 'edit'
+  form.value = { id: current.id, name: current.name, parent_id: current.parent_id, icon: current.icon, path: current.path, component: current.component, actions: current.actions, type: current.type, code: current.code, i18n_key: current.i18n_key }
+  dialogVisible.value = true
 }
-const confirmEdit = () => {
-  const data = editForm.value;
-  editApi(data).then(() => {
-    ElNotification.success({message: '编辑成功'});
-    editBoxShow.value = false;
+const formRef = ref<any>(null)
+const rules = computed(() => ({
+  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
+  name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
+  i18n_key: (form.value.type === 1 || form.value.type === 2) ? [{ required: true, message: '请输入 i18n_key', trigger: 'blur' }] : [],
+  code: (form.value.type === 3) ? [{ required: true, message: '请输入 code', trigger: 'blur' }] : []
+}))
+const confirmSubmit = async () => {
+  try {
+    const ok = await (formRef.value as any)?.validate?.()
+    if (!ok) return
+  } catch {
+    ElNotification.error({ message: '请完善必填项' })
+    return
+  }
+  const payload = form.value
+  const api = dialogMode.value === 'add' ? addApi : editApi
+  api(payload).then(() => {
+    ElNotification.success({message: dialogMode.value === 'add' ? '新增成功' : '编辑成功'})
+    dialogVisible.value = false
     getList();
     init()
-  }).catch(() => {
-  })
+  }).catch(() => {})
 }
 const confirmDel = async (current: any) => {
   try {
@@ -146,20 +119,9 @@ const batchDel = async () => {
   }).catch(() => {
   })
 }
-const iconAddSelect = ref<any>(null)
-const openAddIconSelect = () => {
-  iconAddSelect.value.show()
-}
-const confirmAddIcon = (iconName: string) => {
-  addForm.value.icon = iconName
-}
-const iconEditSelect = ref<any>(null)
-const openEditIconSelect = () => {
-  iconEditSelect.value.show()
-}
-const confirmEditIcon = (iconName: string) => {
-  editForm.value.icon = iconName
-}
+const iconSelectRef = ref<any>(null)
+const openIconSelect = () => { iconSelectRef.value.show() }
+const confirmIcon = (iconName: string) => { form.value.icon = iconName }
 const changStatus = (row: any) => {
   if (row.status === undefined) {
     ElNotification.error({message: '启用状态字段不存在'});
@@ -224,6 +186,7 @@ const searchFields = computed(() => [
           </template>
         </el-table-column>
         <el-table-column label="CODE" align="center" prop="code"/>
+        <el-table-column label="I18N_KEY" align="center" prop="i18n_key"/>
         <el-table-column label="操作" align="center" min-width="180" fixed="right" header-align="center">
           <template #default="scope">
             <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑
@@ -235,12 +198,11 @@ const searchFields = computed(() => [
       </el-table>
     </div>
   </div>
-  <el-dialog v-model="addBoxShow" class="add-box dialog-box" width="800" draggable>
-    <template #header>新增</template>
+  <el-dialog v-model="dialogVisible" class="add-box dialog-box" width="800" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close>
     <div class="content-box">
-      <el-form :model="addForm" label-width="auto">
-        <el-form-item label="类型" required>
-          <el-radio-group v-model="addForm.type">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
+        <el-form-item label="类型" prop="type" required>
+          <el-radio-group v-model="form.type">
             <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
                 item.label
               }}
@@ -248,74 +210,34 @@ const searchFields = computed(() => [
           </el-radio-group>
         </el-form-item>
         <el-form-item label="父级菜单">
-          <el-tree-select v-model="addForm.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true
-                          :render-after-expand="false"/>
+          <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true
+                           :render-after-expand="false"/>
         </el-form-item>
-        <el-form-item label="i18n_key" required v-if="addForm.type === 1 || addForm.type === 2">
-          <el-input v-model="addForm.i18n_key" style="width:100%" clearable/>
+        <el-form-item label="名称" prop="name" required>
+          <el-input v-model="form.name" style="width:100%" clearable/>
         </el-form-item>
-        <el-form-item label="名称" required>
-          <el-input v-model="addForm.name" style="width:100%" clearable/>
+        <el-form-item label="i18n_key" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
+          <el-input v-model="form.i18n_key" style="width:100%" clearable/>
         </el-form-item>
-        <el-form-item label="ICON" v-if="addForm.type === 1 || addForm.type === 2">
-          <el-input v-model="addForm.icon" style="width:80%" clearable/>
-          <el-button icon="Setting" @click="openAddIconSelect">选择</el-button>
+        <el-form-item label="ICON" v-if="form.type === 1 || form.type === 2">
+          <el-input v-model="form.icon" style="width:80%" clearable/>
+          <el-button icon="Setting" @click="openIconSelect">选择</el-button>
         </el-form-item>
-        <el-form-item label="路由" v-if="addForm.type === 2">
-          <el-input v-model="addForm.path" style="width:100%" clearable/>
+        <el-form-item label="路由" v-if="form.type === 2">
+          <el-input v-model="form.path" style="width:100%" clearable/>
         </el-form-item>
-        <el-form-item label="component" v-if="addForm.type === 2">
-          <el-input v-model="addForm.component" style="width:100%" clearable type="textarea" :rows="5"/>
+        <el-form-item label="component" v-if="form.type === 2">
+          <el-input v-model="form.component" style="width:100%" clearable :rows="5"/>
         </el-form-item>
-        <el-form-item label="code" required v-if="addForm.type === 3">
-          <el-input v-model="addForm.code" style="width:100%" clearable/>
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer><span class="dialog-footer"><el-button @click="addBoxShow=false">取消</el-button><el-button
-        type="primary" @click="confirmAdd">确认</el-button></span></template>
-  </el-dialog>
-  <el-dialog v-model="editBoxShow" class="add-box" width="800" title="编辑" top="20vh" draggable>
-    <div class="add-box">
-      <el-form label-width="auto" :model="editForm">
-        <el-form-item label="类型" required>
-          <el-radio-group v-model="editForm.type">
-            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
-                item.label
-              }}
-            </el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="父级菜单">
-          <el-tree-select v-model="editForm.parent_id" :data="permissionTree" show-checkbox clearable
-                          check-strictly=true :render-after-expand="false"/>
-        </el-form-item>
-        <el-form-item label="i18n_key" required v-if="editForm.type === 1 || editForm.type === 2">
-          <el-input v-model="editForm.i18n_key" style="width:100%" clearable/>
-        </el-form-item>
-        <el-form-item label="名称" required>
-          <el-input v-model="editForm.name" style="width:100%" clearable/>
-        </el-form-item>
-        <el-form-item label="ICON" v-if="editForm.type === 1 || editForm.type === 2">
-          <el-input v-model="editForm.icon" style="width:80%" clearable/>
-          <el-button icon="Setting" @click="openEditIconSelect">选择</el-button>
-        </el-form-item>
-        <el-form-item label="路由" v-if="editForm.type === 2">
-          <el-input v-model="editForm.path" style="width:100%" clearable/>
-        </el-form-item>
-        <el-form-item label="component" v-if="editForm.type === 2">
-          <el-input v-model="editForm.component" style="width:100%" clearable type="textarea" :rows="5"/>
-        </el-form-item>
-        <el-form-item label="code" required v-if="editForm.type === 3">
-          <el-input v-model="editForm.code" style="width:100%" clearable/>
+        <el-form-item label="code" prop="code" required v-if="form.type === 3">
+          <el-input v-model="form.code" style="width:100%" clearable/>
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="editBoxShow=false">取消</el-button><el-button
-        type="primary" @click="confirmEdit">确认</el-button></span></template>
+    <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">取消</el-button><el-button
+        type="primary" @click="confirmSubmit">确认</el-button></span></template>
   </el-dialog>
-  <icon-select @select-icon="confirmAddIcon" ref="iconAddSelect"/>
-  <icon-select @select-icon="confirmEditIcon" ref="iconEditSelect"/>
+  <icon-select @select-icon="confirmIcon" ref="iconSelectRef"/>
 </template>
 <style scoped>
 .box {
