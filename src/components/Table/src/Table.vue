@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
 import ColumnSetting from './components/ColumnSetting.vue'
 import TableActions from './components/TableActions.vue'
@@ -28,6 +29,9 @@ const onSizeChange = (size: number) => { if (!page.value) return; (page.value as
 const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value as any).current_page = cur; emit('update:pagination', { ...(page.value as any) }) }
 const tableRef = ref<any>(null)
 const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect === false) return; (tableRef.value as any)?.toggleRowSelection(row) }
+const isMobile = useMediaQuery('(max-width: 768px)')
+const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next, sizes' : 'total, sizes, prev, pager, next, jumper')
+const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
 </script>
 <template>
   <div class="table-wrapper">
@@ -44,11 +48,14 @@ const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
       </ElTableColumn>
     </ElTable>
-    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10,20,50,100]" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
+    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" :layout="paginationLayout" :small="isMobile" :page-sizes="pageSizes" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
   </div>
 </template>
 <style scoped>
 .table-wrapper{display:flex;flex-direction:column}
 .table-toolbar{display:flex;justify-content:space-between;margin-bottom:8px}
 .table-footer{display:flex;justify-content:flex-end;margin-top:8px}
+@media (max-width: 768px){
+  .table-footer{justify-content:center}
+}
 </style>

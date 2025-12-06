@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import {delApi, listApi, initApi} from '@/api/system/logs'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
+import { Search } from '@/components/Search'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -44,6 +45,12 @@ const onPageChange = (p: any) => {
   page.value = p;
   getList()
 }
+const searchFields = computed(() => [
+  { key: 'user_id', type: 'select-v2', options: usernameArr.value, placeholder: t('log.filter.userName'), width: 200 },
+  { key: 'user_id', type: 'select-v2', options: emailArr.value, placeholder: t('log.filter.userEmail'), width: 200 },
+  { key: 'action', type: 'input', placeholder: t('log.filter.action'), width: 200 },
+  { key: 'date', type: 'date-range', placeholder: '日期范围', width: 300, props: { valueFormat: 'YYYY-MM-DD' } }
+])
 const confirmDel = async (current: any) => {
   try {
     await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', {
@@ -88,43 +95,21 @@ const batchDel = async () => {
 
 <template>
   <div class="box">
-    <el-form :inline="true" :model="searchForm">
-      <el-form-item>
-        <el-dropdown>
-          <el-button type="primary">{{ t('common.actions.batchDelete') }}
-            <el-icon class="el-icon--right">
-              <arrow-right/>
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{
-                  t('common.actions.batchDelete')
-                }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-form-item>
-      <el-form-item>
-        <el-select-v2 v-model="searchForm.user_id" :options="usernameArr" style="width:200px" filterable clearable
-                      :placeholder="t('log.filter.userName')"/>
-      </el-form-item>
-      <el-form-item>
-        <el-select-v2 v-model="searchForm.user_id" :options="emailArr" style="width:200px" filterable clearable
-                      :placeholder="t('log.filter.userEmail')"/>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.action" :placeholder="t('log.filter.action')" clearable style="width:200px"/>
-      </el-form-item>
-      <el-form-item>
-        <el-date-picker v-model="searchForm.date" type="daterange" range-separator="至" start-placeholder="开始日期"
-                        end-placeholder="结束日期" value-format="YYYY-MM-DD" style="width:300px" clearable/>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="getList">{{ t('common.actions.query') }}</el-button>
-      </el-form-item>
-    </el-form>
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <el-dropdown>
+        <el-button type="primary">{{ t('common.actions.batchDelete') }}
+          <el-icon class="el-icon--right">
+            <arrow-right/>
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
     <div class="table">
       <AppTable :columns="[
           { key: 'id', label: t('log.table.id'), width: 55 },

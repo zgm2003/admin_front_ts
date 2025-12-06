@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import {addApi, delApi, editApi, listApi, initApi} from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
+import { Search } from '@/components/Search'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -35,13 +36,13 @@ const listLoading = ref(false)
 const listData = ref([])
 const searchForm = ref({name: '', path: '', permission: ''})
 const page = ref({current_page: 1, page_size: 50, total: 0})
-const columns = [{key: 'id', label: t('role.table.id'), width: 55}, {
-  key: 'name',
-  label: t('role.table.name')
-}, {key: 'created_at', label: t('role.table.created_at')}, {
-  key: 'updated_at',
-  label: t('role.table.updated_at')
-}, {key: 'actions', label: '操作', width: 180, align: 'center'}]
+const columns = [
+  {key: 'id', label: t('role.table.id'), width: 55},
+  {key: 'name', label: t('role.table.name')},
+  {key: 'created_at', label: t('role.table.created_at')},
+  {key: 'updated_at', label: t('role.table.updated_at')},
+  {key: 'actions', label: '操作', width: 180, align: 'center'}
+]
 const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
@@ -120,38 +121,29 @@ const batchDel = async () => {
   })
 }
 const props = {multiple: true, emitPath: false, checkStrictly: true}
+const searchFields = computed(() => [
+  { key: 'name', type: 'input', placeholder: t('role.filter.name'), width: 150 }
+])
 </script>
 
 <template>
   <div class="box">
-    <el-form :inline="true" :model="searchForm">
-      <el-form-item>
-        <el-dropdown>
-          <el-button type="primary">{{ t('common.actions.batchDelete') }}
-            <el-icon class="el-icon--right">
-              <arrow-right/>
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{
-                  t('common.actions.batchDelete')
-                }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-form-item>
-      <el-form-item v-if="userStore.can('role.add')">
-        <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.name" clearable :placeholder="t('role.filter.name')" style="width:150px"/>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="getList">{{ t('common.actions.query') }}</el-button>
-      </el-form-item>
-    </el-form>
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+      <el-dropdown>
+        <el-button type="primary">{{ t('common.actions.batchDelete') }}
+          <el-icon class="el-icon--right">
+            <arrow-right/>
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
     <div class="table">
       <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">

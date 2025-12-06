@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {listListApi, initListApi, editListApi, delListApi, batchEditListApi, exportListApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import UpImg from '@/components/UpImg'
 import {useUserStore} from '@/store/user'
 import {AppTable} from '@/components/Table'
+import { Search } from '@/components/Search'
 import {useI18n} from 'vue-i18n'
 
 const userStore = useUserStore()
@@ -49,6 +50,14 @@ const onPageChange = (p: any) => {
   page.value = p;
   getList()
 }
+const searchFields = computed(() => [
+  { key: 'username', type: 'input', placeholder: t('user.filter.username'), width: 150 },
+  { key: 'email', type: 'input', placeholder: t('user.filter.email'), width: 150 },
+  { key: 'role_id', type: 'select-v2', options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
+  { key: 'sex', type: 'select-v2', options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
+  { key: 'address', type: 'cascader', options: addressTree.value, placeholder: t('user.filter.address'), width: 150 },
+  { key: 'detail_address', type: 'input', placeholder: t('user.filter.detail_address'), width: 150 }
+])
 const editBoxShow = ref(false)
 const editForm = ref({
   id: '',
@@ -170,57 +179,23 @@ const exportExcel = () => {
 
 <template>
   <div class="box">
-    <el-form :inline="true" :model="searchForm" class="filters">
-      <el-form-item>
-        <el-dropdown>
-          <el-button type="primary">{{ t('common.actions.batchEdit') }}
-            <el-icon class="el-icon--right">
-              <arrow-right/>
-            </el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{
-                  t('common.actions.batchDelete')
-                }}
-              </el-dropdown-item>
-              <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{
-                  t('common.actions.batchEdit')
-                }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.username" clearable :placeholder="t('user.filter.username')" style="width:150px"/>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.email" :placeholder="t('user.filter.email')" clearable style="width:150px"/>
-      </el-form-item>
-      <el-form-item>
-        <el-select-v2 v-model="searchForm.role_id" :placeholder="t('user.filter.role')" :options="roleArr"
-                      style="width:150px" filterable clearable/>
-      </el-form-item>
-      <el-form-item>
-        <el-select-v2 v-model="searchForm.sex" :placeholder="t('user.filter.sex')" :options="sexArr" style="width:150px"
-                      filterable clearable/>
-      </el-form-item>
-      <el-form-item>
-        <el-cascader v-model="searchForm.address" :options="addressTree" :placeholder="t('user.filter.address')"
-                     style="width:150px" clearable filterable/>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.detail_address" :placeholder="t('user.filter.detail_address')" style="width:150px"
-                  clearable/>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="getList">{{ t('common.actions.query') }}</el-button>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
-      </el-form-item>
-    </el-form>
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <div class="filters" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <el-dropdown>
+        <el-button type="primary">{{ t('common.actions.batchEdit') }}
+          <el-icon class="el-icon--right">
+            <arrow-right/>
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+            <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-button type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
+    </div>
     <div class="table">
       <AppTable :columns="[
           { key: 'id', label: t('user.table.id') },
