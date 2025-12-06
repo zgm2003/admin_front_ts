@@ -1,17 +1,36 @@
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { forgetPasswordApi, sendCodeApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/cookie'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
 import { useI18n } from 'vue-i18n'
+import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const emit = defineEmits(['to-edit'])
 const { t } = useI18n()
-const ForgetPasswordForm = ref({ email:'', code:'', newpassword:'', status:2 })
+interface ForgetPasswordModel { email: string; code: string; newpassword: string; status: number }
+const ForgetPasswordForm = ref<ForgetPasswordModel>({ email:'', code:'', newpassword:'', status:2 })
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  email: [{ required: true, message: t('auth.forget.email') + '为必填项', trigger: 'blur' }],
+  code: [{ required: true, message: t('auth.forget.code') + '为必填项', trigger: 'blur' }],
+  newpassword: [{ required: true, message: t('auth.forget.newPassword') + '为必填项', trigger: 'blur' }]
+}))
 const loading = ref(false)
-const forgetPassword = () => { const param = ForgetPasswordForm.value; loading.value = true; forgetPasswordApi(param).then(()=>{ ElNotification.success(t('common.success.editPassword')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
+const forgetPassword = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+  } catch {
+    ElNotification.error('请完善必填项')
+    return
+  }
+  const param = ForgetPasswordForm.value
+  doSubmit(param)
+}
+const doSubmit = (param: ForgetPasswordModel) => { loading.value = true; forgetPasswordApi(param).then(()=>{ ElNotification.success(t('common.success.editPassword')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
 const toLogin = () => { router.push('/login') }
 const toEdit = () => { emit('to-edit') }
 const codeLoding = ref(false)
@@ -24,12 +43,12 @@ const back = () => { router.go(-1) }
 <template>
   <el-card shadow="always" class="loginCard" v-loading="loading">
     <h2 style="text-align:center">{{ t('auth.forget.title') }}</h2>
-    <el-form :model="ForgetPasswordForm" label-position="top">
-      <el-form-item :label="t('auth.forget.email')"><el-input placeholder="请输入邮箱" v-model="ForgetPasswordForm.email" clearable size="large" style="width:100%" /></el-form-item>
-      <el-form-item><el-input :placeholder="t('auth.forget.code')" v-model="ForgetPasswordForm.code" clearable size="large" style="width:60%" /><el-button type="primary" size="large" @click="sendCode" :loading="codeLoding" :disabled="!ForgetPasswordForm.email || timer > 0">{{ timer > 0 ? t('auth.register.resend', { timer }) : t('auth.register.sendCode') }}</el-button></el-form-item>
-      <el-form-item :label="t('auth.forget.newPassword')"><el-input placeholder="请输入新密码" v-model="ForgetPasswordForm.newpassword" clearable show-password size="large" style="width:100%" @keydown.enter="forgetPassword" /></el-form-item>
+    <el-form :model="ForgetPasswordForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
+      <el-form-item :label="t('auth.forget.email')" prop="email"><el-input placeholder="请输入邮箱" v-model="ForgetPasswordForm.email" clearable size="large" style="width:100%" /></el-form-item>
+      <el-form-item prop="code"><el-input :placeholder="t('auth.forget.code')" v-model="ForgetPasswordForm.code" clearable size="large" style="width:60%" /><el-button type="primary" size="large" @click="sendCode" :loading="codeLoding" :disabled="!ForgetPasswordForm.email || timer > 0">{{ timer > 0 ? t('auth.register.resend', { timer }) : t('auth.register.sendCode') }}</el-button></el-form-item>
+      <el-form-item :label="t('auth.forget.newPassword')" prop="newpassword"><el-input placeholder="请输入新密码" v-model="ForgetPasswordForm.newpassword" clearable show-password size="large" style="width:100%" @keydown.enter="forgetPassword" /></el-form-item>
       <el-form-item><el-button style="width:100%" type="primary" size="large" @click="forgetPassword">{{ t('auth.forget.submit') }}</el-button></el-form-item>
-      <el-form-item><el-button style="width:100%" type="success" size="large" @click="toEdit" v-if="Cookies.get('token')">{{ t('auth.forget.toEdit') }}</el-button></el-form-item>
+      <el-form-item><el-button style="width:100%" size="large" @click="toEdit" v-if="Cookies.get('token')">{{ t('auth.forget.toEdit') }}</el-button></el-form-item>
       <el-form-item><el-button style="width:100%" size="large" @click="back">{{ t('common.back') }}</el-button></el-form-item>
     </el-form>
   </el-card>

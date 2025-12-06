@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { registerApi, sendCodeApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/cookie'
@@ -7,13 +7,32 @@ import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
 import { setupDynamicRoutes } from '@/router'
 import { useI18n } from 'vue-i18n'
+import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const emit = defineEmits(['to-login'])
 const { t } = useI18n()
 const toLogin = () => { emit('to-login') }
 const registerForm = ref({ username:'', email:'', password:'', respassword:'', code:'', status:1 })
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  username: [{ required: true, message: t('auth.register.username') + '为必填项', trigger: 'blur' }],
+  email: [{ required: true, message: t('auth.register.email') + '为必填项', trigger: 'blur' }],
+  password: [{ required: true, message: t('auth.register.password') + '为必填项', trigger: 'blur' }],
+  respassword: [
+    { required: true, message: t('auth.register.confirmPassword') + '为必填项', trigger: 'blur' },
+    { validator: (_r, _v, cb) => { if (registerForm.value.respassword !== registerForm.value.password) cb(new Error('两次输入不一致')); else cb() }, trigger: 'blur' }
+  ],
+  code: [{ required: true, message: t('auth.register.code') + '为必填项', trigger: 'blur' }]
+}))
 const loading = ref(false)
-const Register = () => {
+const Register = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+  } catch {
+    ElNotification.error('请完善必填项')
+    return
+  }
   const param = registerForm.value
   loading.value = true
   registerApi(param)
@@ -42,12 +61,12 @@ const startCountdown = () => { timer.value = 60; const interval = setInterval(()
 <template>
   <el-card shadow="always" class="loginCard" v-loading="loading">
     <h2 style="text-align:center">{{ t('auth.register.title') }}</h2>
-    <el-form :model="registerForm" label-position="top">
-      <el-form-item :label="t('auth.register.username')"><el-input placeholder="请输入用户名" v-model="registerForm.username" clearable size="large" style="width:100%" /></el-form-item>
-      <el-form-item :label="t('auth.register.email')"><el-input placeholder="请输入邮箱" v-model="registerForm.email" clearable size="large" style="width:100%" /></el-form-item>
-      <el-form-item :label="t('auth.register.password')"><el-input placeholder="请输入密码" v-model="registerForm.password" clearable show-password size="large" style="width:100%" /></el-form-item>
-      <el-form-item :label="t('auth.register.confirmPassword')"><el-input placeholder="请输入密码" v-model="registerForm.respassword" clearable show-password size="large" style="width:100%" /></el-form-item>
-      <el-form-item>
+    <el-form :model="registerForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
+      <el-form-item :label="t('auth.register.username')" prop="username"><el-input placeholder="请输入用户名" v-model="registerForm.username" clearable size="large" style="width:100%" /></el-form-item>
+      <el-form-item :label="t('auth.register.email')" prop="email"><el-input placeholder="请输入邮箱" v-model="registerForm.email" clearable size="large" style="width:100%" /></el-form-item>
+      <el-form-item :label="t('auth.register.password')" prop="password"><el-input placeholder="请输入密码" v-model="registerForm.password" clearable show-password size="large" style="width:100%" /></el-form-item>
+      <el-form-item :label="t('auth.register.confirmPassword')" prop="respassword"><el-input placeholder="请输入密码" v-model="registerForm.respassword" clearable show-password size="large" style="width:100%" /></el-form-item>
+      <el-form-item prop="code">
         <el-input :placeholder="t('auth.register.code')" v-model="registerForm.code" clearable size="large" style="width:60%" />
         <el-button type="primary" size="large" @click="sendCode" :loading="codeLoding" :disabled="!registerForm.email || timer > 0">{{ timer > 0 ? t('auth.register.resend', { timer }) : t('auth.register.sendCode') }}</el-button>
       </el-form-item>

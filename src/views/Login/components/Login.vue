@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { loginApi } from '@/api/user/users'
 import { useRouter } from 'vue-router'
@@ -7,12 +7,25 @@ import { clearAllCookies } from '@/utils/cookie'
 import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
 import { useI18n } from 'vue-i18n'
+import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const emit = defineEmits(['to-register'])
 const { t } = useI18n()
 const loginForm = ref({ email: '', password: '', remember: true })
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  email: [{ required: true, message: t('auth.login.email') + '为必填项', trigger: 'blur' }],
+  password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }]
+}))
 const loading = ref(false)
-const Login = () => {
+const Login = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+  } catch {
+    ElNotification.error('请完善必填项')
+    return
+  }
   const param = loginForm.value
   loading.value = true
   loginApi(param)
@@ -33,9 +46,9 @@ const toForgetPassword = () => { router.push('/editPassword') }
 <template>
   <el-card shadow="always" class="loginCard" v-loading="loading">
     <h2 style="text-align:center">{{ t('auth.login.title') }}</h2>
-    <el-form :model="loginForm" label-position="top">
-      <el-form-item :label="t('auth.login.email')"><el-input placeholder="请输入邮箱" v-model="loginForm.email" clearable size="large" style="width:100%" /></el-form-item>
-      <el-form-item :label="t('auth.login.password')"><el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" /></el-form-item>
+    <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
+      <el-form-item :label="t('auth.login.email')" prop="email"><el-input placeholder="请输入邮箱" v-model="loginForm.email" clearable size="large" style="width:100%" /></el-form-item>
+      <el-form-item :label="t('auth.login.password')" prop="password"><el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" /></el-form-item>
       <el-form-item>
         <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div><div class="right"><el-text type="primary" @click="toForgetPassword" style="cursor:pointer">{{ t('auth.login.toForget') }}</el-text></div></div>
       </el-form-item>

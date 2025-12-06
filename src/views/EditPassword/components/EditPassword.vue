@@ -1,18 +1,39 @@
-<script setup>
-import {ref} from 'vue'
+<script setup lang="ts">
+import {ref, computed} from 'vue'
 import {ElNotification} from 'element-plus'
 import {EditPasswordApi} from '@/api/user/users'
 import {clearAllCookies} from '@/utils/cookie'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const router = useRouter()
 const emit = defineEmits(['to-edit', 'to-forget'])
 const {t} = useI18n()
-const editPasswordForm = ref({password: '', newpassword: '', respassword: ''})
+interface EditPasswordModel { password: string; newpassword: string; respassword: string }
+const editPasswordForm = ref<EditPasswordModel>({password: '', newpassword: '', respassword: ''})
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  password: [{ required: true, message: t('auth.edit.oldPassword') + '为必填项', trigger: 'blur' }],
+  newpassword: [{ required: true, message: t('auth.edit.newPassword') + '为必填项', trigger: 'blur' }],
+  respassword: [
+    { required: true, message: t('auth.edit.confirmPassword') + '为必填项', trigger: 'blur' },
+    { validator: (_rule, _value, callback) => { if (editPasswordForm.value.respassword !== editPasswordForm.value.newpassword) callback(new Error('两次输入不一致')); else callback() }, trigger: 'blur' }
+  ]
+}))
 const loading = ref(false)
-const EditPassword = () => {
-  const param = editPasswordForm.value;
+const EditPassword = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value.validate()
+  } catch {
+    ElNotification.error('请完善必填项')
+    return
+  }
+  const param = editPasswordForm.value
+  doSubmit(param)
+}
+const doSubmit = (param: EditPasswordModel) => {
   loading.value = true;
   EditPasswordApi(param).then(() => {
     loading.value = false;
@@ -37,16 +58,16 @@ const back = () => {
 <template>
   <el-card shadow="always" class="loginCard" v-loading="loading">
     <h2 style="text-align:center">{{ t('auth.edit.title') }}</h2>
-    <el-form :model="editPasswordForm" label-position="top">
-      <el-form-item :label="t('auth.edit.oldPassword')">
+    <el-form :model="editPasswordForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
+      <el-form-item :label="t('auth.edit.oldPassword')" prop="password">
         <el-input placeholder="请输入原始密码" v-model="editPasswordForm.password" clearable size="large"
                   style="width:100%"/>
       </el-form-item>
-      <el-form-item :label="t('auth.edit.newPassword')">
+      <el-form-item :label="t('auth.edit.newPassword')" prop="newpassword">
         <el-input placeholder="请输入新密码" v-model="editPasswordForm.newpassword" clearable show-password size="large"
                   style="width:100%"/>
       </el-form-item>
-      <el-form-item :label="t('auth.edit.confirmPassword')">
+      <el-form-item :label="t('auth.edit.confirmPassword')" prop="respassword">
         <el-input placeholder="请输入新密码" v-model="editPasswordForm.respassword" clearable show-password size="large"
                   style="width:100%"/>
       </el-form-item>
@@ -57,7 +78,7 @@ const back = () => {
         </el-button>
       </el-form-item>
       <el-form-item>
-        <el-button style="width:100%" type="success" size="large" @click="toForget">{{
+        <el-button style="width:100%" size="large" @click="toForget">{{
             t('auth.forget.title')
           }}
         </el-button>

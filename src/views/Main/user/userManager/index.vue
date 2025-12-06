@@ -205,7 +205,7 @@ const exportExcel = () => {
           { key: 'sex_show', label: t('user.table.sex') },
           { key: 'email', label: t('user.table.email') },
           { key: 'role_name', label: t('user.table.role') },
-          { key: 'address_show', label: t('user.table.address') },
+          { key: 'address_show', label: t('user.table.address') ,width: 180, overflowTooltip: true},
           { key: 'desc', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in') },
           { key: 'is_expired', label: t('user.table.is_expired') },
