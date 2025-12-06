@@ -43,6 +43,7 @@ const messages = {
         },
         common: {
             back: '返回',
+            index: '序号',
             success: {
                 login: '登录成功',
                 register: '注册成功',
@@ -178,6 +179,7 @@ const messages = {
         },
         common: {
             back: 'Back',
+            index: 'Index',
             success: {
                 login: 'Signed in successfully',
                 register: 'Registered successfully',

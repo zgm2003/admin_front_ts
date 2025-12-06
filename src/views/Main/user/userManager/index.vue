@@ -198,7 +198,6 @@ const exportExcel = () => {
     </div>
     <div class="table">
       <AppTable :columns="[
-          { key: 'id', label: t('user.table.id') },
           { key: 'username', label: t('user.table.username') },
           { key: 'avatar', label: t('user.table.avatar') },
           { key: 'phone', label: t('user.table.phone') },
@@ -210,7 +209,7 @@ const exportExcel = () => {
           { key: 'expires_in', label: t('user.table.expires_in') },
           { key: 'is_expired', label: t('user.table.is_expired') },
           { key: 'actions', label: t('common.actions.action'), width: 180 }
-        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable @refresh="refresh"
+        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #cell-username="{ row }">
           <el-link type="primary" @click="goToPersonal({ row })">{{ row.username }}</el-link>

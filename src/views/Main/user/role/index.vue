@@ -37,7 +37,6 @@ const listData = ref([])
 const searchForm = ref({name: '', path: '', permission: ''})
 const page = ref({current_page: 1, page_size: 50, total: 0})
 const columns = [
-  {key: 'id', label: t('role.table.id'), width: 55},
   {key: 'name', label: t('role.table.name')},
   {key: 'created_at', label: t('role.table.created_at')},
   {key: 'updated_at', label: t('role.table.updated_at')},
@@ -145,7 +144,7 @@ const searchFields = computed(() => [
       </el-dropdown>
     </div>
     <div class="table">
-      <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable
+      <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>

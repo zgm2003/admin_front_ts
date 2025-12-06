@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import ColumnSetting from './components/ColumnSetting.vue'
 import TableActions from './components/TableActions.vue'
 const props = defineProps({
@@ -16,8 +17,10 @@ const props = defineProps({
   autoOverflowTooltip: { type: Boolean, default: true },
   showRefresh: { type: Boolean, default: true },
   showColumnSetting: { type: Boolean, default: true },
-  refreshLoading: { type: Boolean, default: false }
+  refreshLoading: { type: Boolean, default: false },
+  showIndex: { type: Boolean, default: false }
 })
+const { t } = useI18n()
 const emit = defineEmits(['refresh','selection-change','update:pagination','column-change'])
 const selectedColumnKeys = ref([] as any[])
 watch(() => props.columns, (cols: any[]) => { selectedColumnKeys.value = cols.filter((c: any) => !c.hidden).map((c: any) => c.key) }, { immediate: true })
@@ -44,6 +47,7 @@ const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
     </div>
     <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
+      <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
       <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
       </ElTableColumn>

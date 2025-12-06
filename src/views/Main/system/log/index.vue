@@ -112,7 +112,6 @@ const batchDel = async () => {
     </div>
     <div class="table">
       <AppTable :columns="[
-          { key: 'id', label: t('log.table.id'), width: 55 },
           { key: 'user_name', label: t('log.table.user_name') },
           { key: 'user_email', label: t('log.table.user_email') },
           { key: 'action', label: t('log.table.action') },
@@ -121,7 +120,7 @@ const batchDel = async () => {
           { key: 'is_success', label: t('log.table.is_success') },
           { key: 'created_at', label: t('log.table.created_at') },
           { key: 'actions', label: t('common.actions.action'), width: 180 }
-        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable @refresh="refresh"
+        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #cell-is_success="{ row }">
           <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
