@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/store/menu';
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
-import { Close, Refresh, CircleClose, FolderDelete, DArrowLeft, DArrowRight, Menu } from '@element-plus/icons-vue'
+import { Close, Refresh, CircleClose, FolderDelete, DArrowLeft, DArrowRight, Menu, Setting } from '@element-plus/icons-vue'
 import { ElScrollbar } from 'element-plus'
 
 const menuStore = useMenuStore();
@@ -172,38 +172,40 @@ const handleContextCloseAll = () => {
 
 <template>
   <div class="tags-view-container">
-    <div class="tags-view-nav">
-      <span class="action-item" :class="{ disabled: !prevTag }" @click="goPrevTag"><el-icon><DArrowLeft /></el-icon></span>
+    <div class="tags-view-nav" @click="goPrevTag">
+      <span class="action-item" :class="{ disabled: !prevTag }"><el-icon><DArrowLeft /></el-icon></span>
     </div>
-    <el-scrollbar 
-      ref="scrollPaneRef" 
-      class="tags-view-wrapper" 
-      @wheel.prevent="handleScroll"
-    >
-      <div class="tags-inner">
-        <div
-          v-for="tag in tags"
-          :key="tag.path"
-          class="tags-view-item"
-          :class="isActive(tag) ? 'active' : ''"
-          @click="visitTag(tag)"
-          @contextmenu.prevent="openMenu(tag, $event)"
-        >
-          {{ getTagLabel(tag) }}
-          <span v-if="!isAffix(tag)" class="close-icon-wrapper" @click.stop="closeTag(tag)">
-            <el-icon class="close-icon"><Close /></el-icon>
-          </span>
+    <div class="tags-view-wrapper">
+      <el-scrollbar 
+        ref="scrollPaneRef" 
+        class="tags-view-scroll" 
+        @wheel.prevent="handleScroll"
+      >
+        <div class="tags-inner">
+          <div
+            v-for="tag in tags"
+            :key="tag.path"
+            class="tags-view-item"
+            :class="isActive(tag) ? 'active' : ''"
+            @click="visitTag(tag)"
+            @contextmenu.prevent="openMenu(tag, $event)"
+          >
+            {{ getTagLabel(tag) }}
+            <span v-if="!isAffix(tag)" class="close-icon-wrapper" @click.stop="closeTag(tag)">
+              <el-icon class="close-icon"><Close /></el-icon>
+            </span>
+          </div>
         </div>
-      </div>
-    </el-scrollbar>
-    <div class="tags-view-nav right">
-      <span class="action-item" :class="{ disabled: !nextTag }" @click="goNextTag"><el-icon><DArrowRight /></el-icon></span>
+      </el-scrollbar>
+    </div>
+    <div class="tags-view-nav right" @click="goNextTag">
+      <span class="action-item" :class="{ disabled: !nextTag }"><el-icon><DArrowRight /></el-icon></span>
     </div>
     <div class="tags-view-actions">
       <span class="action-item" @click="router.go(0)"><el-icon><Refresh /></el-icon></span>
       <el-dropdown trigger="click" @command="handleCommand">
         <span class="action-item">
-          <el-icon><Menu /></el-icon>
+          <el-icon><Setting /></el-icon>
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -233,43 +235,103 @@ const handleContextCloseAll = () => {
   box-shadow: var(--el-box-shadow-light);
   display: flex;
   align-items: center;
+  position: relative;
   
   .tags-view-nav {
+    position: relative;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
     background: var(--el-bg-color);
+    z-index: 10;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 1px;
+      right: 0;
+      width: 1px;
+      height: calc(100% - 2px);
+      background-color: var(--el-border-color);
+    }
+    
+    .action-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      transition: all 0.3s;
+      &:hover:not(.disabled) {
+        color: var(--el-text-color-primary);
+        background: var(--el-fill-color-light);
+      }
+    }
+    
     .disabled { pointer-events: none; color: var(--el-text-color-disabled) }
-    &.right { }
+    
+    &.right {
+      &::after {
+        display: none;
+      }
+      &::before {
+        content: '';
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 1px;
+        height: calc(100% - 2px);
+        background-color: var(--el-border-color);
+      }
+    }
   }
   
   .tags-view-wrapper {
     flex: 1;
     min-width: 0;
-    white-space: nowrap;
+    height: 34px;
     overflow: hidden;
+    background: var(--el-bg-color);
+    
+    .tags-view-scroll {
+      height: 100%;
+      
+      :deep(.el-scrollbar__view) {
+        height: 100%;
+      }
+    }
     
     .tags-inner {
       display: flex;
-      padding: 0 10px;
-      height: 34px;
+      height: 100%;
       align-items: center;
+      padding: 0 4px;
     }
 
     .tags-view-item {
+      position: relative;
       display: inline-flex;
       align-items: center;
       cursor: pointer;
       height: 26px;
       line-height: 26px;
       border: 1px solid var(--el-border-color);
-      color: var(--el-text-color-primary);
+      color: var(--el-text-color-regular);
       background: var(--el-bg-color);
       padding: 0 8px;
       font-size: 12px;
-      margin-right: 5px;
+      margin-left: 4px;
       border-radius: 2px;
       transition: all 0.2s;
+      flex-shrink: 0;
+      white-space: nowrap;
+
+      &:first-of-type {
+        margin-left: 0;
+      }
 
       &:hover {
         color: var(--el-color-primary);
@@ -287,25 +349,14 @@ const handleContextCloseAll = () => {
         color: var(--el-color-white);
         border-color: var(--el-color-primary);
         
-        &::before {
-          content: '';
-          background: var(--el-color-white);
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          position: relative;
-          margin-right: 5px;
+        .close-icon-wrapper {
+           width: 14px;
+           margin-left: 5px;
+           opacity: 1;
         }
         
-        .close-icon-wrapper {
-           /* Active tag always shows close icon or on hover? 
-              User said "mouse move in then show". 
-              But standard UX often keeps active tag closeable easily.
-              Let's follow strict hover rule for cleaner look, or keep active one expanded.
-              Screenshot usually shows active one simple.
-              Let's keep hover effect even for active for consistency with "mouse in".
-           */
+        .close-icon {
+          color: var(--el-color-white);
         }
       }
       
@@ -319,11 +370,19 @@ const handleContextCloseAll = () => {
         justify-content: center;
         border-radius: 50%;
         height: 14px;
+        margin-left: 0;
         
         &:hover {
           background-color: var(--el-fill-color-dark);
           color: var(--el-color-white);
         }
+      }
+      
+      /* Show close icon on hover */
+      &:hover .close-icon-wrapper {
+        width: 14px;
+        margin-left: 5px;
+        opacity: 1;
       }
     }
   }
@@ -333,19 +392,36 @@ const handleContextCloseAll = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0;
     background: var(--el-bg-color);
-  }
-  
-  .action-item {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--el-border-color);
-    background: var(--el-bg-color);
-    cursor: pointer;
+    position: relative;
+    
+    .action-item {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--el-bg-color);
+      color: var(--el-text-color-regular);
+      cursor: pointer;
+      transition: background-color .2s ease;
+      position: relative;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 1px;
+        height: calc(100% - 2px);
+        background-color: var(--el-border-color);
+      }
+      
+      &:hover {
+        background: var(--el-fill-color-light);
+        color: var(--el-text-color-primary);
+      }
+    }
   }
 }
 

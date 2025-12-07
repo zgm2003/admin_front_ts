@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
+import { useIsMobile } from '@/utils/responsive'
 import {useRouter} from 'vue-router'
 import {listListApi, initListApi, editListApi, delListApi, batchEditListApi, exportListApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
@@ -175,6 +176,7 @@ const exportExcel = () => {
     listLoading.value = false
   })
 }
+const isMobile = useIsMobile()
 </script>
 
 <template>
@@ -237,7 +239,7 @@ const exportExcel = () => {
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="editBoxShow" class="add-box" width="950" title="编辑" top="20vh">
+  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" title="编辑" :top="isMobile ? '6vh' : '20vh'">
     <div class="add-box">
       <el-form label-width="auto" :model="editForm" inline>
         <el-form-item label="用户名">
@@ -277,7 +279,7 @@ const exportExcel = () => {
     <template #footer><span class="dialog-footer"><el-button @click="editBoxShow=false">取消</el-button><el-button
         type="primary" @click="confirmEdit">确认</el-button></span></template>
   </el-dialog>
-  <el-dialog v-model="batchEditBoxShow" class="add-box" width="650" title="编辑" top="5vh">
+  <el-dialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" title="编辑" :top="isMobile ? '6vh' : '5vh'">
     <div class="add-box">
       <el-form label-width="80">
         <el-form-item label="字段" required>

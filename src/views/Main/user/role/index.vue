@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
+import { useIsMobile } from '@/utils/responsive'
 import {addApi, delApi, editApi, listApi, initApi} from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
@@ -123,6 +124,7 @@ const props = {multiple: true, emitPath: false, checkStrictly: true}
 const searchFields = computed(() => [
   { key: 'name', type: 'input', placeholder: t('role.filter.name'), width: 150 }
 ])
+const isMobile = useIsMobile()
 </script>
 
 <template>
@@ -153,7 +155,7 @@ const searchFields = computed(() => [
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="addBoxShow" class="add-box dialog-box" width="800">
+  <el-dialog v-model="addBoxShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'">
     <template #header>新增</template>
     <div class="content-box">
       <el-form :model="addForm" label-width="auto">
@@ -169,7 +171,7 @@ const searchFields = computed(() => [
     <template #footer><span class="dialog-footer"><el-button @click="addBoxShow=false">取消</el-button><el-button
         type="primary" @click="confirmAdd">确认</el-button></span></template>
   </el-dialog>
-  <el-dialog v-model="editBoxShow" class="add-box" width="1000" title="编辑" top="20vh">
+  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '1000px'" title="编辑" :top="isMobile ? '6vh' : '20vh'">
     <div class="add-box">
       <el-form label-width="auto" :model="editForm">
         <el-form-item label="角色名" required>

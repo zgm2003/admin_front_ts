@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMediaQuery, useResizeObserver } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
+import { useIsMobile } from '@/utils/responsive'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 
 interface Field {
@@ -31,7 +32,7 @@ const onReset = () => {
   emit('reset', { ...form.value })
 }
 
-const isMobile = useMediaQuery('(max-width: 768px)')
+const isMobile = useIsMobile()
 const collapsed = ref<boolean>(false)
 const userOverride = ref(false)
 const wrapRef = ref<HTMLElement | null>(null)

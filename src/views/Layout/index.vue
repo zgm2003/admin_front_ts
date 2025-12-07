@@ -1,6 +1,6 @@
 <script setup>
 import {ref} from 'vue'
-import {useMediaQuery} from '@vueuse/core'
+import { useIsMobile } from '@/utils/responsive'
 import Aside from '@/views/Layout/components/Aside.vue'
 import Header from '@/views/Layout/components/Header.vue'
 import TabTag from '@/views/Layout/components/TabTag.vue'
@@ -10,7 +10,7 @@ import {useMenuStore} from '@/store/menu'
 
 const userStore = useUserStore()
 const menuStore = useMenuStore()
-const isMobile = useMediaQuery('(max-width: 768px)')
+const isMobile = useIsMobile()
 </script>
 <template>
   <el-container v-loading="userStore.loading">
@@ -45,9 +45,7 @@ const isMobile = useMediaQuery('(max-width: 768px)')
 .el-header, .el-footer {
   padding: 0
 }
-.el-header{
-  border-bottom: 1px solid var(--el-border-color);
-}
+
 :deep(.el-drawer__body) {
   padding: 0
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useMediaQuery } from '@vueuse/core'
+import { useIsMobile } from '@/utils/responsive'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import ColumnSetting from './components/ColumnSetting.vue'
@@ -32,7 +32,7 @@ const onSizeChange = (size: number) => { if (!page.value) return; (page.value as
 const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value as any).current_page = cur; emit('update:pagination', { ...(page.value as any) }) }
 const tableRef = ref<any>(null)
 const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect === false) return; (tableRef.value as any)?.toggleRowSelection(row) }
-const isMobile = useMediaQuery('(max-width: 768px)')
+const isMobile = useIsMobile()
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next, sizes' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
 </script>

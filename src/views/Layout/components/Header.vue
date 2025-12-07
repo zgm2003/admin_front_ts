@@ -179,7 +179,7 @@ import {ElNotification, ElDivider, ElMessage} from 'element-plus';
 import {useRouter} from 'vue-router';
 import {clearAllCookies} from '@/utils/cookie';
 import {toggleDarkMode} from '@/utils/theme';
-import {useMediaQuery} from "@vueuse/core";
+import { useIsMobile } from '@/utils/responsive'
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
@@ -219,7 +219,7 @@ function onThemeChange(val) {
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
-const isMobile = useMediaQuery('(max-width: 768px)')
+const isMobile = useIsMobile()
 
 function ClickMenu() {
   menuStore.toggleCollapse(isMobile.value);

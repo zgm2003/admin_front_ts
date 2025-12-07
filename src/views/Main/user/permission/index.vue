@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
+import { useIsMobile } from '@/utils/responsive'
 import {useRouter} from 'vue-router'
 import {addApi, delApi, editApi, listApi, initApi, batchEditApi, statusApi} from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
@@ -137,6 +138,7 @@ const changStatus = (row: any) => {
 const searchFields = computed(() => [
   { key: 'name', type: 'input', placeholder: t('permission.filter.name'), width: 150 }
 ])
+const isMobile = useIsMobile()
 </script>
 
 <template>
@@ -198,7 +200,7 @@ const searchFields = computed(() => [
       </el-table>
     </div>
   </div>
-  <el-dialog v-model="dialogVisible" class="add-box dialog-box" width="800" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close>
+  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
         <el-form-item label="类型" prop="type" required>
