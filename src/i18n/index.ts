@@ -95,7 +95,9 @@ const messages = {
             logoutTitle: '温馨提示',
             logoutText: '是否退出本系统？',
             cancel: '取消',
-            ok: '确定'
+            ok: '确定',
+            personal: '个人资料',
+            logout: '退出登录'
         },
         footer: {copyright: 'Copyright©智澜·AI云原生高并发智能工作流平台 · 鄂ICP备2025095115号-1'},
         log: {
@@ -231,7 +233,9 @@ const messages = {
             logoutTitle: 'Reminder',
             logoutText: 'Exit the system?',
             cancel: 'Cancel',
-            ok: 'OK'
+            ok: 'OK',
+            personal: 'Personal',
+            logout: 'Logout'
         },
         footer: {copyright: 'Copyright© Zhilang · AI Cloud-Native High-Concurrency Workflow Platform'},
         log: {

@@ -54,7 +54,7 @@
 
       <el-dropdown style="margin-right: 8px">
         <el-button circle>
-          <el-icon><Position/></el-icon>
+          <el-icon><HelpFilled /></el-icon>
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -77,8 +77,8 @@
       </span>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="personal">个人资料</el-dropdown-item>
-            <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item command="personal">{{ t('header.personal') }}</el-dropdown-item>
+            <el-dropdown-item command="logout">{{ t('header.logout') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
 

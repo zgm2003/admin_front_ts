@@ -228,9 +228,9 @@ const handleContextCloseAll = () => {
 .tags-view-container {
   height: 34px;
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
+  box-shadow: var(--el-box-shadow-light);
   display: flex;
   align-items: center;
   
@@ -238,8 +238,8 @@ const handleContextCloseAll = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    .disabled { pointer-events: none; color: #c0c4cc }
+    background: var(--el-bg-color);
+    .disabled { pointer-events: none; color: var(--el-text-color-disabled) }
     &.right { }
   }
   
@@ -262,9 +262,9 @@ const handleContextCloseAll = () => {
       cursor: pointer;
       height: 26px;
       line-height: 26px;
-      border: 1px solid #d8dce5;
-      color: #495060;
-      background: #fff;
+      border: 1px solid var(--el-border-color);
+      color: var(--el-text-color-primary);
+      background: var(--el-bg-color);
       padding: 0 8px;
       font-size: 12px;
       margin-right: 5px;
@@ -284,12 +284,12 @@ const handleContextCloseAll = () => {
 
       &.active {
         background-color: var(--el-color-primary);
-        color: #fff;
+        color: var(--el-color-white);
         border-color: var(--el-color-primary);
         
         &::before {
           content: '';
-          background: #fff;
+          background: var(--el-color-white);
           display: inline-block;
           width: 8px;
           height: 8px;
@@ -321,41 +321,37 @@ const handleContextCloseAll = () => {
         height: 14px;
         
         &:hover {
-          background-color: #b4bccc;
-          color: #fff;
-        }
-        
-        .close-icon {
-           font-size: 12px;
+          background-color: var(--el-fill-color-dark);
+          color: var(--el-color-white);
         }
       }
     }
   }
-
+  
   .tags-view-actions {
     height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0;
-    background: #fff;
+    background: var(--el-bg-color);
   }
-
+  
   .action-item {
     width: 34px;
     height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #d8dce5;
-    background: #fff;
+    border: 1px solid var(--el-border-color);
+    background: var(--el-bg-color);
     cursor: pointer;
   }
 }
 
 .contextmenu {
   margin: 0;
-  background: #fff;
+  background: var(--el-bg-color);
   z-index: 3000;
   position: fixed;
   list-style-type: none;
@@ -363,8 +359,8 @@ const handleContextCloseAll = () => {
   border-radius: 4px;
   font-size: 12px;
   font-weight: 400;
-  color: #333;
-  box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--el-box-shadow-light);
   
   li {
     margin: 0;
@@ -374,7 +370,7 @@ const handleContextCloseAll = () => {
     align-items: center;
     
     &:hover {
-      background: #eee;
+      background: var(--el-fill-color-light);
     }
     
     .el-icon {
