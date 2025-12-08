@@ -46,10 +46,10 @@ const onPageChange = (p: any) => {
   getList()
 }
 const searchFields = computed(() => [
-  { key: 'user_id', type: 'select-v2', options: usernameArr.value, placeholder: t('log.filter.userName'), width: 200 },
-  { key: 'user_id', type: 'select-v2', options: emailArr.value, placeholder: t('log.filter.userEmail'), width: 200 },
-  { key: 'action', type: 'input', placeholder: t('log.filter.action'), width: 200 },
-  { key: 'date', type: 'date-range', placeholder: '日期范围', width: 300, props: { valueFormat: 'YYYY-MM-DD' } }
+  { key: 'user_id', type: 'select-v2', label: t('log.filter.userName'), options: usernameArr.value, placeholder: t('log.filter.userName'), width: 200 },
+  { key: 'user_id', type: 'select-v2', label: t('log.filter.userEmail'), options: emailArr.value, placeholder: t('log.filter.userEmail'), width: 200 },
+  { key: 'action', type: 'input', label: t('log.filter.action'), placeholder: t('log.filter.action'), width: 200 },
+  { key: 'date', type: 'date-range', label: t('log.filter.date'), placeholder: t('log.filter.date'), width: 300, props: { valueFormat: 'YYYY-MM-DD' } }
 ])
 const confirmDel = async (current: any) => {
   try {
@@ -96,20 +96,6 @@ const batchDel = async () => {
 <template>
   <div class="box">
     <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <el-dropdown>
-        <el-button type="primary">{{ t('common.actions.batchDelete') }}
-          <el-icon class="el-icon--right">
-            <arrow-right/>
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
     <div class="table">
       <AppTable :columns="[
           { key: 'user_name', label: t('log.table.user_name') },
@@ -122,6 +108,20 @@ const batchDel = async () => {
           { key: 'actions', label: t('common.actions.action'), width: 180 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
+        <template #toolbar-left>
+          <el-dropdown>
+            <el-button type="primary">{{ t('common.actions.batchAction') }}
+              <el-icon class="el-icon--right">
+                <arrow-right/>
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
         <template #cell-is_success="{ row }">
           <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
               row.is_success === 1 ? '成功' : '失败'
@@ -129,7 +129,7 @@ const batchDel = async () => {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">
+          <el-button type="danger" text v-if="userStore.can('log.del')" @click="confirmDel(row)">
             {{ t('common.actions.del') }}
           </el-button>
         </template>

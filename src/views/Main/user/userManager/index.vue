@@ -52,12 +52,12 @@ const onPageChange = (p: any) => {
   getList()
 }
 const searchFields = computed(() => [
-  { key: 'username', type: 'input', placeholder: t('user.filter.username'), width: 150 },
-  { key: 'email', type: 'input', placeholder: t('user.filter.email'), width: 150 },
-  { key: 'role_id', type: 'select-v2', options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
-  { key: 'sex', type: 'select-v2', options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
-  { key: 'address', type: 'cascader', options: addressTree.value, placeholder: t('user.filter.address'), width: 150 },
-  { key: 'detail_address', type: 'input', placeholder: t('user.filter.detail_address'), width: 150 }
+  { key: 'username', type: 'input', label: t('user.filter.username'), placeholder: t('user.filter.username'), width: 150 },
+  { key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150 },
+  { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
+  { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
+  { key: 'address', type: 'cascader', label: t('user.filter.address'), options: addressTree.value, placeholder: t('user.filter.address'), width: 150 },
+  { key: 'detail_address', type: 'input', label: t('user.filter.detail_address'), placeholder: t('user.filter.detail_address'), width: 150 }
 ])
 const editBoxShow = ref(false)
 const editForm = ref({
@@ -182,22 +182,6 @@ const isMobile = useIsMobile()
 <template>
   <div class="box">
     <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
-    <div class="filters" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <el-dropdown>
-        <el-button type="primary">{{ t('common.actions.batchEdit') }}
-          <el-icon class="el-icon--right">
-            <arrow-right/>
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-            <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <el-button type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
-    </div>
     <div class="table">
       <AppTable :columns="[
           { key: 'username', label: t('user.table.username') },
@@ -213,6 +197,22 @@ const isMobile = useIsMobile()
           { key: 'actions', label: t('common.actions.action'), width: 180 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
+        <template #toolbar-left>
+          <el-dropdown>
+            <el-button type="primary">{{ t('common.actions.batchAction') }}
+              <el-icon class="el-icon--right">
+                <arrow-right/>
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-button type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
+        </template>
         <template #cell-username="{ row }">
           <el-link type="primary" @click="goToPersonal({ row })">{{ row.username }}</el-link>
         </template>

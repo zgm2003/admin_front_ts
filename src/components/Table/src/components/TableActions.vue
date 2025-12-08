@@ -7,7 +7,7 @@ const emit = defineEmits(['refresh'])
 <template>
   <div class="table-actions">
     <slot />
-    <ElButton v-if="props.showRefresh !== false" :loading="!!props.refreshLoading" type="primary" text @click="emit('refresh')">刷新</ElButton>
+    <ElButton v-if="props.showRefresh !== false" :loading="!!props.refreshLoading" type="primary" @click="emit('refresh')" icon="Refresh">刷新</ElButton>
   </div>
 </template>
 

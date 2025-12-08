@@ -32,7 +32,8 @@ const add = () => {
 }
 const addChild = (current: any) => {
   dialogMode.value = 'add'
-  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: current.type, code: '', i18n_key: '' }
+  const nextType = Math.min(3, Number(current.type || 1) + 1)
+  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: nextType, code: '', i18n_key: '' }
   dialogVisible.value = true
 }
 const listLoading = ref(false)
@@ -141,7 +142,7 @@ const changStatus = (row: any) => {
   })
 }
 const searchFields = computed(() => [
-  { key: 'name', type: 'input', placeholder: t('permission.filter.name'), width: 150 }
+  { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 }
 ])
 const isMobile = useIsMobile()
 </script>
@@ -170,31 +171,31 @@ const isMobile = useIsMobile()
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
-        <el-table-column prop="path" label="PATH" align="center"/>
-        <el-table-column label="ICON" align="center">
+        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>
+        <el-table-column :label="t('permission.table.icon')" align="center">
           <template #default="scope">
             <el-icon size="large">
               <component :is="scope.row.icon"/>
             </el-icon>
           </template>
         </el-table-column>
-        <el-table-column prop="component" label="组件" align="center"/>
-        <el-table-column label="是否启用" align="center">
+        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>
+        <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
             <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2"
                        @change="changStatus(scope.row)"/>
           </template>
         </el-table-column>
-        <el-table-column label="类型" align="center">
+        <el-table-column :label="t('permission.table.type')" align="center">
           <template #default="scope">
             <el-tag effect="dark" v-if="scope.row.type===1" type="success">{{ scope.row.type_name }}</el-tag>
             <el-tag effect="dark" v-if="scope.row.type===2" type="primary">{{ scope.row.type_name }}</el-tag>
             <el-tag effect="dark" v-if="scope.row.type===3" type="danger">{{ scope.row.type_name }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="CODE" align="center" prop="code"/>
-        <el-table-column label="I18N_KEY" align="center" prop="i18n_key"/>
-        <el-table-column label="操作" align="center" min-width="180" fixed="right" header-align="center">
+        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>
+        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>
+        <el-table-column :label="t('permission.table.actions')" align="center" min-width="180" fixed="right" header-align="center">
           <template #default="scope">
             <el-button type="success" @click="addChild(scope.row)" text v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
             </el-button>

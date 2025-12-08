@@ -8,6 +8,7 @@ import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 interface Field {
   key: string
   type: 'input' | 'select-v2' | 'cascader' | 'date-range'
+  label?: string
   placeholder?: string
   width?: number | string
   options?: any[]
@@ -15,7 +16,7 @@ interface Field {
 }
 
 const { locale, t } = useI18n()
-const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number }>(), { inline: true, collapseCount: 1 })
+const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number, size?: 'large' | 'default' | 'small' }>(), { inline: true, collapseCount: 1, size: 'default' })
 const emit = defineEmits(['update:modelValue', 'query', 'reset'])
 
 const form = ref<Record<string, any>>({ ...(props.modelValue || {}) })
@@ -58,8 +59,8 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
 
 <template>
   <div ref="wrapRef">
-  <el-form :inline="props.inline" :model="form">
-    <el-form-item v-for="f in visibleFields" :key="f.key">
+  <el-form :inline="props.inline" :model="form" :size="props.size">
+    <el-form-item v-for="f in visibleFields" :key="f.key" :label="f.label">
       <template v-if="f.type==='input'">
         <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: (f.width ?? 150)+'px' }" />
       </template>

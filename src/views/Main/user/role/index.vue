@@ -122,7 +122,7 @@ const batchDel = async () => {
 }
 const props = {multiple: true, emitPath: false, checkStrictly: true}
 const searchFields = computed(() => [
-  { key: 'name', type: 'input', placeholder: t('role.filter.name'), width: 150 }
+  { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 }
 ])
 const isMobile = useIsMobile()
 </script>
@@ -130,24 +130,24 @@ const isMobile = useIsMobile()
 <template>
   <div class="box">
     <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
-      <el-dropdown>
-        <el-button type="primary">{{ t('common.actions.batchDelete') }}
-          <el-icon class="el-icon--right">
-            <arrow-right/>
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
     <div class="table">
       <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
+        <template #toolbar-left>
+          <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-dropdown>
+            <el-button type="primary">{{ t('common.actions.batchAction') }}
+              <el-icon class="el-icon--right">
+                <arrow-right/>
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>
           <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">删除</el-button>

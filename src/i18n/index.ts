@@ -60,6 +60,7 @@ const messages = {
                 confirm: '确认',
                 query: '查询',
                 export: '导出',
+                batchAction: '批量操作',
                 batchDelete: '批量删除',
                 batchEdit: '批量修改',
                 action: '操作'
@@ -137,7 +138,21 @@ const messages = {
             }
         },
         role: {filter: {name: '名称'}, table: {id: 'ID', name: '名称', created_at: '创建时间', updated_at: '更新时间'}},
-        permission: {filter: {name: '名称'}, table: {id: 'ID', name: '名称'}},
+        permission: {
+            filter: { name: '名称' },
+            table: {
+                id: 'ID',
+                name: '名称',
+                path: '路径',
+                icon: '图标',
+                component: '组件',
+                status: '是否启用',
+                type: '类型',
+                code: 'CODE',
+                i18n_key: 'I18N_KEY',
+                actions: '操作'
+            }
+        },
         error: {notFound: '抱歉，您访问的页面不存在'}
     },
     'en-US': {
@@ -198,6 +213,7 @@ const messages = {
                 confirm: 'Confirm',
                 query: 'Query',
                 export: 'Export',
+                batchAction: 'Batch Actions',
                 batchDelete: 'Batch Delete',
                 batchEdit: 'Batch Edit',
                 action: 'Actions'
@@ -278,7 +294,21 @@ const messages = {
             filter: {name: 'Name'},
             table: {id: 'ID', name: 'Name', created_at: 'Created At', updated_at: 'Updated At'}
         },
-        permission: {filter: {name: 'Name'}, table: {id: 'ID', name: 'Name'}},
+        permission: {
+            filter: { name: 'Name' },
+            table: {
+                id: 'ID',
+                name: 'Name',
+                path: 'Path',
+                icon: 'Icon',
+                component: 'Component',
+                status: 'Enabled',
+                type: 'Type',
+                code: 'Code',
+                i18n_key: 'I18N Key',
+                actions: 'Actions'
+            }
+        },
         error: {notFound: 'Sorry, the page you visited does not exist'}
     }
 }
