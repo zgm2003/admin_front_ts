@@ -30,6 +30,11 @@ const add = () => {
   form.value = { id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '' }
   dialogVisible.value = true
 }
+const addChild = (current: any) => {
+  dialogMode.value = 'add'
+  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: current.type, code: '', i18n_key: '' }
+  dialogVisible.value = true
+}
 const listLoading = ref(false)
 const listData = ref([])
 const searchForm = ref({name: ''})
@@ -144,7 +149,7 @@ const isMobile = useIsMobile()
 <template>
   <div class="box">
     <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <el-button v-if="userStore.can('permission.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
       <el-dropdown>
         <el-button type="primary">{{ t('common.actions.batchDelete') }}
@@ -161,14 +166,14 @@ const isMobile = useIsMobile()
     </div>
     <div class="table">
       <el-table :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
-                ref="tableRef" @row-click="handleRowClick" row-key="id" border default-expand-all>
+                ref="tableRef" @row-click="handleRowClick" row-key="id" border default-expand-all stripe>
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
         <el-table-column prop="path" label="PATH" align="center"/>
         <el-table-column label="ICON" align="center">
           <template #default="scope">
-            <el-icon>
+            <el-icon size="large">
               <component :is="scope.row.icon"/>
             </el-icon>
           </template>
@@ -191,6 +196,8 @@ const isMobile = useIsMobile()
         <el-table-column label="I18N_KEY" align="center" prop="i18n_key"/>
         <el-table-column label="操作" align="center" min-width="180" fixed="right" header-align="center">
           <template #default="scope">
+            <el-button type="success" @click="addChild(scope.row)" text v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
+            </el-button>
             <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑
             </el-button>
             <el-button type="danger" text v-if="userStore.can('permission.del')" @click="confirmDel(scope.row)">删除

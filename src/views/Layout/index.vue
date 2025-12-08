@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue'
+import {ref, watch} from 'vue'
 import { useIsMobile } from '@/utils/responsive'
 import Aside from '@/views/Layout/components/Aside.vue'
 import Header from '@/views/Layout/components/Header.vue'
@@ -11,6 +11,10 @@ import {useMenuStore} from '@/store/menu'
 const userStore = useUserStore()
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
+
+watch(isMobile, (val) => {
+  if (val) menuStore.mobile()
+}, { immediate: true })
 </script>
 <template>
   <el-container v-loading="userStore.loading">

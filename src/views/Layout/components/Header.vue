@@ -17,7 +17,7 @@
     </el-button>
 
     <!-- 面包屑 -->
-    <div v-if="menuStore.breadcrumb && !isMobile" class="breadcrumb-wrapper">
+    <div v-if="menuStore.breadcrumb" class="breadcrumb-wrapper">
       <el-breadcrumb separator-icon="ArrowRight">
         <el-breadcrumb-item
             v-for="item in menuStore.tabList"
@@ -45,7 +45,7 @@
 
       <!-- 全屏按钮 -->
       <el-button
-          v-if="menuStore.screenfull && !isMobile"
+          v-if="menuStore.screenfull"
           @click="toggleFullScreen"
           icon="FullScreen"
           circle
