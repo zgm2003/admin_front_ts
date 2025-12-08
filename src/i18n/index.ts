@@ -148,6 +148,7 @@ const messages = {
                 component: '组件',
                 status: '是否启用',
                 type: '类型',
+                sort: '排序',
                 code: 'CODE',
                 i18n_key: 'I18N_KEY',
                 actions: '操作'
@@ -304,6 +305,7 @@ const messages = {
                 component: 'Component',
                 status: 'Enabled',
                 type: 'Type',
+                sort: 'Sort',
                 code: 'Code',
                 i18n_key: 'I18N Key',
                 actions: 'Actions'

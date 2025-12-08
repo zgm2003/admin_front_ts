@@ -25,6 +25,6 @@ app.use(router)
 app.use(i18n)
 app.use(ElementPlus)
 app.use(less)
-
-app.mount('#app')
 setupDynamicRoutes()
+app.mount('#app')
+

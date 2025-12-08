@@ -24,16 +24,16 @@ const init = () => {
 init()
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({ id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '' })
+const form = ref({ id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '', sort: 1 })
 const add = () => {
   dialogMode.value = 'add'
-  form.value = { id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '' }
+  form.value = { id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '', sort: 1 }
   dialogVisible.value = true
 }
 const addChild = (current: any) => {
   dialogMode.value = 'add'
   const nextType = Math.min(3, Number(current.type || 1) + 1)
-  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: nextType, code: '', i18n_key: '' }
+  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: nextType, code: '', i18n_key: '', sort: 1 }
   dialogVisible.value = true
 }
 const listLoading = ref(false)
@@ -56,7 +56,7 @@ const handleRowClick = (row: any) => {
 }
 const edit = (current: any) => {
   dialogMode.value = 'edit'
-  form.value = { id: current.id, name: current.name, parent_id: current.parent_id, icon: current.icon, path: current.path, component: current.component, actions: current.actions, type: current.type, code: current.code, i18n_key: current.i18n_key }
+  form.value = { id: current.id, name: current.name, parent_id: current.parent_id, icon: current.icon, path: current.path, component: current.component, actions: current.actions, type: current.type, code: current.code, i18n_key: current.i18n_key, sort: current.sort }
   dialogVisible.value = true
 }
 const formRef = ref<any>(null)
@@ -186,6 +186,7 @@ const isMobile = useIsMobile()
                        @change="changStatus(scope.row)"/>
           </template>
         </el-table-column>
+        <el-table-column prop="sort" :label="t('permission.table.sort')" align="center" width="90"/>
         <el-table-column :label="t('permission.table.type')" align="center">
           <template #default="scope">
             <el-tag effect="dark" v-if="scope.row.type===1" type="success">{{ scope.row.type_name }}</el-tag>
@@ -228,6 +229,9 @@ const isMobile = useIsMobile()
         </el-form-item>
         <el-form-item label="i18n_key" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
           <el-input v-model="form.i18n_key" style="width:100%" clearable/>
+        </el-form-item>
+        <el-form-item label="排序" prop="sort" required>
+          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1" />
         </el-form-item>
         <el-form-item label="ICON" v-if="form.type === 1 || form.type === 2">
           <el-input v-model="form.icon" style="width:80%" clearable/>
