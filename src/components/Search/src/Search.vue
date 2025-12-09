@@ -71,7 +71,7 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
         <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: (f.width ?? 150)+'px' }" v-bind="f.props" />
       </template>
       <template v-else-if="f.type==='cascader'">
-        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: (f.width ?? 150)+'px' }" v-bind="f.props" />
+        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: (f.width ?? 150)+'px' }" :props="f.props" />
       </template>
       <template v-else-if="f.type==='date-range'">
         <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: (f.width ?? 300)+'px' }" v-bind="f.props" />

@@ -56,7 +56,7 @@ const sexLabel = computed(() => { const match = (sexArr.value as any[]).find((it
               <el-form-item label="用户名"><el-input v-model="userinfo.username" placeholder="请输入用户名" clearable /></el-form-item>
               <el-form-item label="手机号"><el-input v-model="userinfo.phone" placeholder="请输入用户名" clearable /></el-form-item>
               <el-form-item label="性别"><el-select-v2 v-model="userinfo.sex" :options="sexArr" placeholder="请选择性别" style="width:100%" clearable filterable /></el-form-item>
-              <el-form-item label="地址"><el-cascader v-model="userinfo.address" :options="addressTree" placeholder="请选择地址" style="width:50%;margin-right:2%" clearable filterable /><el-input v-model="userinfo.detail_address" placeholder="详细地址" clearable style="width:48%" /></el-form-item>
+              <el-form-item label="地址"><el-cascader v-model="userinfo.address" :options="addressTree" :props="{ emitPath: false }" placeholder="请选择地址" style="width:50%;margin-right:2%" clearable filterable /><el-input v-model="userinfo.detail_address" placeholder="详细地址" clearable style="width:48%" /></el-form-item>
               <el-form-item label="个人简介"><el-input type="textarea" :rows="5" v-model="userinfo.desc" placeholder="请输入内容" /></el-form-item>
               <el-form-item><el-button type="primary" @click="confirmEdit">保存</el-button><el-button type="danger" @click="forgetPassword">忘记密码/修改密码</el-button></el-form-item>
             </el-form>

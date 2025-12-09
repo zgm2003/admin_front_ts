@@ -56,7 +56,7 @@ const searchFields = computed(() => [
   { key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150 },
   { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
   { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
-  { key: 'address', type: 'cascader', label: t('user.filter.address'), options: addressTree.value, placeholder: t('user.filter.address'), width: 150 },
+  { key: 'address', type: 'cascader', label: t('user.filter.address'), options: addressTree.value, placeholder: t('user.filter.address'), width: 150, props: { emitPath: false,multiple: true } },
   { key: 'detail_address', type: 'input', label: t('user.filter.detail_address'), placeholder: t('user.filter.detail_address'), width: 150 }
 ])
 const editBoxShow = ref(false)
@@ -261,7 +261,7 @@ const isMobile = useIsMobile()
           <up-img v-model="editForm.avatar" folderName="avatar" :isClearable="false"/>
         </el-form-item>
         <el-form-item label="地址">
-          <el-cascader v-model="editForm.address" :options="addressTree" placeholder="请选择地址"
+          <el-cascader v-model="editForm.address" :options="addressTree" :props="{ emitPath: false }" placeholder="请选择地址"
                        style="width:200px;margin-right:5px" clearable filterable/>
           <el-input v-model="editForm.detail_address" placeholder="详细地址" clearable style="width:300px"/>
         </el-form-item>
@@ -294,7 +294,7 @@ const isMobile = useIsMobile()
                         clearable/>
         </el-form-item>
         <el-form-item label="地址" v-if="batchEditForm.field === 'address'">
-          <el-cascader v-model="batchEditForm.address" :options="addressTree" placeholder="请选择地址"
+          <el-cascader v-model="batchEditForm.address" :options="addressTree" :props="{ emitPath: false }" placeholder="请选择地址"
                        style="width:300px" clearable filterable/>
         </el-form-item>
         <el-form-item label="详细地址" v-if="batchEditForm.field === 'detail_address'">
