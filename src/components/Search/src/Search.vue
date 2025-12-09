@@ -36,6 +36,7 @@ const onReset = () => {
 const isMobile = useIsMobile()
 const collapsed = ref<boolean>(false)
 const userOverride = ref(false)
+const autoInitialized = ref(false)
 const wrapRef = ref<HTMLElement | null>(null)
 const wrapped = ref(false)
 const detectWrapped = () => {
@@ -46,14 +47,16 @@ const detectWrapped = () => {
   const firstTop = items[0].offsetTop
   const hasWrap = items.some(it => it.offsetTop > firstTop)
   wrapped.value = hasWrap
-  if (!userOverride.value) collapsed.value = hasWrap
-  if (!hasWrap) collapsed.value = false
+  if (!userOverride.value && hasWrap && !collapsed.value) {
+    collapsed.value = true
+    autoInitialized.value = true
+  }
 }
 useResizeObserver(wrapRef, () => { detectWrapped() })
 const minCount = computed(() => Math.max(1, Number(props.collapseCount || 1)))
 const visibleFields = computed(() => collapsed.value ? props.fields.slice(0, minCount.value) : props.fields)
 const hiddenCount = computed(() => props.fields.length - visibleFields.value.length)
-const showToggle = computed(() => wrapped.value)
+const showToggle = computed(() => wrapped.value || collapsed.value)
 const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = true; collapsed.value = !collapsed.value } }
 </script>
 

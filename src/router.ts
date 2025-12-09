@@ -11,11 +11,6 @@ const routes: any[] = [
     {path: '/editPassword', name: 'editPassword', component: () => import('@/views/EditPassword/index.vue')},
     {path: '/personal', name: 'personal', component: () => import('@/views/Personal/index.vue')},
     {path: '/404', name: '404', component: () => import('@/views/Error/404.vue')},
-    {
-        path: '/:pathMatch(.*)*', name: 'NotFound', beforeEnter: (_to: any, _from: any, next: any) => {
-            next(false)
-        }
-    },
 ]
 
 const mainRoute: any = {
@@ -32,22 +27,11 @@ export async function setupDynamicRoutes() {
     const storedRoutes = Array.isArray(userStore.router) ? userStore.router : []
     const componentPaths = import.meta.glob('./views/Main/**/*.vue')
 
-    const normalizeComponentPath = (cp: string) => {
-        if (!cp || typeof cp !== 'string') return ''
-        const noQuery = cp.split('?')[0]
-        let s = noQuery.replace(/\\/g, '/')
-        s = s.replace(/(^\.|^\/)*/, '')
-        s = s.replace(/^views\/Main\//i, '')
-        s = s.replace(/^Main\//i, '')
-        s = s.replace(/\/index\.vue$/i, '')
-        s = s.replace(/\.vue$/i, '')
-        return s
-    }
     const resolveComponent = (cp: string) => {
-        const c = normalizeComponentPath(cp)
-        const candidates = [`./views/Main/${c}/index.vue`, `./views/Main/${c}.vue`]
-        for (const k of candidates) if (componentPaths[k]) return componentPaths[k]
-        return undefined
+        if (!cp || typeof cp !== 'string') return undefined
+        const c = cp.replace(/^\/+/, '')
+        const key = `./views/Main/${c}/index.vue`
+        return componentPaths[key]
     }
 
     if (storedRoutes.length > 0) {
@@ -61,16 +45,27 @@ export async function setupDynamicRoutes() {
         })
     }
     if (!router.hasRoute('HomeView')) router.addRoute(mainRoute)
+    if (!router.hasRoute('CatchAll404')) router.addRoute({ path: '/:pathMatch(.*)*', name: 'CatchAll404', redirect: '/404' })
+
     const current = router.currentRoute.value
     const last = Cookies.get('lastVisitedPath')
-    if (!current || !current.matched || current.matched.length === 0 || current.path === '/') {
-        await router.replace(last && last !== '/login' ? last : '/home').catch(() => {
-        })
+    const target = current?.fullPath || current?.path || ''
+    if (current && current.path === '/') {
+        await router.replace(last && last !== '/login' ? last : '/home').catch(() => {})
+        return
+    }
+    if (target) {
+        const resolved = router.resolve(target)
+        if (resolved && resolved.matched && resolved.matched.length > 0) {
+            await router.replace(target).catch(() => {})
+        } else {
+            await router.replace('/404').catch(() => {})
+        }
     }
 }
 
 router.beforeEach((to, _from, next) => {
-    if (to.name !== 'login' && to.name !== 'NotFound') Cookies.set('lastVisitedPath', to.fullPath)
+    if (to.name !== 'login') Cookies.set('lastVisitedPath', to.fullPath)
     next()
 })
 router.afterEach((to) => {
