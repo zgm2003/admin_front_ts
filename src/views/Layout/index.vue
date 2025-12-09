@@ -1,10 +1,10 @@
 <script setup>
 import {ref, watch} from 'vue'
 import { useIsMobile } from '@/utils/responsive'
-import Aside from '@/views/Layout/components/Aside.vue'
-import Header from '@/views/Layout/components/Header.vue'
-import TabTag from '@/views/Layout/components/TabTag.vue'
-import Footer from '@/views/Layout/components/Footer.vue'
+import Aside from '@/views/Layout/components/Aside/index.vue'
+import Header from '@/views/Layout/components/Header/index.vue'
+import TabTag from '@/views/Layout/components/TabTag/index.vue'
+import Footer from '@/views/Layout/components/Footer/index.vue'
 import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
 

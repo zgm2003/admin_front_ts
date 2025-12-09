@@ -1,4 +1,3 @@
-<!-- MenuItem.vue -->
 <template>
   <template v-if="!hasChildren">
     <el-menu-item :index="item.index" @click="handleClick(item)" :style="menuStyle">
@@ -30,7 +29,6 @@ const menuStore = useMenuStore();
 const { t } = useI18n()
 
 const displayLabel = computed(() => resolveMenuLabel(t, props.item))
-
 const hasChildren = computed(() => props.item.children && props.item.children.length > 0)
 
 function handleClick(item: any) {
@@ -41,3 +39,7 @@ function handleClick(item: any) {
 
 const menuStyle = computed(() => ({ backgroundColor: menuStore.selectedMenu === props.item.index ? menuStore.systemColor : '' }))
 </script>
+
+<style scoped>
+</style>
+
