@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
         this.user_id = data.user_id
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'
-        data.permissions.unshift({ icon: 'HomeFilled', index: '0', label: '首页', path: '/home', i18nKey: 'menu.home' })
+        data.permissions.unshift({ icon: 'HomeFilled', index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' })
         this.permissions = data.permissions
         this.router = data.router
         this.buttons = data.buttons

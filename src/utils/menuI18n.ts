@@ -1,4 +1,4 @@
-export type MenuItemLike = { i18nKey?: string; i18n_key?: string; path?: string; label?: string; name?: string }
+export type MenuItemLike = { i18n_key?: string; path?: string; label?: string; name?: string }
 
 export function resolveKeyFromPath(path?: string): string | '' {
   if (!path) return ''
@@ -10,10 +10,6 @@ export function resolveKeyFromPath(path?: string): string | '' {
 }
 
 export function resolveMenuLabel(t: (k: string) => string, item: MenuItemLike): string {
-  if (item.i18nKey) {
-    const v = t(item.i18nKey)
-    if (v && v !== item.i18nKey) return v
-  }
   if (item.i18n_key) {
     const v = t(item.i18n_key)
     if (v && v !== item.i18n_key) return v
