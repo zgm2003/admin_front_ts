@@ -78,7 +78,7 @@ const messages = {
             test: '测试页'
         },
         header: {
-            projectConfig: '项目配置',
+          projectConfig: '项目配置',
             theme: '主题',
             systemTheme: '系统主题',
             headerTheme: '头部主题',
@@ -98,7 +98,15 @@ const messages = {
             cancel: '取消',
             ok: '确定',
             personal: '个人资料',
-            logout: '退出登录'
+          logout: '退出登录'
+        },
+        search: {
+            placeholder: '搜索页面，支持名称与路径',
+            wake: '唤醒搜索面板',
+            navigate: '切换搜索结果',
+            enter: '进入页面',
+            esc: '关闭搜索面板',
+            empty: '暂无匹配'
         },
         footer: {copyright: 'Copyright©智澜·AI云原生高并发智能工作流平台 · 鄂ICP备2025095115号-1'},
         log: {
@@ -232,7 +240,7 @@ const messages = {
             test: 'Test'
         },
         header: {
-            projectConfig: 'Project Settings',
+          projectConfig: 'Project Settings',
             theme: 'Theme',
             systemTheme: 'System Theme',
             headerTheme: 'Header Theme',
@@ -252,7 +260,15 @@ const messages = {
             cancel: 'Cancel',
             ok: 'OK',
             personal: 'Personal',
-            logout: 'Logout'
+          logout: 'Logout'
+        },
+        search: {
+            placeholder: 'Search pages by name or path',
+            wake: 'Toggle search panel',
+            navigate: 'Navigate results',
+            enter: 'Open page',
+            esc: 'Close search panel',
+            empty: 'No matches'
         },
         footer: {copyright: 'Copyright© Zhilang · AI Cloud-Native High-Concurrency Workflow Platform'},
         log: {

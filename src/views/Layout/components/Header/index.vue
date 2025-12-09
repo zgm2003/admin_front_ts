@@ -27,13 +27,13 @@
     </div>
     <div class="flex-grow"></div>
     <el-space size="large">
-      <el-switch
-          v-model="isDark"
-          active-action-icon="Moon"
-          inactive-action-icon="Sunny"
-          @change="onThemeChange"
-          style="margin-right: 16px"
-      />
+<!--      <el-switch-->
+<!--          v-model="isDark"-->
+<!--          active-action-icon="Moon"-->
+<!--          inactive-action-icon="Sunny"-->
+<!--          @change="onThemeChange"-->
+<!--          style="margin-right: 16px"-->
+<!--      />-->
       <el-button
           v-if="menuStore.screenfull"
           @click="toggleFullScreen"
@@ -53,6 +53,7 @@
         </template>
       </el-dropdown>
       <el-button @click="drawer = true" icon="Setting" circle style="margin-right: 8px"/>
+      <el-button @click="searchOpen = true" circle style="margin-right: 8px"><el-icon><Search /></el-icon></el-button>
       <el-button @click="goToBlog" icon="House" circle style="margin-right: 8px"/>
       <el-dropdown @command="handleUserCommand">
       <span class="el-dropdown-link">
@@ -78,11 +79,14 @@
     </template>
   </el-dialog>
   <SettingDrawer v-model="drawer" />
+  <SearchDialog v-model="searchOpen" />
   </template>
 
 <script setup>
 import {ref, onMounted, computed} from 'vue';
 import SettingDrawer from './components/SettingDrawer.vue'
+import SearchDialog from './components/SearchDialog.vue'
+import { Search } from '@element-plus/icons-vue'
 import {useMenuStore} from '@/store/menu.ts';
 import {useUserStore} from '@/store/user.ts';
 import {ElNotification, ElDivider, ElMessage} from 'element-plus';
@@ -102,6 +106,7 @@ const { t, locale } = useI18n()
 const isDark = ref(false);
 const drawer = ref(false);
 const LoginOutShow = ref(false);
+const searchOpen = ref(false);
 
 function getBreadcrumbLabel(item) { return resolveMenuLabel(t, item) }
 
