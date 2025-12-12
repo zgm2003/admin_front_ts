@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import { useIsMobile } from '@/utils/responsive'
-import { RoleApi } from '@/api/user/role'
+import {useIsMobile} from '@/utils/responsive'
+import {RoleApi} from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
-import { Search } from '@/components/Search'
+import {Search} from '@/components/Search'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -64,19 +64,30 @@ const edit = (current: any) => {
 }
 const submit = () => {
   const data = form.value
-  if (!data.name) { ElNotification.error({message: t('role.table.name') + t('common.required')}); return }
+  if (!data.name) {
+    ElNotification.error({message: t('role.table.name') + t('common.required')});
+    return
+  }
   if (!isEdit.value) {
-    RoleApi.add(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+    RoleApi.add(data).then(() => {
+      ElNotification.success({message: t('common.success.operation')});
+      dialogShow.value = false;
+      getList()
+    })
   } else {
-    RoleApi.edit(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+    RoleApi.edit(data).then(() => {
+      ElNotification.success({message: t('common.success.operation')});
+      dialogShow.value = false;
+      getList()
+    })
   }
 }
 const confirmDel = async (current: any) => {
   try {
     await ElMessageBox.confirm(
-      t('common.confirmDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -95,9 +106,9 @@ const batchDel = async () => {
   }
   try {
     await ElMessageBox.confirm(
-      t('common.confirmBatchDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmBatchDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -111,7 +122,7 @@ const batchDel = async () => {
 }
 const props = {multiple: true, emitPath: false, checkStrictly: true}
 const searchFields = computed(() => [
-  { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 }
+  {key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150}
 ])
 const isMobile = useIsMobile()
 onMounted(() => {
@@ -122,12 +133,16 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
     <div class="table">
-      <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
+      <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable
+                :show-index="true"
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
-          <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{
+              t('common.actions.add')
+            }}
+          </el-button>
           <el-dropdown>
             <el-button type="primary">{{ t('common.actions.batchAction') }}
               <el-icon class="el-icon--right">
@@ -136,7 +151,10 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{
+                    t('common.actions.batchDelete')
+                  }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -148,7 +166,8 @@ onMounted(() => {
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="dialogShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '6vh' : '20vh'">
+  <el-dialog v-model="dialogShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'"
+             :top="isMobile ? '6vh' : '20vh'">
     <template #header>{{ isEdit ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
       <el-form :model="form" label-width="auto">
@@ -156,11 +175,14 @@ onMounted(() => {
           <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
         <el-form-item label="权限">
-          <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" collapse-tags clearable style="width:100%"/>
+          <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" collapse-tags clearable
+                       style="width:100%"/>
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="dialogShow=false">{{ t('common.actions.cancel') }}</el-button><el-button
+    <template #footer><span class="dialog-footer"><el-button @click="dialogShow=false">{{
+        t('common.actions.cancel')
+      }}</el-button><el-button
         type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button></span></template>
   </el-dialog>
 </template>

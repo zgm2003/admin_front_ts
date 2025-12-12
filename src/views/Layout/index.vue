@@ -1,20 +1,21 @@
 <script setup>
 import {ref, watch} from 'vue'
-import { useIsMobile } from '@/utils/responsive'
+import {useIsMobile} from '@/utils/responsive'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
 import Footer from '@/views/Layout/components/Footer/index.vue'
 import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
+import {useRoute} from "vue-router";
 
 const userStore = useUserStore()
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
-
+const route = useRoute()
 watch(isMobile, (val) => {
   if (val) menuStore.mobile()
-}, { immediate: true })
+}, {immediate: true})
 </script>
 <template>
   <el-container v-loading="userStore.loading">
@@ -30,9 +31,23 @@ watch(isMobile, (val) => {
       </el-header>
       <TabTag class="tab-tag" v-if="menuStore.tabtag"/>
       <el-main>
-        <el-card>
-          <router-view/>
-        </el-card>
+        <router-view v-slot="{ Component }">
+          <transition
+              v-if="menuStore.pageTransition"
+              :name="menuStore.transitionName"
+              mode="out-in"
+              appear
+          >
+            <el-card :key="route.fullPath">
+              <component :is="Component"/>
+            </el-card>
+          </transition>
+
+          <el-card v-else>
+            <component :is="Component"/>
+          </el-card>
+        </router-view>
+
       </el-main>
       <el-footer v-if="menuStore.footer">
         <Footer/>

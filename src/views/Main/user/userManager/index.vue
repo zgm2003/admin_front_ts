@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import { useIsMobile } from '@/utils/responsive'
+import {useIsMobile} from '@/utils/responsive'
 import {useRouter} from 'vue-router'
-import { UsersApi } from '@/api/user/users'
+import {UsersApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import UpImg from '@/components/UpImg'
 import {useUserStore} from '@/store/user'
 import {AppTable} from '@/components/Table'
-import { Search } from '@/components/Search'
+import {Search} from '@/components/Search'
 import {useI18n} from 'vue-i18n'
 
 const userStore = useUserStore()
@@ -50,12 +50,46 @@ const onPageChange = (p: any) => {
   getList()
 }
 const searchFields = computed(() => [
-  { key: 'username', type: 'input', label: t('user.filter.username'), placeholder: t('user.filter.username'), width: 150 },
-  { key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150 },
-  { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
-  { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
-  { key: 'address', type: 'cascader', label: t('user.filter.address'), options: addressTree.value, placeholder: t('user.filter.address'), width: 150, props: { emitPath: false,multiple: true } },
-  { key: 'detail_address', type: 'input', label: t('user.filter.detail_address'), placeholder: t('user.filter.detail_address'), width: 150 }
+  {
+    key: 'username',
+    type: 'input',
+    label: t('user.filter.username'),
+    placeholder: t('user.filter.username'),
+    width: 150
+  },
+  {key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150},
+  {
+    key: 'role_id',
+    type: 'select-v2',
+    label: t('user.filter.role'),
+    options: roleArr.value,
+    placeholder: t('user.filter.role'),
+    width: 150
+  },
+  {
+    key: 'sex',
+    type: 'select-v2',
+    label: t('user.filter.sex'),
+    options: sexArr.value,
+    placeholder: t('user.filter.sex'),
+    width: 150
+  },
+  {
+    key: 'address',
+    type: 'cascader',
+    label: t('user.filter.address'),
+    options: addressTree.value,
+    placeholder: t('user.filter.address'),
+    width: 150,
+    props: {emitPath: false, multiple: true}
+  },
+  {
+    key: 'detail_address',
+    type: 'input',
+    label: t('user.filter.detail_address'),
+    placeholder: t('user.filter.detail_address'),
+    width: 150
+  }
 ])
 const editBoxShow = ref(false)
 const editForm = ref({
@@ -100,9 +134,9 @@ const confirmEdit = () => {
 const confirmDel = async (current: any) => {
   try {
     await ElMessageBox.confirm(
-      t('common.confirmDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -122,9 +156,9 @@ const batchDel = async () => {
   }
   try {
     await ElMessageBox.confirm(
-      t('common.confirmBatchDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmBatchDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -175,12 +209,15 @@ const exportExcel = () => {
   })
 }
 const isMobile = useIsMobile()
-onMounted(() => { initList(); getList() })
+onMounted(() => {
+  initList();
+  getList()
+})
 </script>
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
     <div class="table">
       <AppTable :columns="[
           { key: 'username', label: t('user.table.username') },
@@ -188,13 +225,14 @@ onMounted(() => { initList(); getList() })
           { key: 'phone', label: t('user.table.phone') },
           { key: 'sex_show', label: t('user.table.sex') },
           { key: 'email', label: t('user.table.email') },
-          { key: 'role_name', label: t('user.table.role') },
+          { key: 'role_name', label: t('user.table.role'),width: 150},
           { key: 'address_show', label: t('user.table.address') ,width: 180, overflowTooltip: true},
           { key: 'desc', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in') },
-          { key: 'is_expired', label: t('user.table.is_expired') },
-          { key: 'actions', label: t('common.actions.action'), width: 180 }
-        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
+          { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
+          { key: 'actions', label: t('common.actions.action'), width: 150 }
+        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
+                @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
           <el-dropdown>
@@ -205,8 +243,14 @@ onMounted(() => { initList(); getList() })
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-                <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{
+                    t('common.actions.batchDelete')
+                  }}
+                </el-dropdown-item>
+                <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{
+                    t('common.actions.batchEdit')
+                  }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -238,7 +282,8 @@ onMounted(() => { initList(); getList() })
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" title="编辑" :top="isMobile ? '6vh' : '20vh'">
+  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" title="编辑"
+             :top="isMobile ? '6vh' : '20vh'">
     <div class="add-box">
       <el-form label-width="auto" :model="editForm" inline>
         <el-form-item label="用户名">
@@ -260,7 +305,8 @@ onMounted(() => { initList(); getList() })
           <up-img v-model="editForm.avatar" folderName="avatar" :isClearable="false"/>
         </el-form-item>
         <el-form-item label="地址">
-          <el-cascader v-model="editForm.address" :options="addressTree" :props="{ emitPath: false }" placeholder="请选择地址"
+          <el-cascader v-model="editForm.address" :options="addressTree" :props="{ emitPath: false }"
+                       placeholder="请选择地址"
                        style="width:200px;margin-right:5px" clearable filterable/>
           <el-input v-model="editForm.detail_address" placeholder="详细地址" clearable style="width:300px"/>
         </el-form-item>
@@ -278,7 +324,8 @@ onMounted(() => { initList(); getList() })
     <template #footer><span class="dialog-footer"><el-button @click="editBoxShow=false">取消</el-button><el-button
         type="primary" @click="confirmEdit">确认</el-button></span></template>
   </el-dialog>
-  <el-dialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" title="编辑" :top="isMobile ? '6vh' : '5vh'">
+  <el-dialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" title="编辑"
+             :top="isMobile ? '6vh' : '5vh'">
     <div class="add-box">
       <el-form label-width="80">
         <el-form-item label="字段" required>
@@ -293,7 +340,8 @@ onMounted(() => { initList(); getList() })
                         clearable/>
         </el-form-item>
         <el-form-item label="地址" v-if="batchEditForm.field === 'address'">
-          <el-cascader v-model="batchEditForm.address" :options="addressTree" :props="{ emitPath: false }" placeholder="请选择地址"
+          <el-cascader v-model="batchEditForm.address" :options="addressTree" :props="{ emitPath: false }"
+                       placeholder="请选择地址"
                        style="width:300px" clearable filterable/>
         </el-form-item>
         <el-form-item label="详细地址" v-if="batchEditForm.field === 'detail_address'">

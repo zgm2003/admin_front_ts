@@ -27,6 +27,8 @@ export const useMenuStore = defineStore('menu', {
     tabtag: localStorage.getItem('tabtag') !== 'false',
     uniqueOpen: localStorage.getItem('uniqueOpen') !== 'false',
     footer: localStorage.getItem('footer') !== 'false',
+    pageTransition: localStorage.getItem('pageTransition') !== 'false',
+    transitionName: localStorage.getItem('transitionName') || 'el-fade-in',
   }),
   actions: {
     mobile() {
@@ -85,5 +87,7 @@ export const useMenuStore = defineStore('menu', {
     changeTabtag(val: boolean) { this.tabtag = val; localStorage.setItem('tabtag', String(val)) },
     changeUniqueOpen(val: boolean) { this.uniqueOpen = val; localStorage.setItem('uniqueOpen', String(val)) },
     changeFooter(val: boolean) { this.footer = val; localStorage.setItem('footer', String(val)) },
+    changePageTransition(val: boolean) { this.pageTransition = val; localStorage.setItem('pageTransition', String(val)) },
+    changeTransitionName(val: string) { this.transitionName = val; localStorage.setItem('transitionName', val) },
   },
 })

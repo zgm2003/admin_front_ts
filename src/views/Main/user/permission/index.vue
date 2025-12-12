@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import { useIsMobile } from '@/utils/responsive'
+import {useIsMobile} from '@/utils/responsive'
 import {useRouter} from 'vue-router'
-import { PermissionApi } from '@/api/user/permission'
+import {PermissionApi} from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
-import { Search } from '@/components/Search'
+import {Search} from '@/components/Search'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
@@ -23,16 +23,52 @@ const init = () => {
 }
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({ id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '', sort: 1 })
+const form = ref({
+  id: '',
+  name: '',
+  parent_id: '',
+  icon: '',
+  path: '',
+  component: '',
+  actions: [],
+  type: '',
+  code: '',
+  i18n_key: '',
+  sort: 1
+})
 const add = () => {
   dialogMode.value = 'add'
-  form.value = { id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '', sort: 1 }
+  form.value = {
+    id: '',
+    name: '',
+    parent_id: '',
+    icon: '',
+    path: '',
+    component: '',
+    actions: [],
+    type: '',
+    code: '',
+    i18n_key: '',
+    sort: 1
+  }
   dialogVisible.value = true
 }
 const addChild = (current: any) => {
   dialogMode.value = 'add'
   const nextType = Math.min(3, Number(current.type || 1) + 1)
-  form.value = { id: '', name: '', parent_id: current.id, icon: '', path: '', component: '', actions: [], type: nextType, code: '', i18n_key: '', sort: 1 }
+  form.value = {
+    id: '',
+    name: '',
+    parent_id: current.id,
+    icon: '',
+    path: '',
+    component: '',
+    actions: [],
+    type: nextType,
+    code: '',
+    i18n_key: '',
+    sort: 1
+  }
   dialogVisible.value = true
 }
 const listLoading = ref(false)
@@ -54,22 +90,38 @@ const handleRowClick = (row: any) => {
 }
 const edit = (current: any) => {
   dialogMode.value = 'edit'
-  form.value = { id: current.id, name: current.name, parent_id: current.parent_id, icon: current.icon, path: current.path, component: current.component, actions: current.actions, type: current.type, code: current.code, i18n_key: current.i18n_key, sort: current.sort }
+  form.value = {
+    id: current.id,
+    name: current.name,
+    parent_id: current.parent_id,
+    icon: current.icon,
+    path: current.path,
+    component: current.component,
+    actions: current.actions,
+    type: current.type,
+    code: current.code,
+    i18n_key: current.i18n_key,
+    sort: current.sort
+  }
   dialogVisible.value = true
 }
 const formRef = ref<any>(null)
 const rules = computed(() => ({
-  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
-  name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-  i18n_key: (form.value.type === 1 || form.value.type === 2) ? [{ required: true, message: '请输入 i18n_key', trigger: 'blur' }] : [],
-  code: (form.value.type === 3) ? [{ required: true, message: '请输入 code', trigger: 'blur' }] : []
+  type: [{required: true, message: '请选择类型', trigger: 'change'}],
+  name: [{required: true, message: '请输入名称', trigger: 'blur'}],
+  i18n_key: (form.value.type === 1 || form.value.type === 2) ? [{
+    required: true,
+    message: '请输入 i18n_key',
+    trigger: 'blur'
+  }] : [],
+  code: (form.value.type === 3) ? [{required: true, message: '请输入 code', trigger: 'blur'}] : []
 }))
 const confirmSubmit = async () => {
   try {
     const ok = await (formRef.value as any)?.validate?.()
     if (!ok) return
   } catch {
-    ElNotification.error({ message: t('role.table.name') + t('common.required') })
+    ElNotification.error({message: t('role.table.name') + t('common.required')})
     return
   }
   const payload = form.value
@@ -79,14 +131,15 @@ const confirmSubmit = async () => {
     dialogVisible.value = false
     getList();
     init()
-  }).catch(() => {})
+  }).catch(() => {
+  })
 }
 const confirmDel = async (current: any) => {
   try {
     await ElMessageBox.confirm(
-      t('common.confirmDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -110,9 +163,9 @@ const batchDel = async () => {
   }
   try {
     await ElMessageBox.confirm(
-      t('common.confirmBatchDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmBatchDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -125,30 +178,34 @@ const batchDel = async () => {
   })
 }
 const iconSelectRef = ref<any>(null)
-const openIconSelect = () => { iconSelectRef.value.show() }
-const confirmIcon = (iconName: string) => { form.value.icon = iconName }
+const openIconSelect = () => {
+  iconSelectRef.value.show()
+}
+const confirmIcon = (iconName: string) => {
+  form.value.icon = iconName
+}
 const handleStatusSwitch = async (row: any) => {
   if (!row || !row.id) return
   try {
     await ElMessageBox.confirm(
-      t('common.confirmStatusChange'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmStatusChange'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     row.status = row.status === 1 ? 2 : 1
     return
   }
   try {
-    await PermissionApi.status({ id: row.id, status: row.status })
-    ElNotification.success({ message: t('common.success.operation') })
+    await PermissionApi.status({id: row.id, status: row.status})
+    ElNotification.success({message: t('common.success.operation')})
     getList()
   } catch {
     row.status = row.status === 1 ? 2 : 1
   }
 }
 const searchFields = computed(() => [
-  { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 }
+  {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])
 const isMobile = useIsMobile()
 onMounted(() => {
@@ -159,9 +216,12 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <el-button v-if="userStore.can('permission.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+      <el-button v-if="userStore.can('permission.add')" type="success" @click="add">{{
+          t('common.actions.add')
+        }}
+      </el-button>
       <el-dropdown>
         <el-button type="primary">{{ t('common.actions.batchDelete') }}
           <el-icon class="el-icon--right">
@@ -170,7 +230,9 @@ onMounted(() => {
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('permission.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+            <el-dropdown-item @click="batchDel" v-if="userStore.can('permission.del')">
+              {{ t('common.actions.batchDelete') }}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -181,22 +243,22 @@ onMounted(() => {
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
-<!--        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>-->
-<!--        <el-table-column :label="t('permission.table.icon')" align="center">-->
-<!--          <template #default="scope">-->
-<!--            <el-icon size="large">-->
-<!--              <component :is="scope.row.icon"/>-->
-<!--            </el-icon>-->
-<!--          </template>-->
-<!--        </el-table-column>-->
-<!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
+        <!--        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>-->
+        <!--        <el-table-column :label="t('permission.table.icon')" align="center">-->
+        <!--          <template #default="scope">-->
+        <!--            <el-icon size="large">-->
+        <!--              <component :is="scope.row.icon"/>-->
+        <!--            </el-icon>-->
+        <!--          </template>-->
+        <!--        </el-table-column>-->
+        <!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
         <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
             <el-switch
-              v-model="scope.row.status"
-              :active-value="1"
-              :inactive-value="2"
-              @change="handleStatusSwitch(scope.row)"
+                v-model="scope.row.status"
+                :active-value="1"
+                :inactive-value="2"
+                @change="handleStatusSwitch(scope.row)"
             />
           </template>
         </el-table-column>
@@ -208,11 +270,13 @@ onMounted(() => {
             <el-tag effect="dark" v-if="scope.row.type===3" type="danger">{{ scope.row.type_name }}</el-tag>
           </template>
         </el-table-column>
-<!--        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>-->
-<!--        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>-->
-        <el-table-column :label="t('permission.table.actions')" align="center" min-width="180" fixed="right" header-align="center">
+        <!--        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>-->
+        <!--        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>-->
+        <el-table-column :label="t('permission.table.actions')" align="center" min-width="180" fixed="right"
+                         header-align="center">
           <template #default="scope">
-            <el-button type="success" @click="addChild(scope.row)" text v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
+            <el-button type="success" @click="addChild(scope.row)" text
+                       v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
             </el-button>
             <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑
             </el-button>
@@ -223,12 +287,13 @@ onMounted(() => {
       </el-table>
     </div>
   </div>
-  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
+  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'"
+             :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
         <el-form-item label="类型" prop="type" required>
           <el-radio-group v-model="form.type">
-            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{ 
+            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
                 item.label
               }}
             </el-radio>
@@ -236,7 +301,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="父级菜单">
           <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true
-                           :render-after-expand="false"/>
+                          :render-after-expand="false"/>
         </el-form-item>
         <el-form-item label="名称" prop="name" required>
           <el-input v-model="form.name" style="width:100%" clearable/>
@@ -245,7 +310,7 @@ onMounted(() => {
           <el-input v-model="form.i18n_key" style="width:100%" clearable/>
         </el-form-item>
         <el-form-item label="排序" prop="sort" required>
-          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1" />
+          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1"/>
         </el-form-item>
         <el-form-item label="ICON" v-if="form.type === 1 || form.type === 2">
           <el-input v-model="form.icon" style="width:80%" clearable/>

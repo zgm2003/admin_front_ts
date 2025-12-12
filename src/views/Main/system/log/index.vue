@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import { OperationLogApi } from '@/api/system/logs'
+import {OperationLogApi} from '@/api/system/logs'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
-import { Search } from '@/components/Search'
+import {Search} from '@/components/Search'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -44,17 +44,38 @@ const onPageChange = (p: any) => {
   getList()
 }
 const searchFields = computed(() => [
-  { key: 'user_id', type: 'select-v2', label: t('log.filter.userName'), options: usernameArr.value, placeholder: t('log.filter.userName'), width: 200 },
-  { key: 'user_id', type: 'select-v2', label: t('log.filter.userEmail'), options: emailArr.value, placeholder: t('log.filter.userEmail'), width: 200 },
-  { key: 'action', type: 'input', label: t('log.filter.action'), placeholder: t('log.filter.action'), width: 200 },
-  { key: 'date', type: 'date-range', label: t('log.filter.date'), placeholder: t('log.filter.date'), width: 300, props: { valueFormat: 'YYYY-MM-DD' } }
+  {
+    key: 'user_id',
+    type: 'select-v2',
+    label: t('log.filter.userName'),
+    options: usernameArr.value,
+    placeholder: t('log.filter.userName'),
+    width: 200
+  },
+  {
+    key: 'user_id',
+    type: 'select-v2',
+    label: t('log.filter.userEmail'),
+    options: emailArr.value,
+    placeholder: t('log.filter.userEmail'),
+    width: 200
+  },
+  {key: 'action', type: 'input', label: t('log.filter.action'), placeholder: t('log.filter.action'), width: 200},
+  {
+    key: 'date',
+    type: 'date-range',
+    label: t('log.filter.date'),
+    placeholder: t('log.filter.date'),
+    width: 300,
+    props: {valueFormat: 'YYYY-MM-DD'}
+  }
 ])
 const confirmDel = async (current: any) => {
   try {
     await ElMessageBox.confirm(
-      t('common.confirmDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -75,9 +96,9 @@ const batchDel = async () => {
   }
   try {
     await ElMessageBox.confirm(
-      t('common.confirmBatchDelete'),
-      t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+        t('common.confirmBatchDelete'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
     return
@@ -98,7 +119,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList" />
+    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
     <div class="table">
       <AppTable :columns="[
           { key: 'user_name', label: t('log.table.user_name') },
@@ -109,7 +130,8 @@ onMounted(() => {
           { key: 'is_success', label: t('log.table.is_success') },
           { key: 'created_at', label: t('log.table.created_at') },
           { key: 'actions', label: t('common.actions.action'), width: 180 }
-        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true" @refresh="refresh"
+        ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
+                @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
           <el-dropdown>
@@ -120,7 +142,10 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{
+                    t('common.actions.batchDelete')
+                  }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
