@@ -23,14 +23,14 @@ const Login = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error('请完善必填项')
+    ElNotification.error(t('common.required'))
     return
   }
   const param = loginForm.value
   loading.value = true
   loginApi(param)
     .then((data: any) => {
-      ElNotification.success(t('common.success.login'))
+      ElNotification.success(t('common.success.operation'))
       loading.value = false
       clearAllCookies()
       if (param.remember) Cookies.set('token', data.token, { expires: 7 })

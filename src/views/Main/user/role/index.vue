@@ -18,20 +18,13 @@ const init = () => {
   })
 }
 init()
-const addBoxShow = ref(false)
-const addForm = ref({name: '', permission_id: ''})
+const dialogShow = ref(false)
+const isEdit = ref(false)
+const form = ref({id: '', name: '', permission_id: ''})
 const add = () => {
-  addForm.value = {name: '', permission_id: ''};
-  addBoxShow.value = true
-}
-const confirmAdd = () => {
-  const param = addForm.value;
-  addApi(param).then(() => {
-    ElNotification.success({message: '新增成功'});
-    addBoxShow.value = false;
-    getList()
-  }).catch(() => {
-  })
+  isEdit.value = false
+  form.value = {id: '', name: '', permission_id: ''}
+  dialogShow.value = true
 }
 const listLoading = ref(false)
 const listData = ref([])
@@ -66,36 +59,34 @@ const onPageChange = (p: any) => {
   page.value = p;
   getList()
 }
-const editBoxShow = ref(false)
-const editForm = ref({id: '', name: '', permission_id: ''})
 const edit = (current: any) => {
-  editForm.value = {id: current.id, name: current.name, permission_id: current.permission_id};
-  editBoxShow.value = true
+  isEdit.value = true
+  form.value = {id: current.id, name: current.name, permission_id: current.permission_id}
+  dialogShow.value = true
 }
-const confirmEdit = () => {
-  const data = editForm.value;
-  editApi(data).then(() => {
-    ElNotification.success({message: '编辑成功'});
-    editBoxShow.value = false;
-    getList()
-  }).catch(() => {
-  })
+const submit = () => {
+  const data = form.value
+  if (!data.name) { ElNotification.error({message: t('role.table.name') + t('common.required')}); return }
+  if (!isEdit.value) {
+    addApi(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+  } else {
+    editApi(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+  }
 }
 const confirmDel = async (current: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: current.id}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList();
-    init()
   }).catch(() => {
   })
 }
@@ -105,17 +96,17 @@ const batchDel = async () => {
     return
   }
   try {
-    await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmBatchDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: selectedIds.value}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -155,36 +146,20 @@ const isMobile = useIsMobile()
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="addBoxShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'">
-    <template #header>新增</template>
+  <el-dialog v-model="dialogShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '6vh' : '20vh'">
+    <template #header>{{ isEdit ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
-      <el-form :model="addForm" label-width="auto">
+      <el-form :model="form" label-width="auto">
         <el-form-item label="角色名" required>
-          <el-input v-model="addForm.name" clearable style="width:100%"/>
+          <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
         <el-form-item label="权限">
-          <el-cascader :options="PermissionTree" :props="props" v-model="addForm.permission_id" collapse-tags clearable
-                       style="width:100%"/>
+          <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" collapse-tags clearable style="width:100%"/>
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="addBoxShow=false">取消</el-button><el-button
-        type="primary" @click="confirmAdd">确认</el-button></span></template>
-  </el-dialog>
-  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '1000px'" title="编辑" :top="isMobile ? '6vh' : '20vh'">
-    <div class="add-box">
-      <el-form label-width="auto" :model="editForm">
-        <el-form-item label="角色名" required>
-          <el-input v-model="editForm.name" clearable/>
-        </el-form-item>
-        <el-form-item label="权限">
-          <el-cascader :options="PermissionTree" :props="props" v-model="editForm.permission_id" clearable
-                       style="width:100%"/>
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer><span class="dialog-footer"><el-button @click="editBoxShow=false">取消</el-button><el-button
-        type="primary" @click="confirmEdit">确认</el-button></span></template>
+    <template #footer><span class="dialog-footer"><el-button @click="dialogShow=false">{{ t('common.actions.cancel') }}</el-button><el-button
+        type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button></span></template>
   </el-dialog>
 </template>
 <style scoped>

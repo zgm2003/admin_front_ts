@@ -27,7 +27,7 @@ const EditPassword = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error('请完善必填项')
+    ElNotification.error(t('common.required'))
     return
   }
   const param = editPasswordForm.value
@@ -39,7 +39,7 @@ const doSubmit = (param: EditPasswordModel) => {
     loading.value = false;
     clearAllCookies();
     toLogin();
-    ElNotification.success(t('common.success.editPassword'))
+    ElNotification.success(t('common.success.operation'))
   }).catch(() => {
     loading.value = false
   })

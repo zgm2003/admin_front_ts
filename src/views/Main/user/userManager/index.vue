@@ -93,7 +93,7 @@ const handleUploadSuccess = (url: string) => {
 const confirmEdit = () => {
   const data = editForm.value;
   editListApi(data).then(() => {
-    ElNotification.success({message: '编辑成功'});
+    ElNotification.success({message: t('common.success.operation')});
     editBoxShow.value = false;
     getList()
   }).catch(() => {
@@ -101,17 +101,17 @@ const confirmEdit = () => {
 }
 const confirmDel = async (current: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: current.id}
   delListApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -119,21 +119,21 @@ const confirmDel = async (current: any) => {
 const selectedIds = ref([] as any[])
 const batchDel = async () => {
   if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: '请至少选择一个用户'});
+    ElNotification.error({message: t('common.selectAtLeastOne')});
     return
   }
   try {
-    await ElMessageBox.confirm('确定批量删除选中用户吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmBatchDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: selectedIds.value}
   delListApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -151,7 +151,7 @@ const batchEdit = () => {
 const confirmBatchEdit = () => {
   const param = batchEditForm.value;
   batchEditListApi(param).then(() => {
-    ElNotification.success({message: '操作成功'});
+    ElNotification.success({message: t('common.success.operation')});
     batchEditBoxShow.value = false;
     getList()
   }).catch(() => {
@@ -171,7 +171,7 @@ const exportExcel = () => {
     listLoading.value = false;
     const url = data.url;
     window.open(url);
-    ElNotification.success({message: '导出成功'})
+    ElNotification.success({message: t('common.success.operation')})
   }).catch(() => {
     listLoading.value = false
   })

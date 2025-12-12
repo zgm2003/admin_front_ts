@@ -24,13 +24,13 @@ const forgetPassword = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error('请完善必填项')
+    ElNotification.error(t('common.required'))
     return
   }
   const param = ForgetPasswordForm.value
   doSubmit(param)
 }
-const doSubmit = (param: ForgetPasswordModel) => { loading.value = true; forgetPasswordApi(param).then(()=>{ ElNotification.success(t('common.success.editPassword')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
+const doSubmit = (param: ForgetPasswordModel) => { loading.value = true; forgetPasswordApi(param).then(()=>{ ElNotification.success(t('common.success.operation')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
 const toLogin = () => { router.push('/login') }
 const toEdit = () => { emit('to-edit') }
 const codeLoding = ref(false)

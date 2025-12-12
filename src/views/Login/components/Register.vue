@@ -30,14 +30,14 @@ const Register = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error('请完善必填项')
+    ElNotification.error(t('common.required'))
     return
   }
   const param = registerForm.value
   loading.value = true
   registerApi(param)
     .then((data: any) => {
-      ElNotification.success(t('common.success.register'))
+      ElNotification.success(t('common.success.operation'))
       loading.value = false
       clearAllCookies()
       Cookies.set('token', data.token, { expires: 7 })

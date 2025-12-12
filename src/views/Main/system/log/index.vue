@@ -53,17 +53,17 @@ const searchFields = computed(() => [
 ])
 const confirmDel = async (current: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: current.id}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList();
     init()
   }).catch(() => {
@@ -72,21 +72,21 @@ const confirmDel = async (current: any) => {
 const selectedIds = ref([] as any[])
 const batchDel = async () => {
   if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: '请至少选择一个记录'});
+    ElNotification.error({message: t('common.selectAtLeastOne')});
     return
   }
   try {
-    await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmBatchDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: selectedIds.value}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -124,7 +124,7 @@ const batchDel = async () => {
         </template>
         <template #cell-is_success="{ row }">
           <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
-              row.is_success === 1 ? '成功' : '失败'
+              row.is_success === 1 ? t('common.success.operation') : 'Failed'
             }}
           </el-tag>
         </template>

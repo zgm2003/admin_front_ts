@@ -71,13 +71,13 @@ const confirmSubmit = async () => {
     const ok = await (formRef.value as any)?.validate?.()
     if (!ok) return
   } catch {
-    ElNotification.error({ message: '请完善必填项' })
+    ElNotification.error({ message: t('common.required') })
     return
   }
   const payload = form.value
   const api = dialogMode.value === 'add' ? addApi : editApi
   api(payload).then(() => {
-    ElNotification.success({message: dialogMode.value === 'add' ? '新增成功' : '编辑成功'})
+    ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList();
     init()
@@ -85,17 +85,17 @@ const confirmSubmit = async () => {
 }
 const confirmDel = async (current: any) => {
   try {
-    await ElMessageBox.confirm('确定要删除吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: current.id}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList();
     init()
   }).catch(() => {
@@ -107,21 +107,21 @@ const handleSelectionChange = (selection: any[]) => {
 }
 const batchDel = async () => {
   if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: '请至少选择一个记录'});
+    ElNotification.error({message: t('common.selectAtLeastOne')});
     return
   }
   try {
-    await ElMessageBox.confirm('确定批量删除选中记录吗？此操作不可撤销', '二次确认', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    })
+    await ElMessageBox.confirm(
+      t('common.confirmBatchDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+    )
   } catch {
     return
   }
   const param = {id: selectedIds.value}
   delApi(param).then(() => {
-    ElNotification.success({message: '删除成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -136,7 +136,7 @@ const changStatus = (row: any) => {
   }
   const param = {id: row.id, status: row.status};
   statusApi(param).then(() => {
-    ElNotification.success({message: '修改成功'});
+    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
@@ -167,19 +167,19 @@ const isMobile = useIsMobile()
     </div>
     <div class="table">
       <el-table :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
-                ref="tableRef" @row-click="handleRowClick" row-key="id" border default-expand-all stripe>
+                ref="tableRef" @row-click="handleRowClick" row-key="id" border>
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
-        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>
-        <el-table-column :label="t('permission.table.icon')" align="center">
-          <template #default="scope">
-            <el-icon size="large">
-              <component :is="scope.row.icon"/>
-            </el-icon>
-          </template>
-        </el-table-column>
-        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>
+<!--        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>-->
+<!--        <el-table-column :label="t('permission.table.icon')" align="center">-->
+<!--          <template #default="scope">-->
+<!--            <el-icon size="large">-->
+<!--              <component :is="scope.row.icon"/>-->
+<!--            </el-icon>-->
+<!--          </template>-->
+<!--        </el-table-column>-->
+<!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
         <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
             <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2"
@@ -194,8 +194,8 @@ const isMobile = useIsMobile()
             <el-tag effect="dark" v-if="scope.row.type===3" type="danger">{{ scope.row.type_name }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>
-        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>
+<!--        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>-->
+<!--        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>-->
         <el-table-column :label="t('permission.table.actions')" align="center" min-width="180" fixed="right" header-align="center">
           <template #default="scope">
             <el-button type="success" @click="addChild(scope.row)" text v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
@@ -211,7 +211,7 @@ const isMobile = useIsMobile()
   </div>
   <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
     <div class="content-box">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
+      <el-form :model="form" :rules="rules" ref="f ormRef" label-width="auto">
         <el-form-item label="类型" prop="type" required>
           <el-radio-group v-model="form.type">
             <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
@@ -257,7 +257,8 @@ const isMobile = useIsMobile()
 .box {
   display: flex;
   flex-direction: column;
-  height: 100%
+  height: 100%;
+  font-weight: 600;
 }
 
 .table {
