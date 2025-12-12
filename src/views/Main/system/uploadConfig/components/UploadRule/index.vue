@@ -26,10 +26,11 @@ const form = ref({
   file_exts: []
 })
 
-onMounted(() => {
-  UploadRuleApi.init().then((data: any) => { dict.value = data.dict || {} })
-  getList()
-})
+const init = () => {
+  UploadRuleApi.init()
+    .then((data: any) => { dict.value = data.dict || {} })
+    .catch(() => {})
+}
 
 const searchFields = computed(() => [
   { key: 'title', type: 'input', label: t('upload.rule.filter.title'), placeholder: t('upload.rule.filter.title'), width: 200 },
@@ -121,6 +122,11 @@ const batchDel = async () => {
     getList()
   })
 }
+
+onMounted(() => {
+  init()
+  getList()
+})
 </script>
 
 <template>

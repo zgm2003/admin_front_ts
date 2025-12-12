@@ -31,6 +31,12 @@ const columns = computed(() => [
   { key: 'actions', label: t('common.actions.action'), width: 220, align: 'center' }
 ])
 
+const init = () => {
+  UploadDriverApi.init()
+    .then((data: any) => { dict.value = data.dict || {} })
+    .catch(() => {})
+}
+
 const getList = () => {
   listLoading.value = true
   const param: any = { ...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page }
@@ -40,10 +46,6 @@ const getList = () => {
     page.value = data.page
   }).catch(() => { listLoading.value = false })
 }
-onMounted(() => {
-  UploadDriverApi.init().then((data: any) => { dict.value = data.dict || {} })
-  getList()
-})
 
 const refresh = () => getList()
 const onPageChange = (p: any) => { page.value = p; getList() }
@@ -126,6 +128,11 @@ const batchDel = async () => {
     getList()
   })
 }
+
+onMounted(() => {
+  init()
+  getList()
+})
 </script>
 
 <template>

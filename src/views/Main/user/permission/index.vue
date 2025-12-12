@@ -71,7 +71,7 @@ const confirmSubmit = async () => {
     const ok = await (formRef.value as any)?.validate?.()
     if (!ok) return
   } catch {
-    ElNotification.error({ message: t('common.required') })
+    ElNotification.error({ message: t('role.table.name') + t('common.required') })
     return
   }
   const payload = form.value
@@ -211,10 +211,10 @@ const isMobile = useIsMobile()
   </div>
   <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'" :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
     <div class="content-box">
-      <el-form :model="form" :rules="rules" ref="f ormRef" label-width="auto">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
         <el-form-item label="类型" prop="type" required>
           <el-radio-group v-model="form.type">
-            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
+            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{ 
                 item.label
               }}
             </el-radio>
