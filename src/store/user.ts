@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { initApi } from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', {
     async fetchUserInfo() {
       this.loading = true
       try {
-        const data = await initApi()
+        const data = await UsersApi.init()
         this.user_id = data.user_id
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { useIsMobile } from '@/utils/responsive'
-import {addApi, delApi, editApi, listApi, initApi} from '@/api/user/role'
+import { RoleApi } from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
@@ -12,12 +12,11 @@ const userStore = useUserStore()
 const {t} = useI18n()
 const PermissionTree = ref([])
 const init = () => {
-  initApi().then((data: any) => {
+  RoleApi.init().then((data: any) => {
     PermissionTree.value = data.dict.permission_tree
   }).catch(() => {
   })
 }
-init()
 const dialogShow = ref(false)
 const isEdit = ref(false)
 const form = ref({id: '', name: '', permission_id: ''})
@@ -39,7 +38,7 @@ const columns = [
 const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  listApi(param).then((data: any) => {
+  RoleApi.list(param).then((data: any) => {
     listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
@@ -47,7 +46,6 @@ const getList = () => {
     listLoading.value = false
   })
 }
-getList()
 const selectedIds = ref([] as any[])
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
@@ -68,9 +66,9 @@ const submit = () => {
   const data = form.value
   if (!data.name) { ElNotification.error({message: t('role.table.name') + t('common.required')}); return }
   if (!isEdit.value) {
-    addApi(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+    RoleApi.add(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
   } else {
-    editApi(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
+    RoleApi.edit(data).then(() => { ElNotification.success({message: t('common.success.operation')}); dialogShow.value = false; getList() })
   }
 }
 const confirmDel = async (current: any) => {
@@ -84,7 +82,7 @@ const confirmDel = async (current: any) => {
     return
   }
   const param = {id: current.id}
-  delApi(param).then(() => {
+  RoleApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList();
   }).catch(() => {
@@ -105,7 +103,7 @@ const batchDel = async () => {
     return
   }
   const param = {id: selectedIds.value}
-  delApi(param).then(() => {
+  RoleApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -116,6 +114,10 @@ const searchFields = computed(() => [
   { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 }
 ])
 const isMobile = useIsMobile()
+onMounted(() => {
+  init()
+  getList()
+})
 </script>
 
 <template>

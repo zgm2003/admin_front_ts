@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { useIsMobile } from '@/utils/responsive'
 import {useRouter} from 'vue-router'
-import {addApi, delApi, editApi, listApi, initApi, batchEditApi, statusApi} from '@/api/user/permission'
+import { PermissionApi } from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
 import { Search } from '@/components/Search'
 import {ElNotification, ElMessageBox} from 'element-plus'
@@ -15,13 +15,12 @@ const router = useRouter()
 const permissionTree = ref([])
 const permissionTypeArr = ref([])
 const init = () => {
-  initApi().then((data: any) => {
+  PermissionApi.init().then((data: any) => {
     permissionTree.value = data.dict.permission_tree;
     permissionTypeArr.value = data.dict.permission_type_arr
   }).catch(() => {
   })
 }
-init()
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({ id: '', name: '', parent_id: '', icon: '', path: '', component: '', actions: [], type: '', code: '', i18n_key: '', sort: 1 })
@@ -42,14 +41,13 @@ const searchForm = ref({name: ''})
 const getList = () => {
   listLoading.value = true;
   const param = searchForm.value;
-  listApi(param).then((data: any) => {
+  PermissionApi.list(param).then((data: any) => {
     listLoading.value = false;
     listData.value = data
   }).catch(() => {
     listLoading.value = false
   })
 }
-getList()
 const tableRef = ref()
 const handleRowClick = (row: any) => {
   (tableRef.value as any).toggleRowSelection(row)
@@ -75,7 +73,7 @@ const confirmSubmit = async () => {
     return
   }
   const payload = form.value
-  const api = dialogMode.value === 'add' ? addApi : editApi
+  const api = dialogMode.value === 'add' ? PermissionApi.add : PermissionApi.edit
   api(payload).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
@@ -94,7 +92,7 @@ const confirmDel = async (current: any) => {
     return
   }
   const param = {id: current.id}
-  delApi(param).then(() => {
+  PermissionApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList();
     init()
@@ -120,7 +118,7 @@ const batchDel = async () => {
     return
   }
   const param = {id: selectedIds.value}
-  delApi(param).then(() => {
+  PermissionApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -135,7 +133,7 @@ const changStatus = (row: any) => {
     return
   }
   const param = {id: row.id, status: row.status};
-  statusApi(param).then(() => {
+  PermissionApi.status(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -145,6 +143,10 @@ const searchFields = computed(() => [
   { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 }
 ])
 const isMobile = useIsMobile()
+onMounted(() => {
+  init()
+  getList()
+})
 </script>
 
 <template>

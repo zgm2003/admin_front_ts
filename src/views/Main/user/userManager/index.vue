@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import { useIsMobile } from '@/utils/responsive'
 import {useRouter} from 'vue-router'
-import {listListApi, initListApi, editListApi, delListApi, batchEditListApi, exportListApi} from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import UpImg from '@/components/UpImg'
 import {useUserStore} from '@/store/user'
@@ -17,14 +17,13 @@ const sexArr = ref([])
 const addressTree = ref([])
 const roleArr = ref([])
 const initList = () => {
-  initListApi().then((data: any) => {
+  UsersApi.initList().then((data: any) => {
     sexArr.value = data.dict.sexArr;
     roleArr.value = data.dict.roleArr;
     addressTree.value = data.dict.auth_address_tree
   }).catch(() => {
   })
 }
-initList()
 const listLoading = ref(false)
 const listData = ref([])
 const searchForm = ref({username: '', email: '', role_id: '', sex: '', address: '', detail_address: ''})
@@ -32,7 +31,7 @@ const page = ref({current_page: 1, page_size: 10, total: 0})
 const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  listListApi(param).then((data: any) => {
+  UsersApi.listList(param).then((data: any) => {
     listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
@@ -40,7 +39,6 @@ const getList = () => {
     listLoading.value = false
   })
 }
-getList()
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
 }
@@ -92,7 +90,7 @@ const handleUploadSuccess = (url: string) => {
 }
 const confirmEdit = () => {
   const data = editForm.value;
-  editListApi(data).then(() => {
+  UsersApi.editList(data).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     editBoxShow.value = false;
     getList()
@@ -110,7 +108,7 @@ const confirmDel = async (current: any) => {
     return
   }
   const param = {id: current.id}
-  delListApi(param).then(() => {
+  UsersApi.delList(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -132,7 +130,7 @@ const batchDel = async () => {
     return
   }
   const param = {id: selectedIds.value}
-  delListApi(param).then(() => {
+  UsersApi.delList(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -150,7 +148,7 @@ const batchEdit = () => {
 }
 const confirmBatchEdit = () => {
   const param = batchEditForm.value;
-  batchEditListApi(param).then(() => {
+  UsersApi.batchEditList(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     batchEditBoxShow.value = false;
     getList()
@@ -167,7 +165,7 @@ const exportExcel = () => {
   }
   listLoading.value = true;
   const data = {ids: selectedIds.value};
-  exportListApi(data).then((data: any) => {
+  UsersApi.exportList(data).then((data: any) => {
     listLoading.value = false;
     const url = data.url;
     window.open(url);
@@ -177,6 +175,7 @@ const exportExcel = () => {
   })
 }
 const isMobile = useIsMobile()
+onMounted(() => { initList(); getList() })
 </script>
 
 <template>

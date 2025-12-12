@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
-import { loginApi } from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import { useRouter } from 'vue-router'
 import { clearAllCookies } from '@/utils/cookie'
 import { setupDynamicRoutes } from '@/router'
@@ -28,7 +28,7 @@ const Login = async () => {
   }
   const param = loginForm.value
   loading.value = true
-  loginApi(param)
+  UsersApi.login(param)
     .then((data: any) => {
       ElNotification.success(t('common.success.operation'))
       loading.value = false

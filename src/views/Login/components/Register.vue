@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
-import { registerApi, sendCodeApi } from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/cookie'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
@@ -35,7 +35,7 @@ const Register = async () => {
   }
   const param = registerForm.value
   loading.value = true
-  registerApi(param)
+  UsersApi.register(param)
     .then((data: any) => {
       ElNotification.success(t('common.success.operation'))
       loading.value = false
@@ -51,7 +51,7 @@ const sendCode = () => {
   if (timer.value > 0) return
   codeLoding.value = true
   const param = registerForm.value as any
-  sendCodeApi(param)
+  UsersApi.sendCode(param)
     .then(() => { codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() })
     .catch(() => { codeLoding.value = false })
 }

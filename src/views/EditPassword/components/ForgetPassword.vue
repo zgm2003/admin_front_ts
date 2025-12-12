@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
-import { forgetPasswordApi, sendCodeApi } from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/cookie'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
@@ -30,12 +30,12 @@ const forgetPassword = async () => {
   const param = ForgetPasswordForm.value
   doSubmit(param)
 }
-const doSubmit = (param: ForgetPasswordModel) => { loading.value = true; forgetPasswordApi(param).then(()=>{ ElNotification.success(t('common.success.operation')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
+const doSubmit = (param: ForgetPasswordModel) => { loading.value = true; UsersApi.forgetPassword(param).then(()=>{ ElNotification.success(t('common.success.operation')); loading.value = false; clearAllCookies(); toLogin() }).catch(()=>{ loading.value = false }) }
 const toLogin = () => { router.push('/login') }
 const toEdit = () => { emit('to-edit') }
 const codeLoding = ref(false)
 const timer = ref(0)
-const sendCode = () => { if (timer.value > 0) return; codeLoding.value = true; const param = ForgetPasswordForm.value; sendCodeApi(param).then(()=>{ codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() }).catch(()=>{ codeLoding.value = false }) }
+const sendCode = () => { if (timer.value > 0) return; codeLoding.value = true; const param = ForgetPasswordForm.value; UsersApi.sendCode(param).then(()=>{ codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() }).catch(()=>{ codeLoding.value = false }) }
 const startCountdown = () => { timer.value = 60; const interval = setInterval(()=>{ if (timer.value > 0) timer.value--; else clearInterval(interval) }, 1000) }
 const back = () => { router.go(-1) }
 </script>

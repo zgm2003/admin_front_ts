@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
 import {ElNotification} from 'element-plus'
-import {EditPasswordApi} from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import {clearAllCookies} from '@/utils/cookie'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
@@ -35,7 +35,7 @@ const EditPassword = async () => {
 }
 const doSubmit = (param: EditPasswordModel) => {
   loading.value = true;
-  EditPasswordApi(param).then(() => {
+  UsersApi.EditPassword(param).then(() => {
     loading.value = false;
     clearAllCookies();
     toLogin();

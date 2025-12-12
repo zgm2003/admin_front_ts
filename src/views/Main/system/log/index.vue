@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue'
-import {delApi, listApi, initApi} from '@/api/system/logs'
+import {ref, computed, onMounted} from 'vue'
+import { OperationLogApi } from '@/api/system/logs'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
@@ -12,13 +12,12 @@ const {t} = useI18n()
 const usernameArr = ref([])
 const emailArr = ref([])
 const init = () => {
-  initApi().then((data: any) => {
+  OperationLogApi.init().then((data: any) => {
     usernameArr.value = data.dict.usernameArr;
     emailArr.value = data.dict.emailArr
   }).catch(() => {
   })
 }
-init()
 const listLoading = ref(false)
 const listData = ref([])
 const searchForm = ref({user_id: '', action: '', date: ''})
@@ -26,7 +25,7 @@ const page = ref({current_page: 1, page_size: 20, total: 0})
 const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  listApi(param).then((data: any) => {
+  OperationLogApi.list(param).then((data: any) => {
     listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
@@ -34,7 +33,6 @@ const getList = () => {
     listLoading.value = false
   })
 }
-getList()
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
 }
@@ -62,7 +60,7 @@ const confirmDel = async (current: any) => {
     return
   }
   const param = {id: current.id}
-  delApi(param).then(() => {
+  OperationLogApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList();
     init()
@@ -85,12 +83,17 @@ const batchDel = async () => {
     return
   }
   const param = {id: selectedIds.value}
-  delApi(param).then(() => {
+  OperationLogApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })
 }
+
+onMounted(() => {
+  init()
+  getList()
+})
 </script>
 
 <template>

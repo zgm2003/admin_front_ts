@@ -1,16 +1,17 @@
 import request from '@/utils/request'
-export const registerApi = (params: any) => request.post('/api/Users/register', params)
-export const initApi = (params?: any) => request.post('/api/Users/init', params)
-export const loginApi = (params: any) => request.post('/api/Users/login', params)
-export const sendCodeApi = (params: any) => request.post('/api/Users/sendCode', params)
-export const forgetPasswordApi = (params: any) => request.post('/api/Users/forgetPassword', params)
-export const initPersonalApi = (params: any) => request.post('/api/Users/initPersonal', params)
-export const editPersonalApi = (params: any) => request.post('/api/Users/editPersonal', params)
-export const EditPasswordApi = (params: any) => request.post('/api/Users/EditPassword', params)
-
-export const initListApi = (params?: any) => request.post('/api/admin/Users/initList', params)
-export const delListApi = (params: any) => request.post('/api/admin/Users/delList', params)
-export const editListApi = (params: any) => request.post('/api/admin/Users/editList', params)
-export const batchEditListApi = (params: any) => request.post('/api/admin/Users/batchEditList', params)
-export const listListApi = (params: any) => request.post('/api/admin/Users/listList', params)
-export const exportListApi = (params: any) => request.post('/api/admin/Users/exportList', params)
+export const UsersApi = {
+  register: (params: any) => request.post('/api/Users/register', params),
+  init: (params?: any) => request.post('/api/Users/init', params),
+  login: (params: any) => request.post('/api/Users/login', params),
+  sendCode: (params: any) => request.post('/api/Users/sendCode', params),
+  forgetPassword: (params: any) => request.post('/api/Users/forgetPassword', params),
+  initPersonal: (params: any) => request.post('/api/Users/initPersonal', params),
+  editPersonal: (params: any) => request.post('/api/Users/editPersonal', params),
+  EditPassword: (params: any) => request.post('/api/Users/EditPassword', params),
+  initList: (params?: any) => request.post('/api/admin/Users/initList', params),
+  delList: (params: any) => request.post('/api/admin/Users/delList', params),
+  editList: (params: any) => request.post('/api/admin/Users/editList', params),
+  batchEditList: (params: any) => request.post('/api/admin/Users/batchEditList', params),
+  listList: (params: any) => request.post('/api/admin/Users/listList', params),
+  exportList: (params: any) => request.post('/api/admin/Users/exportList', params),
+}

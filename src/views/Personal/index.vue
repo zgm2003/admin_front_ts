@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { ElNotification } from 'element-plus'
-import { initPersonalApi, editPersonalApi } from '@/api/user/users'
+import { UsersApi } from '@/api/user/users'
 import { useRoute, useRouter } from 'vue-router'
 import { setupDynamicRoutes } from '@/router'
 import 'element-plus/theme-chalk/display.css'
@@ -12,10 +12,10 @@ const sexArr = ref([])
 const addressTree = ref([])
 const userloading = ref(false)
 const user_id = (route.query as any).user_id
-const initEdit = () => { userloading.value = true; const param = { user_id }; initPersonalApi(param).then((data:any)=>{ userloading.value = false; userinfo.value = data.list; addressTree.value = data.dict.auth_address_tree; sexArr.value = data.dict.sexArr; ElNotification.success('初始化成功') }).catch(()=>{ userloading.value = false }) }
-initEdit()
+const initEdit = () => { userloading.value = true; const param = { user_id }; UsersApi.initPersonal(param).then((data:any)=>{ userloading.value = false; userinfo.value = data.list; addressTree.value = data.dict.auth_address_tree; sexArr.value = data.dict.sexArr; ElNotification.success('初始化成功') }).catch(()=>{ userloading.value = false }) }
 const userinfo = ref({ uid:'', avatar:'', username:'', email:'', phone:'', role_id:'', role_name:'', sex:'', address:'', detail_address:'', desc:'', video:'', is_self:'' } as any)
-const confirmEdit = () => { const param = userinfo.value as any; userloading.value = true; editPersonalApi(param).then(()=>{ userloading.value = false; ElNotification.success('保存成功') }).catch(()=>{ userloading.value = false }) }
+const confirmEdit = () => { const param = userinfo.value as any; userloading.value = true; UsersApi.editPersonal(param).then(()=>{ userloading.value = false; ElNotification.success('保存成功') }).catch(()=>{ userloading.value = false }) }
+onMounted(() => { initEdit() })
 const back = () => { router.go(-1); setupDynamicRoutes() }
 const forgetPassword = () => { router.push('/editPassword') }
 const sexLabel = computed(() => { const match = (sexArr.value as any[]).find((item:any)=> item.value === (userinfo.value as any).sex); return match ? match.label : '未知' })
