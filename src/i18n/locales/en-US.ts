@@ -50,6 +50,7 @@ export default {
     confirmTitle: 'Confirmation',
     confirmDelete: 'Are you sure you want to delete?',
     confirmBatchDelete: 'Delete all selected records?',
+    confirmStatusChange: 'Change enabled status?',
     selectAtLeastOne: 'Please select at least one record',
     required: 'is required',
     language: 'Language', zh: 'Chinese', en: 'English',

@@ -50,6 +50,7 @@ export default {
     confirmTitle: '二次确认',
     confirmDelete: '确定删除吗？',
     confirmBatchDelete: '确定批量删除选中记录吗？',
+    confirmStatusChange: '确定变更启用状态吗？',
     selectAtLeastOne: '请至少选择一个记录',
     required: '为必填项',
     language: '语言', zh: '中文', en: '英文',

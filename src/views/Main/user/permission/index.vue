@@ -127,17 +127,25 @@ const batchDel = async () => {
 const iconSelectRef = ref<any>(null)
 const openIconSelect = () => { iconSelectRef.value.show() }
 const confirmIcon = (iconName: string) => { form.value.icon = iconName }
-const changStatus = (row: any) => {
-  if (row.status === undefined) {
-    ElNotification.error({message: '启用状态字段不存在'});
+const handleStatusSwitch = async (row: any) => {
+  if (!row || !row.id) return
+  try {
+    await ElMessageBox.confirm(
+      t('common.confirmStatusChange'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+    )
+  } catch {
+    row.status = row.status === 1 ? 2 : 1
     return
   }
-  const param = {id: row.id, status: row.status};
-  PermissionApi.status(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
+  try {
+    await PermissionApi.status({ id: row.id, status: row.status })
+    ElNotification.success({ message: t('common.success.operation') })
     getList()
-  }).catch(() => {
-  })
+  } catch {
+    row.status = row.status === 1 ? 2 : 1
+  }
 }
 const searchFields = computed(() => [
   { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 }
@@ -184,8 +192,12 @@ onMounted(() => {
 <!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
         <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
-            <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2"
-                       @change="changStatus(scope.row)"/>
+            <el-switch
+              v-model="scope.row.status"
+              :active-value="1"
+              :inactive-value="2"
+              @change="handleStatusSwitch(scope.row)"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="sort" :label="t('permission.table.sort')" align="center" width="90"/>

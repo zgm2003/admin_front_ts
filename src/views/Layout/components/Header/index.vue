@@ -135,7 +135,7 @@ function ClickMenu() { menuStore.toggleCollapse(isMobile.value) }
 function confirmLoginOut() {
   clearAllCookies();
   localStorage.removeItem('lastVisitedPath');
-  ElNotification.success('退出成功');
+  ElNotification.success(t('common.success.operation'));
   router.push('/login');
 }
 

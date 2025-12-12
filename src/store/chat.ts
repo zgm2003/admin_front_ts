@@ -3,6 +3,7 @@ import { ElNotification } from 'element-plus'
 import Cookies from 'js-cookie'
 import { useUserStore } from '@/store/user'
 import { ChatApi } from '@/api/chat'
+import i18n from '@/i18n'
 
 const userStore = useUserStore()
 export const useChatStore = defineStore('chat', {
@@ -74,7 +75,10 @@ export const useChatStore = defineStore('chat', {
     },
     async loadMoreMessages() { this.page.page_size += 10; await this.getMessageList() },
     async exitRoom(room_id: string) {
-      try { await ChatApi.exit({ room_id }); ElNotification({ title: '退出房间成功', type: 'success', duration: 2000 }) } catch (err: any) { ElNotification.error({ message: err.message }) }
+      try {
+        await ChatApi.exit({ room_id })
+        ElNotification.success({ message: i18n.global.t('common.success.operation') })
+      } catch (err: any) { ElNotification.error({ message: err.message }) }
     },
   },
 })

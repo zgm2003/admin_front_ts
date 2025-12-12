@@ -140,7 +140,7 @@ const batchEditBoxShow = ref(false)
 const batchEditForm = ref({ids: [], field: '', sex: '', address: '', detail_address: ''})
 const batchEdit = () => {
   if (selectedIds.value.length === 0) {
-    ElNotification.error({message: '请至少选择一个用户'});
+    ElNotification.error({message: t('common.selectAtLeastOne')});
     return
   }
   batchEditForm.value = {ids: selectedIds.value, field: '', sex: '', address: '', detail_address: ''};
@@ -160,7 +160,7 @@ const goToPersonal = (current: any) => {
 }
 const exportExcel = () => {
   if (selectedIds.value.length === 0) {
-    ElNotification.error({message: '请至少选择一个用户'});
+    ElNotification.error({message: t('common.selectAtLeastOne')});
     return
   }
   listLoading.value = true;

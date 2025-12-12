@@ -113,7 +113,7 @@ const confirmDel = async (row: any) => {
 }
 const batchDel = async () => {
   if (!selectedIds.value.length) {
-    ElNotification.error({ message: t('common.selectAtLeastOne') || '请至少选择一个记录' })
+    ElNotification.error({ message: t('common.selectAtLeastOne') })
     return
   }
   try {
