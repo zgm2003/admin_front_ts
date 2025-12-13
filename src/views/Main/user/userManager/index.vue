@@ -119,9 +119,6 @@ const edit = (current: any) => {
   };
   editBoxShow.value = true
 }
-const handleUploadSuccess = (url: string) => {
-  editForm.value.avatar = url
-}
 const confirmEdit = () => {
   const data = editForm.value;
   UsersApi.editList(data).then(() => {
@@ -230,7 +227,7 @@ onMounted(() => {
           { key: 'desc', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in') },
           { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
-          { key: 'actions', label: t('common.actions.action'), width: 150 }
+          { key: 'actions', label: t('common.actions.action'), width: 200 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">

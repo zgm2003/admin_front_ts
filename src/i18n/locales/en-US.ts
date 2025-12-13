@@ -154,7 +154,9 @@ export default {
   },
   role: {
     filter: {name: 'Name'},
-    table: {id: 'ID', name: 'Name', created_at: 'Created At', updated_at: 'Updated At'}
+    table: {id: 'ID', name: 'Name', is_default: 'Default Role', created_at: 'Created At', updated_at: 'Updated At'},
+    confirmSetDefault: 'Set as default role?',
+    actions: { setDefault: 'Set Default' }
   },
   permission: {
     filter: { name: 'Name' },

@@ -6,4 +6,5 @@ export const RoleApi = {
   add: (params: any) => request.post('/api/admin/Role/add', params),
   edit: (params: any) => request.post('/api/admin/Role/edit', params),
   del: (params: any) => request.post('/api/admin/Role/del', params),
+  default: (params: any) => request.post('/api/admin/Role/default', params),
 }

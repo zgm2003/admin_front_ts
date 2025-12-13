@@ -31,9 +31,10 @@ const searchForm = ref({name: '', path: '', permission: ''})
 const page = ref({current_page: 1, page_size: 50, total: 0})
 const columns = [
   {key: 'name', label: t('role.table.name')},
+  {key: 'is_default', label: t('role.table.is_default'), align: 'center', width: 120},
   {key: 'created_at', label: t('role.table.created_at')},
   {key: 'updated_at', label: t('role.table.updated_at')},
-  {key: 'actions', label: '操作', width: 180, align: 'center'}
+  {key: 'actions', label: '操作', width: 300, align: 'center'}
 ]
 const getList = () => {
   listLoading.value = true;
@@ -120,6 +121,23 @@ const batchDel = async () => {
   }).catch(() => {
   })
 }
+const handleDefaultSwitch = async (current: any) => {
+  try {
+    await ElMessageBox.confirm(
+        t('role.confirmSetDefault'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
+    )
+  } catch {
+    return
+  }
+  const param = {id: current.id}
+  RoleApi.default(param).then(() => {
+    ElNotification.success({message: t('common.success.operation')});
+    getList();
+  }).catch(() => {
+  })
+}
 const props = {multiple: true, emitPath: false, checkStrictly: true}
 const searchFields = computed(() => [
   {key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150}
@@ -159,9 +177,16 @@ onMounted(() => {
             </template>
           </el-dropdown>
         </template>
+        <template #cell-is_default="{ row }">
+          <el-tag type="success" v-if="row.is_default === 1">{{ t('role.table.is_default') }}</el-tag>
+          <span v-else></span>
+        </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>
           <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">删除</el-button>
+          <el-button type="success" text @click="handleDefaultSwitch(row)"
+                     v-if="userStore.can('role.setDefault') && row.is_default !== 1">{{ t('role.actions.setDefault') }}
+          </el-button>
         </template>
       </AppTable>
     </div>

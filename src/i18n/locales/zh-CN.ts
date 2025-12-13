@@ -152,7 +152,12 @@ export default {
       is_expired: 'token是否过期'
     }
   },
-  role: {filter: {name: '名称'}, table: {id: 'ID', name: '名称', created_at: '创建时间', updated_at: '更新时间'}},
+  role: {
+    filter: { name: '名称' },
+    table: { id: 'ID', name: '名称', is_default: '默认角色', created_at: '创建时间', updated_at: '更新时间' },
+    confirmSetDefault: '确定设置为默认角色吗？',
+    actions: { setDefault: '设为默认' }
+  },
   permission: {
     filter: { name: '名称' },
     table: {
