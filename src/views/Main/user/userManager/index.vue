@@ -102,7 +102,7 @@ const editForm = ref({
   sex: '',
   address: '',
   detail_address: '',
-  desc: ''
+  bio: ''
 })
 const edit = (current: any) => {
   editForm.value = {
@@ -115,7 +115,7 @@ const edit = (current: any) => {
     sex: current.sex,
     address: current.address,
     detail_address: current.detail_address,
-    desc: current.desc
+    bio: current.bio
   };
   editBoxShow.value = true
 }
@@ -224,7 +224,7 @@ onMounted(() => {
           { key: 'email', label: t('user.table.email') },
           { key: 'role_name', label: t('user.table.role'),width: 150},
           { key: 'address_show', label: t('user.table.address') ,width: 180, overflowTooltip: true},
-          { key: 'desc', label: t('user.table.desc'), width: 180, overflowTooltip: true },
+          { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in') },
           { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
           { key: 'actions', label: t('common.actions.action'), width: 200 }
@@ -257,13 +257,13 @@ onMounted(() => {
           <el-link type="primary" @click="goToPersonal({ row })">{{ row.username }}</el-link>
         </template>
         <template #cell-avatar="{ row }">
-          <el-avatar :src="row.avatar" :size="70"/>
+          <el-avatar :src="row.avatar"/>
         </template>
         <template #cell-role_name="{ row }">
           <el-tag :type="row.role_id === 1 ? 'success' : 'danger'">{{ row.role_name }}</el-tag>
         </template>
-        <template #cell-desc="{ row }">
-          <el-text v-html="row.desc"></el-text>
+        <template #cell-bio="{ row }">
+          <el-text v-html="row.bio"></el-text>
         </template>
         <template #cell-is_expired="{ row }">
           <el-tag :type="row.is_expired === '未过期' ? 'success' : 'danger'">{{ row.is_expired }}</el-tag>

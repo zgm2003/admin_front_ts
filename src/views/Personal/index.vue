@@ -39,7 +39,7 @@ const userinfo = ref({
   sex: '',
   address: '',
   detail_address: '',
-  desc: '',
+  bio: '',
   video: '',
   is_self: ''
 } as any)
@@ -116,7 +116,7 @@ const sexLabel = computed(() => {
             <el-divider/>
             <div class="two">
               <div class="zuo" style="min-width:80px;">个人简介</div>
-              <div class="you">{{ userinfo.desc }}</div>
+              <div class="you">{{ userinfo.bio }}</div>
             </div>
             <el-divider/>
           </div>
@@ -148,7 +148,7 @@ const sexLabel = computed(() => {
                 <el-input v-model="userinfo.detail_address" placeholder="详细地址" clearable style="width:48%"/>
               </el-form-item>
               <el-form-item label="个人简介">
-                <el-input type="textarea" :rows="5" v-model="userinfo.desc" placeholder="请输入内容"/>
+                <el-input type="textarea" :rows="5" v-model="userinfo.bio" placeholder="请输入内容"/>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="confirmEdit">保存</el-button>

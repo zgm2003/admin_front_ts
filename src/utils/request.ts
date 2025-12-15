@@ -1,6 +1,7 @@
 import axios, { AxiosHeaders } from 'axios'
 import Cookies from 'js-cookie'
 import router from '@/router'
+import { useUserStore } from '@/store/user'
 import { ElNotification } from 'element-plus'
 import { clearAllCookies } from '@/utils/cookie'
 
@@ -35,7 +36,10 @@ service.interceptors.response.use(
           clearAllCookies()
           router.push('/login')
         } else if (code === 403) {
-          router.push('/')
+          try {
+            const userStore = useUserStore()
+            userStore.fetchUserInfo().catch(() => {})
+          } catch {}
         } else if (code === 404) {
           router.push('/404')
         }
