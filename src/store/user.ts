@@ -8,7 +8,7 @@ export const useUserStore = defineStore('user', {
     username: '',
     permissions: [] as any[],
     router: [] as any[],
-    buttons: [] as any[],
+    buttonCodes: [] as string[],
     loading: false,
   }),
   actions: {
@@ -22,13 +22,13 @@ export const useUserStore = defineStore('user', {
         data.permissions.unshift({ icon: 'HomeFilled', index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' })
         this.permissions = data.permissions
         this.router = data.router
-        this.buttons = data.buttons
+        this.buttonCodes = data.buttonCodes || []
       } finally {
         this.loading = false
       }
     },
     can(code: string) {
-      return this.buttons.some((btn: any) => btn.code === code)
+      return this.buttonCodes.includes(code)
     },
   },
 })
