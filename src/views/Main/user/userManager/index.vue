@@ -2,7 +2,7 @@
 import {ref, computed, onMounted} from 'vue'
 import {useIsMobile} from '@/utils/responsive'
 import {useRouter} from 'vue-router'
-import {UsersApi} from '@/api/user/users'
+import {UsersListApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import UpImg from '@/components/UpImg'
 import {useUserStore} from '@/store/user'
@@ -18,7 +18,7 @@ const sexArr = ref([])
 const addressTree = ref([])
 const roleArr = ref([])
 const initList = () => {
-  UsersApi.initList().then((data: any) => {
+  UsersListApi.init().then((data: any) => {
     sexArr.value = data.dict.sexArr;
     roleArr.value = data.dict.roleArr;
     addressTree.value = data.dict.auth_address_tree
@@ -32,7 +32,7 @@ const page = ref({current_page: 1, page_size: 10, total: 0})
 const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  UsersApi.listList(param).then((data: any) => {
+  UsersListApi.list(param).then((data: any) => {
     listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
@@ -122,7 +122,7 @@ const edit = (current: any) => {
 }
 const confirmEdit = () => {
   const data = editForm.value;
-  UsersApi.editList(data).then(() => {
+  UsersListApi.edit(data).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     editBoxShow.value = false;
     getList()
@@ -140,7 +140,7 @@ const confirmDel = async (current: any) => {
     return
   }
   const param = {id: current.id}
-  UsersApi.delList(param).then(() => {
+  UsersListApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -162,7 +162,7 @@ const batchDel = async () => {
     return
   }
   const param = {id: selectedIds.value}
-  UsersApi.delList(param).then(() => {
+  UsersListApi.del(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
@@ -180,7 +180,7 @@ const batchEdit = () => {
 }
 const confirmBatchEdit = () => {
   const param = batchEditForm.value;
-  UsersApi.batchEditList(param).then(() => {
+  UsersListApi.batchEdit(param).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     batchEditBoxShow.value = false;
     getList()
@@ -197,7 +197,7 @@ const exportExcel = () => {
   }
   listLoading.value = true;
   const data = {ids: selectedIds.value};
-  UsersApi.exportList(data).then((data: any) => {
+  UsersListApi.export(data).then((data: any) => {
     listLoading.value = false;
     const url = data.url;
     window.open(url);
