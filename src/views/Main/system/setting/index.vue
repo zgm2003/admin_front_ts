@@ -33,7 +33,7 @@ const searchFields = computed(() => [
 
 const columns = computed(() => [
   { key: 'setting_key', label: t('setting.table.key'), width: 220, overflowTooltip: true },
-  { key: 'setting_value', label: t('setting.table.value'), overflowTooltip: true },
+  { key: 'setting_value', label: t('setting.table.value'), overflowTooltip: true},
   { key: 'value_type', label: t('setting.table.type'), width: 120 },
   { key: 'remark', label: t('setting.table.remark'), width: 200, overflowTooltip: true },
   { key: 'status', label: t('setting.table.status'), width: 120 },
@@ -47,10 +47,7 @@ const getList = () => {
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
   SystemSettingApi.list(param).then((data: any) => {
     listLoading.value = false
-    listData.value = (data.list || []).map((it: any) => ({
-      ...it,
-      value_type_label: (dict.value.system_setting_value_type_arr || []).find((d: any) => d.value === it.value_type)?.label || it.value_type,
-    }))
+    listData.value = data.list || []
     page.value = data.page
   }).catch(() => {
     listLoading.value = false
@@ -125,16 +122,15 @@ onMounted(() => { init(); getList() })
           <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
         </template>
         <template #cell-value_type="{ row }">
-          <el-tag type="primary">{{ (dict.system_setting_value_type_arr || []).find((d:any) => d.value === row.value_type)?.label || row.value_type }}</el-tag>
+          <el-tag type="primary">{{ row.value_type_name }}</el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
         <template #cell-setting_value="{ row }">
           <div style="display:flex;align-items:center;gap:8px;">
-            <el-text style="max-width:550px" truncated>{{ row.setting_value }}</el-text>
-            <el-button size="small" @click="copy(row.setting_value)">{{ t('common.actions.copy') || '复制' }}</el-button>
-            <el-avatar v-if="row.setting_key==='user.default_avatar'" :src="row.setting_value" :size="28"/>
+            <el-text v-if="!isMobile" style="max-width:550px" truncated>{{ row.setting_value }}</el-text>
+            <el-button size="small" @click="copy(row.setting_value)">{{ t('common.actions.copy')}}</el-button>
           </div>
         </template>
         <template #cell-actions="{ row }">

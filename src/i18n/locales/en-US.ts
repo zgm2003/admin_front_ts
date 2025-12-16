@@ -78,7 +78,7 @@ export default {
     userManager: 'User Manager',
     role: 'Role Manager',
     permission: 'Permission',
-    logs: 'System Log',
+    operationLog: 'operation Log',
     test: 'Test',
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings'
@@ -118,7 +118,7 @@ export default {
     empty: 'No matches'
   },
   footer: {copyright: 'Copyright© Zhilang · AI Cloud-Native High-Concurrency Workflow Platform'},
-  log: {
+  operationLog: {
     filter: {userName: 'Operator Name', userEmail: 'Operator Email', action: 'Action', date: 'Date Range'},
     table: {
       id: 'ID',

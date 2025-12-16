@@ -6,6 +6,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
+import {ArrowRight} from "@element-plus/icons-vue";
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -47,25 +48,25 @@ const searchFields = computed(() => [
   {
     key: 'user_id',
     type: 'select-v2',
-    label: t('log.filter.userName'),
+    label: t('operationLog.filter.userName'),
     options: usernameArr.value,
-    placeholder: t('log.filter.userName'),
+    placeholder: t('operationLog.filter.userName'),
     width: 200
   },
   {
     key: 'user_id',
     type: 'select-v2',
-    label: t('log.filter.userEmail'),
+    label: t('operationLog.filter.userEmail'),
     options: emailArr.value,
-    placeholder: t('log.filter.userEmail'),
+    placeholder: t('operationLog.filter.userEmail'),
     width: 200
   },
-  {key: 'action', type: 'input', label: t('log.filter.action'), placeholder: t('log.filter.action'), width: 200},
+  {key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: 200},
   {
     key: 'date',
     type: 'date-range',
-    label: t('log.filter.date'),
-    placeholder: t('log.filter.date'),
+    label: t('operationLog.filter.date'),
+    placeholder: t('operationLog.filter.date'),
     width: 300,
     props: {valueFormat: 'YYYY-MM-DD'}
   }
@@ -122,13 +123,13 @@ onMounted(() => {
     <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
     <div class="table">
       <AppTable :columns="[
-          { key: 'user_name', label: t('log.table.user_name') },
-          { key: 'user_email', label: t('log.table.user_email') },
-          { key: 'action', label: t('log.table.action') },
-          { key: 'request_data', label: t('log.table.request_data') },
-          { key: 'response_data', label: t('log.table.response_data') },
-          { key: 'is_success', label: t('log.table.is_success') },
-          { key: 'created_at', label: t('log.table.created_at') },
+          { key: 'user_name', label: t('operationLog.table.user_name') },
+          { key: 'user_email', label: t('operationLog.table.user_email') },
+          { key: 'action', label: t('operationLog.table.action') },
+          { key: 'request_data', label: t('operationLog.table.request_data') },
+          { key: 'response_data', label: t('operationLog.table.response_data') },
+          { key: 'is_success', label: t('operationLog.table.is_success') },
+          { key: 'created_at', label: t('operationLog.table.created_at') },
           { key: 'actions', label: t('common.actions.action'), width: 180 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh"
@@ -142,7 +143,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('log.del')">{{
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('operationLog.del')">{{
                     t('common.actions.batchDelete')
                   }}
                 </el-dropdown-item>
@@ -157,7 +158,7 @@ onMounted(() => {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="danger" text v-if="userStore.can('log.del')" @click="confirmDel(row)">
+          <el-button type="danger" text v-if="userStore.can('operationLog.del')" @click="confirmDel(row)">
             {{ t('common.actions.del') }}
           </el-button>
         </template>

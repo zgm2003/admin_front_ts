@@ -78,7 +78,7 @@ export default {
     userManager: '用户管理',
     role: '角色管理',
     permission: '菜单管理',
-    logs: '系统日志',
+    operationLog: '操作日志',
     test: '测试页',
     uploadConfig: '上传配置',
     systemSetting: '系统设置'
@@ -118,7 +118,7 @@ export default {
     empty: '暂无匹配'
   },
   footer: {copyright: 'Copyright©智澜·AI云原生高并发智能工作流平台 · 鄂ICP备2025095115号-1'},
-  log: {
+  operationLog: {
     filter: {userName: '操作人昵称', userEmail: '操作人邮箱', action: '动作', date: '日期范围'},
     table: {
       id: 'ID',
