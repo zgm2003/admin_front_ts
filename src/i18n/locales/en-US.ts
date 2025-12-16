@@ -61,6 +61,7 @@ export default {
       save: 'Save',
       cancel: 'Cancel',
       confirm: 'Confirm',
+      copy: 'Copy',
       query: 'Query',
       export: 'Export',
       batchAction: 'Batch Actions',
@@ -79,7 +80,8 @@ export default {
     permission: 'Permission',
     logs: 'System Log',
     test: 'Test',
-    uploadConfig: 'Upload Config'
+    uploadConfig: 'Upload Config',
+    systemSetting: 'System Settings'
   },
   header: {
     projectConfig: 'Project Settings',
@@ -216,6 +218,27 @@ export default {
         max_size_mb: 'Max MB',
         only_image: 'Only Image'
       }
+    }
+  },
+  setting: {
+    filter: { key: 'Key', status: 'Status' },
+    table: {
+      key: 'Key',
+      value: 'Value',
+      type: 'Type',
+      remark: 'Remark',
+      status: 'Status',
+      created_at: 'Created At',
+      updated_at: 'Updated At'
+    },
+    form: {
+      key: 'Key',
+      value: 'Value',
+      type: 'Value Type',
+      remark: 'Remark'
+    },
+    dict: {
+      value_type: 'Value Type'
     }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}

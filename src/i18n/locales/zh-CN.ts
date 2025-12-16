@@ -61,6 +61,7 @@ export default {
       save: '保存',
       cancel: '取消',
       confirm: '确认',
+      copy: '复制',
       query: '查询',
       export: '导出',
       batchAction: '批量操作',
@@ -79,7 +80,8 @@ export default {
     permission: '菜单管理',
     logs: '系统日志',
     test: '测试页',
-    uploadConfig: '上传配置'
+    uploadConfig: '上传配置',
+    systemSetting: '系统设置'
   },
   header: {
     projectConfig: '项目配置',
@@ -216,6 +218,27 @@ export default {
         max_size_mb: '最大MB',
         only_image: '仅允许图片'
       }
+    }
+  },
+  setting: {
+    filter: { key: '配置 Key', status: '状态' },
+    table: {
+      key: 'Key',
+      value: 'Value',
+      type: '类型',
+      remark: '备注',
+      status: '状态',
+      created_at: '创建时间',
+      updated_at: '更新时间'
+    },
+    form: {
+      key: '配置 Key',
+      value: '配置值',
+      type: '值类型',
+      remark: '备注'
+    },
+    dict: {
+      value_type: '值类型'
     }
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
