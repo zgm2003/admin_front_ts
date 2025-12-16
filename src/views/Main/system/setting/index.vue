@@ -4,6 +4,7 @@ import {useI18n} from 'vue-i18n'
 import {SystemSettingApi} from '@/api/system/setting'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {Search} from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/utils/responsive'
 
@@ -25,7 +26,7 @@ const init = () => {
   })
 }
 
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   { key: 'key', type: 'input', label: t('setting.filter.key'), placeholder: t('setting.filter.key'), width: 200 },
   { key: 'status', type: 'select-v2', label: t('setting.filter.status'), placeholder: t('setting.filter.status'), width: 160,
     options: [{label: '启用', value: 1}, {label: '禁用', value: 2}] }

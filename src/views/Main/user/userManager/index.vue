@@ -8,6 +8,7 @@ import UpImg from '@/components/UpImg'
 import {useUserStore} from '@/store/user'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 import {useI18n} from 'vue-i18n'
 
 const userStore = useUserStore()
@@ -49,7 +50,7 @@ const onPageChange = (p: any) => {
   page.value = p;
   getList()
 }
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {
     key: 'username',
     type: 'input',

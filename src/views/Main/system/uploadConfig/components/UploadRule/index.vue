@@ -6,6 +6,7 @@ import {useIsMobile} from '@/utils/responsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -35,7 +36,7 @@ const init = () => {
       })
 }
 
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {
     key: 'title',
     type: 'input',

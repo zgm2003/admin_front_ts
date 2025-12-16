@@ -7,6 +7,7 @@ import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import {ArrowRight} from "@element-plus/icons-vue";
+import type { SearchField } from '@/components/Search/types'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -44,7 +45,7 @@ const onPageChange = (p: any) => {
   page.value = p;
   getList()
 }
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {
     key: 'user_id',
     type: 'select-v2',
@@ -61,7 +62,7 @@ const searchFields = computed(() => [
     placeholder: t('operationLog.filter.userEmail'),
     width: 200
   },
-  {key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: 200},
+  { key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: 200 },
   {
     key: 'date',
     type: 'date-range',

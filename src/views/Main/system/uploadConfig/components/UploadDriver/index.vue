@@ -5,6 +5,7 @@ import {useIsMobile} from '@/utils/responsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 import {UploadDriverApi} from '@/api/system/uploadConfig'
 
 const {t} = useI18n()
@@ -16,7 +17,7 @@ const page = ref({current_page: 1, page_size: 20, total: 0})
 const searchForm = ref({driver: ''})
 const dict = ref({upload_driver_arr: []} as any)
 
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {
     key: 'driver',
     type: 'select-v2',

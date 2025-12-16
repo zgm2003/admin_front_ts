@@ -7,6 +7,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -139,7 +140,7 @@ const handleDefaultSwitch = async (current: any) => {
   })
 }
 const props = {multiple: true, emitPath: false, checkStrictly: true}
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150}
 ])
 const isMobile = useIsMobile()
