@@ -13,7 +13,7 @@ export function clearCookies() {
     const cookie = cookies[i]
     const eqPos = cookie.indexOf('=')
     const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
-    if (name !== 'token') {
+    if (name !== 'access_token') {
       Cookies.remove(name)
     }
   }

@@ -42,7 +42,7 @@ const Register = async () => {
       clearAllCookies()
       
       const expires = new Date(new Date().getTime() + data.expires_in * 1000)
-      Cookies.set('token', data.access_token, { expires })
+      Cookies.set('access_token', data.access_token, { expires })
       Cookies.set('refresh_token', data.refresh_token, { expires: 14 })
 
       setupDynamicRoutes().then(() => { if (router.currentRoute.value.path === '/login') router.replace('/home') })

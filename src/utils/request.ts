@@ -31,7 +31,7 @@ function processQueue(error: Error | null, token: string | null = null) {
 
 service.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token')
+    const token = Cookies.get('access_token')
     const platform = import.meta.env.VITE_PLATFORM || (/(Android|iPhone|iPad|iPod|Windows Phone)/i.test(navigator.userAgent) ? 'mobile' : 'web')
     const deviceId = getDeviceId()
 
@@ -114,7 +114,7 @@ service.interceptors.response.use(
                 const newData = refreshRes.data
                 if (newData.code === 0 && newData.data) {
                   const { access_token, refresh_token: newRefreshToken } = newData.data
-                  Cookies.set('token', access_token)
+                  Cookies.set('access_token', access_token)
                   if (newRefreshToken) Cookies.set('refresh_token', newRefreshToken)
 
                   isRefreshing = false

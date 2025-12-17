@@ -35,7 +35,7 @@ const Login = async () => {
       clearAllCookies()
       
       const expires = new Date(new Date().getTime() + data.expires_in * 1000)
-      Cookies.set('token', data.access_token, { expires })
+      Cookies.set('access_token', data.access_token, { expires })
       Cookies.set('refresh_token', data.refresh_token, { expires: 14 }) // Refresh token 14 days
 
       setupDynamicRoutes().then(() => {
