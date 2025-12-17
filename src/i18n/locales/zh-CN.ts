@@ -47,6 +47,9 @@ export default {
       sendCode: '发送成功（长时间没收到检查垃圾箱┭┮﹏┭┮）',
       operation: '操作成功'
     },
+    fail: {
+      login: '登录失败'
+    },
     confirmTitle: '二次确认',
     confirmDelete: '确定删除吗？',
     confirmKick: '确定要踢该用户下线吗？',
@@ -81,6 +84,7 @@ export default {
     role: '角色管理',
     permission: '菜单管理',
     operationLog: '操作日志',
+    usersLoginLog: '登录日志',
     test: '测试页',
     uploadConfig: '上传配置',
     systemSetting: '系统设置'
@@ -130,6 +134,19 @@ export default {
       request_data: '请求参数',
       response_data: '输出参数',
       is_success: '是否成功',
+      created_at: '创建时间'
+    }
+  },
+  usersLoginLog: {
+    filter: {userName: '操作人昵称', userEmail: '操作人邮箱', ip: 'IP地址', platform: '平台', date: '日期范围'},
+    table: {
+      user_name: '操作人昵称',
+      user_email: '操作人邮箱',
+      platform: '平台',
+      ip: 'IP地址',
+      ua: 'User Agent',
+      is_success: '是否成功',
+      reason: '原因',
       created_at: '创建时间'
     }
   },

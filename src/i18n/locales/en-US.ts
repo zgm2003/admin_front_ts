@@ -47,6 +47,9 @@ export default {
       sendCode: 'Code sent successfully',
       operation: 'Operation successful'
     },
+    fail: {
+      login: 'Login Failed'
+    },
     confirmTitle: 'Confirmation',
     confirmDelete: 'Are you sure you want to delete?',
     confirmKick: 'Are you sure you want to kick this user offline?',
@@ -81,6 +84,7 @@ export default {
     role: 'Role Manager',
     permission: 'Permission',
     operationLog: 'operation Log',
+    usersLoginLog: 'Login Log',
     test: 'Test',
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings'
@@ -130,6 +134,19 @@ export default {
       request_data: 'Request',
       response_data: 'Response',
       is_success: 'Success',
+      created_at: 'Created At'
+    }
+  },
+  usersLoginLog: {
+    filter: {userName: 'Operator Name', userEmail: 'Operator Email', ip: 'IP Address', platform: 'Platform', date: 'Date Range'},
+    table: {
+      user_name: 'Operator Name',
+      user_email: 'Operator Email',
+      platform: 'Platform',
+      ip: 'IP Address',
+      ua: 'User Agent',
+      is_success: 'Success',
+      reason: 'Reason',
       created_at: 'Created At'
     }
   },
