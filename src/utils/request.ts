@@ -1,7 +1,6 @@
 import axios, { AxiosHeaders } from 'axios'
 import Cookies from 'js-cookie'
 import router from '@/router'
-import { useUserStore } from '@/store/user'
 import { ElNotification } from 'element-plus'
 import { clearAllCookies } from '@/utils/cookie'
 import { getDeviceId } from '@/utils/device'
@@ -140,10 +139,7 @@ service.interceptors.response.use(
         const message = data.msg || '请求失败'
         ElNotification.error({ message })
         if (code === 403) {
-          try {
-            const userStore = useUserStore()
-            userStore.fetchUserInfo().catch(() => {})
-          } catch {}
+          console.log('403')
         } else if (code === 404) {
           router.push('/404')
         }
