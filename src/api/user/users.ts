@@ -19,4 +19,5 @@ export const UsersListApi = {
   batchEdit: (params: any) => request.post('/api/admin/UsersList/batchEdit', params),
   list: (params: any) => request.post('/api/admin/UsersList/list', params),
   export: (params: any) => request.post('/api/admin/UsersList/export', params),
+  kick: (params: any) => request.post('/api/admin/UsersList/kick', params),
 }

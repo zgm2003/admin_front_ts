@@ -156,6 +156,23 @@ const confirmDel = async (current: any) => {
   }).catch(() => {
   })
 }
+const confirmKick = async (current: any) => {
+  try {
+    await ElMessageBox.confirm(
+      t('common.confirmKick'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+    )
+  } catch {
+    return
+  }
+  const param = { id: current.id, platform: searchForm.value.platform }
+  UsersListApi.kick(param).then(() => {
+    ElNotification.success({ message: t('common.success.operation') });
+    getList()
+  }).catch(() => {
+  })
+}
 const selectedIds = ref([] as any[])
 const batchDel = async () => {
   if (!selectedIds.value || selectedIds.value.length === 0) {
@@ -242,7 +259,7 @@ onMounted(() => {
           { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in'),width: 180 },
           { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
-          { key: 'actions', label: t('common.actions.action'), width: 200 }
+          { key: 'actions', label: t('common.actions.action'), width: 250 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
@@ -289,6 +306,9 @@ onMounted(() => {
           </el-button>
           <el-button type="danger" text v-if="userStore.can('user.del')" @click="confirmDel(row)">
             {{ t('common.actions.del') }}
+          </el-button>
+          <el-button type="warning" text v-if="userStore.can('user.kick') && row.is_expired === '未过期'" @click="confirmKick(row)">
+            {{ t('common.actions.kick') }}
           </el-button>
         </template>
       </AppTable>
