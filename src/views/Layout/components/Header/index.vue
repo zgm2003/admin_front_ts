@@ -103,6 +103,7 @@ import {useIsMobile} from '@/utils/responsive'
 import {useI18n} from 'vue-i18n'
 import {resolveMenuLabel} from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
+import {UsersApi} from "@/api/user/users.js";
 
 const menuStore = useMenuStore();
 const userStore = useUserStore();
@@ -143,10 +144,12 @@ function ClickMenu() {
 }
 
 function confirmLoginOut() {
-  clearAllCookies();
-  localStorage.removeItem('lastVisitedPath');
-  ElNotification.success(t('common.success.operation'));
-  router.push('/login');
+  UsersApi.logout({}).finally(() => {
+    clearAllCookies();
+    localStorage.removeItem('lastVisitedPath');
+    ElNotification.success(t('common.success.operation'));
+    router.push('/login');
+  })
 }
 
 function toggleFullScreen() {

@@ -17,17 +17,19 @@ const router = useRouter()
 const sexArr = ref([])
 const addressTree = ref([])
 const roleArr = ref([])
+const platformArr = ref([])
 const initList = () => {
   UsersListApi.init().then((data: any) => {
     sexArr.value = data.dict.sexArr;
     roleArr.value = data.dict.roleArr;
-    addressTree.value = data.dict.auth_address_tree
+    addressTree.value = data.dict.auth_address_tree;
+    platformArr.value = data.dict.platformArr;
   }).catch(() => {
   })
 }
 const listLoading = ref(false)
 const listData = ref([])
-const searchForm = ref({username: '', email: '', role_id: '', sex: '', address: '', detail_address: ''})
+const searchForm = ref({username: '', email: '', role_id: '', sex: '', address: '', detail_address: '', platform: 'admin'})
 const page = ref({current_page: 1, page_size: 10, total: 0})
 const getList = () => {
   listLoading.value = true;
@@ -56,6 +58,14 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'input',
     label: t('user.filter.username'),
     placeholder: t('user.filter.username'),
+    width: 150
+  },
+  {
+    key: 'platform',
+    type: 'select-v2',
+    label: '平台',
+    options: platformArr.value,
+    placeholder: '选择平台',
     width: 150
   },
   {key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150},
@@ -225,8 +235,12 @@ onMounted(() => {
           { key: 'email', label: t('user.table.email') },
           { key: 'role_name', label: t('user.table.role'),width: 150},
           { key: 'address_show', label: t('user.table.address') ,width: 180, overflowTooltip: true},
+          { key: 'ip', label: 'IP', width: 140 },
+          { key: 'platform', label: '平台', width: 80 },
+          { key: 'device_id', label: '设备ID', width: 180, overflowTooltip: true },
+          { key: 'last_seen_at', label: '最后活跃', width: 180 },
           { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
-          { key: 'expires_in', label: t('user.table.expires_in') },
+          { key: 'expires_in', label: t('user.table.expires_in'),width: 180 },
           { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
           { key: 'actions', label: t('common.actions.action'), width: 200 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
