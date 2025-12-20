@@ -30,7 +30,6 @@ const Register = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error(t('common.required'))
     return
   }
   const param = registerForm.value

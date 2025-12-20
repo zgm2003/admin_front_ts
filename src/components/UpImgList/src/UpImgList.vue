@@ -2,7 +2,7 @@
 import { ref, defineProps, defineEmits, watch } from 'vue'
 import { ElIcon, ElNotification } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { uploadFileToCos, getCosUploadToken } from '@/utils/cosUpload'
+import { uploadFileToCloud, getUploadToken, validateFile } from '@/utils/cosUpload'
 
 const props = defineProps({
   modelValue: { type: Array as any, default: () => [] },
@@ -15,8 +15,9 @@ watch(() => props.modelValue, (newValue: any[]) => { images.value = [...newValue
 const beforeUpload = async (file: File) => {
   loading.value = true
   try {
-    const config: any = await getCosUploadToken({ folderName: props.folderName })
-    const result: any = await uploadFileToCos(file, config)
+    const config: any = await getUploadToken({ folderName: props.folderName })
+    validateFile(file, config, 'image')
+    const result: any = await uploadFileToCloud(file, config)
     const uploadedImage = { name: (file as any).name, url: result.url, uid: Date.now() + Math.random().toString(36).substr(2, 9) }
     images.value.push(uploadedImage as any)
     emits('update:modelValue', images.value as any)

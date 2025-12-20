@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {useIsMobile} from '@/utils/responsive'
-import {useRouter} from 'vue-router'
 import {PermissionApi} from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
 import {Search} from '@/components/Search'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
+import type { SearchField } from '@/components/Search/types'
 
 const userStore = useUserStore()
 const {t} = useI18n()
-const router = useRouter()
+
 const permissionTree = ref([])
 const permissionTypeArr = ref([])
 const init = () => {
@@ -118,12 +118,11 @@ const rules = computed(() => ({
 }))
 const confirmSubmit = async () => {
   try {
-    const ok = await (formRef.value as any)?.validate?.()
-    if (!ok) return
+    await formRef.value?.validate()
   } catch {
-    ElNotification.error({message: t('role.table.name') + t('common.required')})
     return
   }
+
   const payload = form.value
   const api = dialogMode.value === 'add' ? PermissionApi.add : PermissionApi.edit
   api(payload).then(() => {
@@ -204,7 +203,7 @@ const handleStatusSwitch = async (row: any) => {
     row.status = row.status === 1 ? 2 : 1
   }
 }
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])
 const isMobile = useIsMobile()

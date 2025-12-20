@@ -218,6 +218,7 @@ export default {
         bucket_domain: '访问域名',
         secret_id: 'SecretId',
         secret_key: 'SecretKey',
+        role_arn: 'RoleArn',
         appid: 'APPID',
         status: '状态'
       }
@@ -236,6 +237,25 @@ export default {
         title: '规则标题',
         max_size_mb: '最大MB',
         only_image: '仅允许图片'
+      }
+    },
+    setting: {
+      filter: { remark: '备注', status: '状态' },
+      table: {
+        driver: '驱动',
+        rule: '规则',
+        remark: '备注',
+        status: '状态',
+        created_at: '创建时间',
+        updated_at: '更新时间'
+      },
+      addTitle: '新增上传设置',
+      editTitle: '编辑上传设置',
+      form: {
+        driver: '选择驱动',
+        rule: '选择规则',
+        remark: '备注',
+        status: '状态'
       }
     }
   },

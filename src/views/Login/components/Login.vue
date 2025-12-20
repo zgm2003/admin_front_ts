@@ -23,7 +23,6 @@ const Login = async () => {
   try {
     await formRef.value.validate()
   } catch {
-    ElNotification.error(t('common.required'))
     return
   }
   const param = loginForm.value

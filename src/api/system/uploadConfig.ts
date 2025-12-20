@@ -15,3 +15,12 @@ export const UploadRuleApi = {
   edit: (params: any) => request.post('/api/admin/UploadRule/edit', params),
   del: (params: any) => request.post('/api/admin/UploadRule/del', params)
 }
+
+export const UploadSettingApi = {
+  init: (params?: any) => request.post('/api/admin/UploadSetting/init', params),
+  list: (params: any) => request.post('/api/admin/UploadSetting/list', params),
+  add: (params: any) => request.post('/api/admin/UploadSetting/add', params),
+  edit: (params: any) => request.post('/api/admin/UploadSetting/edit', params),
+  del: (params: any) => request.post('/api/admin/UploadSetting/del', params),
+  status: (params: any) => request.post('/api/admin/UploadSetting/status', params)
+}

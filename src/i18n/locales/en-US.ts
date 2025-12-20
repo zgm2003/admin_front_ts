@@ -218,6 +218,7 @@ export default {
         bucket_domain: 'Bucket Domain',
         secret_id: 'SecretId',
         secret_key: 'SecretKey',
+        role_arn: 'Role ARN',
         appid: 'APPID',
         status: 'Status'
       }
@@ -236,6 +237,25 @@ export default {
         title: 'Rule Title',
         max_size_mb: 'Max MB',
         only_image: 'Only Image'
+      }
+    },
+    setting: {
+      filter: { remark: 'Remark', status: 'Status' },
+      table: {
+        driver: 'Driver',
+        rule: 'Rule',
+        remark: 'Remark',
+        status: 'Status',
+        created_at: 'Created At',
+        updated_at: 'Updated At'
+      },
+      addTitle: 'Add Upload Setting',
+      editTitle: 'Edit Upload Setting',
+      form: {
+        driver: 'Select Driver',
+        rule: 'Select Rule',
+        remark: 'Remark',
+        status: 'Status'
       }
     }
   },

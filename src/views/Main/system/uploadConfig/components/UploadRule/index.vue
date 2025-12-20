@@ -4,12 +4,15 @@ import {useI18n} from 'vue-i18n'
 import {UploadRuleApi} from '@/api/system/uploadConfig'
 import {useIsMobile} from '@/utils/responsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import {useUserStore} from "@/store/user.ts";
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
+const userStore = useUserStore()
 const dict = ref({upload_image_ext_arr: [], upload_file_ext_arr: []} as any)
 const listLoading = ref(false)
 const listData = ref<any[]>([])
@@ -26,6 +29,22 @@ const form = ref({
   image_exts: [],
   file_exts: []
 })
+
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  title: [{ required: true, message: t('upload.rule.form.title') + t('common.required'), trigger: 'blur' }],
+  max_size_mb: [
+    { required: true, message: t('upload.rule.form.max_size_mb') + t('common.required'), trigger: 'change' },
+    {
+      validator: (_rule, value, callback) => {
+        const v = Number(value)
+        if (!Number.isFinite(v) || v < 1 || v > 10240) callback(new Error(t('upload.rule.form.max_size_mb') + t('common.required')))
+        else callback()
+      },
+      trigger: 'change'
+    }
+  ]
+}))
 
 const init = () => {
   UploadRuleApi.init()
@@ -97,12 +116,14 @@ const edit = (row: any) => {
   }
   dialogShow.value = true
 }
-const submit = () => {
-  const v = form.value
-  if (!v.title) {
-    ElNotification.error({message: t('upload.rule.form.title') + t('common.required')});
+const confirmSubmit = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value?.validate()
+  } catch {
     return
   }
+  const v = form.value
   if (!isEdit.value) {
     const payload = {
       title: v.title,
@@ -189,7 +210,7 @@ onMounted(() => {
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button type="success" @click="add" v-if="userStore.can('uploadRule.add')">{{ t('common.actions.add') }}</el-button>
           <el-dropdown>
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
@@ -199,7 +220,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('uploadRule.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -215,8 +236,8 @@ onMounted(() => {
           </div>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadRule.edit')">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadRule.del')">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>
@@ -224,15 +245,15 @@ onMounted(() => {
 
   <el-dialog v-model="dialogShow" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '4vh' : '20vh'">
     <template #header>{{ isEdit ? t('upload.rule.editTitle') : t('upload.rule.addTitle') }}</template>
-    <el-form :model="form" label-width="auto">
+    <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('upload.rule.form.title')" required>
+          <el-form-item :label="t('upload.rule.form.title')" prop="title" required>
             <el-input v-model="form.title" clearable/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('upload.rule.form.max_size_mb')" required>
+          <el-form-item :label="t('upload.rule.form.max_size_mb')" prop="max_size_mb" required>
             <el-input-number v-model="form.max_size_mb" :min="1" :max="10240"/>
           </el-form-item>
         </el-col>
@@ -251,7 +272,7 @@ onMounted(() => {
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogShow=false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </el-dialog>
