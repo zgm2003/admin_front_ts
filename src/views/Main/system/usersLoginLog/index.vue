@@ -9,10 +9,12 @@ import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const usernameArr = ref([])
+const platformArr = ref([])
 
 const init = () => {
   UsersLoginLogApi.init().then((data: any) => {
     usernameArr.value = data.dict.usernameArr;
+    platformArr.value = data.dict.platformArr;
   }).catch(() => {
   })
 }
@@ -43,7 +45,14 @@ const searchFields = computed<SearchField[]>(() => [
   },
   { key: 'email', type: 'input', label: t('usersLoginLog.filter.userEmail'), placeholder: t('usersLoginLog.filter.userEmail'), width: 200 },
   { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: 150 },
-  { key: 'platform', type: 'input', label: t('usersLoginLog.filter.platform'), placeholder: t('usersLoginLog.filter.platform'), width: 150 },
+  {
+    key: 'platform',
+    type: 'select-v2',
+    label: t('usersLoginLog.filter.platform'),
+    options: platformArr.value,
+    placeholder: t('usersLoginLog.filter.platform'),
+    width: 150
+  },
   {
     key: 'date',
     type: 'date-range',

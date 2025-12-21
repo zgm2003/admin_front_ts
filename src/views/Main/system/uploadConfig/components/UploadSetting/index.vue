@@ -214,7 +214,10 @@ onMounted(() => {
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add" v-if="userStore.can('uploadSetting.add')">{{ t('common.actions.add') }}</el-button>
+          <el-button type="success" @click="add" v-if="userStore.can('uploadSetting.add')">{{
+              t('common.actions.add')
+            }}
+          </el-button>
           <el-dropdown>
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
@@ -231,7 +234,7 @@ onMounted(() => {
             </template>
           </el-dropdown>
         </template>
-        
+
         <template #cell-status="{ row }">
           <el-switch
               v-model="row.status"
@@ -243,15 +246,22 @@ onMounted(() => {
         </template>
 
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadSetting.edit')">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadSetting.del')">{{ t('common.actions.del') }}</el-button>
+          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadSetting.edit')">
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadSetting.del')">
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
   </div>
 
   <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
-    <template #header>{{ dialogMode === 'add' ? t('upload.setting.addTitle') : t('upload.setting.editTitle') }}</template>
+    <template #header>{{
+        dialogMode === 'add' ? t('upload.setting.addTitle') : t('upload.setting.editTitle')
+      }}
+    </template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
         <el-col :span="24">
@@ -268,10 +278,10 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('upload.setting.form.status')" prop="status" required>
-             <el-radio-group v-model="form.status">
-                <el-radio :value="1">启用</el-radio>
-                <el-radio :value="2">禁用</el-radio>
-             </el-radio-group>
+            <el-radio-group v-model="form.status">
+              <el-radio :value="1">启用</el-radio>
+              <el-radio :value="2">禁用</el-radio>
+            </el-radio-group>
           </el-form-item>
         </el-col>
         <el-col :span="24">
