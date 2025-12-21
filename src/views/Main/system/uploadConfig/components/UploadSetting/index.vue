@@ -57,7 +57,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   {key: 'driver_name', label: t('upload.setting.table.driver')},
   {key: 'rule_name', label: t('upload.setting.table.rule')},
-  {key: 'remark', label: t('upload.setting.table.remark')},
+  {key: 'remark', label: t('upload.setting.table.remark'), width: 200, overflowTooltip: true},
   {key: 'status', label: t('upload.setting.table.status'), slot: 'status'},
   {key: 'created_at', label: t('upload.setting.table.created_at')},
   {key: 'updated_at', label: t('upload.setting.table.updated_at')},
