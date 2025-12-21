@@ -28,12 +28,16 @@ const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
   OperationLogApi.list(param).then((data: any) => {
-    listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
@@ -121,7 +125,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable :columns="[
           { key: 'user_name', label: t('operationLog.table.user_name') },

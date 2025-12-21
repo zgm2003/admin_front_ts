@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/utils/responsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
@@ -55,12 +55,16 @@ const getList = () => {
   listLoading.value = true
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
   UploadDriverApi.list(param).then((data: any) => {
-    listLoading.value = false
     listData.value = data.list
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 
 const refresh = () => getList()
@@ -127,6 +131,9 @@ const add = () => {
     bucket_domain: ''
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 
 const edit = (row: any) => {
@@ -144,6 +151,9 @@ const edit = (row: any) => {
     bucket_domain: row.bucket_domain
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const confirmSubmit = async () => {
   if (!formRef.value) return
@@ -204,7 +214,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable
           :columns="columns"
@@ -244,7 +254,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '4vh' : '20vh'">
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
     <template #header>{{ dialogMode === 'add' ? t('upload.driver.addTitle') : t('upload.driver.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">

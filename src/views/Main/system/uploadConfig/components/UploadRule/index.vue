@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {UploadRuleApi} from '@/api/system/uploadConfig'
 import {useIsMobile} from '@/utils/responsive'
@@ -19,8 +19,8 @@ const listData = ref<any[]>([])
 const page = ref({current_page: 1, page_size: 20, total: 0})
 const searchForm = ref({title: ''})
 const selectedIds = ref<any[]>([])
-const dialogShow = ref(false)
-const isEdit = ref(false)
+const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
 
 const form = ref({
   id: '',
@@ -82,12 +82,16 @@ const getList = () => {
   listLoading.value = true
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
   UploadRuleApi.list(param).then((data: any) => {
-    listLoading.value = false
     listData.value = data.list
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 
 const refresh = () => getList()
@@ -100,13 +104,16 @@ const onSelectionChange = (selection: any[]) => {
 }
 
 const add = () => {
-  isEdit.value = false
+  dialogMode.value = 'add'
   form.value = {id: '', title: '', max_size_mb: 5, image_exts: [], file_exts: []}
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 
 const edit = (row: any) => {
-  isEdit.value = true
+  dialogMode.value = 'edit'
   form.value = {
     id: row.id,
     title: row.title,
@@ -114,7 +121,10 @@ const edit = (row: any) => {
     image_exts: row.image_exts || [],
     file_exts: row.file_exts || []
   }
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const confirmSubmit = async () => {
   if (!formRef.value) return
@@ -123,33 +133,13 @@ const confirmSubmit = async () => {
   } catch {
     return
   }
-  const v = form.value
-  if (!isEdit.value) {
-    const payload = {
-      title: v.title,
-      max_size_mb: v.max_size_mb,
-      image_exts: v.image_exts || [],
-      file_exts: v.file_exts || []
-    }
-    UploadRuleApi.add(payload).then(() => {
-      ElNotification.success({message: t('common.success.operation')});
-      dialogShow.value = false;
-      getList()
-    })
-  } else {
-    const payload = {
-      id: v.id,
-      title: v.title,
-      max_size_mb: v.max_size_mb,
-      image_exts: v.image_exts || [],
-      file_exts: v.file_exts || []
-    }
-    UploadRuleApi.edit(payload).then(() => {
-      ElNotification.success({message: t('common.success.operation')});
-      dialogShow.value = false;
-      getList()
-    })
-  }
+  
+  const api = dialogMode.value === 'add' ? UploadRuleApi.add : UploadRuleApi.edit
+  api(form.value).then(() => {
+    ElNotification.success({message: t('common.success.operation')});
+    dialogVisible.value = false;
+    getList()
+  })
 }
 
 const confirmDel = async (row: any) => {
@@ -195,7 +185,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable
           :columns="columns"
@@ -243,8 +233,8 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogShow" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '4vh' : '20vh'">
-    <template #header>{{ isEdit ? t('upload.rule.editTitle') : t('upload.rule.addTitle') }}</template>
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
+    <template #header>{{ dialogMode === 'add' ? t('upload.rule.addTitle') : t('upload.rule.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
         <el-col :md="12" :span="24">
@@ -271,7 +261,7 @@ onMounted(() => {
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogShow=false">{{ t('common.actions.cancel') }}</el-button>
+        <el-button @click="dialogVisible=false">{{ t('common.actions.cancel') }}</el-button>
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>

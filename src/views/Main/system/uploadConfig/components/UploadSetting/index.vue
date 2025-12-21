@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/utils/responsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
@@ -9,6 +9,7 @@ import type {SearchField} from '@/components/Search/types'
 import {UploadSettingApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
+import {createBeforeStatusChange} from '@/utils/beforeStatusChange'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -77,12 +78,16 @@ const getList = () => {
   listLoading.value = true
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
   UploadSettingApi.list(param).then((data: any) => {
-    listLoading.value = false
     listData.value = data.list
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 
 const refresh = () => getList()
@@ -126,6 +131,9 @@ const add = () => {
     remark: ''
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 
 const edit = (row: any) => {
@@ -138,6 +146,9 @@ const edit = (row: any) => {
     remark: row.remark
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const confirmSubmit = async () => {
   if (!formRef.value) return
@@ -190,25 +201,11 @@ const batchDel = async () => {
   })
 }
 
-const changeStatus = async (row: any) => {
-  if (!row || !row.id) return
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmStatusChange'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    row.status = row.status === 1 ? 2 : 1 // revert
-    return
-  }
-  UploadSettingApi.status({id: row.id, status: row.status}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  }).catch(() => {
-    row.status = row.status === 1 ? 2 : 1 // revert
-  })
-}
+const beforeChangeStatus = createBeforeStatusChange({
+  t,
+  request: (payload) => UploadSettingApi.status(payload),
+  onSuccess: () => getList()
+})
 
 onMounted(() => {
   init()
@@ -218,7 +215,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable
           :columns="columns"
@@ -256,7 +253,7 @@ onMounted(() => {
               v-model="row.status"
               :active-value="1"
               :inactive-value="2"
-              @change="changeStatus(row)"
+              :before-change="() => beforeChangeStatus(row)"
               :disabled="!userStore.can('uploadSetting.status')"
           />
         </template>
@@ -269,7 +266,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'" :top="isMobile ? '4vh' : '20vh'">
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
     <template #header>{{ dialogMode === 'add' ? t('upload.setting.addTitle') : t('upload.setting.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">

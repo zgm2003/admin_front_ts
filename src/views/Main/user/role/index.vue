@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useIsMobile} from '@/utils/responsive'
 import {RoleApi} from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
+import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
@@ -18,13 +19,21 @@ const init = () => {
   }).catch(() => {
   })
 }
-const dialogShow = ref(false)
-const isEdit = ref(false)
+const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({id: '', name: '', permission_id: ''})
+const formRef = ref<FormInstance | null>(null)
+const rules = computed<FormRules>(() => ({
+  name: [{ required: true, message: t('role.table.name') + t('common.required'), trigger: 'blur' }]
+}))
+
 const add = () => {
-  isEdit.value = false
+  dialogMode.value = 'add'
   form.value = {id: '', name: '', permission_id: ''}
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const listLoading = ref(false)
 const listData = ref([])
@@ -41,12 +50,16 @@ const getList = () => {
   listLoading.value = true;
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
   RoleApi.list(param).then((data: any) => {
-    listLoading.value = false;
     listData.value = data.list;
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 const selectedIds = ref([] as any[])
 const onSelectionChange = (selection: any[]) => {
@@ -60,29 +73,27 @@ const onPageChange = (p: any) => {
   getList()
 }
 const edit = (current: any) => {
-  isEdit.value = true
+  dialogMode.value = 'edit'
   form.value = {id: current.id, name: current.name, permission_id: current.permission_id}
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
-const submit = () => {
-  const data = form.value
-  if (!data.name) {
-    ElNotification.error({message: t('role.table.name') + t('common.required')});
+const confirmSubmit = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value?.validate()
+  } catch {
     return
   }
-  if (!isEdit.value) {
-    RoleApi.add(data).then(() => {
-      ElNotification.success({message: t('common.success.operation')});
-      dialogShow.value = false;
-      getList()
-    })
-  } else {
-    RoleApi.edit(data).then(() => {
-      ElNotification.success({message: t('common.success.operation')});
-      dialogShow.value = false;
-      getList()
-    })
-  }
+  
+  const api = dialogMode.value === 'add' ? RoleApi.add : RoleApi.edit
+  api(form.value).then(() => {
+    ElNotification.success({message: t('common.success.operation')});
+    dialogVisible.value = false;
+    getList()
+  })
 }
 const confirmDel = async (current: any) => {
   try {
@@ -152,7 +163,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable
                 :show-index="true"
@@ -192,12 +203,11 @@ onMounted(() => {
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="dialogShow" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'"
-             :top="isMobile ? '6vh' : '20vh'">
-    <template #header>{{ isEdit ? t('common.actions.edit') : t('common.actions.add') }}</template>
+  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'">
+    <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
-      <el-form :model="form" label-width="auto">
-        <el-form-item label="角色名" required>
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
+        <el-form-item label="角色名" prop="name" required>
           <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
         <el-form-item label="权限">
@@ -206,10 +216,10 @@ onMounted(() => {
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="dialogShow=false">{{
+    <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">{{
         t('common.actions.cancel')
       }}</el-button><el-button
-        type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button></span></template>
+        type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
   </el-dialog>
 </template>
 <style scoped>

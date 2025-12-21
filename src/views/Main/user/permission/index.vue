@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useIsMobile} from '@/utils/responsive'
 import {PermissionApi} from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
@@ -8,6 +8,7 @@ import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
+import {createBeforeStatusChange} from '@/utils/beforeStatusChange'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -52,6 +53,9 @@ const add = () => {
     sort: 1
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const addChild = (current: any) => {
   dialogMode.value = 'add'
@@ -70,6 +74,9 @@ const addChild = (current: any) => {
     sort: 1
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const listLoading = ref(false)
 const listData = ref([])
@@ -78,11 +85,14 @@ const getList = () => {
   listLoading.value = true;
   const param = searchForm.value;
   PermissionApi.list(param).then((data: any) => {
-    listLoading.value = false;
     listData.value = data
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  getList()
 }
 const tableRef = ref()
 const handleRowClick = (row: any) => {
@@ -104,6 +114,9 @@ const edit = (current: any) => {
     sort: current.sort
   }
   dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const formRef = ref<any>(null)
 const rules = computed(() => ({
@@ -183,26 +196,11 @@ const openIconSelect = () => {
 const confirmIcon = (iconName: string) => {
   form.value.icon = iconName
 }
-const handleStatusSwitch = async (row: any) => {
-  if (!row || !row.id) return
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmStatusChange'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    row.status = row.status === 1 ? 2 : 1
-    return
-  }
-  try {
-    await PermissionApi.status({id: row.id, status: row.status})
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  } catch {
-    row.status = row.status === 1 ? 2 : 1
-  }
-}
+const beforeStatusChange = createBeforeStatusChange({
+  t,
+  request: (payload) => PermissionApi.status(payload),
+  onSuccess: () => getList()
+})
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])
@@ -215,7 +213,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <el-button v-if="userStore.can('permission.add')" type="success" @click="add">{{
           t('common.actions.add')
@@ -257,7 +255,7 @@ onMounted(() => {
                 v-model="scope.row.status"
                 :active-value="1"
                 :inactive-value="2"
-                @change="handleStatusSwitch(scope.row)"
+                :before-change="() => beforeStatusChange(scope.row)"
             />
           </template>
         </el-table-column>
@@ -287,7 +285,7 @@ onMounted(() => {
     </div>
   </div>
   <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'"
-             :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close :top="isMobile ? '6vh' : '15vh'">
+             :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
         <el-form-item label="类型" prop="type" required>

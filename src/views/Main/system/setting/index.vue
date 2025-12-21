@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {SystemSettingApi} from '@/api/system/setting'
 import {ElNotification, ElMessageBox} from 'element-plus'
+import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
@@ -16,9 +17,28 @@ const listData = ref<any[]>([])
 const page = ref({current_page: 1, page_size: 20, total: 0})
 const searchForm = ref({key: '', status: ''} as any)
 const selectedIds = ref<any[]>([])
-const dialogShow = ref(false)
-const isEdit = ref(false)
+const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({ key: '', value: '', type: 1, remark: '' } as any)
+const formRef = ref<FormInstance | null>(null)
+
+const rules = computed<FormRules>(() => ({
+  key: [{ required: true, message: t('setting.form.key') + t('common.required'), trigger: 'blur' }],
+  value: [
+    {
+      validator: (_rule, value, callback) => {
+        if (form.value.type === 2) {
+           if (value && isNaN(Number(value))) return callback(new Error(t('setting.form.value') + '需为数字'))
+        }
+        if (form.value.type === 3) {
+           if (value && !['0','1','true','false'].includes(String(value).toLowerCase())) return callback(new Error(t('setting.form.value') + '需为 true/false 或 0/1'))
+        }
+        callback()
+      },
+      trigger: 'blur'
+    }
+  ]
+}))
 
 const init = () => {
   SystemSettingApi.init().then((data: any) => {
@@ -47,12 +67,16 @@ const getList = () => {
   listLoading.value = true
   const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
   SystemSettingApi.list(param).then((data: any) => {
-    listLoading.value = false
     listData.value = data.list || []
     page.value = data.page
-  }).catch(() => {
+  }).finally(() => {
     listLoading.value = false
   })
+}
+
+const onSearch = () => {
+  page.value.current_page = 1
+  getList()
 }
 
 const refresh = () => getList()
@@ -60,25 +84,36 @@ const onPageChange = (p: any) => { page.value = p; getList() }
 const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
 
 const add = () => {
-  isEdit.value = false
+  dialogMode.value = 'add'
   form.value = { key: '', value: '', type: 1, remark: '' }
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
 const edit = (row: any) => {
-  isEdit.value = true
+  dialogMode.value = 'edit'
   form.value = { id: row.id, key: row.setting_key, value: row.setting_value, type: row.value_type, remark: row.remark }
-  dialogShow.value = true
+  dialogVisible.value = true
+  nextTick(() => {
+    formRef.value?.clearValidate()
+  })
 }
-const submit = () => {
+const confirmSubmit = async () => {
+  if (!formRef.value) return
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return
+  }
+  
+  const api = dialogMode.value === 'add' ? SystemSettingApi.add : SystemSettingApi.edit
   const v = form.value
-  if (!v.key) { ElNotification.error({message: t('setting.form.key') + t('common.required')}); return }
-  if (v.type === 2 && v.value && isNaN(Number(v.value))) { ElNotification.error({message: t('setting.form.value') + '需为数字'}); return }
-  if (v.type === 3 && !['0','1','true','false'].includes(String(v.value).toLowerCase())) { ElNotification.error({message: t('setting.form.value') + '需为 true/false 或 0/1'}); return }
-  const api = isEdit.value ? SystemSettingApi.edit : SystemSettingApi.add
-  const payload = isEdit.value ? { id: form.value.id, value: v.value, type: v.type, remark: v.remark } : { key: v.key, value: v.value, type: v.type, remark: v.remark }
+  const payload = dialogMode.value === 'edit' ? { id: form.value.id, value: v.value, type: v.type, remark: v.remark } : { key: v.key, value: v.value, type: v.type, remark: v.remark }
+  
   api(payload).then(() => {
     ElNotification.success({message: t('common.success.operation')})
-    dialogShow.value = false
+    dialogVisible.value = false
     getList()
   })
 }
@@ -105,7 +140,7 @@ onMounted(() => { init(); getList() })
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="getList" @reset="getList"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable
           :columns="columns"
@@ -144,28 +179,28 @@ onMounted(() => { init(); getList() })
     </div>
   </div>
 
-  <el-dialog v-model="dialogShow" :width="isMobile ? '94vw' : '900px'" :top="isMobile ? '4vh' : '20vh'">
-    <template #header>{{ isEdit ? '编辑配置' : '新增配置' }}</template>
-    <el-form :model="form" label-width="auto">
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
+    <template #header>{{ dialogMode === 'add' ? '新增配置' : '编辑配置' }}</template>
+    <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('setting.form.key')" required>
-            <el-input v-model="form.key" :disabled="isEdit" clearable/>
+          <el-form-item :label="t('setting.form.key')" prop="key" required>
+            <el-input v-model="form.key" :disabled="dialogMode === 'edit'" clearable/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('setting.form.type')" required>
+          <el-form-item :label="t('setting.form.type')" prop="type" required>
             <el-select-v2 v-model="form.type" :options="dict.system_setting_value_type_arr" style="width:100%" />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('setting.form.value')">
+          <el-form-item :label="t('setting.form.value')" prop="value">
             <el-input v-if="form.type!==4" v-model="form.value" clearable/>
             <el-input v-else type="textarea" v-model="form.value" :rows="6" />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('setting.form.remark')">
+          <el-form-item :label="t('setting.form.remark')" prop="remark">
             <el-input v-model="form.remark" clearable/>
           </el-form-item>
         </el-col>
@@ -173,8 +208,8 @@ onMounted(() => { init(); getList() })
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogShow=false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button @click="dialogVisible=false">{{ t('common.actions.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </el-dialog>
