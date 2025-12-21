@@ -217,7 +217,7 @@ function copyConfig() {
   align-items: center;
   min-width: 0;
   overflow: hidden;
-  margin: 10px 0
+  height: 50px;
 }
 
 .flex-grow {
@@ -236,125 +236,5 @@ function copyConfig() {
   :deep(.el-space) {
     flex-wrap: wrap
   }
-}
-
-.setting-drawer {
-  padding: 0 0 12px 0
-}
-
-.setting-body {
-  padding: 12px;
-  max-height: calc(100vh - 120px);
-  overflow-y: auto
-}
-
-.setting-header {
-  font-size: 16px;
-  font-weight: 600;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebeef5
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 12px 0
-}
-
-.row-label {
-  font-size: 14px;
-  color: #606266;
-  margin-right: 16px
-}
-
-.color-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px
-}
-
-.color-block {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
-  cursor: pointer;
-  position: relative
-}
-
-.color-block.active {
-  outline: 2px solid #409eff
-}
-
-.color-block.active::after {
-  content: '✓';
-  position: absolute;
-  right: -6px;
-  top: -10px;
-  font-size: 16px;
-  color: #409eff
-}
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0
-}
-
-.setting-label {
-  font-size: 14px
-}
-
-.setting-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  justify-content: space-between;
-
-  .el-button {
-    width: 100%
-  }
-}
-
-.layout-list {
-  display: flex;
-  gap: 8px
-}
-
-.layout-card {
-  width: 60px;
-  height: 48px;
-  border-radius: 6px;
-  border: 1px solid #ebeef5;
-  display: grid;
-  grid-template-columns:14px 1fr;
-  grid-template-rows:14px 1fr;
-  overflow: hidden;
-  cursor: pointer
-}
-
-.layout-card.active {
-  border-color: #409eff;
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.3)
-}
-
-.layout-side {
-  grid-row: 1/3;
-  grid-column: 1;
-  background: #2c3e50
-}
-
-.layout-header {
-  grid-row: 1;
-  grid-column: 2;
-  background: #1f2a44
-}
-
-.layout-main {
-  grid-row: 2;
-  grid-column: 2;
-  background: #eef2f6
 }
 </style>

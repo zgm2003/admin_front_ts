@@ -57,7 +57,8 @@ onMounted(() => {
   initEdit()
 })
 const back = () => {
-  router.go(-1);
+  //返回首页
+  router.push('/home')
   setupDynamicRoutes()
 }
 const forgetPassword = () => {
