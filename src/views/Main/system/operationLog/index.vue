@@ -8,6 +8,7 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import {ArrowRight} from "@element-plus/icons-vue";
 import type { SearchField } from '@/components/Search/types'
+import {useTable} from '@/hooks/useTable'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -20,35 +21,26 @@ const init = () => {
   }).catch(() => {
   })
 }
-const listLoading = ref(false)
-const listData = ref([])
-const searchForm = ref({user_id: '', action: '', date: ''})
-const page = ref({current_page: 1, page_size: 20, total: 0})
-const getList = () => {
-  listLoading.value = true;
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  OperationLogApi.list(param).then((data: any) => {
-    listData.value = data.list;
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
 
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
+const searchForm = ref({user_id: '', action: '', date: ''})
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: OperationLogApi.list,
+  searchForm
+})
+
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
 }
-const refresh = () => {
-  getList()
-}
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
-}
+
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'user_id',
@@ -119,7 +111,6 @@ const batchDel = async () => {
 
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 
@@ -131,7 +122,7 @@ onMounted(() => {
           { key: 'user_name', label: t('operationLog.table.user_name') },
           { key: 'user_email', label: t('operationLog.table.user_email') },
           { key: 'action', label: t('operationLog.table.action') },
-          { key: 'request_data', label: t('operationLog.table.request_data') },
+          { key: 'request_data', label: t('operationLog.table.request_data'),width:200 },
           { key: 'response_data', label: t('operationLog.table.response_data') },
           { key: 'is_success', label: t('operationLog.table.is_success') },
           { key: 'created_at', label: t('operationLog.table.created_at') },

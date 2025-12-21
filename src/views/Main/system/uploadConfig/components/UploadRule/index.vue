@@ -9,16 +9,31 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useUserStore} from "@/store/user.ts";
+import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const userStore = useUserStore()
 const dict = ref({upload_image_ext_arr: [], upload_file_ext_arr: []} as any)
-const listLoading = ref(false)
-const listData = ref<any[]>([])
-const page = ref({current_page: 1, page_size: 20, total: 0})
+
 const searchForm = ref({title: ''})
 const selectedIds = ref<any[]>([])
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: UploadRuleApi.list,
+  searchForm
+})
+
+const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
+
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
@@ -77,31 +92,6 @@ const columns = computed(() => [
 ])
 
 const tagWrapStyle = 'display:flex;flex-wrap:wrap;gap:6px;'
-
-const getList = () => {
-  listLoading.value = true
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
-  UploadRuleApi.list(param).then((data: any) => {
-    listData.value = data.list
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
-
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
-
-const refresh = () => getList()
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
-}
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((it: any) => it.id)
-}
 
 const add = () => {
   dialogMode.value = 'add'
@@ -179,7 +169,6 @@ const batchDel = async () => {
 
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 

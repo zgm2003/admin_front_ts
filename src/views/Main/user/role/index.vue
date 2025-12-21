@@ -9,6 +9,7 @@ import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import {useTable} from '@/hooks/useTable'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -35,10 +36,23 @@ const add = () => {
     formRef.value?.clearValidate()
   })
 }
-const listLoading = ref(false)
-const listData = ref([])
+
 const searchForm = ref({name: '', path: '', permission: ''})
-const page = ref({current_page: 1, page_size: 50, total: 0})
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: RoleApi.list,
+  searchForm,
+  initPage: { page_size: 50 }
+})
+
 const columns = [
   {key: 'name', label: t('role.table.name')},
   {key: 'is_default', label: t('role.table.is_default'), align: 'center', width: 120},
@@ -46,31 +60,10 @@ const columns = [
   {key: 'updated_at', label: t('role.table.updated_at')},
   {key: 'actions', label: '操作', width: 300, align: 'center'}
 ]
-const getList = () => {
-  listLoading.value = true;
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  RoleApi.list(param).then((data: any) => {
-    listData.value = data.list;
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
 
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
 const selectedIds = ref([] as any[])
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
-}
-const refresh = () => {
-  getList()
-}
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
 }
 const edit = (current: any) => {
   dialogMode.value = 'edit'
@@ -157,7 +150,6 @@ const searchFields = computed<SearchField[]>(() => [
 const isMobile = useIsMobile()
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 

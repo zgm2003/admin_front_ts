@@ -10,15 +10,25 @@ import {UploadSettingApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
 import {createBeforeStatusChange} from '@/utils/beforeStatusChange'
+import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const userStore = useUserStore()
 
-const listLoading = ref(false)
-const listData = ref<any[]>([])
-const page = ref({current_page: 1, page_size: 20, total: 0})
 const searchForm = ref({remark: '', status: '', driver_id: '', rule_id: ''})
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: UploadSettingApi.list,
+  searchForm
+})
 const dict = ref({upload_driver_list: [], upload_rule_list: [], common_status_arr: []} as any)
 
 const searchFields = computed<SearchField[]>(() => [
@@ -66,34 +76,9 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  UploadSettingApi.init()
-      .then((data: any) => {
-        dict.value = data.dict || {}
-      })
-      .catch(() => {
-      })
-}
-
-const getList = () => {
-  listLoading.value = true
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
-  UploadSettingApi.list(param).then((data: any) => {
-    listData.value = data.list
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
+  UploadSettingApi.init().then((data: any) => {
+    dict.value = data.dict || {}
   })
-}
-
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
-
-const refresh = () => getList()
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
 }
 const selectedIds = ref<any[]>([])
 const onSelectionChange = (selection: any[]) => {
@@ -209,7 +194,6 @@ const beforeChangeStatus = createBeforeStatusChange({
 
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 

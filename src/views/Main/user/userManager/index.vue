@@ -10,6 +10,7 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useI18n} from 'vue-i18n'
+import {useTable} from '@/hooks/useTable'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -27,34 +28,25 @@ const initList = () => {
   }).catch(() => {
   })
 }
-const listLoading = ref(false)
-const listData = ref([])
-const searchForm = ref({username: '', email: '', role_id: '', sex: '', address: '', detail_address: '', platform: 'admin'})
-const page = ref({current_page: 1, page_size: 10, total: 0})
-const getList = () => {
-  listLoading.value = true;
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  UsersListApi.list(param).then((data: any) => {
-    listData.value = data.list;
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
 
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
+const searchForm = ref({username: '', email: '', role_id: '', sex: '', address: '', detail_address: '', platform: 'admin'})
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: UsersListApi.list,
+  searchForm,
+})
+
+const selectedIds = ref([] as any[])
 const onSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
-}
-const refresh = () => {
-  getList()
-}
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
 }
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -165,7 +157,7 @@ const confirmKick = async (current: any) => {
     await ElMessageBox.confirm(
       t('common.confirmKick'),
       t('common.confirmTitle'),
-      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+      { type: 'warning', confirmButtonText: t('common.actions.kick'), cancelButtonText: t('common.actions.cancel') }
     )
   } catch {
     return
@@ -177,7 +169,6 @@ const confirmKick = async (current: any) => {
   }).catch(() => {
   })
 }
-const selectedIds = ref([] as any[])
 const batchDel = async () => {
   if (!selectedIds.value || selectedIds.value.length === 0) {
     ElNotification.error({message: t('common.selectAtLeastOne')});

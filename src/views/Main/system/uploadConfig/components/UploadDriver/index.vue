@@ -9,15 +9,32 @@ import type {SearchField} from '@/components/Search/types'
 import {UploadDriverApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
+import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const userStore = useUserStore()
 
-const listLoading = ref(false)
-const listData = ref<any[]>([])
-const page = ref({current_page: 1, page_size: 20, total: 0})
 const searchForm = ref({driver: ''})
+const selectedIds = ref<any[]>([])
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: UploadDriverApi.list,
+  searchForm
+})
+
+const onSelectionChange = (selection: any[]) => {
+  selectedIds.value = selection.map((it: any) => it.id)
+}
+
 const dict = ref({upload_driver_arr: []} as any)
 
 const searchFields = computed<SearchField[]>(() => [
@@ -51,31 +68,6 @@ const init = () => {
       })
 }
 
-const getList = () => {
-  listLoading.value = true
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
-  UploadDriverApi.list(param).then((data: any) => {
-    listData.value = data.list
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
-
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
-
-const refresh = () => getList()
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
-}
-const selectedIds = ref<any[]>([])
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((it: any) => it.id)
-}
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
@@ -208,7 +200,6 @@ const batchDel = async () => {
 
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 

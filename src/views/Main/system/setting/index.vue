@@ -8,15 +8,30 @@ import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/utils/responsive'
+import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const dict = ref({ system_setting_value_type_arr: [] } as any)
-const listLoading = ref(false)
-const listData = ref<any[]>([])
-const page = ref({current_page: 1, page_size: 20, total: 0})
+
 const searchForm = ref({key: '', status: ''} as any)
 const selectedIds = ref<any[]>([])
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: SystemSettingApi.list,
+  searchForm
+})
+
+const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
+
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({ key: '', value: '', type: 1, remark: '' } as any)
@@ -62,26 +77,6 @@ const columns = computed(() => [
   { key: 'updated_at', label: t('setting.table.updated_at'), width: 160 },
   { key: 'actions', label: t('common.actions.action'), width: 240, align: 'center' }
 ])
-
-const getList = () => {
-  listLoading.value = true
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page}
-  SystemSettingApi.list(param).then((data: any) => {
-    listData.value = data.list || []
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
-
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
-
-const refresh = () => getList()
-const onPageChange = (p: any) => { page.value = p; getList() }
-const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
 
 const add = () => {
   dialogMode.value = 'add'

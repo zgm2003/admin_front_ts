@@ -5,6 +5,7 @@ import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()
 const usernameArr = ref([])
@@ -16,35 +17,20 @@ const init = () => {
   })
 }
 
-const listLoading = ref(false)
-const listData = ref([])
 const searchForm = ref({user_id: '', email: '', ip: '', platform: '', date: ''})
-const page = ref({current_page: 1, page_size: 20, total: 0})
 
-const getList = () => {
-  listLoading.value = true;
-  const param: any = {...searchForm.value, page_size: page.value.page_size, current_page: page.value.current_page};
-  UsersLoginLogApi.list(param).then((data: any) => {
-    listData.value = data.list;
-    page.value = data.page
-  }).finally(() => {
-    listLoading.value = false
-  })
-}
-
-const onSearch = () => {
-  page.value.current_page = 1
-  getList()
-}
-
-const refresh = () => {
-  getList()
-}
-
-const onPageChange = (p: any) => {
-  page.value = p;
-  getList()
-}
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onSearch,
+  onPageChange,
+  refresh,
+  getList
+} = useTable({
+  api: UsersLoginLogApi.list,
+  searchForm
+})
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -70,7 +56,6 @@ const searchFields = computed<SearchField[]>(() => [
 
 onMounted(() => {
   init()
-  getList()
 })
 </script>
 
