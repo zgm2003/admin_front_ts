@@ -1,6 +1,6 @@
 <template>
   <template v-if="!hasChildren">
-    <el-menu-item :index="item.index" @click="handleClick(item)" :style="menuStyle">
+    <el-menu-item :index="item.index" @click="handleClick(item)">
       <el-icon><component :is="item.icon" /></el-icon>
       <span>{{ displayLabel }}</span>
     </el-menu-item>
@@ -36,10 +36,11 @@ function handleClick(item: any) {
   menuStore.selectMenu(item);
   menuStore.closeDrawer();
 }
-
-const menuStyle = computed(() => ({ backgroundColor: menuStore.selectedMenu === props.item.index ? menuStore.systemColor : '' }))
 </script>
 
 <style scoped>
+.el-menu-item.is-active {
+  background-color: var(--el-color-primary);
+}
 </style>
 
