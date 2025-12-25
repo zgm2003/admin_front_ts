@@ -2,7 +2,7 @@
 import { ref, defineProps, defineEmits, watch } from 'vue'
 import { ElIcon, ElNotification, ElPopover } from 'element-plus'
 import { Plus, CircleCloseFilled } from '@element-plus/icons-vue'
-import { uploadFileToCos, getCosUploadToken } from '@/utils/cosUpload'
+import { uploadFileToCloud, getUploadToken } from '@/utils/cosUpload'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -17,8 +17,8 @@ watch(() => props.modelValue, (newValue) => { videoUrl.value = newValue })
 const beforeUpload = async (file: File) => {
   loading.value = true
   try {
-    const config: any = await getCosUploadToken({ folderName: props.folderName })
-    const result: any = await uploadFileToCos(file, config)
+    const config: any = await getUploadToken({ folderName: props.folderName })
+    const result: any = await uploadFileToCloud(file, config)
     videoUrl.value = result.url
     emit('update:modelValue', result.url)
   } catch (error: any) {

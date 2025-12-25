@@ -6,7 +6,7 @@
   </div>
   </template>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .box{ display:flex; justify-content:center; align-items:center; height:100% }
 </style>
 

@@ -14,7 +14,7 @@ const toLogin = () => { currentView.value = 'login' }
     <RegisterVue v-if="currentView === 'register'" @to-login="toLogin" />
   </div>
   </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .box{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:
   radial-gradient(1000px 600px at 10% 10%, #f6f9ff 0%, #eef2f9 35%, #e9edf5 100%),
   radial-gradient(800px 500px at 90% 90%, #f3f7ff 0%, #edf1f7 40%, transparent 70%),

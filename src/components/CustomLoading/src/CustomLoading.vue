@@ -20,7 +20,7 @@ import { useUserStore } from "@/store/user";
 const userStore = useUserStore();
 </script>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .background{
   height: 100vh;
   width: 100%;

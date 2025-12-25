@@ -89,7 +89,7 @@ const back = () => {
     </el-form>
   </el-card>
 </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .loginCard {
   width: 100%;
   max-width: 520px;

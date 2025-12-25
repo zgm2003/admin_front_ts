@@ -53,7 +53,7 @@ const back = () => { router.go(-1) }
     </el-form>
   </el-card>
 </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .loginCard{ width:100%; max-width:520px; margin:6vh auto; padding:32px; border-radius:18px; background: var(--el-card-bg-color); box-shadow: var(--el-box-shadow-light); border:1px solid var(--el-border-color) }
 .one{ width:100%; display:flex; justify-content: space-between }
 h2{ letter-spacing:1px; margin-bottom:18px }

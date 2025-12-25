@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .search-dialog {
   :deep(.el-dialog__header) {
     display: none;

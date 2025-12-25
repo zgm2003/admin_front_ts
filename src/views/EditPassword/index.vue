@@ -15,7 +15,7 @@ const toForget = () => { status.value = !status.value }
     <EditPasswordVue v-else @to-forget="toForget" />
   </div>
   </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .box{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:
   radial-gradient(1000px 600px at 10% 12%, #f6f9ff 0%, #eef2f9 35%, #e9edf5 100%),
   radial-gradient(800px 500px at 88% 88%, #f3f7ff 0%, #edf1f7 40%, transparent 70%),

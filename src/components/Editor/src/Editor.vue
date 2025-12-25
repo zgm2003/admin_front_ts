@@ -2,7 +2,7 @@
 import { onBeforeUnmount, computed, nextTick, ref, watch, shallowRef } from 'vue'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { ElMessage } from 'element-plus'
-import { getCosUploadToken, uploadFileToCos } from '@/utils/cosUpload'
+import { getUploadToken, uploadFileToCloud } from '@/utils/cosUpload'
 
 const props = defineProps({ editorId: { type: String, default: 'wangeditor-1' }, height: { type: [Number, String], default: '500px' }, editorConfig: { type: Object, default: () => undefined }, modelValue: { type: String, default: '' }, uploadFolder: { type: String, default: 'article' }, useCosUpload: { type: Boolean, default: true } })
 const emit = defineEmits(['change','update:modelValue'])
@@ -18,9 +18,9 @@ const cfg = computed(() => {
   const menu: any = Object.assign({}, user.MENU_CONF || {})
   if (props.useCosUpload) {
     if (!menu.uploadImage) menu.uploadImage = {}
-    if (!menu.uploadImage.customUpload) menu.uploadImage.customUpload = async (file: File, insertFn: any) => { const tokenResponse = await getCosUploadToken({ folderName: props.uploadFolder }); const result = await uploadFileToCos(file, tokenResponse); insertFn(result.url || '', '', '') }
+    if (!menu.uploadImage.customUpload) menu.uploadImage.customUpload = async (file: File, insertFn: any) => { const tokenResponse = await getUploadToken({ folderName: props.uploadFolder }); const result = await uploadFileToCloud(file, tokenResponse); insertFn(result.url || '', '', '') }
     if (!menu.uploadVideo) menu.uploadVideo = {}
-    if (!menu.uploadVideo.customUpload) menu.uploadVideo.customUpload = async (file: File, insertFn: any) => { const tokenResponse = await getCosUploadToken({ folderName: props.uploadFolder }); const result = await uploadFileToCos(file, tokenResponse); insertFn(result.url || '') }
+    if (!menu.uploadVideo.customUpload) menu.uploadVideo.customUpload = async (file: File, insertFn: any) => { const tokenResponse = await getUploadToken({ folderName: props.uploadFolder }); const result = await uploadFileToCloud(file, tokenResponse); insertFn(result.url || '') }
   }
   const merged: any = Object.assign({}, base, user); merged.MENU_CONF = menu; return merged
 })

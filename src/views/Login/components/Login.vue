@@ -64,7 +64,7 @@ const toForgetPassword = () => { router.push('/editPassword') }
     </el-form>
   </el-card>
   </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .loginCard{ width:100%; max-width:520px; margin:6vh auto; padding:32px; border-radius:18px; backdrop-filter:blur(12px); background:linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.55)); box-shadow:0 20px 60px rgba(0,0,0,0.15); border:1px solid rgba(255,255,255,0.6) }
 :global(.dark) .loginCard{ background:linear-gradient(135deg, rgba(32,32,32,0.75), rgba(22,22,22,0.6)); border-color:rgba(255,255,255,0.08); box-shadow:0 20px 60px rgba(0,0,0,0.4) }
 .one{ width:100%; display:flex; justify-content:space-between }

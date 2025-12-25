@@ -163,7 +163,7 @@ const sexLabel = computed(() => {
   </div>
 </template>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .box {
   padding: 20px
 }

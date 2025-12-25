@@ -211,7 +211,7 @@ function copyConfig() {
 }
 </script>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .header-bar {
   display: flex;
   align-items: center;

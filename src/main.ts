@@ -10,7 +10,6 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Boot } from '@wangeditor/editor'
 import markdownModule from '@wangeditor/plugin-md'
-import less from 'less'
 
 const app = createApp(App)
 // register all ElementPlus icons globally
@@ -24,7 +23,6 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.use(ElementPlus)
-app.use(less)
 setupDynamicRoutes()
 app.mount('#app')
 

@@ -17,7 +17,7 @@ const router = useRouter()
     </div>
   </div>
 </template>
-<style scoped lang="less">
+<style scoped lang="scss">
 .box { display: flex; align-content: center; justify-content: center; flex-direction: column; }
 .text { text-align: center; }
 .img { text-align: center; }
