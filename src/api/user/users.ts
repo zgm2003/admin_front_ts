@@ -2,6 +2,7 @@ import request from '@/utils/request'
 export const UsersApi = {
   register: (params: any) => request.post('/api/Users/register', params),
   init: (params?: any) => request.post('/api/Users/init', params),
+  getLoginConfig: () => request.post('/api/Users/getLoginConfig', {}),
   login: (params: any) => request.post('/api/Users/login', params),
   refresh: (params: any) => request.post('/api/Users/refresh', params),
   logout: (params: any) => request.post('/api/Users/logout', params),

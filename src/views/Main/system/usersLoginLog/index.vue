@@ -19,7 +19,7 @@ const init = () => {
   })
 }
 
-const searchForm = ref({user_id: '', email: '', ip: '', platform: '', date: ''})
+const searchForm = ref({user_id: '', login_account: '', login_type: '', ip: '', platform: '', date: ''})
 
 const {
   loading: listLoading,
@@ -43,7 +43,19 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('usersLoginLog.filter.userName'),
     width: 200
   },
-  { key: 'email', type: 'input', label: t('usersLoginLog.filter.userEmail'), placeholder: t('usersLoginLog.filter.userEmail'), width: 200 },
+  { key: 'login_account', type: 'input', label: t('usersLoginLog.filter.account'), placeholder: t('usersLoginLog.filter.account'), width: 200 },
+  { 
+    key: 'login_type', 
+    type: 'select-v2', 
+    label: t('usersLoginLog.filter.loginType'), 
+    placeholder: t('usersLoginLog.filter.loginType'), 
+    width: 150,
+    options: [
+      { label: '邮箱', value: 'email' },
+      { label: '手机号', value: 'phone' },
+      { label: '用户名', value: 'username' }
+    ]
+  },
   { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: 150 },
   {
     key: 'platform',
@@ -74,7 +86,8 @@ onMounted(() => {
     <div class="table">
       <AppTable :columns="[
           { key: 'user_name', label: t('usersLoginLog.table.user_name') },
-          { key: 'email', label: t('usersLoginLog.table.user_email') },
+          { key: 'login_account', label: t('usersLoginLog.table.account') },
+          { key: 'login_type', label: t('usersLoginLog.table.loginType') },
           { key: 'platform', label: t('usersLoginLog.table.platform') },
           { key: 'ip', label: t('usersLoginLog.table.ip') },
           { key: 'ua', label: t('usersLoginLog.table.ua'), showOverflowTooltip: true,width: 200},

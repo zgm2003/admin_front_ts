@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElNotification } from 'element-plus'
 import { UsersApi } from '@/api/user/users'
 import { useRouter } from 'vue-router'
@@ -11,12 +11,37 @@ import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const emit = defineEmits(['to-register'])
 const { t } = useI18n()
-const loginForm = ref({ email: '', password: '', remember: true })
+const loginTypes = ref<Array<{label: string, value: string}>>([])
+const activeTab = ref('')
+const loginForm = ref({ login_account: '', password: '', remember: true })
 const formRef = ref<FormInstance | null>(null)
-const rules = computed<FormRules>(() => ({
-  email: [{ required: true, message: t('auth.login.email') + '为必填项', trigger: 'blur' }],
-  password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }]
-}))
+
+const rules = computed<FormRules>(() => {
+  const accountRule = activeTab.value === 'email' 
+    ? { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    : activeTab.value === 'phone'
+      ? { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+      : {}
+
+  return {
+    login_account: [
+      { required: true, message: t('auth.login.account') + '为必填项', trigger: 'blur' },
+      accountRule
+    ],
+    password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }]
+  }
+})
+
+onMounted(() => {
+  UsersApi.getLoginConfig().then((res: any) => {
+    // DictService returns key as login_type_arr
+    loginTypes.value = res.login_type_arr || []
+    if (loginTypes.value.length > 0) {
+      activeTab.value = loginTypes.value[0].value
+    }
+  })
+})
+
 const loading = ref(false)
 const Login = async () => {
   if (!formRef.value) return
@@ -25,7 +50,10 @@ const Login = async () => {
   } catch {
     return
   }
-  const param = loginForm.value
+  const param = {
+    ...loginForm.value,
+    login_type: activeTab.value
+  }
   loading.value = true
   UsersApi.login(param)
     .then((data: any) => {
@@ -53,8 +81,23 @@ const toForgetPassword = () => { router.push('/editPassword') }
 <template>
   <el-card shadow="always" class="loginCard" v-loading="loading">
     <h2 style="text-align:center">{{ t('auth.login.title') }}</h2>
+    <el-tabs v-if="loginTypes.length > 1" v-model="activeTab" stretch class="mb-4">
+      <el-tab-pane v-for="type in loginTypes" :key="type.value" :label="type.label" :name="type.value"/>
+    </el-tabs>
     <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
-      <el-form-item :label="t('auth.login.email')" prop="email"><el-input placeholder="请输入邮箱" v-model="loginForm.email" clearable size="large" style="width:100%" /></el-form-item>
+      <el-form-item :label="t('auth.login.account')" prop="login_account">
+        <el-input 
+          :placeholder="activeTab === 'email' ? '请输入邮箱' : '请输入手机号'" 
+          v-model="loginForm.login_account" 
+          clearable 
+          size="large" 
+          style="width:100%" 
+        >
+          <template #prefix>
+            <el-icon><component :is="activeTab === 'email' ? 'Message' : 'Iphone'" /></el-icon>
+          </template>
+        </el-input>
+      </el-form-item>
       <el-form-item :label="t('auth.login.password')" prop="password"><el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" /></el-form-item>
       <el-form-item>
         <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div><div class="right"><el-text type="primary" @click="toForgetPassword" style="cursor:pointer">{{ t('auth.login.toForget') }}</el-text></div></div>
@@ -69,5 +112,6 @@ const toForgetPassword = () => { router.push('/editPassword') }
 :global(.dark) .loginCard{ background:linear-gradient(135deg, rgba(32,32,32,0.75), rgba(22,22,22,0.6)); border-color:rgba(255,255,255,0.08); box-shadow:0 20px 60px rgba(0,0,0,0.4) }
 .one{ width:100%; display:flex; justify-content:space-between }
 h2{ letter-spacing:1px; margin-bottom:18px }
+.mb-4 { margin-bottom: 16px; }
 @media (max-width:768px){ .loginCard{ margin:4vh auto; padding:24px; border-radius:16px } }
 </style>

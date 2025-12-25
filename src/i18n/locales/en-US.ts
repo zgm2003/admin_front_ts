@@ -2,6 +2,8 @@ export default {
   auth: {
     login: {
       title: 'Sign In',
+      account: 'Account',
+      accountPlaceholder: 'Email/Username/Phone',
       email: 'Email',
       password: 'Password',
       remember: 'Remember me',
@@ -145,10 +147,11 @@ export default {
     }
   },
   usersLoginLog: {
-    filter: {userName: 'Operator Name', userEmail: 'Operator Email', ip: 'IP Address', platform: 'Platform', date: 'Date Range'},
+    filter: {userName: 'Operator Name', account: 'Account', loginType: 'Login Type', ip: 'IP Address', platform: 'Platform', date: 'Date Range'},
     table: {
       user_name: 'Operator Name',
-      user_email: 'Operator Email',
+      account: 'Account',
+      loginType: 'Login Type',
       platform: 'Platform',
       ip: 'IP Address',
       ua: 'User Agent',

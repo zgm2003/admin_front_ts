@@ -2,6 +2,8 @@ export default {
   auth: {
     login: {
       title: '登录',
+      account: '账号',
+      accountPlaceholder: '请输入邮箱/用户名/手机号',
       email: '邮箱',
       password: '密码',
       remember: '记住我',
@@ -145,10 +147,11 @@ export default {
     }
   },
   usersLoginLog: {
-    filter: {userName: '操作人昵称', userEmail: '操作人邮箱', ip: 'IP地址', platform: '平台', date: '日期范围'},
+    filter: {userName: '操作人昵称', account: '登录账号', loginType: '登录类型', ip: 'IP地址', platform: '平台', date: '日期范围'},
     table: {
       user_name: '操作人昵称',
-      user_email: '操作人邮箱',
+      account: '登录账号',
+      loginType: '登录类型',
       platform: '平台',
       ip: 'IP地址',
       ua: 'User Agent',
