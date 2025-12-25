@@ -10,10 +10,10 @@ import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules } from 'element-plus'
 const router = useRouter()
 const emit = defineEmits(['to-register'])
+const props = defineProps<{ loginTypes: Array<{label: string, value: string}> }>()
 const { t } = useI18n()
-const loginTypes = ref<Array<{label: string, value: string}>>([])
 const activeTab = ref('')
-const loginForm = ref({ login_account: '', password: '', remember: true })
+const loginForm = ref({ login_account: '', password: '', code: '', remember: true })
 const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => {
@@ -22,25 +22,48 @@ const rules = computed<FormRules>(() => {
     : activeTab.value === 'phone'
       ? { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
       : {}
+  
+  // Dynamic rules based on login type
+  const extraRules = activeTab.value === 'username' 
+    ? { password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }] }
+    : { code: [{ required: true, message: '验证码为必填项', trigger: 'blur' }] }
 
   return {
     login_account: [
       { required: true, message: t('auth.login.account') + '为必填项', trigger: 'blur' },
       accountRule
     ],
-    password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }]
+    ...extraRules
   }
 })
 
-onMounted(() => {
-  UsersApi.getLoginConfig().then((res: any) => {
-    // DictService returns key as login_type_arr
-    loginTypes.value = res.login_type_arr || []
-    if (loginTypes.value.length > 0) {
-      activeTab.value = loginTypes.value[0].value
-    }
-  })
-})
+// Initialize activeTab when props.loginTypes changes or on mount
+import { watch } from 'vue'
+watch(() => props.loginTypes, (newVal) => {
+  if (newVal && newVal.length > 0 && !activeTab.value) {
+    activeTab.value = newVal[0].value
+  }
+}, { immediate: true })
+
+const codeLoding = ref(false)
+const timer = ref(0)
+const sendCode = () => {
+  if (timer.value > 0) return
+  if (!loginForm.value.login_account) {
+    ElNotification.warning('请输入账号')
+    return
+  }
+  codeLoding.value = true
+  const param = {
+    login_account: loginForm.value.login_account,
+    // Add logic to distinguish type if needed by backend, currently backend guesses by regex or we pass type if needed? 
+    // Backend sendCode uses 'login_account' and validates based on regex.
+  }
+  UsersApi.sendCode(param)
+    .then(() => { codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() })
+    .catch(() => { codeLoding.value = false })
+}
+const startCountdown = () => { timer.value = 60; const interval = setInterval(() => { if (timer.value > 0) timer.value--; else clearInterval(interval) }, 1000) }
 
 const loading = ref(false)
 const Login = async () => {
@@ -87,23 +110,31 @@ const toForgetPassword = () => { router.push('/editPassword') }
     <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
       <el-form-item :label="t('auth.login.account')" prop="login_account">
         <el-input 
-          :placeholder="activeTab === 'email' ? '请输入邮箱' : '请输入手机号'" 
+          :placeholder="activeTab === 'email' ? '请输入邮箱' : activeTab === 'phone' ? '请输入手机号' : '请输入账号'" 
           v-model="loginForm.login_account" 
           clearable 
           size="large" 
           style="width:100%" 
         >
           <template #prefix>
-            <el-icon><component :is="activeTab === 'email' ? 'Message' : 'Iphone'" /></el-icon>
+            <el-icon><component :is="activeTab === 'email' ? 'Message' : activeTab === 'phone' ? 'Iphone' : 'User'" /></el-icon>
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item :label="t('auth.login.password')" prop="password"><el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" /></el-form-item>
+      
+      <el-form-item v-if="activeTab === 'username'" :label="t('auth.login.password')" prop="password">
+        <el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" />
+      </el-form-item>
+
+      <el-form-item v-else label="验证码" prop="code">
+        <el-input placeholder="请输入验证码" v-model="loginForm.code" clearable size="large" style="width:60%" @keydown.enter="Login" />
+        <el-button type="primary" size="large" @click="sendCode" :loading="codeLoding" :disabled="!loginForm.login_account || timer > 0">{{ timer > 0 ? t('auth.register.resend', { timer }) : t('auth.register.sendCode') }}</el-button>
+      </el-form-item>
+
       <el-form-item>
         <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div><div class="right"><el-text type="primary" @click="toForgetPassword" style="cursor:pointer">{{ t('auth.login.toForget') }}</el-text></div></div>
       </el-form-item>
-      <el-form-item><el-button style="width:100%" type="primary" size="large" @click="Login">{{ t('auth.login.submit') }}</el-button></el-form-item>
-      <el-form-item><el-button style="width:100%" size="large" @click="toRegister">{{ t('auth.login.toRegister') }}</el-button></el-form-item>
+      <el-form-item><el-button style="width:100%" type="primary" size="large" @click="Login">{{ activeTab === 'username' ? t('auth.login.submit') : '登录 / 注册' }}</el-button></el-form-item>
     </el-form>
   </el-card>
   </template>

@@ -1,17 +1,22 @@
 <script setup>
-import { defineAsyncComponent, ref } from 'vue'
+import { defineAsyncComponent, ref, onMounted } from 'vue'
 import ParticleBackground from '@/components/ParticleBackground'
+import { UsersApi } from '@/api/user/users'
+
 const LoginVue = defineAsyncComponent({ loader: () => import('./components/Login.vue') })
-const RegisterVue = defineAsyncComponent({ loader: () => import('./components/Register.vue') })
-const currentView = ref('login')
-const toRegister = () => { currentView.value = 'register' }
-const toLogin = () => { currentView.value = 'login' }
+
+const loginTypes = ref([])
+
+onMounted(() => {
+  UsersApi.getLoginConfig().then((res) => {
+    loginTypes.value = res.login_type_arr || []
+  })
+})
 </script>
 <template>
   <div class="box">
     <ParticleBackground />
-    <LoginVue v-if="currentView === 'login'" @to-register="toRegister" />
-    <RegisterVue v-if="currentView === 'register'" @to-login="toLogin" />
+    <LoginVue :loginTypes="loginTypes" />
   </div>
   </template>
 <style scoped lang="scss">

@@ -10,11 +10,13 @@ import {useTable} from '@/hooks/useTable'
 const {t} = useI18n()
 const usernameArr = ref([])
 const platformArr = ref([])
+const loginTypeArr = ref([])
 
 const init = () => {
   UsersLoginLogApi.init().then((data: any) => {
     usernameArr.value = data.dict.usernameArr;
     platformArr.value = data.dict.platformArr;
+    loginTypeArr.value = data.dict.login_type_arr;
   }).catch(() => {
   })
 }
@@ -50,11 +52,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('usersLoginLog.filter.loginType'), 
     placeholder: t('usersLoginLog.filter.loginType'), 
     width: 150,
-    options: [
-      { label: '邮箱', value: 'email' },
-      { label: '手机号', value: 'phone' },
-      { label: '用户名', value: 'username' }
-    ]
+    options: loginTypeArr.value
   },
   { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: 150 },
   {
@@ -87,7 +85,7 @@ onMounted(() => {
       <AppTable :columns="[
           { key: 'user_name', label: t('usersLoginLog.table.user_name') },
           { key: 'login_account', label: t('usersLoginLog.table.account') },
-          { key: 'login_type', label: t('usersLoginLog.table.loginType') },
+          { key: 'login_type_name', label: t('usersLoginLog.table.loginType') },
           { key: 'platform', label: t('usersLoginLog.table.platform') },
           { key: 'ip', label: t('usersLoginLog.table.ip') },
           { key: 'ua', label: t('usersLoginLog.table.ua'), showOverflowTooltip: true,width: 200},
