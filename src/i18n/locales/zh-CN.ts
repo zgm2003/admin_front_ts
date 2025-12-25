@@ -57,6 +57,13 @@ export default {
     confirmStatusChange: '确定变更启用状态吗？',
     selectAtLeastOne: '请至少选择一个记录',
     required: '为必填项',
+    lengthRange: '长度应在 {min} 到 {max} 个字符',
+    notSpace: '不能包含空格',
+    notSpecialCharacters: '不能包含特殊字符',
+    notEqual: '两次输入不一致',
+    emailError: '邮箱格式不正确',
+    mobileError: '手机号格式不正确',
+    urlError: 'URL格式不正确',
     language: '语言', zh: '中文', en: '英文',
     actions: {
       add: '新增',

@@ -57,6 +57,13 @@ export default {
     confirmStatusChange: 'Change enabled status?',
     selectAtLeastOne: 'Please select at least one record',
     required: 'is required',
+    lengthRange: 'Length should be between {min} and {max}',
+    notSpace: 'Should not contain spaces',
+    notSpecialCharacters: 'Should not contain special characters',
+    notEqual: 'Inputs do not match',
+    emailError: 'Invalid email format',
+    mobileError: 'Invalid mobile number format',
+    urlError: 'Invalid URL format',
     language: 'Language', zh: 'Chinese', en: 'English',
     actions: {
       add: 'Add',
