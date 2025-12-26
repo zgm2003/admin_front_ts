@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, reactive, nextTick } from 'vue' // ✅ Add reactive, nextTick
 import type { FormInstance } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
@@ -21,16 +21,25 @@ const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields
 const emit = defineEmits(['update:modelValue', 'query', 'reset'])
 
 const formRef = ref<FormInstance>()
-const form = ref<Record<string, any>>({ ...(props.modelValue || {}) })
-watch(() => props.modelValue, (v) => { form.value = { ...(v || {}) } }, { deep: true })
+// ✅ Change to reactive to keep object reference stable
+const form = reactive<Record<string, any>>({ ...(props.modelValue || {}) })
+
+// ✅ Use Object.assign to update values without breaking reference or el-form initial value tracking
+watch(() => props.modelValue, (v) => {
+  Object.assign(form, v || {})
+}, { deep: true })
 
 const resetText = computed(() => locale.value === 'en-US' ? 'Reset' : '重置')
 
-const onQuery = () => { emit('update:modelValue', { ...form.value }); emit('query', { ...form.value }) }
-const onReset = () => {
-  formRef.value?.resetFields()
-  emit('update:modelValue', { ...form.value })
-  emit('reset', { ...form.value })
+const onQuery = () => { emit('update:modelValue', { ...form }); emit('query', { ...form }) }
+
+// ✅ Async reset with nextTick to ensure emitted value is the reset state
+const onReset = async () => {
+  if (!formRef.value) return
+  formRef.value.resetFields()
+  await nextTick()
+  emit('update:modelValue', { ...form })
+  emit('reset', { ...form })
 }
 
 const isMobile = useIsMobile()
@@ -62,6 +71,7 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
 
 <template>
   <div ref="wrapRef">
+  <!-- ✅ :model="form" now binds to the reactive object directly -->
   <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
     <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label" :prop="f.key">
       <template v-if="f.type==='input'">
@@ -91,4 +101,3 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
 
 <style scoped>
 </style>
-
