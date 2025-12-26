@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import type { FormInstance } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import { useIsMobile } from '@/utils/responsive'
@@ -19,6 +20,7 @@ const { locale, t } = useI18n()
 const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number, size?: 'large' | 'default' | 'small' }>(), { inline: true, collapseCount: 1, size: 'default' })
 const emit = defineEmits(['update:modelValue', 'query', 'reset'])
 
+const formRef = ref<FormInstance>()
 const form = ref<Record<string, any>>({ ...(props.modelValue || {}) })
 watch(() => props.modelValue, (v) => { form.value = { ...(v || {}) } }, { deep: true })
 
@@ -26,9 +28,7 @@ const resetText = computed(() => locale.value === 'en-US' ? 'Reset' : '重置')
 
 const onQuery = () => { emit('update:modelValue', { ...form.value }); emit('query', { ...form.value }) }
 const onReset = () => {
-  const next: Record<string, any> = { ...(props.modelValue || {}) }
-  props.fields.forEach(f => { next[f.key] = '' })
-  form.value = next
+  formRef.value?.resetFields()
   emit('update:modelValue', { ...form.value })
   emit('reset', { ...form.value })
 }
@@ -62,8 +62,8 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
 
 <template>
   <div ref="wrapRef">
-  <el-form :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
-    <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label">
+  <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
+    <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label" :prop="f.key">
       <template v-if="f.type==='input'">
         <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" />
       </template>
