@@ -62,29 +62,25 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
 
 <template>
   <div ref="wrapRef">
-  <el-form :inline="props.inline" :model="form" :size="props.size">
-    <el-form-item v-for="f in visibleFields" :key="f.key" :label="f.label">
+  <el-form :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
+    <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label">
       <template v-if="f.type==='input'">
-        <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: (f.width ?? 150)+'px' }" />
+        <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" />
       </template>
       <template v-else-if="f.type==='select-v2'">
-        <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: (f.width ?? 150)+'px' }" v-bind="f.props" />
+        <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="f.props" />
       </template>
       <template v-else-if="f.type==='cascader'">
-        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: (f.width ?? 150)+'px' }" :props="f.props" />
+        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" :props="f.props" />
       </template>
       <template v-else-if="f.type==='date-range'">
-        <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: (f.width ?? 300)+'px' }" v-bind="f.props" />
+        <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 300)+'px' }" v-bind="f.props" />
       </template>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="onQuery">{{ t('common.actions.query') }}</el-button>
-    </el-form-item>
-    <el-form-item>
       <el-button @click="onReset">{{ resetText }}</el-button>
-    </el-form-item>
-    <el-form-item v-if="showToggle">
-      <el-button text @click="toggleCollapsed">
+      <el-button v-if="showToggle" text @click="toggleCollapsed">
         <el-icon style="margin-right:4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
         {{ collapsed ? '展开' : '收起' }}
       </el-button>
