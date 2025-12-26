@@ -111,6 +111,7 @@ const batchDel = async () => {
 
 onMounted(() => {
   init()
+  getList()
 })
 </script>
 

@@ -194,6 +194,7 @@ const beforeChangeStatus = createBeforeStatusChange({
 
 onMounted(() => {
   init()
+  getList()
 })
 </script>
 

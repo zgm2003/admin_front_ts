@@ -75,6 +75,7 @@ const searchFields = computed<SearchField[]>(() => [
 
 onMounted(() => {
   init()
+  getList()
 })
 </script>
 

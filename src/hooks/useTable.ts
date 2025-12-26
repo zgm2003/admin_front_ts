@@ -1,4 +1,4 @@
-import { ref, reactive, toRefs } from 'vue'
+import { ref, unref } from 'vue'
 
 interface PageState {
   current_page: number
@@ -9,9 +9,9 @@ interface PageState {
 interface UseTableOptions<T> {
   // API 请求函数，接收 params，返回 Promise
   api: (params: any) => Promise<{ list: T[]; page: PageState }>
-  // 搜索表单（响应式对象）
+  // 搜索表单（响应式对象，支持 ref 或 reactive）
   searchForm?: any
-  // 是否立即请求
+  // 是否立即请求（默认 false，遵循最小惊讶原则）
   immediate?: boolean
   // 分页初始值
   initPage?: Partial<PageState>
@@ -20,7 +20,7 @@ interface UseTableOptions<T> {
 }
 
 export function useTable<T = any>(options: UseTableOptions<T>) {
-  const { api, searchForm = {}, immediate = true, initPage = {}, dataCallback } = options
+  const { api, searchForm = {}, immediate = false, initPage = {}, dataCallback } = options
 
   const loading = ref(false)
   const data = ref<T[]>([])
@@ -34,9 +34,9 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
   // 获取列表
   const getList = () => {
     loading.value = true
-    // 合并搜索参数和分页参数
+    // 合并搜索参数和分页参数，使用 unref 兼容 ref/reactive
     const params = {
-      ...searchForm.value, // 假设传入的是 ref
+      ...unref(searchForm),
       page_size: page.value.page_size,
       current_page: page.value.current_page
     }

@@ -150,6 +150,7 @@ const searchFields = computed<SearchField[]>(() => [
 const isMobile = useIsMobile()
 onMounted(() => {
   init()
+  getList()
 })
 </script>
 
