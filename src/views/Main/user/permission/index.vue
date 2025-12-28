@@ -34,7 +34,8 @@ const form = ref({
   type: '',
   code: '',
   i18n_key: '',
-  sort: 1
+  sort: 1,
+  show_menu: 1
 })
 const add = () => {
   dialogMode.value = 'add'
@@ -49,7 +50,8 @@ const add = () => {
     type: '',
     code: '',
     i18n_key: '',
-    sort: 1
+    sort: 1,
+    show_menu: 1
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -70,7 +72,8 @@ const addChild = (current: any) => {
     type: nextType,
     code: '',
     i18n_key: '',
-    sort: 1
+    sort: 1,
+    show_menu: 1
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -110,7 +113,8 @@ const edit = (current: any) => {
     type: current.type,
     code: current.code,
     i18n_key: current.i18n_key,
-    sort: current.sort
+    sort: current.sort,
+    show_menu: current.show_menu
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -125,6 +129,11 @@ const rules = computed(() => ({
     required: true,
     message: '请输入 i18n_key',
     trigger: 'blur'
+  }] : [],
+  show_menu: (form.value.type === 1 || form.value.type === 2) ? [{
+    required: true,
+    message: '请选择是否显示',
+    trigger: 'change'
   }] : [],
   code: (form.value.type === 3) ? [{required: true, message: '请输入 code', trigger: 'blur'}] : []
 }))
@@ -318,6 +327,12 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="i18n_key" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
           <el-input v-model="form.i18n_key" style="width:100%" clearable/>
+        </el-form-item>
+        <el-form-item :label="t('permission.form.show_menu')" prop="show_menu" required v-if="form.type === 1 || form.type === 2">
+          <el-radio-group v-model="form.show_menu">
+            <el-radio :value="1" border>{{ t('common.status.show') }}</el-radio>
+            <el-radio :value="2" border>{{ t('common.status.hide') }}</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="排序" prop="sort" required>
           <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1"/>

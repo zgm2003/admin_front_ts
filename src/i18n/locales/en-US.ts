@@ -67,6 +67,10 @@ export default {
     mobileError: 'Invalid mobile number format',
     urlError: 'Invalid URL format',
     language: 'Language', zh: 'Chinese', en: 'English',
+    status: {
+      show: 'Show',
+      hide: 'Hide'
+    },
     actions: {
       add: 'Add',
       edit: 'Edit',
@@ -203,6 +207,9 @@ export default {
       code: 'Code',
       i18n_key: 'I18N Key',
       actions: 'Actions'
+    },
+    form: {
+      show_menu: 'Show in Menu'
     }
   },
   upload: {

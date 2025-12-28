@@ -67,6 +67,10 @@ export default {
     mobileError: '手机号格式不正确',
     urlError: 'URL格式不正确',
     language: '语言', zh: '中文', en: '英文',
+    status: {
+      show: '显示',
+      hide: '隐藏'
+    },
     actions: {
       add: '新增',
       edit: '编辑',
@@ -203,6 +207,9 @@ export default {
       code: 'CODE',
       i18n_key: 'I18N_KEY',
       actions: '操作'
+    },
+    form: {
+      show_menu: '菜单显示'
     }
   },
   upload: {
