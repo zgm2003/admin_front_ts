@@ -23,6 +23,7 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.use(ElementPlus)
-setupDynamicRoutes()
+setupDynamicRoutes().catch(() => router.replace('/login'))
+
 app.mount('#app')
 

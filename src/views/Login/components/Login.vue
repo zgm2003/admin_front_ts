@@ -12,7 +12,7 @@ const router = useRouter()
 const emit = defineEmits(['to-register'])
 const props = defineProps<{ loginTypes: Array<{label: string, value: string}> }>()
 const { t } = useI18n()
-const activeTab = ref('')
+const activeTab = ref<'username' | 'email' | 'phone'>('email')
 const loginForm = ref({ login_account: '', password: '', code: '', remember: true })
 const formRef = ref<FormInstance | null>(null)
 
