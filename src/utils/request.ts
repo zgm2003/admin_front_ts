@@ -109,7 +109,12 @@ service.interceptors.request.use(
     const platform = getPlatform()
     const deviceId = getDeviceId()
 
-    if (token) setHeader(config, 'Authorization', `Bearer ${token}`)
+    // 只有在 token 存在时才添加 Authorization 头
+    // 如果不存在，后端会返回 401，然后触发 response 拦截器里的 handle401 进行 refresh
+    if (token) {
+        setHeader(config, 'Authorization', `Bearer ${token}`)
+    }
+    
     setHeader(config, 'platform', platform)
     setHeader(config, 'device-id', deviceId)
     return config

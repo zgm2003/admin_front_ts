@@ -24,7 +24,7 @@ const rules = computed<FormRules>(() => {
       : {}
   
   // Dynamic rules based on login type
-  const extraRules = activeTab.value === 'username' 
+  const extraRules = activeTab.value === 'password' 
     ? { password: [{ required: true, message: t('auth.login.password') + '为必填项', trigger: 'blur' }] }
     : { code: [{ required: true, message: '验证码为必填项', trigger: 'blur' }] }
 
@@ -110,7 +110,7 @@ const toForgetPassword = () => { router.push('/editPassword') }
     <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
       <el-form-item :label="t('auth.login.account')" prop="login_account">
         <el-input 
-          :placeholder="activeTab === 'email' ? '请输入邮箱' : activeTab === 'phone' ? '请输入手机号' : '请输入账号'" 
+          :placeholder="activeTab === 'email' ? '请输入邮箱' : activeTab === 'phone' ? '请输入手机号' : '请输入邮箱或手机号'" 
           v-model="loginForm.login_account" 
           clearable 
           size="large" 
@@ -122,7 +122,7 @@ const toForgetPassword = () => { router.push('/editPassword') }
         </el-input>
       </el-form-item>
       
-      <el-form-item v-if="activeTab === 'username'" :label="t('auth.login.password')" prop="password">
+      <el-form-item v-if="activeTab === 'password'" :label="t('auth.login.password')" prop="password">
         <el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" style="width:100%" @keydown.enter="Login" />
       </el-form-item>
 
@@ -134,7 +134,7 @@ const toForgetPassword = () => { router.push('/editPassword') }
       <el-form-item>
         <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div><div class="right"><el-text type="primary" @click="toForgetPassword" style="cursor:pointer">{{ t('auth.login.toForget') }}</el-text></div></div>
       </el-form-item>
-      <el-form-item><el-button style="width:100%" type="primary" size="large" @click="Login">{{ activeTab === 'username' ? t('auth.login.submit') : '登录 / 注册' }}</el-button></el-form-item>
+      <el-form-item><el-button style="width:100%" type="primary" size="large" @click="Login">{{ activeTab === 'password' ? t('auth.login.submit') : '登录 / 注册' }}</el-button></el-form-item>
     </el-form>
   </el-card>
   </template>
