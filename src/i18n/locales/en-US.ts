@@ -100,7 +100,8 @@ export default {
     usersLoginLog: 'Login Log',
     test: 'Test',
     uploadConfig: 'Upload Config',
-    systemSetting: 'System Settings'
+    systemSetting: 'System Settings',
+    personal: 'Personal',
   },
   header: {
     projectConfig: 'Project Settings',

@@ -100,7 +100,8 @@ export default {
     usersLoginLog: '登录日志',
     test: '测试页',
     uploadConfig: '上传配置',
-    systemSetting: '系统设置'
+    systemSetting: '系统设置',
+    personal: '个人资料',
   },
   header: {
     projectConfig: '项目配置',
