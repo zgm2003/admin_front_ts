@@ -1,20 +1,22 @@
 <template>
-  <template v-if="!hasChildren">
-    <el-menu-item :index="item.index" @click="handleClick(item)">
-      <el-icon><component :is="item.icon" /></el-icon>
-      <span>{{ displayLabel }}</span>
-    </el-menu-item>
-  </template>
-  <template v-else>
-    <el-sub-menu :index="item.index">
-      <template #title>
+  <template v-if="!item.show_menu || item.show_menu === 1">
+    <template v-if="!hasChildren">
+      <el-menu-item :index="item.index" @click="handleClick(item)">
         <el-icon><component :is="item.icon" /></el-icon>
         <span>{{ displayLabel }}</span>
-      </template>
-      <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
-    </el-sub-menu>
+      </el-menu-item>
+    </template>
+    <template v-else>
+      <el-sub-menu :index="item.index">
+        <template #title>
+          <el-icon><component :is="item.icon" /></el-icon>
+          <span>{{ displayLabel }}</span>
+        </template>
+        <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
+      </el-sub-menu>
+    </template>
   </template>
-  </template>
+</template>
 
 <script setup lang="ts">
 import { computed } from 'vue';

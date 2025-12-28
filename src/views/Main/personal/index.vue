@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import {computed, ref, onMounted} from 'vue'
 import {ElNotification} from 'element-plus'
-import {UsersApi} from '@/api/user/users'
+import {UsersApi} from '@/api/user/users.ts'
 import {useRoute, useRouter} from 'vue-router'
 import 'element-plus/theme-chalk/display.css'
 import UpImg from '@/components/UpImg'
 import {useI18n} from 'vue-i18n'
+import {useUserStore} from '@/store/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const sexArr = ref([])
 const addressTree = ref([])
 const userloading = ref(false)
-const user_id = (route.query as any).user_id
+const user_id = (route.query as any).user_id || userStore.user_id
 const {t} = useI18n()
 const initEdit = () => {
   userloading.value = true;
@@ -70,14 +72,14 @@ const sexLabel = computed(() => {
 
 <template>
   <div class="box">
-    <el-row justify="center">
-      <el-col :lg="24">
-        <el-button type="success" style="width:100%" @click="back">返回</el-button>
-      </el-col>
-    </el-row>
+<!--    <el-row justify="center">-->
+<!--      <el-col :lg="24">-->
+<!--        <el-button type="success" style="width:100%" @click="back">返回</el-button>-->
+<!--      </el-col>-->
+<!--    </el-row>-->
     <el-row gutter="20" justify="center">
       <el-col :lg="6" class="left">
-        <el-card v-loading="userloading">
+        <el-card shadow="none" v-loading="userloading">
           <template #header>
             <div class="card-header"><span>个人信息</span></div>
           </template>
@@ -122,7 +124,7 @@ const sexLabel = computed(() => {
         </el-card>
       </el-col>
       <el-col :lg="18" class="right" v-if="userinfo.is_self === 1">
-        <el-card v-loading="userloading">
+        <el-card shadow="none" v-loading="userloading">
           <template #header>
             <div class="card-header"><span>基本资料</span></div>
           </template>
@@ -162,10 +164,6 @@ const sexLabel = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.box {
-  padding: 20px
-}
-
 .left .card-header {
   font-size: 20px;
   font-weight: bold

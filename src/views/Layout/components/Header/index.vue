@@ -60,7 +60,7 @@
           <Search/>
         </el-icon>
       </el-button>
-<!--      <el-button @click="goToBlog" icon="House" circle style="margin-right: 8px"/>-->
+      <!--      <el-button @click="goToBlog" icon="House" circle style="margin-right: 8px"/>-->
       <el-dropdown @command="handleUserCommand">
       <span class="el-dropdown-link">
         <el-avatar :src="userStore.avatar" size="small"/>
@@ -169,7 +169,7 @@ function goToBlog() {
 }
 
 function handleUserCommand(command) {
-  if (command === 'personal') router.push({name: 'personal', query: {user_id: userStore.user_id}});
+  if (command === 'personal') router.push({path: '/personal', query: {user_id: userStore.user_id}});
   if (command === 'logout') LoginOutShow.value = true
 }
 

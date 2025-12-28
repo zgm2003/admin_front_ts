@@ -11,6 +11,21 @@ export const useUserStore = defineStore('user', {
     buttonCodes: [] as string[],
     loading: false,
   }),
+  getters: {
+    permissionMap: (state) => {
+      const map = new Map<string, any>()
+      const traverse = (items: any[]) => {
+        items.forEach(item => {
+          map.set(String(item.index), item)
+          if (item.children && item.children.length > 0) {
+            traverse(item.children)
+          }
+        })
+      }
+      traverse(state.permissions)
+      return map
+    }
+  },
   actions: {
     async fetchUserInfo() {
       this.loading = true

@@ -4,12 +4,11 @@ import Cookies from 'js-cookie'
 import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
 import {ElNotification} from 'element-plus'
-import {clearCookies} from '@/utils/cookie'
 
 const routes: any[] = [
     {path: '/login', name: 'login', component: () => import('@/views/Login/index.vue')},
     {path: '/editPassword', name: 'editPassword', component: () => import('@/views/EditPassword/index.vue')},
-    {path: '/personal', name: 'personal', component: () => import('@/views/Personal/index.vue')},
+    // {path: '/personal', name: 'personal', component: () => import('@/views/Main/personal/index.vue')},
     {path: '/404', name: '404', component: () => import('@/views/Error/404.vue')},
 ]
 
@@ -78,8 +77,19 @@ router.beforeEach((to, _from, next) => {
 })
 router.afterEach((to) => {
     const menuStore = useMenuStore();
-    menuStore.selectedMenu = to.meta.menuId;
-    Cookies.set('selectedMenu', to.meta.menuId as any)
+    const userStore = useUserStore();
+    const menuId = (to.meta.menuId as string) || '';
+    
+    menuStore.selectedMenu = menuId;
+    Cookies.set('selectedMenu', menuId)
+
+    if (menuId) {
+        // Use the flat permissionMap for O(1) lookup
+        const item = userStore.permissionMap.get(menuId);
+        if (item) {
+            menuStore.selectMenu(item)
+        }
+    }
 })
 
 export default router
