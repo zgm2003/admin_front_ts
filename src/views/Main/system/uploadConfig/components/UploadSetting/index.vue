@@ -186,11 +186,25 @@ const batchDel = async () => {
   })
 }
 
-const beforeChangeStatus = createBeforeStatusChange({
-  t,
-  request: (payload) => UploadSettingApi.status(payload),
-  onSuccess: () => getList()
-})
+const changeStatus = async (row: any) => {
+  if (!row || !row.id) return
+  try {
+    await ElMessageBox.confirm(
+        t('common.confirmStatusChange'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
+    )
+  } catch {
+    row.status = row.status === 1 ? 2 : 1 // revert
+    return
+  }
+  UploadSettingApi.status({id: row.id, status: row.status}).then(() => {
+    ElNotification.success({message: t('common.success.operation')})
+    getList()
+  }).catch(() => {
+    row.status = row.status === 1 ? 2 : 1 // revert
+  })
+}
 
 onMounted(() => {
   init()
@@ -241,7 +255,7 @@ onMounted(() => {
               v-model="row.status"
               :active-value="1"
               :inactive-value="2"
-              :before-change="() => beforeChangeStatus(row)"
+              @change="changeStatus(row)"
               :disabled="!userStore.can('uploadSetting.status')"
           />
         </template>

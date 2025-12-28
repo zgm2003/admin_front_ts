@@ -13,10 +13,12 @@ const routes: any[] = [
     {path: '/404', name: '404', component: () => import('@/views/Error/404.vue')},
 ]
 
+const baseChildren = [
+    {path: '/home', name: 'home', component: () => import('@/views/Main/home/index.vue'), meta: {menuId: '0'}}
+]
+
 const mainRoute: any = {
-    path: '/', name: 'HomeView', component: HomeView, redirect: '/home', children: [
-        {path: '/home', name: 'home', component: () => import('@/views/Main/home/index.vue'), meta: {menuId: '0'}}
-    ]
+    path: '/', name: 'HomeView', component: HomeView, redirect: '/home', children: [...baseChildren]
 }
 
 const router = createRouter({history: createWebHistory(), routes})
@@ -34,6 +36,9 @@ export async function setupDynamicRoutes() {
         return componentPaths[key]
     }
 
+    // Reset children to base
+    mainRoute.children = [...baseChildren]
+
     if (storedRoutes.length > 0) {
         storedRoutes.forEach((route: any) => {
             const component = resolveComponent(route.component)
@@ -44,7 +49,10 @@ export async function setupDynamicRoutes() {
             }
         })
     }
-    if (!router.hasRoute('HomeView')) router.addRoute(mainRoute)
+    
+    // Always add (replace) the route to ensure updates
+    router.addRoute(mainRoute)
+    
     if (!router.hasRoute('CatchAll404')) router.addRoute({ path: '/:pathMatch(.*)*', name: 'CatchAll404', redirect: '/404' })
 
     const current = router.currentRoute.value
@@ -72,11 +80,6 @@ router.afterEach((to) => {
     const menuStore = useMenuStore();
     menuStore.selectedMenu = to.meta.menuId;
     Cookies.set('selectedMenu', to.meta.menuId as any)
-})
-
-// Clear cookies on page unload similar to JS project
-window.addEventListener('beforeunload', () => {
-    clearCookies()
 })
 
 export default router

@@ -145,6 +145,7 @@ function ClickMenu() {
 
 function confirmLoginOut() {
   UsersApi.logout({}).finally(() => {
+    useMenuStore().reset()
     clearAllCookies();
     localStorage.removeItem('lastVisitedPath');
     ElNotification.success(t('common.success.operation'));

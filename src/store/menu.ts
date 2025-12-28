@@ -89,5 +89,11 @@ export const useMenuStore = defineStore('menu', {
     changeFooter(val: boolean) { this.footer = val; localStorage.setItem('footer', String(val)) },
     changePageTransition(val: boolean) { this.pageTransition = val; localStorage.setItem('pageTransition', String(val)) },
     changeTransitionName(val: string) { this.transitionName = val; localStorage.setItem('transitionName', val) },
+    reset() {
+      this.selectedMenu = '0'
+      this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
+      Cookies.remove('selectedMenu')
+      Cookies.remove('tabList')
+    }
   },
 })

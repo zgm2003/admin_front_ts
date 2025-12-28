@@ -4,6 +4,7 @@ import router from '@/router'
 import { ElNotification } from 'element-plus'
 import { clearAllCookies } from '@/utils/cookie'
 import { getDeviceId } from '@/utils/device'
+import { useMenuStore } from '@/store/menu'
 
 const baseURL = import.meta.env.VITE_SOME_KEY
 const service = axios.create({ baseURL, timeout: 60000 })
@@ -34,6 +35,7 @@ function processQueue(error: Error | null, token: string | null = null) {
 }
 
 function logoutAndRedirect(message: string) {
+  useMenuStore().reset()
   clearAllCookies()
   router.push('/login')
   processQueue(new Error(message))
