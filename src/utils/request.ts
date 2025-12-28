@@ -15,7 +15,7 @@ let requestsQueue: { resolve: Function; reject: Function; config: any }[] = []
 function getPlatform() {
   const envPlat = import.meta.env.VITE_PLATFORM
   if (envPlat) return envPlat
-  return /(Android|iPhone|iPad|iPod|Windows Phone)/i.test(navigator.userAgent) ? 'mobile' : 'admin'
+  return /(Android|iPhone|iPad|iPod|Windows Phone)/i.test(navigator.userAgent) ? 'app' : 'admin'
 }
 
 function setHeader(config: any, name: string, value: any) {
