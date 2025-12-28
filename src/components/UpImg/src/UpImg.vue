@@ -26,8 +26,8 @@ const beforeUpload = async (file: File) => {
     imageUrl.value = result.url
     emit('update:modelValue', result.url)
   } catch (error: any) {
-    const msg = (error && error.response && (error.response.data?.message || error.response.data?.msg)) || error.message || '上传失败'
-    ElNotification.error({message: msg})
+    // const msg = (error && error.response && (error.response.data?.message || error.response.data?.msg)) || error.message || '上传失败'
+    // ElNotification.error({ message: msg })
   } finally {
     loading.value = false
   }
