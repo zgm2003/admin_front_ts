@@ -307,10 +307,10 @@ onMounted(() => {
     </div>
   </div>
   <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'"
-             :title="dialogMode==='add' ? '新增' : '编辑'" draggable destroy-on-close>
+             :title="dialogMode==='add' ? t('common.actions.add') : t('common.actions.edit')" draggable destroy-on-close>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
-        <el-form-item label="类型" prop="type" required>
+        <el-form-item :label="t('permission.form.type')" prop="type" required>
           <el-radio-group v-model="form.type">
             <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
                 item.label
@@ -318,15 +318,15 @@ onMounted(() => {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="父级菜单">
+        <el-form-item :label="t('permission.form.parent_id')">
           <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true
                           :render-after-expand="false"/>
         </el-form-item>
-        <el-form-item label="名称" prop="name" required>
-          <el-input v-model="form.name" style="width:100%" clearable/>
+        <el-form-item :label="t('permission.form.name')" prop="name" required>
+          <el-input v-model="form.name" style="width:100%" clearable :placeholder="t('permission.form.placeholder.name')"/>
         </el-form-item>
-        <el-form-item label="i18n_key" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
-          <el-input v-model="form.i18n_key" style="width:100%" clearable/>
+        <el-form-item :label="t('permission.form.i18n_key')" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
+          <el-input v-model="form.i18n_key" style="width:100%" clearable :placeholder="t('permission.form.placeholder.i18n_key')"/>
         </el-form-item>
         <el-form-item :label="t('permission.form.show_menu')" prop="show_menu" required v-if="form.type === 1 || form.type === 2">
           <el-radio-group v-model="form.show_menu">
@@ -334,26 +334,26 @@ onMounted(() => {
             <el-radio :value="2" border>{{ t('common.status.hide') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="排序" prop="sort" required>
+        <el-form-item :label="t('permission.form.sort')" prop="sort" required>
           <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1"/>
         </el-form-item>
-        <el-form-item label="ICON" v-if="form.type === 1 || form.type === 2">
+        <el-form-item :label="t('permission.form.icon')" v-if="form.type === 1 || form.type === 2">
           <el-input v-model="form.icon" style="width:80%" clearable/>
-          <el-button icon="Setting" @click="openIconSelect">选择</el-button>
+          <el-button icon="Setting" @click="openIconSelect">{{ t('common.actions.edit') }}</el-button>
         </el-form-item>
-        <el-form-item label="路由" v-if="form.type === 2">
-          <el-input v-model="form.path" style="width:100%" clearable/>
+        <el-form-item :label="t('permission.form.path')" v-if="form.type === 2">
+          <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>
         </el-form-item>
-        <el-form-item label="component" v-if="form.type === 2">
-          <el-input v-model="form.component" style="width:100%" clearable :rows="5"/>
+        <el-form-item :label="t('permission.form.component')" v-if="form.type === 2">
+          <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')"/>
         </el-form-item>
-        <el-form-item label="code" prop="code" required v-if="form.type === 3">
-          <el-input v-model="form.code" style="width:100%" clearable/>
+        <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === 3">
+          <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">取消</el-button><el-button
-        type="primary" @click="confirmSubmit">确认</el-button></span></template>
+    <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">{{ t('common.actions.cancel') }}</el-button><el-button
+        type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
   </el-dialog>
   <icon-select @select-icon="confirmIcon" ref="iconSelectRef"/>
 </template>

@@ -209,7 +209,30 @@ export default {
       actions: '操作'
     },
     form: {
-      show_menu: '菜单显示'
+      show_menu: '菜单显示',
+      type: '类型',
+      parent_id: '父级菜单',
+      name: '名称',
+      i18n_key: 'i18n_key',
+      sort: '排序',
+      icon: 'ICON',
+      path: '路由',
+      component: 'component',
+      code: 'code',
+      placeholder: {
+        name: '请输入名称',
+        i18n_key: '请输入 i18n_key',
+        path: '请输入路由地址',
+        component: '请输入组件路径',
+        code: '请输入 code'
+      },
+      rule: {
+        type: '请选择类型',
+        name: '请输入名称',
+        i18n_key: '请输入 i18n_key',
+        code: '请输入 code',
+        show_menu: '请选择是否显示'
+      }
     }
   },
   upload: {

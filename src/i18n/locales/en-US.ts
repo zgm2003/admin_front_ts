@@ -209,7 +209,30 @@ export default {
       actions: 'Actions'
     },
     form: {
-      show_menu: 'Show in Menu'
+      show_menu: 'Show in Menu',
+      type: 'Type',
+      parent_id: 'Parent Menu',
+      name: 'Name',
+      i18n_key: 'i18n_key',
+      sort: 'Sort',
+      icon: 'Icon',
+      path: 'Route Path',
+      component: 'Component Path',
+      code: 'Code',
+      placeholder: {
+        name: 'Please enter name',
+        i18n_key: 'Please enter i18n_key',
+        path: 'Please enter route path',
+        component: 'Please enter component path',
+        code: 'Please enter code'
+      },
+      rule: {
+        type: 'Please select type',
+        name: 'Please enter name',
+        i18n_key: 'Please enter i18n_key',
+        code: 'Please enter code',
+        show_menu: 'Please select show status'
+      }
     }
   },
   upload: {
