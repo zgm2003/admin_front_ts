@@ -8,7 +8,6 @@ import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
-import {createBeforeStatusChange} from '@/utils/beforeStatusChange'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -196,11 +195,25 @@ const openIconSelect = () => {
 const confirmIcon = (iconName: string) => {
   form.value.icon = iconName
 }
-const beforeStatusChange = createBeforeStatusChange({
-  t,
-  request: (payload) => PermissionApi.status(payload),
-  onSuccess: () => getList()
-})
+const changeStatus = async (row: any) => {
+  if (!row || !row.id) return
+  try {
+    await ElMessageBox.confirm(
+        t('common.confirmStatusChange'),
+        t('common.confirmTitle'),
+        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
+    )
+  } catch {
+    row.status = row.status === 1 ? 2 : 1 // revert
+    return
+  }
+  PermissionApi.status({id: row.id, status: row.status}).then(() => {
+    ElNotification.success({message: t('common.success.operation')})
+    // 权限列表通常不需要全量刷新，避免树折叠
+  }).catch(() => {
+    row.status = row.status === 1 ? 2 : 1 // revert
+  })
+}
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])
@@ -255,7 +268,7 @@ onMounted(() => {
                 v-model="scope.row.status"
                 :active-value="1"
                 :inactive-value="2"
-                :before-change="() => beforeStatusChange(scope.row)"
+                @change="changeStatus(scope.row)"
             />
           </template>
         </el-table-column>
