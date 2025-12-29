@@ -54,12 +54,7 @@ const sendCode = () => {
     return
   }
   codeLoding.value = true
-  const param = {
-    login_account: loginForm.value.login_account,
-    // Add logic to distinguish type if needed by backend, currently backend guesses by regex or we pass type if needed? 
-    // Backend sendCode uses 'login_account' and validates based on regex.
-  }
-  UsersApi.sendCode(param)
+  UsersApi.sendCode({ account: loginForm.value.login_account, scene: 'login' })
     .then(() => { codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() })
     .catch(() => { codeLoding.value = false })
 }
@@ -98,7 +93,6 @@ const Login = async () => {
     .catch(() => { loading.value = false })
 }
 const toRegister = () => { emit('to-register') }
-const toForgetPassword = () => { router.push('/editPassword') }
 </script>
 
 <template>
@@ -132,7 +126,7 @@ const toForgetPassword = () => { router.push('/editPassword') }
       </el-form-item>
 
       <el-form-item>
-        <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div><div class="right"><el-text type="primary" @click="toForgetPassword" style="cursor:pointer">{{ t('auth.login.toForget') }}</el-text></div></div>
+        <div class="one"><div class="left"><el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" /></div></div>
       </el-form-item>
       <el-form-item><el-button style="width:100%" type="primary" size="large" @click="Login">{{ activeTab === 'password' ? t('auth.login.submit') : '登录 / 注册' }}</el-button></el-form-item>
     </el-form>

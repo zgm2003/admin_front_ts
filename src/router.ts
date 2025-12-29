@@ -7,8 +7,6 @@ import {ElNotification} from 'element-plus'
 
 const routes: any[] = [
     {path: '/login', name: 'login', component: () => import('@/views/Login/index.vue')},
-    {path: '/editPassword', name: 'editPassword', component: () => import('@/views/EditPassword/index.vue')},
-    // {path: '/personal', name: 'personal', component: () => import('@/views/Main/personal/index.vue')},
     {path: '/404', name: '404', component: () => import('@/views/Error/404.vue')},
 ]
 

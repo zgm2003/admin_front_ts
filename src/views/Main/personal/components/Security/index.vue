@@ -33,7 +33,7 @@ const sendPhoneCode = () => {
     return
   }
   phoneCodeLoading.value = true
-  UsersApi.sendCode({login_account: phoneForm.value.phone})
+  UsersApi.sendCode({account: phoneForm.value.phone, scene: 'bind_phone'})
     .then(() => {
       phoneCodeLoading.value = false
       ElNotification.success(t('common.success.sendCode'))
@@ -77,7 +77,7 @@ const sendEmailCode = () => {
     return
   }
   emailCodeLoading.value = true
-  UsersApi.sendCode({login_account: emailForm.value.email})
+  UsersApi.sendCode({account: emailForm.value.email, scene: 'bind_email'})
     .then(() => {
       emailCodeLoading.value = false
       ElNotification.success(t('common.success.sendCode'))
@@ -137,7 +137,7 @@ const sendPasswordCode = () => {
     return
   }
   passwordCodeLoading.value = true
-  UsersApi.sendCode({login_account: account})
+  UsersApi.sendCode({account: account, scene: 'change_password'})
     .then(() => {
       passwordCodeLoading.value = false
       ElNotification.success(t('common.success.sendCode'))
