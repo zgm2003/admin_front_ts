@@ -11,6 +11,10 @@ export const UsersApi = {
   initPersonal: (params: any) => request.post('/api/Users/initPersonal', params),
   editPersonal: (params: any) => request.post('/api/Users/editPersonal', params),
   EditPassword: (params: any) => request.post('/api/Users/EditPassword', params),
+  // 新增：账号与安全模块接口
+  updatePhone: (params: any) => request.post('/api/Users/updatePhone', params),    // 绑定/更换手机号
+  updateEmail: (params: any) => request.post('/api/Users/updateEmail', params),    // 绑定/更换邮箱
+  updatePassword: (params: any) => request.post('/api/Users/updatePassword', params), // 设置/修改密码（需登录）
 }
 
 export const UsersListApi = {
