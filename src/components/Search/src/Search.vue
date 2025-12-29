@@ -52,8 +52,9 @@ const detectWrapped = () => {
   const el = wrapRef.value as HTMLElement | null
   if (!el) return
   const items = Array.from(el.querySelectorAll('.el-form-item')) as HTMLElement[]
-  if (items.length === 0) return
-  const firstTop = items[0].offsetTop
+  const firstItem = items[0]
+  if (!firstItem) return
+  const firstTop = firstItem.offsetTop
   const hasWrap = items.some(it => it.offsetTop > firstTop)
   wrapped.value = hasWrap
   if (!userOverride.value && hasWrap && !collapsed.value) {
@@ -64,7 +65,6 @@ const detectWrapped = () => {
 useResizeObserver(wrapRef, () => { detectWrapped() })
 const minCount = computed(() => Math.max(1, Number(props.collapseCount || 1)))
 const visibleFields = computed(() => collapsed.value ? props.fields.slice(0, minCount.value) : props.fields)
-const hiddenCount = computed(() => props.fields.length - visibleFields.value.length)
 const showToggle = computed(() => wrapped.value || collapsed.value)
 const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = true; collapsed.value = !collapsed.value } }
 </script>

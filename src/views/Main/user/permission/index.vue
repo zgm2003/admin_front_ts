@@ -12,8 +12,8 @@ import type { SearchField } from '@/components/Search/types'
 const userStore = useUserStore()
 const {t} = useI18n()
 
-const permissionTree = ref([])
-const permissionTypeArr = ref([])
+const permissionTree = ref<any[]>([])
+const permissionTypeArr = ref<{ value: number | string; label: string }[]>([])
 const init = () => {
   PermissionApi.init().then((data: any) => {
     permissionTree.value = data.dict.permission_tree;
@@ -23,14 +23,25 @@ const init = () => {
 }
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({
+const form = ref<{
+  id: string
+  name: string
+  parent_id: string
+  icon: string
+  path: string
+  component: string
+  type: number | string
+  code: string
+  i18n_key: string
+  sort: number
+  show_menu: number
+}>({
   id: '',
   name: '',
   parent_id: '',
   icon: '',
   path: '',
   component: '',
-  actions: [],
   type: '',
   code: '',
   i18n_key: '',
@@ -46,7 +57,6 @@ const add = () => {
     icon: '',
     path: '',
     component: '',
-    actions: [],
     type: '',
     code: '',
     i18n_key: '',
@@ -68,7 +78,6 @@ const addChild = (current: any) => {
     icon: '',
     path: '',
     component: '',
-    actions: [],
     type: nextType,
     code: '',
     i18n_key: '',
@@ -109,7 +118,6 @@ const edit = (current: any) => {
     icon: current.icon,
     path: current.path,
     component: current.component,
-    actions: current.actions,
     type: current.type,
     code: current.code,
     i18n_key: current.i18n_key,
@@ -369,11 +377,5 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto
-}
-
-.fenye {
-  flex: 0 0 auto;
-  margin-left: 30%;
-  margin-top: 10px
 }
 </style>
