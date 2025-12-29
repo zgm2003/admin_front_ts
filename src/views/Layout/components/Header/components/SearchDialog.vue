@@ -70,7 +70,7 @@ import {useRouter} from 'vue-router'
 import {useUserStore} from '@/store/user'
 import {Top, Bottom, Right, Search, Close} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {resolveMenuLabel} from '@/utils/menuI18n'
 
 const props = defineProps<{ modelValue: boolean }>()

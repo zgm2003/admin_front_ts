@@ -4,7 +4,7 @@ import {ElNotification} from 'element-plus'
 import {UsersApi} from '@/api/user/users.ts'
 import UpImg from '@/components/UpImg'
 import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 
 const props = defineProps<{
   userinfo: any

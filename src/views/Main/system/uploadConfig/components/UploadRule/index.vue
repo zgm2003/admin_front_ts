@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {UploadRuleApi} from '@/api/system/uploadConfig'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {ElMessageBox, ElNotification} from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {AppTable} from '@/components/Table'

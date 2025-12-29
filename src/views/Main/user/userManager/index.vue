@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {useRouter} from 'vue-router'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'

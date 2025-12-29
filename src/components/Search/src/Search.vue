@@ -3,7 +3,7 @@ import { ref, watch, computed, reactive, nextTick } from 'vue' // ✅ Add reacti
 import type { FormInstance } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
-import { useIsMobile } from '@/utils/responsive'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 
 interface Field {

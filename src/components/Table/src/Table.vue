@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useIsMobile } from '@/utils/responsive'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import ColumnSetting from './components/ColumnSetting.vue'

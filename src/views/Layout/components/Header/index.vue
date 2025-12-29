@@ -99,7 +99,7 @@ import {ElNotification, ElDivider, ElMessage} from 'element-plus';
 import {useRouter} from 'vue-router';
 import {clearAllCookies} from '@/utils/cookie';
 import {toggleDarkMode} from '@/utils/theme';
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {useI18n} from 'vue-i18n'
 import {resolveMenuLabel} from '@/utils/menuI18n'
 import Cookies from 'js-cookie'

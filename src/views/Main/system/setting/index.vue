@@ -7,7 +7,7 @@ import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
 
 const {t} = useI18n()

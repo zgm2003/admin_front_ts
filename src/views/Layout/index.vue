@@ -1,6 +1,6 @@
 <script setup>
 import {ref, watch} from 'vue'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'

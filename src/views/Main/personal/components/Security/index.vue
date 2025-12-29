@@ -3,7 +3,7 @@ import {ref, computed} from 'vue'
 import {ElNotification} from 'element-plus'
 import {UsersApi} from '@/api/user/users.ts'
 import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {Iphone, Lock, Message} from "@element-plus/icons-vue"
 
 const props = defineProps<{

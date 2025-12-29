@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {PermissionApi} from '@/api/user/permission'
 import IconSelect from '@/components/IconSelect'
 import {Search} from '@/components/Search'

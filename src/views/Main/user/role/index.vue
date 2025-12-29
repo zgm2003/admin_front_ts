@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
-import {useIsMobile} from '@/utils/responsive'
+import {useIsMobile} from '@/hooks/useResponsive'
 import {RoleApi} from '@/api/user/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
