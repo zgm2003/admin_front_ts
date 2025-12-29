@@ -58,6 +58,13 @@ watch(() => loginTypes.value, (newVal) => {
   }
 }, { immediate: true })
 
+// 切换登录类型时清空表单
+watch(activeTab, () => {
+  loginForm.value = { login_account: '', password: '', code: '', remember: loginForm.value.remember }
+  timer.value = 0
+  formRef.value?.clearValidate()
+})
+
 // 验证码
 const codeLoding = ref(false)
 const timer = ref(0)
