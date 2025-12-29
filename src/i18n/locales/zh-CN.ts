@@ -118,7 +118,14 @@ export default {
     set: '已设置',
     tabs: {
       basic: '基本资料',
-      security: '账号与安全'
+      security: '账号与安全',
+      loginLog: '登录日志',
+      operationLog: '操作日志'
+    },
+    log: {
+      recentLoginDesc: '最近5次登录记录',
+      recentOperationDesc: '最近5次操作记录',
+      noData: '暂无记录'
     },
     form: {
       avatar: '头像',

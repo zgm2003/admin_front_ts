@@ -8,6 +8,8 @@ import {useIsMobile} from '@/hooks/useResponsive'
 import UserInfo from './components/UserInfo/index.vue'
 import BaseInfo from './components/BaseInfo/index.vue'
 import Security from './components/Security/index.vue'
+import LoginLog from './components/LoginLog/index.vue'
+import OperationLog from './components/OperationLog/index.vue'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -69,11 +71,17 @@ onMounted(() => {
       <el-col :lg="18" :md="16" :sm="24" v-if="userinfo.is_self === 1">
         <el-card shadow="none">
           <el-tabs v-model="activeTab">
-            <el-tab-pane :label="t('personal.tabs.basic')" name="basic">
+            <el-tab-pane :label="t('personal.tabs.basic')" name="basic" lazy>
               <BaseInfo :userinfo="userinfo" :addressTree="addressTree" :sexArr="sexArr" @refresh="initPersonal"/>
             </el-tab-pane>
-            <el-tab-pane :label="t('personal.tabs.security')" name="security">
+            <el-tab-pane :label="t('personal.tabs.security')" name="security" lazy>
               <Security :userinfo="userinfo" :verifyTypeArr="verifyTypeArr" @refresh="initPersonal"/>
+            </el-tab-pane>
+            <el-tab-pane :label="t('personal.tabs.loginLog')" name="loginLog" lazy>
+              <LoginLog :userId="user_id"/>
+            </el-tab-pane>
+            <el-tab-pane :label="t('personal.tabs.operationLog')" name="operationLog" lazy>
+              <OperationLog :userId="user_id"/>
             </el-tab-pane>
           </el-tabs>
         </el-card>

@@ -118,7 +118,14 @@ export default {
     set: 'Set',
     tabs: {
       basic: 'Basic Info',
-      security: 'Account & Security'
+      security: 'Account & Security',
+      loginLog: 'Login Log',
+      operationLog: 'Operation Log'
+    },
+    log: {
+      recentLoginDesc: 'Recent 5 login records',
+      recentOperationDesc: 'Recent 5 operation records',
+      noData: 'No records'
     },
     form: {
       avatar: 'Avatar',
