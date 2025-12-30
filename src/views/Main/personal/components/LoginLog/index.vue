@@ -58,8 +58,8 @@ onMounted(() => {
           </div>
           <div class="card-row">
             <span class="label">{{ t('usersLoginLog.table.is_success') }}:</span>
-            <el-tag :type="item.success === 1 ? 'success' : 'danger'" size="small">
-              {{ item.success === 1 ? t('common.success.login') : t('common.fail.login') }}
+            <el-tag :type="item.is_success === 1 ? 'success' : 'danger'" size="small">
+              {{ item.is_success === 1 ? t('common.success.login') : t('common.fail.login') }}
             </el-tag>
           </div>
           <div class="card-row">
@@ -77,8 +77,8 @@ onMounted(() => {
         <div v-for="(item, index) in logList" :key="index" class="log-item">
           <div class="log-main">
             <span class="account">{{ item.login_account }}</span>
-            <el-tag :type="item.success === 1 ? 'success' : 'danger'" size="small">
-              {{ item.success === 1 ? t('common.success.login') : t('common.fail.login') }}
+            <el-tag :type="item.is_success === 1 ? 'success' : 'danger'" size="small">
+              {{ item.is_success === 1 ? t('common.success.login') : t('common.fail.login') }}
             </el-tag>
           </div>
           <div class="log-meta">

@@ -90,15 +90,15 @@ onMounted(() => {
           { key: 'platform', label: t('usersLoginLog.table.platform') },
           { key: 'ip', label: t('usersLoginLog.table.ip') },
           { key: 'ua', label: t('usersLoginLog.table.ua'), showOverflowTooltip: true,width: 200},
-          { key: 'success', label: t('usersLoginLog.table.is_success') },
+          { key: 'is_success', label: t('usersLoginLog.table.is_success') },
           { key: 'reason', label: t('usersLoginLog.table.reason') },
           { key: 'created_at', label: t('usersLoginLog.table.created_at') }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" :show-index="true"
                 @refresh="refresh"
                 @update:pagination="onPageChange">
-        <template #cell-success="{ row }">
-          <el-tag :type="row.success === 1 ? 'success' : 'danger'">{{
-              row.success === 1 ? t('common.success.login') : t('common.fail.login')
+        <template #cell-is_success="{ row }">
+          <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
+              row.is_success === 1 ? t('common.success.login') : t('common.fail.login')
             }}
           </el-tag>
         </template>
