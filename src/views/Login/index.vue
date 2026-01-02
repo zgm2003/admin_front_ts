@@ -9,6 +9,7 @@ import Cookies from 'js-cookie'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import ParticleBackground from '@/components/ParticleBackground'
+import SendCode from '@/components/SendCode'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -61,31 +62,12 @@ watch(() => loginTypes.value, (newVal) => {
 // 切换登录类型时清空表单
 watch(activeTab, () => {
   loginForm.value = { login_account: '', password: '', code: '', remember: loginForm.value.remember }
-  timer.value = 0
+  sendCodeRef.value?.reset()
   formRef.value?.clearValidate()
 })
 
-// 验证码
-const codeLoding = ref(false)
-const timer = ref(0)
-const sendCode = () => {
-  if (timer.value > 0) return
-  if (!loginForm.value.login_account) {
-    ElNotification.warning('请输入账号')
-    return
-  }
-  codeLoding.value = true
-  UsersApi.sendCode({ account: loginForm.value.login_account, scene: 'login' })
-    .then(() => { codeLoding.value = false; ElNotification.success(t('common.success.sendCode')); startCountdown() })
-    .catch(() => { codeLoding.value = false })
-}
-const startCountdown = () => { 
-  timer.value = 60
-  const interval = setInterval(() => { 
-    if (timer.value > 0) timer.value--
-    else clearInterval(interval) 
-  }, 1000) 
-}
+// 验证码组件 ref
+const sendCodeRef = ref<InstanceType<typeof SendCode> | null>(null)
 
 // 登录
 const loading = ref(false)
@@ -149,12 +131,14 @@ const handleLogin = async () => {
         </el-form-item>
 
         <el-form-item v-else :label="t('auth.register.code')" prop="code">
-          <div class="code-row">
-            <el-input placeholder="请输入验证码" v-model="loginForm.code" clearable size="large" @keydown.enter="handleLogin" />
-            <el-button type="primary" size="large" @click="sendCode" :loading="codeLoding" :disabled="!loginForm.login_account || timer > 0">
-              {{ timer > 0 ? t('auth.register.resend', { timer }) : t('auth.register.sendCode') }}
-            </el-button>
-          </div>
+          <SendCode 
+            ref="sendCodeRef"
+            v-model="loginForm.code" 
+            :account="loginForm.login_account" 
+            scene="login"
+            :placeholder="t('personal.security.codePlaceholder')"
+            @keydown.enter="handleLogin"
+          />
         </el-form-item>
 
         <el-form-item>
@@ -211,16 +195,6 @@ const handleLogin = async () => {
 
   .login-tabs {
     margin-bottom: 16px;
-  }
-
-  .code-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-
-    .el-input {
-      flex: 1;
-    }
   }
 
   .login-btn {

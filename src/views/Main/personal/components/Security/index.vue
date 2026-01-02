@@ -5,6 +5,7 @@ import {UsersApi} from '@/api/user/users.ts'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {Iphone, Lock, Message} from "@element-plus/icons-vue"
+import SendCode from '@/components/SendCode'
 
 const props = defineProps<{
   userinfo: {
@@ -23,32 +24,6 @@ const isMobile = useIsMobile()
 // ============ 手机号修改 ============
 const phoneForm = ref({phone: '', code: ''})
 const phoneLoading = ref(false)
-const phoneCodeLoading = ref(false)
-const phoneTimer = ref(0)
-
-const sendPhoneCode = () => {
-  if (phoneTimer.value > 0) return
-  if (!phoneForm.value.phone) {
-    ElNotification.warning(t('personal.security.warning.enterNewPhone'))
-    return
-  }
-  phoneCodeLoading.value = true
-  UsersApi.sendCode({account: phoneForm.value.phone, scene: 'bind_phone'})
-    .then(() => {
-      phoneCodeLoading.value = false
-      ElNotification.success(t('common.success.sendCode'))
-      startPhoneCountdown()
-    })
-    .catch(() => { phoneCodeLoading.value = false })
-}
-
-const startPhoneCountdown = () => {
-  phoneTimer.value = 60
-  const interval = setInterval(() => {
-    if (phoneTimer.value > 0) phoneTimer.value--
-    else clearInterval(interval)
-  }, 1000)
-}
 
 const savePhone = () => {
   if (!phoneForm.value.phone || !phoneForm.value.code) {
@@ -67,32 +42,6 @@ const savePhone = () => {
 // ============ 邮箱修改 ============
 const emailForm = ref({email: '', code: ''})
 const emailLoading = ref(false)
-const emailCodeLoading = ref(false)
-const emailTimer = ref(0)
-
-const sendEmailCode = () => {
-  if (emailTimer.value > 0) return
-  if (!emailForm.value.email) {
-    ElNotification.warning(t('personal.security.warning.enterNewEmail'))
-    return
-  }
-  emailCodeLoading.value = true
-  UsersApi.sendCode({account: emailForm.value.email, scene: 'bind_email'})
-    .then(() => {
-      emailCodeLoading.value = false
-      ElNotification.success(t('common.success.sendCode'))
-      startEmailCountdown()
-    })
-    .catch(() => { emailCodeLoading.value = false })
-}
-
-const startEmailCountdown = () => {
-  emailTimer.value = 60
-  const interval = setInterval(() => {
-    if (emailTimer.value > 0) emailTimer.value--
-    else clearInterval(interval)
-  }, 1000)
-}
 
 const saveEmail = () => {
   if (!emailForm.value.email || !emailForm.value.code) {
@@ -112,10 +61,9 @@ const saveEmail = () => {
 const passwordDialogVisible = ref(false)
 const passwordForm = ref({old_password: '', new_password: '', confirm_password: '', code: ''})
 const passwordLoading = ref(false)
-const passwordCodeLoading = ref(false)
-const passwordTimer = ref(0)
 const verifyType = ref<'password' | 'code'>('password')
 const canUsePassword = computed(() => props.userinfo.has_password)
+const passwordAccount = computed(() => props.userinfo.email || props.userinfo.phone)
 
 const openPasswordDialog = () => {
   passwordForm.value = {old_password: '', new_password: '', confirm_password: '', code: ''}
@@ -127,31 +75,6 @@ const switchVerifyType = () => {
   verifyType.value = verifyType.value === 'password' ? 'code' : 'password'
   passwordForm.value.old_password = ''
   passwordForm.value.code = ''
-}
-
-const sendPasswordCode = () => {
-  if (passwordTimer.value > 0) return
-  const account = props.userinfo.email || props.userinfo.phone
-  if (!account) {
-    ElNotification.warning(t('personal.security.warning.bindAccountFirst'))
-    return
-  }
-  passwordCodeLoading.value = true
-  UsersApi.sendCode({account: account, scene: 'change_password'})
-    .then(() => {
-      passwordCodeLoading.value = false
-      ElNotification.success(t('common.success.sendCode'))
-      startPasswordCountdown()
-    })
-    .catch(() => { passwordCodeLoading.value = false })
-}
-
-const startPasswordCountdown = () => {
-  passwordTimer.value = 60
-  const interval = setInterval(() => {
-    if (passwordTimer.value > 0) passwordTimer.value--
-    else clearInterval(interval)
-  }, 1000)
 }
 
 const savePassword = () => {
@@ -216,13 +139,7 @@ const savePassword = () => {
               <el-input v-model="phoneForm.phone" :placeholder="t('personal.security.newPhonePlaceholder')" clearable/>
             </el-form-item>
             <el-form-item :label="t('personal.security.code')">
-              <div class="code-row" :class="{'code-row-mobile': isMobile}">
-                <el-input v-model="phoneForm.code" :placeholder="t('personal.security.codePlaceholder')" clearable/>
-                <el-button type="primary" @click="sendPhoneCode" :loading="phoneCodeLoading"
-                           :disabled="!phoneForm.phone || phoneTimer > 0" :style="{width: isMobile ? '100%' : 'auto'}">
-                  {{ phoneTimer > 0 ? t('personal.security.retryAfter', {timer: phoneTimer}) : t('personal.security.getCode') }}
-                </el-button>
-              </div>
+              <SendCode v-model="phoneForm.code" :account="phoneForm.phone" scene="bind_phone" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="savePhone">{{ t('personal.security.save') }}</el-button>
@@ -256,13 +173,7 @@ const savePassword = () => {
               <el-input v-model="emailForm.email" :placeholder="t('personal.security.newEmailPlaceholder')" clearable/>
             </el-form-item>
             <el-form-item :label="t('personal.security.code')">
-              <div class="code-row" :class="{'code-row-mobile': isMobile}">
-                <el-input v-model="emailForm.code" :placeholder="t('personal.security.codePlaceholder')" clearable/>
-                <el-button type="primary" @click="sendEmailCode" :loading="emailCodeLoading"
-                           :disabled="!emailForm.email || emailTimer > 0" :style="{width: isMobile ? '100%' : 'auto'}">
-                  {{ emailTimer > 0 ? t('personal.security.retryAfter', {timer: emailTimer}) : t('personal.security.getCode') }}
-                </el-button>
-              </div>
+              <SendCode v-model="emailForm.code" :account="emailForm.email" scene="bind_email" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="saveEmail">{{ t('personal.security.save') }}</el-button>
@@ -311,13 +222,7 @@ const savePassword = () => {
             {{ t('personal.security.codeSendTo') }} {{ userinfo.email || userinfo.phone }}
           </el-alert>
           <el-form-item :label="t('personal.security.code')">
-            <div class="code-row" :class="{'code-row-mobile': isMobile}">
-              <el-input v-model="passwordForm.code" :placeholder="t('personal.security.codePlaceholder')" clearable/>
-              <el-button type="primary" @click="sendPasswordCode" :loading="passwordCodeLoading" 
-                         :disabled="passwordTimer > 0" :style="{width: isMobile ? '100%' : 'auto'}">
-                {{ passwordTimer > 0 ? t('personal.security.retryAfter', {timer: passwordTimer}) : t('personal.security.getCode') }}
-              </el-button>
-            </div>
+            <SendCode v-model="passwordForm.code" :account="passwordAccount" scene="change_password" :send-disabled="!passwordAccount" />
           </el-form-item>
           <el-form-item v-if="canUsePassword">
             <el-button type="primary" link @click="switchVerifyType">{{ t('personal.security.rememberOldPassword') }}</el-button>
@@ -387,20 +292,6 @@ const savePassword = () => {
     max-width: 500px;
   }
 
-  .code-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-
-    .el-input {
-      flex: 1;
-    }
-
-    &.code-row-mobile {
-      flex-direction: column;
-    }
-  }
-
   :deep(.el-collapse) {
     border: none;
 
@@ -416,22 +307,6 @@ const savePassword = () => {
 
     .el-collapse-item__content {
       padding-bottom: 0;
-    }
-  }
-}
-
-.password-form {
-  .code-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-
-    .el-input {
-      flex: 1;
-    }
-
-    &.code-row-mobile {
-      flex-direction: column;
     }
   }
 }
