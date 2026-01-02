@@ -203,8 +203,7 @@ const handleContextCloseAll = () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: var(--el-bg-color);
-  z-index: 10
+  background: var(--el-bg-color)
 }
 
 .tags-view-nav::after {

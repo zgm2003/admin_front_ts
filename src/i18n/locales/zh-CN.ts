@@ -102,6 +102,11 @@ export default {
     uploadConfig: '上传配置',
     systemSetting: '系统设置',
     personal: '个人资料',
+    component: '组件演示',
+    component_upload: '上传',
+    component_form: '表单',
+    component_display: '展示',
+    component_effect: '特效',
   },
   personal: {
     title: '个人信息',

@@ -102,6 +102,11 @@ export default {
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings',
     personal: 'Personal',
+    component: 'Components',
+    component_upload: 'Upload',
+    component_form: 'Form',
+    component_display: 'Display',
+    component_effect: 'Effect',
   },
   personal: {
     title: 'Personal Info',

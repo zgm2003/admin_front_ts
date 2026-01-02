@@ -97,5 +97,6 @@ defineExpose({getEditorRef})
 
 .w-e-full-screen .w-e-text-container {
   height: calc(100vh - 50px) !important;
+  background: #fff;
 }
 </style>
