@@ -190,7 +190,6 @@ const handleContextCloseAll = () => {
   width: 100%;
   background: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color);
-  box-shadow: var(--el-box-shadow-light);
   display: flex;
   align-items: center;
   position: relative

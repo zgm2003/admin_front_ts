@@ -13,17 +13,6 @@
         <span v-for="c in predefineColors" :key="'sys-'+c" :class="['color-block', {active: menuStore.systemColor===c}]"
               :style="{backgroundColor: c}" @click="systemColor(c)"></span>
       </div>
-      <ElDivider>{{ t('header.headerTheme') }}</ElDivider>
-      <div class="color-list">
-        <span v-for="c in predefineColors" :key="'head-'+c"
-              :class="['color-block', {active: menuStore.headerColor===c}]" :style="{backgroundColor: c}"
-              @click="headerColor(c)"></span>
-      </div>
-      <ElDivider>{{ t('header.menuTheme') }}</ElDivider>
-      <div class="color-list">
-        <span v-for="c in predefineColors" :key="'menu-'+c" :class="['color-block', {active: menuStore.menuColor===c}]"
-              :style="{backgroundColor: c}" @click="menuColor(c)"></span>
-      </div>
       <ElDivider>{{ t('header.display') }}</ElDivider>
       <div class="toggle-list">
         <div class="setting-item"><span>{{ t('header.breadcrumb') }}</span>
@@ -98,23 +87,13 @@ const transitionOptions = ref([
 function onThemeChange(val: boolean) {
   toggleDarkMode(val)
   localStorage.setItem('theme', val ? 'dark' : 'light')
-  menuStore.applyDefaultMenuColor(val)
   menuStore.applyDefaultSystemColor(val)
-  menuStore.applyDefaultHeaderColor(val)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
 function systemColor(color: string) {
   menuStore.changeSystemColor(color);
   document.documentElement.style.setProperty('--el-color-primary', color)
-}
-
-function headerColor(color: string) {
-  menuStore.changeHeaderColor(color)
-}
-
-function menuColor(color: string) {
-  menuStore.changeMenuColor(color)
 }
 
 function breadcrumb(val: boolean) {
@@ -156,18 +135,16 @@ function clear() {
 
 function resetThemeLight() {
   toggleDarkMode(false);
-  menuStore.applyDefaultMenuColor(false);
   menuStore.applyDefaultSystemColor(false);
-  menuStore.applyDefaultHeaderColor(false);
   localStorage.setItem('theme', 'light')
+  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
 function resetThemeDark() {
   toggleDarkMode(true);
-  menuStore.applyDefaultMenuColor(true);
   menuStore.applyDefaultSystemColor(true);
-  menuStore.applyDefaultHeaderColor(true);
   localStorage.setItem('theme', 'dark')
+  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 </script>
 

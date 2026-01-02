@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia'
 import Cookies from 'js-cookie'
 
-const LIGHT_MENU_DEFAULT = '#002141'
-const DARK_MENU_DEFAULT = '#141414'
 const LIGHT_SYSTEM_DEFAULT = '#409EFF'
 const DARK_SYSTEM_DEFAULT = '#1890ff'
-const LIGHT_HEADER_DEFAULT = '#FFFFFF'
-const DARK_HEADER_DEFAULT = '#141414'
 
 export const useMenuStore = defineStore('menu', {
   state: () => ({
@@ -18,8 +14,6 @@ export const useMenuStore = defineStore('menu', {
       : [
           { index: '0', label: '首页', path: '/home', icon: 'HomeFilled' },
         ],
-    menuColor: localStorage.getItem('menuColor') || LIGHT_MENU_DEFAULT,
-    headerColor: localStorage.getItem('headerColor') || LIGHT_HEADER_DEFAULT,
     systemColor: localStorage.getItem('systemColor') || LIGHT_SYSTEM_DEFAULT,
     breadcrumb: localStorage.getItem('breadcrumb') !== 'false',
     hamburger: localStorage.getItem('hamburger') !== 'false',
@@ -63,23 +57,11 @@ export const useMenuStore = defineStore('menu', {
       this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
       Cookies.set('tabList', JSON.stringify(this.tabList))
     },
-    applyDefaultMenuColor(isDark: boolean) {
-      const def = isDark ? DARK_MENU_DEFAULT : LIGHT_MENU_DEFAULT
-      this.menuColor = def
-      localStorage.setItem('menuColor', def)
-    },
     applyDefaultSystemColor(isDark: boolean) {
       const def = isDark ? DARK_SYSTEM_DEFAULT : LIGHT_SYSTEM_DEFAULT
       this.systemColor = def
       localStorage.setItem('systemColor', def)
     },
-    applyDefaultHeaderColor(isDark: boolean) {
-      const def = isDark ? DARK_HEADER_DEFAULT : LIGHT_HEADER_DEFAULT
-      this.headerColor = def
-      localStorage.setItem('headerColor', def)
-    },
-    changeMenuColor(color: string) { this.menuColor = color; localStorage.setItem('menuColor', color) },
-    changeHeaderColor(color: string) { this.headerColor = color; localStorage.setItem('headerColor', color) },
     changeSystemColor(color: string) { this.systemColor = color; localStorage.setItem('systemColor', color) },
     changeBreadcrumb(val: boolean) { this.breadcrumb = val; localStorage.setItem('breadcrumb', String(val)) },
     changeHamburger(val: boolean) { this.hamburger = val; localStorage.setItem('hamburger', String(val)) },

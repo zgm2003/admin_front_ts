@@ -1,7 +1,6 @@
 <template>
   <div
       class="header-bar flex items-center"
-      :style="{ backgroundColor: menuStore.headerColor, color: headerTextColor, padding: '0 10px' }"
   >
     <el-button
         v-if="menuStore.hamburger"
@@ -21,7 +20,7 @@
             :to="{ path: item.path }"
             replace
         >
-          <el-text :style="{ color: headerTextColor }">{{ getBreadcrumbLabel(item) }}</el-text>
+          <el-text>{{ getBreadcrumbLabel(item) }}</el-text>
         </el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -122,18 +121,14 @@ function getBreadcrumbLabel(item) {
 onMounted(() => {
   isDark.value = localStorage.getItem('theme') === 'dark';
   toggleDarkMode(isDark.value);
-  menuStore.applyDefaultMenuColor(isDark.value);
   menuStore.applyDefaultSystemColor(isDark.value);
-  menuStore.applyDefaultHeaderColor(isDark.value);
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 });
 
 function onThemeChange(val) {
   toggleDarkMode(val);
   localStorage.setItem('theme', val ? 'dark' : 'light');
-  menuStore.applyDefaultMenuColor(val);
   menuStore.applyDefaultSystemColor(val);
-  menuStore.applyDefaultHeaderColor(val);
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
@@ -159,11 +154,6 @@ function toggleFullScreen() {
 }
 
 
-const headerTextColor = computed(() => {
-  const c = (menuStore.headerColor || '').toLowerCase()
-  return c === '#ffffff' || c === 'white' || c === '#fff' ? 'black' : 'white'
-})
-
 function goToBlog() {
   window.open('https://zgm2003.cn')
 }
@@ -186,8 +176,6 @@ function copyConfig() {
     "tabtag": ${menuStore.tabtag},
     "uniqueOpen": ${menuStore.uniqueOpen},
     "isDark": ${isDark.value},
-    "menuColor": "${menuStore.menuColor}",
-    "headerColor": "${menuStore.headerColor}",
     "systemColor": "${menuStore.systemColor}"
   }`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -219,6 +207,9 @@ function copyConfig() {
   min-width: 0;
   overflow: hidden;
   height: 50px;
+  padding: 0 10px;
+  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
 }
 
 .flex-grow {

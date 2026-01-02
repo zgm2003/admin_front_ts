@@ -1,20 +1,16 @@
 <template>
   <template v-if="!item.show_menu || item.show_menu === 1">
-    <template v-if="!hasChildren">
-      <el-menu-item :index="item.index" @click="handleClick(item)">
+    <el-menu-item v-if="!hasChildren" :index="item.index" @click="handleClick(item)">
+      <el-icon><component :is="item.icon" /></el-icon>
+      <span>{{ displayLabel }}</span>
+    </el-menu-item>
+    <el-sub-menu v-else :index="item.index">
+      <template #title>
         <el-icon><component :is="item.icon" /></el-icon>
         <span>{{ displayLabel }}</span>
-      </el-menu-item>
-    </template>
-    <template v-else>
-      <el-sub-menu :index="item.index">
-        <template #title>
-          <el-icon><component :is="item.icon" /></el-icon>
-          <span>{{ displayLabel }}</span>
-        </template>
-        <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
-      </el-sub-menu>
-    </template>
+      </template>
+      <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
+    </el-sub-menu>
   </template>
 </template>
 
@@ -22,16 +18,16 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMenuStore } from '@/store/menu';
-import { useI18n } from 'vue-i18n'
-import { resolveMenuLabel } from '@/utils/menuI18n'
+import { useI18n } from 'vue-i18n';
+import { resolveMenuLabel } from '@/utils/menuI18n';
 
-const props = defineProps({ item: { type: Object, required: true } })
+const props = defineProps({ item: { type: Object, required: true } });
 const router = useRouter();
 const menuStore = useMenuStore();
-const { t } = useI18n()
+const { t } = useI18n();
 
-const displayLabel = computed(() => resolveMenuLabel(t, props.item))
-const hasChildren = computed(() => props.item.children && props.item.children.length > 0)
+const displayLabel = computed(() => resolveMenuLabel(t, props.item));
+const hasChildren = computed(() => props.item.children?.length > 0);
 
 function handleClick(item: any) {
   router.push(item.path);
@@ -42,7 +38,12 @@ function handleClick(item: any) {
 
 <style scoped>
 .el-menu-item.is-active {
-  background-color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  border-right: 3px solid var(--el-color-primary);
+}
+.el-menu-item:hover {
+  background-color: var(--el-fill-color-light);
 }
 </style>
 

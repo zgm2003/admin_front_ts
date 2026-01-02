@@ -38,12 +38,12 @@ watch(isMobile, (val) => {
               mode="out-in"
               appear
           >
-            <el-card :key="route.fullPath">
+            <el-card :key="route.fullPath" shadow="never">
               <component :is="Component"/>
             </el-card>
           </transition>
 
-          <el-card v-else>
+          <el-card v-else shadow="never">
             <component :is="Component"/>
           </el-card>
         </router-view>
@@ -58,27 +58,25 @@ watch(isMobile, (val) => {
 <style scoped>
 .el-container {
   height: 100vh;
-  overflow: hidden
+  overflow: hidden;
 }
-
-.el-header, .el-footer {
-  padding: 0
+.el-aside {
+  border-right: 1px solid var(--el-border-color);
 }
-
-:deep(.el-drawer__body) {
-  padding: 0
+.el-header,
+.el-footer {
+  padding: 0;
 }
-
 .el-main {
   padding: 16px;
-  background: var(--el-bg-color-page)
+  background: var(--el-bg-color-page);
 }
-
-
+:deep(.el-drawer__body) {
+  padding: 0;
+}
 @media (max-width: 768px) {
   .el-main {
-    padding: 12px
+    padding: 12px;
   }
-
 }
 </style>
