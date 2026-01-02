@@ -33,8 +33,8 @@ const onCurrentChange = (cur: number) => { if (!page.value) return; (page.value 
 const tableRef = ref<any>(null)
 const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect === false) return; (tableRef.value as any)?.toggleRowSelection(row) }
 const isMobile = useIsMobile()
-const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next, sizes' : 'total, sizes, prev, pager, next, jumper')
-const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
+const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
+const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 </script>
 <template>
   <div class="table-wrapper">
@@ -59,7 +59,7 @@ const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
       </ElTableColumn>
     </ElTable>
-    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" :layout="paginationLayout" :small="isMobile" :page-sizes="pageSizes" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
+    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" :layout="paginationLayout" :small="isMobile" :pager-count="isMobile ? 5 : 7" :page-sizes="pageSizes" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
   </div>
 </template>
 <style scoped>
@@ -69,6 +69,7 @@ const pageSizes = computed(() => isMobile.value ? [10,20,50] : [10,20,50,100])
 .table-footer{display:flex;justify-content:flex-end;margin-top:8px}
 @media (max-width: 768px){
   .table-footer{justify-content:center}
+  .table-footer :deep(.el-pagination){flex-wrap:wrap;justify-content:center;gap:4px}
   .table-toolbar{flex-wrap:wrap;gap:8px}
 }
 </style>
