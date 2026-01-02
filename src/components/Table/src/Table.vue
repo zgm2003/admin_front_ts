@@ -54,10 +54,10 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
         </ElSpace>
       </div>
     </div>
-    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
+    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }" size="small">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
       <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
-      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
+      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :fixed="col.fixed" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
       </ElTableColumn>
     </ElTable>

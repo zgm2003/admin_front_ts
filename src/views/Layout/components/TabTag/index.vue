@@ -134,11 +134,11 @@ const handleContextCloseAll = () => {
       <span class="action-item" :class="{ disabled: !nextTag }"><el-icon><DArrowRight/></el-icon></span>
     </div>
     <div class="tags-view-actions">
-      <span class="action-item" @click="router.go(0)"><el-icon><Refresh/></el-icon></span>
       <el-dropdown trigger="click" @command="handleCommand">
         <span class="action-item"><el-icon><Setting/></el-icon></span>
         <template #dropdown>
           <el-dropdown-menu>
+            <el-dropdown-item command="refresh" :icon="Refresh">刷新</el-dropdown-item>
             <el-dropdown-item command="closeOther" :icon="CircleClose">关闭其他</el-dropdown-item>
             <el-dropdown-item command="closeAll" :icon="FolderDelete">关闭所有</el-dropdown-item>
           </el-dropdown-menu>

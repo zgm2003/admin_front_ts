@@ -254,7 +254,7 @@ onMounted(() => {
           { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'expires_in', label: t('user.table.expires_in'),width: 180 },
           { key: 'is_expired', label: t('user.table.is_expired') ,width: 180},
-          { key: 'actions', label: t('common.actions.action'), width: 250 }
+          { key: 'actions', label: t('common.actions.action'), width: 250, fixed: 'right' }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh"
                 @update:pagination="onPageChange" @selection-change="onSelectionChange">
