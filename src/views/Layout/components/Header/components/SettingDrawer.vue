@@ -150,12 +150,11 @@ function resetThemeDark() {
 
 <style scoped>
 .setting-drawer {
-  padding: 0 0 12px 0
+  padding: 0
 }
 
 .setting-body {
-  padding: 12px;
-  max-height: calc(100vh - 120px);
+  padding: 0 12px;
   overflow-y: auto
 }
 

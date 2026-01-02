@@ -6,10 +6,10 @@
     :unique-opened="menuStore.uniqueOpen"
     class="aside-menu"
   >
-    <el-menu-item index="0">
-      <el-icon><ElemeFilled /></el-icon>
-      <el-text size="large" type="primary">智澜</el-text>
-    </el-menu-item>
+    <div class="logo-container" :class="{ 'is-collapse': menuStore.collapse }">
+      <el-avatar :size="32" src="/logo.png"/>
+      <span v-show="!menuStore.collapse" class="logo-text">智澜</span>
+    </div>
     <MenuItem v-for="item in userStore.permissions" :key="item.index" :item="item" />
   </el-menu>
 </template>
@@ -30,6 +30,22 @@ const userStore = useUserStore();
 }
 .aside-menu:not(.el-menu--collapse) {
   width: 200px;
+}
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  border-bottom: 1px solid #e6e6e6;
+}
+.logo-container.is-collapse {
+  padding: 0;
+}
+.logo-text {
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
 }
 </style>
 

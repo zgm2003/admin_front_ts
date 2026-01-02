@@ -16,7 +16,7 @@
         </el-icon>
       </el-button>
       <div class="search-header">
-        <img src="/4.png" class="logo" alt="logo"/>
+        <img src="/logo.png" class="logo" alt="logo"/>
         <el-input
             v-model="keyword"
             :placeholder="t('search.placeholder')"
