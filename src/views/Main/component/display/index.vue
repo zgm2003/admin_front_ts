@@ -15,7 +15,8 @@ const tableColumns = [
   { key: 'id', label: 'ID', width: 80 },
   { key: 'name', label: '姓名', width: 120 },
   { key: 'email', label: '邮箱' },
-  { key: 'status', label: '状态', width: 100 }
+  { key: 'status', label: '状态', width: 100 },
+  { key: 'actions', label: '操作', width: 120, fixed: 'right' }
 ]
 const tablePage = ref({ current_page: 1, page_size: 10, total: 3 })
 
@@ -23,13 +24,14 @@ const tablePage = ref({ current_page: 1, page_size: 10, total: 3 })
 const editorContent = ref('<p>这是一段示例内容</p>')
 
 const tableProps = [
-  { name: 'columns', type: 'Array', default: '[]', desc: '列配置，每项包含 key/label/width/minWidth/align/overflowTooltip' },
+  { name: 'columns', type: 'Array', default: '[]', desc: '列配置，key/label 必填，其他属性透传给 ElTableColumn' },
   { name: 'data', type: 'Array', default: '[]', desc: '表格数据' },
   { name: 'loading', type: 'Boolean', default: 'false', desc: '是否显示加载状态' },
   { name: 'rowKey', type: 'String', default: "'id'", desc: '行数据唯一标识字段' },
   { name: 'selectable', type: 'Boolean', default: 'false', desc: '是否显示多选列' },
   { name: 'rowClickSelect', type: 'Boolean', default: 'true', desc: '点击行是否触发选中' },
   { name: 'pagination', type: 'Object', default: 'null', desc: '分页配置 { current_page, page_size, total }' },
+  { name: 'tableProps', type: 'Object', default: '{}', desc: 'ElTable 原生属性透传（stripe/size等）' },
   { name: 'showRefresh', type: 'Boolean', default: 'true', desc: '是否显示刷新按钮' },
   { name: 'showColumnSetting', type: 'Boolean', default: 'true', desc: '是否显示列设置按钮' },
   { name: 'showIndex', type: 'Boolean', default: 'false', desc: '是否显示序号列' },
@@ -41,6 +43,14 @@ const tableSlots = [
   { name: 'toolbar-left', desc: '工具栏左侧插槽' },
   { name: 'toolbar-right', desc: '工具栏右侧插槽' },
   { name: 'cell-[key]', desc: '单元格自定义插槽，如 #cell-status' }
+]
+
+const columnProps = [
+  { name: 'key', type: 'String', required: '✔', desc: '字段名（必填）' },
+  { name: 'label', type: 'String', required: '✔', desc: '列标题（必填）' },
+  { name: 'hidden', type: 'Boolean', required: '', desc: '是否默认隐藏' },
+  { name: 'overflowTooltip', type: 'Boolean', required: '', desc: '超出显示 tooltip' },
+  { name: '...rest', type: 'any', required: '', desc: '其他属性透传给 ElTableColumn（width/fixed/sortable等）' }
 ]
 
 const tableEvents = [
@@ -91,6 +101,15 @@ const loadingDesc = `CustomLoading 是全局加载组件，绑定 userStore.load
           <h4>Slots</h4>
           <el-table :data="tableSlots" border>
             <el-table-column prop="name" label="插槽名" width="200" />
+            <el-table-column prop="desc" label="说明" />
+          </el-table>
+        </div>
+        <div class="demo-section">
+          <h4>Column 配置项</h4>
+          <el-table :data="columnProps" border>
+            <el-table-column prop="name" label="属性名" width="160" />
+            <el-table-column prop="type" label="类型" width="100" />
+            <el-table-column prop="required" label="必填" width="80" />
             <el-table-column prop="desc" label="说明" />
           </el-table>
         </div>

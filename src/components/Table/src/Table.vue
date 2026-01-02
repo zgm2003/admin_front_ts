@@ -37,6 +37,11 @@ const isMobile = useIsMobile()
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
+// 提取 column 透传属性，排除自定义处理的字段
+const getColumnBindings = (col: any) => {
+  const { key, label, hidden, overflowTooltip, ...rest } = col
+  return rest
+}
 </script>
 <template>
   <div class="table-wrapper" :class="{ 'fixed-footer': props.fixedFooter }">
@@ -54,10 +59,10 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
         </ElSpace>
       </div>
     </div>
-    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }" size="small">
+    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
       <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
-      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :fixed="col.fixed" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
+      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)" v-bind="getColumnBindings(col)">
         <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
       </ElTableColumn>
     </ElTable>
