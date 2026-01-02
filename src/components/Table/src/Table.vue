@@ -18,7 +18,8 @@ const props = defineProps({
   showRefresh: { type: Boolean, default: true },
   showColumnSetting: { type: Boolean, default: true },
   refreshLoading: { type: Boolean, default: false },
-  showIndex: { type: Boolean, default: false }
+  showIndex: { type: Boolean, default: false },
+  fixedFooter: { type: Boolean, default: true }
 })
 const { t } = useI18n()
 const emit = defineEmits(['refresh','selection-change','update:pagination','column-change'])
@@ -35,9 +36,10 @@ const onRowClick = (row: any) => { if (!props.selectable || props.rowClickSelect
 const isMobile = useIsMobile()
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
+const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
 </script>
 <template>
-  <div class="table-wrapper">
+  <div class="table-wrapper" :class="{ 'fixed-footer': props.fixedFooter }">
     <div class="table-toolbar">
       <div class="toolbar-left">
         <ElSpace>
@@ -52,7 +54,7 @@ const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
         </ElSpace>
       </div>
     </div>
-    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="props.tableProps">
+    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
       <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
       <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width" :min-width="col.minWidth" :align="col.align || 'center'" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)">
@@ -64,9 +66,11 @@ const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 </template>
 <style scoped>
 .table-wrapper{display:flex;flex-direction:column}
+.table-wrapper.fixed-footer{height:100%;overflow:hidden}
 .table-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .toolbar-left,.toolbar-right{display:flex;align-items:center}
-.table-footer{display:flex;justify-content:flex-end;margin-top:8px}
+.flex-table{flex:1;overflow:hidden}
+.table-footer{display:flex;justify-content:flex-end;margin-top:8px;flex-shrink:0}
 @media (max-width: 768px){
   .table-footer{justify-content:center}
   .table-footer :deep(.el-pagination){flex-wrap:wrap;justify-content:center;gap:4px}

@@ -70,6 +70,16 @@ watch(isMobile, (val) => {
 .el-main {
   padding: 16px;
   background: var(--el-bg-color-page);
+  overflow: hidden;
+}
+.el-main > :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.el-main > :deep(.el-card) > :deep(.el-card__body) {
+  flex: 1;
+  overflow: hidden;
 }
 :deep(.el-drawer__body) {
   padding: 0;
