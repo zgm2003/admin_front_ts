@@ -13,7 +13,8 @@ interface Field {
   placeholder?: string
   width?: number | string
   options?: any[]
-  props?: Record<string, any>
+  cascaderProps?: Record<string, any> // cascader 的 :props 配置
+  [key: string]: any // 其他属性透传给对应组件
 }
 
 const { locale, t } = useI18n()
@@ -67,6 +68,11 @@ const minCount = computed(() => Math.max(1, Number(props.collapseCount || 1)))
 const visibleFields = computed(() => collapsed.value ? props.fields.slice(0, minCount.value) : props.fields)
 const showToggle = computed(() => wrapped.value || collapsed.value)
 const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = true; collapsed.value = !collapsed.value } }
+// 提取透传属性，排除自定义字段
+const getFieldBindings = (f: Field) => {
+  const { key, type, label, placeholder, width, options, cascaderProps, ...rest } = f
+  return rest
+}
 </script>
 
 <template>
@@ -75,16 +81,16 @@ const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = tru
   <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
     <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label" :prop="f.key">
       <template v-if="f.type==='input'">
-        <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" />
+        <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
       </template>
       <template v-else-if="f.type==='select-v2'">
-        <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="f.props" />
+        <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
       </template>
       <template v-else-if="f.type==='cascader'">
-        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" :props="f.props" />
+        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" :props="f.cascaderProps" v-bind="getFieldBindings(f)" />
       </template>
       <template v-else-if="f.type==='date-range'">
-        <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 300)+'px' }" v-bind="f.props" />
+        <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 300)+'px' }" v-bind="getFieldBindings(f)" />
       </template>
     </el-form-item>
     <el-form-item>

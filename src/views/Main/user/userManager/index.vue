@@ -89,7 +89,7 @@ const searchFields = computed<SearchField[]>(() => [
     options: addressTree.value,
     placeholder: t('user.filter.address'),
     width: 150,
-    props: {emitPath: false, multiple: true}
+    cascaderProps: {emitPath: false, multiple: true}
   },
   {
     key: 'detail_address',

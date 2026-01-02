@@ -5,6 +5,7 @@ export type SearchField = {
   placeholder?: string
   width?: number
   options?: any[]
-  props?: Record<string, any>
+  cascaderProps?: Record<string, any> // cascader 的 :props 配置
+  [key: string]: any // 其他属性透传给对应组件
 }
 
