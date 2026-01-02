@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import {computed, ref, watch, nextTick, onMounted} from 'vue';
+import {computed, nextTick, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useMenuStore} from '@/store/menu';
 import {useI18n} from 'vue-i18n'
 import {resolveMenuLabel} from '@/utils/menuI18n'
-import {
-  Close,
-  Refresh,
-  CircleClose,
-  FolderDelete,
-  DArrowLeft,
-  DArrowRight,
-  Menu,
-  Setting
-} from '@element-plus/icons-vue'
+import {CircleClose, Close, DArrowLeft, DArrowRight, FolderDelete, Refresh, Setting} from '@element-plus/icons-vue'
 import {ElScrollbar} from 'element-plus'
 
 const menuStore = useMenuStore();
@@ -22,7 +13,8 @@ const route = useRoute();
 const {t} = useI18n()
 
 const scrollPaneRef = ref<InstanceType<typeof ElScrollbar>>()
-const tags = computed(() => menuStore.tabList);
+type TagItem = { path: string; label?: string; i18n_key?: string; name?: string }
+const tags = computed(() => menuStore.tabList as TagItem[]);
 
 const activePath = ref(route.path)
 const currentIndex = computed(() => tags.value.findIndex(item => item.path === activePath.value))
@@ -87,10 +79,8 @@ const visible = ref(false)
 const top = ref(0)
 const left = ref(0)
 const selectedTag = ref<any>({})
-const openMenu = (tag: any, e: MouseEvent) => {
-  const menuMinWidth = 105;
-  const leftVal = e.clientX;
-  left.value = leftVal;
+const openMenu = (tag: TagItem, e: MouseEvent) => {
+  left.value = e.clientX;
   top.value = e.clientY + 10;
   visible.value = true;
   selectedTag.value = tag

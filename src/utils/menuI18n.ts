@@ -2,8 +2,8 @@ export type MenuItemLike = { i18n_key?: string; path?: string; label?: string; n
 
 export function resolveKeyFromPath(path?: string): string | '' {
   if (!path) return ''
-  const noHash = path.split('#')[0]
-  const noQuery = noHash.split('?')[0]
+  const noHash = path.split('#')[0] ?? ''
+  const noQuery = noHash.split('?')[0] ?? ''
   const segs = noQuery.replace(/^\/+/, '').split('/')
   const last = segs.filter(Boolean).pop()
   return last ? `menu.${last}` : ''

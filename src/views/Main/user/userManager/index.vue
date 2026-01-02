@@ -11,6 +11,7 @@ import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useI18n} from 'vue-i18n'
 import {useTable} from '@/hooks/useTable'
+import {ArrowRight} from "@element-plus/icons-vue";
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -122,7 +123,7 @@ const edit = (current: any) => {
     sex: current.sex,
     address: current.address,
     detail_address: current.detail_address,
-    bio: current.bio
+    bio: current.bio || ''
   };
   editBoxShow.value = true
 }
@@ -191,7 +192,7 @@ const batchDel = async () => {
   })
 }
 const batchEditBoxShow = ref(false)
-const batchEditForm = ref({ids: [], field: '', sex: '', address: '', detail_address: ''})
+const batchEditForm = ref({ids: [] as any[], field: '', sex: '', address: '', detail_address: ''})
 const batchEdit = () => {
   if (selectedIds.value.length === 0) {
     ElNotification.error({message: t('common.selectAtLeastOne')});
@@ -239,7 +240,7 @@ onMounted(() => {
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div class="table">
       <AppTable :columns="[
-          { key: 'username', label: t('user.table.username') },
+          { key: 'username', label: t('user.table.username'),width: 150 },
           { key: 'avatar', label: t('user.table.avatar') },
           { key: 'phone', label: t('user.table.phone') },
           { key: 'sex_show', label: t('user.table.sex') },
@@ -341,7 +342,7 @@ onMounted(() => {
         <el-col :span="22">
           <el-form>
             <el-form-item label="个人简介" style="width:100%">
-              <el-input type="textarea" :rows="5" v-model="editForm.desc"/>
+              <el-input type="textarea" :rows="5" v-model="editForm.bio"/>
             </el-form-item>
           </el-form>
         </el-col>
@@ -393,11 +394,6 @@ onMounted(() => {
   overflow: auto
 }
 
-.fenye {
-  flex: 0 0 auto;
-  margin-left: 30%;
-  margin-top: 10px
-}
 
 @media (max-width: 768px) {
   .filters {

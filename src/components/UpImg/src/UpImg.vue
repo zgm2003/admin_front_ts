@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {ref, watch} from 'vue'
-import {ElNotification} from 'element-plus'
 import {Plus, CircleCloseFilled} from '@element-plus/icons-vue'
 import {getUploadToken, uploadFileToCloud, validateFile} from '@/utils/cosUpload'
 

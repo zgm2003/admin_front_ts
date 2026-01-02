@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, watch } from 'vue'
-import { ElIcon, ElNotification } from 'element-plus'
+import { ref, watch } from 'vue'
+import { ElIcon } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { uploadFileToCloud, getUploadToken, validateFile } from '@/utils/cosUpload'
 

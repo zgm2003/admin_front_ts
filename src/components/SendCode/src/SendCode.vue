@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { UsersApi } from '@/api/user/users'
 import { useI18n } from 'vue-i18n'

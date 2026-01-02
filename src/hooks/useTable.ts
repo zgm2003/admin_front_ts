@@ -1,4 +1,4 @@
-import { ref, unref } from 'vue'
+import {ref, unref} from 'vue'
 
 interface PageState {
   current_page: number
@@ -50,10 +50,7 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
         
         // 兼容不同的后端返回结构，这里假设标准结构是 { list, page }
         // 如果后端直接返回数组，需要适配
-        const list = res.list || res || []
-        const pageRes = res.page || { total: 0 }
-
-        data.value = list
+        data.value = res.list || res || []
         if (res.page) {
             page.value = res.page
         } else {
