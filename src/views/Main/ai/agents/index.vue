@@ -58,9 +58,30 @@ const init = () => {
 
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('aiAgents.filter.name'), placeholder: t('aiAgents.filter.name'), width: 160},
-  {key: 'model_id', type: 'select-v2', label: t('aiAgents.filter.model_id'), placeholder: t('aiAgents.filter.model_id'), width: 200, options: dict.value.model_list},
-  {key: 'mode', type: 'select-v2', label: t('aiAgents.filter.mode'), placeholder: t('aiAgents.filter.mode'), width: 120, options: dict.value.ai_mode_arr},
-  {key: 'status', type: 'select-v2', label: t('aiAgents.filter.status'), placeholder: t('aiAgents.filter.status'), width: 120, options: dict.value.common_status_arr}
+  {
+    key: 'model_id',
+    type: 'select-v2',
+    label: t('aiAgents.filter.model_id'),
+    placeholder: t('aiAgents.filter.model_id'),
+    width: 200,
+    options: dict.value.model_list,
+  },
+  {
+    key: 'mode',
+    type: 'select-v2',
+    label: t('aiAgents.filter.mode'),
+    placeholder: t('aiAgents.filter.mode'),
+    width: 120,
+    options: dict.value.ai_mode_arr
+  },
+  {
+    key: 'status',
+    type: 'select-v2',
+    label: t('aiAgents.filter.status'),
+    placeholder: t('aiAgents.filter.status'),
+    width: 120,
+    options: dict.value.common_status_arr
+  }
 ])
 
 const columns = computed(() => [
@@ -71,12 +92,22 @@ const columns = computed(() => [
   {key: 'system_prompt', label: t('aiAgents.table.system_prompt'), overflowTooltip: true},
   {key: 'status', label: t('aiAgents.table.status'), width: 90},
   {key: 'created_at', label: t('aiAgents.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action'), width: 220, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 250, align: 'center'}
 ])
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = {name: '', model_id: '', avatar: '', system_prompt: '', mode: 'chat', temperature: 1, max_tokens: '', extra_params: '', status: 1}
+  form.value = {
+    name: '',
+    model_id: '',
+    avatar: '',
+    system_prompt: '',
+    mode: 'chat',
+    temperature: 1,
+    max_tokens: '',
+    extra_params: '',
+    status: 1
+  }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
@@ -142,7 +173,9 @@ const enable = async (row: any) => {
       confirmButtonText: t('common.actions.confirm'),
       cancelButtonText: t('common.actions.cancel')
     })
-  } catch { return }
+  } catch {
+    return
+  }
   AiAgentApi.status({id: row.id, status: 1}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
@@ -156,7 +189,9 @@ const disable = async (row: any) => {
       confirmButtonText: t('common.actions.confirm'),
       cancelButtonText: t('common.actions.cancel')
     })
-  } catch { return }
+  } catch {
+    return
+  }
   AiAgentApi.status({id: row.id, status: 2}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
@@ -170,7 +205,9 @@ const del = async (row: any) => {
       confirmButtonText: t('common.actions.del'),
       cancelButtonText: t('common.actions.cancel')
     })
-  } catch { return }
+  } catch {
+    return
+  }
   AiAgentApi.del({id: row.id}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
@@ -243,7 +280,8 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="12">
           <el-form-item :label="t('aiAgents.form.temperature')" prop="temperature">
-            <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" :precision="2" :controls="false" style="width:100%"/>
+            <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" :precision="2" :controls="false"
+                             style="width:100%"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="12">
@@ -258,7 +296,8 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiAgents.form.extra_params')" prop="extra_params">
-            <el-input v-model="form.extra_params" type="textarea" :rows="2" placeholder='{"top_p": 0.9, "presence_penalty": 0}'/>
+            <el-input v-model="form.extra_params" type="textarea" :rows="2"
+                      placeholder='{"top_p": 0.9, "presence_penalty": 0}'/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -278,6 +317,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.box { display: flex; flex-direction: column; height: 100% }
-.table { flex: 1 1 auto; min-height: 0; overflow: auto }
+.box {
+  display: flex;
+  flex-direction: column;
+  height: 100%
+}
+
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto
+}
 </style>

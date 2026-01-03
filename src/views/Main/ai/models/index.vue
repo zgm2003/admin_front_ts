@@ -36,7 +36,15 @@ const onSelectionChange = (selection: any[]) => {
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({name: '', driver: '', model_code: '', endpoint: '', api_key: '', default_params: '', status: 1} as any)
+const form = ref({
+  name: '',
+  driver: '',
+  model_code: '',
+  endpoint: '',
+  api_key: '',
+  default_params: '',
+  status: 1
+} as any)
 const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => ({
@@ -53,8 +61,22 @@ const init = () => {
 
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('aiModels.filter.name'), placeholder: t('aiModels.filter.name'), width: 180},
-  {key: 'driver', type: 'select-v2', label: t('aiModels.filter.driver'), placeholder: t('aiModels.filter.driver'), width: 160, options: dict.value.ai_driver_arr},
-  {key: 'status', type: 'select-v2', label: t('aiModels.filter.status'), placeholder: t('aiModels.filter.status'), width: 140, options: dict.value.common_status_arr}
+  {
+    key: 'driver',
+    type: 'select-v2',
+    label: t('aiModels.filter.driver'),
+    placeholder: t('aiModels.filter.driver'),
+    width: 160,
+    options: dict.value.ai_driver_arr
+  },
+  {
+    key: 'status',
+    type: 'select-v2',
+    label: t('aiModels.filter.status'),
+    placeholder: t('aiModels.filter.status'),
+    width: 140,
+    options: dict.value.common_status_arr
+  }
 ])
 
 const columns = computed(() => [
@@ -133,7 +155,9 @@ const enable = async (row: any) => {
       confirmButtonText: t('common.actions.confirm'),
       cancelButtonText: t('common.actions.cancel')
     })
-  } catch { return }
+  } catch {
+    return
+  }
   AiModelApi.status({id: row.id, status: 1}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
@@ -147,7 +171,9 @@ const disable = async (row: any) => {
       confirmButtonText: t('common.actions.confirm'),
       cancelButtonText: t('common.actions.cancel')
     })
-  } catch { return }
+  } catch {
+    return
+  }
   AiModelApi.status({id: row.id, status: 2}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
@@ -241,12 +267,14 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiModels.form.api_key')" prop="api_key">
-            <el-input v-model="form.api_key" type="password" show-password :placeholder="dialogMode === 'edit' ? '留空则不修改' : '输入API Key'" clearable/>
+            <el-input v-model="form.api_key" type="password" show-password
+                      :placeholder="dialogMode === 'edit' ? '留空则不修改' : '输入API Key'" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiModels.form.default_params')" prop="default_params">
-            <el-input v-model="form.default_params" type="textarea" :rows="3" placeholder='{"temperature": 0.7, "max_tokens": 2048}'/>
+            <el-input v-model="form.default_params" type="textarea" :rows="3"
+                      placeholder='{"temperature": 0.7, "max_tokens": 2048}'/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
@@ -266,6 +294,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.box { display: flex; flex-direction: column; height: 100% }
-.table { flex: 1 1 auto; min-height: 0; overflow: auto }
+.box {
+  display: flex;
+  flex-direction: column;
+  height: 100%
+}
+
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto
+}
 </style>
