@@ -9,18 +9,21 @@ const activeTab = ref('UpImg')
 // UpImg 演示
 const imgUrl = ref('')
 const imgUrl2 = ref('')
+const imgUrlWithInput = ref('')
 
 // UpImgList 演示
 const imgList = ref<any[]>([])
 
 // UpVideo 演示
 const videoUrl = ref('')
+const videoUrlWithInput = ref('')
 
 const upImgProps = [
   { name: 'v-model / modelValue', type: 'String', default: "''", desc: '图片URL，支持双向绑定' },
   { name: 'folderName', type: 'String', default: "'avatars'", desc: '上传到云存储的文件夹名称' },
   { name: 'width', type: 'String', default: "'100px'", desc: '上传框宽高（正方形）' },
-  { name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮' }
+  { name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮' },
+  { name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框' }
 ]
 
 const upImgListProps = [
@@ -32,7 +35,8 @@ const upVideoProps = [
   { name: 'v-model / modelValue', type: 'String', default: "''", desc: '视频URL，支持双向绑定' },
   { name: 'folderName', type: 'String', default: "'videos'", desc: '上传到云存储的文件夹名称' },
   { name: 'width', type: 'String', default: "'100px'", desc: '上传框宽高（正方形）' },
-  { name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮' }
+  { name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮' },
+  { name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框' }
 ]
 </script>
 
@@ -61,6 +65,15 @@ const upVideoProps = [
           </div>
           <div class="demo-code">
             <el-text type="info">&lt;UpImg v-model="imgUrl" width="150px" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>带输入框</h4>
+          <div class="demo-block">
+            <UpImg v-model="imgUrlWithInput" show-input width="80px" />
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpImg v-model="imgUrl" show-input /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">
@@ -105,6 +118,15 @@ const upVideoProps = [
           </div>
           <div class="demo-code">
             <el-text type="info">&lt;UpVideo v-model="videoUrl" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>带输入框</h4>
+          <div class="demo-block">
+            <UpVideo v-model="videoUrlWithInput" show-input width="80px" />
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpVideo v-model="videoUrl" show-input /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">

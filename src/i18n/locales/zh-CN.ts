@@ -107,6 +107,9 @@ export default {
     component_form: '表单',
     component_display: '展示',
     component_effect: '特效',
+    ai: 'AI助手',
+    ai_models: '模型配置',
+    ai_agents: '智能体',
   },
   personal: {
     title: '个人信息',
@@ -409,6 +412,58 @@ export default {
     dict: {
       value_type: '值类型'
     }
+  },
+  aiModels: {
+    filter: { name: '模型名称', driver: '驱动', status: '状态' },
+    table: {
+      name: '模型名称',
+      driver: '驱动',
+      model_code: '模型标识',
+      endpoint: '接口地址',
+      api_key_hint: 'API Key',
+      default_params: '默认参数',
+      status: '状态',
+      created_at: '创建时间',
+      updated_at: '更新时间'
+    },
+    form: {
+      name: '模型名称',
+      driver: '驱动',
+      model_code: '模型标识',
+      endpoint: '接口地址',
+      api_key: 'API Key',
+      default_params: '默认参数',
+      status: '状态'
+    },
+    addTitle: '新增AI模型',
+    editTitle: '编辑AI模型'
+  },
+  aiAgents: {
+    filter: { name: '智能体名称', model_id: '关联模型', mode: '模式', status: '状态' },
+    table: {
+      name: '智能体名称',
+      model_name: '关联模型',
+      mode: '模式',
+      avatar: '头像',
+      system_prompt: '系统提示词',
+      temperature: '温度',
+      max_tokens: '最大输出',
+      status: '状态',
+      created_at: '创建时间'
+    },
+    form: {
+      name: '智能体名称',
+      model_id: '关联模型',
+      avatar: '头像',
+      system_prompt: '系统提示词',
+      mode: '模式',
+      temperature: '温度',
+      max_tokens: '最大输出',
+      extra_params: '额外参数',
+      status: '状态'
+    },
+    addTitle: '新增智能体',
+    editTitle: '编辑智能体'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

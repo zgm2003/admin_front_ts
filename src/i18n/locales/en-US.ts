@@ -107,6 +107,9 @@ export default {
     component_form: 'Form',
     component_display: 'Display',
     component_effect: 'Effect',
+    ai: 'AI Assistant',
+    ai_models: 'Models',
+    ai_agents: 'Agents',
   },
   personal: {
     title: 'Personal Info',
@@ -409,6 +412,58 @@ export default {
     dict: {
       value_type: 'Value Type'
     }
+  },
+  aiModels: {
+    filter: { name: 'Model Name', driver: 'Driver', status: 'Status' },
+    table: {
+      name: 'Model Name',
+      driver: 'Driver',
+      model_code: 'Model Code',
+      endpoint: 'Endpoint',
+      api_key_hint: 'API Key',
+      default_params: 'Default Params',
+      status: 'Status',
+      created_at: 'Created At',
+      updated_at: 'Updated At'
+    },
+    form: {
+      name: 'Model Name',
+      driver: 'Driver',
+      model_code: 'Model Code',
+      endpoint: 'Endpoint',
+      api_key: 'API Key',
+      default_params: 'Default Params',
+      status: 'Status'
+    },
+    addTitle: 'Add AI Model',
+    editTitle: 'Edit AI Model'
+  },
+  aiAgents: {
+    filter: { name: 'Agent Name', model_id: 'Model', mode: 'Mode', status: 'Status' },
+    table: {
+      name: 'Agent Name',
+      model_name: 'Model',
+      mode: 'Mode',
+      avatar: 'Avatar',
+      system_prompt: 'System Prompt',
+      temperature: 'Temperature',
+      max_tokens: 'Max Tokens',
+      status: 'Status',
+      created_at: 'Created At'
+    },
+    form: {
+      name: 'Agent Name',
+      model_id: 'Model',
+      avatar: 'Avatar',
+      system_prompt: 'System Prompt',
+      mode: 'Mode',
+      temperature: 'Temperature',
+      max_tokens: 'Max Tokens',
+      extra_params: 'Extra Params',
+      status: 'Status'
+    },
+    addTitle: 'Add Agent',
+    editTitle: 'Edit Agent'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }
