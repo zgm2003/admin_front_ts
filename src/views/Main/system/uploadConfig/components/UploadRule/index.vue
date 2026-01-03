@@ -88,7 +88,7 @@ const columns = computed(() => [
   {key: 'file_exts', label: 'File Exts'},
   {key: 'created_at', label: t('upload.rule.table.created_at')},
   {key: 'updated_at', label: t('upload.rule.table.updated_at')},
-  {key: 'actions', label: t('common.actions.action'), width: 220, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 220}
 ])
 
 const tagWrapStyle = 'display:flex;flex-wrap:wrap;gap:6px;'

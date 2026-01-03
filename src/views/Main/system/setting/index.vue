@@ -75,7 +75,7 @@ const columns = computed(() => [
   { key: 'status', label: t('setting.table.status'), width: 120 },
   { key: 'created_at', label: t('setting.table.created_at'), width: 160 },
   { key: 'updated_at', label: t('setting.table.updated_at'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 240, align: 'center' }
+  { key: 'actions', label: t('common.actions.action'), width: 240 }
 ])
 
 const add = () => {

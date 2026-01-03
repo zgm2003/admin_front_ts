@@ -92,7 +92,7 @@ const columns = computed(() => [
   {key: 'system_prompt', label: t('aiAgents.table.system_prompt'), overflowTooltip: true},
   {key: 'status', label: t('aiAgents.table.status'), width: 90},
   {key: 'created_at', label: t('aiAgents.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action'), width: 250, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 250}
 ])
 
 const add = () => {

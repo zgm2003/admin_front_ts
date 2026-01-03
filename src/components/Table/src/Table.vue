@@ -40,7 +40,7 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
 // 提取 column 透传属性，排除自定义处理的字段
 const getColumnBindings = (col: any) => {
   const { key, label, hidden, overflowTooltip, ...rest } = col
-  return rest
+  return { align: 'center', ...rest }
 }
 </script>
 <template>

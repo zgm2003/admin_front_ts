@@ -48,6 +48,7 @@ const tableSlots = [
 const columnProps = [
   { name: 'key', type: 'String', required: '✔', desc: '字段名（必填）' },
   { name: 'label', type: 'String', required: '✔', desc: '列标题（必填）' },
+  { name: 'align', type: 'String', required: '', desc: '对齐方式（默认 center，可设 left/right）' },
   { name: 'hidden', type: 'Boolean', required: '', desc: '是否默认隐藏' },
   { name: 'overflowTooltip', type: 'Boolean', required: '', desc: '超出显示 tooltip' },
   { name: '...rest', type: 'any', required: '', desc: '其他属性透传给 ElTableColumn（width/fixed/sortable等）' }

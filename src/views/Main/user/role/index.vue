@@ -55,10 +55,10 @@ const {
 
 const columns = [
   {key: 'name', label: t('role.table.name')},
-  {key: 'is_default', label: t('role.table.is_default'), align: 'center', width: 120},
+  {key: 'is_default', label: t('role.table.is_default'), width: 120},
   {key: 'created_at', label: t('role.table.created_at')},
   {key: 'updated_at', label: t('role.table.updated_at')},
-  {key: 'actions', label: '操作', width: 300, align: 'center'}
+  {key: 'actions', label: '操作', width: 300}
 ]
 
 const selectedIds = ref([] as any[])

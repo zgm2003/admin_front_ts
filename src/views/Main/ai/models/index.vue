@@ -88,7 +88,7 @@ const columns = computed(() => [
   {key: 'default_params', label: t('aiModels.table.default_params'), width: 200, overflowTooltip: true},
   {key: 'status', label: t('aiModels.table.status'), width: 100},
   {key: 'created_at', label: t('aiModels.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action'), width: 250, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 250}
 ])
 
 const add = () => {

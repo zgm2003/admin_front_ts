@@ -71,7 +71,7 @@ const columns = computed(() => [
   {key: 'status', label: t('upload.setting.table.status'), slot: 'status'},
   {key: 'created_at', label: t('upload.setting.table.created_at')},
   {key: 'updated_at', label: t('upload.setting.table.updated_at')},
-  {key: 'actions', label: t('common.actions.action'), width: 220, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 220}
 ])
 
 const init = () => {

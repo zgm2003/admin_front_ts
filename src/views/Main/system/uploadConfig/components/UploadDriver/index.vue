@@ -56,7 +56,7 @@ const columns = computed(() => [
   // {key: 'bucket_domain', label: t('upload.driver.table.bucket_domain')},
   {key: 'created_at', label: t('upload.driver.table.created_at')},
   {key: 'updated_at', label: t('upload.driver.table.updated_at')},
-  {key: 'actions', label: t('common.actions.action'), width: 220, align: 'center'}
+  {key: 'actions', label: t('common.actions.action'), width: 220}
 ])
 
 const init = () => {
