@@ -181,7 +181,7 @@ export function getCommonHeaders(): Record<string, string> {
 }
 
 export interface SSECallbacks {
-  onEvent?: (event: string, data: any) => void
+  onEvent?: (event: string, data: any) => boolean | void  // 返回 true 表示结束流
   onError?: (msg: string) => void
   onComplete?: () => void
 }
@@ -195,10 +195,13 @@ export interface SSECallbacks {
 export async function streamPost(url: string, data: AnyObject, callbacks: SSECallbacks): Promise<void> {
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`
   
+  const controller = new AbortController()
+  
   const response = await fetch(fullUrl, {
     method: 'POST',
     headers: getCommonHeaders(),
     body: JSON.stringify(data),
+    signal: controller.signal,
   })
 
   if (!response.ok) {
@@ -234,7 +237,12 @@ export async function streamPost(url: string, data: AnyObject, callbacks: SSECal
           const dataStr = line.slice(5).trim()
           try {
             const parsed = JSON.parse(dataStr)
-            callbacks.onEvent?.(currentEvent, parsed)
+            const shouldStop = callbacks.onEvent?.(currentEvent, parsed)
+            // 如果回调返回 true，主动中断连接
+            if (shouldStop) {
+              controller.abort()
+              return
+            }
           } catch {
             // 忽略解析错误
           }
@@ -242,6 +250,11 @@ export async function streamPost(url: string, data: AnyObject, callbacks: SSECal
       }
     }
     callbacks.onComplete?.()
+  } catch (e: any) {
+    // 主动中断不算错误
+    if (e.name !== 'AbortError') {
+      throw e
+    }
   } finally {
     reader.releaseLock()
   }

@@ -26,6 +26,7 @@ export const AiChatApi = {
 
   // 发送消息并获取 AI 回复（流式 SSE）
   stream: (params: StreamParams, callbacks: StreamCallbacks): Promise<void> => {
+    let doneReceived = false
     return streamPost('/api/admin/AiChat/stream', params, {
       onEvent: (event, data) => {
         switch (event) {
@@ -36,14 +37,21 @@ export const AiChatApi = {
             callbacks.onConversation?.(data.conversation_id)
             break
           case 'done':
+            doneReceived = true
             callbacks.onDone?.(data.conversation_id)
-            break
+            return true  // 返回 true 主动中断连接
           case 'error':
             callbacks.onError?.(data.msg || '未知错误')
-            break
+            return true  // 错误也中断
         }
       },
       onError: callbacks.onError,
+      onComplete: () => {
+        // 如果没收到 done 事件，流结束时也要触发 onDone
+        if (!doneReceived) {
+          callbacks.onDone?.(0)
+        }
+      },
     })
   },
 }

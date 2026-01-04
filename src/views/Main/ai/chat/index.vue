@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElNotification, ElMessageBox} from 'element-plus'
-import {ArrowLeft, ChatDotRound} from '@element-plus/icons-vue'
+import {ArrowLeft, ChatDotRound, Check, WarningFilled} from '@element-plus/icons-vue'
 import {AiConversationApi} from '@/api/ai/conversations'
 import {AiMessageApi} from '@/api/ai/messages'
 import {AiChatApi} from '@/api/ai/chat'
@@ -372,30 +372,57 @@ const handleRegenerateMessage = async (msg: any) => {
     <!-- 右侧主区域 -->
     <div class="main-area" v-show="!isMobile || currentConversationId">
       <!-- 顶部标题栏 -->
-      <div class="main-header">
-        <el-button v-if="isMobile && currentConversationId" text @click="currentConversationId = null">
-          <el-icon><ArrowLeft/></el-icon>
+      <div class="main-header" v-if="currentConversationId">
+        <el-button v-if="isMobile" text @click="currentConversationId = null" class="back-btn">
+          <el-icon :size="20"><ArrowLeft/></el-icon>
         </el-button>
-        <span class="header-title">
-          {{ currentConversation?.title || currentConversation?.agent_name || t('aiChat.selectConversation') }}
-        </span>
+        <div class="header-content">
+          <span class="header-title">
+            {{ currentConversation?.title || t('aiChat.untitled') }}
+          </span>
+          <span class="header-agent" v-if="currentConversation?.agent_name">
+            {{ currentConversation.agent_name }}
+          </span>
+        </div>
       </div>
 
       <!-- 消息滚动区 -->
       <el-scrollbar ref="messageScrollRef" class="message-area">
         <!-- 新对话欢迎界面 -->
         <div v-if="!currentConversationId" class="welcome-area">
-          <el-icon :size="64" color="#409eff"><ChatDotRound/></el-icon>
-          <h2>{{ t('aiChat.welcome') }}</h2>
-          <p class="welcome-tip">{{ t('aiChat.welcomeTip') }}</p>
-          <div v-if="agents.length > 1" class="agent-selector">
-            <span>{{ t('aiChat.selectAgent') }}：</span>
-            <el-select v-model="selectedAgentId" size="large" style="width: 200px">
-              <el-option v-for="agent in agents" :key="agent.id" :label="agent.name" :value="agent.id"/>
-            </el-select>
-          </div>
-          <div v-else-if="agents.length === 1" class="agent-info">
-            <span>当前智能体：<strong>{{ agents[0]?.name }}</strong></span>
+          <div class="welcome-content">
+            <div class="welcome-logo">
+              <el-icon :size="48"><ChatDotRound/></el-icon>
+            </div>
+            <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
+            <p class="welcome-subtitle">{{ t('aiChat.welcomeTip') }}</p>
+            
+            <!-- 智能体选择卡片 -->
+            <div class="agent-cards" v-if="agents.length > 0">
+              <div 
+                v-for="agent in agents" 
+                :key="agent.id" 
+                class="agent-card"
+                :class="{selected: selectedAgentId === agent.id}"
+                @click="selectedAgentId = agent.id"
+              >
+                <div class="agent-avatar">
+                  <el-icon :size="24"><ChatDotRound/></el-icon>
+                </div>
+                <div class="agent-info">
+                  <div class="agent-name">{{ agent.name }}</div>
+                  <div class="agent-desc">{{ agent.description || '点击选择此智能体' }}</div>
+                </div>
+                <div class="agent-check" v-if="selectedAgentId === agent.id">
+                  <el-icon><Check/></el-icon>
+                </div>
+              </div>
+            </div>
+            
+            <div v-else class="no-agent-tip">
+              <el-icon :size="32"><WarningFilled/></el-icon>
+              <p>暂无可用智能体，请先在设置中配置</p>
+            </div>
           </div>
         </div>
         <MessageList
@@ -420,8 +447,8 @@ const handleRegenerateMessage = async (msg: any) => {
   </div>
 
   <!-- 重命名弹窗 -->
-  <el-dialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px">
-    <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')"/>
+  <el-dialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" class="rename-dialog">
+    <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')" maxlength="50" show-word-limit/>
     <template #footer>
       <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmRename">{{ t('common.actions.confirm') }}</el-button>
@@ -433,7 +460,7 @@ const handleRegenerateMessage = async (msg: any) => {
 .chat-container {
   display: flex;
   height: 100%;
-  background: var(--el-bg-color);
+  background: var(--el-bg-color-page);
 }
 
 .main-area {
@@ -441,71 +468,190 @@ const handleRegenerateMessage = async (msg: any) => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-.main-header {
-  height: 56px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
 }
 
+.main-header {
+  height: 60px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+}
+
+.back-btn {
+  margin-left: -8px;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .header-title {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.header-agent {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .message-area {
   flex: 1;
   min-height: 0;
+  background: var(--el-bg-color-page);
 }
 
 .message-area :deep(.el-scrollbar__view) {
-  padding: 16px;
+  min-height: 100%;
 }
 
-.empty-message {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
-}
-
-.empty-message p {
-  margin-top: 16px;
-}
-
+/* 欢迎页面 */
 .welcome-area {
-  height: 100%;
+  min-height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
+  background: var(--el-bg-color);
+}
+
+.welcome-content {
+  max-width: 600px;
+  text-align: center;
+}
+
+.welcome-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.welcome-title {
+  font-size: 28px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
-  padding: 40px;
+  margin: 0 0 12px;
 }
 
-.welcome-area h2 {
-  margin: 24px 0 12px;
-  font-size: 24px;
-  font-weight: 500;
-}
-
-.welcome-tip {
+.welcome-subtitle {
+  font-size: 16px;
   color: var(--el-text-color-secondary);
-  margin-bottom: 32px;
+  margin: 0 0 40px;
 }
 
-.agent-selector,
-.agent-info {
+/* 智能体卡片 */
+.agent-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.agent-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
+  padding: 16px;
+  border: 2px solid var(--el-border-color-light);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  background: var(--el-bg-color);
+}
+
+.agent-card:hover {
+  border-color: var(--el-color-primary-light-5);
+  background: var(--el-color-primary-light-9);
+}
+
+.agent-card.selected {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.agent-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.agent-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+}
+
+.agent-desc {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.no-agent-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--el-text-color-secondary);
+}
+
+/* 重命名弹窗 */
+:deep(.rename-dialog .el-dialog__body) {
+  padding-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .welcome-content {
+    padding: 0 16px;
+  }
+  
+  .welcome-title {
+    font-size: 24px;
+  }
+  
+  .agent-cards {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

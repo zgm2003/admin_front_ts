@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Plus, Loading, MoreFilled, Edit, Delete} from '@element-plus/icons-vue'
+import {Plus, Loading, MoreFilled, Edit, Delete, ChatDotRound} from '@element-plus/icons-vue'
 
 const {t} = useI18n()
 
@@ -18,96 +18,198 @@ const emit = defineEmits<{
   delete: [conv: any]
 }>()
 
-// 格式化时间
-const formatTime = (dateStr: string) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  const now = new Date()
-  const isToday = d.toDateString() === now.toDateString()
-  if (isToday) {
-    return d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})
-  }
-  return d.toLocaleDateString('zh-CN', {month: 'short', day: 'numeric'}) + ' ' +
-      d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})
-}
+// 按日期分组
+const groupedConversations = computed(() => {
+  const groups: {label: string, items: any[]}[] = []
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const weekAgo = new Date(today)
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const monthAgo = new Date(today)
+  monthAgo.setMonth(monthAgo.getMonth() - 1)
+
+  const todayItems: any[] = []
+  const yesterdayItems: any[] = []
+  const weekItems: any[] = []
+  const monthItems: any[] = []
+  const olderItems: any[] = []
+
+  props.conversations.forEach((conv) => {
+    const d = new Date(conv.last_message_at || conv.created_at)
+    d.setHours(0, 0, 0, 0)
+    if (d >= today) {
+      todayItems.push(conv)
+    } else if (d >= yesterday) {
+      yesterdayItems.push(conv)
+    } else if (d >= weekAgo) {
+      weekItems.push(conv)
+    } else if (d >= monthAgo) {
+      monthItems.push(conv)
+    } else {
+      olderItems.push(conv)
+    }
+  })
+
+  if (todayItems.length) groups.push({label: '今天', items: todayItems})
+  if (yesterdayItems.length) groups.push({label: '昨天', items: yesterdayItems})
+  if (weekItems.length) groups.push({label: '最近7天', items: weekItems})
+  if (monthItems.length) groups.push({label: '最近30天', items: monthItems})
+  if (olderItems.length) groups.push({label: '更早', items: olderItems})
+
+  return groups
+})
 </script>
 
 <template>
   <div class="sidebar">
+    <!-- 新建按钮 -->
     <div class="sidebar-header">
-      <el-button type="primary" @click="emit('create')" style="width: 100%">
-        <el-icon><Plus/></el-icon>
-        {{ t('aiChat.newConversation') }}
+      <el-button class="new-chat-btn" @click="emit('create')">
+        <el-icon :size="18"><Plus/></el-icon>
+        <span>{{ t('aiChat.newConversation') }}</span>
       </el-button>
     </div>
+
+    <!-- 会话列表 -->
     <el-scrollbar class="conversation-list">
       <div v-if="loading" class="loading-tip">
-        <el-icon class="is-loading"><Loading/></el-icon>
+        <el-icon class="is-loading" :size="20"><Loading/></el-icon>
+        <span>加载中...</span>
       </div>
       <div v-else-if="conversations.length === 0" class="empty-tip">
-        {{ t('aiChat.noConversation') }}
+        <el-icon :size="48" class="empty-icon"><ChatDotRound/></el-icon>
+        <p>{{ t('aiChat.noConversation') }}</p>
+        <p class="empty-hint">开始一个新对话吧</p>
       </div>
-      <div
-          v-else
-          v-for="conv in conversations"
-          :key="conv.id"
-          class="conversation-item"
-          :class="{active: conv.id === currentId}"
-          @click="emit('select', conv)"
-      >
-        <div class="conv-info">
-          <div class="conv-title">{{ conv.title || t('aiChat.untitled') }}</div>
-          <div class="conv-time">{{ formatTime(conv.last_message_at || conv.created_at) }}</div>
+      <template v-else>
+        <div v-for="group in groupedConversations" :key="group.label" class="conversation-group">
+          <div class="group-label">{{ group.label }}</div>
+          <div
+              v-for="conv in group.items"
+              :key="conv.id"
+              class="conversation-item"
+              :class="{active: conv.id === currentId}"
+              @click="emit('select', conv)"
+          >
+            <el-icon class="conv-icon" :size="16"><ChatDotRound/></el-icon>
+            <span class="conv-title">{{ conv.title || t('aiChat.untitled') }}</span>
+            <el-dropdown trigger="click" @click.stop>
+              <el-button text size="small" class="conv-menu-btn" @click.stop>
+                <el-icon :size="16"><MoreFilled/></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="emit('rename', conv)">
+                    <el-icon><Edit/></el-icon>
+                    {{ t('aiChat.rename') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="emit('delete', conv)" class="danger-item">
+                    <el-icon><Delete/></el-icon>
+                    {{ t('aiChat.delete') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </div>
-        <el-dropdown trigger="click" @click.stop>
-          <el-button text size="small" class="conv-menu-btn" @click.stop>
-            <el-icon><MoreFilled/></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="emit('rename', conv)">
-                <el-icon><Edit/></el-icon>
-                {{ t('aiChat.rename') }}
-              </el-dropdown-item>
-              <el-dropdown-item @click="emit('delete', conv)" divided>
-                <el-icon><Delete/></el-icon>
-                {{ t('aiChat.delete') }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+      </template>
     </el-scrollbar>
   </div>
 </template>
 
 <style scoped>
 .sidebar {
-  width: 280px;
-  min-width: 280px;
-  border-right: 1px solid var(--el-border-color-light);
+  width: 260px;
+  min-width: 260px;
   display: flex;
   flex-direction: column;
-  background: var(--el-bg-color-page);
+  background: var(--el-bg-color);
+  border-right: 1px solid var(--el-border-color-lighter);
 }
 
 .sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 12px;
+}
+
+.new-chat-btn {
+  width: 100%;
+  height: 44px;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.new-chat-btn:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 .conversation-list {
   flex: 1;
-  overflow: auto;
+  padding: 0 8px 12px;
+}
+
+.loading-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--el-text-color-secondary);
+}
+
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  color: var(--el-text-color-secondary);
+  text-align: center;
+}
+
+.empty-icon {
+  color: var(--el-text-color-placeholder);
+  margin-bottom: 12px;
+}
+
+.empty-hint {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+  margin-top: 4px;
+}
+
+.conversation-group {
+  margin-bottom: 8px;
+}
+
+.group-label {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .conversation-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 2px 0;
+  border-radius: 8px;
   cursor: pointer;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  transition: background 0.2s;
+  transition: all 0.15s ease;
 }
 
 .conversation-item:hover {
@@ -118,39 +220,48 @@ const formatTime = (dateStr: string) => {
   background: var(--el-color-primary-light-9);
 }
 
-.conv-info {
-  flex: 1;
-  min-width: 0;
+.conversation-item.active .conv-icon,
+.conversation-item.active .conv-title {
+  color: var(--el-color-primary);
+}
+
+.conv-icon {
+  flex-shrink: 0;
+  color: var(--el-text-color-secondary);
 }
 
 .conv-title {
-  font-size: 14px;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.conv-time {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 4px;
-}
-
 .conv-menu-btn {
+  flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.2s;
+  padding: 4px;
+  border-radius: 6px;
+  transition: opacity 0.15s ease;
 }
 
 .conversation-item:hover .conv-menu-btn {
   opacity: 1;
 }
 
-.loading-tip,
-.empty-tip {
-  padding: 24px;
-  text-align: center;
-  color: var(--el-text-color-secondary);
+.conv-menu-btn:hover {
+  background: var(--el-fill-color);
+}
+
+:deep(.danger-item) {
+  color: var(--el-color-danger) !important;
+}
+
+:deep(.danger-item .el-icon) {
+  color: var(--el-color-danger) !important;
 }
 
 @media (max-width: 768px) {

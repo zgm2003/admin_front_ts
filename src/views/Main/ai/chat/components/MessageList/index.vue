@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
+import {Loading, CopyDocument, Delete, RefreshRight, User, ChatDotRound} from '@element-plus/icons-vue'
+import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
 
 const {t} = useI18n()
 
@@ -16,29 +17,10 @@ const emit = defineEmits<{
   regenerate: [msg: any]
 }>()
 
-// 格式化时间
-const formatTime = (dateStr: string) => {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  const now = new Date()
-  const isToday = d.toDateString() === now.toDateString()
-  if (isToday) {
-    return d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})
-  }
-  return d.toLocaleDateString('zh-CN', {month: 'short', day: 'numeric'}) + ' ' +
-      d.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})
-}
-
-// 获取角色名称
-const getRoleName = (role: number) => {
-  return role === 1 ? t('aiChat.you') : t('aiChat.assistant')
-}
-
 // 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
 const showRegenerate = (msg: any, index: number) => {
-  if (msg.role === 1) return false // 用户消息不显示
-  if (msg.isStreaming) return false // 流式中不显示
-  // 是最后一条 AI 消息
+  if (msg.role === 1) return false
+  if (msg.isStreaming) return false
   for (let i = props.messages.length - 1; i >= 0; i--) {
     if (props.messages[i].role !== 1) {
       return i === index
@@ -51,41 +33,57 @@ const showRegenerate = (msg: any, index: number) => {
 <template>
   <div class="message-list-container">
     <div v-if="loading" class="loading-tip">
-      <el-icon class="is-loading"><Loading/></el-icon>
+      <el-icon class="is-loading" :size="24"><Loading/></el-icon>
+      <span>加载中...</span>
     </div>
     <div v-else class="message-list">
       <div
           v-for="(msg, index) in messages"
           :key="msg.id"
-          class="message-item"
-          :class="{'user-message': msg.role === 1, 'assistant-message': msg.role !== 1}"
+          class="message-row"
+          :class="{'user-row': msg.role === 1}"
       >
-        <div class="message-header">
-          <span class="message-role">{{ getRoleName(msg.role) }}</span>
-          <span class="message-time">{{ formatTime(msg.created_at) }}</span>
+        <!-- 头像 -->
+        <div class="avatar" :class="msg.role === 1 ? 'user-avatar' : 'ai-avatar'">
+          <el-icon :size="20">
+            <User v-if="msg.role === 1"/>
+            <ChatDotRound v-else/>
+          </el-icon>
         </div>
-        <div class="message-content">{{ msg.content }}</div>
-        <!-- 操作按钮 -->
-        <div class="message-actions" v-if="!msg.isStreaming">
-          <el-tooltip :content="t('aiChat.copyMessage')" placement="top">
-            <el-button text size="small" @click="emit('copy', msg)">
-              <el-icon><CopyDocument/></el-icon>
+        
+        <!-- 消息内容区 -->
+        <div class="message-body">
+          <div class="message-bubble" :class="msg.role === 1 ? 'user-bubble' : 'ai-bubble'">
+            <!-- 用户消息纯文本，AI 消息用 Markdown 渲染 -->
+            <div v-if="msg.role === 1" class="message-text">{{ msg.content }}</div>
+            <MarkdownRenderer v-else :content="msg.content" class="message-text"/>
+          </div>
+          
+          <!-- 操作按钮 - 仅 hover 时显示 -->
+          <div class="message-actions" v-if="!msg.isStreaming">
+            <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
+              复制
             </el-button>
-          </el-tooltip>
-          <el-tooltip :content="t('aiChat.deleteMessage')" placement="top">
-            <el-button text size="small" @click="emit('delete', msg)">
-              <el-icon><Delete/></el-icon>
+            <el-button type="info" text size="small" :icon="Delete" @click="emit('delete', msg)">
+              删除
             </el-button>
-          </el-tooltip>
-          <el-tooltip v-if="showRegenerate(msg, index)" :content="t('aiChat.regenerate')" placement="top">
-            <el-button text size="small" :disabled="sending" @click="emit('regenerate', msg)">
-              <el-icon><RefreshRight/></el-icon>
+            <el-button 
+              v-if="showRegenerate(msg, index)" 
+              type="info" text size="small" 
+              :icon="RefreshRight" 
+              :disabled="sending" 
+              @click="emit('regenerate', msg)"
+            >
+              重新生成
             </el-button>
-          </el-tooltip>
-        </div>
-        <!-- 流式输出指示器 -->
-        <div v-if="msg.isStreaming" class="streaming-indicator">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          
+          <!-- 流式输出指示器 -->
+          <div v-if="msg.isStreaming" class="streaming-indicator">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -95,118 +93,170 @@ const showRegenerate = (msg: any, index: number) => {
 <style scoped>
 .message-list-container {
   height: 100%;
+  padding: 0 16px;
 }
 
 .loading-tip {
-  padding: 24px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
   color: var(--el-text-color-secondary);
 }
 
 .message-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 0;
 }
 
-.message-item {
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: 12px;
+/* 消息行 */
+.message-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.user-message {
-  align-self: flex-end;
-  background: var(--el-color-primary);
+.message-row.user-row {
+  flex-direction: row-reverse;
+}
+
+/* 头像 */
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
 }
 
-.user-message .message-role,
-.user-message .message-time {
-  color: rgba(255, 255, 255, 0.8);
+.user-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.assistant-message {
-  align-self: flex-start;
-  background: var(--el-fill-color);
-  color: var(--el-text-color-primary);
+.ai-avatar {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
 }
 
-.message-role {
-  font-size: 12px;
-  font-weight: 500;
+/* 消息体 */
+.message-body {
+  flex: 1;
+  min-width: 0;
+  max-width: 85%;
 }
 
-.message-header {
+.user-row .message-body {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.message-time {
-  font-size: 11px;
-  opacity: 0.7;
+/* 气泡 */
+.message-bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  position: relative;
 }
 
-.message-content {
+.user-bubble {
+  background: var(--el-color-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-bubble {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.message-text {
   font-size: 14px;
   line-height: 1.6;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
+.user-bubble .message-text {
+  white-space: pre-wrap;
+}
+
+/* 操作按钮 */
 .message-actions {
   display: flex;
   gap: 4px;
   margin-top: 8px;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease;
 }
 
-.message-item:hover .message-actions {
+.message-row:hover .message-actions {
   opacity: 1;
 }
 
-.user-message .message-actions .el-button {
-  color: rgba(255, 255, 255, 0.8);
+.message-actions :deep(.el-button) {
+  font-size: 12px;
+  padding: 4px 8px;
+  height: auto;
 }
 
-.user-message .message-actions .el-button:hover {
-  color: #fff;
-}
-
+/* 流式输出指示器 */
 .streaming-indicator {
   display: flex;
+  align-items: center;
   gap: 4px;
   margin-top: 8px;
+  padding-left: 4px;
 }
 
-.streaming-indicator .dot {
-  width: 6px;
-  height: 6px;
+.typing-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.6;
-  animation: blink 1.4s infinite both;
+  background: var(--el-color-primary);
+  animation: typing 1.4s infinite ease-in-out both;
 }
 
-.streaming-indicator .dot:nth-child(2) {
-  animation-delay: 0.2s;
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-.streaming-indicator .dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes blink {
-  0%, 80%, 100% { opacity: 0.2; }
-  40% { opacity: 1; }
-}
-
+/* 响应式 */
 @media (max-width: 768px) {
-  .message-item {
+  .message-list-container {
+    padding: 0 8px;
+  }
+  
+  .message-list {
+    gap: 16px;
+  }
+  
+  .message-body {
     max-width: 90%;
+  }
+  
+  .avatar {
+    width: 32px;
+    height: 32px;
   }
 }
 </style>
