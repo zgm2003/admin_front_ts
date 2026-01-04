@@ -480,7 +480,9 @@ export default {
     newTitle: '新标题',
     selectAgent: '选择智能体',
     you: '你',
-    assistant: '助手'
+    assistant: '助手',
+    welcome: '你好，有什么可以帮你的？',
+    welcomeTip: '直接输入消息开始对话'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

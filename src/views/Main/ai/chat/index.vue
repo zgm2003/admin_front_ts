@@ -73,9 +73,8 @@ const scrollToBottom = () => {
 }
 
 // ========== 智能体相关 ==========
-const agents = ref<any[]>([])
+const agents = ref<any[]>([])  
 const selectedAgentId = ref<number | null>(null)
-const showAgentDialog = ref(false)
 
 const loadAgents = async () => {
   try {
@@ -93,33 +92,9 @@ const handleSelectConversation = (conv: any) => {
 }
 
 const handleCreateConversation = () => {
-  if (agents.value.length === 0) {
-    ElNotification.warning({message: '暂无可用智能体，请先配置'})
-    return
-  }
-  if (agents.value.length === 1) {
-    createConversation(agents.value[0].id)
-  } else {
-    showAgentDialog.value = true
-  }
-}
-
-const confirmSelectAgent = () => {
-  if (!selectedAgentId.value) {
-    ElNotification.warning({message: t('aiChat.selectAgent')})
-    return
-  }
-  showAgentDialog.value = false
-  createConversation(selectedAgentId.value)
-}
-
-const createConversation = async (agentId: number) => {
-  try {
-    const res = await AiConversationApi.add({agent_id: agentId})
-    await loadConversations()
-    currentConversationId.value = res.id
-    messages.value = []
-  } catch { /* handled */ }
+  // 简化：直接清空当前会话，让用户在新对话界面选择智能体并输入
+  currentConversationId.value = null
+  messages.value = []
 }
 
 // 重命名
@@ -231,6 +206,8 @@ const handleSendMessage = async (content: string) => {
         }
         // 刷新消息列表获取完整数据
         await loadMessages()
+        // 刷新会话列表获取自动生成的标题
+        await loadConversations()
       },
       onError: (msg) => {
         isStreaming.value = false
@@ -298,9 +275,20 @@ watch(currentConversationId, () => {
 
       <!-- 消息滚动区 -->
       <el-scrollbar ref="messageScrollRef" class="message-area">
-        <div v-if="!currentConversationId" class="empty-message">
-          <el-icon :size="48" color="#c0c4cc"><ChatDotRound/></el-icon>
-          <p>{{ t('aiChat.selectConversation') }}</p>
+        <!-- 新对话欢迎界面 -->
+        <div v-if="!currentConversationId" class="welcome-area">
+          <el-icon :size="64" color="#409eff"><ChatDotRound/></el-icon>
+          <h2>{{ t('aiChat.welcome') }}</h2>
+          <p class="welcome-tip">{{ t('aiChat.welcomeTip') }}</p>
+          <div v-if="agents.length > 1" class="agent-selector">
+            <span>{{ t('aiChat.selectAgent') }}：</span>
+            <el-select v-model="selectedAgentId" size="large" style="width: 200px">
+              <el-option v-for="agent in agents" :key="agent.id" :label="agent.name" :value="agent.id"/>
+            </el-select>
+          </div>
+          <div v-else-if="agents.length === 1" class="agent-info">
+            <span>当前智能体：<strong>{{ agents[0]?.name }}</strong></span>
+          </div>
         </div>
         <MessageList
             v-else
@@ -310,29 +298,23 @@ watch(currentConversationId, () => {
       </el-scrollbar>
 
       <!-- 底部输入区 -->
-      <MessageInput ref="messageInputRef" :sending="sending" @send="handleSendMessage"/>
+      <MessageInput 
+        ref="messageInputRef" 
+        :sending="sending" 
+        :disabled="agents.length === 0"
+        @send="handleSendMessage"
+      />
     </div>
-
-    <!-- 选择智能体弹窗 -->
-    <el-dialog v-model="showAgentDialog" :title="t('aiChat.selectAgent')" width="400px">
-      <el-select v-model="selectedAgentId" style="width: 100%">
-        <el-option v-for="agent in agents" :key="agent.id" :label="agent.name" :value="agent.id"/>
-      </el-select>
-      <template #footer>
-        <el-button @click="showAgentDialog = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmSelectAgent">{{ t('common.actions.confirm') }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 重命名弹窗 -->
-    <el-dialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px">
-      <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')"/>
-      <template #footer>
-        <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmRename">{{ t('common.actions.confirm') }}</el-button>
-      </template>
-    </el-dialog>
   </div>
+
+  <!-- 重命名弹窗 -->
+  <el-dialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px">
+    <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')"/>
+    <template #footer>
+      <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
+      <el-button type="primary" @click="confirmRename">{{ t('common.actions.confirm') }}</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
@@ -383,6 +365,35 @@ watch(currentConversationId, () => {
 }
 
 .empty-message p {
+  margin-top: 16px;
+}
+
+.welcome-area {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-primary);
+  padding: 40px;
+}
+
+.welcome-area h2 {
+  margin: 24px 0 12px;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.welcome-tip {
+  color: var(--el-text-color-secondary);
+  margin-bottom: 32px;
+}
+
+.agent-selector,
+.agent-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-top: 16px;
 }
 </style>

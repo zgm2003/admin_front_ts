@@ -480,7 +480,9 @@ export default {
     newTitle: 'New Title',
     selectAgent: 'Select Agent',
     you: 'You',
-    assistant: 'Assistant'
+    assistant: 'Assistant',
+    welcome: 'Hi, how can I help you?',
+    welcomeTip: 'Type a message to start'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

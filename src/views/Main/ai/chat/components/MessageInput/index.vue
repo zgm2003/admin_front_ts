@@ -6,6 +6,7 @@ const {t} = useI18n()
 
 const props = defineProps<{
   sending: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -16,7 +17,7 @@ const inputText = ref('')
 
 // 发送消息
 const handleSend = () => {
-  if (props.sending) return // 硬挡防止重复提交
+  if (props.sending || props.disabled) return
   const content = inputText.value.trim()
   if (!content) return
   emit('send', content)
@@ -43,8 +44,8 @@ defineExpose({
         v-model="inputText"
         type="textarea"
         :rows="2"
-        :placeholder="t('aiChat.inputPlaceholder')"
-        :disabled="sending"
+        :placeholder="disabled ? '暂无可用智能体' : t('aiChat.inputPlaceholder')"
+        :disabled="sending || disabled"
         @keydown="handleKeydown"
         resize="none"
     />
