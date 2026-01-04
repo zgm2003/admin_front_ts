@@ -245,6 +245,114 @@ watch(currentConversationId, () => {
     loadMessages()
   }
 })
+
+// ========== 消息操作 ==========
+// 复制消息
+const handleCopyMessage = async (msg: any) => {
+  try {
+    await navigator.clipboard.writeText(msg.content)
+    ElNotification.success({message: t('aiChat.copied')})
+  } catch {
+    ElNotification.error({message: '复制失败'})
+  }
+}
+
+// 删除消息
+const handleDeleteMessage = async (msg: any) => {
+  try {
+    await ElMessageBox.confirm(t('aiChat.confirmDeleteMessage'), t('common.confirmTitle'), {
+      type: 'warning',
+      confirmButtonText: t('common.actions.confirm'),
+      cancelButtonText: t('common.actions.cancel')
+    })
+  } catch {
+    return
+  }
+  try {
+    await AiMessageApi.del({id: msg.id})
+    ElNotification.success({message: t('common.success.operation')})
+    await loadMessages()
+  } catch { /* handled */ }
+}
+
+// 重新生成（删除最后一条 AI 回复，重新发送上一条用户消息）
+const handleRegenerateMessage = async (msg: any) => {
+  if (sending.value) return
+  
+  // 找到对应的用户消息（上一条）
+  const msgIndex = messages.value.findIndex(m => m.id === msg.id)
+  if (msgIndex <= 0) return
+  
+  const userMsg = messages.value[msgIndex - 1]
+  if (!userMsg || userMsg.role !== 1) {
+    ElNotification.warning({message: '找不到对应的用户消息'})
+    return
+  }
+  
+  // 删除旧的 AI 回复
+  try {
+    await AiMessageApi.del({id: msg.id})
+  } catch { /* ignore */ }
+  
+  // 从本地列表移除
+  messages.value.splice(msgIndex, 1)
+  
+  // 重新发送
+  sending.value = true
+  isStreaming.value = true
+  streamingContent.value = ''
+  
+  // 添加 AI 占位消息
+  const aiMessage = {
+    id: Date.now(),
+    role: 2,
+    content: '',
+    created_at: new Date().toISOString(),
+    isStreaming: true,
+  }
+  messages.value.push(aiMessage)
+  await nextTick()
+  scrollToBottom()
+  
+  try {
+    const callbacks: StreamCallbacks = {
+      onContent: (delta) => {
+        streamingContent.value += delta
+        const lastMsg = messages.value[messages.value.length - 1]
+        if (lastMsg && lastMsg.role === 2) {
+          lastMsg.content = streamingContent.value
+        }
+        nextTick(() => scrollToBottom())
+      },
+      onConversation: () => {},
+      onDone: async () => {
+        isStreaming.value = false
+        streamingContent.value = ''
+        const lastMsg = messages.value[messages.value.length - 1]
+        if (lastMsg) lastMsg.isStreaming = false
+        await loadMessages()
+      },
+      onError: (errMsg) => {
+        isStreaming.value = false
+        streamingContent.value = ''
+        ElNotification.error({message: errMsg})
+        messages.value.pop()
+      },
+    }
+    
+    await AiChatApi.stream({
+      content: userMsg.content,
+      conversation_id: currentConversationId.value!,
+    }, callbacks)
+  } catch (error: any) {
+    isStreaming.value = false
+    streamingContent.value = ''
+    ElNotification.error({message: error.message || '重新生成失败'})
+    messages.value.pop()
+  } finally {
+    sending.value = false
+  }
+}
 </script>
 
 <template>
@@ -294,6 +402,10 @@ watch(currentConversationId, () => {
             v-else
             :messages="messages"
             :loading="messagesLoading"
+            :sending="sending"
+            @copy="handleCopyMessage"
+            @delete="handleDeleteMessage"
+            @regenerate="handleRegenerateMessage"
         />
       </el-scrollbar>
 

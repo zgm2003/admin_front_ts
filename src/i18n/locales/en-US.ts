@@ -482,7 +482,12 @@ export default {
     you: 'You',
     assistant: 'Assistant',
     welcome: 'Hi, how can I help you?',
-    welcomeTip: 'Type a message to start'
+    welcomeTip: 'Type a message to start',
+    copyMessage: 'Copy',
+    deleteMessage: 'Delete',
+    regenerate: 'Regenerate',
+    copied: 'Copied to clipboard',
+    confirmDeleteMessage: 'Are you sure to delete this message?'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

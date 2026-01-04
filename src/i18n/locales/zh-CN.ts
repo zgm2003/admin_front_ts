@@ -482,7 +482,12 @@ export default {
     you: '你',
     assistant: '助手',
     welcome: '你好，有什么可以帮你的？',
-    welcomeTip: '直接输入消息开始对话'
+    welcomeTip: '直接输入消息开始对话',
+    copyMessage: '复制',
+    deleteMessage: '删除',
+    regenerate: '重新生成',
+    copied: '已复制到剪贴板',
+    confirmDeleteMessage: '确定删除这条消息吗？'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }
