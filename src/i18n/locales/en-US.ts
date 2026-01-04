@@ -110,6 +110,7 @@ export default {
     ai: 'AI Assistant',
     ai_models: 'Models',
     ai_agents: 'Agents',
+    ai_chat: 'Chat',
   },
   personal: {
     title: 'Personal Info',
@@ -464,6 +465,22 @@ export default {
     },
     addTitle: 'Add Agent',
     editTitle: 'Edit Agent'
+  },
+  aiChat: {
+    newConversation: 'New Chat',
+    rename: 'Rename',
+    delete: 'Delete',
+    send: 'Send',
+    inputPlaceholder: 'Type your question...',
+    noConversation: 'No conversations',
+    selectConversation: 'Select or create a conversation',
+    untitled: 'Untitled',
+    confirmDelete: 'Are you sure to delete this conversation?',
+    renameTitle: 'Rename Conversation',
+    newTitle: 'New Title',
+    selectAgent: 'Select Agent',
+    you: 'You',
+    assistant: 'Assistant'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

@@ -162,6 +162,91 @@ service.interceptors.response.use(
 )
 
 type AnyObject = Record<string, any>
+
+/**
+ * 获取通用请求头（token, platform, device-id）
+ * 用于 fetch/SSE 等原生请求场景
+ */
+export function getCommonHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  const token = Cookies.get('access_token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  headers['platform'] = getPlatform()
+  headers['device-id'] = getDeviceId()
+  return headers
+}
+
+export interface SSECallbacks {
+  onEvent?: (event: string, data: any) => void
+  onError?: (msg: string) => void
+  onComplete?: () => void
+}
+
+/**
+ * SSE 流式请求（基于 fetch + ReadableStream）
+ * @param url 请求地址
+ * @param data POST 数据
+ * @param callbacks 回调函数
+ */
+export async function streamPost(url: string, data: AnyObject, callbacks: SSECallbacks): Promise<void> {
+  const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`
+  
+  const response = await fetch(fullUrl, {
+    method: 'POST',
+    headers: getCommonHeaders(),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    callbacks.onError?.(`HTTP error: ${response.status}`)
+    return
+  }
+
+  const reader = response.body?.getReader()
+  if (!reader) {
+    callbacks.onError?.('无法读取响应流')
+    return
+  }
+
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      // 解析 SSE 数据
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      let currentEvent = ''
+      for (const line of lines) {
+        if (line.startsWith('event:')) {
+          currentEvent = line.slice(6).trim()
+        } else if (line.startsWith('data:')) {
+          const dataStr = line.slice(5).trim()
+          try {
+            const parsed = JSON.parse(dataStr)
+            callbacks.onEvent?.(currentEvent, parsed)
+          } catch {
+            // 忽略解析错误
+          }
+        }
+      }
+    }
+    callbacks.onComplete?.()
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 const request = {
   get<T = any>(url: string, config?: AnyObject): Promise<T> {
     return service.get(url, config as any).then((res: any) => res as T)

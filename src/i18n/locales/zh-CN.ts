@@ -110,6 +110,7 @@ export default {
     ai: 'AI助手',
     ai_models: '模型配置',
     ai_agents: '智能体',
+    ai_chat: '对话',
   },
   personal: {
     title: '个人信息',
@@ -464,6 +465,22 @@ export default {
     },
     addTitle: '新增智能体',
     editTitle: '编辑智能体'
+  },
+  aiChat: {
+    newConversation: '新建对话',
+    rename: '重命名',
+    delete: '删除',
+    send: '发送',
+    inputPlaceholder: '输入你想问的问题…',
+    noConversation: '暂无对话',
+    selectConversation: '请选择或新建一个对话',
+    untitled: '未命名对话',
+    confirmDelete: '确定删除该对话吗？',
+    renameTitle: '重命名对话',
+    newTitle: '新标题',
+    selectAgent: '选择智能体',
+    you: '你',
+    assistant: '助手'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }
