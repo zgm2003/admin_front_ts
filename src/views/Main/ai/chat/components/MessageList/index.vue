@@ -9,6 +9,8 @@ const props = defineProps<{
   messages: any[]
   loading: boolean
   sending?: boolean
+  userAvatar?: string    // 用户头像
+  agentAvatar?: string   // 智能体头像
 }>()
 
 const emit = defineEmits<{
@@ -45,10 +47,16 @@ const showRegenerate = (msg: any, index: number) => {
       >
         <!-- 头像 -->
         <div class="avatar" :class="msg.role === 1 ? 'user-avatar' : 'ai-avatar'">
-          <el-icon :size="20">
-            <User v-if="msg.role === 1"/>
-            <ChatDotRound v-else/>
-          </el-icon>
+          <!-- 用户头像 -->
+          <template v-if="msg.role === 1">
+            <el-avatar v-if="userAvatar" :src="userAvatar" :size="36"/>
+            <el-icon v-else :size="20"><User/></el-icon>
+          </template>
+          <!-- AI 头像 -->
+          <template v-else>
+            <el-avatar v-if="agentAvatar" :src="agentAvatar" :size="36"/>
+            <el-icon v-else :size="20"><ChatDotRound/></el-icon>
+          </template>
         </div>
         
         <!-- 消息内容区 -->
@@ -136,6 +144,11 @@ const showRegenerate = (msg: any, index: number) => {
   align-items: center;
   justify-content: center;
   color: #fff;
+  overflow: hidden;
+}
+
+.avatar :deep(.el-avatar) {
+  border-radius: 8px;
 }
 
 .user-avatar {

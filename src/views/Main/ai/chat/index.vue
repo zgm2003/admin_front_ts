@@ -9,6 +9,7 @@ import {AiChatApi} from '@/api/ai/chat'
 import type {StreamCallbacks} from '@/api/ai/chat'
 import {AiAgentApi} from '@/api/ai/agents'
 import {useIsMobile} from '@/hooks/useResponsive'
+import {useUserStore} from '@/store/user'
 
 import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
@@ -16,6 +17,7 @@ import MessageInput from './components/MessageInput/index.vue'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
+const userStore = useUserStore()
 
 // ========== 会话相关 ==========
 const conversations = ref<any[]>([])
@@ -85,6 +87,17 @@ const loadAgents = async () => {
     }
   } catch { /* ignore */ }
 }
+
+// 当前智能体头像
+const currentAgentAvatar = computed(() => {
+  // 先看当前会话的智能体
+  if (currentConversation.value?.agent_avatar) {
+    return currentConversation.value.agent_avatar
+  }
+  // 再看选中的智能体
+  const agent = agents.value.find(a => a.id === selectedAgentId.value)
+  return agent?.avatar || ''
+})
 
 // ========== 事件处理 ==========
 const handleSelectConversation = (conv: any) => {
@@ -392,7 +405,8 @@ const handleRegenerateMessage = async (msg: any) => {
         <div v-if="!currentConversationId" class="welcome-area">
           <div class="welcome-content">
             <div class="welcome-logo">
-              <el-icon :size="48"><ChatDotRound/></el-icon>
+              <el-avatar v-if="currentAgentAvatar" :src="currentAgentAvatar" :size="80"/>
+              <el-icon v-else :size="48"><ChatDotRound/></el-icon>
             </div>
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
             <p class="welcome-subtitle">{{ t('aiChat.welcomeTip') }}</p>
@@ -407,7 +421,8 @@ const handleRegenerateMessage = async (msg: any) => {
                 @click="selectedAgentId = agent.id"
               >
                 <div class="agent-avatar">
-                  <el-icon :size="24"><ChatDotRound/></el-icon>
+                  <el-avatar v-if="agent.avatar" :src="agent.avatar" :size="48"/>
+                  <el-icon v-else :size="24"><ChatDotRound/></el-icon>
                 </div>
                 <div class="agent-info">
                   <div class="agent-name">{{ agent.name }}</div>
@@ -430,6 +445,8 @@ const handleRegenerateMessage = async (msg: any) => {
             :messages="messages"
             :loading="messagesLoading"
             :sending="sending"
+            :user-avatar="userStore.avatar"
+            :agent-avatar="currentAgentAvatar"
             @copy="handleCopyMessage"
             @delete="handleDeleteMessage"
             @regenerate="handleRegenerateMessage"
@@ -537,6 +554,11 @@ const handleRegenerateMessage = async (msg: any) => {
   align-items: center;
   justify-content: center;
   color: #fff;
+  overflow: hidden;
+}
+
+.welcome-logo :deep(.el-avatar) {
+  border-radius: 20px;
 }
 
 .welcome-title {
@@ -593,6 +615,11 @@ const handleRegenerateMessage = async (msg: any) => {
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.agent-avatar :deep(.el-avatar) {
+  border-radius: 12px;
 }
 
 .agent-info {
