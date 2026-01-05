@@ -75,6 +75,8 @@ export default {
       add: '新增',
       edit: '编辑',
       del: '删除',
+      enable: '启用',
+      disable: '禁用',
       kick: '踢下线',
       save: '保存',
       cancel: '取消',

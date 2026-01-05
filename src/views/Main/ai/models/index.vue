@@ -148,7 +148,7 @@ const confirmSubmit = async () => {
   })
 }
 
-const enable = async (row: any) => {
+const toggleStatus = async (row: any, newStatus: number) => {
   try {
     await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
       type: 'warning',
@@ -158,23 +158,7 @@ const enable = async (row: any) => {
   } catch {
     return
   }
-  AiModelApi.status({id: row.id, status: 1}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  })
-}
-
-const disable = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
-      type: 'warning',
-      confirmButtonText: t('common.actions.confirm'),
-      cancelButtonText: t('common.actions.cancel')
-    })
-  } catch {
-    return
-  }
-  AiModelApi.status({id: row.id, status: 2}).then(() => {
+  AiModelApi.status({id: row.id, status: newStatus}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     getList()
   })
@@ -233,8 +217,8 @@ onMounted(() => {
         </template>
         <template #cell-actions="{row}">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 2" @click="enable(row)">启用</el-button>
-          <el-button type="warning" text v-if="row.status === 1" @click="disable(row)">禁用</el-button>
+          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
+          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
           <el-button type="danger" text @click="del(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>

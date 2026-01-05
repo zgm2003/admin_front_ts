@@ -75,6 +75,8 @@ export default {
       add: 'Add',
       edit: 'Edit',
       del: 'Delete',
+      enable: 'Enable',
+      disable: 'Disable',
       kick: 'Kick Offline',
       save: 'Save',
       cancel: 'Cancel',
