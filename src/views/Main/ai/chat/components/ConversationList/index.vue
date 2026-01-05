@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {Plus, Loading, MoreFilled, Edit, Delete, ChatDotRound} from '@element-plus/icons-vue'
 
 const {t} = useI18n()
+const scrollbarRef = ref<any>(null)
 
 const props = defineProps<{
   conversations: any[]
   loading: boolean
+  loadingMore?: boolean
+  hasMore?: boolean
   currentId: number | null
 }>()
 
@@ -16,7 +19,22 @@ const emit = defineEmits<{
   create: []
   rename: [conv: any]
   delete: [conv: any]
+  loadMore: []
 }>()
+
+// 滚动事件（滚到底部加载更多）
+const handleScroll = () => {
+  const wrap = scrollbarRef.value?.wrapRef
+  if (!wrap) return
+  
+  const { scrollTop, scrollHeight, clientHeight } = wrap
+  // 距离底部 50px 时触发
+  if (scrollHeight - scrollTop - clientHeight < 50) {
+    if (!props.loadingMore && props.hasMore) {
+      emit('loadMore')
+    }
+  }
+}
 
 // 按日期分组
 const groupedConversations = computed(() => {
@@ -73,7 +91,7 @@ const groupedConversations = computed(() => {
     </div>
 
     <!-- 会话列表 -->
-    <el-scrollbar class="conversation-list">
+    <el-scrollbar ref="scrollbarRef" class="conversation-list" @scroll="handleScroll">
       <div v-if="loading" class="loading-tip">
         <el-icon class="is-loading" :size="20"><Loading/></el-icon>
         <span>加载中...</span>
@@ -113,6 +131,14 @@ const groupedConversations = computed(() => {
               </template>
             </el-dropdown>
           </div>
+        </div>
+        <!-- 加载更多提示 -->
+        <div v-if="loadingMore" class="loading-more-tip">
+          <el-icon class="is-loading" :size="16"><Loading/></el-icon>
+          <span>加载中...</span>
+        </div>
+        <div v-else-if="!hasMore && conversations.length > 0" class="no-more-tip">
+          没有更多会话了
         </div>
       </template>
     </el-scrollbar>
@@ -262,6 +288,21 @@ const groupedConversations = computed(() => {
 
 :deep(.danger-item .el-icon) {
   color: var(--el-color-danger) !important;
+}
+
+.loading-more-tip,
+.no-more-tip {
+  text-align: center;
+  padding: 12px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.loading-more-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 @media (max-width: 768px) {

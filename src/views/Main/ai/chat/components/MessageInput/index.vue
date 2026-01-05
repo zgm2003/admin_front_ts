@@ -103,8 +103,6 @@ defineExpose({
   border: 1px solid var(--el-border-color-light);
   border-radius: 16px;
   transition: all 0.2s ease;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .input-container:focus-within {

@@ -2,14 +2,13 @@
 import {ref, computed, onMounted, nextTick, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElNotification, ElMessageBox} from 'element-plus'
-import {ArrowLeft, ChatDotRound, Check, WarningFilled} from '@element-plus/icons-vue'
+import {ArrowLeft, ChatDotRound, Check, WarningFilled, Loading} from '@element-plus/icons-vue'
 import {AiConversationApi} from '@/api/ai/conversations'
 import {AiMessageApi} from '@/api/ai/messages'
 import {AiChatApi} from '@/api/ai/chat'
 import type {StreamCallbacks} from '@/api/ai/chat'
 import {AiAgentApi} from '@/api/ai/agents'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {useUserStore} from '@/store/user'
 
 import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
@@ -17,30 +16,65 @@ import MessageInput from './components/MessageInput/index.vue'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
-const userStore = useUserStore()
 
 // ========== 会话相关 ==========
 const conversations = ref<any[]>([])
 const conversationsLoading = ref(false)
+const conversationsLoadingMore = ref(false)
+const conversationsPage = ref(1)
+const conversationsHasMore = ref(true)
+const CONV_PAGE_SIZE = 50
 const currentConversationId = ref<number | null>(null)
 
 const currentConversation = computed(() => {
   return conversations.value.find(c => c.id === currentConversationId.value)
 })
 
+// 加载会话（初始加载）
 const loadConversations = async () => {
   conversationsLoading.value = true
+  conversationsPage.value = 1
+  conversationsHasMore.value = true
   try {
-    const res = await AiConversationApi.list({page_size: 100})
-    conversations.value = res.list || []
+    const res = await AiConversationApi.list({page_size: CONV_PAGE_SIZE, current_page: 1})
+    const list = res.list || []
+    conversations.value = list
+    conversationsHasMore.value = list.length >= CONV_PAGE_SIZE
   } finally {
     conversationsLoading.value = false
+  }
+}
+
+// 加载更多会话（滚到底部触发）
+const loadMoreConversations = async () => {
+  if (conversationsLoadingMore.value || !conversationsHasMore.value) return
+  
+  conversationsLoadingMore.value = true
+  const nextPage = conversationsPage.value + 1
+  
+  try {
+    const res = await AiConversationApi.list({page_size: CONV_PAGE_SIZE, current_page: nextPage})
+    const list = res.list || []
+    
+    if (list.length > 0) {
+      conversations.value = [...conversations.value, ...list]
+      conversationsPage.value = nextPage
+      conversationsHasMore.value = list.length >= CONV_PAGE_SIZE
+    } else {
+      conversationsHasMore.value = false
+    }
+  } finally {
+    conversationsLoadingMore.value = false
   }
 }
 
 // ========== 消息相关 ==========
 const messages = ref<any[]>([])
 const messagesLoading = ref(false)
+const messagesLoadingMore = ref(false)  // 加载更多中
+const messagesPage = ref(1)  // 当前页码
+const messagesHasMore = ref(true)  // 是否还有更多
+const PAGE_SIZE = 200  // 单次加载消息数，足够大避免频繁分页
 const sending = ref(false)
 const messageScrollRef = ref<InstanceType<typeof import('element-plus')['ElScrollbar']> | null>(null)
 const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
@@ -49,21 +83,74 @@ const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
 const streamingContent = ref('')
 const isStreaming = ref(false)
 
+// 加载消息（初始加载）
 const loadMessages = async () => {
   if (!currentConversationId.value) {
     messages.value = []
     return
   }
   messagesLoading.value = true
+  messagesPage.value = 1
+  messagesHasMore.value = true
   try {
     const res = await AiMessageApi.list({
       conversation_id: currentConversationId.value,
-      page_size: 50
+      page_size: PAGE_SIZE,
+      current_page: 1
     })
-    messages.value = res.list || []
+    const list = res.list || []
+    messages.value = list.reverse()  // 后端按时间倒序，这里反转让最新消息在最下面
+    messagesHasMore.value = list.length >= PAGE_SIZE
     nextTick(() => scrollToBottom())
   } finally {
     messagesLoading.value = false
+  }
+}
+
+// 加载更多历史消息（上滑触发）
+const loadMoreMessages = async () => {
+  if (!currentConversationId.value || messagesLoadingMore.value || !messagesHasMore.value) return
+  
+  messagesLoadingMore.value = true
+  const nextPage = messagesPage.value + 1
+  
+  try {
+    // 记住当前滚动位置
+    const wrap = messageScrollRef.value?.wrapRef
+    const prevScrollHeight = wrap?.scrollHeight || 0
+    
+    const res = await AiMessageApi.list({
+      conversation_id: currentConversationId.value,
+      page_size: PAGE_SIZE,
+      current_page: nextPage
+    })
+    const list = res.list || []
+    
+    if (list.length > 0) {
+      // 插入到列表开头（反转后变成时间升序）
+      messages.value = [...list.reverse(), ...messages.value]
+      messagesPage.value = nextPage
+      messagesHasMore.value = list.length >= PAGE_SIZE
+      
+      // 保持滚动位置（新内容插入后保持相对位置不变）
+      nextTick(() => {
+        if (wrap) {
+          const newScrollHeight = wrap.scrollHeight
+          messageScrollRef.value?.setScrollTop(newScrollHeight - prevScrollHeight)
+        }
+      })
+    } else {
+      messagesHasMore.value = false
+    }
+  } finally {
+    messagesLoadingMore.value = false
+  }
+}
+
+// 滚动事件处理（滚到顶部加载更多）
+const handleScroll = (e: { scrollTop: number }) => {
+  if (e.scrollTop < 50 && !messagesLoadingMore.value && messagesHasMore.value) {
+    loadMoreMessages()
   }
 }
 
@@ -82,6 +169,16 @@ const agentSearchLoading = ref(false)
 // 当前选中的智能体
 const selectedAgent = computed(() => {
   return agents.value.find(a => a.id === selectedAgentId.value)
+})
+
+// 智能体选项（el-select-v2 格式）
+const agentOptions = computed(() => {
+  return agents.value.map(a => ({
+    value: a.id,
+    label: a.name,
+    avatar: a.avatar,
+    description: a.description
+  }))
 })
 
 // 加载智能体（初始加载前10个，支持搜索）
@@ -221,11 +318,18 @@ const handleSendMessage = async (content: string) => {
         }
         nextTick(() => scrollToBottom())
       },
-      onConversation: async (conversationId) => {
-        // 新建会话时更新 ID
+      onConversation: (conversationId) => {
+        // 新建会话时更新 ID，并直接插入列表头部（不触发全量刷新）
         if (!currentConversationId.value) {
           currentConversationId.value = conversationId
-          await loadConversations()
+          // 插入临时会话到列表头部
+          conversations.value.unshift({
+            id: conversationId,
+            title: '',  // 标题稍后自动生成
+            agent_id: selectedAgentId.value,
+            agent_name: selectedAgent.value?.name || '',
+            last_message_at: new Date().toISOString(),
+          })
         }
       },
       onDone: async () => {
@@ -236,8 +340,6 @@ const handleSendMessage = async (content: string) => {
         if (lastMsg) {
           lastMsg.isStreaming = false
         }
-        // 刷新消息列表获取完整数据
-        await loadMessages()
         // 刷新会话列表获取自动生成的标题
         await loadConversations()
       },
@@ -362,7 +464,6 @@ const handleRegenerateMessage = async (msg: any) => {
         streamingContent.value = ''
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) lastMsg.isStreaming = false
-        await loadMessages()
       },
       onError: (errMsg) => {
         isStreaming.value = false
@@ -394,11 +495,14 @@ const handleRegenerateMessage = async (msg: any) => {
         v-show="!isMobile || !currentConversationId"
         :conversations="conversations"
         :loading="conversationsLoading"
+        :loading-more="conversationsLoadingMore"
+        :has-more="conversationsHasMore"
         :current-id="currentConversationId"
         @select="handleSelectConversation"
         @create="handleCreateConversation"
         @rename="handleRenameConversation"
         @delete="handleDeleteConversation"
+        @load-more="loadMoreConversations"
     />
 
     <!-- 右侧主区域 -->
@@ -419,70 +523,52 @@ const handleRegenerateMessage = async (msg: any) => {
       </div>
 
       <!-- 消息滚动区 -->
-      <el-scrollbar ref="messageScrollRef" class="message-area">
+      <el-scrollbar ref="messageScrollRef" class="message-area" @scroll="handleScroll">
         <!-- 新对话欢迎界面 -->
-        <div v-if="!currentConversationId" class="welcome-area">
+        <div v-if="!currentConversationId && messages.length === 0" class="welcome-area">
           <div class="welcome-content">
-            <div class="welcome-logo">
-              <el-avatar v-if="currentAgentAvatar" :src="currentAgentAvatar" :size="80"/>
-              <el-icon v-else :size="48"><ChatDotRound/></el-icon>
-            </div>
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
-            <p class="welcome-subtitle">{{ t('aiChat.welcomeTip') }}</p>
             
             <!-- 智能体选择下拉框 -->
-            <div class="agent-selector">
-              <el-select
+            <div class="agent-selector" v-if="agents.length > 0">
+              <el-select-v2
                 v-model="selectedAgentId"
+                :options="agentOptions"
                 filterable
                 remote
                 :remote-method="handleAgentSearch"
                 :loading="agentSearchLoading"
+                :debounce="300"
                 :placeholder="t('aiChat.selectAgent')"
                 size="large"
                 class="agent-select"
               >
-                <el-option
-                  v-for="agent in agents"
-                  :key="agent.id"
-                  :value="agent.id"
-                  :label="agent.name"
-                >
+                <template #default="{ item }">
                   <div class="agent-option">
-                    <el-avatar v-if="agent.avatar" :src="agent.avatar" :size="32"/>
-                    <el-icon v-else :size="16" class="agent-option-icon"><ChatDotRound/></el-icon>
-                    <div class="agent-option-info">
-                      <div class="agent-option-name">{{ agent.name }}</div>
-                      <div class="agent-option-desc">{{ agent.description || '' }}</div>
-                    </div>
+                    <div class="agent-option-name">{{ item.label }}</div>
                   </div>
-                </el-option>
-              </el-select>
-              
-              <!-- 选中后显示智能体信息 -->
-              <div class="selected-agent-info" v-if="selectedAgent">
-                <div class="selected-agent-avatar">
-                  <el-avatar v-if="selectedAgent.avatar" :src="selectedAgent.avatar" :size="64"/>
-                  <el-icon v-else :size="32"><ChatDotRound/></el-icon>
-                </div>
-                <div class="selected-agent-name">{{ selectedAgent.name }}</div>
-                <div class="selected-agent-desc">{{ selectedAgent.description || t('aiChat.noDescription') }}</div>
-              </div>
+                </template>
+              </el-select-v2>
             </div>
             
-            <div v-if="agents.length === 0 && !agentSearchLoading" class="no-agent-tip">
-              <el-icon :size="32"><WarningFilled/></el-icon>
-              <p>{{ t('aiChat.noAgentTip') }}</p>
+            <div v-else-if="!agentSearchLoading" class="no-agent-tip">
+              {{ t('aiChat.noAgentTip') }}
             </div>
           </div>
         </div>
+                <!-- 加载更多历史消息提示 -->
+        <div v-if="messagesLoadingMore" class="loading-more-tip">
+          <el-icon class="is-loading"><Loading/></el-icon>
+          <span>加载中...</span>
+        </div>
+        <div v-else-if="!messagesHasMore && messages.length > 0" class="no-more-tip">
+          没有更多历史消息了
+        </div>
         <MessageList
-            v-else
+            v-if="currentConversationId || messages.length > 0"
             :messages="messages"
             :loading="messagesLoading"
             :sending="sending"
-            :user-avatar="userStore.avatar"
-            :agent-avatar="currentAgentAvatar"
             @copy="handleCopyMessage"
             @delete="handleDeleteMessage"
             @regenerate="handleRegenerateMessage"
@@ -572,143 +658,63 @@ const handleRegenerateMessage = async (msg: any) => {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background: var(--el-bg-color);
 }
 
 .welcome-content {
-  max-width: 600px;
+  max-width: 400px;
+  width: 100%;
   text-align: center;
 }
 
-.welcome-logo {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 24px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  overflow: hidden;
-}
-
-.welcome-logo :deep(.el-avatar) {
-  border-radius: 20px;
-}
-
 .welcome-title {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 500;
   color: var(--el-text-color-primary);
-  margin: 0 0 12px;
-}
-
-.welcome-subtitle {
-  font-size: 16px;
-  color: var(--el-text-color-secondary);
-  margin: 0 0 40px;
+  margin: 0 0 24px;
 }
 
 /* 智能体选择器 */
 .agent-selector {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
 }
 
 .agent-select {
   width: 100%;
 }
 
-.agent-select :deep(.el-input__inner) {
-  height: 48px;
-  font-size: 15px;
-}
-
 .agent-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   padding: 4px 0;
-}
-
-.agent-option-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
-.agent-option-info {
-  flex: 1;
-  min-width: 0;
 }
 
 .agent-option-name {
   font-size: 14px;
-  font-weight: 500;
   color: var(--el-text-color-primary);
-}
-
-.agent-option-desc {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.selected-agent-info {
-  margin-top: 24px;
-  text-align: center;
-}
-
-.selected-agent-avatar {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 12px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  overflow: hidden;
-}
-
-.selected-agent-avatar :deep(.el-avatar) {
-  border-radius: 16px;
-}
-
-.selected-agent-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
-}
-
-.selected-agent-desc {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
 }
 
 .no-agent-tip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 40px;
   color: var(--el-text-color-secondary);
+  font-size: 14px;
 }
 
 /* 重命名弹窗 */
 :deep(.rename-dialog .el-dialog__body) {
   padding-top: 20px;
+}
+
+/* 加载更多提示 */
+.loading-more-tip,
+.no-more-tip {
+  text-align: center;
+  padding: 16px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.loading-more-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 @media (max-width: 768px) {

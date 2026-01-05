@@ -193,6 +193,11 @@ const batchDel = async () => {
 }
 const batchEditBoxShow = ref(false)
 const batchEditForm = ref({ids: [] as any[], field: '', sex: '', address: '', detail_address: ''})
+const batchFieldOptions = [
+  {value: 'sex', label: '性别'},
+  {value: 'address', label: '地址'},
+  {value: 'detail_address', label: '详细地址'}
+]
 const batchEdit = () => {
   if (selectedIds.value.length === 0) {
     ElNotification.error({message: t('common.selectAtLeastOne')});
@@ -356,11 +361,7 @@ onMounted(() => {
     <div class="add-box">
       <el-form label-width="80">
         <el-form-item label="字段" required>
-          <el-select v-model="batchEditForm.field">
-            <el-option label="性别" value="sex"/>
-            <el-option label="地址" value="address"/>
-            <el-option label="详细地址" value="detail_address"/>
-          </el-select>
+          <el-select-v2 v-model="batchEditForm.field" :options="batchFieldOptions"/>
         </el-form-item>
         <el-form-item label="性别" v-if="batchEditForm.field === 'sex'">
           <el-select-v2 :options="sexArr" v-model="batchEditForm.sex" style="width:300px" placeholder="请选择性别"

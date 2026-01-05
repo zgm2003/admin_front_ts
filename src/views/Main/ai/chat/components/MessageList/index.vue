@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight, User, ChatDotRound} from '@element-plus/icons-vue'
+import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
 import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
 
 const {t} = useI18n()
@@ -9,8 +9,6 @@ const props = defineProps<{
   messages: any[]
   loading: boolean
   sending?: boolean
-  userAvatar?: string    // 用户头像
-  agentAvatar?: string   // 智能体头像
 }>()
 
 const emit = defineEmits<{
@@ -34,10 +32,12 @@ const showRegenerate = (msg: any, index: number) => {
 
 <template>
   <div class="message-list-container">
-    <div v-if="loading" class="loading-tip">
+    <!-- 只在没有消息且正在加载时显示 loading -->
+    <div v-if="loading && messages.length === 0" class="loading-tip">
       <el-icon class="is-loading" :size="24"><Loading/></el-icon>
       <span>加载中...</span>
     </div>
+    <!-- 有消息时始终显示消息列表 -->
     <div v-else class="message-list">
       <div
           v-for="(msg, index) in messages"
@@ -45,22 +45,8 @@ const showRegenerate = (msg: any, index: number) => {
           class="message-row"
           :class="{'user-row': msg.role === 1}"
       >
-        <!-- 头像 -->
-        <div class="avatar" :class="msg.role === 1 ? 'user-avatar' : 'ai-avatar'">
-          <!-- 用户头像 -->
-          <template v-if="msg.role === 1">
-            <el-avatar v-if="userAvatar" :src="userAvatar" :size="36"/>
-            <el-icon v-else :size="20"><User/></el-icon>
-          </template>
-          <!-- AI 头像 -->
-          <template v-else>
-            <el-avatar v-if="agentAvatar" :src="agentAvatar" :size="36"/>
-            <el-icon v-else :size="20"><ChatDotRound/></el-icon>
-          </template>
-        </div>
-        
         <!-- 消息内容区 -->
-        <div class="message-body">
+        <div class="message-body" :class="{'user-body': msg.role === 1}">
           <div class="message-bubble" :class="msg.role === 1 ? 'user-bubble' : 'ai-bubble'">
             <!-- 用户消息纯文本，AI 消息用 Markdown 渲染 -->
             <div v-if="msg.role === 1" class="message-text">{{ msg.content }}</div>
@@ -101,7 +87,7 @@ const showRegenerate = (msg: any, index: number) => {
 <style scoped>
 .message-list-container {
   height: 100%;
-  padding: 0 16px;
+  overflow-y: auto;
 }
 
 .loading-tip {
@@ -118,83 +104,57 @@ const showRegenerate = (msg: any, index: number) => {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 800px;
-  margin: 0 auto;
   padding: 24px 0;
+  max-width: 768px;
+  margin: 0 auto;
 }
 
 /* 消息行 */
 .message-row {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  flex-direction: column;
+  padding: 0 16px;
 }
 
 .message-row.user-row {
-  flex-direction: row-reverse;
-}
-
-/* 头像 */
-.avatar {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  overflow: hidden;
-}
-
-.avatar :deep(.el-avatar) {
-  border-radius: 8px;
-}
-
-.user-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.ai-avatar {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  align-items: flex-end;
 }
 
 /* 消息体 */
 .message-body {
-  flex: 1;
+  max-width: 100%;
   min-width: 0;
-  max-width: 85%;
-}
-
-.user-row .message-body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-/* 气泡 */
-.message-bubble {
-  padding: 12px 16px;
-  border-radius: 16px;
   position: relative;
 }
 
+.user-body {
+  max-width: 70%;
+}
+
+/* 消息气泡 */
+.message-bubble {
+  padding: 12px 16px;
+  border-radius: 20px;
+}
+
+/* 用户消息 - 气泡风格 */
 .user-bubble {
   background: var(--el-color-primary);
   color: #fff;
-  border-bottom-right-radius: 4px;
+  border-radius: 20px 20px 4px 20px;
 }
 
+/* AI 消息 - 无气泡，直接显示 */
 .ai-bubble {
-  background: var(--el-fill-color-light);
+  padding: 0;
+  background: transparent;
+  border: none;
   color: var(--el-text-color-primary);
-  border-bottom-left-radius: 4px;
-  border: 1px solid var(--el-border-color-lighter);
 }
 
 .message-text {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.75;
   word-break: break-word;
 }
 
@@ -202,13 +162,18 @@ const showRegenerate = (msg: any, index: number) => {
   white-space: pre-wrap;
 }
 
-/* 操作按钮 */
+/* 操作按钮 - ChatGPT 风格 */
 .message-actions {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
   margin-top: 8px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
+}
+
+.user-row .message-actions {
+  justify-content: flex-end;
 }
 
 .message-row:hover .message-actions {
@@ -216,9 +181,20 @@ const showRegenerate = (msg: any, index: number) => {
 }
 
 .message-actions :deep(.el-button) {
-  font-size: 12px;
-  padding: 4px 8px;
+  font-size: 13px;
+  padding: 6px 8px;
   height: auto;
+  color: var(--el-text-color-secondary);
+  border-radius: 6px;
+}
+
+.message-actions :deep(.el-button:hover) {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+
+.message-actions :deep(.el-button .el-icon) {
+  font-size: 16px;
 }
 
 /* 流式输出指示器 */
@@ -226,7 +202,7 @@ const showRegenerate = (msg: any, index: number) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 8px;
+  margin-top: 12px;
   padding-left: 4px;
 }
 
@@ -234,7 +210,7 @@ const showRegenerate = (msg: any, index: number) => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--el-color-primary);
+  background: var(--el-text-color-secondary);
   animation: typing 1.4s infinite ease-in-out both;
 }
 
@@ -253,23 +229,23 @@ const showRegenerate = (msg: any, index: number) => {
   }
 }
 
-/* 响应式 */
+/* 移动端响应式 */
 @media (max-width: 768px) {
-  .message-list-container {
-    padding: 0 8px;
-  }
-  
   .message-list {
-    gap: 16px;
+    gap: 20px;
+    padding: 16px 0;
   }
   
-  .message-body {
-    max-width: 90%;
+  .message-row {
+    padding: 0 12px;
   }
   
-  .avatar {
-    width: 32px;
-    height: 32px;
+  .user-body {
+    max-width: 85%;
+  }
+  
+  .message-text {
+    font-size: 14px;
   }
 }
 </style>
