@@ -489,7 +489,9 @@ export default {
     deleteMessage: 'Delete',
     regenerate: 'Regenerate',
     copied: 'Copied to clipboard',
-    confirmDeleteMessage: 'Are you sure to delete this message?'
+    confirmDeleteMessage: 'Are you sure to delete this message?',
+    noDescription: 'No description',
+    noAgentTip: 'No available agents, please configure in settings'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

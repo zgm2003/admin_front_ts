@@ -489,7 +489,9 @@ export default {
     deleteMessage: '删除',
     regenerate: '重新生成',
     copied: '已复制到剪贴板',
-    confirmDeleteMessage: '确定删除这条消息吗？'
+    confirmDeleteMessage: '确定删除这条消息吗？',
+    noDescription: '暂无描述',
+    noAgentTip: '暂无可用智能体，请先在设置中配置'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

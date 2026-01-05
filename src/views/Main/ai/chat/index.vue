@@ -58,7 +58,7 @@ const loadMessages = async () => {
   try {
     const res = await AiMessageApi.list({
       conversation_id: currentConversationId.value,
-      page_size: 200
+      page_size: 50
     })
     messages.value = res.list || []
     nextTick(() => scrollToBottom())
@@ -77,15 +77,34 @@ const scrollToBottom = () => {
 // ========== 智能体相关 ==========
 const agents = ref<any[]>([])  
 const selectedAgentId = ref<number | null>(null)
+const agentSearchLoading = ref(false)
 
-const loadAgents = async () => {
+// 当前选中的智能体
+const selectedAgent = computed(() => {
+  return agents.value.find(a => a.id === selectedAgentId.value)
+})
+
+// 加载智能体（初始加载前10个，支持搜索）
+const loadAgents = async (keyword?: string) => {
+  agentSearchLoading.value = true
   try {
-    const res = await AiAgentApi.list({page_size: 100, status: 1})
+    const res = await AiAgentApi.list({
+      page_size: 10, 
+      status: 1,
+      name: keyword || undefined
+    })
     agents.value = res.list || []
-    if (agents.value.length > 0 && !selectedAgentId.value) {
+    // 初始加载时默认选中第一个
+    if (!keyword && agents.value.length > 0 && !selectedAgentId.value) {
       selectedAgentId.value = agents.value[0].id
     }
   } catch { /* ignore */ }
+  agentSearchLoading.value = false
+}
+
+// 搜索智能体（远程搜索）
+const handleAgentSearch = (keyword: string) => {
+  loadAgents(keyword)
 }
 
 // 当前智能体头像
@@ -411,32 +430,49 @@ const handleRegenerateMessage = async (msg: any) => {
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
             <p class="welcome-subtitle">{{ t('aiChat.welcomeTip') }}</p>
             
-            <!-- 智能体选择卡片 -->
-            <div class="agent-cards" v-if="agents.length > 0">
-              <div 
-                v-for="agent in agents" 
-                :key="agent.id" 
-                class="agent-card"
-                :class="{selected: selectedAgentId === agent.id}"
-                @click="selectedAgentId = agent.id"
+            <!-- 智能体选择下拉框 -->
+            <div class="agent-selector">
+              <el-select
+                v-model="selectedAgentId"
+                filterable
+                remote
+                :remote-method="handleAgentSearch"
+                :loading="agentSearchLoading"
+                :placeholder="t('aiChat.selectAgent')"
+                size="large"
+                class="agent-select"
               >
-                <div class="agent-avatar">
-                  <el-avatar v-if="agent.avatar" :src="agent.avatar" :size="48"/>
-                  <el-icon v-else :size="24"><ChatDotRound/></el-icon>
+                <el-option
+                  v-for="agent in agents"
+                  :key="agent.id"
+                  :value="agent.id"
+                  :label="agent.name"
+                >
+                  <div class="agent-option">
+                    <el-avatar v-if="agent.avatar" :src="agent.avatar" :size="32"/>
+                    <el-icon v-else :size="16" class="agent-option-icon"><ChatDotRound/></el-icon>
+                    <div class="agent-option-info">
+                      <div class="agent-option-name">{{ agent.name }}</div>
+                      <div class="agent-option-desc">{{ agent.description || '' }}</div>
+                    </div>
+                  </div>
+                </el-option>
+              </el-select>
+              
+              <!-- 选中后显示智能体信息 -->
+              <div class="selected-agent-info" v-if="selectedAgent">
+                <div class="selected-agent-avatar">
+                  <el-avatar v-if="selectedAgent.avatar" :src="selectedAgent.avatar" :size="64"/>
+                  <el-icon v-else :size="32"><ChatDotRound/></el-icon>
                 </div>
-                <div class="agent-info">
-                  <div class="agent-name">{{ agent.name }}</div>
-                  <div class="agent-desc">{{ agent.description || '点击选择此智能体' }}</div>
-                </div>
-                <div class="agent-check" v-if="selectedAgentId === agent.id">
-                  <el-icon><Check/></el-icon>
-                </div>
+                <div class="selected-agent-name">{{ selectedAgent.name }}</div>
+                <div class="selected-agent-desc">{{ selectedAgent.description || t('aiChat.noDescription') }}</div>
               </div>
             </div>
             
-            <div v-else class="no-agent-tip">
+            <div v-if="agents.length === 0 && !agentSearchLoading" class="no-agent-tip">
               <el-icon :size="32"><WarningFilled/></el-icon>
-              <p>暂无可用智能体，请先在设置中配置</p>
+              <p>{{ t('aiChat.noAgentTip') }}</p>
             </div>
           </div>
         </div>
@@ -574,84 +610,91 @@ const handleRegenerateMessage = async (msg: any) => {
   margin: 0 0 40px;
 }
 
-/* 智能体卡片 */
-.agent-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+/* 智能体选择器 */
+.agent-selector {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.agent-select {
   width: 100%;
 }
 
-.agent-card {
+.agent-select :deep(.el-input__inner) {
+  height: 48px;
+  font-size: 15px;
+}
+
+.agent-option {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  border: 2px solid var(--el-border-color-light);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  background: var(--el-bg-color);
+  padding: 4px 0;
 }
 
-.agent-card:hover {
-  border-color: var(--el-color-primary-light-5);
-  background: var(--el-color-primary-light-9);
-}
-
-.agent-card.selected {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-}
-
-.agent-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.agent-option-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  flex-shrink: 0;
-  overflow: hidden;
 }
 
-.agent-avatar :deep(.el-avatar) {
-  border-radius: 12px;
-}
-
-.agent-info {
+.agent-option-info {
   flex: 1;
   min-width: 0;
 }
 
-.agent-name {
-  font-size: 15px;
-  font-weight: 600;
+.agent-option-name {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--el-text-color-primary);
-  margin-bottom: 4px;
 }
 
-.agent-desc {
-  font-size: 13px;
+.agent-option-desc {
+  font-size: 12px;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.agent-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--el-color-primary);
-  color: #fff;
+.selected-agent-info {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.selected-agent-avatar {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  color: #fff;
+  overflow: hidden;
+}
+
+.selected-agent-avatar :deep(.el-avatar) {
+  border-radius: 16px;
+}
+
+.selected-agent-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  margin-bottom: 4px;
+}
+
+.selected-agent-desc {
+  font-size: 14px;
+  color: var(--el-text-color-secondary);
 }
 
 .no-agent-tip {
