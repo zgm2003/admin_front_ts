@@ -515,9 +515,23 @@ export default {
       error: 'Error',
       created_at: 'Created At'
     },
-    detailTitle: 'Run Detail',
-    userMessage: 'User Message',
-    assistantMessage: 'AI Response'
+    detail: {
+      title: 'Run Detail',
+      user: 'User',
+      agent: 'Agent',
+      conversation: 'Conversation',
+      status: 'Status',
+      model: 'Model',
+      promptTokens: 'Prompt Tokens',
+      completionTokens: 'Completion Tokens',
+      totalTokens: 'Total Tokens',
+      latency: 'Latency',
+      createdAt: 'Created At',
+      updatedAt: 'Updated At',
+      error: 'Error',
+      userMessage: 'User Message',
+      assistantMessage: 'AI Response'
+    }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

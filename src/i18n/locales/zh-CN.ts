@@ -515,9 +515,23 @@ export default {
       error: '错误信息',
       created_at: '创建时间'
     },
-    detailTitle: '运行详情',
-    userMessage: '用户消息',
-    assistantMessage: 'AI 回复'
+    detail: {
+      title: '运行详情',
+      user: '用户',
+      agent: '智能体',
+      conversation: '对话',
+      status: '状态',
+      model: '模型',
+      promptTokens: 'Prompt Tokens',
+      completionTokens: 'Completion Tokens',
+      totalTokens: 'Total Tokens',
+      latency: '耗时',
+      createdAt: '创建时间',
+      updatedAt: '更新时间',
+      error: '错误信息',
+      userMessage: '用户消息',
+      assistantMessage: 'AI 回复'
+    }
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

@@ -172,29 +172,30 @@ onMounted(() => {
   </div>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :title="t('aiRuns.detailTitle')" :width="isMobile ? '94vw' : '800px'">
+  <el-dialog v-model="detailVisible" :title="t('aiRuns.detail.title')" :width="isMobile ? '94vw' : '800px'">
     <div v-loading="detailLoading">
       <template v-if="detailData">
         <el-descriptions :column="isMobile ? 1 : 2" border>
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
           <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.agent')">{{ detailData.agent_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.conversation')">{{ detailData.conversation_title }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.status')">
+          <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.agent')">{{ detailData.agent_name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{ detailData.conversation_title }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.status')">
             <el-tag :type="getStatusType(detailData.run_status)" size="small">{{ detailData.run_status_name }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.model')">{{ detailData.model_snapshot }}</el-descriptions-item>
-          <el-descriptions-item label="Prompt Tokens">{{ detailData.prompt_tokens ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item label="Completion Tokens">{{ detailData.completion_tokens ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item label="Total Tokens">{{ detailData.total_tokens ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.latency')">{{ detailData.latency_str }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.table.created_at')">{{ detailData.created_at }}</el-descriptions-item>
-          <el-descriptions-item label="Updated">{{ detailData.updated_at }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_snapshot }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{ detailData.prompt_tokens ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">{{ detailData.completion_tokens ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">{{ detailData.total_tokens ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.latency_str }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">{{ detailData.updated_at }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 错误信息 -->
         <template v-if="detailData.error_msg">
-          <el-divider content-position="left">{{ t('aiRuns.table.error') }}</el-divider>
+          <el-divider content-position="left">{{ t('aiRuns.detail.error') }}</el-divider>
           <el-alert type="error" :closable="false" show-icon>
             <template #title>{{ detailData.error_msg }}</template>
           </el-alert>
@@ -202,7 +203,7 @@ onMounted(() => {
 
         <!-- 用户消息 -->
         <template v-if="detailData.user_message">
-          <el-divider content-position="left">{{ t('aiRuns.userMessage') }}</el-divider>
+          <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
           <div class="message-box user">
             <div class="message-content">{{ detailData.user_message.content }}</div>
             <div class="message-meta">{{ detailData.user_message.created_at }}</div>
@@ -211,7 +212,7 @@ onMounted(() => {
 
         <!-- AI 回复 -->
         <template v-if="detailData.assistant_message">
-          <el-divider content-position="left">{{ t('aiRuns.assistantMessage') }}</el-divider>
+          <el-divider content-position="left">{{ t('aiRuns.detail.assistantMessage') }}</el-divider>
           <div class="message-box assistant">
             <div class="message-content">{{ detailData.assistant_message.content }}</div>
             <div class="message-meta">
