@@ -243,7 +243,7 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" :collapseCount="2"/>
     <div class="table">
       <AppTable :columns="[
           { key: 'username', label: t('user.table.username'),width: 150 },
