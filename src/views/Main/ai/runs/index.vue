@@ -230,6 +230,31 @@ onMounted(() => {
             </div>
           </div>
         </template>
+
+        <!-- 执行步骤 -->
+        <template v-if="detailData.steps && detailData.steps.length > 0">
+          <el-divider content-position="left">执行步骤</el-divider>
+          <el-timeline>
+            <el-timeline-item
+              v-for="step in detailData.steps"
+              :key="step.id"
+              :type="step.status === 1 ? 'success' : 'danger'"
+              :timestamp="step.latency_str"
+              placement="top"
+            >
+              <div class="step-item">
+                <div class="step-header">
+                  <el-tag :type="step.status === 1 ? 'success' : 'danger'" size="small">{{ step.step_type_name }}</el-tag>
+                  <span class="step-status">{{ step.status_name }}</span>
+                </div>
+                <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
+                <div v-if="step.payload_json" class="step-payload">
+                  <code>{{ JSON.stringify(step.payload_json, null, 2) }}</code>
+                </div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </template>
       </template>
     </div>
     <template #footer>
@@ -321,6 +346,43 @@ onMounted(() => {
   padding: 2px 6px;
   border-radius: 3px;
   border: 1px solid #e8e8e8;
+  word-break: break-all;
+}
+
+.step-item {
+  padding: 8px 0;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.step-status {
+  font-size: 12px;
+  color: #666;
+}
+
+.step-error {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.step-payload {
+  background: #f8f8f8;
+  border-radius: 4px;
+  padding: 8px;
+  overflow-x: auto;
+}
+
+.step-payload code {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #476582;
+  white-space: pre-wrap;
   word-break: break-all;
 }
 </style>

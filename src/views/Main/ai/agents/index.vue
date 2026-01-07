@@ -222,6 +222,15 @@ onMounted(() => {
         <template #toolbar-left>
           <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
         </template>
+        <template #cell-model_name="{row}">
+          <p>
+            <el-text>{{ row.model_name }}</el-text>
+          </p>
+          <p>
+            <el-tag v-if="row.model_deleted" type="danger" size="small" style="margin-left:4px">已删除</el-tag>
+          </p>
+
+        </template>
         <template #cell-mode="{row}">
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
@@ -230,8 +239,12 @@ onMounted(() => {
         </template>
         <template #cell-actions="{row}">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
+          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">
+            {{ t('common.actions.disable') }}
+          </el-button>
           <el-button type="danger" text @click="del(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
