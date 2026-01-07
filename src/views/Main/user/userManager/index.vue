@@ -63,7 +63,8 @@ const searchFields = computed<SearchField[]>(() => [
     label: '平台',
     options: platformArr.value,
     placeholder: '选择平台',
-    width: 150
+    width: 150,
+    clearable: false
   },
   {key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150},
   {
