@@ -394,7 +394,8 @@ onMounted(() => {
 })
 
 watch(currentConversationId, () => {
-  if (currentConversationId.value) {
+  // 流式输出期间不加载消息（新建会话时消息在前端管理）
+  if (currentConversationId.value && !isStreaming.value) {
     loadMessages()
   }
 })

@@ -7,6 +7,7 @@ import { getDeviceId } from '@/utils/device'
 import { useMenuStore } from '@/store/menu'
 
 const baseURL = import.meta.env.VITE_SOME_KEY
+const sseBaseURL = import.meta.env.VITE_SSE_URL || baseURL  // SSE 专用地址，独立端口避免阻塞
 const service = axios.create({ baseURL, timeout: 60000 })
 
 let isRefreshing = false
@@ -193,7 +194,7 @@ export interface SSECallbacks {
  * @param callbacks 回调函数
  */
 export async function streamPost(url: string, data: AnyObject, callbacks: SSECallbacks): Promise<void> {
-  const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`
+  const fullUrl = url.startsWith('http') ? url : `${sseBaseURL}${url}`
   
   const controller = new AbortController()
   
