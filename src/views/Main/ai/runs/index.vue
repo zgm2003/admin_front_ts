@@ -86,7 +86,7 @@ const columns = computed(() => [
   {key: 'latency_str', label: t('aiRuns.table.latency'), width: 100},
   {key: 'error_msg', label: t('aiRuns.table.error'), width: 200, overflowTooltip: true},
   {key: 'created_at', label: t('aiRuns.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action')}
+  {key: 'actions', label: t('common.actions.action'), fixed:'right'}
 ])
 
 // 状态标签样式

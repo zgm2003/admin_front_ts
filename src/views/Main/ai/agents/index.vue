@@ -65,6 +65,7 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('aiAgents.filter.model_id'),
     width: 200,
     options: dict.value.model_list,
+    fitInputWidth:false,
   },
   {
     key: 'mode',
