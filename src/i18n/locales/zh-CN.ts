@@ -507,7 +507,7 @@ export default {
     table: {
       request_id: 'Request ID',
       agent: '智能体',
-      conversation: '对话',
+      conversation: '会话',
       status: '状态',
       model: '模型',
       tokens: 'Tokens',
@@ -519,7 +519,7 @@ export default {
       title: '运行详情',
       user: '用户',
       agent: '智能体',
-      conversation: '对话',
+      conversation: '会话',
       status: '状态',
       model: '模型',
       promptTokens: 'Prompt Tokens',

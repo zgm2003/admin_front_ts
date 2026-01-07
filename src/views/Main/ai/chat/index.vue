@@ -304,6 +304,9 @@ const handleSendMessage = async (content: string) => {
   isStreaming.value = true
   streamingContent.value = ''
 
+  // 记录发起请求时的会话 ID（用于回调检查）
+  const requestConversationId = currentConversationId.value
+
   // 立即显示用户消息
   const userMessage = {
     id: Date.now(),
@@ -329,6 +332,10 @@ const handleSendMessage = async (content: string) => {
   try {
     const callbacks: StreamCallbacks = {
       onContent: (delta) => {
+        // 如果已切换到其他会话，忽略回调
+        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
+          return
+        }
         streamingContent.value += delta
         // 更新 AI 消息内容
         const lastMsg = messages.value[messages.value.length - 1]
@@ -352,6 +359,10 @@ const handleSendMessage = async (content: string) => {
         }
       },
       onDone: async (data) => {
+        // 如果已切换到其他会话，不更新状态
+        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
+          return
+        }
         isStreaming.value = false
         streamingContent.value = ''
         // 标记流式结束
@@ -363,6 +374,10 @@ const handleSendMessage = async (content: string) => {
         await loadConversations()
       },
       onError: (msg) => {
+        // 如果已切换到其他会话，不处理错误
+        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
+          return
+        }
         isStreaming.value = false
         streamingContent.value = ''
         ElNotification.error({message: msg})
@@ -377,11 +392,14 @@ const handleSendMessage = async (content: string) => {
       agent_id: currentConversationId.value ? undefined : agentId,
     }, callbacks)
   } catch (error: any) {
-    isStreaming.value = false
-    streamingContent.value = ''
-    ElNotification.error({message: error.message || '发送失败'})
-    // 移除占位消息
-    messages.value.pop()
+    // 如果已切换到其他会话，不处理错误
+    if (currentConversationId.value === requestConversationId || requestConversationId === null) {
+      isStreaming.value = false
+      streamingContent.value = ''
+      ElNotification.error({message: error.message || '发送失败'})
+      // 移除占位消息
+      messages.value.pop()
+    }
   } finally {
     sending.value = false
   }
@@ -456,6 +474,9 @@ const handleRegenerateMessage = async (msg: any) => {
   isStreaming.value = true
   streamingContent.value = ''
   
+  // 记录发起请求时的会话 ID
+  const requestConversationId = currentConversationId.value
+  
   // 添加 AI 占位消息
   const aiMessage = {
     id: Date.now(),
@@ -471,6 +492,8 @@ const handleRegenerateMessage = async (msg: any) => {
   try {
     const callbacks: StreamCallbacks = {
       onContent: (delta) => {
+        // 如果已切换到其他会话，忽略回调
+        if (currentConversationId.value !== requestConversationId) return
         streamingContent.value += delta
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg && lastMsg.role === 2) {
@@ -480,12 +503,14 @@ const handleRegenerateMessage = async (msg: any) => {
       },
       onConversation: () => {},
       onDone: async (data) => {
+        if (currentConversationId.value !== requestConversationId) return
         isStreaming.value = false
         streamingContent.value = ''
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) lastMsg.isStreaming = false
       },
       onError: (errMsg) => {
+        if (currentConversationId.value !== requestConversationId) return
         isStreaming.value = false
         streamingContent.value = ''
         ElNotification.error({message: errMsg})
@@ -498,10 +523,12 @@ const handleRegenerateMessage = async (msg: any) => {
       conversation_id: currentConversationId.value!,
     }, callbacks)
   } catch (error: any) {
-    isStreaming.value = false
-    streamingContent.value = ''
-    ElNotification.error({message: error.message || '重新生成失败'})
-    messages.value.pop()
+    if (currentConversationId.value === requestConversationId) {
+      isStreaming.value = false
+      streamingContent.value = ''
+      ElNotification.error({message: error.message || '重新生成失败'})
+      messages.value.pop()
+    }
   } finally {
     sending.value = false
   }
