@@ -87,7 +87,9 @@ export default {
       batchAction: '批量操作',
       batchDelete: '批量删除',
       batchEdit: '批量修改',
-      action: '操作'
+      action: '操作',
+      detail: '详情',
+      close: '关闭'
     },
     quickEntry: '快速入口'
   },
@@ -113,6 +115,7 @@ export default {
     ai_models: '模型配置',
     ai_agents: '智能体',
     ai_chat: '对话',
+    ai_runs: '运行监控',
   },
   personal: {
     title: '个人信息',
@@ -492,6 +495,29 @@ export default {
     confirmDeleteMessage: '确定删除这条消息吗？',
     noDescription: '暂无描述',
     noAgentTip: '暂无可用智能体，请先在设置中配置'
+  },
+  aiRuns: {
+    filter: {
+      status: '状态',
+      user: '用户',
+      request_id: 'Request ID',
+      date_start: '开始日期',
+      date_end: '结束日期'
+    },
+    table: {
+      request_id: 'Request ID',
+      agent: '智能体',
+      conversation: '对话',
+      status: '状态',
+      model: '模型',
+      tokens: 'Tokens',
+      latency: '耗时',
+      error: '错误信息',
+      created_at: '创建时间'
+    },
+    detailTitle: '运行详情',
+    userMessage: '用户消息',
+    assistantMessage: 'AI 回复'
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

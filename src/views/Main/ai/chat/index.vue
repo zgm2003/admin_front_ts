@@ -217,10 +217,29 @@ const currentAgentAvatar = computed(() => {
 
 // ========== 事件处理 ==========
 const handleSelectConversation = (conv: any) => {
+  // 如果正在流式输出，切换会话时重置前端状态（后端继续生成）
+  if (isStreaming.value) {
+    isStreaming.value = false
+    streamingContent.value = ''
+    sending.value = false
+    // 移除未完成的 AI 占位消息（后端会继续完成，稍后可从数据库加载）
+    if (messages.value.length > 0) {
+      const lastMsg = messages.value[messages.value.length - 1]
+      if (lastMsg.role === 2 && lastMsg.isStreaming) {
+        messages.value.pop()
+      }
+    }
+  }
   currentConversationId.value = conv.id
 }
 
 const handleCreateConversation = () => {
+  // 如果正在流式输出，新建会话时重置前端状态
+  if (isStreaming.value) {
+    isStreaming.value = false
+    streamingContent.value = ''
+    sending.value = false
+  }
   // 简化：直接清空当前会话，让用户在新对话界面选择智能体并输入
   currentConversationId.value = null
   messages.value = []
@@ -332,7 +351,7 @@ const handleSendMessage = async (content: string) => {
           })
         }
       },
-      onDone: async () => {
+      onDone: async (data) => {
         isStreaming.value = false
         streamingContent.value = ''
         // 标记流式结束
@@ -459,7 +478,7 @@ const handleRegenerateMessage = async (msg: any) => {
         nextTick(() => scrollToBottom())
       },
       onConversation: () => {},
-      onDone: async () => {
+      onDone: async (data) => {
         isStreaming.value = false
         streamingContent.value = ''
         const lastMsg = messages.value[messages.value.length - 1]

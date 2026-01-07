@@ -33,7 +33,7 @@ const searchProps = [
 
 const fieldProps = [
   { name: 'key', type: 'String', required: '✔', desc: '字段名（必填）' },
-  { name: 'type', type: 'String', required: '✔', desc: "'input'|'select-v2'|'cascader'|'date-range'" },
+  { name: 'type', type: 'String', required: '✔', desc: "'input'|'select-v2'|'cascader'|'date-range'|'date'" },
   { name: 'label', type: 'String', required: '', desc: '字段标签' },
   { name: 'placeholder', type: 'String', required: '', desc: '占位符' },
   { name: 'width', type: 'Number', required: '', desc: '宽度（px）' },
@@ -99,7 +99,8 @@ const iconSelectExpose = [
             { type: 'input', desc: '文本输入框，透传 el-input 属性' },
             { type: 'select-v2', desc: '虚拟下拉选择器，需配置 options，透传 el-select-v2 属性' },
             { type: 'cascader', desc: '级联选择器，需配置 options 和 cascaderProps，透传 el-cascader 属性' },
-            { type: 'date-range', desc: '日期范围选择器，透传 el-date-picker 属性' }
+            { type: 'date-range', desc: '日期范围选择器，透传 el-date-picker 属性' },
+            { type: 'date', desc: '单日期选择器，透传 el-date-picker 属性' }
           ]" border>
             <el-table-column prop="type" label="type 值" width="150" />
             <el-table-column prop="desc" label="说明" />

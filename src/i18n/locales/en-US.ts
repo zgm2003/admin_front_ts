@@ -87,7 +87,9 @@ export default {
       batchAction: 'Batch Actions',
       batchDelete: 'Batch Delete',
       batchEdit: 'Batch Edit',
-      action: 'Actions'
+      action: 'Actions',
+      detail: 'Detail',
+      close: 'Close'
     },
     quickEntry: 'Quick Entry'
   },
@@ -113,6 +115,7 @@ export default {
     ai_models: 'Models',
     ai_agents: 'Agents',
     ai_chat: 'Chat',
+    ai_runs: 'Run Monitor',
   },
   personal: {
     title: 'Personal Info',
@@ -492,6 +495,29 @@ export default {
     confirmDeleteMessage: 'Are you sure to delete this message?',
     noDescription: 'No description',
     noAgentTip: 'No available agents, please configure in settings'
+  },
+  aiRuns: {
+    filter: {
+      status: 'Status',
+      user: 'User',
+      request_id: 'Request ID',
+      date_start: 'Start Date',
+      date_end: 'End Date'
+    },
+    table: {
+      request_id: 'Request ID',
+      agent: 'Agent',
+      conversation: 'Conversation',
+      status: 'Status',
+      model: 'Model',
+      tokens: 'Tokens',
+      latency: 'Latency',
+      error: 'Error',
+      created_at: 'Created At'
+    },
+    detailTitle: 'Run Detail',
+    userMessage: 'User Message',
+    assistantMessage: 'AI Response'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

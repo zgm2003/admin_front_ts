@@ -11,9 +11,18 @@ export interface StreamParams {
 export interface StreamCallbacks {
   onContent?: (delta: string) => void
   onConversation?: (conversationId: number) => void
-  onDone?: (conversationId: number) => void
+  onRun?: (runId: number, requestId: string) => void
+  onDone?: (data: { conversation_id: number; run_id: number }) => void
   onError?: (msg: string) => void
 }
+
+// Run 状态枚举
+export const RUN_STATUS = {
+  RUNNING: 1,
+  SUCCESS: 2,
+  FAIL: 3,
+  CANCELED: 4,
+} as const
 
 export const AiChatApi = {
   // 发送消息并获取 AI 回复（非流式）
@@ -36,9 +45,12 @@ export const AiChatApi = {
           case 'conversation':
             callbacks.onConversation?.(data.conversation_id)
             break
+          case 'run':
+            callbacks.onRun?.(data.run_id, data.request_id)
+            break
           case 'done':
             doneReceived = true
-            callbacks.onDone?.(data.conversation_id)
+            callbacks.onDone?.(data)
             return true  // 返回 true 主动中断连接
           case 'error':
             callbacks.onError?.(data.msg || '未知错误')
@@ -49,7 +61,7 @@ export const AiChatApi = {
       onComplete: () => {
         // 如果没收到 done 事件，流结束时也要触发 onDone
         if (!doneReceived) {
-          callbacks.onDone?.(0)
+          callbacks.onDone?.({ conversation_id: 0, run_id: 0 })
         }
       },
     })
