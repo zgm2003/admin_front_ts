@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Plus, Loading, MoreFilled, Edit, Delete, ChatDotRound} from '@element-plus/icons-vue'
+import {Plus, Loading, MoreFilled, Edit, Delete, ChatDotRound, FolderOpened, FolderChecked} from '@element-plus/icons-vue'
 
 const {t} = useI18n()
 const scrollbarRef = ref<any>(null)
@@ -12,6 +12,7 @@ const props = defineProps<{
   loadingMore?: boolean
   hasMore?: boolean
   currentId: number | null
+  showArchived?: boolean  // 是否显示归档列表
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +20,9 @@ const emit = defineEmits<{
   create: []
   rename: [conv: any]
   delete: [conv: any]
+  archive: [conv: any]  // 归档/取消归档
   loadMore: []
+  toggleArchived: [showArchived: boolean]  // 切换归档视图
 }>()
 
 // 滚动事件（滚到底部加载更多）
@@ -90,6 +93,25 @@ const groupedConversations = computed(() => {
       </el-button>
     </div>
 
+    <!-- 归档切换标签 -->
+    <div class="archive-tabs">
+      <div 
+        class="tab-item" 
+        :class="{ active: !showArchived }" 
+        @click="emit('toggleArchived', false)"
+      >
+        正常
+      </div>
+      <div 
+        class="tab-item" 
+        :class="{ active: showArchived }" 
+        @click="emit('toggleArchived', true)"
+      >
+        <el-icon :size="14"><FolderOpened/></el-icon>
+        归档
+      </div>
+    </div>
+
     <!-- 会话列表 -->
     <el-scrollbar ref="scrollbarRef" class="conversation-list" @scroll="handleScroll">
       <div v-if="loading" class="loading-tip">
@@ -122,6 +144,10 @@ const groupedConversations = computed(() => {
                   <el-dropdown-item @click="emit('rename', conv)">
                     <el-icon><Edit/></el-icon>
                     {{ t('aiChat.rename') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="emit('archive', conv)">
+                    <el-icon><component :is="showArchived ? FolderChecked : FolderOpened"/></el-icon>
+                    {{ showArchived ? '取消归档' : '归档' }}
                   </el-dropdown-item>
                   <el-dropdown-item @click="emit('delete', conv)" class="danger-item">
                     <el-icon><Delete/></el-icon>
@@ -157,6 +183,36 @@ const groupedConversations = computed(() => {
 
 .sidebar-header {
   padding: 12px;
+}
+
+.archive-tabs {
+  display: flex;
+  padding: 0 12px 8px;
+  gap: 4px;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover {
+  background: var(--el-fill-color-light);
+}
+
+.tab-item.active {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-weight: 500;
 }
 
 .new-chat-btn {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
+import {Loading, CopyDocument, Delete, RefreshRight, Top, Bottom} from '@element-plus/icons-vue'
 import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
 
 const {t} = useI18n()
@@ -15,6 +15,7 @@ const emit = defineEmits<{
   copy: [msg: any]
   delete: [msg: any]
   regenerate: [msg: any]
+  feedback: [msg: any, feedback: number | null]  // 1=点赞 2=点踩 null=取消
 }>()
 
 // 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
@@ -27,6 +28,18 @@ const showRegenerate = (msg: any, index: number) => {
     }
   }
   return false
+}
+
+// 获取消息的反馈状态
+const getFeedback = (msg: any): number | null => {
+  return msg.meta_json?.feedback ?? null
+}
+
+// 点击反馈按钮
+const handleFeedback = (msg: any, feedback: number) => {
+  const current = getFeedback(msg)
+  // 点击已选中的反馈则取消
+  emit('feedback', msg, current === feedback ? null : feedback)
 }
 </script>
 
@@ -55,6 +68,23 @@ const showRegenerate = (msg: any, index: number) => {
           
           <!-- 操作按钮 - 仅 hover 时显示 -->
           <div class="message-actions" v-if="!msg.isStreaming">
+            <!-- AI 消息显示点赞/点踩 -->
+            <template v-if="msg.role === 2">
+              <el-button 
+                text size="small" 
+                :class="{ 'feedback-active': getFeedback(msg) === 1 }"
+                @click="handleFeedback(msg, 1)"
+              >
+                <el-icon :size="16"><Top /></el-icon>
+              </el-button>
+              <el-button 
+                text size="small" 
+                :class="{ 'feedback-active': getFeedback(msg) === 2 }"
+                @click="handleFeedback(msg, 2)"
+              >
+                <el-icon :size="16"><Bottom /></el-icon>
+              </el-button>
+            </template>
             <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
               复制
             </el-button>
@@ -195,6 +225,21 @@ const showRegenerate = (msg: any, index: number) => {
 
 .message-actions :deep(.el-button .el-icon) {
   font-size: 16px;
+  color: var(--el-text-color-secondary);
+  transition: color 0.15s ease;
+}
+
+.message-actions :deep(.el-button:hover .el-icon) {
+  color: var(--el-text-color-primary);
+}
+
+.message-actions :deep(.feedback-active),
+.message-actions :deep(.feedback-active:hover) {
+  background: var(--el-color-primary-light-9) !important;
+}
+
+.message-actions :deep(.feedback-active .el-icon) {
+  color: var(--el-color-primary) !important;
 }
 
 /* 流式输出指示器 */

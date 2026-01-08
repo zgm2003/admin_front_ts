@@ -25,6 +25,7 @@ const conversationsPage = ref(1)
 const conversationsHasMore = ref(true)
 const CONV_PAGE_SIZE = 50
 const currentConversationId = ref<number | null>(null)
+const showArchived = ref(false)  // 是否显示归档列表
 
 const currentConversation = computed(() => {
   return conversations.value.find(c => c.id === currentConversationId.value)
@@ -36,7 +37,11 @@ const loadConversations = async () => {
   conversationsPage.value = 1
   conversationsHasMore.value = true
   try {
-    const res = await AiConversationApi.list({page_size: CONV_PAGE_SIZE, current_page: 1})
+    const res = await AiConversationApi.list({
+      page_size: CONV_PAGE_SIZE, 
+      current_page: 1,
+      status: showArchived.value ? 2 : 1  // 1正常 2归档
+    })
     const list = res.list || []
     conversations.value = list
     conversationsHasMore.value = list.length >= CONV_PAGE_SIZE
@@ -53,7 +58,11 @@ const loadMoreConversations = async () => {
   const nextPage = conversationsPage.value + 1
   
   try {
-    const res = await AiConversationApi.list({page_size: CONV_PAGE_SIZE, current_page: nextPage})
+    const res = await AiConversationApi.list({
+      page_size: CONV_PAGE_SIZE, 
+      current_page: nextPage,
+      status: showArchived.value ? 2 : 1
+    })
     const list = res.list || []
     
     if (list.length > 0) {
@@ -289,6 +298,31 @@ const handleDeleteConversation = async (conv: any) => {
   } catch { /* handled */ }
 }
 
+// 归档/取消归档
+const handleArchiveConversation = async (conv: any) => {
+  try {
+    // 当前显示归档列表时，点击是取消归档（status=1）；否则是归档（status=2）
+    const newStatus = showArchived.value ? 1 : 2
+    await AiConversationApi.status({id: conv.id, status: newStatus})
+    ElNotification.success({message: showArchived.value ? '已取消归档' : '已归档'})
+    // 如果归档的是当前会话，清空选中
+    if (currentConversationId.value === conv.id) {
+      currentConversationId.value = null
+      messages.value = []
+    }
+    await loadConversations()
+  } catch { /* handled */ }
+}
+
+// 切换归档视图
+const handleToggleArchived = (archived: boolean) => {
+  if (showArchived.value === archived) return
+  showArchived.value = archived
+  currentConversationId.value = null
+  messages.value = []
+  loadConversations()
+}
+
 // 发送消息（流式）
 const handleSendMessage = async (content: string) => {
   if (sending.value) return // 硬挡防止重复提交
@@ -447,6 +481,20 @@ const handleDeleteMessage = async (msg: any) => {
   } catch { /* handled */ }
 }
 
+// 消息反馈（点赞/点踩）
+const handleFeedbackMessage = async (msg: any, feedback: number | null) => {
+  try {
+    await AiMessageApi.feedback({id: msg.id, feedback: feedback ?? undefined})
+    // 更新本地消息的 meta_json
+    if (!msg.meta_json) msg.meta_json = {}
+    if (feedback === null) {
+      delete msg.meta_json.feedback
+    } else {
+      msg.meta_json.feedback = feedback
+    }
+  } catch { /* handled */ }
+}
+
 // 重新生成（删除最后一条 AI 回复，重新发送上一条用户消息）
 const handleRegenerateMessage = async (msg: any) => {
   if (sending.value) return
@@ -545,11 +593,14 @@ const handleRegenerateMessage = async (msg: any) => {
         :loading-more="conversationsLoadingMore"
         :has-more="conversationsHasMore"
         :current-id="currentConversationId"
+        :show-archived="showArchived"
         @select="handleSelectConversation"
         @create="handleCreateConversation"
         @rename="handleRenameConversation"
         @delete="handleDeleteConversation"
+        @archive="handleArchiveConversation"
         @load-more="loadMoreConversations"
+        @toggle-archived="handleToggleArchived"
     />
 
     <!-- 右侧主区域 -->
@@ -619,6 +670,7 @@ const handleRegenerateMessage = async (msg: any) => {
             @copy="handleCopyMessage"
             @delete="handleDeleteMessage"
             @regenerate="handleRegenerateMessage"
+            @feedback="handleFeedbackMessage"
         />
       </el-scrollbar>
 

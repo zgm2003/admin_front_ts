@@ -5,4 +5,5 @@ export const AiConversationApi = {
   add: (params: any) => request.post('/api/admin/AiConversation/add', params),
   edit: (params: any) => request.post('/api/admin/AiConversation/edit', params),
   del: (params: any) => request.post('/api/admin/AiConversation/del', params),
+  status: (params: any) => request.post('/api/admin/AiConversation/status', params),
 }
