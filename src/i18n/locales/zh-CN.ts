@@ -42,6 +42,7 @@ export default {
   common: {
     back: '返回',
     index: '序号',
+    to: '至',
     success: {
       login: '登录成功',
       register: '注册成功',
@@ -531,6 +532,34 @@ export default {
       error: '错误信息',
       userMessage: '用户消息',
       assistantMessage: 'AI 回复'
+    },
+    tabs: {
+      list: '运行列表',
+      stats: '统计分析'
+    },
+    stats: {
+      dateRange: '日期范围',
+      startDate: '开始日期',
+      endDate: '结束日期',
+      overview: '概览',
+      totalRuns: '总请求数',
+      totalTokens: '总 Tokens',
+      promptTokens: '输入 Tokens',
+      completionTokens: '输出 Tokens',
+      avgLatency: '平均耗时',
+      totalCost: '总成本',
+      byDate: '按日期',
+      byAgent: '按智能体',
+      byUser: '按用户',
+      date: '日期',
+      agent: '智能体',
+      user: '用户',
+      runs: '请求',
+      tokens: 'Tokens',
+      input: '输入',
+      output: '输出',
+      latency: '耗时',
+      noData: '暂无统计数据'
     }
   },
   error: {notFound: '抱歉，您访问的页面不存在'}

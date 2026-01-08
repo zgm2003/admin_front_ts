@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight, Top, Bottom} from '@element-plus/icons-vue'
+import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
 import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
+import ThumbUp from '@/components/Icons/ThumbUp.vue'
+import ThumbDown from '@/components/Icons/ThumbDown.vue'
 
 const {t} = useI18n()
 
@@ -72,17 +74,19 @@ const handleFeedback = (msg: any, feedback: number) => {
             <template v-if="msg.role === 2">
               <el-button 
                 text size="small" 
-                :class="{ 'feedback-active': getFeedback(msg) === 1 }"
+                class="feedback-btn"
+                :class="{ 'feedback-like-active': getFeedback(msg) === 1 }"
                 @click="handleFeedback(msg, 1)"
               >
-                <el-icon :size="16"><Top /></el-icon>
+                <ThumbUp :size="16" />
               </el-button>
               <el-button 
                 text size="small" 
-                :class="{ 'feedback-active': getFeedback(msg) === 2 }"
+                class="feedback-btn"
+                :class="{ 'feedback-dislike-active': getFeedback(msg) === 2 }"
                 @click="handleFeedback(msg, 2)"
               >
-                <el-icon :size="16"><Bottom /></el-icon>
+                <ThumbDown :size="16" />
               </el-button>
             </template>
             <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
@@ -233,13 +237,34 @@ const handleFeedback = (msg: any, feedback: number) => {
   color: var(--el-text-color-primary);
 }
 
-.message-actions :deep(.feedback-active),
-.message-actions :deep(.feedback-active:hover) {
+/* 反馈按钮 */
+.message-actions :deep(.feedback-btn svg) {
+  color: var(--el-text-color-secondary);
+  transition: color 0.15s ease;
+}
+
+.message-actions :deep(.feedback-btn:hover svg) {
+  color: var(--el-text-color-primary);
+}
+
+/* 点赞选中 - 蓝色 */
+.message-actions :deep(.feedback-like-active),
+.message-actions :deep(.feedback-like-active:hover) {
   background: var(--el-color-primary-light-9) !important;
 }
 
-.message-actions :deep(.feedback-active .el-icon) {
+.message-actions :deep(.feedback-like-active svg) {
   color: var(--el-color-primary) !important;
+}
+
+/* 点踩选中 - 红色 */
+.message-actions :deep(.feedback-dislike-active),
+.message-actions :deep(.feedback-dislike-active:hover) {
+  background: var(--el-color-danger-light-9) !important;
+}
+
+.message-actions :deep(.feedback-dislike-active svg) {
+  color: var(--el-color-danger) !important;
 }
 
 /* 流式输出指示器 */

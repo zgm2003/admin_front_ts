@@ -42,6 +42,7 @@ export default {
   common: {
     back: 'Back',
     index: 'Index',
+    to: 'to',
     success: {
       login: 'Signed in successfully',
       register: 'Registered successfully',
@@ -531,6 +532,34 @@ export default {
       error: 'Error',
       userMessage: 'User Message',
       assistantMessage: 'AI Response'
+    },
+    tabs: {
+      list: 'Run List',
+      stats: 'Statistics'
+    },
+    stats: {
+      dateRange: 'Date Range',
+      startDate: 'Start Date',
+      endDate: 'End Date',
+      overview: 'Overview',
+      totalRuns: 'Total Runs',
+      totalTokens: 'Total Tokens',
+      promptTokens: 'Input Tokens',
+      completionTokens: 'Output Tokens',
+      avgLatency: 'Avg Latency',
+      totalCost: 'Total Cost',
+      byDate: 'By Date',
+      byAgent: 'By Agent',
+      byUser: 'By User',
+      date: 'Date',
+      agent: 'Agent',
+      user: 'User',
+      runs: 'Runs',
+      tokens: 'Tokens',
+      input: 'Input',
+      output: 'Output',
+      latency: 'Latency',
+      noData: 'No statistics data'
     }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
