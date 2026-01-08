@@ -90,9 +90,11 @@ export default {
       batchEdit: '批量修改',
       action: '操作',
       detail: '详情',
-      close: '关闭'
+      close: '关闭',
+      selectAll: '全选'
     },
-    quickEntry: '快速入口'
+    quickEntry: '快速入口',
+    loadMore: '加载更多'
   },
   menu: {
     home: '首页',

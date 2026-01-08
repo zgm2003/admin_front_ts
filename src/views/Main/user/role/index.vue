@@ -144,6 +144,29 @@ const handleDefaultSwitch = async (current: any) => {
   })
 }
 const props = {multiple: true, emitPath: false, checkStrictly: true}
+
+// 获取权限树所有叶子节点ID
+const getLeafIds = (nodes: any[]): any[] => {
+  const ids: any[] = []
+  const traverse = (items: any[]) => {
+    for (const item of items) {
+      if (item.children?.length) {
+        traverse(item.children)
+      } else {
+        ids.push(item.value)
+      }
+    }
+  }
+  traverse(nodes)
+  return ids
+}
+
+// 全选权限
+const selectAllPermissions = () => {
+  const allIds = getLeafIds(PermissionTree.value)
+  form.value.permission_id = allIds as any
+}
+
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150}
 ])
@@ -204,8 +227,11 @@ onMounted(() => {
           <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
         <el-form-item label="权限">
-          <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" collapse-tags clearable
-                       style="width:100%"/>
+          <div style="display: flex; gap: 8px; width: 100%">
+            <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" clearable
+                         style="flex: 1"/>
+            <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
+          </div>
         </el-form-item>
       </el-form>
     </div>

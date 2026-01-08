@@ -90,9 +90,11 @@ export default {
       batchEdit: 'Batch Edit',
       action: 'Actions',
       detail: 'Detail',
-      close: 'Close'
+      close: 'Close',
+      selectAll: 'Select All'
     },
-    quickEntry: 'Quick Entry'
+    quickEntry: 'Quick Entry',
+    loadMore: 'Load More'
   },
   menu: {
     home: 'Home',
