@@ -24,10 +24,12 @@ const {
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  confirmDel
 } = useTable({
   api: AiAgentApi.list,
-  searchForm
+  searchForm,
+  delApi: AiAgentApi.del
 })
 
 const dialogVisible = ref(false)
@@ -183,22 +185,6 @@ const toggleStatus = async (row: any, newStatus: number) => {
   })
 }
 
-const del = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
-      type: 'warning',
-      confirmButtonText: t('common.actions.del'),
-      cancelButtonText: t('common.actions.cancel')
-    })
-  } catch {
-    return
-  }
-  AiAgentApi.del({id: row.id}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  })
-}
-
 onMounted(() => {
   init()
   getList()
@@ -246,7 +232,7 @@ onMounted(() => {
           <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">
             {{ t('common.actions.disable') }}
           </el-button>
-          <el-button type="danger" text @click="del(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

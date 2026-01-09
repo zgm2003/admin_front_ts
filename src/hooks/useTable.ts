@@ -1,4 +1,8 @@
 import {ref, unref} from 'vue'
+import {ElNotification, ElMessageBox} from 'element-plus'
+import i18n from '@/i18n'
+
+const t = i18n.global.t
 
 interface PageState {
   current_page: number
@@ -17,10 +21,14 @@ interface UseTableOptions<T> {
   initPage?: Partial<PageState>
   // 数据处理回调
   dataCallback?: (data: any) => any
+  // 删除 API
+  delApi?: (params: any) => Promise<any>
+  // 删除后回调
+  afterDel?: () => void
 }
 
 export function useTable<T = any>(options: UseTableOptions<T>) {
-  const { api, searchForm = {}, immediate = false, initPage = {}, dataCallback } = options
+  const { api, searchForm = {}, immediate = false, initPage = {}, dataCallback, delApi, afterDel } = options
 
   const loading = ref(false)
   const data = ref<T[]>([])
@@ -30,6 +38,12 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
     total: 0,
     ...initPage
   })
+
+  // 选中的 ID 列表
+  const selectedIds = ref<any[]>([])
+  const onSelectionChange = (selection: any[]) => {
+    selectedIds.value = selection.map((item: any) => item.id)
+  }
 
   // 获取列表
   const getList = () => {
@@ -83,6 +97,53 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
     getList()
   }
 
+  // 单个删除
+  const confirmDel = async (row: any) => {
+    if (!delApi) {
+      console.warn('useTable: delApi not provided')
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        t('common.confirmDelete'),
+        t('common.confirmTitle'),
+        { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+      )
+    } catch {
+      return
+    }
+    await delApi({ id: row.id })
+    ElNotification.success({ message: t('common.success.operation') })
+    getList()
+    afterDel?.()
+  }
+
+  // 批量删除
+  const batchDel = async () => {
+    if (!delApi) {
+      console.warn('useTable: delApi not provided')
+      return
+    }
+    if (!selectedIds.value.length) {
+      ElNotification.error({ message: t('common.selectAtLeastOne') })
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        t('common.confirmBatchDelete'),
+        t('common.confirmTitle'),
+        { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
+      )
+    } catch {
+      return
+    }
+    await delApi({ id: selectedIds.value })
+    ElNotification.success({ message: t('common.success.operation') })
+    selectedIds.value = []
+    getList()
+    afterDel?.()
+  }
+
   // 立即执行
   if (immediate) {
     getList()
@@ -92,9 +153,13 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
     loading,
     data,
     page,
+    selectedIds,
     getList,
     onSearch,
     onPageChange,
-    refresh
+    onSelectionChange,
+    refresh,
+    confirmDel,
+    batchDel
   }
 }

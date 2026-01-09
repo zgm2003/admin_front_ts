@@ -15,24 +15,23 @@ const isMobile = useIsMobile()
 const dict = ref({ai_driver_arr: [], common_status_arr: []} as any)
 
 const searchForm = ref({name: '', driver: '', status: ''} as any)
-const selectedIds = ref<any[]>([])
 
 const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel
 } = useTable({
   api: AiModelApi.list,
-  searchForm
+  searchForm,
+  delApi: AiModelApi.del
 })
-
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((it: any) => it.id)
-}
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
@@ -164,22 +163,6 @@ const toggleStatus = async (row: any, newStatus: number) => {
   })
 }
 
-const del = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
-      type: 'warning',
-      confirmButtonText: t('common.actions.del'),
-      cancelButtonText: t('common.actions.cancel')
-    })
-  } catch {
-    return
-  }
-  AiModelApi.del({id: row.id}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  })
-}
-
 onMounted(() => {
   init()
   getList()
@@ -217,9 +200,13 @@ onMounted(() => {
         </template>
         <template #cell-actions="{row}">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
-          <el-button type="danger" text @click="del(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">
+            {{ t('common.actions.disable') }}
+          </el-button>
+          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

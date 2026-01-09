@@ -36,19 +36,19 @@ const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel
 } = useTable({
   api: UsersListApi.list,
   searchForm,
+  delApi: UsersListApi.del
 })
-
-const selectedIds = ref([] as any[])
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item: any) => item.id)
-}
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'username',
@@ -137,23 +137,6 @@ const confirmEdit = () => {
   }).catch(() => {
   })
 }
-const confirmDel = async (current: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: current.id}
-  UsersListApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList()
-  }).catch(() => {
-  })
-}
 const confirmKick = async (current: any) => {
   try {
     await ElMessageBox.confirm(
@@ -167,27 +150,6 @@ const confirmKick = async (current: any) => {
   const param = { id: current.id, platform: searchForm.value.platform }
   UsersListApi.kick(param).then(() => {
     ElNotification.success({ message: t('common.success.operation') });
-    getList()
-  }).catch(() => {
-  })
-}
-const batchDel = async () => {
-  if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: t('common.selectAtLeastOne')});
-    return
-  }
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: selectedIds.value}
-  UsersListApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
     getList()
   }).catch(() => {
   })

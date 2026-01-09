@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {OperationLogApi} from '@/api/system/logs'
-import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
@@ -28,18 +27,19 @@ const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel
 } = useTable({
   api: OperationLogApi.list,
-  searchForm
+  searchForm,
+  delApi: OperationLogApi.del,
 })
-
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item: any) => item.id)
-}
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -68,47 +68,6 @@ const searchFields = computed<SearchField[]>(() => [
     props: {valueFormat: 'YYYY-MM-DD'}
   }
 ])
-const confirmDel = async (current: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: current.id}
-  OperationLogApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList();
-    init()
-  }).catch(() => {
-  })
-}
-const selectedIds = ref([] as any[])
-const batchDel = async () => {
-  if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: t('common.selectAtLeastOne')});
-    return
-  }
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: selectedIds.value}
-  OperationLogApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList()
-  }).catch(() => {
-  })
-}
-
 onMounted(() => {
   init()
   getList()

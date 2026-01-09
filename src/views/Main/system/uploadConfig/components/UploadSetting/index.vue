@@ -20,13 +20,18 @@ const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel
 } = useTable({
   api: UploadSettingApi.list,
-  searchForm
+  searchForm,
+  delApi: UploadSettingApi.del
 })
 const dict = ref({upload_driver_list: [], upload_rule_list: [], common_status_arr: []} as any)
 
@@ -78,10 +83,6 @@ const init = () => {
   UploadSettingApi.init().then((data: any) => {
     dict.value = data.dict || {}
   })
-}
-const selectedIds = ref<any[]>([])
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((it: any) => it.id)
 }
 
 const dialogVisible = ref(false)
@@ -146,41 +147,6 @@ const confirmSubmit = async () => {
   api(form.value).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
-    getList()
-  })
-}
-
-const confirmDel = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  UploadSettingApi.del({id: row.id}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  })
-}
-const batchDel = async () => {
-  if (!selectedIds.value.length) {
-    ElNotification.error({message: t('common.selectAtLeastOne')})
-    return
-  }
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  UploadSettingApi.del({id: selectedIds.value}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
     getList()
   })
 }

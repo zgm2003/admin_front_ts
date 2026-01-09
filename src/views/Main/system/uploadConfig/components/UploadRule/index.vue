@@ -3,7 +3,7 @@ import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {UploadRuleApi} from '@/api/system/uploadConfig'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {ElMessageBox, ElNotification} from 'element-plus'
+import {ElNotification} from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
@@ -17,22 +17,24 @@ const userStore = useUserStore()
 const dict = ref({upload_image_ext_arr: [], upload_file_ext_arr: []} as any)
 
 const searchForm = ref({title: ''})
-const selectedIds = ref<any[]>([])
 
 const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel
 } = useTable({
   api: UploadRuleApi.list,
-  searchForm
+  searchForm,
+  delApi: UploadRuleApi.del
 })
-
-const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
@@ -128,41 +130,6 @@ const confirmSubmit = async () => {
   api(form.value).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     dialogVisible.value = false;
-    getList()
-  })
-}
-
-const confirmDel = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  UploadRuleApi.del({id: row.id}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  })
-}
-const batchDel = async () => {
-  if (!selectedIds.value.length) {
-    ElNotification.error({message: t('common.selectAtLeastOne')})
-    return
-  }
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  UploadRuleApi.del({id: selectedIds.value}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
     getList()
   })
 }

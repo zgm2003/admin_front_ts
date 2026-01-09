@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {SystemSettingApi} from '@/api/system/setting'
-import {ElNotification, ElMessageBox} from 'element-plus'
+import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -15,22 +15,23 @@ const isMobile = useIsMobile()
 const dict = ref({ system_setting_value_type_arr: [] } as any)
 
 const searchForm = ref({key: '', status: ''} as any)
-const selectedIds = ref<any[]>([])
 
 const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel
 } = useTable({
   api: SystemSettingApi.list,
-  searchForm
+  searchForm,
+  delApi: SystemSettingApi.del
 })
-
-const onSelectionChange = (selection: any[]) => { selectedIds.value = selection.map((it: any) => it.id) }
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
@@ -119,12 +120,6 @@ const enable = (row: any) => {
 const disable = (row: any) => {
   SystemSettingApi.status({ id: row.id, status: 2 }).then(() => { ElNotification.success({message: t('common.success.operation')}); getList() })
 }
-const del = async (row: any) => {
-  try {
-    await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')})
-  } catch { return }
-  SystemSettingApi.del({ id: row.id }).then(() => { ElNotification.success({message: t('common.success.operation')}); getList() })
-}
 
 const copy = async (text: string) => {
   try { await navigator.clipboard.writeText(text); ElNotification.success({message: '复制成功'}) } catch {}
@@ -168,7 +163,7 @@ onMounted(() => { init(); getList() })
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
           <el-button type="warning" text v-if="row.status===2" @click="enable(row)">启用</el-button>
           <el-button type="warning" text v-if="row.status===1" @click="disable(row)">禁用</el-button>
-          <el-button type="danger" text @click="del(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

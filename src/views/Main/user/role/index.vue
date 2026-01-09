@@ -43,14 +43,19 @@ const {
   loading: listLoading,
   data: listData,
   page,
+  selectedIds,
   onSearch,
   onPageChange,
   refresh,
-  getList
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel
 } = useTable({
   api: RoleApi.list,
   searchForm,
-  initPage: { page_size: 50 }
+  initPage: { page_size: 50 },
+  delApi: RoleApi.del
 })
 
 const columns = [
@@ -60,11 +65,6 @@ const columns = [
   {key: 'updated_at', label: t('role.table.updated_at')},
   {key: 'actions', label: '操作', width: 300}
 ]
-
-const selectedIds = ref([] as any[])
-const onSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item: any) => item.id)
-}
 const edit = (current: any) => {
   dialogMode.value = 'edit'
   form.value = {id: current.id, name: current.name, permission_id: current.permission_id}
@@ -86,44 +86,6 @@ const confirmSubmit = async () => {
     ElNotification.success({message: t('common.success.operation')});
     dialogVisible.value = false;
     getList()
-  })
-}
-const confirmDel = async (current: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: current.id}
-  RoleApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList();
-  }).catch(() => {
-  })
-}
-const batchDel = async () => {
-  if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: t('common.selectAtLeastOne')});
-    return
-  }
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: selectedIds.value}
-  RoleApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList()
-  }).catch(() => {
   })
 }
 const handleDefaultSwitch = async (current: any) => {
