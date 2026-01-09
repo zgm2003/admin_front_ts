@@ -32,7 +32,7 @@ const {
   refresh,
   getList
 } = useTable({
-  api: UsersLoginLogApi.list,
+  api: UsersLoginLogApi,
   searchForm
 })
 

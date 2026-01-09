@@ -27,7 +27,7 @@ const {
   refresh,
   getList
 } = useTable({
-  api: AiRunApi.list,
+  api: AiRunApi,
   searchForm
 })
 

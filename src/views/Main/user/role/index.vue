@@ -52,10 +52,9 @@ const {
   confirmDel,
   batchDel
 } = useTable({
-  api: RoleApi.list,
+  api: RoleApi,
   searchForm,
-  initPage: { page_size: 50 },
-  delApi: RoleApi.del
+  initPage: { page_size: 50 }
 })
 
 const columns = [

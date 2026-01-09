@@ -36,9 +36,8 @@ const {
   confirmDel,
   batchDel
 } = useTable({
-  api: OperationLogApi.list,
-  searchForm,
-  delApi: OperationLogApi.del,
+  api: OperationLogApi,
+  searchForm
 })
 
 const searchFields = computed<SearchField[]>(() => [

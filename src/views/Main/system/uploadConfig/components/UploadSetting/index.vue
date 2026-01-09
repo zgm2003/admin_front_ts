@@ -29,9 +29,8 @@ const {
   confirmDel,
   batchDel
 } = useTable({
-  api: UploadSettingApi.list,
-  searchForm,
-  delApi: UploadSettingApi.del
+  api: UploadSettingApi,
+  searchForm
 })
 const dict = ref({upload_driver_list: [], upload_rule_list: [], common_status_arr: []} as any)
 

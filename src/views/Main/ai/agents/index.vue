@@ -27,9 +27,8 @@ const {
   getList,
   confirmDel
 } = useTable({
-  api: AiAgentApi.list,
-  searchForm,
-  delApi: AiAgentApi.del
+  api: AiAgentApi,
+  searchForm
 })
 
 const dialogVisible = ref(false)

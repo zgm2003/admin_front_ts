@@ -31,9 +31,8 @@ const {
   confirmDel,
   batchDel
 } = useTable({
-  api: UploadRuleApi.list,
-  searchForm,
-  delApi: UploadRuleApi.del
+  api: UploadRuleApi,
+  searchForm
 })
 
 const dialogVisible = ref(false)

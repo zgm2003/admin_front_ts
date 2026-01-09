@@ -28,9 +28,8 @@ const {
   onSelectionChange,
   confirmDel
 } = useTable({
-  api: AiModelApi.list,
-  searchForm,
-  delApi: AiModelApi.del
+  api: AiModelApi,
+  searchForm
 })
 
 const dialogVisible = ref(false)

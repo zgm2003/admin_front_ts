@@ -30,9 +30,8 @@ const {
   confirmDel,
   batchDel
 } = useTable({
-  api: UploadDriverApi.list,
-  searchForm,
-  delApi: UploadDriverApi.del
+  api: UploadDriverApi,
+  searchForm
 })
 
 const dict = ref({upload_driver_arr: []} as any)

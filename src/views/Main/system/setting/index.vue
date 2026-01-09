@@ -28,9 +28,8 @@ const {
   onSelectionChange,
   confirmDel
 } = useTable({
-  api: SystemSettingApi.list,
-  searchForm,
-  delApi: SystemSettingApi.del
+  api: SystemSettingApi,
+  searchForm
 })
 
 const dialogVisible = ref(false)
