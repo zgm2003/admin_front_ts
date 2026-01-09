@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiAgentApi} from '@/api/ai/agents'
-import {ElNotification, ElMessageBox} from 'element-plus'
+import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -25,7 +25,8 @@ const {
   onPageChange,
   refresh,
   getList,
-  confirmDel
+  confirmDel,
+  toggleStatus
 } = useTable({
   api: AiAgentApi,
   searchForm
@@ -164,22 +165,6 @@ const confirmSubmit = async () => {
   api(payload).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
-    getList()
-  })
-}
-
-const toggleStatus = async (row: any, newStatus: number) => {
-  try {
-    await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
-      type: 'warning',
-      confirmButtonText: t('common.actions.confirm'),
-      cancelButtonText: t('common.actions.cancel')
-    })
-  } catch {
-    return
-  }
-  AiAgentApi.status({id: row.id, status: newStatus}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
     getList()
   })
 }

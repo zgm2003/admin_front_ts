@@ -14,6 +14,7 @@ interface PageState {
 interface ApiModule {
   list: (params: any) => Promise<{ list: any[]; page: PageState }>
   del?: (params: any) => Promise<any>
+  status?: (params: any) => Promise<any>
 }
 
 interface UseTableOptions<T> {
@@ -138,6 +139,26 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
     afterDel?.()
   }
 
+  // 状态切换
+  const toggleStatus = async (row: any, newStatus: number) => {
+    if (!api.status) {
+      console.warn('useTable: api.status not provided')
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        t('common.confirmStatusChange'),
+        t('common.confirmTitle'),
+        { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+      )
+    } catch {
+      return
+    }
+    await api.status({ id: row.id, status: newStatus })
+    ElNotification.success({ message: t('common.success.operation') })
+    getList()
+  }
+
   // 立即执行
   if (immediate) {
     getList()
@@ -154,6 +175,7 @@ export function useTable<T = any>(options: UseTableOptions<T>) {
     onSelectionChange,
     refresh,
     confirmDel,
-    batchDel
+    batchDel,
+    toggleStatus
   }
 }

@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {ElMessageBox, ElNotification} from 'element-plus'
+import {ElNotification} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -27,7 +27,8 @@ const {
   getList,
   onSelectionChange,
   confirmDel,
-  batchDel
+  batchDel,
+  toggleStatus
 } = useTable({
   api: UploadSettingApi,
   searchForm
@@ -72,10 +73,10 @@ const columns = computed(() => [
   {key: 'driver_name', label: t('upload.setting.table.driver')},
   {key: 'rule_name', label: t('upload.setting.table.rule')},
   {key: 'remark', label: t('upload.setting.table.remark'), width: 200, overflowTooltip: true},
-  {key: 'status', label: t('upload.setting.table.status'), slot: 'status'},
+  {key: 'status', label: t('upload.setting.table.status'), width: 100},
   {key: 'created_at', label: t('upload.setting.table.created_at')},
   {key: 'updated_at', label: t('upload.setting.table.updated_at')},
-  {key: 'actions', label: t('common.actions.action'), width: 220}
+  {key: 'actions', label: t('common.actions.action'), width: 280}
 ])
 
 const init = () => {
@@ -150,26 +151,6 @@ const confirmSubmit = async () => {
   })
 }
 
-const changeStatus = async (row: any) => {
-  if (!row || !row.id) return
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmStatusChange'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    row.status = row.status === 1 ? 2 : 1 // revert
-    return
-  }
-  UploadSettingApi.status({id: row.id, status: row.status}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    getList()
-  }).catch(() => {
-    row.status = row.status === 1 ? 2 : 1 // revert
-  })
-}
-
 onMounted(() => {
   init()
   getList()
@@ -215,18 +196,18 @@ onMounted(() => {
         </template>
 
         <template #cell-status="{ row }">
-          <el-switch
-              v-model="row.status"
-              :active-value="1"
-              :inactive-value="2"
-              @change="changeStatus(row)"
-              :disabled="!userStore.can('uploadSetting.status')"
-          />
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
 
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadSetting.edit')">
             {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button type="warning" text v-if="row.status === 2 && userStore.can('uploadSetting.status')" @click="toggleStatus(row, 1)">
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button type="warning" text v-if="row.status === 1 && userStore.can('uploadSetting.status')" @click="toggleStatus(row, 2)">
+            {{ t('common.actions.disable') }}
           </el-button>
           <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadSetting.del')">
             {{ t('common.actions.del') }}

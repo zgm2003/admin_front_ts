@@ -26,7 +26,8 @@ const {
   refresh,
   getList,
   onSelectionChange,
-  confirmDel
+  confirmDel,
+  toggleStatus
 } = useTable({
   api: SystemSettingApi,
   searchForm
@@ -113,13 +114,6 @@ const confirmSubmit = async () => {
   })
 }
 
-const enable = (row: any) => {
-  SystemSettingApi.status({ id: row.id, status: 1 }).then(() => { ElNotification.success({message: t('common.success.operation')}); getList() })
-}
-const disable = (row: any) => {
-  SystemSettingApi.status({ id: row.id, status: 2 }).then(() => { ElNotification.success({message: t('common.success.operation')}); getList() })
-}
-
 const copy = async (text: string) => {
   try { await navigator.clipboard.writeText(text); ElNotification.success({message: '复制成功'}) } catch {}
 }
@@ -160,8 +154,8 @@ onMounted(() => { init(); getList() })
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text v-if="row.status===2" @click="enable(row)">启用</el-button>
-          <el-button type="warning" text v-if="row.status===1" @click="disable(row)">禁用</el-button>
+          <el-button type="warning" text v-if="row.status===2" @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
+          <el-button type="warning" text v-if="row.status===1" @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
           <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
