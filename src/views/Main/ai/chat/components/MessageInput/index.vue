@@ -78,8 +78,12 @@ defineExpose({
           :disabled="!inputText.trim() || sending || disabled"
           @click="handleSend"
       >
-        <el-icon v-if="!sending" :size="20"><Promotion/></el-icon>
-        <el-icon v-else class="is-loading" :size="20"><Promotion/></el-icon>
+        <el-icon v-if="!sending" :size="20">
+          <Promotion/>
+        </el-icon>
+        <el-icon v-else class="is-loading" :size="20">
+          <Promotion/>
+        </el-icon>
       </button>
     </div>
     <div class="input-hint">
@@ -176,12 +180,12 @@ defineExpose({
   .input-wrapper {
     padding: 12px 16px 16px;
   }
-  
+
   .input-container {
     border-radius: 12px;
     padding: 10px 12px;
   }
-  
+
   .input-hint {
     display: none;
   }

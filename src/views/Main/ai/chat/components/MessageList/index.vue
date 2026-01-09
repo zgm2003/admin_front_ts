@@ -49,7 +49,9 @@ const handleFeedback = (msg: any, feedback: number) => {
   <div class="message-list-container">
     <!-- 只在没有消息且正在加载时显示 loading -->
     <div v-if="loading && messages.length === 0" class="loading-tip">
-      <el-icon class="is-loading" :size="24"><Loading/></el-icon>
+      <el-icon class="is-loading" :size="24">
+        <Loading/>
+      </el-icon>
       <span>加载中...</span>
     </div>
     <!-- 有消息时始终显示消息列表 -->
@@ -67,26 +69,26 @@ const handleFeedback = (msg: any, feedback: number) => {
             <div v-if="msg.role === 1" class="message-text">{{ msg.content }}</div>
             <MarkdownRenderer v-else :content="msg.content" class="message-text"/>
           </div>
-          
+
           <!-- 操作按钮 - 仅 hover 时显示 -->
           <div class="message-actions" v-if="!msg.isStreaming">
             <!-- AI 消息显示点赞/点踩 -->
             <template v-if="msg.role === 2">
-              <el-button 
-                text size="small" 
-                class="feedback-btn"
-                :class="{ 'feedback-like-active': getFeedback(msg) === 1 }"
-                @click="handleFeedback(msg, 1)"
+              <el-button
+                  text size="small"
+                  class="feedback-btn"
+                  :class="{ 'feedback-like-active': getFeedback(msg) === 1 }"
+                  @click="handleFeedback(msg, 1)"
               >
-                <ThumbUp :size="16" />
+                <ThumbUp :size="16"/>
               </el-button>
-              <el-button 
-                text size="small" 
-                class="feedback-btn"
-                :class="{ 'feedback-dislike-active': getFeedback(msg) === 2 }"
-                @click="handleFeedback(msg, 2)"
+              <el-button
+                  text size="small"
+                  class="feedback-btn"
+                  :class="{ 'feedback-dislike-active': getFeedback(msg) === 2 }"
+                  @click="handleFeedback(msg, 2)"
               >
-                <ThumbDown :size="16" />
+                <ThumbDown :size="16"/>
               </el-button>
             </template>
             <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
@@ -95,17 +97,17 @@ const handleFeedback = (msg: any, feedback: number) => {
             <el-button type="info" text size="small" :icon="Delete" @click="emit('delete', msg)">
               删除
             </el-button>
-            <el-button 
-              v-if="showRegenerate(msg, index)" 
-              type="info" text size="small" 
-              :icon="RefreshRight" 
-              :disabled="sending" 
-              @click="emit('regenerate', msg)"
+            <el-button
+                v-if="showRegenerate(msg, index)"
+                type="info" text size="small"
+                :icon="RefreshRight"
+                :disabled="sending"
+                @click="emit('regenerate', msg)"
             >
               重新生成
             </el-button>
           </div>
-          
+
           <!-- 流式输出指示器 -->
           <div v-if="msg.isStreaming" class="streaming-indicator">
             <span class="typing-dot"></span>
@@ -284,9 +286,17 @@ const handleFeedback = (msg: any, feedback: number) => {
   animation: typing 1.4s infinite ease-in-out both;
 }
 
-.typing-dot:nth-child(1) { animation-delay: 0s; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+.typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 @keyframes typing {
   0%, 80%, 100% {
@@ -305,15 +315,15 @@ const handleFeedback = (msg: any, feedback: number) => {
     gap: 20px;
     padding: 16px 0;
   }
-  
+
   .message-row {
     padding: 0 12px;
   }
-  
+
   .user-body {
     max-width: 85%;
   }
-  
+
   .message-text {
     font-size: 14px;
   }

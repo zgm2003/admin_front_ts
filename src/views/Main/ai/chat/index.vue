@@ -38,7 +38,7 @@ const loadConversations = async () => {
   conversationsHasMore.value = true
   try {
     const res = await AiConversationApi.list({
-      page_size: CONV_PAGE_SIZE, 
+      page_size: CONV_PAGE_SIZE,
       current_page: 1,
       status: showArchived.value ? 2 : 1  // 1正常 2归档
     })
@@ -53,18 +53,18 @@ const loadConversations = async () => {
 // 加载更多会话（滚到底部触发）
 const loadMoreConversations = async () => {
   if (conversationsLoadingMore.value || !conversationsHasMore.value) return
-  
+
   conversationsLoadingMore.value = true
   const nextPage = conversationsPage.value + 1
-  
+
   try {
     const res = await AiConversationApi.list({
-      page_size: CONV_PAGE_SIZE, 
+      page_size: CONV_PAGE_SIZE,
       current_page: nextPage,
       status: showArchived.value ? 2 : 1
     })
     const list = res.list || []
-    
+
     if (list.length > 0) {
       conversations.value = [...conversations.value, ...list]
       conversationsPage.value = nextPage
@@ -119,28 +119,28 @@ const loadMessages = async () => {
 // 加载更多历史消息（上滑触发）
 const loadMoreMessages = async () => {
   if (!currentConversationId.value || messagesLoadingMore.value || !messagesHasMore.value) return
-  
+
   messagesLoadingMore.value = true
   const nextPage = messagesPage.value + 1
-  
+
   try {
     // 记住当前滚动位置
     const wrap = messageScrollRef.value?.wrapRef
     const prevScrollHeight = wrap?.scrollHeight || 0
-    
+
     const res = await AiMessageApi.list({
       conversation_id: currentConversationId.value,
       page_size: PAGE_SIZE,
       current_page: nextPage
     })
     const list = res.list || []
-    
+
     if (list.length > 0) {
       // 插入到列表开头（反转后变成时间升序）
       messages.value = [...list.reverse(), ...messages.value]
       messagesPage.value = nextPage
       messagesHasMore.value = list.length >= PAGE_SIZE
-      
+
       // 保持滚动位置（新内容插入后保持相对位置不变）
       nextTick(() => {
         if (wrap) {
@@ -171,7 +171,7 @@ const scrollToBottom = () => {
 }
 
 // ========== 智能体相关 ==========
-const agents = ref<any[]>([])  
+const agents = ref<any[]>([])
 const selectedAgentId = ref<number | null>(null)
 const agentSearchLoading = ref(false)
 
@@ -195,7 +195,7 @@ const loadAgents = async (keyword?: string) => {
   agentSearchLoading.value = true
   try {
     const res = await AiAgentApi.list({
-      page_size: 10, 
+      page_size: 10,
       status: 1,
       name: keyword || undefined
     })
@@ -204,7 +204,8 @@ const loadAgents = async (keyword?: string) => {
     if (!keyword && agents.value.length > 0 && !selectedAgentId.value) {
       selectedAgentId.value = agents.value[0].id
     }
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
   agentSearchLoading.value = false
 }
 
@@ -273,7 +274,8 @@ const confirmRename = async () => {
     ElNotification.success({message: t('common.success.operation')})
     showRenameDialog.value = false
     await loadConversations()
-  } catch { /* handled */ }
+  } catch { /* handled */
+  }
 }
 
 // 删除
@@ -295,7 +297,8 @@ const handleDeleteConversation = async (conv: any) => {
       messages.value = []
     }
     await loadConversations()
-  } catch { /* handled */ }
+  } catch { /* handled */
+  }
 }
 
 // 归档/取消归档
@@ -311,7 +314,8 @@ const handleArchiveConversation = async (conv: any) => {
       messages.value = []
     }
     await loadConversations()
-  } catch { /* handled */ }
+  } catch { /* handled */
+  }
 }
 
 // 切换归档视图
@@ -478,7 +482,8 @@ const handleDeleteMessage = async (msg: any) => {
     await AiMessageApi.del({id: msg.id})
     ElNotification.success({message: t('common.success.operation')})
     await loadMessages()
-  } catch { /* handled */ }
+  } catch { /* handled */
+  }
 }
 
 // 消息反馈（点赞/点踩）
@@ -492,39 +497,41 @@ const handleFeedbackMessage = async (msg: any, feedback: number | null) => {
     } else {
       msg.meta_json.feedback = feedback
     }
-  } catch { /* handled */ }
+  } catch { /* handled */
+  }
 }
 
 // 重新生成（删除最后一条 AI 回复，重新发送上一条用户消息）
 const handleRegenerateMessage = async (msg: any) => {
   if (sending.value) return
-  
+
   // 找到对应的用户消息（上一条）
   const msgIndex = messages.value.findIndex(m => m.id === msg.id)
   if (msgIndex <= 0) return
-  
+
   const userMsg = messages.value[msgIndex - 1]
   if (!userMsg || userMsg.role !== 1) {
     ElNotification.warning({message: '找不到对应的用户消息'})
     return
   }
-  
+
   // 删除旧的 AI 回复
   try {
     await AiMessageApi.del({id: msg.id})
-  } catch { /* ignore */ }
-  
+  } catch { /* ignore */
+  }
+
   // 从本地列表移除
   messages.value.splice(msgIndex, 1)
-  
+
   // 重新发送
   sending.value = true
   isStreaming.value = true
   streamingContent.value = ''
-  
+
   // 记录发起请求时的会话 ID
   const requestConversationId = currentConversationId.value
-  
+
   // 添加 AI 占位消息
   const aiMessage = {
     id: Date.now(),
@@ -536,7 +543,7 @@ const handleRegenerateMessage = async (msg: any) => {
   messages.value.push(aiMessage)
   await nextTick()
   scrollToBottom()
-  
+
   try {
     const callbacks: StreamCallbacks = {
       onContent: (delta) => {
@@ -549,7 +556,8 @@ const handleRegenerateMessage = async (msg: any) => {
         }
         nextTick(() => scrollToBottom())
       },
-      onConversation: () => {},
+      onConversation: () => {
+      },
       onDone: async (data) => {
         if (currentConversationId.value !== requestConversationId) return
         isStreaming.value = false
@@ -565,7 +573,7 @@ const handleRegenerateMessage = async (msg: any) => {
         messages.value.pop()
       },
     }
-    
+
     await AiChatApi.stream({
       content: userMsg.content,
       conversation_id: currentConversationId.value!,
@@ -608,7 +616,9 @@ const handleRegenerateMessage = async (msg: any) => {
       <!-- 顶部标题栏 -->
       <div class="main-header" v-if="currentConversationId">
         <el-button v-if="isMobile" text @click="currentConversationId = null" class="back-btn">
-          <el-icon :size="20"><ArrowLeft/></el-icon>
+          <el-icon :size="20">
+            <ArrowLeft/>
+          </el-icon>
         </el-button>
         <div class="header-content">
           <span class="header-title">
@@ -626,20 +636,20 @@ const handleRegenerateMessage = async (msg: any) => {
         <div v-if="!currentConversationId && messages.length === 0" class="welcome-area">
           <div class="welcome-content">
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
-            
+
             <!-- 智能体选择下拉框 -->
             <div class="agent-selector" v-if="agents.length > 0">
               <el-select-v2
-                v-model="selectedAgentId"
-                :options="agentOptions"
-                filterable
-                remote
-                :remote-method="handleAgentSearch"
-                :loading="agentSearchLoading"
-                :debounce="300"
-                :placeholder="t('aiChat.selectAgent')"
-                size="large"
-                class="agent-select"
+                  v-model="selectedAgentId"
+                  :options="agentOptions"
+                  filterable
+                  remote
+                  :remote-method="handleAgentSearch"
+                  :loading="agentSearchLoading"
+                  :debounce="300"
+                  :placeholder="t('aiChat.selectAgent')"
+                  size="large"
+                  class="agent-select"
               >
                 <template #default="{ item }">
                   <div class="agent-option">
@@ -648,15 +658,17 @@ const handleRegenerateMessage = async (msg: any) => {
                 </template>
               </el-select-v2>
             </div>
-            
+
             <div v-else-if="!agentSearchLoading" class="no-agent-tip">
               {{ t('aiChat.noAgentTip') }}
             </div>
           </div>
         </div>
-                <!-- 加载更多历史消息提示 -->
+        <!-- 加载更多历史消息提示 -->
         <div v-if="messagesLoadingMore" class="loading-more-tip">
-          <el-icon class="is-loading"><Loading/></el-icon>
+          <el-icon class="is-loading">
+            <Loading/>
+          </el-icon>
           <span>加载中...</span>
         </div>
         <div v-else-if="!messagesHasMore && messages.length > 0" class="no-more-tip">
@@ -675,11 +687,11 @@ const handleRegenerateMessage = async (msg: any) => {
       </el-scrollbar>
 
       <!-- 底部输入区 -->
-      <MessageInput 
-        ref="messageInputRef" 
-        :sending="sending" 
-        :disabled="agents.length === 0"
-        @send="handleSendMessage"
+      <MessageInput
+          ref="messageInputRef"
+          :sending="sending"
+          :disabled="agents.length === 0"
+          @send="handleSendMessage"
       />
     </div>
   </div>
@@ -820,11 +832,11 @@ const handleRegenerateMessage = async (msg: any) => {
   .welcome-content {
     padding: 0 16px;
   }
-  
+
   .welcome-title {
     font-size: 24px;
   }
-  
+
   .agent-cards {
     grid-template-columns: 1fr;
   }

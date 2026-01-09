@@ -87,17 +87,22 @@ const columns = computed(() => [
   {key: 'latency_str', label: t('aiRuns.table.latency'), width: 100},
   {key: 'error_msg', label: t('aiRuns.table.error'), width: 200, overflowTooltip: true},
   {key: 'created_at', label: t('aiRuns.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action'), fixed:'right'}
+  {key: 'actions', label: t('common.actions.action'), fixed: 'right'}
 ])
 
 // 状态标签样式
 const getStatusType = (status: number) => {
   switch (status) {
-    case 1: return 'warning'
-    case 2: return 'success'
-    case 3: return 'danger'
-    case 4: return 'info'
-    default: return 'info'
+    case 1:
+      return 'warning'
+    case 2:
+      return 'success'
+    case 3:
+      return 'danger'
+    case 4:
+      return 'info'
+    default:
+      return 'info'
   }
 }
 
@@ -151,7 +156,7 @@ onMounted(() => {
         <template #cell-request_id="{row}">
           <div class="request-id-cell">
             <el-text truncated>{{ row.request_id }}</el-text>
-            <el-button :icon="CopyDocument" size="small" text @click.stop="copyRequestId(row.request_id)" />
+            <el-button :icon="CopyDocument" size="small" text @click.stop="copyRequestId(row.request_id)"/>
           </div>
         </template>
         <template #cell-run_status="{row}">
@@ -166,7 +171,10 @@ onMounted(() => {
           <span v-else>-</span>
         </template>
         <template #cell-actions="{row}">
-          <el-button type="primary" text size="small" @click="showDetail(row)">{{ t('common.actions.detail') }}</el-button>
+          <el-button type="primary" text size="small" @click="showDetail(row)">{{
+              t('common.actions.detail')
+            }}
+          </el-button>
         </template>
       </AppTable>
     </div>
@@ -181,14 +189,26 @@ onMounted(() => {
           <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.agent')">{{ detailData.agent_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{ detailData.conversation_title }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{
+              detailData.conversation_title
+            }}
+          </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.status')">
             <el-tag :type="getStatusType(detailData.run_status)" size="small">{{ detailData.run_status_name }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_snapshot }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{ detailData.prompt_tokens ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">{{ detailData.completion_tokens ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">{{ detailData.total_tokens ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{
+              detailData.prompt_tokens ?? '-'
+            }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">{{
+              detailData.completion_tokens ?? '-'
+            }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">{{
+              detailData.total_tokens ?? '-'
+            }}
+          </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.latency_str }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">{{ detailData.updated_at }}</el-descriptions-item>
@@ -219,8 +239,9 @@ onMounted(() => {
             <div class="message-meta">
               <span>{{ detailData.assistant_message.created_at }}</span>
               <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
-                <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === 1" :size="14" style="color: var(--el-color-primary)" />
-                <ThumbDown v-else :size="14" style="color: var(--el-color-danger)" />
+                <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === 1" :size="14"
+                         style="color: var(--el-color-primary)"/>
+                <ThumbDown v-else :size="14" style="color: var(--el-color-danger)"/>
               </span>
             </div>
             <div v-if="detailData.assistant_message.meta_json" class="meta-json">
@@ -241,15 +262,18 @@ onMounted(() => {
           <el-divider content-position="left">{{ t('aiRuns.detail.executionSteps') }}</el-divider>
           <el-timeline>
             <el-timeline-item
-              v-for="step in detailData.steps"
-              :key="step.id"
-              :type="step.status === 1 ? 'success' : 'danger'"
-              :timestamp="step.latency_str"
-              placement="top"
+                v-for="step in detailData.steps"
+                :key="step.id"
+                :type="step.status === 1 ? 'success' : 'danger'"
+                :timestamp="step.latency_str"
+                placement="top"
             >
               <div class="step-item">
                 <div class="step-header">
-                  <el-tag :type="step.status === 1 ? 'success' : 'danger'" size="small">{{ step.step_type_name }}</el-tag>
+                  <el-tag :type="step.status === 1 ? 'success' : 'danger'" size="small">{{
+                      step.step_type_name
+                    }}
+                  </el-tag>
                   <span class="step-status">{{ step.status_name }}</span>
                 </div>
                 <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>

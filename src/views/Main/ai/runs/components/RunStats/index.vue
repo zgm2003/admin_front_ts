@@ -12,7 +12,8 @@ const loadDict = async () => {
   try {
     const res = await AiRunApi.init()
     dict.value = res.dict || {}
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
 }
 
 // 筛选表单
@@ -57,7 +58,8 @@ const loadSummary = async () => {
   try {
     const data = await AiRunApi.stats({...searchForm.value})
     summaryData.value = data
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
   summaryLoading.value = false
 }
 
@@ -81,7 +83,8 @@ const loadDateData = async (reset = false) => {
     })
     dateData.value = reset ? res.list : [...dateData.value, ...res.list]
     dateHasMore.value = res.has_more
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
   dateLoading.value = false
 }
 
@@ -110,7 +113,8 @@ const loadAgentData = async (reset = false) => {
     })
     agentData.value = reset ? res.list : [...agentData.value, ...res.list]
     agentHasMore.value = res.has_more
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
   agentLoading.value = false
 }
 
@@ -139,7 +143,8 @@ const loadUserData = async (reset = false) => {
     })
     userData.value = reset ? res.list : [...userData.value, ...res.list]
     userHasMore.value = res.has_more
-  } catch { /* ignore */ }
+  } catch { /* ignore */
+  }
   userLoading.value = false
 }
 
@@ -176,7 +181,7 @@ onMounted(async () => {
 <template>
   <div class="run-stats">
     <!-- 筛选器 -->
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
 
     <!-- 概览卡片 -->
     <div class="stats-section" v-loading="summaryLoading">
@@ -208,7 +213,8 @@ onMounted(async () => {
         </el-col>
         <el-col :xs="12" :sm="8" :md="4">
           <div class="stat-card">
-            <div class="stat-value">{{ summaryData?.summary?.avg_latency_ms || 0 }}<span class="stat-unit">ms</span></div>
+            <div class="stat-value">{{ summaryData?.summary?.avg_latency_ms || 0 }}<span class="stat-unit">ms</span>
+            </div>
             <div class="stat-label">{{ t('aiRuns.stats.avgLatency') }}</div>
           </div>
         </el-col>
@@ -225,8 +231,8 @@ onMounted(async () => {
     <div class="stats-section" v-if="dateData.length || dateLoading">
       <h3 class="section-title">{{ t('aiRuns.stats.byDate') }}</h3>
       <el-table :data="dateData" v-loading="dateLoading" stripe size="small">
-        <el-table-column prop="date" :label="t('aiRuns.stats.date')" />
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')" />
+        <el-table-column prop="date" :label="t('aiRuns.stats.date')"/>
+        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
         <el-table-column :label="t('aiRuns.stats.tokens')">
           <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
         </el-table-column>
@@ -251,8 +257,8 @@ onMounted(async () => {
     <div class="stats-section" v-if="agentData.length || agentLoading">
       <h3 class="section-title">{{ t('aiRuns.stats.byAgent') }}</h3>
       <el-table :data="agentData" v-loading="agentLoading" stripe size="small">
-        <el-table-column prop="agent_name" :label="t('aiRuns.stats.agent')" />
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')" />
+        <el-table-column prop="agent_name" :label="t('aiRuns.stats.agent')"/>
+        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
         <el-table-column :label="t('aiRuns.stats.tokens')">
           <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
         </el-table-column>
@@ -277,8 +283,8 @@ onMounted(async () => {
     <div class="stats-section" v-if="userData.length || userLoading">
       <h3 class="section-title">{{ t('aiRuns.stats.byUser') }}</h3>
       <el-table :data="userData" v-loading="userLoading" stripe size="small">
-        <el-table-column prop="username" :label="t('aiRuns.stats.user')" />
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')" />
+        <el-table-column prop="username" :label="t('aiRuns.stats.user')"/>
+        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
         <el-table-column :label="t('aiRuns.stats.tokens')">
           <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
         </el-table-column>
@@ -300,7 +306,7 @@ onMounted(async () => {
     </div>
 
     <!-- 空状态 -->
-    <el-empty v-if="!summaryLoading && !summaryData?.summary?.total_runs" :description="t('aiRuns.stats.noData')" />
+    <el-empty v-if="!summaryLoading && !summaryData?.summary?.total_runs" :description="t('aiRuns.stats.noData')"/>
   </div>
 </template>
 
@@ -366,11 +372,11 @@ onMounted(async () => {
     padding: 12px 8px;
     margin: 0 8px 12px;
   }
-  
+
   .stat-value {
     font-size: 18px;
   }
-  
+
   .stat-label {
     font-size: 12px;
   }

@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Plus, Loading, MoreFilled, Edit, Delete, ChatDotRound, FolderOpened, FolderChecked} from '@element-plus/icons-vue'
+import {
+  Plus,
+  Loading,
+  MoreFilled,
+  Edit,
+  Delete,
+  ChatDotRound,
+  FolderOpened,
+  FolderChecked
+} from '@element-plus/icons-vue'
 
 const {t} = useI18n()
 const scrollbarRef = ref<any>(null)
@@ -29,8 +38,8 @@ const emit = defineEmits<{
 const handleScroll = () => {
   const wrap = scrollbarRef.value?.wrapRef
   if (!wrap) return
-  
-  const { scrollTop, scrollHeight, clientHeight } = wrap
+
+  const {scrollTop, scrollHeight, clientHeight} = wrap
   // 距离底部 50px 时触发
   if (scrollHeight - scrollTop - clientHeight < 50) {
     if (!props.loadingMore && props.hasMore) {
@@ -41,7 +50,7 @@ const handleScroll = () => {
 
 // 按日期分组
 const groupedConversations = computed(() => {
-  const groups: {label: string, items: any[]}[] = []
+  const groups: { label: string, items: any[] }[] = []
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const yesterday = new Date(today)
@@ -88,26 +97,30 @@ const groupedConversations = computed(() => {
     <!-- 新建按钮 -->
     <div class="sidebar-header">
       <el-button class="new-chat-btn" @click="emit('create')">
-        <el-icon :size="18"><Plus/></el-icon>
+        <el-icon :size="18">
+          <Plus/>
+        </el-icon>
         <span>{{ t('aiChat.newConversation') }}</span>
       </el-button>
     </div>
 
     <!-- 归档切换标签 -->
     <div class="archive-tabs">
-      <div 
-        class="tab-item" 
-        :class="{ active: !showArchived }" 
-        @click="emit('toggleArchived', false)"
+      <div
+          class="tab-item"
+          :class="{ active: !showArchived }"
+          @click="emit('toggleArchived', false)"
       >
         正常
       </div>
-      <div 
-        class="tab-item" 
-        :class="{ active: showArchived }" 
-        @click="emit('toggleArchived', true)"
+      <div
+          class="tab-item"
+          :class="{ active: showArchived }"
+          @click="emit('toggleArchived', true)"
       >
-        <el-icon :size="14"><FolderOpened/></el-icon>
+        <el-icon :size="14">
+          <FolderOpened/>
+        </el-icon>
         归档
       </div>
     </div>
@@ -115,11 +128,15 @@ const groupedConversations = computed(() => {
     <!-- 会话列表 -->
     <el-scrollbar ref="scrollbarRef" class="conversation-list" @scroll="handleScroll">
       <div v-if="loading" class="loading-tip">
-        <el-icon class="is-loading" :size="20"><Loading/></el-icon>
+        <el-icon class="is-loading" :size="20">
+          <Loading/>
+        </el-icon>
         <span>加载中...</span>
       </div>
       <div v-else-if="conversations.length === 0" class="empty-tip">
-        <el-icon :size="48" class="empty-icon"><ChatDotRound/></el-icon>
+        <el-icon :size="48" class="empty-icon">
+          <ChatDotRound/>
+        </el-icon>
         <p>{{ t('aiChat.noConversation') }}</p>
         <p class="empty-hint">开始一个新对话吧</p>
       </div>
@@ -133,24 +150,34 @@ const groupedConversations = computed(() => {
               :class="{active: conv.id === currentId}"
               @click="emit('select', conv)"
           >
-            <el-icon class="conv-icon" :size="16"><ChatDotRound/></el-icon>
+            <el-icon class="conv-icon" :size="16">
+              <ChatDotRound/>
+            </el-icon>
             <span class="conv-title">{{ conv.title || t('aiChat.untitled') }}</span>
             <el-dropdown trigger="click" @click.stop>
               <el-button text size="small" class="conv-menu-btn" @click.stop>
-                <el-icon :size="16"><MoreFilled/></el-icon>
+                <el-icon :size="16">
+                  <MoreFilled/>
+                </el-icon>
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="emit('rename', conv)">
-                    <el-icon><Edit/></el-icon>
+                    <el-icon>
+                      <Edit/>
+                    </el-icon>
                     {{ t('aiChat.rename') }}
                   </el-dropdown-item>
                   <el-dropdown-item @click="emit('archive', conv)">
-                    <el-icon><component :is="showArchived ? FolderChecked : FolderOpened"/></el-icon>
+                    <el-icon>
+                      <component :is="showArchived ? FolderChecked : FolderOpened"/>
+                    </el-icon>
                     {{ showArchived ? '取消归档' : '归档' }}
                   </el-dropdown-item>
                   <el-dropdown-item @click="emit('delete', conv)" class="danger-item">
-                    <el-icon><Delete/></el-icon>
+                    <el-icon>
+                      <Delete/>
+                    </el-icon>
                     {{ t('aiChat.delete') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -160,7 +187,9 @@ const groupedConversations = computed(() => {
         </div>
         <!-- 加载更多提示 -->
         <div v-if="loadingMore" class="loading-more-tip">
-          <el-icon class="is-loading" :size="16"><Loading/></el-icon>
+          <el-icon class="is-loading" :size="16">
+            <Loading/>
+          </el-icon>
           <span>加载中...</span>
         </div>
         <div v-else-if="!hasMore && conversations.length > 0" class="no-more-tip">

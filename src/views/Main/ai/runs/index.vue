@@ -12,10 +12,10 @@ const activeTab = ref('list')
   <div class="runs-page">
     <el-tabs v-model="activeTab" class="runs-tabs">
       <el-tab-pane :label="t('aiRuns.tabs.list')" name="list" lazy>
-        <RunList />
+        <RunList/>
       </el-tab-pane>
       <el-tab-pane :label="t('aiRuns.tabs.stats')" name="stats" lazy>
-        <RunStats v-if="activeTab === 'stats'" />
+        <RunStats v-if="activeTab === 'stats'"/>
       </el-tab-pane>
     </el-tabs>
   </div>
