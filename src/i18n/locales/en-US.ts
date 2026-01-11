@@ -533,7 +533,8 @@ export default {
       updatedAt: 'Updated At',
       error: 'Error',
       userMessage: 'User Message',
-      assistantMessage: 'AI Response'
+      assistantMessage: 'AI Response',
+      executionSteps: 'Execution Steps'
     },
     tabs: {
       list: 'Run List',

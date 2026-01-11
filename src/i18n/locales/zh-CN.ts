@@ -533,7 +533,8 @@ export default {
       updatedAt: '更新时间',
       error: '错误信息',
       userMessage: '用户消息',
-      assistantMessage: 'AI 回复'
+      assistantMessage: 'AI 回复',
+      executionSteps: '执行步骤'
     },
     tabs: {
       list: '运行列表',
