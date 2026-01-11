@@ -267,6 +267,10 @@ export default {
     }
   },
   user: {
+    tabs: {
+      userList: '用户列表',
+      sessionList: '会话管理'
+    },
     filter: {
       username: '用户名',
       email: '邮箱',
@@ -287,7 +291,39 @@ export default {
       desc: '个人简介',
       expires_in: 'token过期时间',
       is_expired: 'token是否过期'
+    },
+    batchEdit: {
+      field: '字段'
     }
+  },
+  userSession: {
+    stats: {
+      totalActive: '在线会话',
+      adminOnline: '后台在线',
+      appOnline: 'APP在线'
+    },
+    filter: {
+      username: '用户名',
+      platform: '平台',
+      status: '状态'
+    },
+    table: {
+      username: '用户名',
+      platform: '平台',
+      device_id: '设备ID',
+      ip: 'IP地址',
+      last_seen_at: '最后活跃',
+      expires_at: '过期时间',
+      status: '状态'
+    },
+    status: {
+      active: '活跃',
+      expired: '已过期',
+      revoked: '已撤销'
+    },
+    confirmKick: '确定要踢该会话下线吗？',
+    confirmBatchKick: '确定要批量踢选中的 {count} 个会话下线吗？',
+    batchKick: '批量踢下线'
   },
   role: {
     filter: { name: '名称' },

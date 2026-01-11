@@ -24,5 +24,11 @@ export const UsersListApi = {
   batchEdit: (params: any) => request.post('/api/admin/UsersList/batchEdit', params),
   list: (params: any) => request.post('/api/admin/UsersList/list', params),
   export: (params: any) => request.post('/api/admin/UsersList/export', params),
-  kick: (params: any) => request.post('/api/admin/UsersList/kick', params),
+}
+
+export const UserSessionApi = {
+  list: (data: any) => request.post('/api/admin/UserSession/list', data),
+  stats: () => request.post('/api/admin/UserSession/stats'),
+  kick: (data: { id: number }) => request.post('/api/admin/UserSession/kick', data),
+  batchKick: (data: { ids: number[] }) => request.post('/api/admin/UserSession/batchKick', data),
 }

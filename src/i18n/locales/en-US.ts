@@ -267,6 +267,10 @@ export default {
     }
   },
   user: {
+    tabs: {
+      userList: 'User List',
+      sessionList: 'Session Manager'
+    },
     filter: {
       username: 'Username',
       email: 'Email',
@@ -287,7 +291,39 @@ export default {
       desc: 'Bio',
       expires_in: 'Token Expiration',
       is_expired: 'Token Expired'
+    },
+    batchEdit: {
+      field: 'Field'
     }
+  },
+  userSession: {
+    stats: {
+      totalActive: 'Online Sessions',
+      adminOnline: 'Admin Online',
+      appOnline: 'App Online'
+    },
+    filter: {
+      username: 'Username',
+      platform: 'Platform',
+      status: 'Status'
+    },
+    table: {
+      username: 'Username',
+      platform: 'Platform',
+      device_id: 'Device ID',
+      ip: 'IP Address',
+      last_seen_at: 'Last Active',
+      expires_at: 'Expires At',
+      status: 'Status'
+    },
+    status: {
+      active: 'Active',
+      expired: 'Expired',
+      revoked: 'Revoked'
+    },
+    confirmKick: 'Are you sure to kick this session offline?',
+    confirmBatchKick: 'Are you sure to kick {count} selected sessions offline?',
+    batchKick: 'Batch Kick'
   },
   role: {
     filter: {name: 'Name'},
