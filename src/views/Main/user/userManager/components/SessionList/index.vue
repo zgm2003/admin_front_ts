@@ -46,9 +46,9 @@ const statusOptions = [
 ]
 
 const searchFields = computed<SearchField[]>(() => [
-  {key: 'username', type: 'input', label: t('userSession.filter.username'), placeholder: t('userSession.filter.username'), width: 150},
+  {key: 'status', type: 'select-v2', label: t('userSession.filter.status'), options: statusOptions, placeholder: t('userSession.filter.status'), width: 120},
   {key: 'platform', type: 'select-v2', label: t('userSession.filter.platform'), options: platformArr.value, placeholder: t('userSession.filter.platform'), width: 120},
-  {key: 'status', type: 'select-v2', label: t('userSession.filter.status'), options: statusOptions, placeholder: t('userSession.filter.status'), width: 120}
+  {key: 'username', type: 'input', label: t('userSession.filter.username'), placeholder: t('userSession.filter.username'), width: 150}
 ])
 
 // 表格
@@ -132,7 +132,7 @@ onMounted(() => {
     </div>
 
     <!-- 搜索栏 -->
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" :collapseCount="3"/>
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" :collapseCount="1"/>
 
     <!-- 表格 -->
     <div class="table">
@@ -143,9 +143,8 @@ onMounted(() => {
           { key: 'device_id', label: t('userSession.table.device_id'), overflowTooltip: true },
           { key: 'ip', label: t('userSession.table.ip'), width: 120 },
           { key: 'last_seen_at', label: t('userSession.table.last_seen_at'), width: 170 },
-          { key: 'expires_at', label: t('userSession.table.expires_at'), width: 170 },
           { key: 'status', label: t('userSession.table.status'), width: 80 },
-          { key: 'actions', label: t('common.actions.action'), width: 100, fixed: 'right' }
+          { key: 'actions', label: t('common.actions.action'), width: 100}
         ]"
         :data="listData"
         :loading="listLoading"
@@ -175,10 +174,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.session-list { display: flex; flex-direction: column; height: 100%; gap: 16px; }
-.stats-cards { display: flex; gap: 16px; flex-wrap: wrap; }
-.stat-card { flex: 1; min-width: 120px; text-align: center; }
-.stat-value { font-size: 28px; font-weight: 600; color: var(--el-color-primary); }
-.stat-label { font-size: 14px; color: var(--el-text-color-secondary); margin-top: 4px; }
-.table { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.session-list { display: flex; flex-direction: column; height: 100%; gap: 12px; }
+.stats-cards { display: flex; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
+.stat-card { flex: 1; min-width: 80px; text-align: center; }
+.stat-card :deep(.el-card__body) { padding: 12px 8px; }
+.stat-value { font-size: 24px; font-weight: 600; color: var(--el-color-primary); }
+.stat-label { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 2px; }
+.table { flex: 1 1 auto; min-height: 200px; overflow: auto; }
+
+@media (max-width: 768px) {
+  .session-list { gap: 8px; }
+  .stats-cards { gap: 8px; }
+  .stat-card { min-width: 60px; }
+  .stat-card :deep(.el-card__body) { padding: 8px 4px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 11px; }
+}
 </style>

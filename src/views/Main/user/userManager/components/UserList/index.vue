@@ -138,7 +138,7 @@ onMounted(() => {
           { key: 'role_name', label: t('user.table.role'), width: 150 },
           { key: 'address_show', label: t('user.table.address'), width: 180, overflowTooltip: true },
           { key: 'bio', label: t('user.table.desc'), width: 180,overflowTooltip: true },
-          { key: 'actions', label: t('common.actions.action'), fixed: 'right' }
+          { key: 'actions', label: t('common.actions.action'),width: 180 }
         ]" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable :show-index="true"
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
