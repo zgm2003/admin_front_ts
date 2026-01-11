@@ -2,7 +2,7 @@
 import {ref, computed, onMounted, nextTick, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElNotification, ElMessageBox} from 'element-plus'
-import {ArrowLeft, ChatDotRound, Check, WarningFilled, Loading} from '@element-plus/icons-vue'
+import {ArrowLeft, Loading} from '@element-plus/icons-vue'
 import {AiConversationApi} from '@/api/ai/conversations'
 import {AiMessageApi} from '@/api/ai/messages'
 import {AiChatApi} from '@/api/ai/chat'
@@ -30,6 +30,10 @@ const showArchived = ref(false)  // 是否显示归档列表
 const currentConversation = computed(() => {
   return conversations.value.find(c => c.id === currentConversationId.value)
 })
+
+// ========== 流式恢复相关 ==========
+// 记录每个会话的 pending run（切换会话时保存）
+const pendingRuns = ref<Map<number, { runId: number; contentLength: number }>>(new Map())
 
 // 加载会话（初始加载）
 const loadConversations = async () => {
@@ -226,13 +230,22 @@ const currentAgentAvatar = computed(() => {
 })
 
 // ========== 事件处理 ==========
+// 当前正在进行的 run_id（用于恢复）
+const currentRunId = ref<number | null>(null)
+
 const handleSelectConversation = (conv: any) => {
-  // 如果正在流式输出，切换会话时重置前端状态（后端继续生成）
-  if (isStreaming.value) {
+  // 如果正在流式输出，切换会话时保存 pending run 信息
+  if (isStreaming.value && currentConversationId.value && currentRunId.value) {
+    pendingRuns.value.set(currentConversationId.value, {
+      runId: currentRunId.value,
+      contentLength: streamingContent.value.length,
+    })
+    // 重置前端状态（后端继续生成）
     isStreaming.value = false
     streamingContent.value = ''
     sending.value = false
-    // 移除未完成的 AI 占位消息（后端会继续完成，稍后可从数据库加载）
+    currentRunId.value = null
+    // 移除未完成的 AI 占位消息
     if (messages.value.length > 0) {
       const lastMsg = messages.value[messages.value.length - 1]
       if (lastMsg.role === 2 && lastMsg.isStreaming) {
@@ -244,11 +257,16 @@ const handleSelectConversation = (conv: any) => {
 }
 
 const handleCreateConversation = () => {
-  // 如果正在流式输出，新建会话时重置前端状态
-  if (isStreaming.value) {
+  // 如果正在流式输出，新建会话时保存 pending run 信息
+  if (isStreaming.value && currentConversationId.value && currentRunId.value) {
+    pendingRuns.value.set(currentConversationId.value, {
+      runId: currentRunId.value,
+      contentLength: streamingContent.value.length,
+    })
     isStreaming.value = false
     streamingContent.value = ''
     sending.value = false
+    currentRunId.value = null
   }
   // 简化：直接清空当前会话，让用户在新对话界面选择智能体并输入
   currentConversationId.value = null
@@ -341,6 +359,7 @@ const handleSendMessage = async (content: string) => {
   sending.value = true
   isStreaming.value = true
   streamingContent.value = ''
+  currentRunId.value = null
 
   // 记录发起请求时的会话 ID（用于回调检查）
   const requestConversationId = currentConversationId.value
@@ -396,6 +415,10 @@ const handleSendMessage = async (content: string) => {
           })
         }
       },
+      onRun: (runId, requestId) => {
+        // 记录当前 run_id，用于恢复
+        currentRunId.value = runId
+      },
       onDone: async (data) => {
         // 如果已切换到其他会话，不更新状态
         if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
@@ -403,6 +426,11 @@ const handleSendMessage = async (content: string) => {
         }
         isStreaming.value = false
         streamingContent.value = ''
+        currentRunId.value = null
+        // 清除 pending run
+        if (requestConversationId) {
+          pendingRuns.value.delete(requestConversationId)
+        }
         // 标记流式结束
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) {
@@ -418,6 +446,7 @@ const handleSendMessage = async (content: string) => {
         }
         isStreaming.value = false
         streamingContent.value = ''
+        currentRunId.value = null
         ElNotification.error({message: msg})
         // 移除占位消息
         messages.value.pop()
@@ -434,6 +463,7 @@ const handleSendMessage = async (content: string) => {
     if (currentConversationId.value === requestConversationId || requestConversationId === null) {
       isStreaming.value = false
       streamingContent.value = ''
+      currentRunId.value = null
       ElNotification.error({message: error.message || '发送失败'})
       // 移除占位消息
       messages.value.pop()
@@ -449,10 +479,99 @@ onMounted(() => {
   loadAgents()
 })
 
-watch(currentConversationId, () => {
+// 恢复流式输出（切换回有 pending run 的会话时调用）
+const resumeStream = async (conversationId: number) => {
+  const pending = pendingRuns.value.get(conversationId)
+  if (!pending) return
+
+  try {
+    // 1. 先调用 resume 获取当前状态
+    const resumeData = await AiChatApi.resume(pending.runId)
+
+    // 2. 如果已完成，直接显示内容
+    if (resumeData.is_complete) {
+      pendingRuns.value.delete(conversationId)
+      // 重新加载消息（包含已完成的 AI 回复）
+      await loadMessages()
+      return
+    }
+
+    // 3. 如果还在运行，恢复流式输出
+    if (resumeData.can_subscribe) {
+      isStreaming.value = true
+      sending.value = true
+      streamingContent.value = resumeData.content
+      currentRunId.value = pending.runId
+
+      // 添加 AI 占位消息（显示已缓存的内容）
+      const aiMessage = {
+        id: Date.now(),
+        role: 2,
+        content: resumeData.content,
+        created_at: new Date().toISOString(),
+        isStreaming: true,
+      }
+      messages.value.push(aiMessage)
+      await nextTick()
+      scrollToBottom()
+
+      // 订阅后续更新
+      const callbacks: StreamCallbacks = {
+        onContent: (delta) => {
+          if (currentConversationId.value !== conversationId) return
+          streamingContent.value += delta
+          const lastMsg = messages.value[messages.value.length - 1]
+          if (lastMsg && lastMsg.role === 2) {
+            lastMsg.content = streamingContent.value
+          }
+          nextTick(() => scrollToBottom())
+        },
+        onDone: async () => {
+          if (currentConversationId.value !== conversationId) return
+          isStreaming.value = false
+          streamingContent.value = ''
+          currentRunId.value = null
+          pendingRuns.value.delete(conversationId)
+          const lastMsg = messages.value[messages.value.length - 1]
+          if (lastMsg) lastMsg.isStreaming = false
+          await loadConversations()
+        },
+        onError: (msg) => {
+          if (currentConversationId.value !== conversationId) return
+          isStreaming.value = false
+          streamingContent.value = ''
+          currentRunId.value = null
+          pendingRuns.value.delete(conversationId)
+          ElNotification.error({message: msg})
+          messages.value.pop()
+        },
+      }
+
+      await AiChatApi.resumeStream(pending.runId, resumeData.content_length, callbacks)
+      sending.value = false
+    } else {
+      // 无法订阅（缓存已过期），清除 pending 并重新加载
+      pendingRuns.value.delete(conversationId)
+      await loadMessages()
+    }
+  } catch (error: any) {
+    pendingRuns.value.delete(conversationId)
+    await loadMessages()
+  }
+}
+
+watch(currentConversationId, async (newId) => {
   // 流式输出期间不加载消息（新建会话时消息在前端管理）
-  if (currentConversationId.value && !isStreaming.value) {
-    loadMessages()
+  if (newId && !isStreaming.value) {
+    // 检查是否有 pending run 需要恢复
+    if (pendingRuns.value.has(newId)) {
+      // 先加载历史消息（不包含正在生成的）
+      await loadMessages()
+      // 然后恢复流式输出
+      await resumeStream(newId)
+    } else {
+      await loadMessages()
+    }
   }
 })
 
@@ -528,6 +647,7 @@ const handleRegenerateMessage = async (msg: any) => {
   sending.value = true
   isStreaming.value = true
   streamingContent.value = ''
+  currentRunId.value = null
 
   // 记录发起请求时的会话 ID
   const requestConversationId = currentConversationId.value
@@ -558,10 +678,17 @@ const handleRegenerateMessage = async (msg: any) => {
       },
       onConversation: () => {
       },
+      onRun: (runId) => {
+        currentRunId.value = runId
+      },
       onDone: async (data) => {
         if (currentConversationId.value !== requestConversationId) return
         isStreaming.value = false
         streamingContent.value = ''
+        currentRunId.value = null
+        if (requestConversationId) {
+          pendingRuns.value.delete(requestConversationId)
+        }
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) lastMsg.isStreaming = false
       },
@@ -569,6 +696,7 @@ const handleRegenerateMessage = async (msg: any) => {
         if (currentConversationId.value !== requestConversationId) return
         isStreaming.value = false
         streamingContent.value = ''
+        currentRunId.value = null
         ElNotification.error({message: errMsg})
         messages.value.pop()
       },
@@ -582,6 +710,7 @@ const handleRegenerateMessage = async (msg: any) => {
     if (currentConversationId.value === requestConversationId) {
       isStreaming.value = false
       streamingContent.value = ''
+      currentRunId.value = null
       ElNotification.error({message: error.message || '重新生成失败'})
       messages.value.pop()
     }
