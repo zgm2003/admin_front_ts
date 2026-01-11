@@ -4,6 +4,7 @@ import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-v
 import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
 import ThumbUp from '@/components/Icons/ThumbUp.vue'
 import ThumbDown from '@/components/Icons/ThumbDown.vue'
+import { CommonEnum, AiRoleEnum } from '@/enums'
 
 const {t} = useI18n()
 
@@ -22,10 +23,10 @@ const emit = defineEmits<{
 
 // 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
 const showRegenerate = (msg: any, index: number) => {
-  if (msg.role === 1) return false
+  if (msg.role === AiRoleEnum.USER) return false
   if (msg.isStreaming) return false
   for (let i = props.messages.length - 1; i >= 0; i--) {
-    if (props.messages[i].role !== 1) {
+    if (props.messages[i].role !== AiRoleEnum.USER) {
       return i === index
     }
   }
@@ -60,24 +61,24 @@ const handleFeedback = (msg: any, feedback: number) => {
           v-for="(msg, index) in messages"
           :key="msg.id"
           class="message-row"
-          :class="{'user-row': msg.role === 1}"
+          :class="{'user-row': msg.role === AiRoleEnum.USER}"
       >
         <!-- 消息内容区 -->
-        <div class="message-body" :class="{'user-body': msg.role === 1}">
-          <div class="message-bubble" :class="msg.role === 1 ? 'user-bubble' : 'ai-bubble'">
+        <div class="message-body" :class="{'user-body': msg.role === AiRoleEnum.USER}">
+          <div class="message-bubble" :class="msg.role === AiRoleEnum.USER ? 'user-bubble' : 'ai-bubble'">
             <!-- 用户消息纯文本，AI 消息用 Markdown 渲染 -->
-            <div v-if="msg.role === 1" class="message-text">{{ msg.content }}</div>
+            <div v-if="msg.role === AiRoleEnum.USER" class="message-text">{{ msg.content }}</div>
             <MarkdownRenderer v-else :content="msg.content" class="message-text"/>
           </div>
 
           <!-- 操作按钮 - 仅 hover 时显示 -->
           <div class="message-actions" v-if="!msg.isStreaming">
             <!-- AI 消息显示点赞/点踩 -->
-            <template v-if="msg.role === 2">
+            <template v-if="msg.role === AiRoleEnum.ASSISTANT">
               <el-button
                   text size="small"
                   class="feedback-btn"
-                  :class="{ 'feedback-like-active': getFeedback(msg) === 1 }"
+                  :class="{ 'feedback-like-active': getFeedback(msg) === CommonEnum.YES }"
                   @click="handleFeedback(msg, 1)"
               >
                 <ThumbUp :size="16"/>
@@ -85,7 +86,7 @@ const handleFeedback = (msg: any, feedback: number) => {
               <el-button
                   text size="small"
                   class="feedback-btn"
-                  :class="{ 'feedback-dislike-active': getFeedback(msg) === 2 }"
+                  :class="{ 'feedback-dislike-active': getFeedback(msg) === CommonEnum.NO }"
                   @click="handleFeedback(msg, 2)"
               >
                 <ThumbDown :size="16"/>

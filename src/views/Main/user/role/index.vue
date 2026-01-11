@@ -10,6 +10,7 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -167,14 +168,14 @@ onMounted(() => {
           </el-dropdown>
         </template>
         <template #cell-is_default="{ row }">
-          <el-tag type="success" v-if="row.is_default === 1">{{ t('role.table.is_default') }}</el-tag>
+          <el-tag type="success" v-if="row.is_default === CommonEnum.YES">{{ t('role.table.is_default') }}</el-tag>
           <span v-else></span>
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>
           <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">删除</el-button>
           <el-button type="success" text @click="handleDefaultSwitch(row)"
-                     v-if="userStore.can('role.setDefault') && row.is_default !== 1">{{ t('role.actions.setDefault') }}
+                     v-if="userStore.can('role.setDefault') && row.is_default !== CommonEnum.YES">{{ t('role.actions.setDefault') }}
           </el-button>
         </template>
       </AppTable>

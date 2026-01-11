@@ -10,6 +10,7 @@ import BaseInfo from './components/BaseInfo/index.vue'
 import Security from './components/Security/index.vue'
 import LoginLog from './components/LoginLog/index.vue'
 import OperationLog from './components/OperationLog/index.vue'
+import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -68,7 +69,7 @@ onMounted(() => {
       </el-col>
       
       <!-- 右侧：编辑区域（仅本人可见） -->
-      <el-col :lg="18" :md="16" :sm="24" v-if="userinfo.is_self === 1">
+      <el-col :lg="18" :md="16" :sm="24" v-if="userinfo.is_self === CommonEnum.YES">
         <el-card shadow="none">
           <el-tabs v-model="activeTab">
             <el-tab-pane :label="t('personal.tabs.basic')" name="basic" lazy>

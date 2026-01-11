@@ -9,6 +9,7 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -180,14 +181,14 @@ onMounted(() => {
           <span v-else>-</span>
         </template>
         <template #cell-status="{row}">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
         <template #cell-actions="{row}">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text v-if="row.status === 2" @click="toggleStatus(row, 1)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.NO" @click="toggleStatus(row, CommonEnum.YES)">
             {{ t('common.actions.enable') }}
           </el-button>
-          <el-button type="warning" text v-if="row.status === 1" @click="toggleStatus(row, 2)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.YES" @click="toggleStatus(row, CommonEnum.NO)">
             {{ t('common.actions.disable') }}
           </el-button>
           <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>

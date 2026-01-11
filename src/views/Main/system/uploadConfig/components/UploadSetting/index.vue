@@ -10,6 +10,7 @@ import {UploadSettingApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -196,17 +197,17 @@ onMounted(() => {
         </template>
 
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
 
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadSetting.edit')">
             {{ t('common.actions.edit') }}
           </el-button>
-          <el-button type="warning" text v-if="row.status === 2 && userStore.can('uploadSetting.status')" @click="toggleStatus(row, 1)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.NO && userStore.can('uploadSetting.status')" @click="toggleStatus(row, CommonEnum.YES)">
             {{ t('common.actions.enable') }}
           </el-button>
-          <el-button type="warning" text v-if="row.status === 1 && userStore.can('uploadSetting.status')" @click="toggleStatus(row, 2)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.YES && userStore.can('uploadSetting.status')" @click="toggleStatus(row, CommonEnum.NO)">
             {{ t('common.actions.disable') }}
           </el-button>
           <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadSetting.del')">
@@ -239,8 +240,8 @@ onMounted(() => {
         <el-col :span="24">
           <el-form-item :label="t('upload.setting.form.status')" prop="status" required>
             <el-radio-group v-model="form.status">
-              <el-radio :value="1">启用</el-radio>
-              <el-radio :value="2">禁用</el-radio>
+              <el-radio :value="CommonEnum.YES">启用</el-radio>
+              <el-radio :value="CommonEnum.NO">禁用</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-col>

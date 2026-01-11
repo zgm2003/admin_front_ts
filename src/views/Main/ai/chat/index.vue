@@ -9,6 +9,7 @@ import {AiChatApi} from '@/api/ai/chat'
 import type {StreamCallbacks} from '@/api/ai/chat'
 import {AiAgentApi} from '@/api/ai/agents'
 import {useIsMobile} from '@/hooks/useResponsive'
+import { AiRoleEnum } from '@/enums'
 
 import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
@@ -248,7 +249,7 @@ const handleSelectConversation = (conv: any) => {
     // 移除未完成的 AI 占位消息
     if (messages.value.length > 0) {
       const lastMsg = messages.value[messages.value.length - 1]
-      if (lastMsg.role === 2 && lastMsg.isStreaming) {
+      if (lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) {
         messages.value.pop()
       }
     }
@@ -367,7 +368,7 @@ const handleSendMessage = async (content: string) => {
   // 立即显示用户消息
   const userMessage = {
     id: Date.now(),
-    role: 1,
+    role: AiRoleEnum.USER,
     content,
     created_at: new Date().toISOString(),
   }
@@ -379,7 +380,7 @@ const handleSendMessage = async (content: string) => {
   // 添加 AI 占位消息
   const aiMessage = {
     id: Date.now() + 1,
-    role: 2,
+    role: AiRoleEnum.ASSISTANT,
     content: '',
     created_at: new Date().toISOString(),
     isStreaming: true,
@@ -396,7 +397,7 @@ const handleSendMessage = async (content: string) => {
         streamingContent.value += delta
         // 更新 AI 消息内容
         const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg && lastMsg.role === 2) {
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
           lastMsg.content = streamingContent.value
         }
         nextTick(() => scrollToBottom())
@@ -520,7 +521,7 @@ const resumeStream = async (conversationId: number) => {
       // 添加 AI 占位消息（显示已缓存的内容）
       const aiMessage = {
         id: Date.now(),
-        role: 2,
+        role: AiRoleEnum.ASSISTANT,
         content: resumeData.content,
         created_at: new Date().toISOString(),
         isStreaming: true,
@@ -535,7 +536,7 @@ const resumeStream = async (conversationId: number) => {
           if (currentConversationId.value !== conversationId) return
           streamingContent.value += delta
           const lastMsg = messages.value[messages.value.length - 1]
-          if (lastMsg && lastMsg.role === 2) {
+          if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
             lastMsg.content = streamingContent.value
           }
           nextTick(() => scrollToBottom())
@@ -647,7 +648,7 @@ const handleRegenerateMessage = async (msg: any) => {
   if (msgIndex <= 0) return
 
   const userMsg = messages.value[msgIndex - 1]
-  if (!userMsg || userMsg.role !== 1) {
+  if (!userMsg || userMsg.role !== AiRoleEnum.USER) {
     ElNotification.warning({message: '找不到对应的用户消息'})
     return
   }
@@ -673,7 +674,7 @@ const handleRegenerateMessage = async (msg: any) => {
   // 添加 AI 占位消息
   const aiMessage = {
     id: Date.now(),
-    role: 2,
+    role: AiRoleEnum.ASSISTANT,
     content: '',
     created_at: new Date().toISOString(),
     isStreaming: true,
@@ -689,7 +690,7 @@ const handleRegenerateMessage = async (msg: any) => {
         if (currentConversationId.value !== requestConversationId) return
         streamingContent.value += delta
         const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg && lastMsg.role === 2) {
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
           lastMsg.content = streamingContent.value
         }
         nextTick(() => scrollToBottom())

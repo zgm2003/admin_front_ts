@@ -8,6 +8,7 @@ import {Search} from '@/components/Search'
 import {ArrowRight} from "@element-plus/icons-vue";
 import type { SearchField } from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -107,8 +108,8 @@ onMounted(() => {
           </el-dropdown>
         </template>
         <template #cell-is_success="{ row }">
-          <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
-              row.is_success === 1 ? t('common.success.operation') : 'Failed'
+          <el-tag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'">{{
+              row.is_success === CommonEnum.YES ? t('common.success.operation') : 'Failed'
             }}
           </el-tag>
         </template>

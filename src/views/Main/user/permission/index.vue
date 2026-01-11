@@ -8,6 +8,7 @@ import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
+import { CommonEnum, PermissionTypeEnum } from '@/enums'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -130,20 +131,21 @@ const edit = (current: any) => {
   })
 }
 const formRef = ref<any>(null)
+const isMenuType = computed(() => form.value.type === PermissionTypeEnum.DIR || form.value.type === PermissionTypeEnum.PAGE)
 const rules = computed(() => ({
   type: [{required: true, message: '请选择类型', trigger: 'change'}],
   name: [{required: true, message: '请输入名称', trigger: 'blur'}],
-  i18n_key: (form.value.type === 1 || form.value.type === 2) ? [{
+  i18n_key: isMenuType.value ? [{
     required: true,
     message: '请输入 i18n_key',
     trigger: 'blur'
   }] : [],
-  show_menu: (form.value.type === 1 || form.value.type === 2) ? [{
+  show_menu: isMenuType.value ? [{
     required: true,
     message: '请选择是否显示',
     trigger: 'change'
   }] : [],
-  code: (form.value.type === 3) ? [{required: true, message: '请输入 code', trigger: 'blur'}] : []
+  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: '请输入 code', trigger: 'blur'}] : []
 }))
 const confirmSubmit = async () => {
   try {
@@ -221,14 +223,14 @@ const changeStatus = async (row: any) => {
         {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
     )
   } catch {
-    row.status = row.status === 1 ? 2 : 1 // revert
+    row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
     return
   }
   PermissionApi.status({id: row.id, status: row.status}).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     // 权限列表通常不需要全量刷新，避免树折叠
   }).catch(() => {
-    row.status = row.status === 1 ? 2 : 1 // revert
+    row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
   })
 }
 const searchFields = computed<SearchField[]>(() => [
@@ -283,8 +285,8 @@ onMounted(() => {
           <template #default="scope">
             <el-switch
                 v-model="scope.row.status"
-                :active-value="1"
-                :inactive-value="2"
+                :active-value="CommonEnum.YES"
+                :inactive-value="CommonEnum.NO"
                 @change="changeStatus(scope.row)"
             />
           </template>
@@ -292,9 +294,9 @@ onMounted(() => {
         <el-table-column prop="sort" :label="t('permission.table.sort')" align="center" width="90"/>
         <el-table-column :label="t('permission.table.type')" align="center">
           <template #default="scope">
-            <el-tag effect="dark" v-if="scope.row.type===1" type="success">{{ scope.row.type_name }}</el-tag>
-            <el-tag effect="dark" v-if="scope.row.type===2" type="primary">{{ scope.row.type_name }}</el-tag>
-            <el-tag effect="dark" v-if="scope.row.type===3" type="danger">{{ scope.row.type_name }}</el-tag>
+            <el-tag effect="dark" v-if="scope.row.type === PermissionTypeEnum.DIR" type="success">{{ scope.row.type_name }}</el-tag>
+            <el-tag effect="dark" v-if="scope.row.type === PermissionTypeEnum.PAGE" type="primary">{{ scope.row.type_name }}</el-tag>
+            <el-tag effect="dark" v-if="scope.row.type === PermissionTypeEnum.BUTTON" type="danger">{{ scope.row.type_name }}</el-tag>
           </template>
         </el-table-column>
         <!--        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>-->
@@ -303,7 +305,7 @@ onMounted(() => {
                          header-align="center">
           <template #default="scope">
             <el-button type="success" @click="addChild(scope.row)" text
-                       v-if="userStore.can('permission.add') && scope.row.type !== 3">新增
+                       v-if="userStore.can('permission.add') && scope.row.type !== PermissionTypeEnum.BUTTON">新增
             </el-button>
             <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑
             </el-button>
@@ -333,29 +335,29 @@ onMounted(() => {
         <el-form-item :label="t('permission.form.name')" prop="name" required>
           <el-input v-model="form.name" style="width:100%" clearable :placeholder="t('permission.form.placeholder.name')"/>
         </el-form-item>
-        <el-form-item :label="t('permission.form.i18n_key')" prop="i18n_key" required v-if="form.type === 1 || form.type === 2">
+        <el-form-item :label="t('permission.form.i18n_key')" prop="i18n_key" required v-if="isMenuType">
           <el-input v-model="form.i18n_key" style="width:100%" clearable :placeholder="t('permission.form.placeholder.i18n_key')"/>
         </el-form-item>
-        <el-form-item :label="t('permission.form.show_menu')" prop="show_menu" required v-if="form.type === 1 || form.type === 2">
+        <el-form-item :label="t('permission.form.show_menu')" prop="show_menu" required v-if="isMenuType">
           <el-radio-group v-model="form.show_menu">
-            <el-radio :value="1" border>{{ t('common.status.show') }}</el-radio>
-            <el-radio :value="2" border>{{ t('common.status.hide') }}</el-radio>
+            <el-radio :value="CommonEnum.YES" border>{{ t('common.status.show') }}</el-radio>
+            <el-radio :value="CommonEnum.NO" border>{{ t('common.status.hide') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="t('permission.form.sort')" prop="sort" required>
           <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1"/>
         </el-form-item>
-        <el-form-item :label="t('permission.form.icon')" v-if="form.type === 1 || form.type === 2">
+        <el-form-item :label="t('permission.form.icon')" v-if="isMenuType">
           <el-input v-model="form.icon" style="width:80%" clearable/>
           <el-button icon="Setting" @click="openIconSelect">{{ t('common.actions.edit') }}</el-button>
         </el-form-item>
-        <el-form-item :label="t('permission.form.path')" v-if="form.type === 2">
+        <el-form-item :label="t('permission.form.path')" v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>
         </el-form-item>
-        <el-form-item :label="t('permission.form.component')" v-if="form.type === 2">
+        <el-form-item :label="t('permission.form.component')" v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')"/>
         </el-form-item>
-        <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === 3">
+        <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === PermissionTypeEnum.BUTTON">
           <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>
         </el-form-item>
       </el-form>

@@ -6,6 +6,7 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const usernameArr = ref([])
@@ -97,8 +98,8 @@ onMounted(() => {
                 @refresh="refresh"
                 @update:pagination="onPageChange">
         <template #cell-is_success="{ row }">
-          <el-tag :type="row.is_success === 1 ? 'success' : 'danger'">{{
-              row.is_success === 1 ? t('common.success.login') : t('common.fail.login')
+          <el-tag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'">{{
+              row.is_success === CommonEnum.YES ? t('common.success.login') : t('common.fail.login')
             }}
           </el-tag>
         </template>

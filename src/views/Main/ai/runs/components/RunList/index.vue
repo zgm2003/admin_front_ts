@@ -11,6 +11,7 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
+import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -239,7 +240,7 @@ onMounted(() => {
             <div class="message-meta">
               <span>{{ detailData.assistant_message.created_at }}</span>
               <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
-                <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === 1" :size="14"
+                <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" :size="14"
                          style="color: var(--el-color-primary)"/>
                 <ThumbDown v-else :size="14" style="color: var(--el-color-danger)"/>
               </span>
@@ -264,13 +265,13 @@ onMounted(() => {
             <el-timeline-item
                 v-for="step in detailData.steps"
                 :key="step.id"
-                :type="step.status === 1 ? 'success' : 'danger'"
+                :type="step.status === CommonEnum.YES ? 'success' : 'danger'"
                 :timestamp="step.latency_str"
                 placement="top"
             >
               <div class="step-item">
                 <div class="step-header">
-                  <el-tag :type="step.status === 1 ? 'success' : 'danger'" size="small">{{
+                  <el-tag :type="step.status === CommonEnum.YES ? 'success' : 'danger'" size="small">{{
                       step.step_type_name
                     }}
                   </el-tag>
