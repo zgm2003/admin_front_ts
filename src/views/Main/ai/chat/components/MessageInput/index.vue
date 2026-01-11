@@ -1,21 +1,57 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Promotion} from '@element-plus/icons-vue'
+import {Promotion, Picture, Close, Loading} from '@element-plus/icons-vue'
+import {ElNotification} from 'element-plus'
+import {getUploadToken, validateFile, uploadFileToCloud, type UploadConfig} from '@/utils/cosUpload'
 
 const {t} = useI18n()
+
+// Types
+interface Modalities {
+  image?: boolean
+  audio?: boolean
+  video?: boolean
+  file?: boolean
+}
+
+interface Attachment {
+  type: 'image'
+  url: string
+  name: string
+  size: number
+}
+
+interface PendingAttachment {
+  id: string
+  file: File
+  preview: string
+  status: 'pending' | 'uploading' | 'done' | 'error'
+  progress: number
+  url?: string
+  error?: string
+}
 
 const props = defineProps<{
   sending: boolean
   disabled?: boolean
+  modalities?: Modalities
 }>()
 
 const emit = defineEmits<{
-  send: [content: string]
+  send: [content: string, attachments?: Attachment[]]
 }>()
 
 const inputText = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
+const fileInputRef = ref<HTMLInputElement>()
+const pendingAttachments = ref<PendingAttachment[]>([])
+const isDragging = ref(false)
+
+// Computed: 是否支持图片上传
+const supportsImage = computed(() => {
+  return props.modalities?.image === true
+})
 
 // 自动调整高度
 const adjustHeight = () => {
@@ -26,12 +62,197 @@ const adjustHeight = () => {
   }
 }
 
+// 生成唯一 ID
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
+// 创建图片预览
+const createPreview = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => resolve(e.target?.result as string)
+    reader.readAsDataURL(file)
+  })
+}
+
+// 上传单个文件
+const uploadFile = async (pending: PendingAttachment) => {
+  // 找到数组中的索引以确保响应式更新
+  const index = pendingAttachments.value.findIndex(a => a.id === pending.id)
+  if (index === -1) return
+
+  pendingAttachments.value[index].status = 'uploading'
+  pendingAttachments.value[index].progress = 0
+
+  let config: UploadConfig | null = null
+
+  try {
+    // 获取上传凭证
+    config = await getUploadToken({
+      folderName: 'ai_chat_images'
+    })
+  } catch (error: any) {
+    // 凭证获取失败 - Requirements 7.4
+    pendingAttachments.value[index].status = 'error'
+    pendingAttachments.value[index].error = t('aiChat.tokenError')
+    ElNotification.error({message: pendingAttachments.value[index].error})
+    return
+  }
+
+  try {
+    // 校验文件 - Requirements 7.2
+    validateFile(pending.file, config, 'image')
+  } catch (error: any) {
+    // 文件校验失败（大小/格式）- 显示 validateFile 抛出的错误
+    pendingAttachments.value[index].status = 'error'
+    pendingAttachments.value[index].error = error.message
+    ElNotification.error({message: pendingAttachments.value[index].error})
+    return
+  }
+
+  try {
+    // 上传文件
+    pendingAttachments.value[index].progress = 30
+    const result = await uploadFileToCloud(pending.file, config)
+    
+    pendingAttachments.value[index].url = result.url
+    pendingAttachments.value[index].status = 'done'
+    pendingAttachments.value[index].progress = 100
+  } catch (error: any) {
+    // 网络错误/上传失败 - Requirements 7.1
+    pendingAttachments.value[index].status = 'error'
+    pendingAttachments.value[index].error = t('aiChat.networkError')
+    ElNotification.error({message: pendingAttachments.value[index].error})
+  }
+}
+
+// 添加图片文件
+const addImageFiles = async (files: FileList | File[]) => {
+  // 模型不支持图片时显示提示 - Requirements 7.3
+  if (!supportsImage.value) {
+    ElNotification.warning({message: t('aiChat.modelNotSupportImage')})
+    return
+  }
+
+  const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
+  
+  for (const file of imageFiles) {
+    const preview = await createPreview(file)
+    const pending: PendingAttachment = {
+      id: generateId(),
+      file,
+      preview,
+      status: 'pending',
+      progress: 0
+    }
+    pendingAttachments.value.push(pending)
+    
+    // 立即开始上传
+    uploadFile(pending)
+  }
+}
+
+// 点击上传按钮
+const handleUploadClick = () => {
+  fileInputRef.value?.click()
+}
+
+// 文件选择变化
+const handleFileChange = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (input.files && input.files.length > 0) {
+    addImageFiles(input.files)
+    input.value = '' // 清空以便重复选择同一文件
+  }
+}
+
+// 粘贴事件
+const handlePaste = (e: ClipboardEvent) => {
+  if (!supportsImage.value) return
+
+  const items = e.clipboardData?.items
+  if (!items) return
+
+  const imageFiles: File[] = []
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) imageFiles.push(file)
+    }
+  }
+
+  if (imageFiles.length > 0) {
+    e.preventDefault()
+    addImageFiles(imageFiles)
+  }
+}
+
+// 拖拽事件
+const handleDragOver = (e: DragEvent) => {
+  if (!supportsImage.value) return
+  e.preventDefault()
+  isDragging.value = true
+}
+
+const handleDragLeave = (e: DragEvent) => {
+  e.preventDefault()
+  isDragging.value = false
+}
+
+const handleDrop = (e: DragEvent) => {
+  e.preventDefault()
+  isDragging.value = false
+  
+  if (!supportsImage.value) return
+
+  const files = e.dataTransfer?.files
+  if (files && files.length > 0) {
+    addImageFiles(files)
+  }
+}
+
+// 删除待上传图片
+const removeAttachment = (id: string) => {
+  const index = pendingAttachments.value.findIndex(a => a.id === id)
+  if (index !== -1) {
+    pendingAttachments.value.splice(index, 1)
+  }
+}
+
 // 发送消息
 const handleSend = () => {
   if (props.sending || props.disabled) return
+  
   const content = inputText.value.trim()
-  if (!content) return
-  emit('send', content)
+  const hasContent = content.length > 0
+  const hasAttachments = pendingAttachments.value.length > 0
+  
+  // 检查是否有正在上传的文件
+  const uploading = pendingAttachments.value.some(a => a.status === 'uploading')
+  if (uploading) {
+    ElNotification.warning({message: t('aiChat.waitUpload')})
+    return
+  }
+  
+  // 检查是否有上传失败的文件
+  const failed = pendingAttachments.value.some(a => a.status === 'error')
+  if (failed) {
+    ElNotification.warning({message: t('aiChat.uploadHasError')})
+    return
+  }
+  
+  if (!hasContent && !hasAttachments) return
+  
+  // 构建附件列表
+  const attachments: Attachment[] = pendingAttachments.value
+    .filter(a => a.status === 'done' && a.url)
+    .map(a => ({
+      type: 'image' as const,
+      url: a.url!,
+      name: a.file.name,
+      size: a.file.size
+    }))
+  
+  emit('send', content, attachments.length > 0 ? attachments : undefined)
 }
 
 // 键盘事件：Enter 发送，Shift+Enter 换行
@@ -52,6 +273,7 @@ const handleInput = (e: Event) => {
 defineExpose({
   clear: () => {
     inputText.value = ''
+    pendingAttachments.value = []
     if (textareaRef.value) {
       textareaRef.value.style.height = 'auto'
     }
@@ -61,33 +283,95 @@ defineExpose({
 
 <template>
   <div class="input-wrapper">
-    <div class="input-container" :class="{disabled: disabled, focused: false}">
+    <!-- 图片预览区 -->
+    <div v-if="pendingAttachments.length > 0" class="attachments-preview">
+      <div 
+        v-for="attachment in pendingAttachments" 
+        :key="attachment.id" 
+        class="attachment-item"
+        :class="{error: attachment.status === 'error'}"
+      >
+        <img :src="attachment.preview" :alt="attachment.file.name" class="attachment-thumb" />
+        
+        <!-- 上传进度遮罩 -->
+        <div v-if="attachment.status === 'uploading'" class="attachment-overlay">
+          <el-icon class="is-loading" :size="24" color="#fff">
+            <Loading />
+          </el-icon>
+        </div>
+        
+        <!-- 错误遮罩 -->
+        <div v-if="attachment.status === 'error'" class="attachment-overlay error">
+          <span class="error-text">{{ attachment.error || t('aiChat.uploadFailed') }}</span>
+        </div>
+        
+        <!-- 删除按钮 -->
+        <button class="attachment-remove" @click="removeAttachment(attachment.id)">
+          <el-icon :size="14">
+            <Close />
+          </el-icon>
+        </button>
+      </div>
+    </div>
+    
+    <div 
+      class="input-container" 
+      :class="{disabled: disabled, focused: false, dragging: isDragging}"
+      @dragover="handleDragOver"
+      @dragleave="handleDragLeave"
+      @drop="handleDrop"
+    >
+      <!-- 图片上传按钮 -->
+      <button
+        v-if="supportsImage"
+        class="upload-button"
+        :disabled="sending || disabled"
+        @click="handleUploadClick"
+        :title="t('aiChat.uploadImage')"
+      >
+        <el-icon :size="20">
+          <Picture />
+        </el-icon>
+      </button>
+      
+      <!-- 隐藏的文件输入 -->
+      <input
+        ref="fileInputRef"
+        type="file"
+        accept="image/*"
+        multiple
+        style="display: none"
+        @change="handleFileChange"
+      />
+      
       <textarea
-          ref="textareaRef"
-          :value="inputText"
-          @input="handleInput"
-          @keydown="handleKeydown"
-          :placeholder="disabled ? '请先选择智能体' : t('aiChat.inputPlaceholder')"
-          :disabled="sending || disabled"
-          rows="1"
-          class="chat-textarea"
+        ref="textareaRef"
+        :value="inputText"
+        @input="handleInput"
+        @keydown="handleKeydown"
+        @paste="handlePaste"
+        :placeholder="disabled ? t('aiChat.selectAgentFirst') : t('aiChat.inputPlaceholder')"
+        :disabled="sending || disabled"
+        rows="1"
+        class="chat-textarea"
       />
       <button
-          class="send-button"
-          :class="{active: inputText.trim() && !sending}"
-          :disabled="!inputText.trim() || sending || disabled"
-          @click="handleSend"
+        class="send-button"
+        :class="{active: (inputText.trim() || pendingAttachments.length > 0) && !sending}"
+        :disabled="(!inputText.trim() && pendingAttachments.length === 0) || sending || disabled"
+        @click="handleSend"
       >
         <el-icon v-if="!sending" :size="20">
-          <Promotion/>
+          <Promotion />
         </el-icon>
         <el-icon v-else class="is-loading" :size="20">
-          <Promotion/>
+          <Promotion />
         </el-icon>
       </button>
     </div>
     <div class="input-hint">
-      <span>Enter 发送，Shift + Enter 换行</span>
+      <span>{{ t('aiChat.inputHint') }}</span>
+      <span v-if="supportsImage">{{ t('aiChat.inputHintImage') }}</span>
     </div>
   </div>
 </template>
@@ -96,6 +380,82 @@ defineExpose({
 .input-wrapper {
   padding: 16px 24px 24px;
   background: var(--el-bg-color);
+}
+
+/* 附件预览区 */
+.attachments-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 12px;
+}
+
+.attachment-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.attachment-item.error {
+  border-color: var(--el-color-danger);
+}
+
+.attachment-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attachment-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachment-overlay.error {
+  background: rgba(245, 108, 108, 0.8);
+}
+
+.error-text {
+  font-size: 10px;
+  color: #fff;
+  text-align: center;
+  padding: 4px;
+}
+
+.attachment-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.attachment-item:hover .attachment-remove {
+  opacity: 1;
 }
 
 .input-container {
@@ -117,6 +477,37 @@ defineExpose({
 .input-container.disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.input-container.dragging {
+  border-color: var(--el-color-primary);
+  border-style: dashed;
+  background: var(--el-color-primary-light-9);
+}
+
+.upload-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: var(--el-fill-color);
+  color: var(--el-color-primary);
+}
+
+.upload-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .chat-textarea {
@@ -188,6 +579,11 @@ defineExpose({
 
   .input-hint {
     display: none;
+  }
+  
+  .attachment-item {
+    width: 60px;
+    height: 60px;
   }
 }
 </style>

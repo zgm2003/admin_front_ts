@@ -467,6 +467,7 @@ export default {
       endpoint: '接口地址',
       api_key_hint: 'API Key',
       default_params: '默认参数',
+      modalities: '多模态能力',
       status: '状态',
       created_at: '创建时间',
       updated_at: '更新时间'
@@ -478,7 +479,13 @@ export default {
       endpoint: '接口地址',
       api_key: 'API Key',
       default_params: '默认参数',
-      status: '状态'
+      status: '状态',
+      modalities: '多模态能力',
+      modalitiesHint: '选择该模型支持的输入类型',
+      image: '图片',
+      audio: '音频',
+      video: '视频',
+      file: '文件'
     },
     addTitle: '新增AI模型',
     editTitle: '编辑AI模型'
@@ -533,7 +540,30 @@ export default {
     copied: '已复制到剪贴板',
     confirmDeleteMessage: '确定删除这条消息吗？',
     noDescription: '暂无描述',
-    noAgentTip: '暂无可用智能体，请先在设置中配置'
+    noAgentTip: '暂无可用智能体，请先在设置中配置',
+    // 图片上传相关
+    uploadImage: '上传图片',
+    uploadFailed: '上传失败',
+    waitUpload: '请等待图片上传完成',
+    uploadHasError: '有图片上传失败，请删除后重试',
+    networkError: '上传失败，请检查网络连接',
+    tokenError: '获取上传凭证失败',
+    modelNotSupportImage: '当前模型不支持图片输入',
+    // 输入框提示
+    inputHint: 'Enter 发送，Shift + Enter 换行',
+    inputHintImage: '，支持粘贴/拖拽图片',
+    selectAgentFirst: '请先选择智能体',
+    // 消息操作
+    copyFailed: '复制失败',
+    sendFailed: '发送失败',
+    regenerateFailed: '重新生成失败',
+    userMessageNotFound: '找不到对应的用户消息',
+    // 加载状态
+    loading: '加载中...',
+    noMoreHistory: '没有更多历史消息了',
+    // 归档
+    archived: '已归档',
+    unarchived: '已取消归档'
   },
   aiRuns: {
     filter: {

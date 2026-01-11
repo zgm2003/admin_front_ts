@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
 import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
@@ -7,6 +8,14 @@ import ThumbDown from '@/components/Icons/ThumbDown.vue'
 import { CommonEnum, AiRoleEnum } from '@/enums'
 
 const {t} = useI18n()
+
+// 附件类型
+interface Attachment {
+  type: 'image'
+  url: string
+  name: string
+  size: number
+}
 
 const props = defineProps<{
   messages: any[]
@@ -20,6 +29,47 @@ const emit = defineEmits<{
   regenerate: [msg: any]
   feedback: [msg: any, feedback: number | null]  // 1=点赞 2=点踩 null=取消
 }>()
+
+// 图片预览相关
+const previewVisible = ref(false)
+const previewImages = ref<string[]>([])
+const previewIndex = ref(0)
+
+// 图片加载状态 Map: url -> 'loading' | 'loaded' | 'error'
+const imageLoadingStates = ref<Map<string, string>>(new Map())
+
+// 从消息中提取附件
+const getAttachments = (msg: any): Attachment[] => {
+  return msg.meta_json?.attachments || []
+}
+
+// 获取图片加载状态
+const getImageLoadingState = (url: string): string => {
+  return imageLoadingStates.value.get(url) || 'loading'
+}
+
+// 图片加载完成
+const handleImageLoad = (url: string) => {
+  imageLoadingStates.value.set(url, 'loaded')
+}
+
+// 图片加载失败
+const handleImageError = (url: string) => {
+  imageLoadingStates.value.set(url, 'error')
+}
+
+// 点击图片预览
+const handleImageClick = (msg: any, index: number) => {
+  const attachments = getAttachments(msg)
+  previewImages.value = attachments.map(a => a.url)
+  previewIndex.value = index
+  previewVisible.value = true
+}
+
+// 关闭预览
+const closePreview = () => {
+  previewVisible.value = false
+}
 
 // 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
 const showRegenerate = (msg: any, index: number) => {
@@ -53,7 +103,7 @@ const handleFeedback = (msg: any, feedback: number) => {
       <el-icon class="is-loading" :size="24">
         <Loading/>
       </el-icon>
-      <span>加载中...</span>
+      <span>{{ t('aiChat.loading') }}</span>
     </div>
     <!-- 有消息时始终显示消息列表 -->
     <div v-else class="message-list">
@@ -66,6 +116,34 @@ const handleFeedback = (msg: any, feedback: number) => {
         <!-- 消息内容区 -->
         <div class="message-body" :class="{'user-body': msg.role === AiRoleEnum.USER}">
           <div class="message-bubble" :class="msg.role === AiRoleEnum.USER ? 'user-bubble' : 'ai-bubble'">
+            <!-- 用户消息图片附件 -->
+            <div v-if="msg.role === AiRoleEnum.USER && getAttachments(msg).length > 0" class="message-attachments">
+              <div 
+                v-for="(attachment, idx) in getAttachments(msg)" 
+                :key="idx" 
+                class="attachment-image-wrapper"
+              >
+                <!-- Loading 占位符 -->
+                <div 
+                  v-if="getImageLoadingState(attachment.url) === 'loading'" 
+                  class="attachment-loading"
+                >
+                  <el-icon class="is-loading" :size="24">
+                    <Loading />
+                  </el-icon>
+                </div>
+                <!-- 图片 -->
+                <img 
+                  :src="attachment.url" 
+                  :alt="attachment.name"
+                  class="attachment-image"
+                  :class="{ 'image-loaded': getImageLoadingState(attachment.url) === 'loaded' }"
+                  @load="handleImageLoad(attachment.url)"
+                  @error="handleImageError(attachment.url)"
+                  @click="handleImageClick(msg, idx)"
+                />
+              </div>
+            </div>
             <!-- 用户消息纯文本，AI 消息用 Markdown 渲染 -->
             <div v-if="msg.role === AiRoleEnum.USER" class="message-text">{{ msg.content }}</div>
             <MarkdownRenderer v-else :content="msg.content" class="message-text"/>
@@ -93,10 +171,10 @@ const handleFeedback = (msg: any, feedback: number) => {
               </el-button>
             </template>
             <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
-              复制
+              {{ t('aiChat.copyMessage') }}
             </el-button>
             <el-button type="info" text size="small" :icon="Delete" @click="emit('delete', msg)">
-              删除
+              {{ t('aiChat.deleteMessage') }}
             </el-button>
             <el-button
                 v-if="showRegenerate(msg, index)"
@@ -105,7 +183,7 @@ const handleFeedback = (msg: any, feedback: number) => {
                 :disabled="sending"
                 @click="emit('regenerate', msg)"
             >
-              重新生成
+              {{ t('aiChat.regenerate') }}
             </el-button>
           </div>
 
@@ -118,6 +196,14 @@ const handleFeedback = (msg: any, feedback: number) => {
         </div>
       </div>
     </div>
+    
+    <!-- 图片预览 -->
+    <el-image-viewer
+      v-if="previewVisible"
+      :url-list="previewImages"
+      :initial-index="previewIndex"
+      @close="closePreview"
+    />
   </div>
 </template>
 
@@ -328,5 +414,62 @@ const handleFeedback = (msg: any, feedback: number) => {
   .message-text {
     font-size: 14px;
   }
+  
+  .message-attachments {
+    max-width: 200px;
+  }
+  
+  .attachment-image {
+    max-width: 200px;
+  }
+}
+
+/* 消息附件图片 */
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  max-width: 300px;
+}
+
+.attachment-image-wrapper {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--el-fill-color-light);
+  min-width: 60px;
+  min-height: 60px;
+}
+
+.attachment-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+}
+
+.attachment-image {
+  display: block;
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  opacity: 0;
+}
+
+.attachment-image.image-loaded {
+  opacity: 1;
+}
+
+.attachment-image:hover {
+  transform: scale(1.02);
 }
 </style>

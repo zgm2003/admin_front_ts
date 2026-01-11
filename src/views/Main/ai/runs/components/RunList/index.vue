@@ -3,7 +3,7 @@ import {ref, computed, onMounted} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiRunApi} from '@/api/ai/runs'
 import {ElNotification} from 'element-plus'
-import {CopyDocument} from '@element-plus/icons-vue'
+import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
 import ThumbUp from '@/components/Icons/ThumbUp.vue'
 import ThumbDown from '@/components/Icons/ThumbDown.vue'
 import {Search} from '@/components/Search'
@@ -228,6 +228,30 @@ onMounted(() => {
           <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
           <div class="message-box user">
             <div class="message-content">{{ detailData.user_message.content }}</div>
+            <!-- 图片附件 -->
+            <div v-if="detailData.user_message.meta_json?.attachments?.length" class="message-attachments">
+              <el-image
+                v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
+                :key="idx"
+                :src="attachment.url"
+                :preview-src-list="detailData.user_message.meta_json.attachments.map((a: any) => a.url)"
+                :initial-index="idx"
+                fit="cover"
+                class="attachment-thumb"
+                lazy
+              >
+                <template #placeholder>
+                  <div class="image-placeholder">
+                    <el-icon class="is-loading"><Loading /></el-icon>
+                  </div>
+                </template>
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+            </div>
             <div class="message-meta">{{ detailData.user_message.created_at }}</div>
           </div>
         </template>
@@ -335,6 +359,40 @@ onMounted(() => {
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.6;
+}
+
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.attachment-thumb {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.image-placeholder,
+.image-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  color: #999;
+}
+
+.image-placeholder .el-icon {
+  font-size: 24px;
+}
+
+.image-error .el-icon {
+  font-size: 32px;
 }
 
 .message-meta {

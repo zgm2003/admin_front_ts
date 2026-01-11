@@ -467,6 +467,7 @@ export default {
       endpoint: 'Endpoint',
       api_key_hint: 'API Key',
       default_params: 'Default Params',
+      modalities: 'Modalities',
       status: 'Status',
       created_at: 'Created At',
       updated_at: 'Updated At'
@@ -478,7 +479,13 @@ export default {
       endpoint: 'Endpoint',
       api_key: 'API Key',
       default_params: 'Default Params',
-      status: 'Status'
+      status: 'Status',
+      modalities: 'Modalities',
+      modalitiesHint: 'Select supported input types for this model',
+      image: 'Image',
+      audio: 'Audio',
+      video: 'Video',
+      file: 'File'
     },
     addTitle: 'Add AI Model',
     editTitle: 'Edit AI Model'
@@ -533,7 +540,30 @@ export default {
     copied: 'Copied to clipboard',
     confirmDeleteMessage: 'Are you sure to delete this message?',
     noDescription: 'No description',
-    noAgentTip: 'No available agents, please configure in settings'
+    noAgentTip: 'No available agents, please configure in settings',
+    // Image upload related
+    uploadImage: 'Upload Image',
+    uploadFailed: 'Upload failed',
+    waitUpload: 'Please wait for image upload to complete',
+    uploadHasError: 'Some images failed to upload, please remove and retry',
+    networkError: 'Upload failed, please check network connection',
+    tokenError: 'Failed to get upload credentials',
+    modelNotSupportImage: 'Current model does not support image input',
+    // Input hints
+    inputHint: 'Enter to send, Shift + Enter for new line',
+    inputHintImage: ', supports paste/drag images',
+    selectAgentFirst: 'Please select an agent first',
+    // Message actions
+    copyFailed: 'Copy failed',
+    sendFailed: 'Send failed',
+    regenerateFailed: 'Regenerate failed',
+    userMessageNotFound: 'Cannot find corresponding user message',
+    // Loading states
+    loading: 'Loading...',
+    noMoreHistory: 'No more history',
+    // Archive
+    archived: 'Archived',
+    unarchived: 'Unarchived'
   },
   aiRuns: {
     filter: {

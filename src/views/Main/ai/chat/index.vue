@@ -6,7 +6,7 @@ import {ArrowLeft, Loading} from '@element-plus/icons-vue'
 import {AiConversationApi} from '@/api/ai/conversations'
 import {AiMessageApi} from '@/api/ai/messages'
 import {AiChatApi} from '@/api/ai/chat'
-import type {StreamCallbacks} from '@/api/ai/chat'
+import type {StreamCallbacks, Attachment} from '@/api/ai/chat'
 import {AiAgentApi} from '@/api/ai/agents'
 import {useIsMobile} from '@/hooks/useResponsive'
 import { AiRoleEnum } from '@/enums'
@@ -230,6 +230,20 @@ const currentAgentAvatar = computed(() => {
   return agent?.avatar || ''
 })
 
+// 当前模型的多模态能力
+const currentModalities = computed(() => {
+  // 如果有当前会话，从会话详情获取（需要先加载）
+  if (currentConversationModalities.value) {
+    return currentConversationModalities.value
+  }
+  // 否则从选中的智能体获取
+  const agent = agents.value.find(a => a.id === selectedAgentId.value)
+  return agent?.modalities || null
+})
+
+// 当前会话的 modalities（从会话详情获取）
+const currentConversationModalities = ref<any>(null)
+
 // ========== 事件处理 ==========
 // 当前正在进行的 run_id（用于恢复）
 const currentRunId = ref<number | null>(null)
@@ -326,7 +340,7 @@ const handleArchiveConversation = async (conv: any) => {
     // 当前显示归档列表时，点击是取消归档（status=1）；否则是归档（status=2）
     const newStatus = showArchived.value ? 1 : 2
     await AiConversationApi.status({id: conv.id, status: newStatus})
-    ElNotification.success({message: showArchived.value ? '已取消归档' : '已归档'})
+    ElNotification.success({message: showArchived.value ? t('aiChat.unarchived') : t('aiChat.archived')})
     // 如果归档的是当前会话，清空选中
     if (currentConversationId.value === conv.id) {
       currentConversationId.value = null
@@ -347,13 +361,13 @@ const handleToggleArchived = (archived: boolean) => {
 }
 
 // 发送消息（流式）
-const handleSendMessage = async (content: string) => {
+const handleSendMessage = async (content: string, attachments?: Attachment[]) => {
   if (sending.value) return // 硬挡防止重复提交
 
   // 确定 agent_id
   const agentId = currentConversation.value?.agent_id || selectedAgentId.value || agents.value[0]?.id
   if (!currentConversationId.value && !agentId) {
-    ElNotification.warning({message: '暂无可用智能体，请先配置'})
+    ElNotification.warning({message: t('aiChat.noAgentTip')})
     return
   }
 
@@ -365,12 +379,13 @@ const handleSendMessage = async (content: string) => {
   // 记录发起请求时的会话 ID（用于回调检查）
   const requestConversationId = currentConversationId.value
 
-  // 立即显示用户消息
+  // 立即显示用户消息（包含附件）
   const userMessage = {
     id: Date.now(),
     role: AiRoleEnum.USER,
     content,
     created_at: new Date().toISOString(),
+    meta_json: attachments && attachments.length > 0 ? { attachments } : undefined,
   }
   messages.value.push(userMessage)
   messageInputRef.value?.clear()
@@ -472,6 +487,7 @@ const handleSendMessage = async (content: string) => {
       content,
       conversation_id: currentConversationId.value || undefined,
       agent_id: currentConversationId.value ? undefined : agentId,
+      attachments: attachments && attachments.length > 0 ? attachments : undefined,
     }, callbacks)
   } catch (error: any) {
     // 如果已切换到其他会话，不处理错误
@@ -479,7 +495,7 @@ const handleSendMessage = async (content: string) => {
       isStreaming.value = false
       streamingContent.value = ''
       currentRunId.value = null
-      ElNotification.error({message: error.message || '发送失败'})
+      ElNotification.error({message: error.message || t('aiChat.sendFailed')})
       // 移除占位消息
       messages.value.pop()
     }
@@ -580,8 +596,17 @@ const resumeStream = async (conversationId: number) => {
 }
 
 watch(currentConversationId, async (newId) => {
+  // 清空之前会话的 modalities
+  currentConversationModalities.value = null
+  
   // 流式输出期间不加载消息（新建会话时消息在前端管理）
   if (newId && !isStreaming.value) {
+    // 获取会话详情以获取 modalities
+    try {
+      const detail = await AiConversationApi.detail({ id: newId })
+      currentConversationModalities.value = detail.modalities || null
+    } catch { /* ignore */ }
+    
     // 检查是否有 pending run 需要恢复
     if (pendingRuns.value.has(newId)) {
       // 先加载历史消息（不包含正在生成的）
@@ -601,7 +626,7 @@ const handleCopyMessage = async (msg: any) => {
     await navigator.clipboard.writeText(msg.content)
     ElNotification.success({message: t('aiChat.copied')})
   } catch {
-    ElNotification.error({message: '复制失败'})
+    ElNotification.error({message: t('aiChat.copyFailed')})
   }
 }
 
@@ -649,7 +674,7 @@ const handleRegenerateMessage = async (msg: any) => {
 
   const userMsg = messages.value[msgIndex - 1]
   if (!userMsg || userMsg.role !== AiRoleEnum.USER) {
-    ElNotification.warning({message: '找不到对应的用户消息'})
+    ElNotification.warning({message: t('aiChat.userMessageNotFound')})
     return
   }
 
@@ -730,7 +755,7 @@ const handleRegenerateMessage = async (msg: any) => {
       isStreaming.value = false
       streamingContent.value = ''
       currentRunId.value = null
-      ElNotification.error({message: error.message || '重新生成失败'})
+      ElNotification.error({message: error.message || t('aiChat.regenerateFailed')})
       messages.value.pop()
     }
   } finally {
@@ -817,10 +842,10 @@ const handleRegenerateMessage = async (msg: any) => {
           <el-icon class="is-loading">
             <Loading/>
           </el-icon>
-          <span>加载中...</span>
+          <span>{{ t('aiChat.loading') }}</span>
         </div>
         <div v-else-if="!messagesHasMore && messages.length > 0" class="no-more-tip">
-          没有更多历史消息了
+          {{ t('aiChat.noMoreHistory') }}
         </div>
         <MessageList
             v-if="currentConversationId || messages.length > 0"
@@ -839,6 +864,7 @@ const handleRegenerateMessage = async (msg: any) => {
           ref="messageInputRef"
           :sending="sending"
           :disabled="agents.length === 0"
+          :modalities="currentModalities"
           @send="handleSendMessage"
       />
     </div>

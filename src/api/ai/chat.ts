@@ -1,10 +1,18 @@
 import request, { streamPost } from '@/utils/request'
 
+export interface Attachment {
+  type: 'image'
+  url: string
+  name: string
+  size: number
+}
+
 export interface StreamParams {
   content: string
   conversation_id?: number
   agent_id?: number
   max_history?: number
+  attachments?: Attachment[]
 }
 
 export interface StreamCallbacks {
