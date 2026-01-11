@@ -549,6 +549,7 @@ export default {
     networkError: '上传失败，请检查网络连接',
     tokenError: '获取上传凭证失败',
     modelNotSupportImage: '当前模型不支持图片输入',
+    maxImagesReached: '最多只能上传 {max} 张图片',
     // 输入框提示
     inputHint: 'Enter 发送，Shift + Enter 换行',
     inputHintImage: '，支持粘贴/拖拽图片',

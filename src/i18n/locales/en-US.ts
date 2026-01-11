@@ -549,6 +549,7 @@ export default {
     networkError: 'Upload failed, please check network connection',
     tokenError: 'Failed to get upload credentials',
     modelNotSupportImage: 'Current model does not support image input',
+    maxImagesReached: 'Maximum {max} images allowed',
     // Input hints
     inputHint: 'Enter to send, Shift + Enter for new line',
     inputHintImage: ', supports paste/drag images',

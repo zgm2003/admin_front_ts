@@ -48,9 +48,17 @@ const fileInputRef = ref<HTMLInputElement>()
 const pendingAttachments = ref<PendingAttachment[]>([])
 const isDragging = ref(false)
 
+// 最大图片数量
+const MAX_IMAGES = 5
+
 // Computed: 是否支持图片上传
 const supportsImage = computed(() => {
   return props.modalities?.image === true
+})
+
+// Computed: 是否已达到图片上限
+const isImageLimitReached = computed(() => {
+  return pendingAttachments.value.length >= MAX_IMAGES
 })
 
 // 自动调整高度
@@ -63,7 +71,7 @@ const adjustHeight = () => {
 }
 
 // 生成唯一 ID
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 
 // 创建图片预览
 const createPreview = (file: File): Promise<string> => {
@@ -79,9 +87,12 @@ const uploadFile = async (pending: PendingAttachment) => {
   // 找到数组中的索引以确保响应式更新
   const index = pendingAttachments.value.findIndex(a => a.id === pending.id)
   if (index === -1) return
+  
+  const item = pendingAttachments.value[index]
+  if (!item) return
 
-  pendingAttachments.value[index].status = 'uploading'
-  pendingAttachments.value[index].progress = 0
+  item.status = 'uploading'
+  item.progress = 0
 
   let config: UploadConfig | null = null
 
@@ -92,9 +103,9 @@ const uploadFile = async (pending: PendingAttachment) => {
     })
   } catch (error: any) {
     // 凭证获取失败 - Requirements 7.4
-    pendingAttachments.value[index].status = 'error'
-    pendingAttachments.value[index].error = t('aiChat.tokenError')
-    ElNotification.error({message: pendingAttachments.value[index].error})
+    item.status = 'error'
+    item.error = t('aiChat.tokenError')
+    ElNotification.error({message: item.error})
     return
   }
 
@@ -103,25 +114,25 @@ const uploadFile = async (pending: PendingAttachment) => {
     validateFile(pending.file, config, 'image')
   } catch (error: any) {
     // 文件校验失败（大小/格式）- 显示 validateFile 抛出的错误
-    pendingAttachments.value[index].status = 'error'
-    pendingAttachments.value[index].error = error.message
-    ElNotification.error({message: pendingAttachments.value[index].error})
+    item.status = 'error'
+    item.error = error.message
+    ElNotification.error({message: item.error})
     return
   }
 
   try {
     // 上传文件
-    pendingAttachments.value[index].progress = 30
+    item.progress = 30
     const result = await uploadFileToCloud(pending.file, config)
     
-    pendingAttachments.value[index].url = result.url
-    pendingAttachments.value[index].status = 'done'
-    pendingAttachments.value[index].progress = 100
+    item.url = result.url
+    item.status = 'done'
+    item.progress = 100
   } catch (error: any) {
     // 网络错误/上传失败 - Requirements 7.1
-    pendingAttachments.value[index].status = 'error'
-    pendingAttachments.value[index].error = t('aiChat.networkError')
-    ElNotification.error({message: pendingAttachments.value[index].error})
+    item.status = 'error'
+    item.error = t('aiChat.networkError')
+    ElNotification.error({message: item.error})
   }
 }
 
@@ -135,7 +146,23 @@ const addImageFiles = async (files: FileList | File[]) => {
 
   const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
   
-  for (const file of imageFiles) {
+  // 检查是否超过最大数量限制
+  const currentCount = pendingAttachments.value.length
+  const availableSlots = MAX_IMAGES - currentCount
+  
+  if (availableSlots <= 0) {
+    ElNotification.warning({message: t('aiChat.maxImagesReached', {max: MAX_IMAGES})})
+    return
+  }
+  
+  // 只取可用数量的图片
+  const filesToAdd = imageFiles.slice(0, availableSlots)
+  
+  if (filesToAdd.length < imageFiles.length) {
+    ElNotification.warning({message: t('aiChat.maxImagesReached', {max: MAX_IMAGES})})
+  }
+  
+  for (const file of filesToAdd) {
     const preview = await createPreview(file)
     const pending: PendingAttachment = {
       id: generateId(),
@@ -325,9 +352,9 @@ defineExpose({
       <button
         v-if="supportsImage"
         class="upload-button"
-        :disabled="sending || disabled"
+        :disabled="sending || disabled || isImageLimitReached"
         @click="handleUploadClick"
-        :title="t('aiChat.uploadImage')"
+        :title="isImageLimitReached ? t('aiChat.maxImagesReached', {max: MAX_IMAGES}) : t('aiChat.uploadImage')"
       >
         <el-icon :size="20">
           <Picture />
