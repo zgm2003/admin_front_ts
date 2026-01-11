@@ -436,8 +436,22 @@ const handleSendMessage = async (content: string) => {
         if (lastMsg) {
           lastMsg.isStreaming = false
         }
-        // 刷新会话列表获取自动生成的标题
-        await loadConversations()
+        // 新会话：只获取当前会话详情更新标题（避免全量刷新）
+        // 已有会话：只更新本地 last_message_at
+        if (currentConversationId.value) {
+          const conv = conversations.value.find(c => c.id === currentConversationId.value)
+          if (conv) {
+            // 更新本地时间，让排序正确
+            conv.last_message_at = new Date().toISOString()
+            // 如果标题为空（新会话），获取后端生成的标题
+            if (!conv.title) {
+              try {
+                const detail = await AiConversationApi.detail({ id: currentConversationId.value })
+                conv.title = detail.title || ''
+              } catch { /* ignore */ }
+            }
+          }
+        }
       },
       onError: (msg) => {
         // 如果已切换到其他会话，不处理错误
@@ -534,7 +548,11 @@ const resumeStream = async (conversationId: number) => {
           pendingRuns.value.delete(conversationId)
           const lastMsg = messages.value[messages.value.length - 1]
           if (lastMsg) lastMsg.isStreaming = false
-          await loadConversations()
+          // 更新本地会话时间
+          const conv = conversations.value.find(c => c.id === conversationId)
+          if (conv) {
+            conv.last_message_at = new Date().toISOString()
+          }
         },
         onError: (msg) => {
           if (currentConversationId.value !== conversationId) return
