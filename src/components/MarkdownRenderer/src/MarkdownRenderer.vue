@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch, nextTick} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
@@ -52,6 +52,7 @@ onMounted(() => {
 <template>
   <div ref="containerRef" class="markdown-body" v-html="renderedHtml"></div>
 </template>
+
 
 <style scoped>
 .markdown-body {

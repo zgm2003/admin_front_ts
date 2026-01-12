@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
-import MarkdownRenderer from '@/components/MarkdownRenderer/index.vue'
+import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import ThumbUp from '@/components/Icons/ThumbUp.vue'
 import ThumbDown from '@/components/Icons/ThumbDown.vue'
 import { CommonEnum, AiRoleEnum } from '@/enums'
