@@ -36,10 +36,12 @@ const props = defineProps<{
   sending: boolean
   disabled?: boolean
   modalities?: Modalities
+  isStreaming?: boolean
 }>()
 
 const emit = defineEmits<{
   send: [content: string, attachments?: Attachment[]]
+  stop: []
 }>()
 
 const inputText = ref('')
@@ -382,7 +384,17 @@ defineExpose({
         rows="1"
         class="chat-textarea"
       />
+      <!-- 停止按钮（流式输出中显示） -->
       <button
+        v-if="isStreaming"
+        class="stop-button"
+        @click="emit('stop')"
+      >
+        <div class="stop-icon"></div>
+      </button>
+      <!-- 发送按钮（非流式时显示） -->
+      <button
+        v-else
         class="send-button"
         :class="{active: (inputText.trim() || pendingAttachments.length > 0) && !sending}"
         :disabled="(!inputText.trim() && pendingAttachments.length === 0) || sending || disabled"
@@ -585,6 +597,31 @@ defineExpose({
 
 .send-button:disabled {
   cursor: not-allowed;
+}
+
+.stop-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: var(--el-color-danger);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.stop-button:hover {
+  background: var(--el-color-danger-dark-2);
+}
+
+.stop-icon {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 2px;
 }
 
 .input-hint {

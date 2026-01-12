@@ -74,7 +74,8 @@ const {
   send: sendMessage,
   regenerate: regenerateMessage,
   resume: resumeStream,
-  savePendingRun
+  savePendingRun,
+  stop: stopGeneration
 } = useStreamChat({
   messages,
   conversations,
@@ -281,7 +282,9 @@ watch(currentConversationId, async (newId) => {
         :sending="sending"
         :disabled="agents.length === 0"
         :modalities="currentModalities"
+        :is-streaming="isStreaming"
         @send="handleSendMessage"
+        @stop="stopGeneration"
       />
     </div>
   </div>

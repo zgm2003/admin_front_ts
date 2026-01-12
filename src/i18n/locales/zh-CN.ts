@@ -559,6 +559,7 @@ export default {
     sendFailed: '发送失败',
     regenerateFailed: '重新生成失败',
     userMessageNotFound: '找不到对应的用户消息',
+    stopFailed: '停止失败',
     // 加载状态
     loading: '加载中...',
     noMoreHistory: '没有更多历史消息了',

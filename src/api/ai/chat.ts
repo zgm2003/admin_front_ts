@@ -78,6 +78,10 @@ export const AiChatApi = {
             doneReceived = true
             callbacks.onDone?.(data)
             return true  // 返回 true 主动中断连接
+          case 'canceled':
+            doneReceived = true
+            callbacks.onDone?.(data)  // 取消也视为完成
+            return true
           case 'error':
             callbacks.onError?.(data.msg || '未知错误')
             return true  // 错误也中断
@@ -110,6 +114,10 @@ export const AiChatApi = {
             doneReceived = true
             callbacks.onDone?.(data)
             return true
+          case 'canceled':
+            doneReceived = true
+            callbacks.onDone?.(data)
+            return true
           case 'error':
             callbacks.onError?.(data.msg || '未知错误')
             return true
@@ -123,4 +131,8 @@ export const AiChatApi = {
       },
     })
   },
+
+  // 取消流式输出
+  cancel: (runId: number): Promise<{ run_id: number; status: string }> =>
+    request.post('/api/admin/AiChat/cancel', { run_id: runId }),
 }

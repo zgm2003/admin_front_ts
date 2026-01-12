@@ -272,14 +272,42 @@ export function useStreamChat(options: StreamChatOptions) {
     }
   }
 
+  // 停止生成
+  const stop = async () => {
+    if (!isStreaming.value || !currentRunId.value) return
+
+    const runId = currentRunId.value
+    
+    try {
+      await AiChatApi.cancel(runId)
+      
+      // 如果 onDone/canceled 事件还没触发，手动重置状态
+      if (isStreaming.value) {
+        isStreaming.value = false
+        sending.value = false
+        streamingContent.value = ''
+        currentRunId.value = null
+        
+        const lastMsg = messages.value[messages.value.length - 1]
+        if (lastMsg && lastMsg.isStreaming) {
+          lastMsg.isStreaming = false
+        }
+      }
+    } catch (error: any) {
+      ElNotification.error({ message: error.message || t('aiChat.stopFailed') })
+    }
+  }
+
   return {
     sending,
     isStreaming,
     streamingContent,
     pendingRuns,
+    currentRunId,
     send,
     regenerate,
     resume,
-    savePendingRun
+    savePendingRun,
+    stop
   }
 }
