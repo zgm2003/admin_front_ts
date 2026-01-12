@@ -83,7 +83,7 @@ onMounted(() => {
           { key: 'user_email', label: t('operationLog.table.user_email') },
           { key: 'action', label: t('operationLog.table.action') },
           { key: 'request_data', label: t('operationLog.table.request_data'),width:200 },
-          { key: 'response_data', label: t('operationLog.table.response_data') },
+          { key: 'response_data', label: t('operationLog.table.response_data'),width:200 },
           { key: 'is_success', label: t('operationLog.table.is_success') },
           { key: 'created_at', label: t('operationLog.table.created_at') },
           { key: 'actions', label: t('common.actions.action'), width: 180 }
