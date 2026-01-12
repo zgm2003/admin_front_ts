@@ -564,7 +564,22 @@ export default {
     noMoreHistory: '没有更多历史消息了',
     // 归档
     archived: '已归档',
-    unarchived: '已取消归档'
+    unarchived: '已取消归档',
+    // 会话列表
+    tabNormal: '正常',
+    tabArchive: '归档',
+    doArchive: '归档',
+    doUnarchive: '取消归档',
+    startNewChat: '开始一个新对话吧',
+    noMoreConversations: '没有更多会话了',
+    // 时间分组
+    timeGroup: {
+      today: '今天',
+      yesterday: '昨天',
+      lastWeek: '最近7天',
+      lastMonth: '最近30天',
+      older: '更早'
+    }
   },
   aiRuns: {
     filter: {

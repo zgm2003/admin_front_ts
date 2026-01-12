@@ -82,11 +82,11 @@ const groupedConversations = computed(() => {
     }
   })
 
-  if (todayItems.length) groups.push({label: '今天', items: todayItems})
-  if (yesterdayItems.length) groups.push({label: '昨天', items: yesterdayItems})
-  if (weekItems.length) groups.push({label: '最近7天', items: weekItems})
-  if (monthItems.length) groups.push({label: '最近30天', items: monthItems})
-  if (olderItems.length) groups.push({label: '更早', items: olderItems})
+  if (todayItems.length) groups.push({label: t('aiChat.timeGroup.today'), items: todayItems})
+  if (yesterdayItems.length) groups.push({label: t('aiChat.timeGroup.yesterday'), items: yesterdayItems})
+  if (weekItems.length) groups.push({label: t('aiChat.timeGroup.lastWeek'), items: weekItems})
+  if (monthItems.length) groups.push({label: t('aiChat.timeGroup.lastMonth'), items: monthItems})
+  if (olderItems.length) groups.push({label: t('aiChat.timeGroup.older'), items: olderItems})
 
   return groups
 })
@@ -111,7 +111,7 @@ const groupedConversations = computed(() => {
           :class="{ active: !showArchived }"
           @click="emit('toggleArchived', false)"
       >
-        正常
+        {{ t('aiChat.tabNormal') }}
       </div>
       <div
           class="tab-item"
@@ -121,7 +121,7 @@ const groupedConversations = computed(() => {
         <el-icon :size="14">
           <FolderOpened/>
         </el-icon>
-        归档
+        {{ t('aiChat.tabArchive') }}
       </div>
     </div>
 
@@ -131,14 +131,14 @@ const groupedConversations = computed(() => {
         <el-icon class="is-loading" :size="20">
           <Loading/>
         </el-icon>
-        <span>加载中...</span>
+        <span>{{ t('aiChat.loading') }}</span>
       </div>
       <div v-else-if="conversations.length === 0" class="empty-tip">
         <el-icon :size="48" class="empty-icon">
           <ChatDotRound/>
         </el-icon>
         <p>{{ t('aiChat.noConversation') }}</p>
-        <p class="empty-hint">开始一个新对话吧</p>
+        <p class="empty-hint">{{ t('aiChat.startNewChat') }}</p>
       </div>
       <template v-else>
         <div v-for="group in groupedConversations" :key="group.label" class="conversation-group">
@@ -172,7 +172,7 @@ const groupedConversations = computed(() => {
                     <el-icon>
                       <component :is="showArchived ? FolderChecked : FolderOpened"/>
                     </el-icon>
-                    {{ showArchived ? '取消归档' : '归档' }}
+                    {{ showArchived ? t('aiChat.doUnarchive') : t('aiChat.doArchive') }}
                   </el-dropdown-item>
                   <el-dropdown-item @click="emit('delete', conv)" class="danger-item">
                     <el-icon>
@@ -190,10 +190,10 @@ const groupedConversations = computed(() => {
           <el-icon class="is-loading" :size="16">
             <Loading/>
           </el-icon>
-          <span>加载中...</span>
+          <span>{{ t('aiChat.loading') }}</span>
         </div>
         <div v-else-if="!hasMore && conversations.length > 0" class="no-more-tip">
-          没有更多会话了
+          {{ t('aiChat.noMoreConversations') }}
         </div>
       </template>
     </el-scrollbar>

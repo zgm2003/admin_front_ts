@@ -564,7 +564,22 @@ export default {
     noMoreHistory: 'No more history',
     // Archive
     archived: 'Archived',
-    unarchived: 'Unarchived'
+    unarchived: 'Unarchived',
+    // Conversation list
+    tabNormal: 'Active',
+    tabArchive: 'Archived',
+    doArchive: 'Archive',
+    doUnarchive: 'Unarchive',
+    startNewChat: 'Start a new conversation',
+    noMoreConversations: 'No more conversations',
+    // Time groups
+    timeGroup: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      lastWeek: 'Last 7 Days',
+      lastMonth: 'Last 30 Days',
+      older: 'Older'
+    }
   },
   aiRuns: {
     filter: {
