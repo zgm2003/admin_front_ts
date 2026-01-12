@@ -360,6 +360,64 @@ const handleToggleArchived = (archived: boolean) => {
   loadConversations()
 }
 
+// ========== 流式回调工厂 ==========
+interface CreateCallbacksOptions {
+  requestConversationId: number | null
+  onNewConversation?: (conversationId: number) => void
+  onComplete?: () => Promise<void>
+}
+
+const createStreamCallbacks = (options: CreateCallbacksOptions): StreamCallbacks => {
+  const { requestConversationId, onNewConversation, onComplete } = options
+
+  return {
+    onContent: (delta) => {
+      if (currentConversationId.value !== requestConversationId && requestConversationId !== null) return
+      streamingContent.value += delta
+      const lastMsg = messages.value[messages.value.length - 1]
+      if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
+        lastMsg.content = streamingContent.value
+      }
+      nextTick(() => scrollToBottom())
+    },
+    onConversation: onNewConversation || (() => {}),
+    onRun: (runId) => {
+      currentRunId.value = runId
+    },
+    onDone: async () => {
+      if (currentConversationId.value !== requestConversationId && requestConversationId !== null) return
+      isStreaming.value = false
+      streamingContent.value = ''
+      currentRunId.value = null
+      if (requestConversationId) {
+        pendingRuns.value.delete(requestConversationId)
+      }
+      const lastMsg = messages.value[messages.value.length - 1]
+      if (lastMsg) lastMsg.isStreaming = false
+      if (onComplete) await onComplete()
+    },
+    onError: (msg) => {
+      if (currentConversationId.value !== requestConversationId && requestConversationId !== null) return
+      isStreaming.value = false
+      streamingContent.value = ''
+      currentRunId.value = null
+      ElNotification.error({ message: msg })
+      messages.value.pop()
+    }
+  }
+}
+
+// 重置流式状态并显示错误
+const handleStreamError = (requestConversationId: number | null, errorMsg: string) => {
+  if (currentConversationId.value === requestConversationId || requestConversationId === null) {
+    isStreaming.value = false
+    streamingContent.value = ''
+    currentRunId.value = null
+    ElNotification.error({ message: errorMsg })
+    messages.value.pop()
+  }
+}
+
 // 发送消息（流式）
 const handleSendMessage = async (content: string, attachments?: Attachment[]) => {
   if (sending.value) return // 硬挡防止重复提交
@@ -403,63 +461,27 @@ const handleSendMessage = async (content: string, attachments?: Attachment[]) =>
   messages.value.push(aiMessage)
 
   try {
-    const callbacks: StreamCallbacks = {
-      onContent: (delta) => {
-        // 如果已切换到其他会话，忽略回调
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
-          return
-        }
-        streamingContent.value += delta
-        // 更新 AI 消息内容
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
-          lastMsg.content = streamingContent.value
-        }
-        nextTick(() => scrollToBottom())
-      },
-      onConversation: (conversationId) => {
-        // 新建会话时更新 ID，并直接插入列表头部（不触发全量刷新）
+    const callbacks = createStreamCallbacks({
+      requestConversationId,
+      onNewConversation: (conversationId) => {
+        // 新建会话时更新 ID，并直接插入列表头部
         if (!currentConversationId.value) {
           currentConversationId.value = conversationId
-          // 插入临时会话到列表头部
           conversations.value.unshift({
             id: conversationId,
-            title: '',  // 标题稍后自动生成
+            title: '',
             agent_id: selectedAgentId.value,
             agent_name: selectedAgent.value?.name || '',
             last_message_at: new Date().toISOString(),
           })
         }
       },
-      onRun: (runId, requestId) => {
-        // 记录当前 run_id，用于恢复
-        currentRunId.value = runId
-      },
-      onDone: async (data) => {
-        // 如果已切换到其他会话，不更新状态
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
-          return
-        }
-        isStreaming.value = false
-        streamingContent.value = ''
-        currentRunId.value = null
-        // 清除 pending run
-        if (requestConversationId) {
-          pendingRuns.value.delete(requestConversationId)
-        }
-        // 标记流式结束
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg) {
-          lastMsg.isStreaming = false
-        }
-        // 新会话：只获取当前会话详情更新标题（避免全量刷新）
-        // 已有会话：只更新本地 last_message_at
+      onComplete: async () => {
+        // 更新会话时间和标题
         if (currentConversationId.value) {
           const conv = conversations.value.find(c => c.id === currentConversationId.value)
           if (conv) {
-            // 更新本地时间，让排序正确
             conv.last_message_at = new Date().toISOString()
-            // 如果标题为空（新会话），获取后端生成的标题
             if (!conv.title) {
               try {
                 const detail = await AiConversationApi.detail({ id: currentConversationId.value })
@@ -468,20 +490,8 @@ const handleSendMessage = async (content: string, attachments?: Attachment[]) =>
             }
           }
         }
-      },
-      onError: (msg) => {
-        // 如果已切换到其他会话，不处理错误
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
-          return
-        }
-        isStreaming.value = false
-        streamingContent.value = ''
-        currentRunId.value = null
-        ElNotification.error({message: msg})
-        // 移除占位消息
-        messages.value.pop()
-      },
-    }
+      }
+    })
 
     await AiChatApi.stream({
       content,
@@ -490,15 +500,7 @@ const handleSendMessage = async (content: string, attachments?: Attachment[]) =>
       attachments: attachments && attachments.length > 0 ? attachments : undefined,
     }, callbacks)
   } catch (error: any) {
-    // 如果已切换到其他会话，不处理错误
-    if (currentConversationId.value === requestConversationId || requestConversationId === null) {
-      isStreaming.value = false
-      streamingContent.value = ''
-      currentRunId.value = null
-      ElNotification.error({message: error.message || t('aiChat.sendFailed')})
-      // 移除占位消息
-      messages.value.pop()
-    }
+    handleStreamError(requestConversationId, error.message || t('aiChat.sendFailed'))
   } finally {
     sending.value = false
   }
@@ -709,55 +711,14 @@ const handleRegenerateMessage = async (msg: any) => {
   scrollToBottom()
 
   try {
-    const callbacks: StreamCallbacks = {
-      onContent: (delta) => {
-        // 如果已切换到其他会话，忽略回调
-        if (currentConversationId.value !== requestConversationId) return
-        streamingContent.value += delta
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
-          lastMsg.content = streamingContent.value
-        }
-        nextTick(() => scrollToBottom())
-      },
-      onConversation: () => {
-      },
-      onRun: (runId) => {
-        currentRunId.value = runId
-      },
-      onDone: async (data) => {
-        if (currentConversationId.value !== requestConversationId) return
-        isStreaming.value = false
-        streamingContent.value = ''
-        currentRunId.value = null
-        if (requestConversationId) {
-          pendingRuns.value.delete(requestConversationId)
-        }
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg) lastMsg.isStreaming = false
-      },
-      onError: (errMsg) => {
-        if (currentConversationId.value !== requestConversationId) return
-        isStreaming.value = false
-        streamingContent.value = ''
-        currentRunId.value = null
-        ElNotification.error({message: errMsg})
-        messages.value.pop()
-      },
-    }
+    const callbacks = createStreamCallbacks({ requestConversationId })
 
     await AiChatApi.stream({
       content: userMsg.content,
       conversation_id: currentConversationId.value!,
     }, callbacks)
   } catch (error: any) {
-    if (currentConversationId.value === requestConversationId) {
-      isStreaming.value = false
-      streamingContent.value = ''
-      currentRunId.value = null
-      ElNotification.error({message: error.message || t('aiChat.regenerateFailed')})
-      messages.value.pop()
-    }
+    handleStreamError(requestConversationId, error.message || t('aiChat.regenerateFailed'))
   } finally {
     sending.value = false
   }
