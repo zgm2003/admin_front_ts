@@ -580,7 +580,13 @@ export default {
       lastWeek: 'Last 7 Days',
       lastMonth: 'Last 30 Days',
       older: 'Older'
-    }
+    },
+    // Agent list
+    agentList: 'Agents',
+    noAgent: 'No agents available',
+    // History conversations
+    historyConversations: 'History',
+    currentAgent: 'Current Agent'
   },
   aiRuns: {
     filter: {

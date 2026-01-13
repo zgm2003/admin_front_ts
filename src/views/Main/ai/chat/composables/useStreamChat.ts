@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { AiChatApi } from '@/api/ai/chat'
 import { AiMessageApi } from '@/api/ai/messages'
-import { AiConversationApi } from '@/api/ai/conversations'
 import { AiRoleEnum } from '@/enums'
 import type { StreamCallbacks, Attachment, StreamChatOptions, Message } from './types'
 
@@ -43,7 +42,7 @@ export function useStreamChat(options: StreamChatOptions) {
       onRun: (runId) => {
         currentRunId.value = runId
       },
-      onDone: async (data) => {
+      onDone: (data) => {
         // 会话已切换，只重置状态，不更新 UI
         if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
           return
@@ -54,18 +53,12 @@ export function useStreamChat(options: StreamChatOptions) {
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) lastMsg.isStreaming = false
         
-        // 更新会话信息
+        // 更新会话时间（标题由后端异步生成，打开历史抽屉时会刷新）
         const convId = data.conversation_id || currentConversationId.value
         if (convId) {
           const conv = conversations.value.find(c => c.id === convId)
           if (conv) {
             conv.last_message_at = new Date().toISOString()
-            if (!conv.title) {
-              try {
-                const detail = await AiConversationApi.detail({ id: convId })
-                conv.title = detail.title || ''
-              } catch { /* ignore */ }
-            }
           }
         }
       },

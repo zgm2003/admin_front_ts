@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Promotion, Picture, Close, Loading} from '@element-plus/icons-vue'
+import {Promotion, Picture, Close, Loading, ChatLineSquare} from '@element-plus/icons-vue'
 import {ElNotification} from 'element-plus'
 import {getUploadToken, validateFile, uploadFileToCloud, type UploadConfig} from '@/utils/cosUpload'
 
@@ -37,11 +37,13 @@ const props = defineProps<{
   disabled?: boolean
   modalities?: Modalities
   isStreaming?: boolean
+  showHistoryBtn?: boolean
 }>()
 
 const emit = defineEmits<{
   send: [content: string, attachments?: Attachment[]]
   stop: []
+  openHistory: []
 }>()
 
 const inputText = ref('')
@@ -350,6 +352,19 @@ defineExpose({
       @dragleave="handleDragLeave"
       @drop="handleDrop"
     >
+      <!-- 历史会话按钮 -->
+      <button
+        v-if="showHistoryBtn"
+        class="history-button"
+        :disabled="disabled"
+        @click="emit('openHistory')"
+        :title="t('aiChat.historyConversations')"
+      >
+        <el-icon :size="20">
+          <ChatLineSquare />
+        </el-icon>
+      </button>
+      
       <!-- 图片上传按钮 -->
       <button
         v-if="supportsImage"
@@ -522,6 +537,31 @@ defineExpose({
   border-color: var(--el-color-primary);
   border-style: dashed;
   background: var(--el-color-primary-light-9);
+}
+
+.history-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.history-button:hover:not(:disabled) {
+  background: var(--el-fill-color);
+  color: var(--el-color-primary);
+}
+
+.history-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .upload-button {

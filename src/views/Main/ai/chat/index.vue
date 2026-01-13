@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 
-import ConversationList from './components/ConversationList/index.vue'
+import AgentList from './components/AgentList/index.vue'
+import ConversationDrawer from './components/ConversationDrawer/index.vue'
 import MessageList from './components/MessageList/index.vue'
 import MessageInput from './components/MessageInput/index.vue'
 
@@ -14,13 +15,14 @@ import {
   useAgents,
   useStreamChat
 } from './composables'
+import type { Agent, Conversation } from './composables/types'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
 // ========== 状态管理 ==========
 const currentConversationId = ref<number | null>(null)
-const currentConversationModalities = ref<any>(null)
+const showConversationDrawer = ref(false)
 
 // ========== Composables ==========
 const {
@@ -34,8 +36,7 @@ const {
   rename: renameConversation,
   remove: removeConversation,
   archive: archiveConversation,
-  toggleArchived,
-  getDetail: getConversationDetail
+  toggleArchived
 } = useConversations()
 
 const {
@@ -55,11 +56,10 @@ const {
 const {
   agents,
   selectedAgentId,
-  searchLoading: agentSearchLoading,
+  loading: agentsLoading,
   selectedAgent,
-  agentOptions,
   loadAgents,
-  handleSearch: handleAgentSearch,
+  selectAgent,
   getAgentModalities
 } = useAgents()
 
@@ -90,13 +90,35 @@ const currentConversation = computed(() => {
 })
 
 const currentModalities = computed(() => {
-  return currentConversationModalities.value || getAgentModalities(selectedAgentId.value)
+  return getAgentModalities(selectedAgentId.value)
 })
 
-// ========== 事件处理 ==========
-const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
+// ========== 智能体选择处理 ==========
+const handleSelectAgent = async (agent: Agent) => {
+  // 取消正在进行的流式响应
+  await cancelOnSwitch()
+  
+  // 选择智能体（会持久化到 localStorage）
+  selectAgent(agent)
+  
+  // 清空当前状态，准备新对话
+  currentConversationId.value = null
+  messages.value = []
+  
+  // 不再自动加载会话列表和进入最近会话
+  // 会话列表延迟到打开抽屉时才加载
+}
 
-const handleSelectConversation = async (conv: any) => {
+// ========== 会话抽屉处理 ==========
+const handleOpenDrawer = async () => {
+  showConversationDrawer.value = true
+  // 打开抽屉时才加载会话列表
+  if (selectedAgentId.value) {
+    await loadConversations({ agent_id: selectedAgentId.value })
+  }
+}
+
+const handleSelectConversation = async (conv: Conversation) => {
   await cancelOnSwitch()
   currentConversationId.value = conv.id
 }
@@ -111,7 +133,7 @@ const handleCreateConversation = async () => {
 const showRenameDialog = ref(false)
 const renameForm = ref({ id: 0, title: '' })
 
-const handleRenameConversation = (conv: any) => {
+const handleRenameConversation = (conv: Conversation) => {
   renameForm.value = { id: conv.id, title: conv.title || '' }
   showRenameDialog.value = true
 }
@@ -121,7 +143,7 @@ const confirmRename = async () => {
   if (success) showRenameDialog.value = false
 }
 
-const handleDeleteConversation = async (conv: any) => {
+const handleDeleteConversation = async (conv: Conversation) => {
   const deleted = await removeConversation(conv.id)
   if (deleted && currentConversationId.value === conv.id) {
     currentConversationId.value = null
@@ -129,7 +151,7 @@ const handleDeleteConversation = async (conv: any) => {
   }
 }
 
-const handleArchiveConversation = async (conv: any) => {
+const handleArchiveConversation = async (conv: Conversation) => {
   await archiveConversation(conv.id)
   if (currentConversationId.value === conv.id) {
     currentConversationId.value = null
@@ -142,6 +164,9 @@ const handleToggleArchived = (archived: boolean) => {
   currentConversationId.value = null
   messages.value = []
 }
+
+// ========== 消息处理 ==========
+const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
 
 const handleSendMessage = async (content: string, attachments?: any[]) => {
   messageInputRef.value?.clear()
@@ -161,25 +186,25 @@ const handleRegenerateMessage = async (msg: any) => {
   await regenerateMessage(msg)
 }
 
+// ========== 移动端返回 ==========
+const handleBackToAgentList = () => {
+  selectedAgentId.value = null
+  currentConversationId.value = null
+  messages.value = []
+}
+
 // ========== 生命周期 ==========
-onMounted(() => {
-  loadConversations()
-  loadAgents()
+onMounted(async () => {
+  // 只加载智能体列表，不加载会话
+  await loadAgents()
 })
 
 watch(currentConversationId, async (newId, oldId) => {
-  currentConversationModalities.value = null
-
   if (newId) {
-    // 首次对话时，会话是在 send 过程中创建的，不需要重新加载消息
-    // 只有用户主动切换会话时才加载
     const isNewConversationFromSend = oldId === null && isStreaming.value
-    
-    try {
-      const detail = await getConversationDetail(newId)
-      currentConversationModalities.value = detail.modalities || null
-    } catch { /* ignore */ }
 
+    // 只加载消息，不调用会话详情接口
+    // modalities 直接从选中的智能体获取
     if (currentConversationId.value === newId && !isNewConversationFromSend) {
       await loadMessages()
     }
@@ -189,68 +214,57 @@ watch(currentConversationId, async (newId, oldId) => {
 
 <template>
   <div class="chat-container">
-    <!-- 左侧会话列表 -->
-    <ConversationList
-      v-show="!isMobile || !currentConversationId"
-      :conversations="conversations"
-      :loading="conversationsLoading"
-      :loading-more="conversationsLoadingMore"
-      :has-more="conversationsHasMore"
-      :current-id="currentConversationId"
-      :show-archived="showArchived"
-      @select="handleSelectConversation"
-      @create="handleCreateConversation"
-      @rename="handleRenameConversation"
-      @delete="handleDeleteConversation"
-      @archive="handleArchiveConversation"
-      @load-more="loadMoreConversations"
-      @toggle-archived="handleToggleArchived"
+    <!-- 左侧智能体列表 -->
+    <AgentList
+      v-show="!isMobile || !selectedAgentId"
+      :agents="agents"
+      :loading="agentsLoading"
+      :selected-id="selectedAgentId"
+      @select="handleSelectAgent"
     />
 
     <!-- 右侧主区域 -->
-    <div class="main-area" v-show="!isMobile || currentConversationId">
+    <div class="main-area" v-show="!isMobile || selectedAgentId">
       <!-- 顶部标题栏 -->
-      <div class="main-header" v-if="currentConversationId">
-        <el-button v-if="isMobile" text @click="currentConversationId = null" class="back-btn">
+      <div class="main-header">
+        <el-button v-if="isMobile" text @click="handleBackToAgentList" class="back-btn">
           <el-icon :size="20"><ArrowLeft /></el-icon>
         </el-button>
         <div class="header-content">
-          <span class="header-title">{{ currentConversation?.title || t('aiChat.untitled') }}</span>
-          <span class="header-agent" v-if="currentConversation?.agent_name">
-            {{ currentConversation.agent_name }}
+          <span class="header-title">
+            {{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}
+          </span>
+          <span class="header-agent" v-if="currentConversation && selectedAgent">
+            {{ selectedAgent.name }}
           </span>
         </div>
       </div>
 
       <!-- 消息滚动区 -->
       <el-scrollbar :ref="(el: any) => { if (el) messageScrollRef = el }" class="message-area" @scroll="handleScroll">
-        <!-- 新对话欢迎界面 -->
-        <div v-if="!currentConversationId && messages.length === 0" class="welcome-area">
+        <!-- 欢迎界面（选中智能体但无会话时） -->
+        <div v-if="selectedAgentId && !currentConversationId && messages.length === 0" class="welcome-area">
+          <div class="welcome-content">
+            <el-avatar :size="64" :src="selectedAgent?.avatar" class="welcome-avatar">
+              {{ selectedAgent?.name?.charAt(0) || '?' }}
+            </el-avatar>
+            <h1 class="welcome-title">{{ selectedAgent?.name }}</h1>
+            <p class="welcome-tip">{{ t('aiChat.welcomeTip') }}</p>
+          </div>
+        </div>
+
+        <!-- 未选择智能体时的提示 -->
+        <div v-else-if="!selectedAgentId && agents.length > 0" class="welcome-area">
           <div class="welcome-content">
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
-            <div class="agent-selector" v-if="agents.length > 0">
-              <el-select-v2
-                v-model="selectedAgentId"
-                :options="agentOptions"
-                filterable
-                remote
-                :remote-method="handleAgentSearch"
-                :loading="agentSearchLoading"
-                :debounce="300"
-                :placeholder="t('aiChat.selectAgent')"
-                size="large"
-                class="agent-select"
-              >
-                <template #default="{ item }">
-                  <div class="agent-option">
-                    <div class="agent-option-name">{{ item.label }}</div>
-                  </div>
-                </template>
-              </el-select-v2>
-            </div>
-            <div v-else-if="!agentSearchLoading" class="no-agent-tip">
-              {{ t('aiChat.noAgentTip') }}
-            </div>
+            <p class="welcome-tip">{{ t('aiChat.selectAgentFirst') }}</p>
+          </div>
+        </div>
+
+        <!-- 无智能体时的提示 -->
+        <div v-else-if="!agentsLoading && agents.length === 0" class="welcome-area">
+          <div class="welcome-content">
+            <p class="no-agent-tip">{{ t('aiChat.noAgentTip') }}</p>
           </div>
         </div>
 
@@ -279,13 +293,34 @@ watch(currentConversationId, async (newId, oldId) => {
       <MessageInput
         ref="messageInputRef"
         :sending="sending"
-        :disabled="agents.length === 0"
+        :disabled="!selectedAgentId"
         :modalities="currentModalities"
         :is-streaming="isStreaming"
+        :show-history-btn="true"
         @send="handleSendMessage"
         @stop="stopGeneration"
+        @open-history="handleOpenDrawer"
       />
     </div>
+
+    <!-- 历史会话抽屉 -->
+    <ConversationDrawer
+      v-model:visible="showConversationDrawer"
+      :conversations="conversations"
+      :loading="conversationsLoading"
+      :loading-more="conversationsLoadingMore"
+      :has-more="conversationsHasMore"
+      :current-id="currentConversationId"
+      :agent-name="selectedAgent?.name"
+      :show-archived="showArchived"
+      @select="handleSelectConversation"
+      @create="handleCreateConversation"
+      @rename="handleRenameConversation"
+      @delete="handleDeleteConversation"
+      @archive="handleArchiveConversation"
+      @load-more="loadMoreConversations"
+      @toggle-archived="handleToggleArchived"
+    />
   </div>
 
   <!-- 重命名弹窗 -->
@@ -332,12 +367,17 @@ watch(currentConversationId, async (newId, oldId) => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .header-title {
   font-size: 15px;
   font-weight: 600;
   color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-agent {
@@ -369,28 +409,25 @@ watch(currentConversationId, async (newId, oldId) => {
   text-align: center;
 }
 
+.welcome-avatar {
+  background: var(--el-color-primary-light-7);
+  color: var(--el-color-primary);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
 .welcome-title {
   font-size: 22px;
   font-weight: 500;
   color: var(--el-text-color-primary);
-  margin: 0 0 24px;
+  margin: 0 0 12px;
 }
 
-.agent-selector {
-  width: 100%;
-}
-
-.agent-select {
-  width: 100%;
-}
-
-.agent-option {
-  padding: 4px 0;
-}
-
-.agent-option-name {
+.welcome-tip {
+  color: var(--el-text-color-secondary);
   font-size: 14px;
-  color: var(--el-text-color-primary);
+  margin: 0;
 }
 
 .no-agent-tip {

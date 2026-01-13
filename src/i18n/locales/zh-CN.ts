@@ -580,7 +580,13 @@ export default {
       lastWeek: '最近7天',
       lastMonth: '最近30天',
       older: '更早'
-    }
+    },
+    // 智能体列表
+    agentList: '智能体',
+    noAgent: '暂无智能体',
+    // 历史会话
+    historyConversations: '历史会话',
+    currentAgent: '当前智能体'
   },
   aiRuns: {
     filter: {

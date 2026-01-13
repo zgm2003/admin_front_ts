@@ -15,17 +15,25 @@ export function useConversations() {
   const page = ref(1)
   const hasMore = ref(true)
   const showArchived = ref(false)
+  const currentAgentId = ref<number | null>(null)
 
-  // 加载会话列表
-  const loadConversations = async () => {
+  // 加载会话列表（支持按 agent_id 过滤）
+  const loadConversations = async (options?: { agent_id?: number }) => {
     loading.value = true
     page.value = 1
     hasMore.value = true
+    
+    // 更新当前过滤的 agent_id
+    if (options?.agent_id !== undefined) {
+      currentAgentId.value = options.agent_id
+    }
+    
     try {
       const res = await AiConversationApi.list({
         page_size: PAGE_SIZE,
         current_page: 1,
-        status: showArchived.value ? 2 : 1
+        status: showArchived.value ? 2 : 1,
+        agent_id: currentAgentId.value || undefined
       })
       const list = res.list || []
       conversations.value = list
@@ -46,7 +54,8 @@ export function useConversations() {
       const res = await AiConversationApi.list({
         page_size: PAGE_SIZE,
         current_page: nextPage,
-        status: showArchived.value ? 2 : 1
+        status: showArchived.value ? 2 : 1,
+        agent_id: currentAgentId.value || undefined
       })
       const list = res.list || []
 
@@ -111,18 +120,26 @@ export function useConversations() {
     return await AiConversationApi.detail({ id })
   }
 
+  // 获取最近的会话（用于自动选择）
+  const getMostRecent = () => {
+    if (conversations.value.length === 0) return null
+    return conversations.value[0] // 已按 last_message_at 降序排列
+  }
+
   return {
     conversations,
     loading,
     loadingMore,
     hasMore,
     showArchived,
+    currentAgentId,
     loadConversations,
     loadMore,
     rename,
     remove,
     archive,
     toggleArchived,
-    getDetail
+    getDetail,
+    getMostRecent
   }
 }
