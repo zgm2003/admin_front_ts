@@ -70,11 +70,9 @@ const handleScroll = (e: { scrollTop: number }) => handleScrollRaw(e, currentCon
 const {
   sending,
   isStreaming,
-  pendingRuns,
   send: sendMessage,
   regenerate: regenerateMessage,
-  resume: resumeStream,
-  savePendingRun,
+  cancelOnSwitch,
   stop: stopGeneration
 } = useStreamChat({
   messages,
@@ -98,13 +96,13 @@ const currentModalities = computed(() => {
 // ========== 事件处理 ==========
 const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
 
-const handleSelectConversation = (conv: any) => {
-  savePendingRun()
+const handleSelectConversation = async (conv: any) => {
+  await cancelOnSwitch()
   currentConversationId.value = conv.id
 }
 
-const handleCreateConversation = () => {
-  savePendingRun()
+const handleCreateConversation = async () => {
+  await cancelOnSwitch()
   currentConversationId.value = null
   messages.value = []
 }
@@ -146,7 +144,7 @@ const handleToggleArchived = (archived: boolean) => {
 }
 
 const handleSendMessage = async (content: string, attachments?: any[]) => {
-  messageInputRef.value?.clear()  // 立即清空输入框
+  messageInputRef.value?.clear()
   await sendMessage(content, attachments)
 }
 
@@ -172,16 +170,13 @@ onMounted(() => {
 watch(currentConversationId, async (newId) => {
   currentConversationModalities.value = null
 
-  if (newId && !isStreaming.value) {
+  if (newId) {
     try {
       const detail = await getConversationDetail(newId)
       currentConversationModalities.value = detail.modalities || null
     } catch { /* ignore */ }
 
-    if (pendingRuns.value.has(newId)) {
-      await loadMessages()
-      await resumeStream(newId)
-    } else {
+    if (currentConversationId.value === newId) {
       await loadMessages()
     }
   }

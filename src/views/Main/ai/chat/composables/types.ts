@@ -49,16 +49,3 @@ export interface StreamChatOptions {
   scrollToBottom: () => void
   loadMessages: () => Promise<void>
 }
-
-// 流式回调工厂选项
-export interface CreateCallbacksOptions {
-  requestConversationId: number | null
-  onNewConversation?: (conversationId: number) => void
-  onComplete?: () => Promise<void>
-}
-
-// Pending run 信息
-export interface PendingRun {
-  runId: number
-  contentLength: number
-}
