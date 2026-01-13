@@ -20,6 +20,7 @@
 | ✅ 消息列表 | 分页加载，支持上滑加载更多历史 | `useMessages.ts` |
 | ✅ 发送消息 | 文本输入，支持 Enter 发送 | `MessageInput/index.vue` |
 | ✅ 流式输出 | SSE 实时显示 AI 回复 | `useStreamChat.ts` |
+| ✅ 停止生成 | 流式输出中点击停止，保存已生成内容 | `useStreamChat.ts` |
 | ✅ 复制消息 | 一键复制消息内容 | `useMessages.ts` |
 | ✅ 删除消息 | 确认后删除单条消息 | `useMessages.ts` |
 | ✅ 重新生成 | 删除 AI 回复并重新请求 | `useStreamChat.ts` |
@@ -34,12 +35,12 @@
 | ✅ 默认选中 | 自动选中第一个智能体 | `useAgents.ts` |
 | ✅ 多模态支持 | 根据智能体 modalities 控制输入能力 | `useAgents.ts` |
 
-### 4. 流式恢复
+### 4. 会话切换
 | 功能 | 描述 | 文件位置 |
 |------|------|----------|
-| ✅ 切换会话保存状态 | 流式输出中切换会话，保存 pending run | `useStreamChat.ts` |
-| ✅ 恢复流式输出 | 切换回来时恢复未完成的流式输出 | `useStreamChat.ts` |
-| ✅ 断点续传 | 从上次位置继续接收内容 | `useStreamChat.ts` |
+| ✅ 切换时取消 | 流式输出中切换会话，自动取消当前生成 | `useStreamChat.ts` |
+| ✅ 保存部分内容 | 取消时已生成的内容保存到数据库 | 后端 `AiChatModule.php` |
+| ✅ 切回加载 | 切换回来时从数据库加载已保存的内容 | `index.vue` |
 
 ### 5. UI/UX
 | 功能 | 描述 | 文件位置 |
@@ -57,7 +58,6 @@
 
 | 功能 | 描述 | 难度 | 建议 |
 |------|------|------|------|
-| ✅ 停止生成 | 流式输出中点击停止 | ⭐⭐ | 已实现 |
 | ❌ 编辑消息 | 编辑已发送的用户消息并重新生成 | ⭐⭐⭐ | 需要处理消息链重建 |
 | ❌ 分支对话 | 同一消息多次重新生成，可切换查看 | ⭐⭐⭐⭐ | 需要树形消息结构 |
 | ❌ 消息搜索 | 搜索历史消息内容 | ⭐⭐ | 后端全文搜索 |
@@ -97,46 +97,62 @@
 
 ```
 chat/
-├── index.vue                 # 主组件 (~370行)
+├── index.vue                 # 主组件
 ├── FEATURES.md               # 本文档
 ├── composables/
 │   ├── index.ts              # 导出
 │   ├── types.ts              # 类型定义
-│   ├── useConversations.ts   # 会话管理 (~115行)
-│   ├── useMessages.ts        # 消息管理 (~130行)
-│   ├── useAgents.ts          # 智能体管理 (~65行)
-│   └── useStreamChat.ts      # 流式聊天 (~250行)
+│   ├── useConversations.ts   # 会话管理
+│   ├── useMessages.ts        # 消息管理
+│   ├── useAgents.ts          # 智能体管理
+│   └── useStreamChat.ts      # 流式聊天（~220行）
 └── components/
     ├── ConversationList/     # 会话列表组件
     ├── MessageList/          # 消息列表组件
     └── MessageInput/         # 消息输入组件
 ```
 
----
+### 流式输出架构
 
-## 建议开发路线
+```
+前端                              后端
+┌─────────────────┐              ┌─────────────────┐
+│  useStreamChat  │              │  AiChatModule   │
+│                 │   SSE        │                 │
+│  send()        ─┼─────────────►│  sendStream()   │
+│  stop()        ─┼─────────────►│  cancel()       │
+│  cancelOnSwitch─┼─────────────►│                 │
+│                 │              │                 │
+│  onContent()   ◄┼──────────────┼─ content event  │
+│  onDone()      ◄┼──────────────┼─ done event     │
+│  onCanceled()  ◄┼──────────────┼─ canceled event │
+└─────────────────┘              └─────────────────┘
+                                         │
+                                         ▼
+                                 ┌─────────────────┐
+                                 │    Database     │
+                                 │  ai_runs        │
+                                 │  ai_messages    │
+                                 └─────────────────┘
+```
 
-### Phase 1: 核心体验优化
-1. 停止生成功能
-2. Markdown 渲染 + 代码高亮
-3. 代码块复制
-4. 会话/消息搜索
-
-### Phase 2: 交互增强
-1. 编辑消息
-2. 快捷指令
-3. 文件上传
-4. 快捷键支持
-
-### Phase 3: 高级功能
-1. 分支对话
-2. 语音输入/输出
-3. 会话分享/导出
-4. 多模型切换
+**取消机制：**
+1. 用户点击停止/切换会话 → 前端调用 `cancel` 接口
+2. 后端更新 `ai_runs.run_status = CANCELED`
+3. 流式输出循环检测到取消状态 → 停止生成
+4. 已生成的内容保存到 `ai_messages` 表
+5. 前端切回会话时从数据库加载已保存内容
 
 ---
 
 ## 更新日志
+
+### 2026-01-13
+- 重构：移除断线重连/续传机制，简化为"切换即取消"
+- 删除：`AiStreamCacheService`（Redis 缓存）
+- 删除：`resume`、`resumeStream` 接口
+- 优化：取消时保存已生成的部分内容到数据库
+- 优化：代码量减少约 50%
 
 ### 2026-01-12
 - 新增：停止生成功能（前后端完整实现）
