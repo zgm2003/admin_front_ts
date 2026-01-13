@@ -87,7 +87,9 @@ export function useMessages() {
 
   // 滚动事件处理
   const handleScroll = (e: { scrollTop: number }, conversationId: number | null) => {
-    if (e.scrollTop < 50 && !loadingMore.value && hasMore.value) {
+    // 加载中或正在加载更多时不触发
+    if (loading.value || loadingMore.value || !hasMore.value) return
+    if (e.scrollTop < 50) {
       loadMore(conversationId)
     }
   }

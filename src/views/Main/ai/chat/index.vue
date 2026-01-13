@@ -167,16 +167,20 @@ onMounted(() => {
   loadAgents()
 })
 
-watch(currentConversationId, async (newId) => {
+watch(currentConversationId, async (newId, oldId) => {
   currentConversationModalities.value = null
 
   if (newId) {
+    // 首次对话时，会话是在 send 过程中创建的，不需要重新加载消息
+    // 只有用户主动切换会话时才加载
+    const isNewConversationFromSend = oldId === null && isStreaming.value
+    
     try {
       const detail = await getConversationDetail(newId)
       currentConversationModalities.value = detail.modalities || null
     } catch { /* ignore */ }
 
-    if (currentConversationId.value === newId) {
+    if (currentConversationId.value === newId && !isNewConversationFromSend) {
       await loadMessages()
     }
   }
