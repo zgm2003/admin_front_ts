@@ -73,111 +73,26 @@ watch(isMobile, (val) => {
 </template>
 
 <style scoped lang="scss">
-.layout-container {
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg-page);
-}
+.layout-container { height: 100vh; overflow: hidden; background: var(--el-bg-color-page); }
+.layout-aside { border-right: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); overflow: hidden; }
+.layout-main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.layout-header, .layout-tabs { padding: 0; flex-shrink: 0; }
+.layout-content { flex: 1; padding: 20px; overflow: auto; background: var(--el-bg-color-page); }
+.page-card { height: 100%; background: var(--el-bg-color); border-radius: var(--el-border-radius-base); border: 1px solid var(--el-border-color-lighter); padding: 20px; overflow: auto; }
+.layout-footer { padding: 0; flex-shrink: 0; border-top: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); }
+:deep(.mobile-drawer .el-drawer__body) { padding: 0; }
 
-.layout-aside {
-  border-right: 1px solid var(--border);
-  background: var(--bg-card);
-  overflow: hidden;
-}
+/* 过渡动画 */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active { transition: all 0.2s; }
+.slide-left-enter-from { opacity: 0; transform: translateX(20px); }
+.slide-left-leave-to { opacity: 0; transform: translateX(-20px); }
+.slide-right-enter-from { opacity: 0; transform: translateX(-20px); }
+.slide-right-leave-to { opacity: 0; transform: translateX(20px); }
 
-.layout-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.layout-header {
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.layout-tabs {
-  flex-shrink: 0;
-}
-
-.layout-content {
-  flex: 1;
-  padding: 20px;
-  overflow: auto;
-  background: var(--bg-page);
-}
-
-.page-card {
-  height: 100%;
-  background: var(--bg-card);
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  padding: 20px;
-  overflow: auto;
-}
-
-.layout-footer {
-  padding: 0;
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  background: var(--bg-card);
-}
-
-/* 移动端抽屉 */
-:deep(.mobile-drawer) {
-  .el-drawer__body {
-    padding: 0;
-  }
-}
-
-/* 页面过渡动画 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: all 0.2s ease;
-}
-
-.slide-left-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.slide-left-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.slide-right-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.slide-right-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-/* 响应式 */
 @media (max-width: 768px) {
-  .layout-content {
-    padding: 12px;
-  }
-  
-  .page-card {
-    padding: 16px;
-    border-radius: 6px;
-  }
+  .layout-content { padding: 12px; }
+  .page-card { padding: 16px; }
 }
 </style>

@@ -28,71 +28,16 @@ const goBack = () => router.back()
 </template>
 
 <style scoped lang="scss">
-.error-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-page);
-  padding: 20px;
-}
-
-.error-content {
-  text-align: center;
-  max-width: 480px;
-}
-
-.error-code {
-  font-size: 120px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--el-color-primary);
-  margin-bottom: 16px;
-}
-
-.error-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 12px;
-}
-
-.error-desc {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin: 0 0 32px;
-}
-
-.error-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  
-  .el-button {
-    min-width: 120px;
-    
-    .el-icon {
-      margin-right: 6px;
-    }
-  }
-}
+.error-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--el-bg-color-page); padding: 20px; }
+.error-content { text-align: center; max-width: 480px; }
+.error-code { font-size: 120px; font-weight: 700; line-height: 1; color: var(--el-color-primary); margin-bottom: 16px; }
+.error-title { font-size: 24px; font-weight: 600; color: var(--el-text-color-primary); margin: 0 0 12px; }
+.error-desc { font-size: 15px; color: var(--el-text-color-regular); margin: 0 0 32px; }
+.error-actions { display: flex; align-items: center; justify-content: center; gap: 12px; .el-button { min-width: 120px; .el-icon { margin-right: 6px; } } }
 
 @media (max-width: 480px) {
-  .error-code {
-    font-size: 80px;
-  }
-  
-  .error-title {
-    font-size: 20px;
-  }
-  
-  .error-actions {
-    flex-direction: column;
-    
-    .el-button {
-      width: 100%;
-    }
-  }
+  .error-code { font-size: 80px; }
+  .error-title { font-size: 20px; }
+  .error-actions { flex-direction: column; .el-button { width: 100%; } }
 }
 </style>

@@ -150,148 +150,19 @@ function setLang(lang) {
 </script>
 
 <style scoped lang="scss">
-.header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 60px;
-  padding: 0 20px;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-}
+.header-bar { display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 20px; background: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-lighter); }
+.header-left { display: flex; align-items: center; gap: 16px; }
+.menu-toggle, .header-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 8px; color: var(--el-text-color-regular); cursor: pointer; transition: all 0.15s; &:hover { background: var(--el-fill-color-light); color: var(--el-text-color-primary); } }
+.header-right { display: flex; align-items: center; gap: 4px; }
+.user-info { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 24px; cursor: pointer; transition: background 0.15s; &:hover { background: var(--el-fill-color-light); } }
+.user-name { font-size: 14px; font-weight: 500; color: var(--el-text-color-primary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-arrow { font-size: 12px; color: var(--el-text-color-secondary); }
+.logout-content { text-align: center; padding: 20px 0; .logout-icon { color: var(--el-color-warning); margin-bottom: 16px; } p { font-size: 15px; color: var(--el-text-color-regular); } }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.header-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px 4px 4px;
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-  
-  &:hover {
-    background: var(--bg-hover);
-  }
-}
-
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-arrow {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* 面包屑 */
-:deep(.el-breadcrumb) {
-  font-size: 14px;
-  
-  .el-breadcrumb__inner {
-    color: var(--text-secondary);
-    font-weight: 400;
-    
-    &:hover {
-      color: var(--primary);
-    }
-  }
-  
-  .el-breadcrumb__item:last-child .el-breadcrumb__inner {
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-}
-
-/* 退出确认 */
-.logout-content {
-  text-align: center;
-  padding: 20px 0;
-  
-  .logout-icon {
-    color: var(--warning);
-    margin-bottom: 16px;
-  }
-  
-  p {
-    font-size: 15px;
-    color: var(--text-secondary);
-  }
-}
-
-/* 响应式 */
 @media (max-width: 768px) {
-  .header-bar {
-    padding: 0 12px;
-    height: 56px;
-  }
-  
-  .header-left {
-    gap: 8px;
-  }
-  
-  .header-right {
-    gap: 2px;
-  }
-  
-  .header-btn {
-    width: 32px;
-    height: 32px;
-  }
+  .header-bar { padding: 0 12px; height: 56px; }
+  .header-left { gap: 8px; }
+  .header-right { gap: 2px; }
+  .header-btn { width: 32px; height: 32px; }
 }
 </style>
