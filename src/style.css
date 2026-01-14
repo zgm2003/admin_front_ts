@@ -56,22 +56,22 @@
   --transition-normal: 200ms ease;
 }
 
-/* Dark Mode */
+/* Dark Mode - 使用 Element Plus 默认暗色，仅覆盖自定义变量 */
 html.dark {
-  --bg-page: #0F172A;
-  --bg-card: #1E293B;
-  --bg-hover: #334155;
+  --bg-page: var(--el-bg-color-page);
+  --bg-card: var(--el-bg-color);
+  --bg-hover: var(--el-fill-color-light);
   
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-primary: var(--el-text-color-primary);
+  --text-secondary: var(--el-text-color-regular);
+  --text-muted: var(--el-text-color-secondary);
   
-  --border: #334155;
-  --border-light: #1E293B;
+  --border: var(--el-border-color);
+  --border-light: var(--el-border-color-light);
   
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
   
   --menu-color: var(--menu-color-dark);
 }
@@ -158,8 +158,8 @@ img, video {
 }
 
 .el-menu-item.is-active {
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--primary);
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
   font-weight: 500;
 }
 
