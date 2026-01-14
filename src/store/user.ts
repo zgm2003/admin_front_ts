@@ -6,6 +6,7 @@ export const useUserStore = defineStore('user', {
     user_id: '',
     avatar: '',
     username: '',
+    role_name: '',
     permissions: [] as any[],
     router: [] as any[],
     buttonCodes: [] as string[],
@@ -34,6 +35,7 @@ export const useUserStore = defineStore('user', {
         this.user_id = data.user_id
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'
+        this.role_name = data.role_name || ''
         data.permissions.unshift({ icon: 'HomeFilled', index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' })
         this.permissions = data.permissions
         this.router = data.router
