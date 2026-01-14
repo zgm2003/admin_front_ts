@@ -1,45 +1,244 @@
+/* ========================================
+   企业简约风 - Enterprise Minimal Style
+   基于 Swiss Modernism + Flat Design
+   ======================================== */
+
+/* Google Fonts - Modern Professional */
+/*@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');*/
+
+/* 自定义字体备用 */
 @font-face {
-    font-family: 'font';
-    src: url("./assets/font/2.woff2");
-}
-* {
-    font-family: "font";
+  font-family: 'font';
+  src: url("./assets/font/2.woff2");
 }
 
-* { box-sizing: border-box }
-html, body, #app { overflow-x: hidden; max-width: 100vw }
-img, video { max-width: 100%; height: auto }
-@media (max-width: 768px) {
-  .el-row { margin-left: 0 !important; margin-right: 0 !important }
-  .el-col { padding-left: 0 !important; padding-right: 0 !important }
+/* ========================================
+   CSS Variables - 企业配色系统
+   ======================================== */
+:root {
+  /* Primary Colors - Element Plus 默认 */
+  --primary: #409EFF;
+  --primary-light: #66B1FF;
+  --primary-dark: #337ECC;
+  
+  /* Neutral Colors */
+  --bg-page: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-hover: #F1F5F9;
+  
+  /* Text Colors */
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  
+  /* Border & Divider */
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  
+  /* Status Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+  
+  /* Shadows - 极简阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  
+  /* Menu */
+  --menu-color-light: #FFFFFF;
+  --menu-color-dark: #0F172A;
+  --menu-color: var(--menu-color-light);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+}
+
+/* Dark Mode */
+html.dark {
+  --bg-page: #0F172A;
+  --bg-card: #1E293B;
+  --bg-hover: #334155;
+  
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  --border: #334155;
+  --border-light: #1E293B;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  
+  --menu-color: var(--menu-color-dark);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  font-family: 'Inter', 'font', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================
+   Element Plus 覆盖
+   ======================================== */
+
+.el-button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
 }
 
 .el-button:focus,
-.el-button:focus-visible,
-button:focus,
-button:focus-visible {
+.el-button:focus-visible {
   outline: none;
   box-shadow: none;
 }
 
-/* 修改滚动条宽度 */
+.el-card {
+  border-radius: 8px;
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+  background: var(--bg-card);
+}
+
+.el-card__header {
+  border-bottom-color: var(--border);
+  padding: 16px 20px;
+  font-weight: 600;
+}
+
+.el-input__wrapper {
+  border-radius: 6px;
+}
+
+.el-table {
+  --el-table-border-color: var(--border);
+  --el-table-header-bg-color: var(--bg-page);
+}
+
+.el-table th.el-table__cell {
+  font-weight: 600;
+}
+
+.el-menu {
+  border-right: none !important;
+  background: var(--bg-card);
+}
+
+.el-menu-item:hover,
+.el-sub-menu__title:hover {
+  background: var(--bg-hover);
+}
+
+.el-menu-item.is-active {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.el-dialog {
+  border-radius: 12px;
+}
+
+.el-dialog__header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.el-dialog__footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.el-drawer__header {
+  padding: 20px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.el-pagination {
+  --el-pagination-button-bg-color: var(--bg-card);
+  --el-pagination-hover-color: var(--primary);
+}
+
+/* ========================================
+   滚动条 - 简约风格
+   ======================================== */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  width: 6px;
+  height: 6px;
 }
 
-/* 修改滚动条颜色 */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 ::-webkit-scrollbar-thumb {
-    background-color: #12b7f5;
-    background-image: -webkit-linear-gradient(45deg, rgba(255, 93, 143, 1) 25%, transparent 25%, transparent 50%, rgba(255, 93, 143, 1) 50%, rgba(255, 93, 143, 1) 75%, transparent 75%, transparent);
-    border-radius: 5px;
+  background: var(--text-muted);
+  border-radius: 3px;
+  transition: background var(--transition-fast);
 }
 
-:root{
-    --menu-color-light: #002141;
-    --menu-color-dark:  #141414;
-    --menu-color: var(--menu-color-light);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
-html.dark {
-    --menu-color: var(--menu-color-dark);
+
+/* ========================================
+   响应式
+   ======================================== */
+@media (max-width: 768px) {
+  .el-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .el-col {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  .el-card__body {
+    padding: 16px;
+  }
+  
+  .el-dialog {
+    width: 90% !important;
+    margin: 5vh auto !important;
+  }
 }
+
+/* ========================================
+   工具类
+   ======================================== */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.bg-page { background: var(--bg-page); }
+.bg-card { background: var(--bg-card); }

@@ -1,224 +1,329 @@
 <template>
-  <el-drawer v-model="show" direction="rtl" size="350px" class="setting-drawer">
+  <el-drawer v-model="show" direction="rtl" size="320px" class="setting-drawer">
     <template #header>
-      <span class="setting-header">{{ t('header.projectConfig') }}</span>
+      <div class="drawer-header">
+        <el-icon :size="20"><Setting /></el-icon>
+        <span>{{ t('header.projectConfig') }}</span>
+      </div>
     </template>
+    
     <div class="setting-body">
-      <ElDivider>{{ t('header.theme') }}</ElDivider>
-      <div class="setting-row">
-        <el-switch v-model="isDark" active-action-icon="Moon" inactive-action-icon="Sunny" @change="onThemeChange"/>
-      </div>
-      <ElDivider>{{ t('header.systemTheme') }}</ElDivider>
-      <div class="color-list">
-        <span v-for="c in predefineColors" :key="'sys-'+c" :class="['color-block', {active: menuStore.systemColor===c}]"
-              :style="{backgroundColor: c}" @click="systemColor(c)"></span>
-      </div>
-      <ElDivider>{{ t('header.display') }}</ElDivider>
-      <div class="toggle-list">
-        <div class="setting-item"><span>{{ t('header.breadcrumb') }}</span>
-          <el-switch v-model="menuStore.breadcrumb" @change="breadcrumb"/>
-        </div>
-        <div class="setting-item"><span>{{ t('header.hamburger') }}</span>
-          <el-switch v-model="menuStore.hamburger" @change="hamburger"/>
-        </div>
-        <div class="setting-item"><span>{{ t('header.fullscreen') }}</span>
-          <el-switch v-model="menuStore.screenfull" @change="screenfull"/>
-        </div>
-        <div class="setting-item"><span>{{ t('header.tab') }}</span>
-          <el-switch v-model="menuStore.tabtag" @change="tabtag"/>
-        </div>
-        <div class="setting-item"><span>{{ t('header.uniqueOpen') }}</span>
-          <el-switch v-model="menuStore.uniqueOpen" @change="uniqueOpen"/>
-        </div>
-        <div class="setting-item"><span>{{ t('header.footer') }}</span>
-          <el-switch v-model="menuStore.footer" @change="changeFooter"/>
+      <!-- 主题模式 -->
+      <div class="setting-section">
+        <div class="section-title">{{ t('header.theme') }}</div>
+        <div class="theme-switch">
+          <div 
+            class="theme-option" 
+            :class="{ active: !isDark }" 
+            @click="onThemeChange(false)"
+          >
+            <el-icon :size="20"><Sunny /></el-icon>
+            <span>浅色</span>
+          </div>
+          <div 
+            class="theme-option" 
+            :class="{ active: isDark }" 
+            @click="onThemeChange(true)"
+          >
+            <el-icon :size="20"><Moon /></el-icon>
+            <span>深色</span>
+          </div>
         </div>
       </div>
-      <ElDivider>{{ t('header.transition') }}</ElDivider>
-      <div class="toggle-list">
-        <div class="setting-item"><span>{{ t('header.transitionEnable') }}</span>
-          <el-switch v-model="menuStore.pageTransition" @change="pageTransition"/>
-        </div>
-        <div class="setting-item">
-          <span>{{ t('header.transitionType') }}</span>
-          <el-select-v2 v-model="menuStore.transitionName" style="width:160px" :options="transitionOptions"
-                        @change="transitionName"/>
+      
+      <!-- 主题色 -->
+      <div class="setting-section">
+        <div class="section-title">{{ t('header.systemTheme') }}</div>
+        <div class="color-grid">
+          <div 
+            v-for="c in themeColors" 
+            :key="c.value" 
+            class="color-item"
+            :class="{ active: menuStore.systemColor === c.value }"
+            :style="{ backgroundColor: c.value }"
+            :title="c.label"
+            @click="systemColor(c.value)"
+          >
+            <el-icon v-if="menuStore.systemColor === c.value" :size="14"><Check /></el-icon>
+          </div>
         </div>
       </div>
-      <ElDivider/>
+      
+      <!-- 界面显示 -->
+      <div class="setting-section">
+        <div class="section-title">{{ t('header.display') }}</div>
+        <div class="setting-list">
+          <div class="setting-item">
+            <span>{{ t('header.breadcrumb') }}</span>
+            <el-switch v-model="menuStore.breadcrumb" @change="breadcrumb" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.hamburger') }}</span>
+            <el-switch v-model="menuStore.hamburger" @change="hamburger" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.fullscreen') }}</span>
+            <el-switch v-model="menuStore.screenfull" @change="screenfull" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.tab') }}</span>
+            <el-switch v-model="menuStore.tabtag" @change="tabtag" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.uniqueOpen') }}</span>
+            <el-switch v-model="menuStore.uniqueOpen" @change="uniqueOpen" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.footer') }}</span>
+            <el-switch v-model="menuStore.footer" @change="changeFooter" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- 页面过渡 -->
+      <div class="setting-section">
+        <div class="section-title">{{ t('header.transition') }}</div>
+        <div class="setting-list">
+          <div class="setting-item">
+            <span>{{ t('header.transitionEnable') }}</span>
+            <el-switch v-model="menuStore.pageTransition" @change="pageTransition" />
+          </div>
+          <div class="setting-item">
+            <span>{{ t('header.transitionType') }}</span>
+            <el-select v-model="menuStore.transitionName" style="width: 140px" size="small" @change="transitionName">
+              <el-option v-for="opt in transitionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+            </el-select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 操作按钮 -->
       <div class="setting-actions">
-        <el-button type="danger" @click="clear">{{ t('header.clearAndReset') }}</el-button>
-      </div>
-      <div class="setting-actions">
-        <el-button type="primary" @click="resetThemeLight">{{ t('header.resetLight') }}</el-button>
-        <el-button type="warning" @click="resetThemeDark">{{ t('header.resetDark') }}</el-button>
+        <el-button @click="clear" class="action-btn">
+          <el-icon><Delete /></el-icon>
+          清除缓存
+        </el-button>
+        <el-button type="primary" @click="resetTheme" class="action-btn">
+          <el-icon><RefreshRight /></el-icon>
+          重置配置
+        </el-button>
       </div>
     </div>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {useMenuStore} from '@/store/menu.ts'
-import {ElDivider, ElNotification} from 'element-plus'
-import {useI18n} from 'vue-i18n'
-import {toggleDarkMode} from '@/utils/theme'
+import { computed, ref } from 'vue'
+import { useMenuStore } from '@/store/menu.ts'
+import { ElNotification } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+import { toggleDarkMode } from '@/utils/theme'
+import { Setting, Sunny, Moon, Check, Delete, RefreshRight } from '@element-plus/icons-vue'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue'])
-const show = computed({get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v)})
+const show = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
+
 const menuStore = useMenuStore()
-const {t} = useI18n()
+const { t } = useI18n()
 const isDark = ref(localStorage.getItem('theme') === 'dark')
-const predefineColors = ref([
-  '#002141', '#409EFF', '#ffffff', '#1890ff', '#304156', '#212121',
-  '#11a983', '#13c2c2', '#6959CD', '#f5222d', '#fa541c', '#fa8c16',
-  '#faad14', '#fadb14', '#a0d911', '#52c41a', '#1890ff', '#40a9ff', '#69c0ff'
-])
-const transitionOptions = ref([
-  {label: '淡入', value: 'el-fade-in'},
-  {label: '线性淡入', value: 'el-fade-in-linear'},
-  {label: '左侧缩放', value: 'el-zoom-in-left'},
-  {label: '居中缩放', value: 'el-zoom-in-center'},
-  {label: '顶部缩放', value: 'el-zoom-in-top'},
-  {label: '底部缩放', value: 'el-zoom-in-bottom'},
+
+// 企业简约风配色
+const themeColors = ref([
+  { label: '默认蓝', value: '#409EFF' },
+  { label: '科技蓝', value: '#3B82F6' },
+  { label: '专业灰', value: '#475569' },
+  { label: '商务绿', value: '#059669' },
+  { label: '稳重青', value: '#0891B2' },
+  { label: '优雅紫', value: '#7C3AED' },
+  { label: '活力橙', value: '#EA580C' },
+  { label: '经典红', value: '#DC2626' },
 ])
 
-function onThemeChange(val: boolean) {
-  toggleDarkMode(val)
-  localStorage.setItem('theme', val ? 'dark' : 'light')
-  menuStore.applyDefaultSystemColor(val)
+const transitionOptions = ref([
+  { label: '淡入淡出', value: 'fade' },
+  { label: '左滑', value: 'slide-left' },
+  { label: '右滑', value: 'slide-right' },
+  { label: '缩放', value: 'el-zoom-in-center' },
+])
+
+function onThemeChange(dark: boolean) {
+  isDark.value = dark
+  toggleDarkMode(dark)
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+  menuStore.applyDefaultSystemColor(dark)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
 function systemColor(color: string) {
-  menuStore.changeSystemColor(color);
+  menuStore.changeSystemColor(color)
   document.documentElement.style.setProperty('--el-color-primary', color)
 }
 
-function breadcrumb(val: boolean) {
-  menuStore.changeBreadcrumb(val)
-}
-
-function hamburger(val: boolean) {
-  menuStore.changeHamburger(val)
-}
-
-function screenfull(val: boolean) {
-  menuStore.changeScreenfull(val)
-}
-
-function tabtag(val: boolean) {
-  menuStore.changeTabtag(val)
-}
-
-function uniqueOpen(val: boolean) {
-  menuStore.changeUniqueOpen(val)
-}
-
-function changeFooter(val: boolean) {
-  menuStore.changeFooter(val)
-}
-
-function pageTransition(val: boolean) {
-  menuStore.changePageTransition(val)
-}
-
-function transitionName(val: string) {
-  menuStore.changeTransitionName(val)
-}
+function breadcrumb(val: boolean) { menuStore.changeBreadcrumb(val) }
+function hamburger(val: boolean) { menuStore.changeHamburger(val) }
+function screenfull(val: boolean) { menuStore.changeScreenfull(val) }
+function tabtag(val: boolean) { menuStore.changeTabtag(val) }
+function uniqueOpen(val: boolean) { menuStore.changeUniqueOpen(val) }
+function changeFooter(val: boolean) { menuStore.changeFooter(val) }
+function pageTransition(val: boolean) { menuStore.changePageTransition(val) }
+function transitionName(val: string) { menuStore.changeTransitionName(val) }
 
 function clear() {
-  ElNotification({title: '提示', message: '清除缓存成功,请刷新', type: 'success'});
   localStorage.clear()
+  ElNotification.success({ title: '提示', message: '缓存已清除，请刷新页面' })
 }
 
-function resetThemeLight() {
-  toggleDarkMode(false);
-  menuStore.applyDefaultSystemColor(false);
-  localStorage.setItem('theme', 'light')
-  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
-}
-
-function resetThemeDark() {
-  toggleDarkMode(true);
-  menuStore.applyDefaultSystemColor(true);
-  localStorage.setItem('theme', 'dark')
-  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
+function resetTheme() {
+  onThemeChange(false)
+  systemColor('#409EFF')
+  ElNotification.success({ title: '提示', message: '配置已重置' })
 }
 </script>
 
-<style scoped>
-.setting-drawer {
-  padding: 0
+<style scoped lang="scss">
+.drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .setting-body {
-  padding: 0 12px;
-  overflow-y: auto
+  padding: 0 4px;
 }
 
-.setting-header {
-  font-size: 16px;
+.setting-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 13px;
   font-weight: 600;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebeef5
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
-.setting-row {
+/* 主题切换 */
+.theme-switch {
+  display: flex;
+  gap: 12px;
+}
+
+.theme-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  
+  &:hover {
+    border-color: var(--primary-light);
+    color: var(--text-primary);
+  }
+  
+  &.active {
+    border-color: var(--el-color-primary);
+    background: var(--el-color-primary-light-9);
+    color: var(--el-color-primary);
+  }
+  
+  span {
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+/* 颜色选择 */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.color-item {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 12px 0
+  color: #fff;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  &.active {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-card);
+  }
 }
 
-.color-list {
+/* 设置列表 */
+.setting-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px
-}
-
-.color-block {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
-  cursor: pointer;
-  position: relative
-}
-
-.color-block.active {
-  outline: 2px solid #409eff
-}
-
-.color-block.active::after {
-  content: '✓';
-  position: absolute;
-  right: -6px;
-  top: -10px;
-  font-size: 16px;
-  color: #409eff
-}
-
-.toggle-list {
+  flex-direction: column;
+  gap: 4px;
 }
 
 .setting-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  span {
+    font-size: 14px;
+    color: var(--text-primary);
+  }
 }
 
+/* 操作按钮 */
 .setting-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  justify-content: space-between
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
-.setting-actions .el-button {
-  width: 100%
+.action-btn {
+  flex: 1;
+  height: 40px;
+  
+  .el-icon {
+    margin-right: 6px;
+  }
+}
+
+/* 抽屉样式覆盖 */
+:deep(.el-drawer__header) {
+  padding: 16px 20px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+:deep(.el-drawer__body) {
+  padding: 20px;
 }
 </style>
-

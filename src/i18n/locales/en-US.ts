@@ -94,6 +94,9 @@ export default {
       selectAll: 'Select All'
     },
     quickEntry: 'Quick Entry',
+    welcomeBack: 'Welcome back',
+    welcomeSubtitle: 'Another productive day ahead',
+    personalSettings: 'Settings',
     loadMore: 'Load More',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
@@ -108,6 +111,7 @@ export default {
     permission: 'Permission',
     operationLog: 'operation Log',
     usersLoginLog: 'Login Log',
+    systemLog: 'System Log',
     test: 'Test',
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings',

@@ -1,127 +1,205 @@
 <script setup lang="ts">
-import {computed} from 'vue'
-import {useRouter} from 'vue-router'
-import {useUserStore} from '@/store/user'
-import {useI18n} from 'vue-i18n'
-import {UserFilled, Setting, List, Tickets} from '@element-plus/icons-vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/user'
+import { useI18n } from 'vue-i18n'
+import { UserFilled, Setting, List, Tickets, ArrowRight } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
-const {t} = useI18n()
+const { t } = useI18n()
+
 const entries = computed(() => [
-  {label: t('menu.userManager'), icon: UserFilled, path: '/userManager', color: '#409EFF'},
-  {label: t('menu.role'), icon: Tickets, path: '/role', color: '#67C23A'},
-  {label: t('menu.permission'), icon: Setting, path: '/permission', color: '#E6A23C'},
-  {label: t('menu.systemLog'), icon: List, path: '/logs', color: '#F56C6C'},
+  { label: t('menu.userManager'), icon: UserFilled, path: '/userManager', color: 'var(--el-color-primary)', bg: 'var(--el-color-primary-light-9)' },
+  { label: t('menu.role'), icon: Tickets, path: '/role', color: '#059669', bg: 'rgba(5, 150, 105, 0.1)' },
+  { label: t('menu.permission'), icon: Setting, path: '/permission', color: '#D97706', bg: 'rgba(217, 119, 6, 0.1)' },
+  { label: t('menu.operationLog'), icon: List, path: '/operationLog', color: '#DC2626', bg: 'rgba(220, 38, 38, 0.1)' },
 ])
-const goTo = (p: any) => router.push(p)
-const gotToPersonal = () => router.push({name: 'personal', query: {user_id: userStore.user_id}})
+
+const goTo = (path: string) => router.push(path)
+const goToPersonal = () => router.push({ path: '/personal', query: { user_id: userStore.user_id } })
 </script>
+
 <template>
-  <div class="home">
-    <el-row :gutter="16">
-      <el-col :span="24">
-        <el-card shadow="never">
-          <template #header>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:16px;font-weight:700;">{{ t('menu.home') }}</span>
-            </div>
-          </template>
-          <div class="hero">
-            <el-avatar :src="userStore.avatar" :size="64"/>
-            <div class="hero-text">
-              <div class="title">{{ t('menu.home') }}</div>
-              <div class="subtitle">{{ userStore.username }}</div>
-            </div>
-            <div class="hero-actions">
-              <el-button type="primary" @click="gotToPersonal">{{ t('common.actions.edit') }}</el-button>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-    <el-card shadow="never">
-      <template #header>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:16px;font-weight:700;">{{ t('common.quickEntry') }}</span>
+  <div class="home-page">
+    <!-- 欢迎卡片 -->
+    <div class="welcome-card">
+      <div class="welcome-content">
+        <el-avatar :src="userStore.avatar" :size="72" class="welcome-avatar" />
+        <div>
+          <h2 class="welcome-title">{{ t('common.welcomeBack') }}，{{ userStore.username }}</h2>
+          <p class="welcome-subtitle">{{ t('menu.home') }} · {{ t('common.welcomeSubtitle') }}</p>
         </div>
-      </template>
-      <el-row :gutter="16" class="quick">
-        <el-col v-for="e in entries" :key="e.path" :xs="24" :sm="12" :md="8" :lg="6">
-          <el-card class="quick-card" @click="goTo(e.path)" shadow="hover">
-            <div class="quick-item">
-              <el-icon :style="{ color: e.color, fontSize: '24px' }">
-                <component :is="e.icon"/>
-              </el-icon>
-              <span class="label">{{ e.label }}</span>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </el-card>
+      </div>
+      <div class="welcome-actions">
+        <el-button type="primary" @click="goToPersonal">
+          <el-icon><Setting /></el-icon>
+          {{ t('menu.personal') }}
+        </el-button>
+      </div>
+    </div>
+    
+    <!-- 快捷入口 -->
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">{{ t('common.quickEntry') }}</h3>
+      </div>
+      <div class="quick-grid">
+        <div 
+          v-for="entry in entries" 
+          :key="entry.path" 
+          class="quick-card"
+          @click="goTo(entry.path)"
+        >
+          <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
+            <el-icon :size="24"><component :is="entry.icon" /></el-icon>
+          </div>
+          <div class="quick-content">
+            <span class="quick-label">{{ entry.label }}</span>
+            <el-icon class="quick-arrow"><ArrowRight /></el-icon>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-<style scoped>
-.home {
-}
 
-.hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between
-}
-
-.hero-text {
+<style scoped lang="scss">
+.home-page {
   display: flex;
   flex-direction: column;
-  margin-left: 16px;
-  flex: 1
+  gap: 24px;
 }
 
-.title {
-  font-size: 20px;
-  font-weight: 600
-}
-
-.subtitle {
-  color: #909399
-}
-
-.hero-actions {
+.welcome-card {
   display: flex;
-  gap: 8px
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background: var(--el-color-primary);
+  border-radius: 12px;
+  color: #fff;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+  }
 }
 
-.quick {
-  margin-top: 16px
+.welcome-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.welcome-avatar {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.welcome-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+  }
+}
+
+.welcome-subtitle {
+  font-size: 14px;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.welcome-actions {
+  .el-button {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    .el-button { width: 100%; }
+  }
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 }
 
 .quick-card {
-  cursor: pointer
-}
-
-.quick-item {
   display: flex;
   align-items: center;
-  gap: 12px
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    .quick-arrow { opacity: 1; transform: translateX(0); }
+  }
+
+  @media (max-width: 768px) { padding: 16px; }
 }
 
-@media (max-width: 768px) {
-  .home {
-  }
+.quick-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
 
-  .hero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px
-  }
+.quick-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  .hero-text {
-    margin-left: 0
-  }
+.quick-label {
+  font-size: 15px;
+  font-weight: 500;
+}
 
-  .hero-actions {
-    width: 100%
-  }
+.quick-arrow {
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all var(--transition-fast);
 }
 </style>

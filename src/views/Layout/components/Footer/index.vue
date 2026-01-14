@@ -1,12 +1,23 @@
 <script setup>
 </script>
+
 <template>
-  <div class="box">
-    <el-text type="primary">{{ $t('footer.copyright') }}</el-text>
+  <div class="footer">
+    <span class="footer-text">{{ $t('footer.copyright') }}</span>
   </div>
-  </template>
+</template>
 
 <style lang="scss" scoped>
-.box{ display:flex; justify-content:center; align-items:center; height:100% }
-</style>
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+}
 
+.footer-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+</style>

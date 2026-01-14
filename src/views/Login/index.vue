@@ -8,7 +8,6 @@ import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
-import ParticleBackground from '@/components/ParticleBackground'
 import SendCode from '@/components/SendCode'
 
 const router = useRouter()
@@ -22,7 +21,7 @@ onMounted(() => {
   })
 })
 
-// 登录类型：email/phone 验证码登录，password 密码登录
+// 登录类型
 const activeTab = ref<string>('email')
 const loginForm = ref({ login_account: '', password: '', code: '', remember: true })
 const formRef = ref<FormInstance | null>(null)
@@ -49,39 +48,29 @@ const rules = computed<FormRules>(() => {
   return baseRules
 })
 
-// 初始化 activeTab
 watch(() => loginTypes.value, (newVal) => {
   if (newVal && newVal.length > 0) {
     const firstType = newVal[0]
-    if (firstType) {
-      activeTab.value = firstType.value
-    }
+    if (firstType) activeTab.value = firstType.value
   }
 }, { immediate: true })
 
-// 切换登录类型时清空表单
 watch(activeTab, () => {
   loginForm.value = { login_account: '', password: '', code: '', remember: loginForm.value.remember }
   sendCodeRef.value?.reset()
   formRef.value?.clearValidate()
 })
 
-// 验证码组件 ref
 const sendCodeRef = ref<InstanceType<typeof SendCode> | null>(null)
 
-// 登录
 const loading = ref(false)
 const handleLogin = async () => {
   if (!formRef.value) return
   try {
     await formRef.value.validate()
-  } catch {
-    return
-  }
-  const param = {
-    ...loginForm.value,
-    login_type: activeTab.value
-  }
+  } catch { return }
+  
+  const param = { ...loginForm.value, login_type: activeTab.value }
   loading.value = true
   UsersApi.login(param)
     .then((data: any) => {
@@ -106,116 +95,248 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-page">
-    <ParticleBackground />
-    <el-card shadow="always" class="login-card" v-loading="loading">
-      <h2>{{ t('auth.login.title') }}</h2>
-      <el-tabs v-if="loginTypes.length > 1" v-model="activeTab" stretch class="login-tabs">
-        <el-tab-pane v-for="type in loginTypes" :key="type.value" :label="type.label" :name="type.value"/>
-      </el-tabs>
-      <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false">
-        <el-form-item :label="t('auth.login.account')" prop="login_account">
-          <el-input 
-            :placeholder="activeTab === 'email' ? '请输入邮箱' : activeTab === 'phone' ? '请输入手机号' : '请输入邮箱或手机号'" 
-            v-model="loginForm.login_account" 
-            clearable 
-            size="large"
-          >
-            <template #prefix>
-              <el-icon><component :is="activeTab === 'email' ? 'Message' : activeTab === 'phone' ? 'Iphone' : 'User'" /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-        
-        <el-form-item v-if="activeTab === 'password'" :label="t('auth.login.password')" prop="password">
-          <el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" @keydown.enter="handleLogin" />
-        </el-form-item>
+    <div class="login-container">
+      <!-- 左侧品牌区 -->
+      <div class="login-brand">
+        <div class="brand-content">
+          <div class="brand-logo">
+            <img src="/logo.png" alt="Logo" />
+          </div>
+          <h1 class="brand-title">智澜管理系统</h1>
+          <p class="brand-desc">高效、安全、专业的企业级管理平台</p>
+        </div>
+        <div class="brand-footer">
+          <span>© 2024 智澜科技</span>
+        </div>
+      </div>
+      
+      <!-- 右侧登录表单 -->
+      <div class="login-form-wrapper">
+        <div class="login-card" v-loading="loading">
+          <h2 class="login-title">{{ t('auth.login.title') }}</h2>
+          <p class="login-subtitle">欢迎回来，请登录您的账户</p>
+          
+          <el-tabs v-if="loginTypes.length > 1" v-model="activeTab" class="login-tabs">
+            <el-tab-pane v-for="type in loginTypes" :key="type.value" :label="type.label" :name="type.value"/>
+          </el-tabs>
+          
+          <el-form :model="loginForm" :rules="rules" ref="formRef" label-position="top" :validate-on-rule-change="false" class="login-form">
+            <el-form-item :label="t('auth.login.account')" prop="login_account">
+              <el-input 
+                :placeholder="activeTab === 'email' ? '请输入邮箱' : activeTab === 'phone' ? '请输入手机号' : '请输入邮箱或手机号'" 
+                v-model="loginForm.login_account" 
+                clearable 
+                size="large"
+              >
+                <template #prefix>
+                  <el-icon><component :is="activeTab === 'email' ? 'Message' : activeTab === 'phone' ? 'Iphone' : 'User'" /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            
+            <el-form-item v-if="activeTab === 'password'" :label="t('auth.login.password')" prop="password">
+              <el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" @keydown.enter="handleLogin">
+                <template #prefix>
+                  <el-icon><Lock /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
 
-        <el-form-item v-else :label="t('auth.register.code')" prop="code">
-          <SendCode 
-            ref="sendCodeRef"
-            v-model="loginForm.code" 
-            :account="loginForm.login_account" 
-            scene="login"
-            :placeholder="t('personal.security.codePlaceholder')"
-            @keydown.enter="handleLogin"
-          />
-        </el-form-item>
+            <el-form-item v-else :label="t('auth.register.code')" prop="code">
+              <SendCode 
+                ref="sendCodeRef"
+                v-model="loginForm.code" 
+                :account="loginForm.login_account" 
+                scene="login"
+                size="large"
+                :placeholder="t('personal.security.codePlaceholder')"
+                @keydown.enter="handleLogin"
+              />
+            </el-form-item>
 
-        <el-form-item>
-          <el-checkbox v-model="loginForm.remember" :label="t('auth.login.remember')" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" size="large" class="login-btn" @click="handleLogin">
-            {{ activeTab === 'password' ? t('auth.login.submit') : t('auth.login.submit') + ' / ' + t('auth.register.submit') }}
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+            <el-form-item class="form-options">
+              <el-checkbox v-model="loginForm.remember">{{ t('auth.login.remember') }}</el-checkbox>
+            </el-form-item>
+            
+            <el-form-item>
+              <el-button type="primary" size="large" class="login-btn" @click="handleLogin">
+                {{ activeTab === 'password' ? t('auth.login.submit') : t('auth.login.submit') + ' / ' + t('auth.register.submit') }}
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .login-page {
   min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.login-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 左侧品牌区 */
+.login-brand {
+  flex: 0 0 420px;
+  background: var(--el-color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+  position: relative;
+}
+
+.brand-content {
+  text-align: center;
+  color: #fff;
+}
+
+.brand-logo {
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background:
-    radial-gradient(1000px 600px at 10% 10%, #f6f9ff 0%, #eef2f9 35%, #e9edf5 100%),
-    radial-gradient(800px 500px at 90% 90%, #f3f7ff 0%, #edf1f7 40%, transparent 70%),
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 12px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 12px);
-  background-attachment: fixed;
+  margin: 0 auto 24px;
+  
+  img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+  }
 }
 
-:global(.dark) .login-page {
-  background:
-    radial-gradient(1000px 600px at 12% 10%, #0f1218 0%, #10141a 40%, #0b0e13 100%),
-    radial-gradient(900px 600px at 85% 92%, #11161d 0%, #0e1217 40%, transparent 70%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 12px),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 12px);
+.brand-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.brand-desc {
+  font-size: 15px;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.brand-footer {
+  position: absolute;
+  bottom: 32px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+/* 右侧表单区 */
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: var(--bg-card);
 }
 
 .login-card {
   width: 100%;
-  max-width: 520px;
-  padding: 32px;
-  border-radius: 18px;
-  backdrop-filter: blur(12px);
-  background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.55));
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-  border: 1px solid rgba(255,255,255,0.6);
+  max-width: 400px;
+}
 
-  h2 {
-    text-align: center;
-    letter-spacing: 1px;
-    margin-bottom: 18px;
+.login-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.login-tabs {
+  margin-bottom: 24px;
+  
+  :deep(.el-tabs__nav-wrap::after) {
+    height: 1px;
+    background: var(--border);
   }
-
-  .login-tabs {
-    margin-bottom: 16px;
-  }
-
-  .login-btn {
-    width: 100%;
+  
+  :deep(.el-tabs__item) {
+    font-size: 14px;
+    color: var(--text-secondary);
+    
+    &.is-active {
+      color: var(--primary);
+      font-weight: 500;
+    }
   }
 }
 
-:global(.dark) .login-card {
-  background: linear-gradient(135deg, rgba(32,32,32,0.75), rgba(22,22,22,0.6));
-  border-color: rgba(255,255,255,0.08);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+.login-form {
+  :deep(.el-form-item__label) {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
 }
 
-@media (max-width: 768px) {
-  .login-page {
-    padding: 10px;
+.form-options {
+  margin-bottom: 24px;
+  
+  :deep(.el-form-item__content) {
+    justify-content: space-between;
+  }
+}
+
+.login-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+/* 响应式 */
+@media (max-width: 992px) {
+  .login-brand {
+    display: none;
+  }
+  
+  .login-form-wrapper {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form-wrapper {
+    padding: 20px;
   }
   
   .login-card {
-    padding: 24px;
-    border-radius: 16px;
+    max-width: 100%;
   }
+  
+  .login-title {
+    font-size: 22px;
+  }
+}
+
+/* 暗色模式 */
+:global(.dark) .login-brand {
+  background: var(--el-color-primary-dark-2);
+}
+
+:global(.dark) .login-form-wrapper {
+  background: var(--bg-card);
 }
 </style>

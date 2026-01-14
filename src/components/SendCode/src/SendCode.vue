@@ -18,11 +18,14 @@ const props = withDefaults(defineProps<{
   countdown?: number
   /** 是否移动端样式（竖向排列） */
   mobile?: boolean
+  /** 尺寸 */
+  size?: 'large' | 'default' | 'small'
 }>(), {
   placeholder: '',
   sendDisabled: false,
   countdown: 60,
-  mobile: false
+  mobile: false,
+  size: 'default'
 })
 
 const emit = defineEmits<{
@@ -89,10 +92,12 @@ defineExpose({ reset, sendCode })
     <el-input 
       v-model="modelValue" 
       :placeholder="placeholder || t('personal.security.codePlaceholder')" 
+      :size="size"
       clearable
     />
     <el-button 
       type="primary" 
+      :size="size"
       @click="sendCode" 
       :loading="loading" 
       :disabled="isSendDisabled"

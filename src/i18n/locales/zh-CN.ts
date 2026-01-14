@@ -94,6 +94,9 @@ export default {
       selectAll: '全选'
     },
     quickEntry: '快速入口',
+    welcomeBack: '欢迎回来',
+    welcomeSubtitle: '今天也是充满效率的一天',
+    personalSettings: '个人设置',
     loadMore: '加载更多',
     placeholder: {
       leaveEmpty: '留空不修改'
@@ -108,6 +111,7 @@ export default {
     permission: '菜单管理',
     operationLog: '操作日志',
     usersLoginLog: '登录日志',
+    systemLog: '系统日志',
     test: '测试页',
     uploadConfig: '上传配置',
     systemSetting: '系统设置',

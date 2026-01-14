@@ -1,92 +1,183 @@
 <script setup>
-import {ref, watch} from 'vue'
-import {useIsMobile} from '@/hooks/useResponsive'
+import { ref, watch } from 'vue'
+import { useIsMobile } from '@/hooks/useResponsive'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
 import Footer from '@/views/Layout/components/Footer/index.vue'
-import {useUserStore} from '@/store/user'
-import {useMenuStore} from '@/store/menu'
-import {useRoute} from "vue-router";
+import { useUserStore } from '@/store/user'
+import { useMenuStore } from '@/store/menu'
+import { useRoute } from "vue-router"
 
 const userStore = useUserStore()
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
+
 watch(isMobile, (val) => {
   if (val) menuStore.mobile()
-}, {immediate: true})
+}, { immediate: true })
 </script>
+
 <template>
-  <el-container v-loading="userStore.loading">
-    <el-drawer :with-header="false" v-model="menuStore.drawer" direction="ltr" size="auto" v-if="isMobile">
-      <Aside/>
+  <el-container class="layout-container" v-loading="userStore.loading">
+    <!-- 移动端抽屉菜单 -->
+    <el-drawer 
+      v-if="isMobile" 
+      v-model="menuStore.drawer" 
+      direction="ltr" 
+      size="220px"
+      :with-header="false"
+      class="mobile-drawer"
+    >
+      <Aside />
     </el-drawer>
-    <el-aside width="auto" v-else>
-      <Aside/>
+    
+    <!-- 桌面端侧边栏 -->
+    <el-aside v-else width="auto" class="layout-aside">
+      <Aside />
     </el-aside>
-    <el-container>
-      <el-header height="auto">
-        <Header/>
+    
+    <!-- 主内容区 -->
+    <el-container class="layout-main">
+      <el-header height="auto" class="layout-header">
+        <Header />
       </el-header>
-      <TabTag class="tab-tag" v-if="menuStore.tabtag"/>
-      <el-main>
+      
+      <TabTag v-if="menuStore.tabtag" class="layout-tabs" />
+      
+      <el-main class="layout-content">
         <router-view v-slot="{ Component }">
           <transition
-              v-if="menuStore.pageTransition"
-              :name="menuStore.transitionName"
-              mode="out-in"
-              appear
+            v-if="menuStore.pageTransition"
+            :name="menuStore.transitionName"
+            mode="out-in"
+            appear
           >
-            <el-card :key="route.fullPath" shadow="never">
-              <component :is="Component"/>
-            </el-card>
+            <div :key="route.fullPath" class="page-card">
+              <component :is="Component" />
+            </div>
           </transition>
-
-          <el-card v-else shadow="never">
-            <component :is="Component"/>
-          </el-card>
+          
+          <div v-else class="page-card">
+            <component :is="Component" />
+          </div>
         </router-view>
-
       </el-main>
-      <el-footer v-if="menuStore.footer">
-        <Footer/>
+      
+      <el-footer v-if="menuStore.footer" height="48px" class="layout-footer">
+        <Footer />
       </el-footer>
     </el-container>
   </el-container>
 </template>
-<style scoped>
-.el-container {
+
+<style scoped lang="scss">
+.layout-container {
   height: 100vh;
   overflow: hidden;
+  background: var(--bg-page);
 }
-.el-aside {
-  border-right: 1px solid var(--el-border-color);
-}
-.el-header,
-.el-footer {
-  padding: 0;
-}
-.el-main {
-  padding: 16px;
-  background: var(--el-bg-color-page);
+
+.layout-aside {
+  border-right: 1px solid var(--border);
+  background: var(--bg-card);
   overflow: hidden;
 }
-.el-main > :deep(.el-card) {
-  height: 100%;
+
+.layout-main {
   display: flex;
   flex-direction: column;
-}
-.el-main > :deep(.el-card) > :deep(.el-card__body) {
-  flex: 1;
+  min-width: 0;
   overflow: hidden;
 }
-:deep(.el-drawer__body) {
+
+.layout-header {
   padding: 0;
+  flex-shrink: 0;
 }
+
+.layout-tabs {
+  flex-shrink: 0;
+}
+
+.layout-content {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+  background: var(--bg-page);
+}
+
+.page-card {
+  height: 100%;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 20px;
+  overflow: auto;
+}
+
+.layout-footer {
+  padding: 0;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+/* 移动端抽屉 */
+:deep(.mobile-drawer) {
+  .el-drawer__body {
+    padding: 0;
+  }
+}
+
+/* 页面过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+/* 响应式 */
 @media (max-width: 768px) {
-  .el-main {
+  .layout-content {
     padding: 12px;
+  }
+  
+  .page-card {
+    padding: 16px;
+    border-radius: 6px;
   }
 }
 </style>

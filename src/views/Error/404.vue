@@ -1,25 +1,98 @@
 <script setup>
-import img404 from '@/assets/svgs/404.svg'
 import { useRouter } from 'vue-router'
+import { HomeFilled, Back } from '@element-plus/icons-vue'
+
 const router = useRouter()
+const goHome = () => router.push('/')
+const goBack = () => router.back()
 </script>
 
 <template>
-  <div class="box">
-    <div class="img">
-      <el-image :src="img404" style="width: 500px;"></el-image>
-    </div>
-    <div class="text">
-      <el-text>抱歉，您访问的页面不存在</el-text>
-    </div>
-    <div class="btn">
-      <el-button type="primary" @click="router.push('/')" size="large">返回首页</el-button>
+  <div class="error-page">
+    <div class="error-content">
+      <div class="error-code">404</div>
+      <h1 class="error-title">页面未找到</h1>
+      <p class="error-desc">抱歉，您访问的页面不存在或已被移除</p>
+      <div class="error-actions">
+        <el-button @click="goBack">
+          <el-icon><Back /></el-icon>
+          返回上页
+        </el-button>
+        <el-button type="primary" @click="goHome">
+          <el-icon><HomeFilled /></el-icon>
+          返回首页
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
+
 <style scoped lang="scss">
-.box { display: flex; align-content: center; justify-content: center; flex-direction: column; }
-.text { text-align: center; }
-.img { text-align: center; }
-.btn { text-align: center; margin-top: 20px; }
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+  padding: 20px;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 480px;
+}
+
+.error-code {
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--el-color-primary);
+  margin-bottom: 16px;
+}
+
+.error-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.error-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0 0 32px;
+}
+
+.error-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  
+  .el-button {
+    min-width: 120px;
+    
+    .el-icon {
+      margin-right: 6px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .error-code {
+    font-size: 80px;
+  }
+  
+  .error-title {
+    font-size: 20px;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    
+    .el-button {
+      width: 100%;
+    }
+  }
+}
 </style>

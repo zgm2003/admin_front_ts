@@ -1,136 +1,121 @@
 <template>
-  <div
-      class="header-bar flex items-center"
-  >
-    <el-button
-        v-if="menuStore.hamburger"
-        type="primary"
-        @click="ClickMenu"
-        :style="{ backgroundColor: menuStore.systemColor, marginRight: '16px' }"
-    >
-      <el-icon>
-        <component :is="menuStore.collapse ? 'Menu' : 'Grid'"/>
-      </el-icon>
-    </el-button>
-    <div v-if="menuStore.breadcrumb" class="breadcrumb-wrapper">
-      <el-breadcrumb separator-icon="ArrowRight">
-        <el-breadcrumb-item
-            v-for="item in menuStore.tabList"
-            :key="item.index"
-            :to="{ path: item.path }"
-            replace
-        >
-          <el-text>{{ getBreadcrumbLabel(item) }}</el-text>
+  <div class="header-bar">
+    <!-- 左侧：菜单按钮 + 面包屑 -->
+    <div class="header-left">
+      <button v-if="menuStore.hamburger" class="menu-toggle" @click="ClickMenu">
+        <el-icon :size="20">
+          <component :is="menuStore.collapse ? 'Expand' : 'Fold'" />
+        </el-icon>
+      </button>
+      
+      <el-breadcrumb v-if="menuStore.breadcrumb && !isMobile" separator="/">
+        <el-breadcrumb-item v-for="item in menuStore.tabList" :key="item.index" :to="{ path: item.path }" replace>
+          {{ getBreadcrumbLabel(item) }}
         </el-breadcrumb-item>
       </el-breadcrumb>
     </div>
-    <div class="flex-grow"></div>
-    <el-space size="large">
-      <!--      <el-switch-->
-      <!--          v-model="isDark"-->
-      <!--          active-action-icon="Moon"-->
-      <!--          inactive-action-icon="Sunny"-->
-      <!--          @change="onThemeChange"-->
-      <!--          style="margin-right: 16px"-->
-      <!--      />-->
-      <el-button
-          v-if="menuStore.screenfull"
-          @click="toggleFullScreen"
-          icon="FullScreen"
-          circle
-          style="margin-right: 8px"
-      />
-      <el-dropdown style="margin-right: 8px">
-        <el-button circle>
-          <el-icon>
-            <HelpFilled/>
-          </el-icon>
-        </el-button>
+    
+    <!-- 右侧：工具栏 -->
+    <div class="header-right">
+      <button v-if="menuStore.screenfull" class="header-btn" @click="toggleFullScreen" :title="t('header.fullscreen')">
+        <el-icon :size="18"><FullScreen /></el-icon>
+      </button>
+      
+      <el-dropdown trigger="click" @command="setLang">
+        <button class="header-btn" :title="t('header.language')">
+          <el-icon :size="18"><HelpFilled /></el-icon>
+        </button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="setLang('zh-CN')">{{ $t('common.zh') }}</el-dropdown-item>
-            <el-dropdown-item @click="setLang('en-US')">{{ $t('common.en') }}</el-dropdown-item>
+            <el-dropdown-item command="zh-CN">{{ $t('common.zh') }}</el-dropdown-item>
+            <el-dropdown-item command="en-US">{{ $t('common.en') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <el-button @click="drawer = true" icon="Setting" circle style="margin-right: 8px"/>
-      <el-button @click="searchOpen = true" circle style="margin-right: 8px">
-        <el-icon>
-          <Search/>
-        </el-icon>
-      </el-button>
-      <!--      <el-button @click="goToBlog" icon="House" circle style="margin-right: 8px"/>-->
+      
+      <button class="header-btn" @click="drawer = true" :title="t('header.settings')">
+        <el-icon :size="18"><Setting /></el-icon>
+      </button>
+      
+      <button class="header-btn" @click="searchOpen = true" :title="t('header.search')">
+        <el-icon :size="18"><Search /></el-icon>
+      </button>
+      
       <el-dropdown @command="handleUserCommand">
-      <span class="el-dropdown-link">
-        <el-avatar :src="userStore.avatar" size="small"/>
-      </span>
+        <div class="user-info">
+          <el-avatar :src="userStore.avatar" :size="32" />
+          <span v-if="!isMobile" class="user-name">{{ userStore.nickname || '用户' }}</span>
+          <el-icon class="user-arrow"><ArrowDown /></el-icon>
+        </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="personal">{{ t('header.personal') }}</el-dropdown-item>
-            <el-dropdown-item command="logout">{{ t('header.logout') }}</el-dropdown-item>
+            <el-dropdown-item command="personal">
+              <el-icon><User /></el-icon>
+              {{ t('header.personal') }}
+            </el-dropdown-item>
+            <el-dropdown-item divided command="logout">
+              <el-icon><SwitchButton /></el-icon>
+              {{ t('header.logout') }}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-    </el-space>
+    </div>
   </div>
 
-  <el-dialog v-model="LoginOutShow" :title="t('header.logoutTitle')" width="400">
-    <el-alert :title="t('header.logoutText')" type="warning" show-icon :closable="false"/>
+  <!-- 退出确认对话框 -->
+  <el-dialog v-model="LoginOutShow" :title="t('header.logoutTitle')" width="400" align-center>
+    <div class="logout-content">
+      <el-icon class="logout-icon" :size="48"><Warning /></el-icon>
+      <p>{{ t('header.logoutText') }}</p>
+    </div>
     <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="LoginOutShow = false">{{ t('header.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmLoginOut">{{ t('header.ok') }}</el-button>
-      </div>
+      <el-button @click="LoginOutShow = false">{{ t('header.cancel') }}</el-button>
+      <el-button type="primary" @click="confirmLoginOut">{{ t('header.ok') }}</el-button>
     </template>
   </el-dialog>
-  <SettingDrawer v-model="drawer"/>
-  <SearchDialog v-model="searchOpen"/>
+  
+  <SettingDrawer v-model="drawer" />
+  <SearchDialog v-model="searchOpen" />
 </template>
 
 <script setup>
-import {ref, onMounted, computed} from 'vue';
+import { ref, onMounted } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
-import {Search} from '@element-plus/icons-vue'
-import {useMenuStore} from '@/store/menu.ts';
-import {useUserStore} from '@/store/user.ts';
-import {ElNotification, ElDivider, ElMessage} from 'element-plus';
-import {useRouter} from 'vue-router';
-import {clearAllCookies} from '@/utils/cookie';
-import {toggleDarkMode} from '@/utils/theme';
-import {useIsMobile} from '@/hooks/useResponsive'
-import {useI18n} from 'vue-i18n'
-import {resolveMenuLabel} from '@/utils/menuI18n'
+import { Search, Setting, FullScreen, ArrowDown, User, SwitchButton, Warning } from '@element-plus/icons-vue'
+import { useMenuStore } from '@/store/menu.ts'
+import { useUserStore } from '@/store/user.ts'
+import { ElNotification } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { clearAllCookies } from '@/utils/cookie'
+import { toggleDarkMode } from '@/utils/theme'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { useI18n } from 'vue-i18n'
+import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
-import {UsersApi} from "@/api/user/users.js";
+import { UsersApi } from "@/api/user/users.js"
 
-const menuStore = useMenuStore();
-const userStore = useUserStore();
-const router = useRouter();
-const {t, locale} = useI18n()
+const menuStore = useMenuStore()
+const userStore = useUserStore()
+const router = useRouter()
+const { t, locale } = useI18n()
 
-const isDark = ref(false);
-const drawer = ref(false);
-const LoginOutShow = ref(false);
-const searchOpen = ref(false);
+const isDark = ref(false)
+const drawer = ref(false)
+const LoginOutShow = ref(false)
+const searchOpen = ref(false)
 
 function getBreadcrumbLabel(item) {
   return resolveMenuLabel(t, item)
 }
 
 onMounted(() => {
-  isDark.value = localStorage.getItem('theme') === 'dark';
-  toggleDarkMode(isDark.value);
-  menuStore.applyDefaultSystemColor(isDark.value);
+  isDark.value = localStorage.getItem('theme') === 'dark'
+  toggleDarkMode(isDark.value)
+  menuStore.applyDefaultSystemColor(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
-});
-
-function onThemeChange(val) {
-  toggleDarkMode(val);
-  localStorage.setItem('theme', val ? 'dark' : 'light');
-  menuStore.applyDefaultSystemColor(val);
-  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
-}
+})
 
 const isMobile = useIsMobile()
 
@@ -141,62 +126,26 @@ function ClickMenu() {
 function confirmLoginOut() {
   UsersApi.logout({}).finally(() => {
     useMenuStore().reset()
-    clearAllCookies();
-    localStorage.removeItem('lastVisitedPath');
-    ElNotification.success(t('common.success.operation'));
-    router.push('/login');
+    clearAllCookies()
+    localStorage.removeItem('lastVisitedPath')
+    ElNotification.success(t('common.success.operation'))
+    router.push('/login')
   })
 }
 
 function toggleFullScreen() {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-  else if (document.exitFullscreen) document.exitFullscreen();
-}
-
-
-function goToBlog() {
-  window.open('https://zgm2003.cn')
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen()
+  else if (document.exitFullscreen) document.exitFullscreen()
 }
 
 function handleUserCommand(command) {
-  if (command === 'personal') router.push({path: '/personal', query: {user_id: userStore.user_id}});
+  if (command === 'personal') router.push({ path: '/personal', query: { user_id: userStore.user_id } })
   if (command === 'logout') LoginOutShow.value = true
 }
 
 function setLang(lang) {
-  locale.value = lang;
+  locale.value = lang
   Cookies.set('lang', lang)
-}
-
-function copyConfig() {
-  const text = `{
-    "breadcrumb": ${menuStore.breadcrumb},
-    "hamburger": ${menuStore.hamburger},
-    "screenfull": ${menuStore.screenfull},
-    "tabtag": ${menuStore.tabtag},
-    "uniqueOpen": ${menuStore.uniqueOpen},
-    "isDark": ${isDark.value},
-    "systemColor": "${menuStore.systemColor}"
-  }`;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      ElMessage.success('复制成功')
-    }).catch(() => {
-      ElMessage.error('复制失败')
-    })
-  } else {
-    const input = document.createElement('textarea');
-    input.value = text;
-    document.body.appendChild(input);
-    input.select();
-    try {
-      document.execCommand('copy');
-      ElMessage.success('复制成功')
-    } catch {
-      ElMessage.error('复制失败')
-    }
-    document.body.removeChild(input)
-  }
 }
 </script>
 
@@ -204,29 +153,145 @@ function copyConfig() {
 .header-bar {
   display: flex;
   align-items: center;
-  min-width: 0;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  
+  &:hover {
+    background: var(--bg-hover);
+  }
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  max-width: 100px;
   overflow: hidden;
-  height: 50px;
-  padding: 0 10px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.flex-grow {
-  flex: 1
+.user-arrow {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.breadcrumb-wrapper {
-  margin-right: 16px
+/* 面包屑 */
+:deep(.el-breadcrumb) {
+  font-size: 14px;
+  
+  .el-breadcrumb__inner {
+    color: var(--text-secondary);
+    font-weight: 400;
+    
+    &:hover {
+      color: var(--primary);
+    }
+  }
+  
+  .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
 }
 
+/* 退出确认 */
+.logout-content {
+  text-align: center;
+  padding: 20px 0;
+  
+  .logout-icon {
+    color: var(--warning);
+    margin-bottom: 16px;
+  }
+  
+  p {
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+}
+
+/* 响应式 */
 @media (max-width: 768px) {
   .header-bar {
-    padding: 0 6px
+    padding: 0 12px;
+    height: 56px;
   }
-
-  :deep(.el-space) {
-    flex-wrap: wrap
+  
+  .header-left {
+    gap: 8px;
+  }
+  
+  .header-right {
+    gap: 2px;
+  }
+  
+  .header-btn {
+    width: 32px;
+    height: 32px;
   }
 }
 </style>
