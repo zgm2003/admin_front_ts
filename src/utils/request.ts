@@ -7,11 +7,26 @@ import { getDeviceId } from '@/utils/device'
 import { useMenuStore } from '@/store/menu'
 
 const baseURL = import.meta.env.VITE_SOME_KEY
-const sseBaseURL = import.meta.env.VITE_SSE_URL || baseURL  // SSE 专用地址，独立端口避免阻塞
+const sseBaseURL = import.meta.env.VITE_SSE_URL || baseURL
 const service = axios.create({ baseURL, timeout: 60000 })
 
 let isRefreshing = false
 let requestsQueue: { resolve: Function; reject: Function; config: any }[] = []
+
+// 防止重复弹框（所有错误通用）
+let lastNotifyTime = 0
+let lastNotifyMsg = ''
+const NOTIFY_DEBOUNCE = 2000
+
+function notify(message: string) {
+  const now = Date.now()
+  if (message === lastNotifyMsg && now - lastNotifyTime < NOTIFY_DEBOUNCE) {
+    return
+  }
+  lastNotifyTime = now
+  lastNotifyMsg = message
+  ElNotification.error({ message })
+}
 
 function getPlatform() {
   const envPlat = import.meta.env.VITE_PLATFORM
@@ -35,26 +50,25 @@ function processQueue(error: Error | null, token: string | null = null) {
   requestsQueue = []
 }
 
-function logoutAndRedirect(message: string) {
+function logoutAndRedirect() {
   useMenuStore().reset()
   clearAllCookies()
   router.push('/login')
-  processQueue(new Error(message))
+  // 队列里的请求静默失败，不再弹框（已经弹过了）
+  processQueue(new Error('Unauthorized'))
 }
 
 /** 统一处理 401：业务 code=401 或 HTTP 401 都走这里 */
 function handle401(originalRequest: any, messageFromServer?: string) {
-  // refresh 自己失败 or 已经 retry 过：直接退出
   if (originalRequest?.url?.includes('/api/Users/refresh') || originalRequest?._retry) {
     isRefreshing = false
-    ElNotification.error({ message: messageFromServer || '登录过期，请重新登录' })
-    logoutAndRedirect('Unauthorized')
+    notify(messageFromServer || '登录过期，请重新登录')
+    logoutAndRedirect()
     return Promise.reject(new Error('Unauthorized'))
   }
 
   originalRequest._retry = true
 
-  // 入队：等待 refresh 完成后重放
   const p = new Promise((resolve, reject) => {
     requestsQueue.push({ resolve, reject, config: originalRequest })
   })
@@ -64,8 +78,8 @@ function handle401(originalRequest: any, messageFromServer?: string) {
     const refreshToken = Cookies.get('refresh_token')
     if (!refreshToken) {
       isRefreshing = false
-      ElNotification.error({ message: '登录过期，请重新登录' })
-      logoutAndRedirect('No refresh token')
+      notify('登录过期，请重新登录')
+      logoutAndRedirect()
       return Promise.reject(new Error('No refresh token'))
     }
 
@@ -90,14 +104,14 @@ function handle401(originalRequest: any, messageFromServer?: string) {
           processQueue(null, access_token)
         } else {
           isRefreshing = false
-          ElNotification.error({ message: newData?.msg || '登录过期，请重新登录' })
-          logoutAndRedirect('Token refresh failed')
+          notify(newData?.msg || '登录过期，请重新登录')
+          logoutAndRedirect()
         }
       })
       .catch(() => {
         isRefreshing = false
-        ElNotification.error({ message: '网络错误，请重新登录' })
-        logoutAndRedirect('Token refresh failed')
+        notify('网络错误，请重新登录')
+        logoutAndRedirect()
       })
   }
 
@@ -110,10 +124,8 @@ service.interceptors.request.use(
     const platform = getPlatform()
     const deviceId = getDeviceId()
 
-    // 只有在 token 存在时才添加 Authorization 头
-    // 如果不存在，后端会返回 401，然后触发 response 拦截器里的 handle401 进行 refresh
     if (token) {
-        setHeader(config, 'Authorization', `Bearer ${token}`)
+      setHeader(config, 'Authorization', `Bearer ${token}`)
     }
     
     setHeader(config, 'platform', platform)
@@ -134,8 +146,7 @@ service.interceptors.response.use(
         }
 
         const message = data.msg || '请求失败'
-        ElNotification.error({ message })
-        // Removed: if (code === 404) router.push('/404') - API 404 should not redirect page
+        notify(message)
         const err: any = new Error(message)
         err.code = code
         err.response = res
@@ -150,14 +161,13 @@ service.interceptors.response.use(
     const resp = error?.response
     const status = resp?.status
 
-    // ✅ 补上 HTTP 401 也走 refresh
     if (status === 401) {
       return handle401(error.config, resp?.data?.msg || '未授权')
     }
 
     const data = resp?.data
     const message = (data && (data.msg || data.message)) || error.message || '请求失败'
-    ElNotification.error({ message })
+    notify(message)
     return Promise.reject(error)
   }
 )
@@ -166,7 +176,6 @@ type AnyObject = Record<string, any>
 
 /**
  * 获取通用请求头（token, platform, device-id）
- * 用于 fetch/SSE 等原生请求场景
  */
 export function getCommonHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -182,20 +191,16 @@ export function getCommonHeaders(): Record<string, string> {
 }
 
 export interface SSECallbacks {
-  onEvent?: (event: string, data: any) => boolean | void  // 返回 true 表示结束流
+  onEvent?: (event: string, data: any) => boolean | void
   onError?: (msg: string) => void
   onComplete?: () => void
 }
 
 /**
- * SSE 流式请求（基于 fetch + ReadableStream）
- * @param url 请求地址
- * @param data POST 数据
- * @param callbacks 回调函数
+ * SSE 流式请求
  */
 export async function streamPost(url: string, data: AnyObject, callbacks: SSECallbacks): Promise<void> {
   const fullUrl = url.startsWith('http') ? url : `${sseBaseURL}${url}`
-  
   const controller = new AbortController()
   
   const response = await fetch(fullUrl, {
@@ -225,8 +230,6 @@ export async function streamPost(url: string, data: AnyObject, callbacks: SSECal
       if (done) break
 
       buffer += decoder.decode(value, { stream: true })
-
-      // 解析 SSE 数据
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
 
@@ -239,7 +242,6 @@ export async function streamPost(url: string, data: AnyObject, callbacks: SSECal
           try {
             const parsed = JSON.parse(dataStr)
             const shouldStop = callbacks.onEvent?.(currentEvent, parsed)
-            // 如果回调返回 true，主动中断连接
             if (shouldStop) {
               controller.abort()
               return
@@ -252,7 +254,6 @@ export async function streamPost(url: string, data: AnyObject, callbacks: SSECal
     }
     callbacks.onComplete?.()
   } catch (e: any) {
-    // 主动中断不算错误
     if (e.name !== 'AbortError') {
       throw e
     }

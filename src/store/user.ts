@@ -38,6 +38,13 @@ export const useUserStore = defineStore('user', {
         this.permissions = data.permissions
         this.router = data.router
         this.buttonCodes = data.buttonCodes || []
+      } catch (e) {
+        // 清空状态，让调用方知道失败了
+        this.user_id = ''
+        this.permissions = []
+        this.router = []
+        this.buttonCodes = []
+        throw e  // 向上抛出，让 setupDynamicRoutes 捕获
       } finally {
         this.loading = false
       }

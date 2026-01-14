@@ -70,7 +70,19 @@ export async function setupDynamicRoutes() {
 }
 
 router.beforeEach((to, _from, next) => {
-    if (to.name !== 'login') Cookies.set('lastVisitedPath', to.fullPath)
+    const token = Cookies.get('access_token')
+    
+    // 白名单页面直接放行
+    if (to.name === 'login' || to.name === '404') {
+        return next()
+    }
+    
+    // 未登录跳转登录页
+    if (!token) {
+        return next('/login')
+    }
+    
+    Cookies.set('lastVisitedPath', to.fullPath)
     next()
 })
 router.afterEach((to) => {
