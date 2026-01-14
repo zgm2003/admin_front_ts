@@ -94,7 +94,10 @@ export default {
       selectAll: '全选'
     },
     quickEntry: '快速入口',
-    loadMore: '加载更多'
+    loadMore: '加载更多',
+    placeholder: {
+      leaveEmpty: '留空不修改'
+    }
   },
   menu: {
     home: '首页',
@@ -379,6 +382,8 @@ export default {
       filter: { driver: '驱动' },
       table: {
         driver: '驱动',
+        secret_id: 'SecretId',
+        secret_key: 'SecretKey',
         bucket: 'Bucket',
         region: 'Region',
         endpoint: 'Endpoint',

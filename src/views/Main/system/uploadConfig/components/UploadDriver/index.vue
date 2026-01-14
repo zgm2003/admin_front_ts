@@ -49,10 +49,10 @@ const searchFields = computed<SearchField[]>(() => [
 
 const columns = computed(() => [
   {key: 'driver_show', label: t('upload.driver.table.driver')},
+  {key: 'secret_id_hint', label: t('upload.driver.table.secret_id')},
+  {key: 'secret_key_hint', label: t('upload.driver.table.secret_key')},
   {key: 'bucket', label: t('upload.driver.table.bucket')},
   {key: 'region', label: t('upload.driver.table.region')},
-  // {key: 'endpoint', label: t('upload.driver.table.endpoint')},
-  // {key: 'bucket_domain', label: t('upload.driver.table.bucket_domain')},
   {key: 'created_at', label: t('upload.driver.table.created_at')},
   {key: 'updated_at', label: t('upload.driver.table.updated_at')},
   {key: 'actions', label: t('common.actions.action'), width: 220}
@@ -90,8 +90,25 @@ const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => ({
   driver: [{required: true, message: requiredMsg(t('upload.driver.form.driver')), trigger: 'blur'}],
-  secret_id: [{required: true, message: requiredMsg(t('upload.driver.form.secret_id')), trigger: 'blur'}],
-  secret_key: [{required: true, message: requiredMsg(t('upload.driver.form.secret_key')), trigger: 'blur'}],
+  secret_id: [
+    {
+      validator: (_rule, _value, callback) => {
+        // 新增时必填，编辑时留空不改
+        if (dialogMode.value === 'add' && !form.value.secret_id) callback(new Error(requiredMsg(t('upload.driver.form.secret_id'))))
+        else callback()
+      },
+      trigger: 'blur'
+    }
+  ],
+  secret_key: [
+    {
+      validator: (_rule, _value, callback) => {
+        if (dialogMode.value === 'add' && !form.value.secret_key) callback(new Error(requiredMsg(t('upload.driver.form.secret_key'))))
+        else callback()
+      },
+      trigger: 'blur'
+    }
+  ],
   bucket: [{required: true, message: requiredMsg(t('upload.driver.form.bucket')), trigger: 'blur'}],
   region: [{required: true, message: requiredMsg(t('upload.driver.form.region')), trigger: 'blur'}],
   role_arn: [
@@ -132,8 +149,8 @@ const edit = (row: any) => {
   form.value = {
     id: row.id,
     driver: row.driver,
-    secret_id: row.secret_id,
-    secret_key: row.secret_key,
+    secret_id: '',  // 编辑时留空，后端不返回明文
+    secret_key: '', // 编辑时留空，后端不返回明文
     bucket: row.bucket,
     region: row.region,
     role_arn: row.role_arn,
@@ -221,13 +238,15 @@ onMounted(() => {
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('upload.driver.form.secret_id')" prop="secret_id" required>
-            <el-input v-model="form.secret_id" clearable/>
+          <el-form-item :label="t('upload.driver.form.secret_id')" prop="secret_id" :required="dialogMode === 'add'">
+            <el-input v-model="form.secret_id" type="password" show-password clearable
+                      :placeholder="dialogMode === 'edit' ? t('common.placeholder.leaveEmpty') : ''"/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('upload.driver.form.secret_key')" prop="secret_key" required>
-            <el-input v-model="form.secret_key" clearable/>
+          <el-form-item :label="t('upload.driver.form.secret_key')" prop="secret_key" :required="dialogMode === 'add'">
+            <el-input v-model="form.secret_key" type="password" show-password clearable
+                      :placeholder="dialogMode === 'edit' ? t('common.placeholder.leaveEmpty') : ''"/>
           </el-form-item>
         </el-col>
         <el-col :span="24">

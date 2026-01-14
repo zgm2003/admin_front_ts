@@ -94,7 +94,10 @@ export default {
       selectAll: 'Select All'
     },
     quickEntry: 'Quick Entry',
-    loadMore: 'Load More'
+    loadMore: 'Load More',
+    placeholder: {
+      leaveEmpty: 'Leave empty to keep unchanged'
+    }
   },
   menu: {
     home: 'Home',
@@ -379,6 +382,8 @@ export default {
       filter: { driver: 'Driver' },
       table: {
         driver: 'Driver',
+        secret_id: 'SecretId',
+        secret_key: 'SecretKey',
         bucket: 'Bucket',
         region: 'Region',
         endpoint: 'Endpoint',
