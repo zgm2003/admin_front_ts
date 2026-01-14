@@ -57,7 +57,3 @@ img, video { max-width: 100%; height: auto; }
 ::-webkit-scrollbar-thumb { background: var(--el-text-color-placeholder); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--el-text-color-secondary); }
 
-/* 响应式 */
-@media (max-width: 768px) {
-  .el-dialog { width: 90% !important; margin: 5vh auto !important; }
-}

@@ -182,8 +182,8 @@ onMounted(() => {
   </div>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :title="t('aiRuns.detail.title')" :width="isMobile ? '94vw' : '800px'">
-    <div v-loading="detailLoading">
+  <el-dialog v-model="detailVisible" :title="t('aiRuns.detail.title')" top="10vh" :width="isMobile ? '100%' : '800px'" :fullscreen="isMobile">
+      <div v-loading="detailLoading">
       <template v-if="detailData">
         <el-descriptions :column="isMobile ? 1 : 2" border>
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
@@ -223,94 +223,94 @@ onMounted(() => {
           </el-alert>
         </template>
 
-        <!-- 用户消息 -->
-        <template v-if="detailData.user_message">
-          <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
-          <div class="message-box user">
-            <div class="message-content">{{ detailData.user_message.content }}</div>
-            <!-- 图片附件 -->
-            <div v-if="detailData.user_message.meta_json?.attachments?.length" class="message-attachments">
-              <el-image
-                v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
-                :key="idx"
-                :src="attachment.url"
-                :preview-src-list="detailData.user_message.meta_json.attachments.map((a: any) => a.url)"
-                :initial-index="idx"
-                fit="cover"
-                class="attachment-thumb"
-                lazy
-              >
-                <template #placeholder>
-                  <div class="image-placeholder">
-                    <el-icon class="is-loading"><Loading /></el-icon>
-                  </div>
-                </template>
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </div>
-            <div class="message-meta">{{ detailData.user_message.created_at }}</div>
-          </div>
-        </template>
-
-        <!-- AI 回复 -->
-        <template v-if="detailData.assistant_message">
-          <el-divider content-position="left">{{ t('aiRuns.detail.assistantMessage') }}</el-divider>
-          <div class="message-box assistant">
-            <div class="message-content">{{ detailData.assistant_message.content }}</div>
-            <div class="message-meta">
-              <span>{{ detailData.assistant_message.created_at }}</span>
-              <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
-                <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" :size="14"
-                         style="color: var(--el-color-primary)"/>
-                <ThumbDown v-else :size="14" style="color: var(--el-color-danger)"/>
-              </span>
-            </div>
-            <div v-if="detailData.assistant_message.meta_json" class="meta-json">
-              <div v-if="detailData.assistant_message.meta_json.run_request_id" class="meta-item">
-                <span class="meta-label">Run Request ID:</span>
-                <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
-              </div>
-              <div v-if="detailData.assistant_message.meta_json.provider_request_id" class="meta-item">
-                <span class="meta-label">Provider Request ID:</span>
-                <code>{{ detailData.assistant_message.meta_json.provider_request_id }}</code>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- 执行步骤 -->
-        <template v-if="detailData.steps && detailData.steps.length > 0">
-          <el-divider content-position="left">{{ t('aiRuns.detail.executionSteps') }}</el-divider>
-          <el-timeline>
-            <el-timeline-item
-                v-for="step in detailData.steps"
-                :key="step.id"
-                :type="step.status === CommonEnum.YES ? 'success' : 'danger'"
-                :timestamp="step.latency_str"
-                placement="top"
-            >
-              <div class="step-item">
-                <div class="step-header">
-                  <el-tag :type="step.status === CommonEnum.YES ? 'success' : 'danger'" size="small">{{
-                      step.step_type_name
-                    }}
-                  </el-tag>
-                  <span class="step-status">{{ step.status_name }}</span>
+            <!-- 用户消息 -->
+            <template v-if="detailData.user_message">
+              <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
+              <div class="message-box user">
+                <div class="message-content">{{ detailData.user_message.content }}</div>
+                <!-- 图片附件 -->
+                <div v-if="detailData.user_message.meta_json?.attachments?.length" class="message-attachments">
+                  <el-image
+                    v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
+                    :key="idx"
+                    :src="attachment.url"
+                    :preview-src-list="detailData.user_message.meta_json.attachments.map((a: any) => a.url)"
+                    :initial-index="idx"
+                    fit="cover"
+                    class="attachment-thumb"
+                    lazy
+                  >
+                    <template #placeholder>
+                      <div class="image-placeholder">
+                        <el-icon class="is-loading"><Loading /></el-icon>
+                      </div>
+                    </template>
+                    <template #error>
+                      <div class="image-error">
+                        <el-icon><Picture /></el-icon>
+                      </div>
+                    </template>
+                  </el-image>
                 </div>
-                <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
-                <div v-if="step.payload_json" class="step-payload">
-                  <code>{{ JSON.stringify(step.payload_json, null, 2) }}</code>
+                <div class="message-meta">{{ detailData.user_message.created_at }}</div>
+              </div>
+            </template>
+
+            <!-- AI 回复 -->
+            <template v-if="detailData.assistant_message">
+              <el-divider content-position="left">{{ t('aiRuns.detail.assistantMessage') }}</el-divider>
+              <div class="message-box assistant">
+                <div class="message-content">{{ detailData.assistant_message.content }}</div>
+                <div class="message-meta">
+                  <span>{{ detailData.assistant_message.created_at }}</span>
+                  <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
+                    <ThumbUp v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" :size="14"
+                             style="color: var(--el-color-primary)"/>
+                    <ThumbDown v-else :size="14" style="color: var(--el-color-danger)"/>
+                  </span>
+                </div>
+                <div v-if="detailData.assistant_message.meta_json" class="meta-json">
+                  <div v-if="detailData.assistant_message.meta_json.run_request_id" class="meta-item">
+                    <span class="meta-label">Run Request ID:</span>
+                    <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
+                  </div>
+                  <div v-if="detailData.assistant_message.meta_json.provider_request_id" class="meta-item">
+                    <span class="meta-label">Provider Request ID:</span>
+                    <code>{{ detailData.assistant_message.meta_json.provider_request_id }}</code>
+                  </div>
                 </div>
               </div>
-            </el-timeline-item>
-          </el-timeline>
-        </template>
+            </template>
+
+            <!-- 执行步骤 -->
+            <template v-if="detailData.steps && detailData.steps.length > 0">
+              <el-divider content-position="left">{{ t('aiRuns.detail.executionSteps') }}</el-divider>
+              <el-timeline>
+                <el-timeline-item
+                    v-for="step in detailData.steps"
+                    :key="step.id"
+                    :type="step.status === CommonEnum.YES ? 'success' : 'danger'"
+                    :timestamp="step.latency_str"
+                    placement="top"
+                >
+                  <div class="step-item">
+                    <div class="step-header">
+                      <el-tag :type="step.status === CommonEnum.YES ? 'success' : 'danger'" size="small">{{
+                          step.step_type_name
+                        }}
+                      </el-tag>
+                      <span class="step-status">{{ step.status_name }}</span>
+                    </div>
+                    <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
+                    <div v-if="step.payload_json" class="step-payload">
+                      <code>{{ JSON.stringify(step.payload_json, null, 2) }}</code>
+                    </div>
+                  </div>
+                </el-timeline-item>
+              </el-timeline>
+            </template>
       </template>
-    </div>
+      </div>
     <template #footer>
       <el-button @click="detailVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
