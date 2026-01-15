@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {RoleApi} from '@/api/user/role'
+import {RoleApi} from '@/api/permission/role'
 import {ElNotification, ElMessageBox} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from '@/store/user'

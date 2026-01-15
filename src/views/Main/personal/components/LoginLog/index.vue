@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, onMounted} from 'vue'
-import {UsersLoginLogApi} from '@/api/system/usersLoginLog'
+import {UsersLoginLogApi} from '@/api/user/usersLoginLog'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {Monitor, Location, Key, Clock} from '@element-plus/icons-vue'

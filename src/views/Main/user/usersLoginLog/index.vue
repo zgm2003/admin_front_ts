@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import {UsersLoginLogApi} from '@/api/system/usersLoginLog'
+import {UsersLoginLogApi} from '@/api/user/usersLoginLog'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'

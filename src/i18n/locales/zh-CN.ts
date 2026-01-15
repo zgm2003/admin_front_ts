@@ -105,6 +105,7 @@ export default {
   menu: {
     home: '首页',
     user: '用户',
+    permissionMgmt: '权限管理',
     system: '系统管理',
     userManager: '用户管理',
     role: '角色管理',
