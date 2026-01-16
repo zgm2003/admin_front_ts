@@ -28,7 +28,9 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.use(ElementPlus)
-setupDynamicRoutes().catch(() => router.replace('/login'))
 
-app.mount('#app')
+// 先初始化动态路由，再挂载应用
+setupDynamicRoutes()
+  .catch(() => router.replace('/login'))
+  .finally(() => app.mount('#app'))
 
