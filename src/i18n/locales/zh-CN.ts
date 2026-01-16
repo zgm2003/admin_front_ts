@@ -6,6 +6,7 @@ export default {
       accountPlaceholder: '请输入邮箱/用户名/手机号',
       email: '邮箱',
       password: '密码',
+      passwordPlaceholder: '请输入密码',
       remember: '记住我',
       submit: '登录',
       toRegister: '注册',

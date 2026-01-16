@@ -22,7 +22,6 @@ const beforeUpload = async (file: File) => {
     const config: any = await getUploadToken({folderName: props.folderName})
     validateFile(file, config, 'image')
     const result: any = await uploadFileToCloud(file, config)
-    console.log('abc:',result)
     imageUrl.value = result.url
     emit('update:modelValue', result.url)
   } catch (error: any) {

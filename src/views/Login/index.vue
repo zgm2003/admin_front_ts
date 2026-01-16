@@ -135,7 +135,7 @@ const handleLogin = async () => {
             </el-form-item>
             
             <el-form-item v-if="activeTab === 'password'" :label="t('auth.login.password')" prop="password">
-              <el-input placeholder="请输入密码" v-model="loginForm.password" clearable show-password size="large" @keydown.enter="handleLogin">
+              <el-input :placeholder="t('auth.login.passwordPlaceholder')" v-model="loginForm.password" clearable show-password size="large" @keydown.enter="handleLogin">
                 <template #prefix>
                   <el-icon><Lock /></el-icon>
                 </template>

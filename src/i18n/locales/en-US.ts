@@ -6,6 +6,7 @@ export default {
       accountPlaceholder: 'Email/Username/Phone',
       email: 'Email',
       password: 'Password',
+      passwordPlaceholder: 'Enter password',
       remember: 'Remember me',
       submit: 'Sign In',
       toRegister: 'Register',
