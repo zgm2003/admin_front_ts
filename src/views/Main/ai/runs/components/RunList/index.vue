@@ -2,6 +2,7 @@
 import {ref, computed, onMounted} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiRunApi} from '@/api/ai/runs'
+import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
 import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
 import ThumbUp from '@/components/Icons/ThumbUp.vue'
@@ -15,7 +16,7 @@ import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({run_status_arr: [], usernameArr: []} as any)
+const dict = ref({run_status_arr: []} as any)
 
 const searchForm = ref({run_status: '', user_id: '', request_id: '', date_start: '', date_end: ''} as any)
 
@@ -38,6 +39,19 @@ const init = () => {
   })
 }
 
+// 用户远程搜索方法
+const fetchUsers = async (params: any) => {
+  const res = await UsersListApi.list({
+    keyword: params.keyword,
+    current_page: params.pageNo,
+    page_size: params.pageSize
+  })
+  return {
+    list: res.list.map((item: any) => ({ label: item.username, value: item.id })),
+    total: res.page.total
+  }
+}
+
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'run_status',
@@ -49,11 +63,13 @@ const searchFields = computed<SearchField[]>(() => [
   },
   {
     key: 'user_id',
-    type: 'select-v2',
+    type: 'remote-select',
     label: t('aiRuns.filter.user'),
+    fetchMethod: fetchUsers,
+    labelField: 'label',
+    valueField: 'value',
     placeholder: t('aiRuns.filter.user'),
-    width: 160,
-    options: dict.value.usernameArr
+    width: 180
   },
   {
     key: 'request_id',

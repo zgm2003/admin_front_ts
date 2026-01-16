@@ -2,7 +2,9 @@
 import {ref, computed, onMounted} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiRunApi} from '@/api/ai/runs'
+import {UsersListApi} from '@/api/user/users'
 import {Search} from '@/components/Search'
+import type {SearchField} from '@/components/Search/types'
 
 const {t} = useI18n()
 
@@ -24,28 +26,44 @@ const searchForm = ref({
   user_id: ''
 })
 
+// 用户远程搜索方法
+const fetchUsers = async (params: any) => {
+  const res = await UsersListApi.list({
+    keyword: params.keyword,
+    current_page: params.pageNo,
+    page_size: params.pageSize
+  })
+  return {
+    list: res.list.map((item: any) => ({ label: item.username, value: item.id })),
+    total: res.page.total
+  }
+}
+
 // 筛选字段配置
-const searchFields = computed(() => [
+const searchFields = computed<SearchField[]>(() => [
   {
     key: 'dateRange',
-    type: 'date-range' as const,
+    type: 'date-range',
     label: t('aiRuns.stats.dateRange'),
     startKey: 'date_start',
     endKey: 'date_end'
   },
   {
     key: 'agent_id',
-    type: 'select-v2' as const,
+    type: 'select-v2',
     label: t('aiRuns.stats.agent'),
     options: dict.value.agentArr || [],
     clearable: true
   },
   {
     key: 'user_id',
-    type: 'select-v2' as const,
+    type: 'remote-select',
     label: t('aiRuns.stats.user'),
-    options: dict.value.userArr || [],
-    clearable: true
+    fetchMethod: fetchUsers,
+    labelField: 'label',
+    valueField: 'value',
+    placeholder: t('aiRuns.stats.user'),
+    width: 180
   }
 ])
 

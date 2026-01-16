@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {OperationLogApi} from '@/api/system/logs'
+import {UsersListApi} from '@/api/user/users'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
@@ -12,14 +13,18 @@ import { CommonEnum } from '@/enums'
 
 const userStore = useUserStore()
 const {t} = useI18n()
-const usernameArr = ref([])
-const emailArr = ref([])
-const init = () => {
-  OperationLogApi.init().then((data: any) => {
-    usernameArr.value = data.dict.usernameArr;
-    emailArr.value = data.dict.emailArr
-  }).catch(() => {
+
+// 用户远程搜索方法
+const fetchUsers = async (params: any) => {
+  const res = await UsersListApi.list({
+    keyword: params.keyword,
+    current_page: params.pageNo,
+    page_size: params.pageSize
   })
+  return {
+    list: res.list.map((item: any) => ({ label: `${item.username} (${item.email})`, value: item.id })),
+    total: res.page.total
+  }
 }
 
 const searchForm = ref({user_id: '', action: '', date: ''})
@@ -44,19 +49,13 @@ const {
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'user_id',
-    type: 'select-v2',
+    type: 'remote-select',
     label: t('operationLog.filter.userName'),
-    options: usernameArr.value,
+    fetchMethod: fetchUsers,
+    labelField: 'label',
+    valueField: 'value',
     placeholder: t('operationLog.filter.userName'),
-    width: 200
-  },
-  {
-    key: 'user_id',
-    type: 'select-v2',
-    label: t('operationLog.filter.userEmail'),
-    options: emailArr.value,
-    placeholder: t('operationLog.filter.userEmail'),
-    width: 200
+    width: 220
   },
   { key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: 200 },
   {
@@ -69,7 +68,6 @@ const searchFields = computed<SearchField[]>(() => [
   }
 ])
 onMounted(() => {
-  init()
   getList()
 })
 </script>
