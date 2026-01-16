@@ -8,7 +8,7 @@ export type SearchField = {
   cascaderProps?: Record<string, any> // cascader 的 :props 配置
   // remote-select 专用配置
   fetchMethod?: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
-  labelField?: string
+  labelField?: string | ((item: any) => string)
   valueField?: string
   keywordField?: string
   [key: string]: any // 其他属性透传给对应组件
