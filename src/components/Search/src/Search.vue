@@ -8,7 +8,7 @@ import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 
 interface Field {
   key: string
-  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date'
+  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date' | 'slot'
   label?: string
   placeholder?: string
   width?: number | string
@@ -94,6 +94,9 @@ const getFieldBindings = (f: Field) => {
       </template>
       <template v-else-if="f.type==='date'">
         <el-date-picker v-model="form[f.key]" type="date" :placeholder="f.placeholder" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
+      </template>
+      <template v-else-if="f.type==='slot'">
+        <slot :name="f.key" :form="form" :field="f" />
       </template>
     </el-form-item>
     <el-form-item>
