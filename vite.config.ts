@@ -10,5 +10,21 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  server: { open: true }
+  server: { open: true },
+  build: {
+    // 分包策略
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-vendor': ['vue', 'vue-router', 'pinia', 'vue-i18n'],
+          'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          'editor': ['@wangeditor/editor-for-vue', '@wangeditor/plugin-md'],
+        }
+      }
+    },
+    // 压缩配置
+    minify: 'esbuild',
+    // chunk 大小警告阈值
+    chunkSizeWarningLimit: 1000,
+  }
 })
