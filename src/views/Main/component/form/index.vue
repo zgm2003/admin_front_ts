@@ -44,10 +44,10 @@ const mockFetch = async (params: any) => {
   const filtered = params.keyword 
     ? allData.filter(d => d.label.includes(params.keyword))
     : allData
-  const start = (params.pageNo - 1) * params.pageSize
+  const start = ((params.current_page || 1) - 1) * (params.page_size || 20)
   return {
-    list: filtered.slice(start, start + params.pageSize),
-    total: filtered.length
+    list: filtered.slice(start, start + (params.page_size || 20)),
+    page: { total: filtered.length }
   }
 }
 
@@ -93,16 +93,17 @@ const iconSelectExpose = [
 
 const remoteSelectProps = [
   {name: 'v-model', type: 'String/Number', default: "''", desc: '选中值'},
-  {name: 'fetchMethod', type: 'Function', default: '-', desc: '远程搜索方法，返回 { list, total }（必填）'},
-  {name: 'labelField', type: 'String', default: "'label'", desc: '选项标签字段'},
+  {name: 'fetchMethod', type: 'Function', default: '-', desc: '远程搜索方法，返回 { list, page: { total } }（必填）'},
+  {name: 'labelField', type: 'String/Function', default: "'label'", desc: '选项标签字段，支持函数 (item) => string'},
   {name: 'valueField', type: 'String', default: "'value'", desc: '选项值字段'},
   {name: 'keywordField', type: 'String', default: "'keyword'", desc: '搜索关键词参数名'},
-  {name: 'pageField', type: 'String', default: "'pageNo'", desc: '页码参数名'},
-  {name: 'pageSizeField', type: 'String', default: "'pageSize'", desc: '每页数量参数名'},
+  {name: 'pageField', type: 'String', default: "'current_page'", desc: '页码参数名'},
+  {name: 'pageSizeField', type: 'String', default: "'page_size'", desc: '每页数量参数名'},
   {name: 'pageSize', type: 'Number', default: '20', desc: '每页数量'},
   {name: 'loadOnOpen', type: 'Boolean', default: 'true', desc: '打开时自动加载'},
+  {name: 'extraParams', type: 'Object', default: '{}', desc: '额外请求参数'},
   {name: 'debounce', type: 'Number', default: '300', desc: '防抖延迟(ms)'},
-  {name: 'placeholder', type: 'String', default: "'请输入关键词搜索'", desc: '占位符'},
+  {name: 'placeholder', type: 'String', default: "''", desc: '占位符'},
   {name: 'clearable', type: 'Boolean', default: 'true', desc: '是否可清空'},
   {name: 'width', type: 'String', default: "'200px'", desc: '宽度'}
 ]
