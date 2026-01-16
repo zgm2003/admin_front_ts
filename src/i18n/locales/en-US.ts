@@ -101,6 +101,7 @@ export default {
     loading: 'Loading...',
     scrollLoadMore: 'Scroll to load more',
     noMore: 'No more data',
+    noData: 'No data',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
     }

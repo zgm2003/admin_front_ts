@@ -101,6 +101,7 @@ export default {
     loading: '加载中...',
     scrollLoadMore: '滚动加载更多',
     noMore: '没有更多了',
+    noData: '暂无数据',
     placeholder: {
       leaveEmpty: '留空不修改'
     }
