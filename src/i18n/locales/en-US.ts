@@ -220,6 +220,8 @@ export default {
   header: {
     projectConfig: 'Project Settings',
     theme: 'Theme',
+    settings: 'Settings',
+    search: 'Search',
     systemTheme: 'System Theme',
     headerTheme: 'Header Theme',
     menuTheme: 'Menu Theme',

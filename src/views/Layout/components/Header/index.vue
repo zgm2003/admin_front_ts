@@ -22,8 +22,8 @@
       </button>
       
       <el-dropdown trigger="click" @command="setLang">
-        <button class="header-btn" :title="t('header.language')">
-          <el-icon :size="18"><HelpFilled /></el-icon>
+        <button class="header-btn" :title="t('common.language')">
+          <Icon icon="mdi:translate" width="18" />
         </button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -54,6 +54,7 @@ import { ref, onMounted } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import { Search, Setting, FullScreen } from '@element-plus/icons-vue'
+import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user.ts'
 import { useRouter } from 'vue-router'

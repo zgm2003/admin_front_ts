@@ -220,6 +220,8 @@ export default {
   header: {
     projectConfig: '项目配置',
     theme: '主题',
+    settings: '设置',
+    search: '搜索',
     systemTheme: '系统主题',
     headerTheme: '头部主题',
     menuTheme: '菜单主题',

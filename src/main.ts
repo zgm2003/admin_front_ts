@@ -10,6 +10,11 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { Boot } from '@wangeditor/editor'
 import markdownModule from '@wangeditor/plugin-md'
+import { addCollection } from '@iconify/vue'
+import mdiIcons from '@iconify-json/mdi/icons.json'
+
+// 注册 MDI 图标集（离线模式）
+addCollection(mdiIcons)
 
 const app = createApp(App)
 // register all ElementPlus icons globally
