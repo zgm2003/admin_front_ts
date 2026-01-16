@@ -39,19 +39,6 @@ const init = () => {
   })
 }
 
-// 用户远程搜索方法
-const fetchUsers = async (params: any) => {
-  const res = await UsersListApi.list({
-    keyword: params.keyword,
-    current_page: params.pageNo,
-    page_size: params.pageSize
-  })
-  return {
-    list: res.list.map((item: any) => ({ label: item.username, value: item.id })),
-    total: res.page.total
-  }
-}
-
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'run_status',
@@ -65,9 +52,9 @@ const searchFields = computed<SearchField[]>(() => [
     key: 'user_id',
     type: 'remote-select',
     label: t('aiRuns.filter.user'),
-    fetchMethod: fetchUsers,
-    labelField: 'label',
-    valueField: 'value',
+    fetchMethod: UsersListApi.list,
+    labelField: 'username',
+    valueField: 'id',
     placeholder: t('aiRuns.filter.user'),
     width: 180
   },

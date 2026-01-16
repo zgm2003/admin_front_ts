@@ -14,19 +14,6 @@ import { CommonEnum } from '@/enums'
 const userStore = useUserStore()
 const {t} = useI18n()
 
-// 用户远程搜索方法
-const fetchUsers = async (params: any) => {
-  const res = await UsersListApi.list({
-    keyword: params.keyword,
-    current_page: params.pageNo,
-    page_size: params.pageSize
-  })
-  return {
-    list: res.list.map((item: any) => ({ label: `${item.username} (${item.email})`, value: item.id })),
-    total: res.page.total
-  }
-}
-
 const searchForm = ref({user_id: '', action: '', date: ''})
 
 const {
@@ -51,9 +38,9 @@ const searchFields = computed<SearchField[]>(() => [
     key: 'user_id',
     type: 'remote-select',
     label: t('operationLog.filter.userName'),
-    fetchMethod: fetchUsers,
-    labelField: 'label',
-    valueField: 'value',
+    fetchMethod: UsersListApi.list,
+    labelField: (item: any) => `${item.username} (${item.email})`,
+    valueField: 'id',
     placeholder: t('operationLog.filter.userName'),
     width: 220
   },

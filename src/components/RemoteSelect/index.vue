@@ -18,7 +18,7 @@
       @change="handleChange"
       @clear="reset"
     >
-      <el-option v-for="item in options" :key="item[valueField]" :label="item[labelField]" :value="item[valueField]" />
+      <el-option v-for="item in options" :key="item[valueField]" :label="getLabel(item)" :value="item[valueField]" />
       <el-option v-if="statusText" disabled value="__status__" class="load-status">
         <span>{{ statusText }}</span>
       </el-option>
@@ -39,8 +39,8 @@ const { t } = useI18n()
 
 interface Props {
   modelValue?: string | number | (string | number)[]
-  fetchMethod: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
-  labelField?: string
+  fetchMethod: (params: Record<string, any>) => Promise<any>
+  labelField?: string | ((item: any) => string)
   valueField?: string
   keywordField?: string
   pageField?: string
@@ -59,8 +59,8 @@ const props = withDefaults(defineProps<Props>(), {
   labelField: 'label',
   valueField: 'value',
   keywordField: 'keyword',
-  pageField: 'pageNo',
-  pageSizeField: 'pageSize',
+  pageField: 'current_page',
+  pageSizeField: 'page_size',
   pageSize: 20,
   loadOnOpen: true,
   extraParams: () => ({}),
@@ -84,16 +84,33 @@ const loadingMore = ref(false)
 const loaded = ref(false)
 const page = ref(1)
 const total = ref(0)
+const lastFetchCount = ref(0) // 最后一次请求返回的数量
 let keyword = ''
 let scrollWrapper: HTMLElement | null = null
 
-const hasMore = computed(() => options.value.length < total.value)
+// 判断是否还有更多数据
+const hasMore = computed(() => {
+  if (total.value > 0) {
+    // 有 total 时，用 total 判断
+    return options.value.length < total.value
+  }
+  // 没有 total 时，用最后一次返回数量判断
+  return lastFetchCount.value === props.pageSize
+})
 const statusText = computed(() => {
   if (!options.value.length) return ''
   if (loadingMore.value) return t('common.loading')
   if (hasMore.value) return t('common.scrollLoadMore')
   return t('common.noMore')
 })
+
+// 获取 label（支持字符串或函数）
+const getLabel = (item: any) => {
+  if (typeof props.labelField === 'function') {
+    return props.labelField(item)
+  }
+  return item[props.labelField]
+}
 
 // 搜索
 const handleSearch = (query: string) => {
@@ -112,11 +129,15 @@ const fetchData = async (append = false) => {
       [props.pageSizeField]: props.pageSize,
       ...props.extraParams
     })
-    options.value = append ? [...options.value, ...(res?.list || [])] : (res?.list || [])
-    total.value = res?.total || 0
+    // 统一解析：list 直接取，total 从 page.total 取
+    const list = res?.list || []
+    lastFetchCount.value = list.length
+    options.value = append ? [...options.value, ...list] : list
+    total.value = res?.page?.total || res?.total || 0
     loaded.value = true
   } catch {
     if (!append) options.value = []
+    lastFetchCount.value = 0
   } finally {
     loading.value = loadingMore.value = false
   }
@@ -160,6 +181,7 @@ const reset = () => {
   loaded.value = false
   page.value = 1
   total.value = 0
+  lastFetchCount.value = 0
   keyword = ''
 }
 
