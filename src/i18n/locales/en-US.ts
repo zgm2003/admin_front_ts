@@ -98,6 +98,9 @@ export default {
     welcomeSubtitle: 'Another productive day ahead',
     personalSettings: 'Settings',
     loadMore: 'Load More',
+    loading: 'Loading...',
+    scrollLoadMore: 'Scroll to load more',
+    noMore: 'No more data',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
     }

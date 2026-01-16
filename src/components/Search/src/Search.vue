@@ -5,16 +5,21 @@ import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
+import RemoteSelect from '@/components/RemoteSelect/index.vue'
 
 interface Field {
   key: string
-  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date' | 'slot'
+  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date' | 'slot' | 'remote-select'
   label?: string
   placeholder?: string
   width?: number | string
   options?: any[]
-  cascaderProps?: Record<string, any> // cascader 的 :props 配置
-  [key: string]: any // 其他属性透传给对应组件
+  cascaderProps?: Record<string, any>
+  fetchMethod?: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
+  labelField?: string
+  valueField?: string
+  keywordField?: string
+  [key: string]: any
 }
 
 const { locale, t } = useI18n()
@@ -70,7 +75,7 @@ const showToggle = computed(() => wrapped.value || collapsed.value)
 const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = true; collapsed.value = !collapsed.value } }
 // 提取透传属性，排除自定义字段
 const getFieldBindings = (f: Field) => {
-  const { key, type, label, placeholder, width, options, cascaderProps, ...rest } = f
+  const { key, type, label, placeholder, width, options, cascaderProps, fetchMethod, labelField, valueField, keywordField, ...rest } = f
   return rest
 }
 </script>
@@ -94,6 +99,18 @@ const getFieldBindings = (f: Field) => {
       </template>
       <template v-else-if="f.type==='date'">
         <el-date-picker v-model="form[f.key]" type="date" :placeholder="f.placeholder" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
+      </template>
+      <template v-else-if="f.type==='remote-select'">
+        <RemoteSelect
+          v-model="form[f.key]"
+          :fetch-method="f.fetchMethod!"
+          :label-field="f.labelField || 'label'"
+          :value-field="f.valueField || 'value'"
+          :keyword-field="f.keywordField || 'keyword'"
+          :placeholder="f.placeholder"
+          :width="isMobile ? '100%' : (f.width ?? 200) + 'px'"
+          v-bind="getFieldBindings(f)"
+        />
       </template>
       <template v-else-if="f.type==='slot'">
         <slot :name="f.key" :form="form" :field="f" />

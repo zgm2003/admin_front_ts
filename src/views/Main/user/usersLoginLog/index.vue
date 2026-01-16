@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {UsersLoginLogApi} from '@/api/user/usersLoginLog'
+import {UsersListApi} from '@/api/user/users'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
@@ -9,13 +10,11 @@ import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
-const usernameArr = ref([])
 const platformArr = ref([])
 const loginTypeArr = ref([])
 
 const init = () => {
   UsersLoginLogApi.init().then((data: any) => {
-    usernameArr.value = data.dict.usernameArr;
     platformArr.value = data.dict.platformArr;
     loginTypeArr.value = data.dict.login_type_arr;
   }).catch(() => {
@@ -37,12 +36,27 @@ const {
   searchForm
 })
 
+// 用户远程搜索方法
+const fetchUsers = async (params: any) => {
+  const res = await UsersListApi.list({
+    keyword: params.keyword,
+    current_page: params.pageNo,
+    page_size: params.pageSize
+  })
+  return {
+    list: res.list.map((item: any) => ({ label: item.username, value: item.id })),
+    total: res.page.total
+  }
+}
+
 const searchFields = computed<SearchField[]>(() => [
   {
     key: 'user_id',
-    type: 'select-v2',
+    type: 'remote-select',
     label: t('usersLoginLog.filter.userName'),
-    options: usernameArr.value,
+    fetchMethod: fetchUsers,
+    labelField: 'label',
+    valueField: 'value',
     placeholder: t('usersLoginLog.filter.userName'),
     width: 200
   },

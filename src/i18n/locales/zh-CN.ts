@@ -98,6 +98,9 @@ export default {
     welcomeSubtitle: '今天也是充满效率的一天',
     personalSettings: '个人设置',
     loadMore: '加载更多',
+    loading: '加载中...',
+    scrollLoadMore: '滚动加载更多',
+    noMore: '没有更多了',
     placeholder: {
       leaveEmpty: '留空不修改'
     }

@@ -3,6 +3,7 @@ import {ref, computed} from 'vue'
 import {Search} from '@/components/Search'
 import SendCode from '@/components/SendCode'
 import IconSelect from '@/components/IconSelect'
+import RemoteSelect from '@/components/RemoteSelect/index.vue'
 
 const activeTab = ref('Search')
 
@@ -34,6 +35,22 @@ const handleIconSelect = (name: string) => {
   selectedIcon.value = name
 }
 
+// RemoteSelect 演示
+const remoteValue = ref('')
+const mockFetch = async (params: any) => {
+  // 模拟接口
+  await new Promise(r => setTimeout(r, 500))
+  const allData = Array.from({ length: 100 }, (_, i) => ({ label: `用户${i + 1}`, value: i + 1 }))
+  const filtered = params.keyword 
+    ? allData.filter(d => d.label.includes(params.keyword))
+    : allData
+  const start = (params.pageNo - 1) * params.pageSize
+  return {
+    list: filtered.slice(start, start + params.pageSize),
+    total: filtered.length
+  }
+}
+
 const searchProps = [
   {name: 'v-model / modelValue', type: 'Object', default: '{}', desc: '表单数据对象，支持双向绑定'},
   {name: 'fields', type: 'Field[]', default: '[]', desc: '字段配置数组'},
@@ -44,12 +61,15 @@ const searchProps = [
 
 const fieldProps = [
   {name: 'key', type: 'String', required: '✔', desc: '字段名（必填）'},
-  {name: 'type', type: 'String', required: '✔', desc: "'input'|'select-v2'|'cascader'|'date-range'|'date'"},
+  {name: 'type', type: 'String', required: '✔', desc: "'input'|'select-v2'|'cascader'|'date-range'|'date'|'remote-select'|'slot'"},
   {name: 'label', type: 'String', required: '', desc: '字段标签'},
   {name: 'placeholder', type: 'String', required: '', desc: '占位符'},
   {name: 'width', type: 'Number', required: '', desc: '宽度（px）'},
   {name: 'options', type: 'Array', required: '', desc: '选项数据（select-v2/cascader）'},
   {name: 'cascaderProps', type: 'Object', required: '', desc: 'cascader 的 :props 配置'},
+  {name: 'fetchMethod', type: 'Function', required: '', desc: 'remote-select 远程搜索方法，返回 { list, total }'},
+  {name: 'labelField', type: 'String', required: '', desc: 'remote-select 选项标签字段，默认 label'},
+  {name: 'valueField', type: 'String', required: '', desc: 'remote-select 选项值字段，默认 value'},
   {name: '...rest', type: 'any', required: '', desc: '其他属性透传给对应表单组件'}
 ]
 
@@ -69,6 +89,22 @@ const iconSelectProps = [
 
 const iconSelectExpose = [
   {name: 'show()', type: 'Method', default: '-', desc: '打开图标选择弹窗'}
+]
+
+const remoteSelectProps = [
+  {name: 'v-model', type: 'String/Number', default: "''", desc: '选中值'},
+  {name: 'fetchMethod', type: 'Function', default: '-', desc: '远程搜索方法，返回 { list, total }（必填）'},
+  {name: 'labelField', type: 'String', default: "'label'", desc: '选项标签字段'},
+  {name: 'valueField', type: 'String', default: "'value'", desc: '选项值字段'},
+  {name: 'keywordField', type: 'String', default: "'keyword'", desc: '搜索关键词参数名'},
+  {name: 'pageField', type: 'String', default: "'pageNo'", desc: '页码参数名'},
+  {name: 'pageSizeField', type: 'String', default: "'pageSize'", desc: '每页数量参数名'},
+  {name: 'pageSize', type: 'Number', default: '20', desc: '每页数量'},
+  {name: 'loadOnOpen', type: 'Boolean', default: 'true', desc: '打开时自动加载'},
+  {name: 'debounce', type: 'Number', default: '300', desc: '防抖延迟(ms)'},
+  {name: 'placeholder', type: 'String', default: "'请输入关键词搜索'", desc: '占位符'},
+  {name: 'clearable', type: 'Boolean', default: 'true', desc: '是否可清空'},
+  {name: 'width', type: 'String', default: "'200px'", desc: '宽度'}
 ]
 </script>
 
@@ -112,7 +148,9 @@ const iconSelectExpose = [
             { type: 'select-v2', desc: '虚拟下拉选择器，需配置 options，透传 el-select-v2 属性' },
             { type: 'cascader', desc: '级联选择器，需配置 options 和 cascaderProps，透传 el-cascader 属性' },
             { type: 'date-range', desc: '日期范围选择器，透传 el-date-picker 属性' },
-            { type: 'date', desc: '单日期选择器，透传 el-date-picker 属性' }
+            { type: 'date', desc: '单日期选择器，透传 el-date-picker 属性' },
+            { type: 'remote-select', desc: '远程搜索选择器，需配置 fetchMethod，支持滚动加载' },
+            { type: 'slot', desc: '插槽，通过 #[key] 自定义内容' }
           ]" border>
             <el-table-column prop="type" label="type 值" width="150"/>
             <el-table-column prop="desc" label="说明"/>
@@ -177,6 +215,40 @@ const iconSelectExpose = [
             <el-table-column prop="type" label="类型" width="120"/>
             <el-table-column prop="desc" label="说明"/>
           </el-table>
+        </div>
+      </el-tab-pane>
+
+      <!-- RemoteSelect -->
+      <el-tab-pane label="RemoteSelect 远程搜索" name="RemoteSelect">
+        <div class="demo-section">
+          <h4>基础用法</h4>
+          <div class="demo-block">
+            <el-space>
+              <RemoteSelect v-model="remoteValue" :fetch-method="mockFetch" placeholder="搜索用户" />
+              <el-tag v-if="remoteValue">选中: {{ remoteValue }}</el-tag>
+            </el-space>
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;RemoteSelect v-model="value" :fetch-method="fetchUsers" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>Attributes</h4>
+          <el-table :data="remoteSelectProps" border>
+            <el-table-column prop="name" label="属性名" width="180"/>
+            <el-table-column prop="type" label="类型" width="120"/>
+            <el-table-column prop="default" label="默认值" width="150"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+        <div class="demo-section">
+          <h4>功能特性</h4>
+          <ul style="line-height: 2; color: var(--el-text-color-regular);">
+            <li>打开下拉框自动加载数据</li>
+            <li>输入关键词远程搜索（自带防抖）</li>
+            <li>滚动到底部自动加载更多</li>
+            <li>支持自定义字段名和参数名</li>
+          </ul>
         </div>
       </el-tab-pane>
     </el-tabs>
