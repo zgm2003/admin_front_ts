@@ -113,12 +113,14 @@ const tableOptions = computed(() => tables.value.map(t => ({
 // 表单类型选项
 const formTypeOptions = [
   {label: '文本框', value: 'input'},
+  {label: '密码框', value: 'password'},
   {label: '数字', value: 'number'},
   {label: '文本域', value: 'textarea'},
+  {label: '富文本', value: 'editor'},
   {label: '下拉框', value: 'select'},
   {label: '日期', value: 'date'},
   {label: '日期时间', value: 'datetime'},
-  {label: '图片', value: 'image'},
+  {label: '图片上传', value: 'image'},
 ]
 
 // 预览文件 tabs
