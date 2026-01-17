@@ -119,6 +119,7 @@ export default {
     usersLoginLog: 'Login Log',
     systemLog: 'System Log',
     test: 'Test',
+    system_test: 'Test',
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings',
     codeGen: 'Code Generator',

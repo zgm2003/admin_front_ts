@@ -119,6 +119,7 @@ export default {
     usersLoginLog: '登录日志',
     systemLog: '系统日志',
     test: '测试页',
+    system_test: '测试',
     uploadConfig: '上传配置',
     systemSetting: '系统设置',
     codeGen: '代码生成',
@@ -671,6 +672,108 @@ export default {
       output: '输出',
       latency: '耗时',
       noData: '暂无统计数据'
+    }
+  },
+  codeGen: {
+    title: '代码生成器',
+    helpButton: '使用帮助',
+    steps: {
+      selectTable: '选择表',
+      configFields: '配置字段',
+      previewCode: '预览代码'
+    },
+    form: {
+      selectTable: '选择表',
+      selectTablePlaceholder: '请选择表',
+      moduleName: '模块名',
+      moduleNamePlaceholder: '如 Article（大驼峰）',
+      domain: '业务域',
+      domainPlaceholder: '选择业务域',
+      menuName: '菜单名称',
+      menuNamePlaceholder: '显示在菜单的名称',
+      routePath: '路由路径',
+      routePathPlaceholder: '如 /article'
+    },
+    table: {
+      columnName: '字段名',
+      comment: '注释',
+      dataType: '类型',
+      showInList: '列表显示',
+      showInSearch: '搜索条件',
+      showInForm: '表单显示',
+      formType: '表单类型'
+    },
+    formTypes: {
+      input: '文本框',
+      password: '密码框',
+      number: '数字',
+      textarea: '文本域',
+      editor: '富文本',
+      select: '下拉框',
+      date: '日期',
+      datetime: '日期时间',
+      image: '图片上传'
+    },
+    actions: {
+      prevStep: '上一步',
+      nextStep: '下一步',
+      generate: '生成代码',
+      iKnow: '我知道了'
+    },
+    messages: {
+      selectTableRequired: '请选择表',
+      moduleNameRequired: '请输入模块名',
+      generateConfirm: '确定生成代码吗？已存在的文件将被跳过。',
+      generateSuccess: '成功生成 {count} 个文件',
+      generateSkipped: '跳过 {count} 个已存在的文件'
+    },
+    help: {
+      quickStart: '快速开始',
+      quickStartDesc: '代码生成器可以根据数据库表结构，自动生成完整的 CRUD 代码（后端 + 前端）。',
+      usageSteps: '使用步骤',
+      step1: '第一步：选择表',
+      step1Desc: '选择数据库表，配置模块名、业务域等基本信息',
+      step2: '第二步：配置字段',
+      step2Desc: '勾选字段在列表、搜索、表单中的显示，选择表单类型',
+      step3: '第三步：预览生成',
+      step3Desc: '预览生成的代码，确认无误后点击生成',
+      configDesc: '配置说明',
+      moduleNameDesc: '大驼峰格式，如 Article、UserProfile',
+      domainDesc: '代码所属的业务模块，如 System、User、Ai',
+      menuNameDesc: '显示在前端菜单的名称',
+      routePathDesc: '前端路由地址，如 /system/article',
+      fieldConfig: '字段配置',
+      showInListDesc: '勾选后该字段会在列表页显示',
+      showInSearchDesc: '勾选后可以按该字段搜索（支持模糊查询）',
+      showInFormDesc: '勾选后该字段会在新增/编辑表单中显示',
+      formTypeDesc: '选择合适的表单控件类型',
+      formTypeExamples: '表单类型说明',
+      formTypeTable: {
+        type: '类型',
+        desc: '说明',
+        example: '适用场景'
+      },
+      generatedFiles: '生成的文件',
+      backendFiles: '后端文件：',
+      controller: 'Controller - 控制器（路由入口）',
+      module: 'Module - 业务逻辑层',
+      dep: 'Dep - 数据访问层',
+      model: 'Model - 数据模型',
+      validate: 'Validate - 验证规则',
+      frontendFiles: '前端文件：',
+      api: 'API - 接口定义',
+      vue: 'Vue - 页面组件（列表、搜索、表单）',
+      notices: '注意事项',
+      notice1: '生成代码后需要手动添加路由到 routes/admin.php',
+      notice2: '需要在数据库中创建菜单和权限',
+      notice3: '如果表单有下拉选择，需要在 Module 的 init() 方法中配置字典数据',
+      notice4: '已存在的文件不会被覆盖，如需重新生成请先删除旧文件',
+      bestPractices: '最佳实践',
+      practice1: '表名使用小写+下划线，如 user_profile',
+      practice2: '字段添加清晰的注释，会自动作为表单 label',
+      practice3: '必填字段设置 NOT NULL 约束',
+      practice4: '使用标准字段名：is_del, created_at, updated_at',
+      practice5: '状态字段：1=启用/是，2=禁用/否'
     }
   },
   error: {notFound: '抱歉，您访问的页面不存在'}
