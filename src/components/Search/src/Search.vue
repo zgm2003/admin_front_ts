@@ -16,7 +16,7 @@ interface Field {
   options?: any[]
   cascaderProps?: Record<string, any>
   fetchMethod?: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
-  labelField?: string
+  labelField?: string | ((item: any) => string)
   valueField?: string
   keywordField?: string
   [key: string]: any
