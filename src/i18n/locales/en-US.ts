@@ -121,6 +121,8 @@ export default {
     test: 'Test',
     uploadConfig: 'Upload Config',
     systemSetting: 'System Settings',
+    codeGen: 'Code Generator',
+    devTools: 'Dev Tools',
     personal: 'Personal',
     component: 'Components',
     component_upload: 'Upload',

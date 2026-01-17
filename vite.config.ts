@@ -10,7 +10,27 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  server: { open: true },
+  server: { 
+    open: true,
+    // 预热常用文件
+    warmup: {
+      clientFiles: ['./src/main.ts', './src/router.ts', './src/App.vue'],
+    },
+  },
+  optimizeDeps: {
+    // 明确包含需要预构建的依赖
+    include: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-i18n',
+      'element-plus',
+      '@element-plus/icons-vue',
+      'axios',
+      'js-cookie',
+      '@iconify/vue',
+    ],
+  },
   build: {
     // 分包策略
     rollupOptions: {

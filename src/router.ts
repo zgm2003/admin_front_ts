@@ -21,6 +21,16 @@ const mainRoute: any = {
 const router = createRouter({history: createWebHistory(), routes})
 
 export async function setupDynamicRoutes() {
+    // 先检查是否有有效的认证信息
+    const accessToken = Cookies.get('access_token')
+    const refreshToken = Cookies.get('refresh_token')
+    
+    if (!accessToken && !refreshToken) {
+        // 两个都没有，直接跳转登录页，不加载用户信息
+        await router.replace('/login').catch(() => {})
+        return
+    }
+    
     const userStore = useUserStore()
     await userStore.fetchUserInfo()
     const storedRoutes = Array.isArray(userStore.router) ? userStore.router : []
@@ -71,14 +81,15 @@ export async function setupDynamicRoutes() {
 
 router.beforeEach((to, _from, next) => {
     const token = Cookies.get('access_token')
+    const refreshToken = Cookies.get('refresh_token')
     
     // 白名单页面直接放行
     if (to.name === 'login' || to.name === '404') {
         return next()
     }
     
-    // 未登录跳转登录页
-    if (!token) {
+    // 有 access_token 或 refresh_token 都放行（refresh_token 会在请求拦截器里自动刷新）
+    if (!token && !refreshToken) {
         return next('/login')
     }
     

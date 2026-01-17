@@ -121,6 +121,8 @@ export default {
     test: '测试页',
     uploadConfig: '上传配置',
     systemSetting: '系统设置',
+    codeGen: '代码生成',
+    devTools: '开发工具',
     personal: '个人资料',
     component: '组件演示',
     component_upload: '上传',
