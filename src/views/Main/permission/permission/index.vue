@@ -9,6 +9,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum } from '@/enums'
+import {ArrowRight} from "@element-plus/icons-vue";
 
 const userStore = useUserStore()
 const {t} = useI18n()

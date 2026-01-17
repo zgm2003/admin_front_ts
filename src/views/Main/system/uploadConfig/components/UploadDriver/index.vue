@@ -10,6 +10,7 @@ import {UploadDriverApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
 import {useTable} from '@/hooks/useTable'
+import {ArrowRight} from "@element-plus/icons-vue";
 
 const {t} = useI18n()
 const isMobile = useIsMobile()

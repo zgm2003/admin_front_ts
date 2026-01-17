@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiRunApi} from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
@@ -61,8 +61,7 @@ const summaryLoading = ref(false)
 const loadSummary = async () => {
   summaryLoading.value = true
   try {
-    const data = await AiRunApi.stats({...searchForm.value})
-    summaryData.value = data
+    summaryData.value = await AiRunApi.stats({...searchForm.value})
   } catch { /* ignore */
   }
   summaryLoading.value = false
