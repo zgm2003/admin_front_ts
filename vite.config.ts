@@ -48,7 +48,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     // CSS 代码分割
     cssCodeSplit: true,
-    // 生产环境关闭 sourcemap
-    sourcemap: false,
+    // 根据环境自动切换 sourcemap：开发环境 true，生产环境 false
+    sourcemap: process.env.NODE_ENV !== 'production',
   }
 })
