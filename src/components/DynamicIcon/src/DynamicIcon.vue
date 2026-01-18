@@ -1,12 +1,12 @@
 <template>
-  <template v-if="icon">
+  <span v-if="icon" class="dynamic-icon-wrapper">
     <!-- Iconify 图标 -->
     <Icon v-if="isIconify" :icon="icon" :width="size" :height="size" />
     <!-- Element Plus 图标 -->
     <el-icon v-else :size="size">
       <component :is="icon" />
     </el-icon>
-  </template>
+  </span>
 </template>
 
 <script setup lang="ts">
@@ -30,7 +30,14 @@ const isIconify = computed(() => {
 </script>
 
 <style scoped>
-/* 确保图标垂直居中 */
+/* 包裹容器 - 确保图标垂直居中 */
+.dynamic-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Element Plus 图标容器 */
 .el-icon {
   display: inline-flex;
   align-items: center;

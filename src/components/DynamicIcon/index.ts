@@ -1,1 +1,1 @@
-export { default as DynamicIcon } from './index.vue'
+export { default as DynamicIcon } from './src/DynamicIcon.vue'
