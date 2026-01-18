@@ -9,7 +9,8 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum } from '@/enums'
-import {ArrowRight} from "@element-plus/icons-vue";
+import {ArrowRight} from "@element-plus/icons-vue"
+import { DynamicIcon } from '@/components/DynamicIcon'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -273,14 +274,12 @@ onMounted(() => {
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
+        <el-table-column :label="t('permission.table.icon')" align="center" width="80">
+          <template #default="scope">
+            <DynamicIcon v-if="scope.row.icon" :icon="scope.row.icon" :size="24" />
+          </template>
+        </el-table-column>
         <!--        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>-->
-        <!--        <el-table-column :label="t('permission.table.icon')" align="center">-->
-        <!--          <template #default="scope">-->
-        <!--            <el-icon size="large">-->
-        <!--              <component :is="scope.row.icon"/>-->
-        <!--            </el-icon>-->
-        <!--          </template>-->
-        <!--        </el-table-column>-->
         <!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
         <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
@@ -338,6 +337,9 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.i18n_key')" prop="i18n_key" required v-if="isMenuType">
           <el-input v-model="form.i18n_key" style="width:100%" clearable :placeholder="t('permission.form.placeholder.i18n_key')"/>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            {{ t('permission.form.help.i18n_key') }}
+          </div>
         </el-form-item>
         <el-form-item :label="t('permission.form.show_menu')" prop="show_menu" required v-if="isMenuType">
           <el-radio-group v-model="form.show_menu">
@@ -354,9 +356,15 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.path')" v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            {{ t('permission.form.help.path') }}
+          </div>
         </el-form-item>
         <el-form-item :label="t('permission.form.component')" v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')"/>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            {{ t('permission.form.help.component') }}
+          </div>
         </el-form-item>
         <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === PermissionTypeEnum.BUTTON">
           <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>

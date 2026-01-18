@@ -109,32 +109,40 @@ export default {
   },
   menu: {
     home: 'Home',
+    // Level 1 menus
     user: 'User',
     permissionMgmt: 'Permission',
     system: 'System',
-    userManager: 'User Manager',
-    role: 'Role Manager',
-    permission: 'Menu Manager',
-    operationLog: 'Operation Log',
-    usersLoginLog: 'Login Log',
-    systemLog: 'System Log',
-    test: 'Test',
-    system_test: 'Test',
-    uploadConfig: 'Upload Config',
-    systemSetting: 'System Settings',
-    codeGen: 'Code Generator',
-    devTools: 'Dev Tools',
-    personal: 'Personal',
     component: 'Components',
+    ai: 'AI Assistant',
+    devTools: 'Dev Tools',
+    // Standalone pages
+    personal: 'Personal',
+    test: 'Test',
+    // User module
+    user_userManager: 'User Manager',
+    user_usersLoginLog: 'Login Log',
+    // Permission module
+    permission_permission: 'Menu Manager',
+    permission_role: 'Role Manager',
+    // System module
+    system_operationLog: 'Operation Log',
+    system_uploadConfig: 'Upload Config',
+    system_setting: 'System Settings',
+    system_test: 'Test',
+    systemLog: 'System Log',
+    // Component module
     component_upload: 'Upload',
     component_form: 'Form',
     component_display: 'Display',
     component_effect: 'Effect',
-    ai: 'AI Assistant',
+    // AI module
     ai_models: 'Models',
     ai_agents: 'Agents',
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
+    // DevTools module
+    devTools_gen: 'Code Generator',
   },
   personal: {
     title: 'Personal Info',
@@ -388,6 +396,11 @@ export default {
         i18n_key: 'Please enter i18n_key',
         code: 'Please enter code',
         show_menu: 'Please select show status'
+      },
+      help: {
+        component: 'Example: user/userManager (file path without /)',
+        path: 'Should be "/" + component, e.g., /user/userManager',
+        i18n_key: 'Format: menu.{parent}_{current}, e.g., menu.user_userManager'
       }
     }
   },

@@ -109,32 +109,40 @@ export default {
   },
   menu: {
     home: '首页',
+    // 一级菜单
     user: '用户',
     permissionMgmt: '权限管理',
     system: '系统管理',
-    userManager: '用户管理',
-    role: '角色管理',
-    permission: '菜单管理',
-    operationLog: '操作日志',
-    usersLoginLog: '登录日志',
-    systemLog: '系统日志',
-    test: '测试页',
-    system_test: '测试',
-    uploadConfig: '上传配置',
-    systemSetting: '系统设置',
-    codeGen: '代码生成',
-    devTools: '开发工具',
-    personal: '个人资料',
     component: '组件演示',
+    ai: 'AI助手',
+    devTools: '开发工具',
+    // 独立页面
+    personal: '个人资料',
+    test: '测试页',
+    // 用户模块
+    user_userManager: '用户管理',
+    user_usersLoginLog: '登录日志',
+    // 权限管理模块
+    permission_permission: '菜单管理',
+    permission_role: '角色管理',
+    // 系统管理模块
+    system_operationLog: '操作日志',
+    system_uploadConfig: '上传配置',
+    system_setting: '系统设置',
+    system_test: '测试',
+    systemLog: '系统日志',
+    // 组件演示模块
     component_upload: '上传',
     component_form: '表单',
     component_display: '展示',
     component_effect: '特效',
-    ai: 'AI助手',
+    // AI助手模块
     ai_models: '模型配置',
     ai_agents: '智能体',
     ai_chat: '对话',
     ai_runs: '运行监控',
+    // 开发工具模块
+    devTools_gen: '代码生成',
   },
   personal: {
     title: '个人信息',
@@ -388,6 +396,11 @@ export default {
         i18n_key: '请输入 i18n_key',
         code: '请输入 code',
         show_menu: '请选择是否显示'
+      },
+      help: {
+        component: '示例：user/userManager（文件路径，不带 /）',
+        path: '应为 "/" + component，如：/user/userManager',
+        i18n_key: '格式：menu.{父级}_{当前}，如：menu.user_userManager'
       }
     }
   },
