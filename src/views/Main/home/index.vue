@@ -42,17 +42,12 @@ const goToPersonal = () => router.push({ path: '/personal', query: { user_id: us
 // 模拟加载数据
 onMounted(() => {
   setTimeout(() => {
-    stats.value[0].value = 1248
-    stats.value[1].value = 856
-    stats.value[2].value = 3421
-    stats.value[3].value = 42
+    if (stats.value[0]) stats.value[0].value = 1248
+    if (stats.value[1]) stats.value[1].value = 856
+    if (stats.value[2]) stats.value[2].value = 3421
+    if (stats.value[3]) stats.value[3].value = 42
   }, 300)
 })
-
-// 格式化数字
-const formatNumber = (num: number) => {
-  return num.toLocaleString()
-}
 </script>
 
 <template>
@@ -80,7 +75,11 @@ const formatNumber = (num: number) => {
         </div>
         <div class="stat-content">
           <div class="stat-label">{{ stat.label }}</div>
-          <div class="stat-value">{{ formatNumber(stat.value) }}</div>
+          <el-statistic 
+            :value="stat.value" 
+            :precision="0"
+            class="stat-value"
+          />
           <div class="stat-trend" :class="{ positive: stat.trend.startsWith('+') }">
             {{ stat.trend }}
           </div>
@@ -151,10 +150,10 @@ const formatNumber = (num: number) => {
   align-items: center;
   justify-content: space-between;
   padding: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   border-radius: 16px;
   color: #fff;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25);
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -254,10 +253,12 @@ const formatNumber = (num: number) => {
   }
 
   .stat-value {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--el-text-color-primary);
-    line-height: 1.2;
+    :deep(.el-statistic__content) {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+      line-height: 1.2;
+    }
     margin-bottom: 4px;
   }
 
