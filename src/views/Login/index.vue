@@ -72,29 +72,34 @@ const handleLogin = async () => {
   
   const param = { ...loginForm.value, login_type: activeTab.value }
   loading.value = true
-  UsersApi.login(param)
-    .then((data: any) => {
-      ElNotification.success(t('common.success.operation'))
-      loading.value = false
-      clearAllCookies()
-      
-      const expires = new Date(new Date().getTime() + data.expires_in * 1000)
-      Cookies.set('access_token', data.access_token, { expires })
-      Cookies.set('refresh_token', data.refresh_token, { expires: 14 })
+  
+  try {
+    const data: any = await UsersApi.login(param)
+    ElNotification.success(t('common.success.operation'))
+    clearAllCookies()
+    
+    const expires = new Date(new Date().getTime() + data.expires_in * 1000)
+    Cookies.set('access_token', data.access_token, { expires })
+    Cookies.set('refresh_token', data.refresh_token, { expires: 14 })
 
-      setupDynamicRoutes().then(() => {
-        if (router.currentRoute.value.path === '/login') {
-          const redirect = router.currentRoute.value.query.redirect as string
-          router.replace(redirect || '/home')
-        }
-      })
-    })
-    .catch(() => { loading.value = false })
+    // 等待路由注册完成后再跳转
+    await setupDynamicRoutes()
+    
+    if (router.currentRoute.value.path === '/login') {
+      const redirect = router.currentRoute.value.query.redirect as string
+      await router.replace(redirect || '/home')
+    }
+  } catch (error) {
+    console.error('登录失败:', error)
+  } finally {
+    // 确保 loading 在所有操作完成后才关闭
+    loading.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="login-page">
+  <div class="login-page" v-loading="loading" element-loading-text="登录中...">
     <div class="login-container">
       <!-- 左侧品牌区 -->
       <div class="login-brand">
@@ -112,7 +117,7 @@ const handleLogin = async () => {
       
       <!-- 右侧登录表单 -->
       <div class="login-form-wrapper">
-        <div class="login-card" v-loading="loading">
+        <div class="login-card">
           <h2 class="login-title">{{ t('auth.login.title') }}</h2>
           <p class="login-subtitle">欢迎回来，请登录您的账户</p>
           

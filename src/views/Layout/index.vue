@@ -52,7 +52,6 @@ watch(isMobile, (val) => {
             v-if="menuStore.pageTransition"
             :name="menuStore.transitionName"
             mode="out-in"
-            appear
           >
             <div :key="route.fullPath" class="page-card">
               <component :is="Component" />
