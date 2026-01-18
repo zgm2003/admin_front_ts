@@ -7,14 +7,11 @@ import i18n from './i18n'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 const app = createApp(App)
 
-// register all ElementPlus icons globally
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component as any)
-}
+// ⚠️ 移除全量图标注册，改用 DynamicIcon 按需加载
+// 这样可以减少 2.96 MB 的打包体积
 
 app.use(createPinia())
 app.use(router)

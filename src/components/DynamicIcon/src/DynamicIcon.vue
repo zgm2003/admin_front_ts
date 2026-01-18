@@ -2,15 +2,15 @@
   <span v-if="icon" class="dynamic-icon-wrapper">
     <!-- Iconify 图标 -->
     <Icon v-if="isIconify" :icon="icon" :width="size" :height="size" />
-    <!-- Element Plus 图标 -->
-    <el-icon v-else :size="size">
-      <component :is="icon" />
+    <!-- Element Plus 图标（动态加载） -->
+    <el-icon v-else-if="elementIcon" :size="size">
+      <component :is="elementIcon" />
     </el-icon>
   </span>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 
 interface Props {
@@ -27,6 +27,24 @@ const props = withDefaults(defineProps<Props>(), {
 const isIconify = computed(() => {
   return props.icon && props.icon.includes(':')
 })
+
+// 动态导入 Element Plus 图标
+const elementIcon = shallowRef<any>(null)
+
+watch(() => props.icon, async (iconName) => {
+  if (!iconName || isIconify.value) {
+    elementIcon.value = null
+    return
+  }
+  
+  try {
+    const icons = await import('@element-plus/icons-vue')
+    elementIcon.value = (icons as any)[iconName]
+  } catch (e) {
+    console.warn(`Icon "${iconName}" not found`)
+    elementIcon.value = null
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
