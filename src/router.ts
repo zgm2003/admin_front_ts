@@ -1,5 +1,4 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import HomeView from '@/views/Layout/index.vue'
 import Cookies from 'js-cookie'
 import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
@@ -15,7 +14,11 @@ const baseChildren = [
 ]
 
 const mainRoute: any = {
-    path: '/', name: 'HomeView', component: HomeView, redirect: '/home', children: [...baseChildren]
+    path: '/', 
+    name: 'HomeView', 
+    component: () => import('@/views/Layout/index.vue'), 
+    redirect: '/home', 
+    children: [...baseChildren]
 }
 
 const router = createRouter({history: createWebHistory(), routes})

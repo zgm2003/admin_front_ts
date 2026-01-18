@@ -46,5 +46,9 @@ export default defineConfig({
     minify: 'esbuild',
     // chunk 大小警告阈值
     chunkSizeWarningLimit: 1000,
+    // CSS 代码分割
+    cssCodeSplit: true,
+    // 生产环境关闭 sourcemap
+    sourcemap: false,
   }
 })

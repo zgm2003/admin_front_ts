@@ -11,9 +11,12 @@ export const useUserStore = defineStore('user', {
     router: [] as any[],
     buttonCodes: [] as string[],
     loading: false,
+    _permissionMapCache: null as Map<string, any> | null,
   }),
   getters: {
     permissionMap: (state) => {
+      if (state._permissionMapCache) return state._permissionMapCache
+      
       const map = new Map<string, any>()
       const traverse = (items: any[]) => {
         items.forEach(item => {
@@ -24,6 +27,7 @@ export const useUserStore = defineStore('user', {
         })
       }
       traverse(state.permissions)
+      state._permissionMapCache = map
       return map
     }
   },
@@ -40,13 +44,14 @@ export const useUserStore = defineStore('user', {
         this.permissions = data.permissions
         this.router = data.router
         this.buttonCodes = data.buttonCodes || []
+        this._permissionMapCache = null
       } catch (e) {
-        // 清空状态，让调用方知道失败了
         this.user_id = ''
         this.permissions = []
         this.router = []
         this.buttonCodes = []
-        throw e  // 向上抛出，让 setupDynamicRoutes 捕获
+        this._permissionMapCache = null
+        throw e
       } finally {
         this.loading = false
       }
