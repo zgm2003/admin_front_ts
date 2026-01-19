@@ -1,11 +1,5 @@
 /* 企业简约风 - 基于 Element Plus */
 
-/* 自定义字体 */
-@font-face {
-  font-family: 'font';
-  src: url("./assets/font/2.woff2");
-}
-
 /* CSS Variables - 映射到 Element Plus */
 :root {
   --bg-page: var(--el-bg-color-page, #F8FAFC);
@@ -27,7 +21,7 @@
 html, body, #app { overflow-x: hidden; max-width: 100vw; }
 
 body {
-  font-family: 'Inter', 'font', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: var(--el-font-size-base);
   line-height: var(--el-font-line-height-primary);
   color: var(--el-text-color-primary);

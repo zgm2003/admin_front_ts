@@ -20,7 +20,7 @@ watch(isMobile, (val) => {
 </script>
 
 <template>
-  <el-container class="layout-container" v-loading="userStore.loading">
+  <el-container class="layout-container">
     <!-- 移动端抽屉菜单 -->
     <el-drawer 
       v-if="isMobile" 

@@ -83,40 +83,27 @@ const confirmLogout = () => {
 
 <style scoped lang="scss">
 .aside-wrapper { display: flex; flex-direction: column; height: 100%; background: var(--el-bg-color); }
+.aside-menu { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; border-right: none; background: transparent; width: 64px; transition: width 0.2s; &:not(.el-menu--collapse) { width: 220px; } }
 
-.aside-menu {
-  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
-  border-right: none; background: transparent;
-  &:not(.el-menu--collapse) { width: 220px; }
-}
-
-.logo-container {
-  display: flex; align-items: center; height: 60px; padding: 0 20px; gap: 12px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  &.is-collapse { padding: 0; justify-content: center; }
-}
+.logo-container { display: flex; align-items: center; height: 60px; padding: 0 20px; gap: 12px; border-bottom: 1px solid var(--el-border-color-lighter); &.is-collapse { padding: 0; justify-content: center; } }
 .logo-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--el-color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; img { width: 24px; height: 24px; filter: brightness(0) invert(1); } }
 .logo-text { font-size: 18px; font-weight: 600; color: var(--el-text-color-primary); white-space: nowrap; }
+.is-collapse .logo-text, .is-collapse .user-info, .is-collapse .user-arrow { display: none; }
 
-/* 用户区域 */
-.user-section {
-  flex-shrink: 0; margin: 8px; padding-top: 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
-  :deep(.el-dropdown) { display: block; width: 100%; }
-  &.is-collapse .user-trigger { justify-content: center; padding: 8px; }
-}
-.user-trigger { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; width: 100%; cursor: pointer; background: var(--el-fill-color-lighter); transition: background 0.15s; &:hover { background: var(--el-fill-color); } }
+.user-section { flex-shrink: 0; margin: 8px; padding-top: 8px; border-top: 1px solid var(--el-border-color-lighter); :deep(.el-dropdown) { display: block; width: 100%; } &.is-collapse .user-trigger { justify-content: center; padding: 8px; } }
+.user-trigger { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; cursor: pointer; background: var(--el-fill-color-lighter); &:hover { background: var(--el-fill-color); } }
 .user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.user-name { font-size: 14px; font-weight: 600; color: var(--el-text-color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
-.user-role { font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.3; }
+.user-name { font-size: 14px; font-weight: 600; color: var(--el-text-color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-role { font-size: 12px; color: var(--el-text-color-secondary); }
 .user-arrow { color: var(--el-text-color-placeholder); font-size: 12px; }
-
 .logout-content { text-align: center; padding: 20px 0; .logout-icon { color: var(--el-color-warning); margin-bottom: 16px; } p { font-size: 15px; color: var(--el-text-color-regular); } }
 
-/* 菜单样式 */
+/* 菜单 */
 :deep(.el-menu-item), :deep(.el-sub-menu__title) { height: 48px; line-height: 48px; border-radius: 8px; color: var(--el-text-color-regular); &:hover { background: var(--el-fill-color-light); color: var(--el-text-color-primary); } .el-icon { font-size: 18px; } }
-:deep(.el-menu:not(.el-menu--collapse)) { .el-menu-item, .el-sub-menu__title { margin: 4px 8px; .el-icon { margin-right: 12px; } } }
+:deep(.el-menu:not(.el-menu--collapse)) .el-menu-item, :deep(.el-menu:not(.el-menu--collapse)) .el-sub-menu__title { margin: 4px 8px; .el-icon { margin-right: 12px; } }
 :deep(.el-menu-item.is-active) { background: var(--el-color-primary-light-9); color: var(--el-color-primary); font-weight: 500; &::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: var(--el-color-primary); border-radius: 0 3px 3px 0; } }
 :deep(.el-sub-menu.is-active > .el-sub-menu__title) { color: var(--el-color-primary); }
-:deep(.el-menu--collapse) { width: 64px; .el-menu-item { margin: 4px auto !important; padding: 0 !important; width: 48px !important; display: flex !important; justify-content: center !important; .el-icon { margin: 0 !important; } } .el-sub-menu { .el-sub-menu__title { margin: 4px auto !important; padding: 0 !important; width: 48px !important; display: flex !important; justify-content: center !important; .el-icon { margin: 0 !important; } span { display: none !important; } } .el-sub-menu__icon-arrow { display: none !important; } } }
+:deep(.el-menu--inline) { padding: 0 !important; .el-menu-item { padding-left: 52px !important; } }
+:deep(.el-collapse-transition), :deep(.el-menu--inline), :deep(.el-sub-menu__icon-arrow) { transition: none !important; }
+:deep(.el-menu--collapse) { width: 64px; .el-menu-item, .el-sub-menu__title { margin: 4px auto !important; padding: 0 !important; width: 48px !important; justify-content: center; .el-icon { margin: 0 !important; } } .el-sub-menu__title span, .el-sub-menu__icon-arrow { display: none !important; } }
 </style>
