@@ -446,9 +446,10 @@ watch(currentConversationId, async (newId, oldId) => {
 .loading-more-tip,
 .no-more-tip {
   text-align: center;
-  padding: 16px;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
+  padding: 12px;
+  color: var(--el-text-color-placeholder);
+  font-size: 12px;
+  opacity: 0.6;
 }
 
 .loading-more-tip {

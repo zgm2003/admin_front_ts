@@ -520,10 +520,11 @@ defineExpose({
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--el-fill-color-lighter);
+  background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: 16px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .input-container:focus-within {

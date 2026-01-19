@@ -141,6 +141,8 @@ const handleSelect = (agent: Agent) => {
 
 .agent-item.active {
   background: var(--el-color-primary-light-9);
+  border-left: 3px solid var(--el-color-primary);
+  padding-left: 9px;
 }
 
 .agent-item.active .agent-name {

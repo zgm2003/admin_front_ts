@@ -259,19 +259,22 @@ const handleFeedback = (msg: any, feedback: number) => {
   border-radius: 20px;
 }
 
-/* 用户消息 - 气泡风格 */
+/* 用户消息 - 渐变气泡 */
 .user-bubble {
-  background: var(--el-color-primary);
+  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
   color: #fff;
   border-radius: 20px 20px 4px 20px;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.2);
 }
 
-/* AI 消息 - 无气泡，直接显示 */
+/* AI 消息 - 浅色卡片风格 */
 .ai-bubble {
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 16px;
   color: var(--el-text-color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .message-text {
