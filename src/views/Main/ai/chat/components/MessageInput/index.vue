@@ -300,7 +300,7 @@ const handleInput = (e: Event) => {
   adjustHeight()
 }
 
-// 暴露清空方法
+// 暴露清空和聚焦方法
 defineExpose({
   clear: () => {
     inputText.value = ''
@@ -308,6 +308,9 @@ defineExpose({
     if (textareaRef.value) {
       textareaRef.value.style.height = 'auto'
     }
+  },
+  focus: () => {
+    textareaRef.value?.focus()
   }
 })
 </script>
@@ -514,7 +517,7 @@ defineExpose({
 
 .input-container {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
   padding: 12px 16px;
   background: var(--el-fill-color-lighter);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -105,8 +105,8 @@ const handleSelectAgent = async (agent: Agent) => {
   currentConversationId.value = null
   messages.value = []
   
-  // 不再自动加载会话列表和进入最近会话
-  // 会话列表延迟到打开抽屉时才加载
+  // 自动聚焦输入框
+  nextTick(() => messageInputRef.value?.focus())
 }
 
 // ========== 会话抽屉处理 ==========
@@ -197,6 +197,10 @@ const handleBackToAgentList = () => {
 onMounted(async () => {
   // 只加载智能体列表，不加载会话
   await loadAgents()
+  // 如果已有选中的智能体，自动聚焦输入框
+  if (selectedAgentId.value) {
+    nextTick(() => messageInputRef.value?.focus())
+  }
 })
 
 watch(currentConversationId, async (newId, oldId) => {

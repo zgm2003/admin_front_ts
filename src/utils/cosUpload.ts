@@ -1,6 +1,8 @@
 import request from '@/utils/request'
-import COS from 'cos-js-sdk-v5'
-import OSS from 'ali-oss'
+
+// 动态导入 SDK，只在实际上传时才加载
+const loadCOS = () => import('cos-js-sdk-v5').then(m => m.default)
+const loadOSS = () => import('ali-oss').then(m => m.default)
 
 export type Provider = 'cos' | 'oss'
 
@@ -91,6 +93,7 @@ const uploadToCos = async (
     config: UploadConfig
 ): Promise<{ url: string; key: string }> => {
     const { credentials, bucket, region } = config
+    const COS = await loadCOS()
 
     const cos: any = new COS({
         getAuthorization(_: any, cb: any) {
@@ -122,6 +125,7 @@ const uploadToOss = async (
     config: UploadConfig
 ): Promise<{ url: string; key: string }> => {
     const { credentials, bucket, region } = config
+    const OSS = await loadOSS()
 
     // ali-oss 的 region 一般形如：oss-cn-hangzhou
     const ossRegion = region.startsWith('oss-') ? region : `oss-${region}`
