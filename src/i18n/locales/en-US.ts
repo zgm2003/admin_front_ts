@@ -60,6 +60,9 @@ export default {
     confirmBatchDelete: 'Delete all selected records?',
     confirmStatusChange: 'Change enabled status?',
     selectAtLeastOne: 'Please select at least one record',
+    export: {
+      submitted: 'Export task submitted, you will be notified when complete',
+    },
     required: 'is required',
     lengthRange: 'Length should be between {min} and {max}',
     notSpace: 'Should not contain spaces',
@@ -687,6 +690,18 @@ export default {
       output: 'Output',
       latency: 'Latency',
       noData: 'No statistics data'
+    }
+  },
+  websocket: {
+    connected: 'Real-time connection established',
+    disconnected: 'Real-time connection lost',
+    reconnecting: 'Reconnecting...',
+    bindSuccess: 'User bound successfully',
+    bindFailed: 'User binding failed',
+    error: 'Connection error',
+    notification: {
+      title: 'System Notification',
+      newMessage: 'You have a new message'
     }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}

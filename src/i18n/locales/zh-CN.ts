@@ -60,6 +60,9 @@ export default {
     confirmBatchDelete: '确定批量删除选中记录吗？',
     confirmStatusChange: '确定变更启用状态吗？',
     selectAtLeastOne: '请至少选择一个记录',
+    export: {
+      submitted: '导出任务已提交，完成后将通知您',
+    },
     required: '为必填项',
     lengthRange: '长度应在 {min} 到 {max} 个字符',
     notSpace: '不能包含空格',
@@ -789,6 +792,18 @@ export default {
       practice3: '必填字段设置 NOT NULL 约束',
       practice4: '使用标准字段名：is_del, created_at, updated_at',
       practice5: '状态字段：1=启用/是，2=禁用/否'
+    }
+  },
+  websocket: {
+    connected: '实时连接已建立',
+    disconnected: '实时连接已断开',
+    reconnecting: '正在重新连接...',
+    bindSuccess: '用户绑定成功',
+    bindFailed: '用户绑定失败',
+    error: '连接错误',
+    notification: {
+      title: '系统通知',
+      newMessage: '您有新消息'
     }
   },
   error: {notFound: '抱歉，您访问的页面不存在'}

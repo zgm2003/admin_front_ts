@@ -110,11 +110,9 @@ const exportExcel = () => {
     ElNotification.error({message: t('common.selectAtLeastOne')})
     return
   }
-  listLoading.value = true
   UsersListApi.export({ids: selectedIds.value}).then((data: any) => {
-    window.open(data.url)
-    ElNotification.success({message: t('common.success.operation')})
-  }).finally(() => { listLoading.value = false })
+    ElNotification.success({message: data.message || t('common.export.submitted')})
+  }).catch(() => {})
 }
 
 const isMobile = useIsMobile()

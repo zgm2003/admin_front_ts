@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
+import WebSocketProvider from '@/components/WebSocketProvider/index.vue'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
@@ -20,7 +21,8 @@ watch(isMobile, (val) => {
 </script>
 
 <template>
-  <el-container class="layout-container">
+  <WebSocketProvider>
+    <el-container class="layout-container">
     <!-- 移动端抽屉菜单 -->
     <el-drawer 
       v-if="isMobile" 
@@ -68,7 +70,8 @@ watch(isMobile, (val) => {
         <Footer />
       </el-footer>
     </el-container>
-  </el-container>
+    </el-container>
+  </WebSocketProvider>
 </template>
 
 <style scoped lang="scss">

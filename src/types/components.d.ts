@@ -88,6 +88,7 @@ declare module 'vue' {
     UpImg: typeof import('./../components/UpImg/src/UpImg.vue')['default']
     UpImgList: typeof import('./../components/UpImgList/src/UpImgList.vue')['default']
     UpVideo: typeof import('./../components/UpVideo/src/UpVideo.vue')['default']
+    WebSocketProvider: typeof import('./../components/WebSocketProvider/index.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
