@@ -88,6 +88,8 @@ export default {
       export: 'Export',
       batchAction: 'Batch Actions',
       batchDelete: 'Batch Delete',
+      expandAll: 'Expand All',
+      collapseAll: 'Collapse All',
       batchEdit: 'Batch Edit',
       action: 'Actions',
       detail: 'Detail',

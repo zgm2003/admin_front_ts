@@ -88,6 +88,8 @@ export default {
       export: '导出',
       batchAction: '批量操作',
       batchDelete: '批量删除',
+      expandAll: '展开全部',
+      collapseAll: '折叠全部',
       batchEdit: '批量修改',
       action: '操作',
       detail: '详情',

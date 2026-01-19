@@ -146,8 +146,8 @@ onMounted(() => {
             <el-button type="primary">{{ t('common.actions.batchAction') }}<el-icon class="el-icon--right"><arrow-right/></el-icon></el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('user.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-                <el-dropdown-item @click="batchEdit" v-if="userStore.can('user.edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('user_userManager_del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchEdit" v-if="userStore.can('user_userManager_edit')">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -160,8 +160,8 @@ onMounted(() => {
         <template #cell-role_name="{ row }"><el-tag :type="row.role_id === 1 ? 'success' : 'danger'">{{ row.role_name }}</el-tag></template>
         <template #cell-bio="{ row }"><el-text v-html="row.bio"></el-text></template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('user.edit')">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text v-if="userStore.can('user.del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('user_userManager_edit')">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="danger" text v-if="userStore.can('user_userManager_del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

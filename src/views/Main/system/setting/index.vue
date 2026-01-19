@@ -142,8 +142,8 @@ onMounted(() => { init(); getList() })
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button v-if="userStore.can('systemSetting.add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
-          <el-button v-if="userStore.can('systemSetting.del')" type="danger" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_del')" type="danger" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-button>
         </template>
         <template #cell-value_type="{ row }">
           <el-tag type="primary">{{ row.value_type_name }}</el-tag>
@@ -158,10 +158,10 @@ onMounted(() => { init(); getList() })
           </div>
         </template>
         <template #cell-actions="{ row }">
-          <el-button v-if="userStore.can('systemSetting.edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button v-if="userStore.can('systemSetting.status') && row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-          <el-button v-if="userStore.can('systemSetting.status') && row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-          <el-button v-if="userStore.can('systemSetting.del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_status') && row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_status') && row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
+          <el-button v-if="userStore.can('system_setting_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

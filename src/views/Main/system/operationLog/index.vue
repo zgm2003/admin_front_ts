@@ -83,7 +83,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('operationLog.del')">{{
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('system_operationLog_del')">{{
                     t('common.actions.batchDelete')
                   }}
                 </el-dropdown-item>
@@ -98,7 +98,7 @@ onMounted(() => {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="danger" text v-if="userStore.can('operationLog.del')" @click="confirmDel(row)">
+          <el-button type="danger" text v-if="userStore.can('system_operationLog_del')" @click="confirmDel(row)">
             {{ t('common.actions.del') }}
           </el-button>
         </template>

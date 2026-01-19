@@ -156,7 +156,7 @@ onMounted(() => {
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add" v-if="userStore.can('uploadRule.add')">{{ t('common.actions.add') }}</el-button>
+          <el-button type="success" @click="add" v-if="userStore.can('system_uploadConfig_ruleAdd')">{{ t('common.actions.add') }}</el-button>
           <el-dropdown>
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
@@ -166,7 +166,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('uploadRule.del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('system_uploadConfig_ruleDel')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -182,8 +182,8 @@ onMounted(() => {
           </div>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadRule.edit')">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadRule.del')">{{ t('common.actions.del') }}</el-button>
+          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('system_uploadConfig_ruleEdit')">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('system_uploadConfig_ruleDel')">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

@@ -147,7 +147,7 @@ onMounted(() => {
                 :show-index="true"
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
-          <el-button v-if="userStore.can('role.add')" type="success" @click="add">{{
+          <el-button v-if="userStore.can('permission_role_add')" type="success" @click="add">{{
               t('common.actions.add')
             }}
           </el-button>
@@ -159,7 +159,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('role.del')">{{
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('permission_role_del')">{{
                     t('common.actions.batchDelete')
                   }}
                 </el-dropdown-item>
@@ -172,10 +172,10 @@ onMounted(() => {
           <span v-else></span>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('role.edit')">编辑</el-button>
-          <el-button type="danger" text v-if="userStore.can('role.del')" @click="confirmDel(row)">删除</el-button>
+          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('permission_role_edit')">编辑</el-button>
+          <el-button type="danger" text v-if="userStore.can('permission_role_del')" @click="confirmDel(row)">删除</el-button>
           <el-button type="success" text @click="handleDefaultSwitch(row)"
-                     v-if="userStore.can('role.setDefault') && row.is_default !== CommonEnum.YES">{{ t('role.actions.setDefault') }}
+                     v-if="userStore.can('permission_role_setDefault') && row.is_default !== CommonEnum.YES">{{ t('role.actions.setDefault') }}
           </el-button>
         </template>
       </AppTable>

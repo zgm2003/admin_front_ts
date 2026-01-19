@@ -157,7 +157,7 @@ onMounted(() => {
         @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="danger" @click="batchKick" v-if="userStore.can('user.session.kick')">{{ t('userSession.batchKick') }}</el-button>
+          <el-button type="danger" @click="batchKick" v-if="userStore.can('user_userManager_kick')">{{ t('userSession.batchKick') }}</el-button>
         </template>
         <template #cell-platform="{ row }">
           <el-tag :type="row.platform === 'admin' ? 'primary' : 'success'" size="small">{{ platformArr.find(p => p.value === row.platform)?.label || row.platform }}</el-tag>
@@ -166,7 +166,7 @@ onMounted(() => {
           <el-tag :type="getStatusType(row.status)" size="small">{{ t(`userSession.status.${row.status}`) }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="warning" text v-if="userStore.can('user.session.kick') && row.status === 'active'" @click="confirmKick(row)">{{ t('common.actions.kick') }}</el-button>
+          <el-button type="warning" text v-if="userStore.can('user_userManager_kick') && row.status === 'active'" @click="confirmKick(row)">{{ t('common.actions.kick') }}</el-button>
         </template>
       </AppTable>
     </div>

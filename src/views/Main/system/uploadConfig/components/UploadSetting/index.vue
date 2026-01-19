@@ -175,7 +175,7 @@ onMounted(() => {
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add" v-if="userStore.can('uploadSetting.add')">{{
+          <el-button type="success" @click="add" v-if="userStore.can('system_uploadConfig_settingAdd')">{{
               t('common.actions.add')
             }}
           </el-button>
@@ -188,7 +188,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('uploadSetting.del')">
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('system_uploadConfig_settingDel')">
                   {{ t('common.actions.batchDelete') }}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -201,16 +201,16 @@ onMounted(() => {
         </template>
 
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadSetting.edit')">
+          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('system_uploadConfig_settingEdit')">
             {{ t('common.actions.edit') }}
           </el-button>
-          <el-button type="warning" text v-if="row.status === CommonEnum.NO && userStore.can('uploadSetting.status')" @click="toggleStatus(row, CommonEnum.YES)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.NO && userStore.can('system_uploadConfig_settingStatus')" @click="toggleStatus(row, CommonEnum.YES)">
             {{ t('common.actions.enable') }}
           </el-button>
-          <el-button type="warning" text v-if="row.status === CommonEnum.YES && userStore.can('uploadSetting.status')" @click="toggleStatus(row, CommonEnum.NO)">
+          <el-button type="warning" text v-if="row.status === CommonEnum.YES && userStore.can('system_uploadConfig_settingStatus')" @click="toggleStatus(row, CommonEnum.NO)">
             {{ t('common.actions.disable') }}
           </el-button>
-          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadSetting.del')">
+          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('system_uploadConfig_settingDel')">
             {{ t('common.actions.del') }}
           </el-button>
         </template>

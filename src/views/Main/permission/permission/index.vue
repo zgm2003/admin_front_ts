@@ -9,7 +9,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum } from '@/enums'
-import {ArrowRight} from "@element-plus/icons-vue"
+import {ArrowRight, ArrowDown, ArrowUp} from "@element-plus/icons-vue"
 import { DynamicIcon } from '@/components/DynamicIcon'
 
 const userStore = useUserStore()
@@ -109,6 +109,18 @@ const onSearch = () => {
   getList()
 }
 const tableRef = ref()
+const isExpanded = ref(true)
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value
+  const rows = listData.value
+  const expandRows = (data: any[]) => {
+    data.forEach((row: any) => {
+      tableRef.value?.toggleRowExpansion(row, isExpanded.value)
+      if (row.children?.length) expandRows(row.children)
+    })
+  }
+  expandRows(rows)
+}
 const handleRowClick = (row: any) => {
   (tableRef.value as any).toggleRowSelection(row)
 }
@@ -249,7 +261,7 @@ onMounted(() => {
   <div class="box">
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <el-button v-if="userStore.can('permission.add')" type="success" @click="add">{{
+      <el-button v-if="userStore.can('permission_permission_add')" type="success" @click="add">{{
           t('common.actions.add')
         }}
       </el-button>
@@ -261,16 +273,19 @@ onMounted(() => {
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('permission.del')">
+            <el-dropdown-item @click="batchDel" v-if="userStore.can('permission_permission_del')">
               {{ t('common.actions.batchDelete') }}
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
+      <el-button @click="toggleExpand" :icon="isExpanded ? ArrowUp : ArrowDown" type="danger">
+        {{ isExpanded ? t('common.actions.collapseAll') : t('common.actions.expandAll') }}
+      </el-button>
     </div>
     <div class="table">
       <el-table :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
-                ref="tableRef" @row-click="handleRowClick" row-key="id" border>
+                ref="tableRef" @row-click="handleRowClick" row-key="id" border default-expand-all>
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
@@ -287,6 +302,7 @@ onMounted(() => {
                 v-model="scope.row.status"
                 :active-value="CommonEnum.YES"
                 :inactive-value="CommonEnum.NO"
+                :disabled="!userStore.can('permission_permission_status')"
                 @change="changeStatus(scope.row)"
             />
           </template>
@@ -305,11 +321,11 @@ onMounted(() => {
                          header-align="center">
           <template #default="scope">
             <el-button type="success" @click="addChild(scope.row)" text
-                       v-if="userStore.can('permission.add') && scope.row.type !== PermissionTypeEnum.BUTTON">新增
+                       v-if="userStore.can('permission_permission_add') && scope.row.type !== PermissionTypeEnum.BUTTON">新增
             </el-button>
-            <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission.edit')">编辑
+            <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission_permission_edit')">编辑
             </el-button>
-            <el-button type="danger" text v-if="userStore.can('permission.del')" @click="confirmDel(scope.row)">删除
+            <el-button type="danger" text v-if="userStore.can('permission_permission_del')" @click="confirmDel(scope.row)">删除
             </el-button>
           </template>
         </el-table-column>
@@ -368,6 +384,9 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === PermissionTypeEnum.BUTTON">
           <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            命名规范：一级菜单_二级菜单_操作，如 user_userManager_edit、permission_permission_del
+          </div>
         </el-form-item>
       </el-form>
     </div>

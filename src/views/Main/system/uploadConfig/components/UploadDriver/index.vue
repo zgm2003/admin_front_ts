@@ -203,7 +203,7 @@ onMounted(() => {
           @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add" v-if="userStore.can('uploadDriver.add')">{{ t('common.actions.add') }}</el-button>
+          <el-button type="success" @click="add" v-if="userStore.can('system_uploadConfig_driverAdd')">{{ t('common.actions.add') }}</el-button>
           <el-dropdown>
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
@@ -213,7 +213,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('uploadDriver.del')">
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('system_uploadConfig_driverDel')">
                   {{ t('common.actions.batchDelete') }}
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -221,8 +221,8 @@ onMounted(() => {
           </el-dropdown>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('uploadDriver.edit')">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('uploadDriver.del')">{{ t('common.actions.del') }}</el-button>
+          <el-button type="primary" text @click="edit(row)" v-if="userStore.can('system_uploadConfig_driverEdit')">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="danger" text @click="confirmDel(row)" v-if="userStore.can('system_uploadConfig_driverDel')">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>
