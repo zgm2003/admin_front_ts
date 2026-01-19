@@ -109,7 +109,7 @@ const onSearch = () => {
   getList()
 }
 const tableRef = ref()
-const isExpanded = ref(true)
+const isExpanded = ref(false)
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
   const rows = listData.value
@@ -285,7 +285,7 @@ onMounted(() => {
     </div>
     <div class="table">
       <el-table :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
-                ref="tableRef" @row-click="handleRowClick" row-key="id" border default-expand-all>
+                ref="tableRef" @row-click="handleRowClick" row-key="id" border>
         <el-table-column type="selection" width="55"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
