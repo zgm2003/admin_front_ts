@@ -32,8 +32,7 @@ Promise.all([
   addCollection(mdiIcons.default || mdiIcons)
 })
 
-// 先初始化动态路由，再挂载应用
-setupDynamicRoutes()
-  .catch(() => router.replace('/login'))
-  .finally(() => app.mount('#app'))
+// 先挂载应用，再初始化动态路由（这样 loading 组件才能正常显示）
+app.mount('#app')
+setupDynamicRoutes().catch(() => router.replace('/login'))
 
