@@ -9,15 +9,44 @@
     <!-- 预加载关键资源 -->
     <link rel="preload" href="/logo.png" as="image" />
     <link rel="modulepreload" href="/src/main.ts" />
+    
+    <style>
+        html, body { padding: 0; margin: 0; }
+        #app-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #fff; z-index: 9999;
+        }
+        .sk-cube-grid { width: 100px; height: 100px; margin: 20px; }
+        .sk-cube-grid .sk-cube {
+            width: 33%; height: 33%; float: left;
+            background: linear-gradient(135deg, #3B82F6, #60A5FA);
+            animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
+            border-radius: 4px; box-shadow: 0 0 4px rgba(64, 158, 255, 0.6);
+        }
+        .sk-cube1 { animation-delay: 0.2s; } .sk-cube2 { animation-delay: 0.3s; } .sk-cube3 { animation-delay: 0.4s; }
+        .sk-cube4 { animation-delay: 0.1s; } .sk-cube5 { animation-delay: 0.2s; } .sk-cube6 { animation-delay: 0.3s; }
+        .sk-cube7 { animation-delay: 0s; }   .sk-cube8 { animation-delay: 0.1s; } .sk-cube9 { animation-delay: 0.2s; }
+        @keyframes sk-cubeGridScaleDelay { 0%, 70%, 100% { transform: scale3D(1, 1, 1); } 35% { transform: scale3D(0, 0, 1); } }
+        .loading-text { color: #409eff; font-size: 14px; margin-top: 10px; }
+    </style>
 </head>
 <body>
+<div id="app-loading">
+    <div class="sk-cube-grid">
+        <div class="sk-cube sk-cube1"></div>
+        <div class="sk-cube sk-cube2"></div>
+        <div class="sk-cube sk-cube3"></div>
+        <div class="sk-cube sk-cube4"></div>
+        <div class="sk-cube sk-cube5"></div>
+        <div class="sk-cube sk-cube6"></div>
+        <div class="sk-cube sk-cube7"></div>
+        <div class="sk-cube sk-cube8"></div>
+        <div class="sk-cube sk-cube9"></div>
+    </div>
+    <span class="loading-text">正在加载中...</span>
+</div>
 <div id="app"></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
-<style>
-    html, body {
-        padding: 0;
-        margin: 0;
-    }
-</style>

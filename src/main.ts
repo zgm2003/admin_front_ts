@@ -32,7 +32,15 @@ Promise.all([
   addCollection(mdiIcons.default || mdiIcons)
 })
 
-// 先挂载应用，再初始化动态路由（这样 loading 组件才能正常显示）
+// 移除原生 loading
+const removeLoading = () => {
+  const el = document.getElementById('app-loading')
+  if (el) el.remove()
+}
+
+// 先挂载应用，再初始化动态路由
 app.mount('#app')
-setupDynamicRoutes().catch(() => router.replace('/login'))
+setupDynamicRoutes()
+  .catch(() => router.replace('/login'))
+  .finally(removeLoading)
 

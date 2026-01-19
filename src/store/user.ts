@@ -10,7 +10,6 @@ export const useUserStore = defineStore('user', {
     permissions: [] as any[],
     router: [] as any[],
     buttonCodes: [] as string[],
-    loading: false,
     _permissionMapCache: null as Map<string, any> | null,
   }),
   getters: {
@@ -33,7 +32,6 @@ export const useUserStore = defineStore('user', {
   },
   actions: {
     async fetchUserInfo() {
-      this.loading = true
       try {
         const data = await UsersApi.init()
         this.user_id = data.user_id
@@ -52,8 +50,6 @@ export const useUserStore = defineStore('user', {
         this.buttonCodes = []
         this._permissionMapCache = null
         throw e
-      } finally {
-        this.loading = false
       }
     },
     can(code: string) {

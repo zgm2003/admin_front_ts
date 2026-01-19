@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CustomLoading from '@/components/CustomLoading'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
@@ -10,11 +9,10 @@ const elementLocale = computed(() => (locale.value === 'en-US' ? enUs : zhCn))
 </script>
 
 <template>
-  <CustomLoading />
   <el-config-provider :locale="elementLocale">
     <router-view />
   </el-config-provider>
-  </template>
+</template>
 
 <style scoped>
 </style>
