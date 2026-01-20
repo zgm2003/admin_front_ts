@@ -9,12 +9,19 @@ import {ExportTaskApi} from '@/api/devTools/exportTask'
 
 const {t} = useI18n()
 const statusArr = ref<any[]>([])
-const statusFilter = ref<string | number>('')
 const searchForm = ref({status: ''})
 
-const init = () => {
-  ExportTaskApi.init().then((data: any) => {
-    statusArr.value = data.dict.statusArr
+const loadStatusCount = () => {
+  ExportTaskApi.statusCount().then((data: any) => {
+    statusArr.value = data
+    searchForm.value.status = data[0].value
+    getList()
+  }).catch(() => {})
+}
+
+const refreshStatusCount = () => {
+  ExportTaskApi.statusCount().then((data: any) => {
+    statusArr.value = data
   }).catch(() => {})
 }
 
@@ -48,9 +55,9 @@ const handleDownload = (row: any) => {
   window.open(row.file_url, '_blank')
 }
 
-const handleStatusFilter = () => {
-  searchForm.value.status = statusFilter.value as string
+const handleChangeStatus = () => {
   getList()
+  refreshStatusCount()
 }
 
 const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info' => {
@@ -58,17 +65,20 @@ const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info
 }
 
 onMounted(() => {
-  init()
-  getList()
+  loadStatusCount()
 })
 </script>
 
 <template>
   <div class="box">
+    <el-tabs v-model="searchForm.status" @tab-change="handleChangeStatus">
+      <el-tab-pane v-for="item in statusArr" :key="item.value" :name="item.value">
+        <template #label>{{ item.label }} ({{ item.num }})</template>
+      </el-tab-pane>
+    </el-tabs>
     <AppTable :columns="columns" :data="listData" :loading="listLoading" :pagination="page" selectable
               @update:pagination="onPageChange" @selection-change="onSelectionChange" @refresh="refresh">
       <template #toolbar-left>
-        <el-select-v2 v-model="statusFilter" :options="statusArr" clearable :placeholder="t('exportTask.allStatus')" style="width: 120px" @change="handleStatusFilter" />
         <el-button type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
           {{ t('common.actions.batchDelete') }}
         </el-button>
