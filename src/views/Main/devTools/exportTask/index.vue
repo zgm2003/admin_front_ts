@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, computed, onMounted} from 'vue'
 import {ElMessage} from 'element-plus'
 import {Close} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
+import {Search} from '@/components/Search'
+import type {SearchField} from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
 import {ExportTaskApi} from '@/api/devTools/exportTask'
 
 const {t} = useI18n()
 const statusArr = ref<any[]>([])
-const searchForm = ref({status: ''})
+const searchForm = ref({status: '', title: '', file_name: ''})
 
 const loadStatusCount = () => {
-  ExportTaskApi.statusCount().then((data: any) => {
+  ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name}).then((data: any) => {
     statusArr.value = data
     searchForm.value.status = data[0].value
     getList()
@@ -20,9 +22,14 @@ const loadStatusCount = () => {
 }
 
 const refreshStatusCount = () => {
-  ExportTaskApi.statusCount().then((data: any) => {
+  ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name}).then((data: any) => {
     statusArr.value = data
   }).catch(() => {})
+}
+
+const handleSearch = () => {
+  getList()
+  refreshStatusCount()
 }
 
 const {
@@ -37,6 +44,11 @@ const {
   confirmDel,
   batchDel
 } = useTable({api: ExportTaskApi, searchForm})
+
+const searchFields = computed<SearchField[]>(() => [
+  {key: 'title', type: 'input', label: t('exportTask.title'), placeholder: t('exportTask.title'), width: 180},
+  {key: 'file_name', type: 'input', label: t('exportTask.fileName'), placeholder: t('exportTask.fileName'), width: 180}
+])
 
 const columns = [
   {key: 'id', label: 'ID'},
@@ -76,6 +88,9 @@ onMounted(() => {
         <template #label>{{ item.label }} ({{ item.num }})</template>
       </el-tab-pane>
     </el-tabs>
+
+    <Search v-model="searchForm" :fields="searchFields" @query="handleSearch" @reset="handleSearch" />
+    
     <AppTable :columns="columns" :data="listData" :loading="listLoading" :pagination="page" selectable
               @update:pagination="onPageChange" @selection-change="onSelectionChange" @refresh="refresh">
       <template #toolbar-left>
