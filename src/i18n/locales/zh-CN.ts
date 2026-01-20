@@ -97,7 +97,8 @@ export default {
       action: '操作',
       detail: '详情',
       close: '关闭',
-      selectAll: '全选'
+      selectAll: '全选',
+      refresh: '刷新'
     },
     quickEntry: '快速入口',
     welcomeBack: '欢迎回来',

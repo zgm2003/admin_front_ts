@@ -97,7 +97,8 @@ export default {
       action: 'Actions',
       detail: 'Detail',
       close: 'Close',
-      selectAll: 'Select All'
+      selectAll: 'Select All',
+      refresh: 'Refresh'
     },
     quickEntry: 'Quick Entry',
     welcomeBack: 'Welcome back',
