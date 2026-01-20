@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {RefreshRight} from '@element-plus/icons-vue'
+import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {QueueMonitorApi} from '@/api/devTools/queueMonitor'
@@ -121,6 +121,12 @@ const onFailedPageChange = (p: any) => {
 // 状态标签类型
 const getStatusType = (count: number) => count === 0 ? 'info' : count > 10 ? 'danger' : 'warning'
 
+// 复制到剪贴板
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+  ElMessage.success('已复制')
+}
+
 onMounted(() => getList())
 onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
 </script>
@@ -159,10 +165,17 @@ onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
     <el-dialog v-model="failedVisible" :title="t('queueMonitor.failedListTitle')" width="800px">
       <AppTable :columns="failedColumns" :data="failedData" :loading="failedLoading" :pagination="failedPage"
                 :show-refresh="false" :show-column-setting="false" :fixed-footer="false" @update:pagination="onFailedPageChange">
+        <template #cell-error="{row}">
+          <div class="cell-with-copy">
+            <span class="data-preview">{{ row.error }}</span>
+            <el-button size="small" :icon="CopyDocument" link @click="copyToClipboard(row.error)" />
+          </div>
+        </template>
         <template #cell-data="{row}">
-          <el-tooltip :content="JSON.stringify(row.data, null, 2)" placement="top" :show-after="500">
+          <div class="cell-with-copy">
             <span class="data-preview">{{ JSON.stringify(row.data) }}</span>
-          </el-tooltip>
+            <el-button size="small" :icon="CopyDocument" link @click="copyToClipboard(JSON.stringify(row.data, null, 2))" />
+          </div>
         </template>
         <template #cell-actions="{row}">
           <el-button size="small" type="primary" :icon="RefreshRight" @click="handleRetry(row)">{{ t('queueMonitor.retry') }}</el-button>
@@ -175,5 +188,6 @@ onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
 <style scoped>
 .box { display: flex; flex-direction: column; height: 100% }
 .queue-code { font-size: 12px; color: var(--el-text-color-secondary); font-family: monospace }
-.data-preview { max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.cell-with-copy { display: flex; align-items: center; gap: 4px }
+.data-preview { max-width: 180px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 </style>
