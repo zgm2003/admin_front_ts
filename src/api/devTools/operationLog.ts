@@ -1,0 +1,7 @@
+import request from '@/utils/request'
+
+export const OperationLogApi = {
+  init: (params?: any) => request.post('/api/admin/DevTools/OperationLog/init', params),
+  list: (params: any) => request.post('/api/admin/DevTools/OperationLog/list', params),
+  del: (params: any) => request.post('/api/admin/DevTools/OperationLog/del', params)
+}

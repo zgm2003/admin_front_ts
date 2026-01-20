@@ -148,6 +148,8 @@ export default {
     ai_runs: '运行监控',
     // 开发工具模块
     devTools_gen: '代码生成',
+    devTools_queueMonitor: '队列监控',
+    devTools_operationLog: '操作日志',
   },
   personal: {
     title: '个人信息',
@@ -793,6 +795,30 @@ export default {
       practice4: '使用标准字段名：is_del, created_at, updated_at',
       practice5: '状态字段：1=启用/是，2=禁用/否'
     }
+  },
+  queueMonitor: {
+    title: '队列监控',
+    queueName: '队列名称',
+    group: '分组',
+    waiting: '等待中',
+    delayed: '延迟中',
+    failed: '失败',
+    viewFailed: '查看失败',
+    clearWaiting: '清空等待',
+    clearFailed: '清空失败',
+    retry: '重试',
+    autoRefresh: '自动刷新',
+    autoRefreshOn: '自动刷新中',
+    autoRefreshOff: '已关闭自动刷新',
+    failedListTitle: '失败任务列表',
+    attempts: '重试次数',
+    error: '错误信息',
+    data: '任务数据',
+    retryConfirm: '确定要重试该任务吗？',
+    clearConfirm: '确定要清空 {count} 条等待中的任务吗？',
+    clearFailedConfirm: '确定要清空 {count} 条失败任务吗？',
+    noWaitingTasks: '没有等待中的任务',
+    noFailedTasks: '没有失败的任务',
   },
   websocket: {
     connected: '实时连接已建立',

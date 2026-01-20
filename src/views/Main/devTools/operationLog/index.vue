@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import {OperationLogApi} from '@/api/system/logs'
+import {OperationLogApi} from '@/api/devTools/operationLog'
 import {UsersListApi} from '@/api/user/users'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
@@ -83,7 +83,7 @@ onMounted(() => {
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('system_operationLog_del')">{{
+                <el-dropdown-item @click="batchDel" v-if="userStore.can('devTools_operationLog_del')">{{
                     t('common.actions.batchDelete')
                   }}
                 </el-dropdown-item>
@@ -98,7 +98,7 @@ onMounted(() => {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="danger" text v-if="userStore.can('system_operationLog_del')" @click="confirmDel(row)">
+          <el-button type="danger" text v-if="userStore.can('devTools_operationLog_del')" @click="confirmDel(row)">
             {{ t('common.actions.del') }}
           </el-button>
         </template>

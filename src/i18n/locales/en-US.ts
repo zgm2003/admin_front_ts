@@ -148,6 +148,8 @@ export default {
     ai_runs: 'Run Monitor',
     // DevTools module
     devTools_gen: 'Code Generator',
+    devTools_queueMonitor: 'Queue Monitor',
+    devTools_operationLog: 'Operation Log',
   },
   personal: {
     title: 'Personal Info',
@@ -691,6 +693,30 @@ export default {
       latency: 'Latency',
       noData: 'No statistics data'
     }
+  },
+  queueMonitor: {
+    title: 'Queue Monitor',
+    queueName: 'Queue Name',
+    group: 'Group',
+    waiting: 'Waiting',
+    delayed: 'Delayed',
+    failed: 'Failed',
+    viewFailed: 'View Failed',
+    clearWaiting: 'Clear Waiting',
+    clearFailed: 'Clear Failed',
+    retry: 'Retry',
+    autoRefresh: 'Auto Refresh',
+    autoRefreshOn: 'Auto Refreshing',
+    autoRefreshOff: 'Auto Refresh Off',
+    failedListTitle: 'Failed Tasks',
+    attempts: 'Attempts',
+    error: 'Error',
+    data: 'Data',
+    retryConfirm: 'Are you sure to retry this task?',
+    clearConfirm: 'Are you sure to clear {count} waiting tasks?',
+    clearFailedConfirm: 'Are you sure to clear {count} failed tasks?',
+    noWaitingTasks: 'No waiting tasks',
+    noFailedTasks: 'No failed tasks',
   },
   websocket: {
     connected: 'Real-time connection established',
