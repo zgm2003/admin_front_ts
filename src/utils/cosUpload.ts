@@ -26,6 +26,7 @@ export interface UploadConfig {
     uploadPath: string
     bucket: string
     region: string
+    bucket_domain?: string  // CDN 域名
     rule?: UploadRule
 }
 
@@ -111,8 +112,9 @@ const uploadToCos = async (
         cos.putObject({ Bucket: bucket, Region: region, Key: key, Body: file }, (err: any) => {
             if (err) return reject(err)
 
-            // 这里是 COS 默认公网域名规则；如果你有自定义域名/CDN，建议后端直接下发 baseUrl
-            const url = `https://${bucket}.cos.${region}.myqcloud.com/${encodeURI(key)}`
+            // 优先用后端下发的 bucket_domain（CDN），否则用默认域名
+            const domain = config.bucket_domain || `${bucket}.cos.${region}.myqcloud.com`
+            const url = `https://${domain}/${encodeURI(key)}`
             resolve({ url, key })
         })
     })
