@@ -151,6 +151,7 @@ export default {
     devTools_gen: 'Code Generator',
     devTools_queueMonitor: 'Queue Monitor',
     devTools_operationLog: 'Operation Log',
+    devTools_exportTask: 'Export Tasks',
   },
   personal: {
     title: 'Personal Info',
@@ -730,6 +731,20 @@ export default {
       title: 'System Notification',
       newMessage: 'You have a new message'
     }
+  },
+  exportTask: {
+    title: 'Task Name',
+    fileName: 'File Name',
+    fileSize: 'File Size',
+    rowCount: 'Row Count',
+    status: 'Status',
+    expireAt: 'Expire At',
+    allStatus: 'All Status',
+    pending: 'Processing',
+    success: 'Completed',
+    failed: 'Failed',
+    download: 'Download',
+    noFile: 'File not generated',
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

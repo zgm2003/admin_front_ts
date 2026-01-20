@@ -49,7 +49,8 @@ export default {
       register: '注册成功',
       editPassword: '修改成功',
       sendCode: '发送成功（长时间没收到检查垃圾箱┭┮﹏┭┮）',
-      operation: '操作成功'
+      operation: '操作成功',
+      delete: '删除成功'
     },
     fail: {
       login: '登录失败'
@@ -109,6 +110,8 @@ export default {
     scrollLoadMore: '滚动加载更多',
     noMore: '没有更多了',
     noData: '暂无数据',
+    createdAt: '创建时间',
+    pleaseSelect: '请先选择记录',
     placeholder: {
       leaveEmpty: '留空不修改'
     }
@@ -151,6 +154,7 @@ export default {
     devTools_gen: '代码生成',
     devTools_queueMonitor: '队列监控',
     devTools_operationLog: '操作日志',
+    devTools_exportTask: '导出任务',
   },
   personal: {
     title: '个人信息',
@@ -820,6 +824,20 @@ export default {
     clearFailedConfirm: '确定要清空 {count} 条失败任务吗？',
     noWaitingTasks: '没有等待中的任务',
     noFailedTasks: '没有失败的任务',
+  },
+  exportTask: {
+    title: '任务名称',
+    fileName: '文件名',
+    fileSize: '文件大小',
+    rowCount: '数据行数',
+    status: '状态',
+    expireAt: '过期时间',
+    allStatus: '全部状态',
+    pending: '处理中',
+    success: '已完成',
+    failed: '失败',
+    download: '下载',
+    noFile: '文件未生成',
   },
   websocket: {
     connected: '实时连接已建立',
