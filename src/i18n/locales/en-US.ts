@@ -52,7 +52,8 @@ export default {
       operation: 'Operation successful'
     },
     fail: {
-      login: 'Login Failed'
+      login: 'Login Failed',
+      operation: 'Operation Failed'
     },
     confirmTitle: 'Confirmation',
     confirmDelete: 'Are you sure you want to delete?',

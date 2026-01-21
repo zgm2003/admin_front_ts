@@ -48,7 +48,7 @@ onMounted(() => {
           <div class="card-row">
             <span class="label">{{ t('operationLog.table.is_success') }}:</span>
             <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
-              {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : 'Failed' }}
+              {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation') }}
             </el-tag>
           </div>
           <div class="card-row">
@@ -67,7 +67,7 @@ onMounted(() => {
           <div class="log-main">
             <span class="action">{{ item.action }}</span>
             <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
-              {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : 'Failed' }}
+              {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation') }}
             </el-tag>
           </div>
           <div class="log-meta">

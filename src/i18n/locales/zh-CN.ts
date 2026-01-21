@@ -53,7 +53,8 @@ export default {
       delete: '删除成功'
     },
     fail: {
-      login: '登录失败'
+      login: '登录失败',
+      operation: '操作失败'
     },
     confirmTitle: '二次确认',
     confirmDelete: '确定删除吗？',

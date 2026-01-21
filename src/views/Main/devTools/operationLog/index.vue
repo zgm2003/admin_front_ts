@@ -93,7 +93,7 @@ onMounted(() => {
         </template>
         <template #cell-is_success="{ row }">
           <el-tag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'">{{
-              row.is_success === CommonEnum.YES ? t('common.success.operation') : 'Failed'
+              row.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation')
             }}
           </el-tag>
         </template>
