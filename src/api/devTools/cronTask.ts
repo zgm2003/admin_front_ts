@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 
 export const CronTaskApi = {
+  init: () => request.post('/api/admin/DevTools/CronTask/init'),
   list: (params?: any) => request.post('/api/admin/DevTools/CronTask/list', params),
   add: (params: any) => request.post('/api/admin/DevTools/CronTask/add', params),
   edit: (params: any) => request.post('/api/admin/DevTools/CronTask/edit', params),

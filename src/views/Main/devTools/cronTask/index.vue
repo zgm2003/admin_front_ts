@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
@@ -14,6 +14,14 @@ import type { FormInstance, FormRules } from 'element-plus'
 const { t } = useI18n()
 const userStore = useUserStore()
 const isMobile = useIsMobile()
+
+// 初始化数据
+const cronPresets = ref<any[]>([])
+const init = () => {
+  CronTaskApi.init().then((res: any) => {
+    cronPresets.value = res.data?.dict?.cron_preset_arr || []
+  })
+}
 
 // 主列表
 const searchForm = ref({ title: '' })
@@ -50,6 +58,15 @@ const rules = computed<FormRules>(() => ({
   cron: [{ required: true, message: t('cronTask.form.cron') + t('common.required'), trigger: 'blur' }],
   handler: [{ required: true, message: t('cronTask.form.handler') + t('common.required'), trigger: 'blur' }]
 }))
+
+const onPresetChange = (val: string) => {
+  if (!val) return
+  const preset = cronPresets.value.find((p: any) => p.value === val)
+  if (preset) {
+    form.value.cron = preset.value
+    form.value.cron_readable = preset.label
+  }
+}
 
 const openAdd = () => {
   dialogMode.value = 'add'
@@ -115,6 +132,8 @@ const logColumns = computed(() => [
 ])
 
 const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
+
+onMounted(() => init())
 </script>
 
 <template>
@@ -166,6 +185,9 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
       <el-form-item :label="t('cronTask.form.description')">
         <el-input v-model="form.description" type="textarea" :rows="2" :placeholder="t('cronTask.form.descriptionPlaceholder')" />
       </el-form-item>
+      <el-form-item :label="t('cronTask.form.cronPreset')">
+        <el-select-v2 v-model="form.cron" :options="cronPresets" :placeholder="t('cronTask.form.cronPresetPlaceholder')" clearable @change="onPresetChange" style="width: 100%" />
+      </el-form-item>
       <el-form-item :label="t('cronTask.form.cron')" prop="cron" required>
         <el-input v-model="form.cron" :placeholder="t('cronTask.form.cronPlaceholder')" />
       </el-form-item>
@@ -182,6 +204,7 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
         </el-radio-group>
       </el-form-item>
     </el-form>
+    <el-alert :title="t('cronTask.form.restartTip')" type="warning" show-icon :closable="false" style="margin-top: 8px" />
     <template #footer>
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>

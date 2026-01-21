@@ -865,12 +865,15 @@ export default {
       titlePlaceholder: '如：清理过期导出文件',
       description: '任务描述',
       descriptionPlaceholder: '可选，描述任务功能',
+      cronPreset: '快捷选择',
+      cronPresetPlaceholder: '选择常用周期',
       cron: 'Cron 表达式',
       cronPlaceholder: '如：0 0 1 * * *（每天凌晨1点）',
       cronReadable: '可读描述',
       cronReadablePlaceholder: '可选，如：每天凌晨1点执行',
       handler: '处理类',
-      handlerPlaceholder: '如：app\\process\\CleanExportTask'
+      handlerPlaceholder: '如：app\\process\\CleanExportTask',
+      restartTip: '修改后需重启服务才能生效'
     },
     log: {
       startTime: '开始时间',

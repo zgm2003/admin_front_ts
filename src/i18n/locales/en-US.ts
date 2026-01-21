@@ -772,12 +772,15 @@ export default {
       titlePlaceholder: 'e.g. Clean expired export files',
       description: 'Description',
       descriptionPlaceholder: 'Optional, describe task function',
+      cronPreset: 'Quick Select',
+      cronPresetPlaceholder: 'Select common schedule',
       cron: 'Cron Expression',
       cronPlaceholder: 'e.g. 0 0 1 * * * (daily at 1am)',
       cronReadable: 'Readable Description',
       cronReadablePlaceholder: 'Optional, e.g. Daily at 1am',
       handler: 'Handler Class',
-      handlerPlaceholder: 'e.g. app\\process\\CleanExportTask'
+      handlerPlaceholder: 'e.g. app\\process\\CleanExportTask',
+      restartTip: 'Changes require service restart to take effect'
     },
     log: {
       startTime: 'Start Time',
