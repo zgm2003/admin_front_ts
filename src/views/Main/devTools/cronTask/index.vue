@@ -154,7 +154,7 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
   </div>
 
   <!-- 新增/编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'" draggable>
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
       <el-form-item :label="t('cronTask.form.name')" prop="name" required>
@@ -189,9 +189,9 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
   </el-dialog>
 
   <!-- 日志弹窗 -->
-  <el-dialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'">
+  <el-dialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'" top="10vh">
     <Search v-model="logSearchForm" :fields="logSearchFields" @query="onLogSearch" @reset="onLogSearch" />
-    <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange">
+    <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange" :tableProps="{ height: 400 }" :fixedFooter="false">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>
       <template #cell-status="{ row }">
         <el-tag :type="(LOG_STATUS_TYPE as any)[row.status] || 'info'" size="small">{{ row.status_name }}</el-tag>

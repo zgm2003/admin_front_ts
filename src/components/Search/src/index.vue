@@ -83,7 +83,7 @@ const getFieldBindings = (f: Field) => {
 <template>
   <div ref="wrapRef">
   <!-- ✅ :model="form" now binds to the reactive object directly -->
-  <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size">
+  <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size" @submit.prevent="onQuery">
     <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label" :prop="f.key">
       <template v-if="f.type==='input'">
         <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />

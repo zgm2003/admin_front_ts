@@ -59,6 +59,11 @@ const searchProps = [
   {name: 'size', type: 'String', default: "'default'", desc: '表单尺寸：large/default/small'}
 ]
 
+const searchEvents = [
+  {name: '@query', type: 'Event', desc: '点击查询按钮或回车时触发，参数为表单数据'},
+  {name: '@reset', type: 'Event', desc: '点击重置按钮时触发，参数为重置后的表单数据'}
+]
+
 const fieldProps = [
   {name: 'key', type: 'String', required: '✔', desc: '字段名（必填）'},
   {name: 'type', type: 'String', required: '✔', desc: "'input'|'select-v2'|'cascader'|'date-range'|'date'|'remote-select'|'slot'"},
@@ -130,6 +135,14 @@ const remoteSelectProps = [
             <el-table-column prop="name" label="属性名" width="200"/>
             <el-table-column prop="type" label="类型" width="120"/>
             <el-table-column prop="default" label="默认值" width="120"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+        <div class="demo-section">
+          <h4>Events</h4>
+          <el-table :data="searchEvents" border>
+            <el-table-column prop="name" label="事件名" width="200"/>
+            <el-table-column prop="type" label="类型" width="120"/>
             <el-table-column prop="desc" label="说明"/>
           </el-table>
         </div>
