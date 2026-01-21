@@ -16,6 +16,7 @@ export default defineConfig({
     Components({
       resolvers: [ElementPlusResolver({ importStyle: false })],
       dts: 'src/types/components.d.ts',
+      globs: ['src/components/*/index.vue'], // 只扫描组件根目录的 index.vue
     }),
   ],
   resolve: {

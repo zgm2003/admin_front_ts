@@ -1,1 +1,1 @@
-export { default } from './src/ParticleBackground.vue'
+export { default as ParticleBackground } from './src/index.vue'

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
 import {Search} from '@/components/Search'
-import SendCode from '@/components/SendCode'
-import IconSelect from '@/components/IconSelect'
+import { SendCode } from '@/components/SendCode'
+import { IconSelect } from '@/components/IconSelect'
 import RemoteSelect from '@/components/RemoteSelect/index.vue'
 
 const activeTab = ref('Search')

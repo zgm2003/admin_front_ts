@@ -1,1 +1,1 @@
-export { default as MarkdownRenderer } from './src/MarkdownRenderer.vue'
+export { default as MarkdownRenderer } from './src/index.vue'

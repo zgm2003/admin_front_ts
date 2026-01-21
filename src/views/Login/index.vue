@@ -8,7 +8,7 @@ import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
-import SendCode from '@/components/SendCode'
+import { SendCode } from '@/components/SendCode'
 
 const router = useRouter()
 const { t } = useI18n()

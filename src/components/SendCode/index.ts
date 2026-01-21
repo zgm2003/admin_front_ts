@@ -1,4 +1,1 @@
-import SendCode from './src/SendCode.vue'
-
-export { SendCode }
-export default SendCode
+export { default as SendCode } from './src/index.vue'

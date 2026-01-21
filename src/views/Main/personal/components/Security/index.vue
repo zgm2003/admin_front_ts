@@ -5,7 +5,7 @@ import {UsersApi} from '@/api/user/users.ts'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {Iphone, Lock, Message} from "@element-plus/icons-vue"
-import SendCode from '@/components/SendCode'
+import { SendCode } from '@/components/SendCode'
 
 const props = defineProps<{
   userinfo: {

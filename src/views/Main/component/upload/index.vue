@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import UpImg from '@/components/UpImg'
-import UpImgList from '@/components/UpImgList'
-import UpVideo from '@/components/UpVideo'
+import { UpImg } from '@/components/UpImg'
+import { UpImgList } from '@/components/UpImgList'
+import { UpVideo } from '@/components/UpVideo'
 
 const activeTab = ref('UpImg')
 

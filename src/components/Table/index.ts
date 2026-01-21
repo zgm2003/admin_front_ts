@@ -1,1 +1,1 @@
-export { default as AppTable } from './src/Table.vue'
+export { default as AppTable } from './src/index.vue'

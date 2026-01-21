@@ -1,1 +1,1 @@
-export { default } from './src/UpImgList.vue'
+export { default as UpImgList } from './src/index.vue'

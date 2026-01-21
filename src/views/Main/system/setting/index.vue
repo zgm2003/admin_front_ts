@@ -11,6 +11,7 @@ import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
+import { JsonEditor } from '@/components/JsonEditor'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -41,6 +42,7 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({ key: '', value: '', type: 1, remark: '' } as any)
 const formRef = ref<FormInstance | null>(null)
+const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 
 const rules = computed<FormRules>(() => ({
   key: [{ required: true, message: t('setting.form.key') + t('common.required'), trigger: 'blur' }],
@@ -59,6 +61,11 @@ const rules = computed<FormRules>(() => ({
     }
   ]
 }))
+
+const validateJson = (): boolean => {
+  if (form.value.type !== 4) return true
+  return jsonEditorRef.value?.validate() ?? true
+}
 
 const init = () => {
   SystemSettingApi.init().then((data: any) => {
@@ -106,6 +113,7 @@ const confirmSubmit = async () => {
   } catch {
     return
   }
+  if (!validateJson()) return
   
   const api = dialogMode.value === 'add' ? SystemSettingApi.add : SystemSettingApi.edit
   const v = form.value
@@ -184,7 +192,7 @@ onMounted(() => { init(); getList() })
         <el-col :span="24">
           <el-form-item :label="t('setting.form.value')" prop="value">
             <el-input v-if="form.type!==4" v-model="form.value" clearable/>
-            <el-input v-else type="textarea" v-model="form.value" :rows="6" />
+            <JsonEditor v-else v-model="form.value" ref="jsonEditorRef" :rows="6" />
           </el-form-item>
         </el-col>
         <el-col :span="24">

@@ -9,7 +9,7 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
-import UpImg from '@/components/UpImg'
+import { UpImg } from '@/components/UpImg'
 import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()

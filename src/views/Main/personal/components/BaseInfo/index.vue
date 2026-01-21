@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import {ElNotification} from 'element-plus'
 import {UsersApi} from '@/api/user/users.ts'
-import UpImg from '@/components/UpImg'
+import { UpImg } from '@/components/UpImg'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 

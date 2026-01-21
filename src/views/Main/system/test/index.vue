@@ -12,7 +12,7 @@ import type {SearchField} from '@/components/Search/types'
 import {useUserStore} from '@/store/user'
 import {useTable} from '@/hooks/useTable'
 import {Editor} from '@/components/Editor'
-import UpImg from '@/components/UpImg'
+import { UpImg } from '@/components/UpImg'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()

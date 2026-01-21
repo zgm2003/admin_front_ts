@@ -1,1 +1,1 @@
-export { default } from './src/IconSelect.vue'
+export { default as IconSelect } from './src/index.vue'
