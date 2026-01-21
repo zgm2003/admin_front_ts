@@ -266,7 +266,9 @@ export default {
     cancel: '取消',
     ok: '确定',
     personal: '个人资料',
-    logout: '退出登录'
+    logout: '退出登录',
+    layoutSingle: '单列模式',
+    layoutDouble: '双列模式'
   },
   search: {
     placeholder: '搜索页面，支持名称与路径',

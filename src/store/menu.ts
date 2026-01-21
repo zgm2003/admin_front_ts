@@ -23,6 +23,7 @@ export const useMenuStore = defineStore('menu', {
     footer: localStorage.getItem('footer') !== 'false',
     pageTransition: localStorage.getItem('pageTransition') !== 'false',
     transitionName: localStorage.getItem('transitionName') || 'el-fade-in',
+    layoutMode: (localStorage.getItem('layoutMode') as 'single' | 'double') || 'single',
   }),
   actions: {
     mobile() {
@@ -71,6 +72,7 @@ export const useMenuStore = defineStore('menu', {
     changeFooter(val: boolean) { this.footer = val; localStorage.setItem('footer', String(val)) },
     changePageTransition(val: boolean) { this.pageTransition = val; localStorage.setItem('pageTransition', String(val)) },
     changeTransitionName(val: string) { this.transitionName = val; localStorage.setItem('transitionName', val) },
+    changeLayoutMode(val: 'single' | 'double') { this.layoutMode = val; localStorage.setItem('layoutMode', val) },
     reset() {
       this.selectedMenu = '0'
       this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]

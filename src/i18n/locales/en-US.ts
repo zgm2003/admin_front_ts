@@ -263,7 +263,9 @@ export default {
     cancel: 'Cancel',
     ok: 'OK',
     personal: 'Personal',
-    logout: 'Logout'
+    logout: 'Logout',
+    layoutSingle: 'Single Column',
+    layoutDouble: 'Double Column'
   },
   search: {
     placeholder: 'Search pages by name or path',

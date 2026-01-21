@@ -5,11 +5,19 @@
       :collapse="menuStore.collapse"
       :collapse-transition="false"
       :unique-opened="menuStore.uniqueOpen"
-      class="aside-menu"
+      :class="['aside-menu', { 'double-mode': isDouble }]"
     >
       <div class="logo-container" :class="{ 'is-collapse': menuStore.collapse }">
         <div class="logo-icon"><img src="/logo.png" alt="Logo" /></div>
         <span v-show="!menuStore.collapse" class="logo-text">智澜</span>
+        <el-button
+          v-show="!menuStore.collapse"
+          link
+          class="layout-toggle"
+          :icon="Switch"
+          :title="isDouble ? t('header.layoutSingle') : t('header.layoutDouble')"
+          @click="toggleLayout"
+        />
       </div>
       <MenuItem v-for="item in userStore.permissions" :key="item.index" :item="item" />
     </el-menu>
@@ -47,14 +55,14 @@
   </el-dialog>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMenuStore } from '@/store/menu'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { ArrowUp, User, SwitchButton, Warning } from '@element-plus/icons-vue'
+import { ArrowUp, User, SwitchButton, Warning, Switch } from '@element-plus/icons-vue'
 import { clearAllCookies } from '@/utils/cookie'
 import { UsersApi } from '@/api/user/users'
 import MenuItem from './components/MenuItem.vue'
@@ -64,10 +72,16 @@ const userStore = useUserStore()
 const router = useRouter()
 const { t } = useI18n()
 const logoutVisible = ref(false)
+const isDouble = computed(() => menuStore.layoutMode === 'double')
 
-const handleUserCommand = (cmd) => {
+const handleUserCommand = (cmd: string) => {
   if (cmd === 'personal') router.push({ path: '/personal', query: { user_id: userStore.user_id } })
   else if (cmd === 'logout') logoutVisible.value = true
+}
+
+const toggleLayout = () => {
+  const next = isDouble.value ? 'single' : 'double'
+  menuStore.changeLayoutMode(next)
 }
 
 const confirmLogout = () => {
@@ -88,6 +102,7 @@ const confirmLogout = () => {
 .logo-container { display: flex; align-items: center; height: 60px; padding: 0 20px; gap: 12px; border-bottom: 1px solid var(--el-border-color-lighter); &.is-collapse { padding: 0; justify-content: center; } }
 .logo-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--el-color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; img { width: 24px; height: 24px; filter: brightness(0) invert(1); } }
 .logo-text { font-size: 18px; font-weight: 600; color: var(--el-text-color-primary); white-space: nowrap; }
+.layout-toggle { margin-left: auto; color: var(--el-text-color-secondary); padding: 4px; &:hover { color: var(--el-color-primary); } }
 .is-collapse .logo-text, .is-collapse .user-info, .is-collapse .user-arrow { display: none; }
 
 .user-section { flex-shrink: 0; margin: 8px; padding-top: 8px; border-top: 1px solid var(--el-border-color-lighter); :deep(.el-dropdown) { display: block; width: 100%; } &.is-collapse .user-trigger { justify-content: center; padding: 8px; } }
@@ -106,4 +121,17 @@ const confirmLogout = () => {
 :deep(.el-menu--inline) { padding: 0 !important; .el-menu-item { padding-left: 52px !important; } }
 :deep(.el-collapse-transition), :deep(.el-menu--inline), :deep(.el-sub-menu__icon-arrow) { transition: none !important; }
 :deep(.el-menu--collapse) { width: 64px; .el-menu-item, .el-sub-menu__title { margin: 4px auto !important; padding: 0 !important; width: 48px !important; justify-content: center; .el-icon { margin: 0 !important; } } .el-sub-menu__title span, .el-sub-menu__icon-arrow { display: none !important; } }
+
+/* 双列二级菜单布局：仅作用于根级子菜单 */
+.aside-menu.double-mode :deep(> .el-sub-menu > .el-menu) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
+  padding: 6px 12px 12px;
+}
+.aside-menu.double-mode :deep(> .el-sub-menu > .el-menu > .el-menu-item) {
+  width: 100%;
+  margin: 0;
+  padding-left: 20px !important; /* 减小缩进以适配双列 */
+}
 </style>
