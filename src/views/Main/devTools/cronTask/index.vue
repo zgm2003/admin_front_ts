@@ -19,7 +19,7 @@ const isMobile = useIsMobile()
 const cronPresets = ref<any[]>([])
 const init = () => {
   CronTaskApi.init().then((res: any) => {
-    cronPresets.value = res.data?.dict?.cron_preset_arr || []
+    cronPresets.value = res?.dict?.cron_preset_arr || []
   })
 }
 
