@@ -2,6 +2,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
+import { Search } from '@/components/Search'
 import { useTable } from '@/hooks/useTable'
 import { CronTaskApi } from '@/api/devTools/cronTask'
 import { CommonEnum } from '@/enums'
@@ -15,12 +16,16 @@ const userStore = useUserStore()
 const isMobile = useIsMobile()
 
 // 主列表
-const searchForm = ref({})
-const { loading, data, page, onPageChange, refresh, toggleStatus, confirmDel, getList } = useTable({
+const searchForm = ref({ title: '' })
+const { loading, data, page, onPageChange, refresh, toggleStatus, confirmDel, getList, onSearch } = useTable({
   api: CronTaskApi,
   searchForm,
   immediate: true
 })
+
+const searchFields = [
+  { key: 'title', type: 'input' as const, label: t('cronTask.taskName'), placeholder: t('cronTask.taskName'), width: 150 }
+]
 
 const columns = computed(() => [
   { key: 'title', label: t('cronTask.taskName'), minWidth: 150 },
@@ -73,15 +78,20 @@ const confirmSubmit = async () => {
 
 // 日志弹窗
 const logVisible = ref(false)
-const logSearchForm = ref({ task_id: 0 })
+const logSearchForm = ref<any>({ task_id: 0, date: [] })
 const logTaskTitle = ref('')
+
+const logSearchFields = [
+  { key: 'date', type: 'date-range' as const, label: t('cronTask.log.startTime'), width: 240 }
+]
 
 const {
   loading: logLoading,
   data: logData,
   page: logPage,
   onPageChange: onLogPageChange,
-  refresh: refreshLogs
+  refresh: refreshLogs,
+  onSearch: onLogSearch
 } = useTable({
   api: { list: CronTaskApi.logs },
   searchForm: logSearchForm,
@@ -90,7 +100,7 @@ const {
 
 const showLogs = (row: { id: number; title: string }) => {
   logTaskTitle.value = row.title
-  logSearchForm.value.task_id = row.id
+  logSearchForm.value = { task_id: row.id, date: [] }
   logVisible.value = true
   refreshLogs()
 }
@@ -109,6 +119,7 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
 
 <template>
   <div class="box">
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
     <AppTable :columns="columns" :data="data" :loading="loading" :pagination="page" @refresh="refresh" @update:pagination="onPageChange">
       <template #toolbar-left>
         <el-button v-if="userStore.can('devTools_cronTask_add')" type="success" @click="openAdd">{{ t('common.actions.add') }}</el-button>
@@ -179,6 +190,7 @@ const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
 
   <!-- 日志弹窗 -->
   <el-dialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'">
+    <Search v-model="logSearchForm" :fields="logSearchFields" @query="onLogSearch" @reset="onLogSearch" />
     <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>
       <template #cell-status="{ row }">

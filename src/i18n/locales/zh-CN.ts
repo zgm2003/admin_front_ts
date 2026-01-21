@@ -111,6 +111,8 @@ export default {
     noMore: '没有更多了',
     noData: '暂无数据',
     createdAt: '创建时间',
+    startDate: '开始日期',
+    endDate: '结束日期',
     pleaseSelect: '请先选择记录',
     placeholder: {
       leaveEmpty: '留空不修改'

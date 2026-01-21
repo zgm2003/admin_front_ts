@@ -109,6 +109,8 @@ export default {
     scrollLoadMore: 'Scroll to load more',
     noMore: 'No more data',
     noData: 'No data',
+    startDate: 'Start Date',
+    endDate: 'End Date',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
     }
