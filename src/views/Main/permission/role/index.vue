@@ -63,7 +63,7 @@ const columns = [
   {key: 'is_default', label: t('role.table.is_default'), width: 120},
   {key: 'created_at', label: t('role.table.created_at')},
   {key: 'updated_at', label: t('role.table.updated_at')},
-  {key: 'actions', label: '操作', width: 300}
+  {key: 'actions', label: t('common.actions.action'), width: 300}
 ]
 const edit = (current: any) => {
   dialogMode.value = 'edit'
@@ -172,8 +172,8 @@ onMounted(() => {
           <span v-else></span>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('permission_role_edit')">编辑</el-button>
-          <el-button type="danger" text v-if="userStore.can('permission_role_del')" @click="confirmDel(row)">删除</el-button>
+          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('permission_role_edit')">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="danger" text v-if="userStore.can('permission_role_del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
           <el-button type="success" text @click="handleDefaultSwitch(row)"
                      v-if="userStore.can('permission_role_setDefault') && row.is_default !== CommonEnum.YES">{{ t('role.actions.setDefault') }}
           </el-button>
@@ -185,10 +185,10 @@ onMounted(() => {
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
-        <el-form-item label="角色名" prop="name" required>
+        <el-form-item :label="t('role.table.name')" prop="name" required>
           <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
-        <el-form-item label="权限">
+        <el-form-item :label="t('role.form.permission')">
           <div style="display: flex; gap: 8px; width: 100%">
             <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" clearable
                          style="flex: 1"/>

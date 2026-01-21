@@ -152,6 +152,7 @@ export default {
     devTools_queueMonitor: 'Queue Monitor',
     devTools_operationLog: 'Operation Log',
     devTools_exportTask: 'Export Tasks',
+    devTools_cronTask: 'Scheduled Tasks',
   },
   personal: {
     title: 'Personal Info',
@@ -365,6 +366,7 @@ export default {
   role: {
     filter: {name: 'Name'},
     table: {id: 'ID', name: 'Name', is_default: 'Default Role', created_at: 'Created At', updated_at: 'Updated At'},
+    form: { permission: 'Permissions' },
     confirmSetDefault: 'Set as default role?',
     actions: { setDefault: 'Set Default' }
   },
@@ -747,6 +749,41 @@ export default {
     failed: 'Failed',
     download: 'Download',
     noFile: 'File not generated',
+  },
+  cronTask: {
+    title: 'Scheduled Tasks',
+    taskName: 'Task Name',
+    description: 'Description',
+    cronExpr: 'Schedule',
+    nextRunTime: 'Next Run',
+    status: 'Status',
+    handler: 'Handler',
+    statusEnabled: 'Running',
+    statusDisabled: 'Disabled',
+    viewLogs: 'View Logs',
+    logsTitle: '{name} - Execution Logs',
+    confirmToggle: 'Are you sure you want to {action} task "{name}"?',
+    form: {
+      name: 'Task ID',
+      namePlaceholder: 'Unique identifier, e.g. clean_export',
+      title: 'Task Name',
+      titlePlaceholder: 'e.g. Clean expired export files',
+      description: 'Description',
+      descriptionPlaceholder: 'Optional, describe task function',
+      cron: 'Cron Expression',
+      cronPlaceholder: 'e.g. 0 0 1 * * * (daily at 1am)',
+      cronReadable: 'Readable Description',
+      cronReadablePlaceholder: 'Optional, e.g. Daily at 1am',
+      handler: 'Handler Class',
+      handlerPlaceholder: 'e.g. app\\process\\CleanExportTask'
+    },
+    log: {
+      startTime: 'Start Time',
+      endTime: 'End Time',
+      duration: 'Duration',
+      result: 'Result',
+      errorMsg: 'Error Message'
+    }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

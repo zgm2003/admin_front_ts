@@ -155,6 +155,7 @@ export default {
     devTools_queueMonitor: '队列监控',
     devTools_operationLog: '操作日志',
     devTools_exportTask: '导出任务',
+    devTools_cronTask: '定时任务',
   },
   personal: {
     title: '个人信息',
@@ -368,6 +369,7 @@ export default {
   role: {
     filter: { name: '名称' },
     table: { id: 'ID', name: '名称', is_default: '默认角色', created_at: '创建时间', updated_at: '更新时间' },
+    form: { permission: '权限' },
     confirmSetDefault: '确定设置为默认角色吗？',
     actions: { setDefault: '设为默认' }
   },
@@ -414,7 +416,7 @@ export default {
       help: {
         component: '示例：user/userManager（文件路径，不带 /）',
         path: '应为 "/" + component，如：/user/userManager',
-        i18n_key: '格式：menu.{父级}_{当前}，如：menu.user_userManager'
+        i18n_key: '格式：menu.[parent]_[current]，如：menu.user_userManager'
       }
     }
   },
@@ -840,6 +842,41 @@ export default {
     failed: '失败',
     download: '下载',
     noFile: '文件未生成',
+  },
+  cronTask: {
+    title: '定时任务',
+    taskName: '任务名称',
+    description: '描述',
+    cronExpr: '执行周期',
+    nextRunTime: '下次执行',
+    status: '状态',
+    handler: '处理类',
+    statusEnabled: '运行中',
+    statusDisabled: '已禁用',
+    viewLogs: '查看日志',
+    logsTitle: '{name} - 执行日志',
+    confirmToggle: '确定要{action}任务「{name}」吗？',
+    form: {
+      name: '任务标识',
+      namePlaceholder: '唯一标识，如 clean_export',
+      title: '任务名称',
+      titlePlaceholder: '如：清理过期导出文件',
+      description: '任务描述',
+      descriptionPlaceholder: '可选，描述任务功能',
+      cron: 'Cron 表达式',
+      cronPlaceholder: '如：0 0 1 * * *（每天凌晨1点）',
+      cronReadable: '可读描述',
+      cronReadablePlaceholder: '可选，如：每天凌晨1点执行',
+      handler: '处理类',
+      handlerPlaceholder: '如：app\\process\\CleanExportTask'
+    },
+    log: {
+      startTime: '开始时间',
+      endTime: '结束时间',
+      duration: '耗时',
+      result: '执行结果',
+      errorMsg: '错误信息'
+    }
   },
   websocket: {
     connected: '实时连接已建立',
