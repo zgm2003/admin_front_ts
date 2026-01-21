@@ -1,7 +1,7 @@
 <script setup>
 import { watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
-import WebSocketProvider from '@/components/WebSocketProvider/index.vue'
+import { WebSocketProvider } from '@/components/WebSocketProvider'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'

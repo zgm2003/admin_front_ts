@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
-import RemoteSelect from '@/components/RemoteSelect/index.vue'
+import { RemoteSelect } from '@/components/RemoteSelect'
 
 interface Field {
   key: string
@@ -89,7 +89,7 @@ const getFieldBindings = (f: Field) => {
         <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
       </template>
       <template v-else-if="f.type==='select-v2'">
-        <el-select-v2 v-model="form[f.key]" :options="f.options" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
+        <el-select-v2 v-model="form[f.key]" :options="f.options ?? []" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
       </template>
       <template v-else-if="f.type==='cascader'">
         <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" :props="f.cascaderProps" v-bind="getFieldBindings(f)" />

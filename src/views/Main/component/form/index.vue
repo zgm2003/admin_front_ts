@@ -3,7 +3,7 @@ import {ref, computed} from 'vue'
 import {Search} from '@/components/Search'
 import { SendCode } from '@/components/SendCode'
 import { IconSelect } from '@/components/IconSelect'
-import RemoteSelect from '@/components/RemoteSelect/index.vue'
+import { RemoteSelect } from '@/components/RemoteSelect'
 
 const activeTab = ref('Search')
 
