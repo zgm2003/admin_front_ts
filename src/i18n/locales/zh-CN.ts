@@ -50,11 +50,13 @@ export default {
       editPassword: '修改成功',
       sendCode: '发送成功（长时间没收到检查垃圾箱┭┮﹏┭┮）',
       operation: '操作成功',
-      delete: '删除成功'
+      delete: '删除成功',
+      copy: '复制成功'
     },
     fail: {
       login: '登录失败',
-      operation: '操作失败'
+      operation: '操作失败',
+      copy: '复制失败'
     },
     confirmTitle: '二次确认',
     confirmDelete: '确定删除吗？',
@@ -293,7 +295,8 @@ export default {
       request_data: '请求参数',
       response_data: '输出参数',
       is_success: '是否成功',
-      created_at: '创建时间'
+      created_at: '创建时间',
+      params: '参数详情'
     }
   },
   usersLoginLog: {

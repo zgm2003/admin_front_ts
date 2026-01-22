@@ -49,11 +49,14 @@ export default {
       register: 'Registered successfully',
       editPassword: 'Password updated',
       sendCode: 'Code sent successfully',
-      operation: 'Operation successful'
+      operation: 'Operation successful',
+      delete: 'Deleted successfully',
+      copy: 'Copied successfully'
     },
     fail: {
       login: 'Login Failed',
-      operation: 'Operation Failed'
+      operation: 'Operation Failed',
+      copy: 'Copy failed'
     },
     confirmTitle: 'Confirmation',
     confirmDelete: 'Are you sure you want to delete?',
@@ -290,7 +293,8 @@ export default {
       request_data: 'Request',
       response_data: 'Response',
       is_success: 'Success',
-      created_at: 'Created At'
+      created_at: 'Created At',
+      params: 'Parameters'
     }
   },
   usersLoginLog: {

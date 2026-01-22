@@ -117,7 +117,7 @@ const getFieldBindings = (f: Field) => {
       </template>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="onQuery">{{ t('common.actions.query') }}</el-button>
+      <el-button type="primary" native-type="submit">{{ t('common.actions.query') }}</el-button>
       <el-button @click="onReset">{{ resetText }}</el-button>
       <el-button v-if="showToggle" text @click="toggleCollapsed">
         <el-icon style="margin-right:4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
