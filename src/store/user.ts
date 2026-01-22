@@ -10,6 +10,7 @@ export const useUserStore = defineStore('user', {
     permissions: [] as any[],
     router: [] as any[],
     buttonCodes: [] as string[],
+    quickEntry: [] as { id: number; permission_id: number }[],
     _permissionMapCache: null as Map<string, any> | null,
   }),
   getters: {
@@ -42,12 +43,14 @@ export const useUserStore = defineStore('user', {
         this.permissions = data.permissions
         this.router = data.router
         this.buttonCodes = data.buttonCodes || []
+        this.quickEntry = data.quick_entry || []
         this._permissionMapCache = null
       } catch (e) {
         this.user_id = ''
         this.permissions = []
         this.router = []
         this.buttonCodes = []
+        this.quickEntry = []
         this._permissionMapCache = null
         throw e
       }

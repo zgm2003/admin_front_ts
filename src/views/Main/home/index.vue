@@ -3,14 +3,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
+import { ElMessage } from 'element-plus'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { 
   UserFilled, Setting, List, Tickets, ArrowRight,
-  TrendCharts, User, Document, Clock
+  TrendCharts, User, Document, Clock, Plus
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { t } = useI18n()
+const isMobile = useIsMobile()
 
 // 统计数据
 const stats = ref([
@@ -20,20 +25,95 @@ const stats = ref([
   { label: '在线用户', value: 0, icon: Clock, color: '#F56C6C', trend: '+3%' },
 ])
 
-// 快捷入口
-const entries = computed(() => [
-  { label: t('menu.user_userManager'), icon: UserFilled, path: '/user/userManager', color: '#409EFF', bg: 'rgba(64, 158, 255, 0.1)' },
-  { label: t('menu.permission_role'), icon: Tickets, path: '/permission/role', color: '#059669', bg: 'rgba(5, 150, 105, 0.1)' },
-  { label: t('menu.permission_permission'), icon: Setting, path: '/permission/permission', color: '#D97706', bg: 'rgba(217, 119, 6, 0.1)' },
-  { label: t('menu.system_operationLog'), icon: List, path: '/system/operationLog', color: '#DC2626', bg: 'rgba(220, 38, 38, 0.1)' },
-])
+// 快捷入口设置
+const isEditMode = ref(false)
+const addSelectVisible = ref(false)
+const selectedPermissionId = ref<string>('')
+const entryColors = ['#409EFF', '#059669', '#D97706', '#DC2626']
+
+// 从 permissions 中提取 type=2 的菜单（可选项）
+const menuOptions = computed(() => {
+  const result: any[] = []
+  const existingIds = new Set(userStore.quickEntry.map(e => e.permission_id))
+  const traverse = (items: any[], parentLabel?: string) => {
+    items.forEach(item => {
+      // 只选有 path 的菜单，且未添加过
+      if (item.path && !existingIds.has(Number(item.index))) {
+        result.push({
+          value: item.index,
+          label: parentLabel ? `${parentLabel} / ${item.label}` : item.label,
+        })
+      }
+      if (item.children?.length) {
+        traverse(item.children, item.label)
+      }
+    })
+  }
+  traverse(userStore.permissions)
+  return result
+})
+
+// 快捷入口（根据 quickEntry 与 permissions 做交集）
+const entries = computed(() => {
+  return userStore.quickEntry
+    .map((entry, index) => {
+      const menu = userStore.permissionMap.get(String(entry.permission_id))
+      if (!menu || !menu.path) return null
+      return {
+        id: entry.id,
+        permissionId: entry.permission_id,
+        label: t(menu.i18n_key) || menu.label,
+        icon: menu.icon || 'Document',
+        path: menu.path,
+        color: entryColors[index % 4],
+        bg: entryColors[index % 4] + '15',
+      }
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+})
+
+// 切换编辑模式
+const toggleEditMode = () => {
+  isEditMode.value = !isEditMode.value
+}
+
+// 新增快捷入口
+const handleAdd = async () => {
+  if (!selectedPermissionId.value) return
+  try {
+    const res = await UsersQuickEntryApi.add({ permission_id: Number(selectedPermissionId.value) })
+    userStore.quickEntry.push({ id: res.id, permission_id: Number(selectedPermissionId.value) })
+    selectedPermissionId.value = ''
+    addSelectVisible.value = false
+    ElMessage.success(t('common.success'))
+  } catch (e: any) {
+    ElMessage.error(e.message || t('common.fail'))
+  }
+}
+
+// 删除快捷入口
+const handleDelete = async (entry: typeof entries.value[0]) => {
+  try {
+    await UsersQuickEntryApi.del({ id: entry.id })
+    const idx = userStore.quickEntry.findIndex(e => e.id === entry.id)
+    if (idx > -1) userStore.quickEntry.splice(idx, 1)
+    ElMessage.success(t('common.success'))
+  } catch (e: any) {
+    ElMessage.error(e.message || t('common.fail'))
+  }
+}
+
+// 获取图标组件
+const getIconComponent = (iconName: string) => {
+  return (ElementPlusIconsVue as any)[iconName] || Document
+}
 
 // 最近活动（模拟数据）
 const activities = ref([
-  { user: '张三', action: '创建了新用户', time: '2 分钟前', type: 'success' },
-  { user: '李四', action: '修改了角色权限', time: '15 分钟前', type: 'warning' },
-  { user: '王五', action: '删除了系统日志', time: '1 小时前', type: 'danger' },
-  { user: '赵六', action: '登录了系统', time: '2 小时前', type: 'info' },
+  { user: '张三', action: '创建了新用户', time: '2 分钟前', type: 'success' as const },
+  { user: '李四', action: '修改了角色权限', time: '15 分钟前', type: 'warning' as const },
+  { user: '王五', action: '删除了系统日志', time: '1 小时前', type: 'danger' as const },
+  { user: '赵六', action: '登录了系统', time: '2 小时前', type: 'info' as const },
 ])
 
 const goTo = (path: string) => router.push(path)
@@ -92,9 +172,41 @@ onMounted(() => {
       <el-col :xs="24" :lg="16">
         <div class="section-card">
           <div class="section-header">
-            <h3 class="section-title">快捷入口</h3>
+            <h3 class="section-title">{{ t('home.quickEntry') }}</h3>
+            <el-button :type="isEditMode ? 'default' : 'primary'" @click="toggleEditMode">
+              <el-icon><Setting /></el-icon>
+              <span>{{ t('common.setting') }}</span>
+            </el-button>
           </div>
-          <div class="quick-grid">
+          
+          <!-- 编辑模式 -->
+          <div v-if="isEditMode" class="quick-grid">
+            <div v-for="entry in entries" :key="entry.id" class="quick-card edit-mode">
+              <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
+                <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
+              </div>
+              <div class="quick-content">
+                <span class="quick-label">{{ entry.label }}</span>
+                <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete(entry)">
+                  <template #reference>
+                    <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
+                  </template>
+                </el-popconfirm>
+              </div>
+            </div>
+            <!-- 新增卡片 -->
+            <div class="quick-card add-card" @click="addSelectVisible = true">
+              <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
+                <el-icon :size="24"><Plus /></el-icon>
+              </div>
+              <div class="quick-content">
+                <span class="quick-label">{{ t('common.actions.add') }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 正常模式 -->
+          <div v-else-if="entries.length" class="quick-grid">
             <div 
               v-for="entry in entries" 
               :key="entry.path" 
@@ -102,7 +214,7 @@ onMounted(() => {
               @click="goTo(entry.path)"
             >
               <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
-                <el-icon :size="24"><component :is="entry.icon" /></el-icon>
+                <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
               </div>
               <div class="quick-content">
                 <span class="quick-label">{{ entry.label }}</span>
@@ -110,6 +222,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
+          <el-empty v-else :description="t('home.noQuickEntry')" :image-size="80" />
         </div>
       </el-col>
 
@@ -133,6 +246,17 @@ onMounted(() => {
         </div>
       </el-col>
     </el-row>
+
+    <!-- 新增选择弹窗 -->
+    <el-dialog v-model="addSelectVisible" :title="t('home.addQuickEntry')" :width="isMobile ? '90%' : '400px'">
+      <el-select v-model="selectedPermissionId" :placeholder="t('common.pleaseSelect')" filterable style="width: 100%">
+        <el-option v-for="opt in menuOptions" :key="opt.value" :value="opt.value" :label="opt.label" />
+      </el-select>
+      <template #footer>
+        <el-button @click="addSelectVisible = false">{{ t('common.actions.cancel') }}</el-button>
+        <el-button type="primary" :disabled="!selectedPermissionId" @click="handleAdd">{{ t('common.actions.confirm') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -282,6 +406,9 @@ onMounted(() => {
 }
 
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
 
   .section-title {
@@ -323,6 +450,18 @@ onMounted(() => {
       opacity: 1; 
       transform: translateX(0); 
     }
+  }
+
+  &.edit-mode {
+    cursor: default;
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  &.add-card {
+    border-style: dashed;
   }
 }
 

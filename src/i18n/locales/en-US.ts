@@ -117,7 +117,14 @@ export default {
     endDate: 'End Date',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
-    }
+    },
+    setting: 'Setting'
+  },
+  home: {
+    quickEntry: 'Quick Entry',
+    quickEntrySetting: 'Quick Entry Settings',
+    noQuickEntry: 'Click settings to add quick entries',
+    addQuickEntry: 'Add Quick Entry'
   },
   menu: {
     home: 'Home',

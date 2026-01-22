@@ -119,7 +119,14 @@ export default {
     pleaseSelect: '请先选择记录',
     placeholder: {
       leaveEmpty: '留空不修改'
-    }
+    },
+    setting: '设置'
+  },
+  home: {
+    quickEntry: '快捷入口',
+    quickEntrySetting: '快捷入口设置',
+    noQuickEntry: '点击设置添加快捷入口',
+    addQuickEntry: '添加快捷入口'
   },
   menu: {
     home: '首页',
