@@ -300,7 +300,7 @@ export default {
     }
   },
   usersLoginLog: {
-    filter: {userName: '操作人昵称', account: '登录账号', loginType: '登录类型', ip: 'IP地址', platform: '平台', date: '日期范围'},
+    filter: {userName: '操作人昵称', account: '登录账号', loginType: '登录类型', ip: 'IP地址', platform: '平台', is_success: '登录状态', date: '日期范围'},
     table: {
       user_name: '操作人昵称',
       account: '登录账号',

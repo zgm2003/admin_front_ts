@@ -298,7 +298,7 @@ export default {
     }
   },
   usersLoginLog: {
-    filter: {userName: 'Operator Name', account: 'Account', loginType: 'Login Type', ip: 'IP Address', platform: 'Platform', date: 'Date Range'},
+    filter: {userName: 'Operator Name', account: 'Account', loginType: 'Login Type', ip: 'IP Address', platform: 'Platform', is_success: 'Login Status', date: 'Date Range'},
     table: {
       user_name: 'Operator Name',
       account: 'Account',

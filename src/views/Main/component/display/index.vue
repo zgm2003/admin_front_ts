@@ -4,6 +4,8 @@ import {AppTable} from '@/components/Table'
 import {Editor} from '@/components/Editor'
 import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DynamicIcon} from '@/components/DynamicIcon'
+import {LogStream, useLogStream} from '@/components/LogStream'
+import type {LogStreamItem, LogStreamApi, CursorPaginateResponse} from '@/components/LogStream'
 
 const activeTab = ref('Table')
 
@@ -129,6 +131,62 @@ const iconExamples = [
 const dynamicIconProps = [
   {name: 'icon', type: 'String', default: "''", desc: '图标名称（Element Plus 组件名或 Iconify 格式）'},
   {name: 'size', type: 'Number/String', default: '18', desc: '图标大小（像素）'}
+]
+
+// LogStream 演示
+const mockLogApi: LogStreamApi = {
+  listCursor: async (params): Promise<CursorPaginateResponse<LogStreamItem>> => {
+    await new Promise(r => setTimeout(r, 500))
+    const cursor = params.cursor || 0
+    const list: LogStreamItem[] = Array.from({length: params.page_size}, (_, i) => ({
+      id: cursor + i + 1,
+      created_at: new Date(Date.now() - (cursor + i) * 3600000).toISOString(),
+      user_name: ['张三', '李四', '王五'][i % 3],
+      action: ['登录系统', '修改资料', '删除记录', '新增用户'][i % 4],
+      is_success: i % 5 !== 0 ? 1 : 0
+    }))
+    return {
+      list,
+      next_cursor: cursor + params.page_size,
+      has_more: cursor < 40
+    }
+  }
+}
+
+const {list: logList, loading: logLoading, hasMore: logHasMore, loadMore: logLoadMore, refresh: logRefresh} = useLogStream({
+  api: mockLogApi,
+  pageSize: 5,
+  immediate: true
+})
+
+const logStreamProps = [
+  {name: 'list', type: 'LogStreamItem[]', default: '[]', desc: '日志数据列表'},
+  {name: 'loading', type: 'Boolean', default: 'false', desc: '加载状态'},
+  {name: 'hasMore', type: 'Boolean', default: 'true', desc: '是否还有更多数据'},
+  {name: 'showDateDivider', type: 'Boolean', default: 'true', desc: '显示日期分割线'},
+  {name: 'showRefresh', type: 'Boolean', default: 'true', desc: '显示刷新按钮'},
+  {name: 'dateDividerFormatter', type: 'Function', default: '-', desc: '日期分割线格式化'},
+  {name: 'timeFormatter', type: 'Function', default: '-', desc: '时间格式化'},
+  {name: 'emptyText', type: 'String', default: "'暂无数据'", desc: '空状态文案'}
+]
+
+const logStreamSlots = [
+  {name: 'default', desc: '日志条目内容，提供 { item } 作用域'},
+  {name: 'header-extra', desc: '时间行额外内容'},
+  {name: 'toolbar-left', desc: '工具栏左侧插槽'},
+  {name: 'toolbar-right', desc: '工具栏右侧插槽'}
+]
+
+const logStreamEvents = [
+  {name: '@load-more', desc: '滚动到底部或点击“加载更多”时触发'},
+  {name: '@refresh', desc: '点击刷新按钮时触发'}
+]
+
+const useLogStreamOptions = [
+  {name: 'api', type: 'LogStreamApi', required: '✔', desc: 'API 对象，需包含 listCursor 方法'},
+  {name: 'searchForm', type: 'Ref<Object>', required: '', desc: '搜索表单，参数会合并到请求中'},
+  {name: 'pageSize', type: 'Number', required: '', desc: '每页数量，默认 20'},
+  {name: 'immediate', type: 'Boolean', required: '', desc: '是否立即加载，默认 false'}
 ]
 
 </script>
@@ -329,6 +387,84 @@ const dynamicIconProps = [
               <li>按钮图标：操作按钮前缀图标</li>
               <li>列表图标：表格列中的图标展示</li>
               <li>状态图标：各种状态指示图标</li>
+            </ul>
+          </el-alert>
+        </div>
+      </el-tab-pane>
+
+      <!-- LogStream -->
+      <el-tab-pane label="LogStream 日志流" name="LogStream">
+        <div class="demo-section">
+          <h4>基础用法</h4>
+          <div class="demo-block" style="height: 400px">
+            <LogStream
+              :list="logList"
+              :loading="logLoading"
+              :has-more="logHasMore"
+              @load-more="logLoadMore"
+              @refresh="logRefresh"
+            >
+              <template #default="{ item }">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <el-text tag="strong">{{ item.user_name }}</el-text>
+                  <el-text>{{ item.action }}</el-text>
+                  <el-tag :type="item.is_success ? 'success' : 'danger'" size="small">
+                    {{ item.is_success ? '成功' : '失败' }}
+                  </el-tag>
+                </div>
+              </template>
+            </LogStream>
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;LogStream :list="list" :loading="loading" :has-more="hasMore" @load-more="loadMore" /&gt;</el-text>
+          </div>
+        </div>
+
+        <div class="demo-section">
+          <h4>Attributes</h4>
+          <el-table :data="logStreamProps" border>
+            <el-table-column prop="name" label="属性名" width="200"/>
+            <el-table-column prop="type" label="类型" width="160"/>
+            <el-table-column prop="default" label="默认值" width="120"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+
+        <div class="demo-section">
+          <h4>Slots</h4>
+          <el-table :data="logStreamSlots" border>
+            <el-table-column prop="name" label="插槽名" width="200"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+
+        <div class="demo-section">
+          <h4>Events</h4>
+          <el-table :data="logStreamEvents" border>
+            <el-table-column prop="name" label="事件名" width="200"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+
+        <div class="demo-section">
+          <h4>useLogStream 配合使用</h4>
+          <el-table :data="useLogStreamOptions" border>
+            <el-table-column prop="name" label="参数" width="160"/>
+            <el-table-column prop="type" label="类型" width="160"/>
+            <el-table-column prop="required" label="必填" width="80"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+
+        <div class="demo-section">
+          <h4>特性</h4>
+          <el-alert type="info" :closable="false">
+            <ul style="margin: 0; padding-left: 20px;">
+              <li>游标分页，性能恒定 O(1)，无限滚动不卡顿</li>
+              <li>时间线语义，自动按日期分组显示分割线</li>
+              <li>ElScrollbar @end-reached 实现无限滚动</li>
+              <li>SSE 实时推送支持（prepend 方法）</li>
+              <li>移动端响应式适配</li>
             </ul>
           </el-alert>
         </div>
