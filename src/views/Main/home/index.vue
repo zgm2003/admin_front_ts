@@ -8,9 +8,9 @@ import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { 
-  UserFilled, Setting, List, Tickets, ArrowRight,
-  TrendCharts, User, Document, Clock, Plus
+  Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus
 } from '@element-plus/icons-vue'
+import draggable from 'vuedraggable'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -103,6 +103,16 @@ const handleDelete = async (entry: typeof entries.value[0]) => {
   }
 }
 
+// 拖拽排序结束
+const onDragEnd = async () => {
+  const items = userStore.quickEntry.map((e, idx) => ({ id: e.id, sort: idx + 1 }))
+  try {
+    await UsersQuickEntryApi.sort({ items })
+  } catch (e: any) {
+    ElMessage.error(e.message || t('common.fail'))
+  }
+}
+
 // 获取图标组件
 const getIconComponent = (iconName: string) => {
   return (ElementPlusIconsVue as any)[iconName] || Document
@@ -180,30 +190,43 @@ onMounted(() => {
           </div>
           
           <!-- 编辑模式 -->
-          <div v-if="isEditMode" class="quick-grid">
-            <div v-for="entry in entries" :key="entry.id" class="quick-card edit-mode">
-              <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
-                <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
+          <draggable 
+            v-if="isEditMode" 
+            v-model="userStore.quickEntry" 
+            item-key="id"
+            class="quick-grid"
+            :animation="300"
+            ghost-class="drag-ghost"
+            chosen-class="drag-chosen"
+            drag-class="drag-active"
+            @end="onDragEnd"
+          >
+            <template #item="{ element, index }">
+              <div v-if="userStore.permissionMap.get(String(element.permission_id))" class="quick-card edit-mode">
+                <div class="quick-icon" :style="{ backgroundColor: entryColors[index % 4] + '15', color: entryColors[index % 4] }">
+                  <el-icon :size="24"><component :is="getIconComponent(userStore.permissionMap.get(String(element.permission_id))?.icon || 'Document')" /></el-icon>
+                </div>
+                <div class="quick-content">
+                  <span class="quick-label">{{ t(userStore.permissionMap.get(String(element.permission_id))?.i18n_key || '') || userStore.permissionMap.get(String(element.permission_id))?.label }}</span>
+                  <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete({ id: element.id } as any)">
+                    <template #reference>
+                      <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
+                    </template>
+                  </el-popconfirm>
+                </div>
               </div>
-              <div class="quick-content">
-                <span class="quick-label">{{ entry.label }}</span>
-                <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete(entry)">
-                  <template #reference>
-                    <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
-                  </template>
-                </el-popconfirm>
+            </template>
+            <template #footer>
+              <div class="quick-card add-card" @click="addSelectVisible = true">
+                <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
+                  <el-icon :size="24"><Plus /></el-icon>
+                </div>
+                <div class="quick-content">
+                  <span class="quick-label">{{ t('common.actions.add') }}</span>
+                </div>
               </div>
-            </div>
-            <!-- 新增卡片 -->
-            <div class="quick-card add-card" @click="addSelectVisible = true">
-              <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
-                <el-icon :size="24"><Plus /></el-icon>
-              </div>
-              <div class="quick-content">
-                <span class="quick-label">{{ t('common.actions.add') }}</span>
-              </div>
-            </div>
-          </div>
+            </template>
+          </draggable>
           
           <!-- 正常模式 -->
           <div v-else-if="entries.length" class="quick-grid">
@@ -439,7 +462,7 @@ onMounted(() => {
   border: 1px solid var(--el-border-color-light);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
   
   &:hover {
     border-color: var(--el-color-primary-light-5);
@@ -453,7 +476,10 @@ onMounted(() => {
   }
 
   &.edit-mode {
-    cursor: default;
+    cursor: grab;
+    &:active {
+      cursor: grabbing;
+    }
     &:hover {
       transform: none;
       box-shadow: none;
@@ -462,7 +488,24 @@ onMounted(() => {
 
   &.add-card {
     border-style: dashed;
+    cursor: pointer;
   }
+}
+
+// 拖拽样式
+.drag-ghost {
+  opacity: 0.5;
+  background: var(--el-color-primary-light-9) !important;
+  border: 2px dashed var(--el-color-primary) !important;
+}
+
+.drag-chosen {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+.drag-active {
+  opacity: 0.9;
 }
 
 .quick-icon {
