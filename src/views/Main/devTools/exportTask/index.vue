@@ -8,6 +8,7 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
 import {ExportTaskApi} from '@/api/devTools/exportTask'
+import {downloadFile} from '@/utils/download'
 
 const {t} = useI18n()
 const statusArr = ref<any[]>([])
@@ -64,7 +65,7 @@ const columns = [
 
 const handleDownload = (row: any) => {
   if (!row.file_url) return ElMessage.warning(t('exportTask.noFile'))
-  window.open(row.file_url, '_blank')
+  downloadFile(row.file_url, row.file_name)
 }
 
 const handleChangeStatus = () => {
