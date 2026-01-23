@@ -168,6 +168,7 @@ export default {
     devTools_operationLog: '操作日志',
     devTools_exportTask: '导出任务',
     devTools_cronTask: '定时任务',
+    devTools_tauriVersion: '版本管理',
   },
   personal: {
     title: '个人信息',
@@ -892,6 +893,29 @@ export default {
       duration: '耗时',
       result: '执行结果',
       errorMsg: '错误信息'
+    }
+  },
+  tauriVersion: {
+    version: '版本号',
+    platform: '平台',
+    notes: '更新说明',
+    fileSize: '文件大小',
+    isLatest: '最新版本',
+    latest: '最新',
+    setLatest: '设为最新',
+    setLatestConfirm: '确定将 {version} 设为最新版本吗？',
+    download: '下载',
+    viewUpdateJson: '查看 update.json',
+    addVersion: '发布新版本',
+    bytes: '字节',
+    form: {
+      version: '版本号',
+      platform: '平台',
+      fileUrl: '文件地址',
+      signature: '签名',
+      notes: '更新说明',
+      notesPlaceholder: '本次更新内容...',
+      fileSize: '文件大小'
     }
   },
   websocket: {

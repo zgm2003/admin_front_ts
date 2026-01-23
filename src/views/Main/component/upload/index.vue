@@ -3,6 +3,7 @@ import {ref} from 'vue'
 import { UpImg } from '@/components/UpImg'
 import { UpImgList } from '@/components/UpImgList'
 import { UpVideo } from '@/components/UpVideo'
+import { UpFile } from '@/components/UpFile'
 
 const activeTab = ref('UpImg')
 
@@ -17,6 +18,10 @@ const imgList = ref<any[]>([])
 // UpVideo 演示
 const videoUrl = ref('')
 const videoUrlWithInput = ref('')
+
+// UpFile 演示
+const fileUrl = ref('')
+const fileUrl2 = ref('')
 
 const upImgProps = [
   {name: 'v-model / modelValue', type: 'String', default: "''", desc: '图片URL，支持双向绑定'},
@@ -37,6 +42,18 @@ const upVideoProps = [
   {name: 'width', type: 'String', default: "'100px'", desc: '上传框宽高（正方形）'},
   {name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮'},
   {name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框'}
+]
+
+const upFileProps = [
+  {name: 'v-model / modelValue', type: 'String', default: "''", desc: '文件URL，支持双向绑定'},
+  {name: 'folderName', type: 'String', default: '-', desc: '上传到云存储的文件夹名称（必填）'},
+  {name: 'accept', type: 'String', default: "'*'", desc: '接受的文件类型，如 .zip,.exe'},
+  {name: 'disabled', type: 'Boolean', default: 'false', desc: '是否禁用'},
+  {name: 'tip', type: 'String', default: "''", desc: '提示文字'}
+]
+
+const upFileEvents = [
+  {name: 'success', params: '{ url, size, name }', desc: '上传成功回调，返回文件URL、大小、文件名'}
 ]
 </script>
 
@@ -135,6 +152,45 @@ const upVideoProps = [
             <el-table-column prop="name" label="属性名" width="200"/>
             <el-table-column prop="type" label="类型" width="100"/>
             <el-table-column prop="default" label="默认值" width="120"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+      </el-tab-pane>
+
+      <!-- UpFile -->
+      <el-tab-pane label="UpFile 文件上传" name="UpFile">
+        <div class="demo-section">
+          <h4>基础用法</h4>
+          <div class="demo-block">
+            <UpFile v-model="fileUrl" folder-name="releases" />
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpFile v-model="fileUrl" folder-name="releases" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>带提示和文件类型限制</h4>
+          <div class="demo-block">
+            <UpFile v-model="fileUrl2" folder-name="releases" accept=".zip,.exe" tip="支持 .zip/.exe 文件" />
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpFile v-model="fileUrl" folder-name="releases" accept=".zip,.exe" tip="支持 .zip/.exe 文件" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>Attributes</h4>
+          <el-table :data="upFileProps" border>
+            <el-table-column prop="name" label="属性名" width="200"/>
+            <el-table-column prop="type" label="类型" width="100"/>
+            <el-table-column prop="default" label="默认值" width="120"/>
+            <el-table-column prop="desc" label="说明"/>
+          </el-table>
+        </div>
+        <div class="demo-section">
+          <h4>Events</h4>
+          <el-table :data="upFileEvents" border>
+            <el-table-column prop="name" label="事件名" width="120"/>
+            <el-table-column prop="params" label="参数" width="200"/>
             <el-table-column prop="desc" label="说明"/>
           </el-table>
         </div>

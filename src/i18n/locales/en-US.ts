@@ -166,6 +166,7 @@ export default {
     devTools_operationLog: 'Operation Log',
     devTools_exportTask: 'Export Tasks',
     devTools_cronTask: 'Scheduled Tasks',
+    devTools_tauriVersion: 'Version Management',
   },
   personal: {
     title: 'Personal Info',
@@ -800,6 +801,29 @@ export default {
       duration: 'Duration',
       result: 'Result',
       errorMsg: 'Error Message'
+    }
+  },
+  tauriVersion: {
+    version: 'Version',
+    platform: 'Platform',
+    notes: 'Release Notes',
+    fileSize: 'File Size',
+    isLatest: 'Latest',
+    latest: 'Latest',
+    setLatest: 'Set Latest',
+    setLatestConfirm: 'Set {version} as the latest version?',
+    download: 'Download',
+    viewUpdateJson: 'View update.json',
+    addVersion: 'New Release',
+    bytes: 'bytes',
+    form: {
+      version: 'Version',
+      platform: 'Platform',
+      fileUrl: 'File URL',
+      signature: 'Signature',
+      notes: 'Release Notes',
+      notesPlaceholder: 'What\'s new in this release...',
+      fileSize: 'File Size'
     }
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
