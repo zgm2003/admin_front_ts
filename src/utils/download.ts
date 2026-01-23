@@ -1,10 +1,9 @@
 /**
  * 统一下载工具 - 自动适配浏览器和 Tauri 环境
  */
+import { isTauri, useTauri } from '@/hooks/useTauri'
 
-// 检测是否在 Tauri 环境
-const getTauri = () => (window as any).__TAURI__
-export const isTauri = () => !!getTauri()
+export { isTauri }
 
 /**
  * 打开 URL
@@ -12,7 +11,7 @@ export const isTauri = () => !!getTauri()
  * - Tauri：调用系统默认浏览器打开
  */
 export const openUrl = async (url: string) => {
-  const tauri = getTauri()
+  const tauri = useTauri()
   if (tauri?.opener?.openUrl) {
     try {
       await tauri.opener.openUrl(url)

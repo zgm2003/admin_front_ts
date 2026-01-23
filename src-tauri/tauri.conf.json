@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CloudAdmin",
+  "version": "1.0.0",
+  "identifier": "cn.zgm2003.admin",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "",
+    "frontendDist": "https://zgm2003.cn"
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": ["https://zgm2003.cn/update.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDBCQkQxMTJDRDIwQTBEOUYKUldTZkRRclNMQkc5Q3grSGFhSFpwOEk2M3BxZDNtNUJNTXl6bVFxeVM1THBRenFMY1F5ZE1IREEK"
+    }
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "CloudAdmin",
+        "width": 1400,
+        "height": 900,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "maximized": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' https://zgm2003.cn https://*.zgm2003.cn; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://zgm2003.cn https://*.zgm2003.cn; style-src 'self' 'unsafe-inline' https://zgm2003.cn https://*.zgm2003.cn https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://zgm2003.cn https://*.zgm2003.cn wss://zgm2003.cn wss://*.zgm2003.cn"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
+  }
+}

@@ -75,6 +75,7 @@ export default {
     emailError: '邮箱格式不正确',
     mobileError: '手机号格式不正确',
     urlError: 'URL格式不正确',
+    yes: '是',
     language: '语言', zh: '中文', en: '英文',
     status: {
       show: '显示',
@@ -901,6 +902,7 @@ export default {
     notes: '更新说明',
     fileSize: '文件大小',
     isLatest: '最新版本',
+    forceUpdate: '强制更新',
     latest: '最新',
     setLatest: '设为最新',
     setLatestConfirm: '确定将 {version} 设为最新版本吗？',
@@ -915,8 +917,17 @@ export default {
       signature: '签名',
       notes: '更新说明',
       notesPlaceholder: '本次更新内容...',
-      fileSize: '文件大小'
+      fileSize: '文件大小',
+      forceUpdate: '强制更新'
     }
+  },
+  updater: {
+    title: '版本更新',
+    newVersion: '发现新版本 {version}，是否立即更新？',
+    updateNow: '立即更新',
+    later: '稍后',
+    updating: '更新中',
+    downloading: '正在下载更新，请稍候...'
   },
   websocket: {
     connected: '实时连接已建立',

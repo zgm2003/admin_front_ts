@@ -75,6 +75,7 @@ export default {
     emailError: 'Invalid email format',
     mobileError: 'Invalid mobile number format',
     urlError: 'Invalid URL format',
+    yes: 'Yes',
     language: 'Language', zh: 'Chinese', en: 'English',
     status: {
       show: 'Show',
@@ -809,6 +810,7 @@ export default {
     notes: 'Release Notes',
     fileSize: 'File Size',
     isLatest: 'Latest',
+    forceUpdate: 'Force Update',
     latest: 'Latest',
     setLatest: 'Set Latest',
     setLatestConfirm: 'Set {version} as the latest version?',
@@ -823,8 +825,17 @@ export default {
       signature: 'Signature',
       notes: 'Release Notes',
       notesPlaceholder: 'What\'s new in this release...',
-      fileSize: 'File Size'
+      fileSize: 'File Size',
+      forceUpdate: 'Force Update'
     }
+  },
+  updater: {
+    title: 'Update Available',
+    newVersion: 'New version {version} found. Update now?',
+    updateNow: 'Update Now',
+    later: 'Later',
+    updating: 'Updating',
+    downloading: 'Downloading update, please wait...'
   },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

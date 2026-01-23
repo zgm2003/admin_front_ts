@@ -7,4 +7,7 @@ export const TauriVersionApi = {
   setLatest: (params: any) => request.post('/api/admin/DevTools/TauriVersion/setLatest', params),
   del: (params: any) => request.post('/api/admin/DevTools/TauriVersion/del', params),
   updateJson: (params: any) => request.post('/api/admin/DevTools/TauriVersion/updateJson', params),
+  forceUpdate: (params: any) => request.post('/api/admin/DevTools/TauriVersion/forceUpdate', params),
+  // 客户端初始化（公开接口）
+  clientInit: (params: { version: string; platform?: string }) => request.post('/api/TauriVersion/clientInit', params),
 }

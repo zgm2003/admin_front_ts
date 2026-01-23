@@ -5,6 +5,8 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
+const host = process.env.TAURI_DEV_HOST
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -24,8 +26,23 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  server: { 
-    open: true,
+  // Tauri 需要固定端口
+  clearScreen: false,
+  server: {
+    port: 5173,
+    strictPort: true,
+    host: host || false,
+    hmr: host
+      ? {
+          protocol: 'ws',
+          host,
+          port: 5174,
+        }
+      : undefined,
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
+    open: !process.env.TAURI_ENV_DEBUG,
     // 预热常用文件
     warmup: {
       clientFiles: ['./src/main.ts', './src/router.ts', './src/App.vue'],

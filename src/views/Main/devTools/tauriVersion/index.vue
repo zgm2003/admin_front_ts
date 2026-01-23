@@ -27,7 +27,7 @@ const init = () => {
 
 // 主列表
 const searchForm = ref({ platform: '' })
-const { loading, data, page, onPageChange, refresh, getList } = useTable({
+const { loading, data, page, onPageChange, refresh, getList, confirmDel } = useTable({
   api: TauriVersionApi,
   searchForm,
   immediate: true
@@ -39,6 +39,7 @@ const columns = computed(() => [
   { key: 'notes', label: t('tauriVersion.notes'), minWidth: 200, overflowTooltip: true },
   { key: 'file_size_text', label: t('tauriVersion.fileSize'), width: 100 },
   { key: 'is_latest', label: t('tauriVersion.isLatest'), width: 100 },
+  { key: 'force_update', label: t('tauriVersion.forceUpdate'), width: 100 },
   { key: 'created_at', label: t('common.createdAt'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 280 }
 ])
@@ -46,7 +47,7 @@ const columns = computed(() => [
 // 新增弹窗
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance | null>(null)
-const defaultForm = () => ({ version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0 })
+const defaultForm = () => ({ version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: 0 })
 const form = ref<any>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
@@ -86,18 +87,23 @@ const handleSetLatest = (row: any) => {
   }).catch(() => {})
 }
 
-// 删除
-const handleDel = (row: any) => {
-  ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
-    confirmButtonText: t('common.actions.confirm'),
-    cancelButtonText: t('common.actions.cancel'),
-    type: 'warning'
-  }).then(() => {
-    TauriVersionApi.del({ id: row.id }).then(() => {
-      ElNotification.success({ message: t('common.success.operation') })
-      getList()
-    })
-  }).catch(() => {})
+// 切换强制更新状态
+const toggleForceUpdate = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      t('common.confirmStatusChange'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
+    )
+  } catch {
+    return
+  }
+  
+  const newStatus = row.force_update === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES
+  TauriVersionApi.forceUpdate({ id: row.id, force_update: newStatus }).then(() => {
+    ElNotification.success({ message: t('common.success.operation') })
+    getList()
+  })
 }
 
 // 查看 update.json
@@ -139,10 +145,17 @@ onMounted(() => init())
         <el-tag v-if="row.is_latest === CommonEnum.YES" type="success" size="small">{{ t('tauriVersion.latest') }}</el-tag>
         <span v-else class="text-secondary">-</span>
       </template>
+      <template #cell-force_update="{ row }">
+        <el-tag v-if="row.force_update === CommonEnum.YES" type="danger" size="small">{{ t('tauriVersion.forceUpdate') }}</el-tag>
+        <span v-else class="text-secondary">-</span>
+      </template>
       <template #cell-actions="{ row }">
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_setLatest')" type="warning" text @click="handleSetLatest(row)">{{ t('tauriVersion.setLatest') }}</el-button>
         <el-button type="primary" text @click="openUrl(row.file_url)">{{ t('tauriVersion.download') }}</el-button>
-        <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_del')" type="danger" text @click="handleDel(row)">{{ t('common.actions.del') }}</el-button>
+        <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+        <el-button v-if="userStore.can('devTools_tauriVersion_forceUpdate')" type="warning" text @click="toggleForceUpdate(row)">
+          {{ row.force_update === CommonEnum.YES ? t('common.actions.disable') : t('common.actions.enable') }}
+        </el-button>
       </template>
     </AppTable>
   </div>
@@ -167,6 +180,9 @@ onMounted(() => init())
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.notes')">
         <el-input v-model="form.notes" type="textarea" :rows="2" :placeholder="t('tauriVersion.form.notesPlaceholder')" />
+      </el-form-item>
+      <el-form-item :label="t('tauriVersion.form.forceUpdate')" prop="force_update">
+        <el-switch v-model="form.force_update" :active-value="CommonEnum.YES" :inactive-value="CommonEnum.NO" />
       </el-form-item>
     </el-form>
     <template #footer>
