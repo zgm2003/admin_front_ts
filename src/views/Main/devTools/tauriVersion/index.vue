@@ -47,7 +47,7 @@ const columns = computed(() => [
 // 新增弹窗
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance | null>(null)
-const defaultForm = () => ({ version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: 0 })
+const defaultForm = () => ({ version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: CommonEnum.NO })
 const form = ref<any>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
@@ -166,9 +166,9 @@ onMounted(() => init())
   </div>
 
   <!-- 新增弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'" draggable>
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile">
     <template #header>{{ t('tauriVersion.addVersion') }}</template>
-    <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
+    <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
         <el-input v-model="form.version" placeholder="1.0.0" />
       </el-form-item>
