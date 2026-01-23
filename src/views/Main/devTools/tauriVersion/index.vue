@@ -41,7 +41,7 @@ const columns = computed(() => [
   { key: 'is_latest', label: t('tauriVersion.isLatest'), width: 100 },
   { key: 'force_update', label: t('tauriVersion.forceUpdate'), width: 100 },
   { key: 'created_at', label: t('common.createdAt'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 280 }
+  { key: 'actions', label: t('common.actions.action'), width: 350 }
 ])
 
 // 新增弹窗
@@ -89,9 +89,14 @@ const handleSetLatest = (row: any) => {
 
 // 切换强制更新状态
 const toggleForceUpdate = async (row: any) => {
+  const isForce = row.force_update === CommonEnum.YES
+  const confirmMsg = isForce 
+    ? t('tauriVersion.cancelForceConfirm', { version: row.version })
+    : t('tauriVersion.setForceConfirm', { version: row.version })
+  
   try {
     await ElMessageBox.confirm(
-      t('common.confirmStatusChange'),
+      confirmMsg,
       t('common.confirmTitle'),
       { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
     )
@@ -99,7 +104,7 @@ const toggleForceUpdate = async (row: any) => {
     return
   }
   
-  const newStatus = row.force_update === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES
+  const newStatus = isForce ? CommonEnum.NO : CommonEnum.YES
   TauriVersionApi.forceUpdate({ id: row.id, force_update: newStatus }).then(() => {
     ElNotification.success({ message: t('common.success.operation') })
     getList()
@@ -154,7 +159,7 @@ onMounted(() => init())
         <el-button type="primary" text @click="openUrl(row.file_url)">{{ t('tauriVersion.download') }}</el-button>
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         <el-button v-if="userStore.can('devTools_tauriVersion_forceUpdate')" type="warning" text @click="toggleForceUpdate(row)">
-          {{ row.force_update === CommonEnum.YES ? t('common.actions.disable') : t('common.actions.enable') }}
+          {{ row.force_update === CommonEnum.YES ? t('tauriVersion.cancelForce') : t('tauriVersion.setForce') }}
         </el-button>
       </template>
     </AppTable>
