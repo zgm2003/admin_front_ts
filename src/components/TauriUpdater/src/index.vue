@@ -59,16 +59,11 @@ const clientInit = async () => {
 // 显示强制更新对话框
 const showForceUpdateDialog = async (info: any) => {
   try {
-    await ElMessageBox.alert(`
-      <div class="force-update-content">
-        <h3 style="margin-top: 0;">需要强制更新</h3>
-        <p>您的应用版本存在重要更新</p>
-        <p>请立即更新到最新版本以继续使用</p>
-        ${info?.notes ? `<div style="margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-          <strong>更新说明：</strong><br>${info.notes.replace(/\n/g, '<br>')}
-        </div>` : ''}
-      </div>
-    `, '强制更新提醒', {
+    const content = info?.notes 
+      ? `当前版本需要更新才能继续使用<br><br><span style="color: #666;">${info.notes.replace(/\n/g, '<br>')}</span>`
+      : '当前版本需要更新才能继续使用'
+    
+    await ElMessageBox.alert(content, '版本更新', {
       confirmButtonText: '立即更新',
       showCancelButton: false,
       showClose: false,
@@ -78,12 +73,16 @@ const showForceUpdateDialog = async (info: any) => {
       type: 'warning'
     })
 
+    // 打开下载链接
     if (info?.file_url) {
       window.open(info.file_url, '_blank')
     }
+    // 继续弹窗，不让用户关掉
+    setTimeout(() => showForceUpdateDialog(info), 500)
   } catch (error) {
+    // 用户尝试关闭，继续弹窗
     if (isForceUpdate.value) {
-      setTimeout(() => showForceUpdateDialog(info), 1000)
+      setTimeout(() => showForceUpdateDialog(info), 500)
     }
   }
 }
