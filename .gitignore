@@ -26,3 +26,6 @@ src/types/components.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Build script with private key
+build.ps1
