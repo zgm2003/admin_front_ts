@@ -1,26 +1,15 @@
 /**
  * 统一下载工具 - 自动适配浏览器和 Tauri 环境
  */
-import { isTauri, useTauri } from '@/hooks/useTauri'
+import { isTauri } from '@/store/tauri'
 
 export { isTauri }
 
 /**
- * 打开 URL
- * - 浏览器：新窗口打开
- * - Tauri：调用系统默认浏览器打开
+ * 打开 URL（新窗口/系统浏览器）
  */
-export const openUrl = async (url: string) => {
-  const tauri = useTauri()
-  if (tauri?.opener?.openUrl) {
-    try {
-      await tauri.opener.openUrl(url)
-    } catch {
-      window.open(url, '_blank')
-    }
-  } else {
-    window.open(url, '_blank')
-  }
+export const openUrl = (url: string) => {
+  window.open(url, '_blank')
 }
 
 /**

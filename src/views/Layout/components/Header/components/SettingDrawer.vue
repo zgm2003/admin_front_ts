@@ -108,6 +108,11 @@
           重置配置
         </el-button>
       </div>
+      
+      <!-- 版本信息 -->
+      <div v-if="tauriStore.version" class="version-section">
+        <span>当前版本：v{{ tauriStore.version }}</span>
+      </div>
     </div>
   </el-drawer>
 </template>
@@ -115,6 +120,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useMenuStore } from '@/store/menu.ts'
+import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { toggleDarkMode } from '@/utils/theme'
@@ -125,6 +131,7 @@ const emit = defineEmits(['update:modelValue'])
 const show = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 
 const menuStore = useMenuStore()
+const tauriStore = useTauriStore()
 const { t } = useI18n()
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 
@@ -194,6 +201,7 @@ function resetTheme() {
 .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--el-border-color-lighter); &:last-child { border-bottom: none; } span { font-size: 14px; color: var(--el-text-color-primary); } }
 .setting-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--el-border-color-lighter); }
 .action-btn { flex: 1; height: 40px; .el-icon { margin-right: 6px; } }
+.version-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--el-border-color-lighter); text-align: center; font-size: 12px; color: var(--el-text-color-placeholder); }
 :deep(.el-drawer__header) { padding: 16px 20px; margin-bottom: 0; border-bottom: 1px solid var(--el-border-color-lighter); }
 :deep(.el-drawer__body) { padding: 20px; }
 </style>

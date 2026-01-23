@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    admin_front_tarui_lib::run()
+    cloudadmin_lib::run()
 }
