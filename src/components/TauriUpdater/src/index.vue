@@ -39,7 +39,7 @@ const showForceUpdateDialog = async () => {
     })
 
     // 直接调用 Tauri updater 下载安装
-    ElMessageBox.alert('正在下载更新，请稍候...', '更新中', {
+    ElMessageBox.alert('正在后台下载更新，请勿关闭程序，下载完成后将自动安装...', '更新中', {
       showClose: false,
       showConfirmButton: false
     })
@@ -90,7 +90,7 @@ const checkUpdate = async () => {
     
     if (action !== 'confirm') return
     
-    ElMessageBox.alert(t('updater.downloading'), t('updater.updating'), {
+    ElMessageBox.alert('正在后台下载更新，请勿关闭程序，下载完成后将自动安装...', '更新中', {
       showClose: false,
       showConfirmButton: false
     })
