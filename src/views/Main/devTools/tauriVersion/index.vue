@@ -3,6 +3,8 @@ import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
 import { useTable } from '@/hooks/useTable'
+import { Search } from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
 import { TauriVersionApi } from '@/api/devTools/tauriVersion'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -27,11 +29,15 @@ const init = () => {
 
 // 主列表
 const searchForm = ref({ platform: '' })
-const { loading, data, page, onPageChange, refresh, getList, confirmDel } = useTable({
+const { loading, data, page, onPageChange, onSearch, refresh, getList, confirmDel } = useTable({
   api: TauriVersionApi,
   searchForm,
   immediate: true
 })
+
+const searchFields = computed<SearchField[]>(() => [
+  { key: 'platform', type: 'select-v2', label: t('tauriVersion.platform'), placeholder: t('tauriVersion.platform'), options: platformOptions.value, width: 150 }
+])
 
 const columns = computed(() => [
   { key: 'version', label: t('tauriVersion.version'), width: 100 },
@@ -41,13 +47,14 @@ const columns = computed(() => [
   { key: 'is_latest', label: t('tauriVersion.isLatest'), width: 100 },
   { key: 'force_update', label: t('tauriVersion.forceUpdate'), width: 100 },
   { key: 'created_at', label: t('common.createdAt'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 350 }
+  { key: 'actions', label: t('common.actions.action'), width: 420, fixed: 'right' }
 ])
 
-// 新增弹窗
+// 新增/编辑弹窗
 const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
-const defaultForm = () => ({ version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: CommonEnum.NO })
+const defaultForm = () => ({ id: 0, version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: CommonEnum.NO })
 const form = ref<any>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
@@ -57,8 +64,16 @@ const rules = computed<FormRules>(() => ({
   platform: [{ required: true, message: t('tauriVersion.form.platform') + t('common.required'), trigger: 'change' }]
 }))
 
-const openAdd = () => {
+const add = () => {
+  dialogMode.value = 'add'
   form.value = defaultForm()
+  dialogVisible.value = true
+  nextTick(() => formRef.value?.clearValidate())
+}
+
+const edit = (row: any) => {
+  dialogMode.value = 'edit'
+  form.value = { ...row }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
@@ -66,7 +81,8 @@ const openAdd = () => {
 const confirmSubmit = async () => {
   if (!formRef.value) return
   try { await formRef.value.validate() } catch { return }
-  TauriVersionApi.add(form.value).then(() => {
+  const api = dialogMode.value === 'add' ? TauriVersionApi.add : TauriVersionApi.edit
+  api(form.value).then(() => {
     ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
     getList()
@@ -115,7 +131,7 @@ const toggleForceUpdate = async (row: any) => {
 const jsonDialogVisible = ref(false)
 const updateJsonContent = ref('')
 const showUpdateJson = () => {
-  TauriVersionApi.updateJson({ platform: 'windows-x86_64' }).then((res: any) => {
+  TauriVersionApi.updateJson({ platform: searchForm.value.platform || 'windows-x86_64' }).then((res: any) => {
     updateJsonContent.value = JSON.stringify(res, null, 2)
     jsonDialogVisible.value = true
   })
@@ -138,9 +154,10 @@ onMounted(() => init())
 
 <template>
   <div class="box">
+    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
     <AppTable :columns="columns" :data="data" :loading="loading" :pagination="page" @refresh="refresh" @update:pagination="onPageChange">
       <template #toolbar-left>
-        <el-button v-if="userStore.can('devTools_tauriVersion_add')" type="success" @click="openAdd">{{ t('common.actions.add') }}</el-button>
+        <el-button v-if="userStore.can('devTools_tauriVersion_add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
         <el-button type="primary" @click="showUpdateJson">{{ t('tauriVersion.viewUpdateJson') }}</el-button>
       </template>
       <template #cell-platform="{ row }">
@@ -155,6 +172,7 @@ onMounted(() => init())
         <span v-else class="text-secondary">-</span>
       </template>
       <template #cell-actions="{ row }">
+        <el-button v-if="userStore.can('devTools_tauriVersion_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_setLatest')" type="warning" text @click="handleSetLatest(row)">{{ t('tauriVersion.setLatest') }}</el-button>
         <el-button type="primary" text @click="openUrl(row.file_url)">{{ t('tauriVersion.download') }}</el-button>
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
@@ -165,15 +183,15 @@ onMounted(() => init())
     </AppTable>
   </div>
 
-  <!-- 新增弹窗 -->
+  <!-- 新增/编辑弹窗 -->
   <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile">
-    <template #header>{{ t('tauriVersion.addVersion') }}</template>
+    <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('tauriVersion.addVersion') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
         <el-input v-model="form.version" placeholder="1.0.0" />
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.platform')" prop="platform" required>
-        <el-select v-model="form.platform" style="width: 100%">
+        <el-select v-model="form.platform" style="width: 100%" :disabled="dialogMode === 'edit'">
           <el-option v-for="p in platformOptions" :key="p.value" :label="p.label" :value="p.value" />
         </el-select>
       </el-form-item>
@@ -200,8 +218,8 @@ onMounted(() => init())
   <el-dialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" title="update.json">
     <el-input v-model="updateJsonContent" type="textarea" :rows="16" readonly />
     <template #footer>
-      <el-button @click="copyJson">{{ t('common.actions.copy') }}</el-button>
-      <el-button type="primary" @click="jsonDialogVisible = false">{{ t('common.actions.close') }}</el-button>
+      <el-button type="primary" @click="copyJson">{{ t('common.actions.copy') }}</el-button>
+      <el-button @click="jsonDialogVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
   </el-dialog>
 </template>

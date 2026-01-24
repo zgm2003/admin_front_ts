@@ -70,15 +70,21 @@ const checkUpdate = async () => {
   
   try {
     const update = await check()
+    console.log('update.json:', update)
     
     if (!update) return
     
+    const message = update.body 
+      ? `${t('updater.newVersion', { version: update.version })}<br><br>${update.body.replace(/\n/g, '<br>')}`
+      : t('updater.newVersion', { version: update.version })
+    
     const action = await ElMessageBox.confirm(
-      t('updater.newVersion', { version: update.version }),
+      message,
       t('updater.title'),
       {
         confirmButtonText: t('updater.updateNow'),
-        cancelButtonText: t('updater.later')
+        cancelButtonText: t('updater.later'),
+        dangerouslyUseHTMLString: true
       }
     ).catch(() => null)
     
