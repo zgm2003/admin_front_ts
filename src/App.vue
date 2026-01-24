@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import enUs from 'element-plus/dist/locale/en.mjs'
 import { TauriUpdater } from '@/components/TauriUpdater'
+import { isTauri } from '@/store/tauri'
 
 const { locale } = useI18n()
 const elementLocale = computed(() => (locale.value === 'en-US' ? enUs : zhCn))
@@ -11,7 +12,8 @@ const elementLocale = computed(() => (locale.value === 'en-US' ? enUs : zhCn))
 
 <template>
   <el-config-provider :locale="elementLocale">
-    <TauriUpdater />
+    <!-- Tauri 环境才加载更新组件 -->
+    <TauriUpdater v-if="isTauri()" />
     <router-view />
   </el-config-provider>
 </template>

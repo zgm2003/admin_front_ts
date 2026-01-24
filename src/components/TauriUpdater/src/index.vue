@@ -4,16 +4,12 @@ import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { useTauriStore } from '@/store/tauri'
 import { TauriVersionApi } from '@/api/devTools/tauriVersion'
-import { check } from '@tauri-apps/plugin-updater'
-import { relaunch } from '@tauri-apps/plugin-process'
 
 const { t } = useI18n()
 const tauriStore = useTauriStore()
 
 // 客户端初始化
 const clientInit = async () => {
-  if (!tauriStore.isTauriEnv) return
-
   try {
     await tauriStore.init()
     const res: any = await TauriVersionApi.clientInit({
@@ -48,6 +44,9 @@ const showForceUpdateDialog = async () => {
       showConfirmButton: false
     })
     
+    // 动态导入 Tauri 插件，避免 Web 端加载失败
+    const { check } = await import('@tauri-apps/plugin-updater')
+    const { relaunch } = await import('@tauri-apps/plugin-process')
     const update = await check()
     if (update) {
       await update.downloadAndInstall()
@@ -66,9 +65,10 @@ const showForceUpdateDialog = async () => {
 
 // 检查普通更新
 const checkUpdate = async () => {
-  if (!tauriStore.isTauriEnv) return
-  
   try {
+    // 动态导入 Tauri 插件，避免 Web 端加载失败
+    const { check } = await import('@tauri-apps/plugin-updater')
+    const { relaunch } = await import('@tauri-apps/plugin-process')
     const update = await check()
     console.log('update.json:', update)
     

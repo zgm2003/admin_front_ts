@@ -20,6 +20,8 @@ const isMobile = useIsMobile()
 
 // 平台选项（从 init 获取）
 const platformOptions = ref<{ label: string; value: string }[]>([])
+// 平台映射表，O(1) 查找替代 find 遍历
+const platformMap = computed(() => new Map(platformOptions.value.map(p => [p.value, p.label])))
 const init = () => {
   TauriVersionApi.init().then((res: any) => {
     const arr = res?.dict?.tauri_platform_arr || []
@@ -161,7 +163,7 @@ onMounted(() => init())
         <el-button type="primary" @click="showUpdateJson">{{ t('tauriVersion.viewUpdateJson') }}</el-button>
       </template>
       <template #cell-platform="{ row }">
-        <el-tag size="small">{{ platformOptions.find(p => p.value === row.platform)?.label || row.platform }}</el-tag>
+        <el-tag size="small">{{ platformMap.get(row.platform) || row.platform }}</el-tag>
       </template>
       <template #cell-is_latest="{ row }">
         <el-tag v-if="row.is_latest === CommonEnum.YES" type="success" size="small">{{ t('tauriVersion.latest') }}</el-tag>

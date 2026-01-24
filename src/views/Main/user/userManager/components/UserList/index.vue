@@ -105,7 +105,7 @@ const goToPersonal = (current: any) => {
   router.push({path: '/personal', query: {user_id: current.row.id}})
 }
 
-const exportExcel = () => {
+const exportExcel = async () => {
   if (selectedIds.value.length === 0) {
     ElNotification.error({message: t('common.selectAtLeastOne')})
     return
@@ -209,3 +209,4 @@ onMounted(() => {
 .user-list { display: flex; flex-direction: column; height: 100%; }
 .table { flex: 1 1 auto; min-height: 0; overflow: auto; }
 </style>
+Microsoft.QuickAction.WiFi
