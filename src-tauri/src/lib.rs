@@ -1,13 +1,18 @@
 use tauri::{
-    AppHandle, Emitter, Manager,
+    AppHandle, Emitter, Manager, UserAttentionType,
+    image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
 };
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::thread;
+use std::time::Duration;
 use notify_rust::Notification;
 
 // 未读消息数
 static UNREAD_COUNT: AtomicU32 = AtomicU32::new(0);
+// 是否正在闪烁
+static IS_BLINKING: AtomicBool = AtomicBool::new(false);
 
 /// 发送系统通知
 #[tauri::command]
@@ -17,16 +22,60 @@ fn send_notification(app: AppHandle, title: String, body: String) {
     if let Some(tray) = app.tray_by_id("main") {
         let _ = tray.set_tooltip(Some(&format!("CloudAdmin - {} 条新消息", count)));
     }
+    // 任务栏图标闪烁
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.request_user_attention(Some(UserAttentionType::Critical));
+    }
+    // 启动托盘图标闪烁
+    start_tray_blink(app.clone());
     // 异步发送通知
-    std::thread::spawn(move || {
+    thread::spawn(move || {
         let _ = Notification::new()
             .summary(&title)
-            .body(&format!("{}
-
-点击托盘图标查看", body))
+            .body(&format!("{}\n\n点击托盘图标查看", body))
             .appname("CloudAdmin")
             .timeout(notify_rust::Timeout::Milliseconds(10000))
             .show();
+    });
+}
+
+/// 启动托盘图标闪烁
+fn start_tray_blink(app: AppHandle) {
+    // 已经在闪烁则跳过
+    if IS_BLINKING.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    // 加载红点通知图标
+    let ico_bytes = include_bytes!("../icons/icon_notify.ico");
+    let notify_icon = if let Ok(img) = image::load_from_memory(ico_bytes) {
+        let rgba = img.to_rgba8();
+        let (w, h) = rgba.dimensions();
+        Some(Image::new_owned(rgba.into_raw(), w, h))
+    } else {
+        None
+    };
+    
+    thread::spawn(move || {
+        let mut show_normal = true;
+        while IS_BLINKING.load(Ordering::SeqCst) {
+            if let Some(tray) = app.tray_by_id("main") {
+                if show_normal {
+                    if let Some(icon) = app.default_window_icon() {
+                        let _ = tray.set_icon(Some(icon.clone()));
+                    }
+                } else if let Some(ref icon) = notify_icon {
+                    let _ = tray.set_icon(Some(icon.clone()));
+                }
+            }
+            show_normal = !show_normal;
+            thread::sleep(Duration::from_millis(500));
+        }
+        // 停止闪烁后恢复正常图标
+        if let Some(tray) = app.tray_by_id("main") {
+            if let Some(icon) = app.default_window_icon() {
+                let _ = tray.set_icon(Some(icon.clone()));
+            }
+        }
     });
 }
 
@@ -41,13 +90,15 @@ fn clear_unread(app: AppHandle) {
 
 /// 唤醒窗口并通知前端
 fn wake_window(app: &AppHandle) {
-    // 清除未读
+    // 清除未读并停止闪烁
     UNREAD_COUNT.store(0, Ordering::SeqCst);
+    IS_BLINKING.store(false, Ordering::SeqCst);
     if let Some(tray) = app.tray_by_id("main") {
         let _ = tray.set_tooltip(Some("CloudAdmin"));
     }
-    // 显示窗口
+    // 显示窗口并停止任务栏闪烁
     if let Some(window) = app.get_webview_window("main") {
+        let _ = window.request_user_attention(None::<UserAttentionType>);
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
@@ -90,10 +141,28 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                // 阻止默认关闭，改为隐藏窗口
-                api.prevent_close();
-                let _ = window.hide();
+            match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    // 阻止默认关闭，改为隐藏窗口
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+                tauri::WindowEvent::Focused(focused) => {
+                    if !focused {
+                        return;
+                    }
+                    // 窗口获得焦点时停止闪烁
+                    if let Some(app) = window.app_handle().get_webview_window("main") {
+                        let app_handle = app.app_handle();
+                        // 清除未读并停止闪烁
+                        UNREAD_COUNT.store(0, Ordering::SeqCst);
+                        IS_BLINKING.store(false, Ordering::SeqCst);
+                        if let Some(tray) = app_handle.tray_by_id("main") {
+                            let _ = tray.set_tooltip(Some("CloudAdmin"));
+                        }
+                    }
+                }
+                _ => {}
             }
         })
         .run(tauri::generate_context!())
