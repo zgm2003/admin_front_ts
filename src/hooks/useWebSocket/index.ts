@@ -30,26 +30,17 @@ export interface UseWebSocketOptions {
 type MessageHandler = (message: WsMessage) => void
 const globalHandlers = new Map<string, Set<MessageHandler>>()
 
+// 单例 WebSocket 状态
+let sharedWs: WebSocket | null = null
+let sharedIsConnected = false
+let sharedIsBound = false
+let sharedClientId = ''
+let sharedReconnectCount = 0
+let sharedReconnectTimer: ReturnType<typeof setTimeout> | null = null
+let instanceCount = 0
+
 /**
- * WebSocket Hook
- * 
- * 功能：
- * - 自动连接和重连
- * - 心跳保活
- * - Token 绑定
- * - 消息分发
- * 
- * @example
- * ```ts
- * const { isConnected, send } = useWebSocket({
- *   onMessage: (msg) => console.log(msg)
- * })
- * 
- * // 监听特定类型消息
- * onWsMessage('notification', (msg) => {
- *   ElNotification.info({ title: msg.data.title, message: msg.data.content })
- * })
- * ```
+ * WebSocket Hook（单例模式）
  */
 export function useWebSocket(options: UseWebSocketOptions = {}) {
   const {
@@ -62,31 +53,30 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onError,
   } = options
 
-  const ws = ref<WebSocket | null>(null)
-  const isConnected = ref(false)
-  const isBound = ref(false)
-  const reconnectCount = ref(0)
-  const clientId = ref('')
-
-  let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  const isConnected = ref(sharedIsConnected)
+  const isBound = ref(sharedIsBound)
+  const clientId = ref(sharedClientId)
+  const reconnectCount = ref(sharedReconnectCount)
 
   const wsUrl = import.meta.env.VITE_WEB_SOCKET_URL || 'ws://127.0.0.1:7272'
 
   /** 连接 WebSocket */
   function connect() {
-    if (ws.value?.readyState === WebSocket.OPEN) return
+    if (sharedWs?.readyState === WebSocket.OPEN) return
 
     try {
-      ws.value = new WebSocket(wsUrl)
+      sharedWs = new WebSocket(wsUrl)
 
-      ws.value.onopen = () => {
+      sharedWs.onopen = () => {
         console.log('[WebSocket] 连接成功')
+        sharedIsConnected = true
         isConnected.value = true
+        sharedReconnectCount = 0
         reconnectCount.value = 0
         onConnected?.()
       }
 
-      ws.value.onmessage = (event) => {
+      sharedWs.onmessage = (event) => {
         try {
           const message: WsMessage = JSON.parse(event.data)
           handleMessage(message)
@@ -100,21 +90,24 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         }
       }
 
-      ws.value.onclose = () => {
+      sharedWs.onclose = () => {
+        sharedIsConnected = false
         isConnected.value = false
+        sharedIsBound = false
         isBound.value = false
         onDisconnected?.()
         
         // 自动重连
-        if (reconnectCount.value < maxReconnectAttempts) {
-          reconnectTimer = setTimeout(() => {
-            reconnectCount.value++
+        if (sharedReconnectCount < maxReconnectAttempts && instanceCount > 0) {
+          sharedReconnectTimer = setTimeout(() => {
+            sharedReconnectCount++
+            reconnectCount.value = sharedReconnectCount
             connect()
           }, reconnectInterval)
         }
       }
 
-      ws.value.onerror = (error) => {
+      sharedWs.onerror = (error) => {
         console.error('[WebSocket] Error:', error)
         onError?.(error)
       }
@@ -125,38 +118,38 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   /** 断开连接 */
   function disconnect() {
-    if (reconnectTimer) {
-      clearTimeout(reconnectTimer)
-      reconnectTimer = null
+    if (sharedReconnectTimer) {
+      clearTimeout(sharedReconnectTimer)
+      sharedReconnectTimer = null
     }
-    if (ws.value) {
-      ws.value.close()
-      ws.value = null
+    if (sharedWs) {
+      sharedWs.close()
+      sharedWs = null
     }
+    sharedIsConnected = false
     isConnected.value = false
+    sharedIsBound = false
     isBound.value = false
   }
 
   /** 发送消息 */
   function send(type: string, data: any = {}) {
-    if (ws.value?.readyState === WebSocket.OPEN) {
-      // 简单消息直接发送 type，复杂消息发送 JSON
+    if (sharedWs?.readyState === WebSocket.OPEN) {
       if (type === 'pong') {
-        ws.value.send(JSON.stringify({ type: 'pong' }))
+        sharedWs.send(JSON.stringify({ type: 'pong' }))
       } else {
-        ws.value.send(JSON.stringify({ type, data }))
+        sharedWs.send(JSON.stringify({ type, data }))
       }
     }
   }
 
-  /** 绑定用户（通过 HTTP 接口） */
+  /** 绑定用户 */
   async function bindUser() {
     const token = Cookies.get('access_token')
-    if (!token || !isConnected.value || isBound.value || !clientId.value) return
+    if (!token || !sharedIsConnected || sharedIsBound || !sharedClientId) return
 
     try {
-      await request.post('/api/admin/WebSocket/bind', { client_id: clientId.value })
-      // bind_success 会通过 WebSocket 消息返回
+      await request.post('/api/admin/WebSocket/bind', { client_id: sharedClientId })
     } catch (e) {
       console.error('[WebSocket] Bind failed:', e)
     }
@@ -166,18 +159,17 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   function handleMessage(message: WsMessage) {
     switch (message.type) {
       case 'init':
-        // 后端返回格式: { type: 'init', client_id: 'xxx' }
-        clientId.value = (message as any).client_id || message.data?.client_id
-        console.log('[WebSocket] 收到 client_id:', clientId.value)
-        // 收到 init 后通过 HTTP 接口绑定用户
+        sharedClientId = (message as any).client_id || message.data?.client_id
+        clientId.value = sharedClientId
+        console.log('[WebSocket] 收到 client_id:', sharedClientId)
         bindUser()
         break
       case 'bind_success':
-        console.log('[WebSocket] 绑定成功，用户已上线')
+        console.log('[WebSocket] 绑定成功')
+        sharedIsBound = true
         isBound.value = true
         break
       case 'ping':
-        // 服务器发来的心跳，响应 pong
         send('pong')
         break
       case 'error':
@@ -187,17 +179,26 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   }
 
   onMounted(() => {
-    if (autoConnect) {
+    instanceCount++
+    if (autoConnect && !sharedWs) {
       connect()
     }
+    // 同步状态
+    isConnected.value = sharedIsConnected
+    isBound.value = sharedIsBound
+    clientId.value = sharedClientId
   })
 
   onUnmounted(() => {
-    disconnect()
+    instanceCount--
+    // 最后一个实例卸载时断开连接
+    if (instanceCount === 0) {
+      disconnect()
+    }
   })
 
   return {
-    ws,
+    ws: ref(sharedWs),
     isConnected,
     isBound,
     clientId,

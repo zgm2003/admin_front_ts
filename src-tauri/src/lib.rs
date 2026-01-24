@@ -72,7 +72,7 @@ pub fn run() {
             let _tray = TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .menu_on_left_click(false)  // 禁用左键菜单
+                .show_menu_on_left_click(false)  // 禁用左键菜单
                 .tooltip("CloudAdmin")
                 .on_menu_event(|app: &AppHandle, event| match event.id.as_ref() {
                     "show" => wake_window(app),
