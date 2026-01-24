@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "cloudadmin"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "image",
  "notify-rust",
