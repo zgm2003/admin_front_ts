@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="remote-select-container">
+  <div ref="containerRef" class="remote-select-container" :style="{ width }">
     <el-select
       ref="selectRef"
       v-model="selected"
@@ -12,7 +12,6 @@
       :placeholder="placeholder"
       :debounce="debounce"
       :teleported="false"
-      :style="{ width }"
       v-bind="$attrs"
       @visible-change="handleVisibleChange"
       @change="handleChange"

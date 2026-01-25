@@ -2,12 +2,14 @@ import { ref, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { AiMessageApi } from '@/api/ai/messages'
+import { useCopy } from '@/hooks/useCopy'
 import type { Message } from './types'
 
 const PAGE_SIZE = 200
 
 export function useMessages() {
-  const { t } = useI18n()
+  const {t} = useI18n()
+  const {copy: copyText} = useCopy()
 
   const messages = ref<Message[]>([])
   const loading = ref(false)
@@ -96,12 +98,7 @@ export function useMessages() {
 
   // 复制消息
   const copy = async (msg: Message) => {
-    try {
-      await navigator.clipboard.writeText(msg.content)
-      ElNotification.success({ message: t('aiChat.copied') })
-    } catch {
-      ElNotification.error({ message: t('aiChat.copyFailed') })
-    }
+    await copyText(msg.content)
   }
 
   // 删除消息

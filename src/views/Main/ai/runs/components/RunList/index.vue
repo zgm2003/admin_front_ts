@@ -10,11 +10,13 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
+import {useCopy} from '@/hooks/useCopy'
 import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
+const {copy} = useCopy()
 const dict = ref({run_status_arr: []} as any)
 
 const searchForm = ref({run_status: '', user_id: '', request_id: '', date_start: '', date_end: ''} as any)
@@ -127,15 +129,6 @@ const showDetail = async (row: any) => {
   }
 }
 
-const copyRequestId = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text)
-    ElNotification.success({message: t('aiChat.copied'), duration: 1500})
-  } catch {
-    ElNotification.error({message: '复制失败'})
-  }
-}
-
 onMounted(() => {
   init()
   getList()
@@ -159,7 +152,7 @@ onMounted(() => {
         <template #cell-request_id="{row}">
           <div class="request-id-cell">
             <el-text truncated>{{ row.request_id }}</el-text>
-            <el-button :icon="CopyDocument" size="small" text @click.stop="copyRequestId(row.request_id)"/>
+            <el-button :icon="CopyDocument" size="small" text @click.stop="copy(row.request_id)"/>
           </div>
         </template>
         <template #cell-run_status="{row}">

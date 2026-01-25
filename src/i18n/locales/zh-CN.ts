@@ -152,6 +152,7 @@ export default {
     system_uploadConfig: '上传配置',
     system_setting: '系统设置',
     system_test: '测试',
+    system_notificationTask: '通知管理',
     systemLog: '系统日志',
     // 组件演示模块
     component_upload: '上传',
@@ -951,6 +952,28 @@ export default {
     markAllRead: '全部已读',
     loadMore: '加载更多',
     newNotification: '收到新通知'
+  },
+  notificationTask: {
+    title: '标题',
+    content: '内容',
+    type: '类型',
+    level: '级别',
+    levelHelp: '普通：仅更新角标；紧急：弹窗提醒',
+    link: '跳转链接',
+    targetType: '目标类型',
+    status: '状态',
+    errorMsg: '错误信息',
+    progress: '进度',
+    sendAt: '发送时间',
+    sendAtPlaceholder: '空则立即发送',
+    immediate: '立即发送',
+    publish: '发布通知',
+    cancel: '取消',
+    cancelConfirm: '确定要取消该通知任务吗？',
+    selectUsers: '选择用户',
+    selectRoles: '选择角色',
+    searchUsers: '搜索用户',
+    searchRoles: '搜索角色'
   },
   components: {
     upMedia: {

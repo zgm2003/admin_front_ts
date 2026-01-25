@@ -8,6 +8,7 @@ import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
+import {useCopy} from '@/hooks/useCopy'
 import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
@@ -15,6 +16,7 @@ import { JsonEditor } from '@/components/JsonEditor'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
+const {copy} = useCopy()
 const userStore = useUserStore()
 const dict = ref({ system_setting_value_type_arr: [] } as any)
 
@@ -124,10 +126,6 @@ const confirmSubmit = async () => {
     dialogVisible.value = false
     getList()
   })
-}
-
-const copy = async (text: string) => {
-  try { await navigator.clipboard.writeText(text); ElNotification.success({message: '复制成功'}) } catch {}
 }
 
 onMounted(() => { init(); getList() })

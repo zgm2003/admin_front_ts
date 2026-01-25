@@ -7,12 +7,14 @@ import { useI18n } from 'vue-i18n'
 import { LogStream, useLogStream } from '@/components/LogStream'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import { useCopy } from '@/hooks/useCopy'
 import { CommonEnum } from '@/enums'
 import { ElButton, ElPopconfirm, ElMessage, ElIcon, ElCollapse, ElCollapseItem, ElSpace, ElText } from 'element-plus'
 import { SuccessFilled, CircleCloseFilled, ArrowRight } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const { t } = useI18n()
+const { copy } = useCopy()
 
 const searchForm = ref({ user_id: '', action: '', date: '' })
 
@@ -71,15 +73,6 @@ const formatJson = (str: string) => {
   }
 }
 
-const copyToClipboard = (text: string) => {
-  if (!text) return
-  navigator.clipboard.writeText(formatJson(text)).then(() => {
-    ElMessage.success(t('common.success.copy'))
-  }).catch(() => {
-    ElMessage.error(t('common.fail.copy'))
-  })
-}
-
 onMounted(() => {
   loadInitial()
 })
@@ -129,14 +122,14 @@ onMounted(() => {
                   <div v-if="item.request_data" class="param-item">
                     <div class="param-header">
                       <span>Request</span>
-                      <ElButton type="primary" link size="small" @click.stop="copyToClipboard(item.request_data)">{{ t('common.actions.copy') }}</ElButton>
+                      <ElButton type="primary" link size="small" @click.stop="copy(formatJson(item.request_data))">{{ t('common.actions.copy') }}</ElButton>
                     </div>
                     <pre class="param-code">{{ formatJson(item.request_data) }}</pre>
                   </div>
                   <div v-if="item.response_data" class="param-item">
                     <div class="param-header">
                       <span>Response</span>
-                      <ElButton type="primary" link size="small" @click.stop="copyToClipboard(item.response_data)">{{ t('common.actions.copy') }}</ElButton>
+                      <ElButton type="primary" link size="small" @click.stop="copy(formatJson(item.response_data))">{{ t('common.actions.copy') }}</ElButton>
                     </div>
                     <pre class="param-code">{{ formatJson(item.response_data) }}</pre>
                   </div>

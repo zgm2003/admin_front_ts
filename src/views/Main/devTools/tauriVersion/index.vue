@@ -8,6 +8,7 @@ import type { SearchField } from '@/components/Search/types'
 import { TauriVersionApi } from '@/api/devTools/tauriVersion'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { useCopy } from '@/hooks/useCopy'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { openUrl } from '@/utils/download'
@@ -17,6 +18,7 @@ import { CommonEnum } from '@/enums'
 const { t } = useI18n()
 const userStore = useUserStore()
 const isMobile = useIsMobile()
+const { copy } = useCopy()
 
 // 平台选项（从 init 获取）
 const platformOptions = ref<{ label: string; value: string }[]>([])
@@ -139,12 +141,6 @@ const showUpdateJson = () => {
   })
 }
 
-const copyJson = () => {
-  navigator.clipboard.writeText(updateJsonContent.value).then(() => {
-    ElNotification.success({ message: t('common.success.copy') })
-  })
-}
-
 // 文件上传成功回调
 const onUploadSuccess = (data: { url: string; size: number; name: string }) => {
   form.value.file_url = data.url
@@ -220,7 +216,7 @@ onMounted(() => init())
   <el-dialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" title="update.json">
     <el-input v-model="updateJsonContent" type="textarea" :rows="16" readonly />
     <template #footer>
-      <el-button type="primary" @click="copyJson">{{ t('common.actions.copy') }}</el-button>
+      <el-button type="primary" @click="copy(updateJsonContent)">{{ t('common.actions.copy') }}</el-button>
       <el-button @click="jsonDialogVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
   </el-dialog>

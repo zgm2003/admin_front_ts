@@ -4,9 +4,11 @@ import {ElMessage, ElMessageBox} from 'element-plus'
 import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
+import {useCopy} from '@/hooks/useCopy'
 import {QueueMonitorApi} from '@/api/devTools/queueMonitor'
 
 const {t} = useI18n()
+const {copy} = useCopy()
 
 // 队列列表
 const listLoading = ref(false)
@@ -121,12 +123,6 @@ const onFailedPageChange = (p: any) => {
 // 状态标签类型
 const getStatusType = (count: number) => count === 0 ? 'info' : count > 10 ? 'danger' : 'warning'
 
-// 复制到剪贴板
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-  ElMessage.success('已复制')
-}
-
 onMounted(() => getList())
 onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
 </script>
@@ -168,13 +164,13 @@ onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
         <template #cell-error="{row}">
           <div class="cell-with-copy">
             <span class="data-preview">{{ row.error }}</span>
-            <el-button size="small" :icon="CopyDocument" link @click="copyToClipboard(row.error)" />
+            <el-button size="small" :icon="CopyDocument" link @click="copy(row.error)" />
           </div>
         </template>
         <template #cell-data="{row}">
           <div class="cell-with-copy">
             <span class="data-preview">{{ JSON.stringify(row.data) }}</span>
-            <el-button size="small" :icon="CopyDocument" link @click="copyToClipboard(JSON.stringify(row.data, null, 2))" />
+            <el-button size="small" :icon="CopyDocument" link @click="copy(JSON.stringify(row.data, null, 2))" />
           </div>
         </template>
         <template #cell-actions="{row}">

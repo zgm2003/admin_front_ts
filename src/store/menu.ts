@@ -22,7 +22,7 @@ export const useMenuStore = defineStore('menu', {
     uniqueOpen: localStorage.getItem('uniqueOpen') !== 'false',
     footer: localStorage.getItem('footer') !== 'false',
     pageTransition: localStorage.getItem('pageTransition') !== 'false',
-    transitionName: localStorage.getItem('transitionName') || 'el-fade-in',
+    transitionName: localStorage.getItem('transitionName') || 'fade',
     layoutMode: (localStorage.getItem('layoutMode') as 'single' | 'double') || 'single',
   }),
   actions: {
