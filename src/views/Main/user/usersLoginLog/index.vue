@@ -7,237 +7,88 @@ import { LogStream, useLogStream } from '@/components/LogStream'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum } from '@/enums'
-import { ElSpace, ElText, ElIcon, ElCollapse, ElCollapseItem, ElTag } from 'element-plus'
-import { SuccessFilled, CircleCloseFilled, ArrowRight, Monitor, Iphone } from '@element-plus/icons-vue'
+import { ElCard, ElSpace, ElText, ElIcon, ElAvatar, ElButton, ElDescriptions, ElDescriptionsItem } from 'element-plus'
+import { SuccessFilled, CircleCloseFilled, Monitor, Iphone } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 const platformArr = ref<any[]>([])
 const loginTypeArr = ref<any[]>([])
-
-const init = () => {
-  UsersLoginLogApi.init().then((data: any) => {
-    platformArr.value = data.dict.platformArr
-    loginTypeArr.value = data.dict.login_type_arr
-  }).catch(() => {})
-}
-
 const searchForm = ref({ user_id: '', login_account: '', login_type: '', ip: '', platform: '', is_success: '', date: '' })
 
-const {
-  list,
-  loading,
-  hasMore,
-  loadInitial,
-  loadMore,
-  refresh
-} = useLogStream({
-  api: UsersLoginLogApi,
-  searchForm,
-  pageSize: 20
+const { list, loading, hasMore, loadInitial, loadMore, refresh } = useLogStream({
+  api: UsersLoginLogApi, searchForm, pageSize: 20
 })
 
+UsersLoginLogApi.init().then((data: any) => {
+  platformArr.value = data.dict.platformArr
+  loginTypeArr.value = data.dict.login_type_arr
+}).catch(() => {})
+
 const searchFields = computed<SearchField[]>(() => [
-  {
-    key: 'user_id',
-    type: 'remote-select',
-    label: t('usersLoginLog.filter.userName'),
-    fetchMethod: UsersListApi.list,
-    labelField: (item: any) => `${item.username} (${item.email})`,
-    valueField: 'id',
-    placeholder: t('usersLoginLog.filter.userName'),
-    width: isMobile.value ? 200 : 220
-  },
-  { key: 'login_account', type: 'input', label: t('usersLoginLog.filter.account'), placeholder: t('usersLoginLog.filter.account'), width: isMobile.value ? 180 : 180 },
-  { 
-    key: 'login_type', 
-    type: 'select-v2', 
-    label: t('usersLoginLog.filter.loginType'), 
-    placeholder: t('usersLoginLog.filter.loginType'), 
-    width: isMobile.value ? 140 : 150,
-    options: loginTypeArr.value
-  },
-  { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: isMobile.value ? 140 : 140 },
-  {
-    key: 'platform',
-    type: 'select-v2',
-    label: t('usersLoginLog.filter.platform'),
-    options: platformArr.value,
-    placeholder: t('usersLoginLog.filter.platform'),
-    width: isMobile.value ? 140 : 140
-  },
-  {
-    key: 'is_success',
-    type: 'select-v2',
-    label: t('usersLoginLog.filter.is_success'),
-    options: [
-      { label: t('common.success.login'), value: CommonEnum.YES },
-      { label: t('common.fail.login'), value: CommonEnum.NO }
-    ],
-    placeholder: t('usersLoginLog.filter.is_success'),
-    width: isMobile.value ? 120 : 120
-  },
-  {
-    key: 'date',
-    type: 'date-range',
-    label: t('usersLoginLog.filter.date'),
-    placeholder: t('usersLoginLog.filter.date'),
-    width: isMobile.value ? 280 : 300,
-    props: { valueFormat: 'YYYY-MM-DD' }
-  }
+  { key: 'user_id', type: 'remote-select', label: t('usersLoginLog.filter.userName'), fetchMethod: UsersListApi.list, labelField: (item: any) => `${item.username} (${item.email})`, valueField: 'id', placeholder: t('usersLoginLog.filter.userName'), width: isMobile.value ? 200 : 220 },
+  { key: 'login_account', type: 'input', label: t('usersLoginLog.filter.account'), placeholder: t('usersLoginLog.filter.account'), width: 180 },
+  { key: 'login_type', type: 'select-v2', label: t('usersLoginLog.filter.loginType'), placeholder: t('usersLoginLog.filter.loginType'), width: isMobile.value ? 140 : 150, options: loginTypeArr.value },
+  { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: 140 },
+  { key: 'platform', type: 'select-v2', label: t('usersLoginLog.filter.platform'), options: platformArr.value, placeholder: t('usersLoginLog.filter.platform'), width: 140 },
+  { key: 'is_success', type: 'select-v2', label: t('usersLoginLog.filter.is_success'), options: [{ label: t('common.success.login'), value: CommonEnum.YES }, { label: t('common.fail.login'), value: CommonEnum.NO }], placeholder: t('usersLoginLog.filter.is_success'), width: 120 },
+  { key: 'date', type: 'date-range', label: t('usersLoginLog.filter.date'), placeholder: t('usersLoginLog.filter.date'), width: isMobile.value ? 280 : 300, props: { valueFormat: 'YYYY-MM-DD' } }
 ])
 
-const onSearch = () => {
-  refresh()
-}
-
-const getPlatformIcon = (platform: string) => {
-  // admin=PC, app/h5/mini=移动端
-  if (['app', 'h5', 'mini'].includes(platform)) {
-    return Iphone
-  }
+/** 根据平台和UA判断设备图标 */
+const getDeviceIcon = (platform: string, ua?: string) => {
+  if (['app', 'h5', 'mini'].includes(platform)) return Iphone
+  if (ua && /iPhone|iPad|Android|Mobile/i.test(ua)) return Iphone
   return Monitor
 }
 
-onMounted(() => {
-  init()
-  loadInitial()
-})
+onMounted(loadInitial)
 </script>
 
 <template>
-  <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
-    <div class="stream-container">
-      <LogStream
-        :list="list"
-        :loading="loading"
-        :has-more="hasMore"
-        @load-more="loadMore"
-        @refresh="refresh"
-      >
+  <div class="page">
+    <Search v-model="searchForm" :fields="searchFields" @query="refresh" @reset="refresh" />
+    <div class="stream">
+      <LogStream :list="list" :loading="loading" :has-more="hasMore" @load-more="loadMore" @refresh="refresh">
         <template #default="{ item }">
-          <div class="log-item-content">
-            <!-- 第一行：用户信息 | 登录方式 | 状态 -->
-            <div class="log-row" :class="{ 'mobile-layout': isMobile }">
-              <ElSpace class="log-left">
-                <ElText tag="strong">{{ item.user_name }}</ElText>
-                <ElText type="info" size="small">{{ item.login_account }}</ElText>
-                <ElIcon :color="item.is_success === CommonEnum.YES ? 'var(--el-color-success)' : 'var(--el-color-danger)'" :size="14">
-                  <SuccessFilled v-if="item.is_success === CommonEnum.YES" />
-                  <CircleCloseFilled v-else />
-                </ElIcon>
-              </ElSpace>
-              <ElSpace class="log-center" :size="12">
-                <ElTag size="small">{{ item.login_type_name }}</ElTag>
-                <ElSpace :size="4">
-                  <ElIcon :size="14"><component :is="getPlatformIcon(item.platform)" /></ElIcon>
-                  <ElText size="small">{{ item.platform }}</ElText>
+          <ElCard shadow="hover" :body-style="{ padding: '12px 16px' }">
+            <ElSpace :size="12" wrap alignment="center">
+              <ElAvatar :size="36" :style="{ background: `var(--el-color-${item.is_success === CommonEnum.YES ? 'primary' : 'danger'})` }">
+                {{ item.user_name?.[0]?.toUpperCase() || 'U' }}
+              </ElAvatar>
+              <div class="info">
+                <ElSpace :size="6">
+                  <ElText tag="b">{{ item.user_name }}</ElText>
+                  <ElIcon :size="14" :color="item.is_success === CommonEnum.YES ? 'var(--el-color-primary)' : 'var(--el-color-danger)'">
+                    <SuccessFilled v-if="item.is_success === CommonEnum.YES" /><CircleCloseFilled v-else />
+                  </ElIcon>
                 </ElSpace>
-                <ElText type="info" size="small">{{ item.ip }}</ElText>
+                <ElText type="info" size="small">{{ item.login_account }}</ElText>
+              </div>
+              <ElSpace :size="8" wrap class="tags">
+                <ElButton type="primary" size="small" round plain>{{ item.login_type_name }}</ElButton>
+                <ElButton size="small" :icon="getDeviceIcon(item.platform, item.ua)" round plain>{{ item.platform }}</ElButton>
+                <ElButton size="small" round plain>{{ item.ip }}</ElButton>
+                <ElButton v-if="item.is_success !== CommonEnum.YES" type="danger" size="small" round plain>
+                  {{ item.reason || t('common.fail.login') }}
+                </ElButton>
               </ElSpace>
-              <ElTag v-if="item.is_success !== CommonEnum.YES" type="danger" size="small">{{
-                item.reason || t('common.fail.login')
-              }}</ElTag>
-            </div>
-            
-            <!-- UA 折叠显示 -->
-            <ElCollapse v-if="item.ua" class="log-params">
-              <ElCollapseItem name="ua">
-                <template #title>
-                  <ElSpace :size="4">
-                    <ElIcon><ArrowRight /></ElIcon>
-                    <ElText type="info" size="small">User Agent</ElText>
-                  </ElSpace>
-                </template>
-                <div class="ua-content">
-                  <ElText size="small" type="info">{{ item.ua }}</ElText>
-                </div>
-              </ElCollapseItem>
-            </ElCollapse>
-          </div>
+            </ElSpace>
+            <ElDescriptions v-if="item.ua" :column="1" size="small" class="ua">
+              <ElDescriptionsItem label="UA">{{ item.ua }}</ElDescriptionsItem>
+            </ElDescriptions>
+          </ElCard>
         </template>
       </LogStream>
     </div>
   </div>
 </template>
 
-<style scoped>
-.box {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.stream-container {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.log-item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.log-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.log-row.mobile-layout {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.log-left {
-  flex-shrink: 0;
-}
-
-.log-center {
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
-}
-
-.log-center.mobile-layout {
-  width: 100%;
-  justify-content: flex-start;
-}
-
-.log-params {
-  border: none;
-  --el-collapse-header-height: 28px;
-}
-
-.log-params :deep(.el-collapse-item__header) {
-  background: transparent;
-  border: none;
-  height: 28px;
-  line-height: 28px;
-  padding: 0;
-}
-
-.log-params :deep(.el-collapse-item__wrap) {
-  border: none;
-}
-
-.log-params :deep(.el-collapse-item__content) {
-  padding: 8px 0 0;
-}
-
-.log-params :deep(.el-collapse-item__arrow) {
-  display: none;
-}
-
-.ua-content {
-  background: var(--el-fill-color-lighter);
-  border-radius: 6px;
-  padding: 8px 12px;
-  word-break: break-all;
-}
+<style scoped lang="scss">
+.page { display: flex; flex-direction: column; height: 100%; gap: 12px; }
+.stream { flex: 1; min-height: 0; overflow: hidden; }
+.info { display: flex; flex-direction: column; gap: 2px; }
+.tags { flex: 1; }
+.ua { margin-top: 10px; :deep(.el-descriptions__label) { width: 32px; } }
 </style>
