@@ -66,13 +66,11 @@ onMounted(loadInitial)
                 </div>
               </ElSpace>
               <ElText class="center">{{ item.action }}</ElText>
-              <div class="right">
-                <ElPopconfirm v-if="userStore.can('devTools_operationLog_del')" :title="t('common.confirmDelete')" @confirm="handleDel(item.id)">
-                  <template #reference>
-                    <ElButton type="danger" :icon="Delete" circle size="small" plain />
-                  </template>
-                </ElPopconfirm>
-              </div>
+              <ElPopconfirm v-if="userStore.can('devTools_operationLog_del')" :title="t('common.confirmDelete')" @confirm="handleDel(item.id)">
+                <template #reference>
+                  <ElButton type="danger" :icon="Delete" circle size="small" plain />
+                </template>
+              </ElPopconfirm>
             </div>
             <!-- 参数折叠 -->
             <ElCollapse v-if="item.request_data || item.response_data" class="params">
@@ -105,11 +103,10 @@ onMounted(loadInitial)
 <style scoped lang="scss">
 .page { display: flex; flex-direction: column; height: 100%; gap: 12px; }
 .stream { flex: 1; min-height: 0; overflow: hidden; }
-.row { display: flex; align-items: center; gap: 12px; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .left { flex-shrink: 0; }
 .info { display: flex; flex-direction: column; gap: 2px; }
-.center { flex: 1; text-align: center; min-width: 0; }
-.right { flex-shrink: 0; min-width: 32px; }
+.center { flex: 1; text-align: center; min-width: 100px; }
 
 .params {
   margin-top: 10px;
