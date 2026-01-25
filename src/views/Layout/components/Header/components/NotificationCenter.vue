@@ -8,6 +8,7 @@ import { NotificationApi, type NotificationItem } from '@/api/system/notificatio
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useLogStream } from '@/components/LogStream/src/useLogStream'
 import { onWsMessage } from '@/hooks/useWebSocket'
+import { shouldUseNative } from '@/store/tauri'
 import { formatTimeAgo } from '@/utils/date'
 
 const UNREAD = 2
@@ -62,10 +63,16 @@ onMounted(async () => {
   const res: any = await NotificationApi.unreadCount().catch(() => null)
   unreadCount.value = res?.count || 0
   
-  unsubscribe = onWsMessage('notification', ({ data = {} }) => {
+  unsubscribe = onWsMessage('notification', async ({ data = {} }) => {
     unreadCount.value++
     prepend({ id: data.id, title: data.title || '', content: data.content || '', type: data.notification_type || 'info', level: data.level || 'normal', link: data.link || '', is_read: UNREAD, created_at: data.created_at || new Date().toISOString() })
     if (data.level === 'urgent') {
+      // Tauri 系统通知（窗口不可见时才触发）
+      if (await shouldUseNative()) {
+        const { invoke } = await import('@tauri-apps/api/core')
+        invoke('send_notification', { title: data.title || t('notification.title'), body: data.content || '' })
+      }
+      // Web 通知
       const n = ElNotification({ title: data.title || t('notification.title'), message: data.content, type: data.notification_type || 'info', duration: 5000, onClick: () => { n.close(); navigateTo(data.link) } })
     }
   })
