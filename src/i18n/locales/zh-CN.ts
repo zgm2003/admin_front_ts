@@ -945,5 +945,11 @@ export default {
       newMessage: '您有新消息'
     }
   },
+  components: {
+    upMedia: {
+      imagePlaceholder: '或输入图片URL',
+      videoPlaceholder: '或输入视频URL'
+    }
+  },
   error: {notFound: '抱歉，您访问的页面不存在'}
 }

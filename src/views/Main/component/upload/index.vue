@@ -1,31 +1,31 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import { UpImg } from '@/components/UpImg'
+import { UpMedia } from '@/components/UpMedia'
 import { UpImgList } from '@/components/UpImgList'
-import { UpVideo } from '@/components/UpVideo'
 import { UpFile } from '@/components/UpFile'
 
-const activeTab = ref('UpImg')
+const activeTab = ref('UpMedia')
 
-// UpImg 演示
+// UpMedia 图片演示
 const imgUrl = ref('')
 const imgUrl2 = ref('')
 const imgUrlWithInput = ref('')
 
-// UpImgList 演示
-const imgList = ref<any[]>([])
-
-// UpVideo 演示
+// UpMedia 视频演示
 const videoUrl = ref('')
 const videoUrlWithInput = ref('')
+
+// UpImgList 演示
+const imgList = ref<any[]>([])
 
 // UpFile 演示
 const fileUrl = ref('')
 const fileUrl2 = ref('')
 
-const upImgProps = [
-  {name: 'v-model / modelValue', type: 'String', default: "''", desc: '图片URL，支持双向绑定'},
-  {name: 'folderName', type: 'String', default: "'avatars'", desc: '上传到云存储的文件夹名称'},
+const upMediaProps = [
+  {name: 'v-model / modelValue', type: 'String', default: "''", desc: '媒体URL，支持双向绑定'},
+  {name: 'type', type: "'image' | 'video'", default: "'image'", desc: '媒体类型：图片或视频'},
+  {name: 'folderName', type: 'String', default: "'avatars'/'videos'", desc: '上传到云存储的文件夹名称'},
   {name: 'width', type: 'String', default: "'100px'", desc: '上传框宽高（正方形）'},
   {name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮'},
   {name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框'}
@@ -34,14 +34,6 @@ const upImgProps = [
 const upImgListProps = [
   {name: 'v-model / modelValue', type: 'Array', default: '[]', desc: '图片列表，每项包含 { name, url, uid }'},
   {name: 'folderName', type: 'String', default: "'avatars'", desc: '上传到云存储的文件夹名称'}
-]
-
-const upVideoProps = [
-  {name: 'v-model / modelValue', type: 'String', default: "''", desc: '视频URL，支持双向绑定'},
-  {name: 'folderName', type: 'String', default: "'videos'", desc: '上传到云存储的文件夹名称'},
-  {name: 'width', type: 'String', default: "'100px'", desc: '上传框宽高（正方形）'},
-  {name: 'isClearable', type: 'Boolean', default: 'true', desc: '是否显示清除按钮'},
-  {name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框'}
 ]
 
 const upFileProps = [
@@ -60,47 +52,69 @@ const upFileEvents = [
 <template>
   <div class="upload-demo">
     <el-tabs v-model="activeTab">
-      <!-- UpImg -->
-      <el-tab-pane label="UpImg 单图上传" name="UpImg">
+      <!-- UpMedia 图片 -->
+      <el-tab-pane label="UpMedia 图片上传" name="UpMedia">
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpImg v-model="imgUrl"/>
+            <UpMedia v-model="imgUrl"/>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpImg v-model="imgUrl" /&gt;</el-text>
+            <el-text type="info">&lt;UpMedia v-model="imgUrl" /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>自定义尺寸</h4>
           <div class="demo-block">
             <el-space>
-              <UpImg v-model="imgUrl2" width="80px"/>
-              <UpImg v-model="imgUrl2" width="120px"/>
-              <UpImg v-model="imgUrl2" width="150px"/>
+              <UpMedia v-model="imgUrl2" width="80px"/>
+              <UpMedia v-model="imgUrl2" width="120px"/>
+              <UpMedia v-model="imgUrl2" width="150px"/>
             </el-space>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpImg v-model="imgUrl" width="150px" /&gt;</el-text>
+            <el-text type="info">&lt;UpMedia v-model="imgUrl" width="150px" /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>带输入框</h4>
           <div class="demo-block">
-            <UpImg v-model="imgUrlWithInput" show-input width="80px"/>
+            <UpMedia v-model="imgUrlWithInput" show-input width="80px"/>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpImg v-model="imgUrl" show-input /&gt;</el-text>
+            <el-text type="info">&lt;UpMedia v-model="imgUrl" show-input /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="upImgProps" border>
+          <el-table :data="upMediaProps" border>
             <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
+            <el-table-column prop="type" label="类型" width="150"/>
+            <el-table-column prop="default" label="默认值" width="150"/>
             <el-table-column prop="desc" label="说明"/>
           </el-table>
+        </div>
+      </el-tab-pane>
+
+      <!-- UpMedia 视频 -->
+      <el-tab-pane label="UpMedia 视频上传" name="UpMediaVideo">
+        <div class="demo-section">
+          <h4>基础用法</h4>
+          <div class="demo-block">
+            <UpMedia v-model="videoUrl" type="video"/>
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpMedia v-model="videoUrl" type="video" /&gt;</el-text>
+          </div>
+        </div>
+        <div class="demo-section">
+          <h4>带输入框</h4>
+          <div class="demo-block">
+            <UpMedia v-model="videoUrlWithInput" type="video" show-input width="80px"/>
+          </div>
+          <div class="demo-code">
+            <el-text type="info">&lt;UpMedia v-model="videoUrl" type="video" show-input /&gt;</el-text>
+          </div>
         </div>
       </el-tab-pane>
 
@@ -118,37 +132,6 @@ const upFileEvents = [
         <div class="demo-section">
           <h4>Attributes</h4>
           <el-table :data="upImgListProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
-          </el-table>
-        </div>
-      </el-tab-pane>
-
-      <!-- UpVideo -->
-      <el-tab-pane label="UpVideo 视频上传" name="UpVideo">
-        <div class="demo-section">
-          <h4>基础用法</h4>
-          <div class="demo-block">
-            <UpVideo v-model="videoUrl"/>
-          </div>
-          <div class="demo-code">
-            <el-text type="info">&lt;UpVideo v-model="videoUrl" /&gt;</el-text>
-          </div>
-        </div>
-        <div class="demo-section">
-          <h4>带输入框</h4>
-          <div class="demo-block">
-            <UpVideo v-model="videoUrlWithInput" show-input width="80px"/>
-          </div>
-          <div class="demo-code">
-            <el-text type="info">&lt;UpVideo v-model="videoUrl" show-input /&gt;</el-text>
-          </div>
-        </div>
-        <div class="demo-section">
-          <h4>Attributes</h4>
-          <el-table :data="upVideoProps" border>
             <el-table-column prop="name" label="属性名" width="200"/>
             <el-table-column prop="type" label="类型" width="100"/>
             <el-table-column prop="default" label="默认值" width="120"/>

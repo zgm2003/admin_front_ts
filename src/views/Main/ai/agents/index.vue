@@ -9,7 +9,7 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useTable} from '@/hooks/useTable'
-import { UpImg } from '@/components/UpImg'
+import { UpMedia } from '@/components/UpMedia'
 import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
@@ -271,7 +271,7 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiAgents.form.avatar')" prop="avatar">
-            <UpImg v-model="form.avatar" folder-name="avatar" width="80px" show-input/>
+            <UpMedia v-model="form.avatar" folder-name="avatars" width="80px" show-input/>
           </el-form-item>
         </el-col>
       </el-row>

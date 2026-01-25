@@ -841,5 +841,11 @@ export default {
     updating: 'Updating',
     downloading: 'Downloading update, please wait...'
   },
+  components: {
+    upMedia: {
+      imagePlaceholder: 'Or enter image URL',
+      videoPlaceholder: 'Or enter video URL'
+    }
+  },
   error: {notFound: 'Sorry, the page you visited does not exist'}
 }

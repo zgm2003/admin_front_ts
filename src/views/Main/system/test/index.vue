@@ -12,7 +12,7 @@ import type {SearchField} from '@/components/Search/types'
 import {useUserStore} from '@/store/user'
 import {useTable} from '@/hooks/useTable'
 import {Editor} from '@/components/Editor'
-import { UpImg } from '@/components/UpImg'
+import { UpMedia } from '@/components/UpMedia'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -262,12 +262,12 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item label="头像" prop="avatar">
-            <UpImg v-model="form.avatar" folder-name="avatar" width="80px" show-input/>
+            <UpMedia v-model="form.avatar" folder-name="avatars" width="80px" show-input/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item label="封面图" prop="cover_image">
-            <UpImg v-model="form.cover_image" folder-name="cover_image" width="80px" show-input/>
+            <UpMedia v-model="form.cover_image" folder-name="cover_images" width="80px" show-input/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
