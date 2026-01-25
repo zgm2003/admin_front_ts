@@ -4,7 +4,7 @@ import {useIsMobile} from '@/hooks/useResponsive'
 import {useRouter} from 'vue-router'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification, ElMessageBox} from 'element-plus'
-import { UpImg } from '@/components/UpImg'
+import { UpMedia } from '@/components/UpMedia'
 import {useUserStore} from '@/store/user'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
@@ -174,7 +174,7 @@ onMounted(() => {
         <el-form-item :label="t('user.table.phone')"><el-input v-model="editForm.phone" :placeholder="t('user.table.phone')" clearable style="width:200px" disabled/></el-form-item>
         <el-form-item :label="t('user.table.sex')"><el-select-v2 v-model="editForm.sex" :options="sexArr" style="width:200px" filterable clearable/></el-form-item>
         <el-form-item :label="t('user.table.role')"><el-select-v2 v-model="editForm.role_id" :options="roleArr" style="width:200px" filterable clearable/></el-form-item>
-        <el-form-item :label="t('user.table.avatar')"><UpImg v-model="editForm.avatar" folderName="avatar" :isClearable="false"/></el-form-item>
+        <el-form-item :label="t('user.table.avatar')"><UpMedia v-model="editForm.avatar" folder-name="avatars" :isClearable="false"/></el-form-item>
         <el-form-item :label="t('user.table.address')">
           <el-cascader v-model="editForm.address" :options="addressTree" :props="{ emitPath: false }" :placeholder="t('user.filter.address')" style="width:200px;margin-right:5px" clearable filterable/>
           <el-input v-model="editForm.detail_address" :placeholder="t('user.filter.detail_address')" clearable style="width:300px"/>

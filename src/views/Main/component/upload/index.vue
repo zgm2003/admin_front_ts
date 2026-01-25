@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import { UpMedia } from '@/components/UpMedia'
-import { UpImgList } from '@/components/UpImgList'
+import { UpMediaList } from '@/components/UpMediaList'
 import { UpFile } from '@/components/UpFile'
 
 const activeTab = ref('UpMedia')
@@ -15,7 +15,7 @@ const imgUrlWithInput = ref('')
 const videoUrl = ref('')
 const videoUrlWithInput = ref('')
 
-// UpImgList 演示
+// UpMediaList 演示
 const imgList = ref<any[]>([])
 
 // UpFile 演示
@@ -31,9 +31,10 @@ const upMediaProps = [
   {name: 'showInput', type: 'Boolean', default: 'false', desc: '是否显示手动输入URL的输入框'}
 ]
 
-const upImgListProps = [
-  {name: 'v-model / modelValue', type: 'Array', default: '[]', desc: '图片列表，每项包含 { name, url, uid }'},
-  {name: 'folderName', type: 'String', default: "'avatars'", desc: '上传到云存储的文件夹名称'}
+const upMediaListProps = [
+  {name: 'v-model / modelValue', type: 'Array', default: '[]', desc: '媒体列表，每项包含 { name, url, uid }'},
+  {name: 'folderName', type: 'String', default: "'images'", desc: '上传到云存储的文件夹名称'},
+  {name: 'type', type: "'image' | 'video'", default: "'image'", desc: '媒体类型：图片或视频'}
 ]
 
 const upFileProps = [
@@ -118,20 +119,20 @@ const upFileEvents = [
         </div>
       </el-tab-pane>
 
-      <!-- UpImgList -->
-      <el-tab-pane label="UpImgList 多图上传" name="UpImgList">
+      <!-- UpMediaList -->
+      <el-tab-pane label="UpMediaList 多媒体列表" name="UpMediaList">
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpImgList v-model="imgList"/>
+            <UpMediaList v-model="imgList"/>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpImgList v-model="imgList" /&gt;</el-text>
+            <el-text type="info">&lt;UpMediaList v-model="imgList" /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="upImgListProps" border>
+          <el-table :data="upMediaListProps" border>
             <el-table-column prop="name" label="属性名" width="200"/>
             <el-table-column prop="type" label="类型" width="100"/>
             <el-table-column prop="default" label="默认值" width="120"/>

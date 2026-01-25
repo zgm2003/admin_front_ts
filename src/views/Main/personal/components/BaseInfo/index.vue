@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import {ElNotification} from 'element-plus'
 import {UsersApi} from '@/api/user/users.ts'
-import { UpImg } from '@/components/UpImg'
+import { UpMedia } from '@/components/UpMedia'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 
@@ -43,7 +43,7 @@ const confirmEdit = () => {
   <div class="base-info" v-loading="loading">
     <el-form label-width="auto" label-position="top" class="base-form">
       <el-form-item :label="t('personal.form.avatar')">
-        <up-img v-model="userinfo.avatar" folderName="avatar" :isClearable="false"/>
+        <UpMedia v-model="userinfo.avatar" folder-name="avatars" :isClearable="false"/>
       </el-form-item>
       <el-row :gutter="20">
         <el-col :xs="24" :sm="12">
