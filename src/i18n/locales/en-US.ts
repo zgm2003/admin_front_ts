@@ -161,6 +161,7 @@ export default {
     ai_agents: 'Agents',
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
+    ai_prompt: 'Prompts',
     // DevTools module
     devTools_gen: 'Code Generator',
     devTools_queueMonitor: 'Queue Monitor',
@@ -714,6 +715,26 @@ export default {
       output: 'Output',
       latency: 'Latency',
       noData: 'No statistics data'
+    }
+  },
+  aiPrompt: {
+    title: 'Prompt Management',
+    search: 'Search title/category/tags',
+    add: 'Add',
+    addTitle: 'Add Prompt',
+    editTitle: 'Edit Prompt',
+    empty: 'No prompts yet',
+    useCount: 'Used {count} times',
+    use: 'Use',
+    form: {
+      title: 'Title',
+      titlePlaceholder: 'Prompt name',
+      content: 'Content',
+      contentPlaceholder: 'Prompt content, supports {{variable}} placeholders',
+      category: 'Category',
+      categoryPlaceholder: 'e.g. Development, Writing, Translation',
+      tags: 'Tags',
+      tagsPlaceholder: 'Multiple tags separated by commas'
     }
   },
   queueMonitor: {

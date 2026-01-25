@@ -164,6 +164,7 @@ export default {
     ai_agents: '智能体',
     ai_chat: '对话',
     ai_runs: '运行监控',
+    ai_prompt: '提示词',
     // 开发工具模块
     devTools_gen: '代码生成',
     devTools_queueMonitor: '队列监控',
@@ -717,6 +718,26 @@ export default {
       output: '输出',
       latency: '耗时',
       noData: '暂无统计数据'
+    }
+  },
+  aiPrompt: {
+    title: '提示词管理',
+    search: '搜索标题/分类/标签',
+    add: '新增',
+    addTitle: '新增提示词',
+    editTitle: '编辑提示词',
+    empty: '暂无提示词',
+    useCount: '使用 {count} 次',
+    use: '使用',
+    form: {
+      title: '标题',
+      titlePlaceholder: '提示词名称',
+      content: '内容',
+      contentPlaceholder: '提示词内容，支持 {{变量}} 占位符',
+      category: '分类',
+      categoryPlaceholder: '如：开发、写作、翻译',
+      tags: '标签',
+      tagsPlaceholder: '多个标签用逗号分隔'
     }
   },
   codeGen: {
