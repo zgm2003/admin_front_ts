@@ -841,6 +841,13 @@ export default {
     updating: 'Updating',
     downloading: 'Downloading update, please wait...'
   },
+  notification: {
+    title: 'Notifications',
+    empty: 'No notifications',
+    markAllRead: 'Mark all as read',
+    loadMore: 'Load more',
+    newNotification: 'New notification received'
+  },
   components: {
     upMedia: {
       imagePlaceholder: 'Or enter image URL',

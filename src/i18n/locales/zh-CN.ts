@@ -945,6 +945,13 @@ export default {
       newMessage: '您有新消息'
     }
   },
+  notification: {
+    title: '通知',
+    empty: '暂无通知',
+    markAllRead: '全部已读',
+    loadMore: '加载更多',
+    newNotification: '收到新通知'
+  },
   components: {
     upMedia: {
       imagePlaceholder: '或输入图片URL',

@@ -1,7 +1,7 @@
 <script setup>
 import { watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { WebSocketProvider } from '@/components/WebSocketProvider'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
@@ -15,14 +15,16 @@ const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
 
+// WebSocket 连接
+useWebSocket()
+
 watch(isMobile, (val) => {
   if (val) menuStore.mobile()
 }, { immediate: true })
 </script>
 
 <template>
-  <WebSocketProvider>
-    <el-container class="layout-container">
+  <el-container class="layout-container">
     <!-- 移动端抽屉菜单 -->
     <el-drawer 
       v-if="isMobile" 
@@ -70,8 +72,7 @@ watch(isMobile, (val) => {
         <Footer />
       </el-footer>
     </el-container>
-    </el-container>
-  </WebSocketProvider>
+  </el-container>
 </template>
 
 <style scoped lang="scss">
