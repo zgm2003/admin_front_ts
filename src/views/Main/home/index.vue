@@ -120,7 +120,7 @@ const getIconComponent = (iconName: string) => {
 
 // 最近活动（模拟数据）
 const activities = ref([
-  { user: '张三', action: '创建了新用户', time: '2 分钟前', type: 'success' as const },
+  { user: '测试自动部署！', action: '创建了新用户', time: '2 分钟前', type: 'success' as const },
   { user: '李四', action: '修改了角色权限', time: '15 分钟前', type: 'warning' as const },
   { user: '王五', action: '删除了系统日志', time: '1 小时前', type: 'danger' as const },
   { user: '赵六', action: '登录了系统', time: '2 小时前', type: 'info' as const },
