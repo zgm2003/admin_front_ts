@@ -9,8 +9,10 @@ import type { SearchField } from '@/components/Search/types'
 import { CommonEnum } from '@/enums'
 import { ElSpace, ElText, ElIcon, ElCollapse, ElCollapseItem, ElTag } from 'element-plus'
 import { SuccessFilled, CircleCloseFilled, ArrowRight, Monitor, Iphone } from '@element-plus/icons-vue'
+import { useIsMobile } from '@/hooks/useResponsive'
 
 const { t } = useI18n()
+const isMobile = useIsMobile()
 const platformArr = ref<any[]>([])
 const loginTypeArr = ref<any[]>([])
 
@@ -45,25 +47,25 @@ const searchFields = computed<SearchField[]>(() => [
     labelField: (item: any) => `${item.username} (${item.email})`,
     valueField: 'id',
     placeholder: t('usersLoginLog.filter.userName'),
-    width: 220
+    width: isMobile.value ? 200 : 220
   },
-  { key: 'login_account', type: 'input', label: t('usersLoginLog.filter.account'), placeholder: t('usersLoginLog.filter.account'), width: 180 },
+  { key: 'login_account', type: 'input', label: t('usersLoginLog.filter.account'), placeholder: t('usersLoginLog.filter.account'), width: isMobile.value ? 180 : 180 },
   { 
     key: 'login_type', 
     type: 'select-v2', 
     label: t('usersLoginLog.filter.loginType'), 
     placeholder: t('usersLoginLog.filter.loginType'), 
-    width: 150,
+    width: isMobile.value ? 140 : 150,
     options: loginTypeArr.value
   },
-  { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: 140 },
+  { key: 'ip', type: 'input', label: t('usersLoginLog.filter.ip'), placeholder: t('usersLoginLog.filter.ip'), width: isMobile.value ? 140 : 140 },
   {
     key: 'platform',
     type: 'select-v2',
     label: t('usersLoginLog.filter.platform'),
     options: platformArr.value,
     placeholder: t('usersLoginLog.filter.platform'),
-    width: 140
+    width: isMobile.value ? 140 : 140
   },
   {
     key: 'is_success',
@@ -74,14 +76,14 @@ const searchFields = computed<SearchField[]>(() => [
       { label: t('common.fail.login'), value: CommonEnum.NO }
     ],
     placeholder: t('usersLoginLog.filter.is_success'),
-    width: 120
+    width: isMobile.value ? 120 : 120
   },
   {
     key: 'date',
     type: 'date-range',
     label: t('usersLoginLog.filter.date'),
     placeholder: t('usersLoginLog.filter.date'),
-    width: 300,
+    width: isMobile.value ? 280 : 300,
     props: { valueFormat: 'YYYY-MM-DD' }
   }
 ])
@@ -118,7 +120,7 @@ onMounted(() => {
         <template #default="{ item }">
           <div class="log-item-content">
             <!-- 第一行：用户信息 | 登录方式 | 状态 -->
-            <div class="log-row">
+            <div class="log-row" :class="{ 'mobile-layout': isMobile }">
               <ElSpace class="log-left">
                 <ElText tag="strong">{{ item.user_name }}</ElText>
                 <ElText type="info" size="small">{{ item.login_account }}</ElText>
@@ -186,6 +188,12 @@ onMounted(() => {
   gap: 16px;
 }
 
+.log-row.mobile-layout {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .log-left {
   flex-shrink: 0;
 }
@@ -194,6 +202,11 @@ onMounted(() => {
   flex: 1;
   min-width: 0;
   justify-content: center;
+}
+
+.log-center.mobile-layout {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .log-params {

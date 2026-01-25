@@ -11,10 +11,12 @@ import { useCopy } from '@/hooks/useCopy'
 import { CommonEnum } from '@/enums'
 import { ElButton, ElPopconfirm, ElMessage, ElIcon, ElCollapse, ElCollapseItem, ElSpace, ElText } from 'element-plus'
 import { SuccessFilled, CircleCloseFilled, ArrowRight } from '@element-plus/icons-vue'
+import { useIsMobile } from '@/hooks/useResponsive'
 
 const userStore = useUserStore()
 const { t } = useI18n()
 const { copy } = useCopy()
+const isMobile = useIsMobile()
 
 const searchForm = ref({ user_id: '', action: '', date: '' })
 
@@ -40,15 +42,15 @@ const searchFields = computed<SearchField[]>(() => [
     labelField: (item: any) => `${item.username} (${item.email})`,
     valueField: 'id',
     placeholder: t('operationLog.filter.userName'),
-    width: 220
+    width: isMobile.value ? 200 : 220
   },
-  { key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: 200 },
+  { key: 'action', type: 'input', label: t('operationLog.filter.action'), placeholder: t('operationLog.filter.action'), width: isMobile.value ? 180 : 200 },
   {
     key: 'date',
     type: 'date-range',
     label: t('operationLog.filter.date'),
     placeholder: t('operationLog.filter.date'),
-    width: 300,
+    width: isMobile.value ? 260 : 300,
     props: { valueFormat: 'YYYY-MM-DD' }
   }
 ])
@@ -92,7 +94,7 @@ onMounted(() => {
         <template #default="{ item }">
           <div class="log-item-content">
             <!-- 第一行：用户 | 操作 | 删除 -->
-            <div class="log-row">
+            <div class="log-row" :class="{ 'mobile-layout': isMobile }">
               <ElSpace class="log-left">
                 <ElText tag="strong">{{ item.user_name }}</ElText>
                 <ElText type="info" size="small">{{ item.user_email }}</ElText>
@@ -168,6 +170,12 @@ onMounted(() => {
   gap: 16px;
 }
 
+.log-row.mobile-layout {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .log-left {
   flex-shrink: 0;
 }
@@ -177,6 +185,11 @@ onMounted(() => {
   min-width: 0;
   text-align: center;
   color: var(--el-text-color-regular);
+}
+
+.log-action.mobile-layout {
+  text-align: left;
+  width: 100%;
 }
 
 .log-params {
