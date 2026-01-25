@@ -18,7 +18,7 @@
     <!-- 右侧：工具栏 -->
     <div class="header-right">
       <!-- 通知中心 -->
-      <NotificationCenter ref="notificationRef" />
+      <NotificationCenter />
       
       <button v-if="menuStore.screenfull" class="header-btn" @click="toggleFullScreen" :title="t('header.fullscreen')">
         <el-icon :size="18"><FullScreen /></el-icon>
@@ -53,84 +53,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
-import { NotificationCenter } from '@/components/NotificationCenter'
+import NotificationCenter from './components/NotificationCenter.vue'
 import { Search, Setting, FullScreen } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user.ts'
-import { useRouter } from 'vue-router'
 import { toggleDarkMode } from '@/utils/theme'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
-import { onWsMessage } from '@/hooks/useWebSocket'
-import { ElNotification } from 'element-plus'
 import Cookies from 'js-cookie'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
-const router = useRouter()
 const { t, locale } = useI18n()
 
 const isDark = ref(false)
 const drawer = ref(false)
 const searchOpen = ref(false)
-const notificationRef = ref()
 
 function getBreadcrumbLabel(item: any) {
   return resolveMenuLabel(t, item)
 }
-
-// WebSocket 通知监听
-let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
   isDark.value = localStorage.getItem('theme') === 'dark'
   toggleDarkMode(isDark.value)
   menuStore.applyDefaultSystemColor(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
-  
-  // 监听 WebSocket 通知消息
-  unsubscribe = onWsMessage('notification', (message) => {
-    const data = message.data || {}
-    // 更新角标 + 实时添加到列表
-    notificationRef.value?.incrementUnread({
-      id: data.id,
-      title: data.title || '',
-      content: data.content || '',
-      type: data.notification_type || 'info',
-      level: data.level || 'normal',
-      link: data.link || '',
-      is_read: 2,  // 未读
-      created_at: data.created_at || new Date().toISOString(),
-    })
-    // urgent 级别弹 Toast 提醒
-    if (data.level === 'urgent') {
-      const notification = ElNotification({
-        title: data.title || t('notification.title'),
-        message: data.content,
-        type: data.notification_type || 'info',
-        duration: 5000,
-        onClick: () => {
-          if (data.link) {
-            notification.close()
-            if (data.link.startsWith('http')) {
-              window.open(data.link, '_blank')
-            } else {
-              router.push(data.link)
-            }
-          }
-        }
-      })
-    }
-  })
-})
-
-onUnmounted(() => {
-  unsubscribe?.()
 })
 
 const isMobile = useIsMobile()
