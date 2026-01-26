@@ -733,7 +733,7 @@ export default {
       title: '标题',
       titlePlaceholder: '提示词名称',
       content: '内容',
-      contentPlaceholder: '提示词内容，支持 {{变量}} 占位符',
+      contentPlaceholder: '提示词内容',
       category: '分类',
       categoryPlaceholder: '如：开发、写作、翻译',
       tags: '标签',

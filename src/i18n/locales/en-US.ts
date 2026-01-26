@@ -730,7 +730,7 @@ export default {
       title: 'Title',
       titlePlaceholder: 'Prompt name',
       content: 'Content',
-      contentPlaceholder: 'Prompt content, supports {{variable}} placeholders',
+      contentPlaceholder: 'Prompt content',
       category: 'Category',
       categoryPlaceholder: 'e.g. Development, Writing, Translation',
       tags: 'Tags',
