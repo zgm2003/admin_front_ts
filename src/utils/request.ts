@@ -6,6 +6,13 @@ import { clearAllCookies } from '@/utils/cookie'
 import { getDeviceId } from '@/utils/device'
 import { useMenuStore } from '@/store/menu'
 
+// 生成唯一的 trace_id
+function generateTraceId(): string {
+  const timestamp = Date.now().toString(36)
+  const random = Math.random().toString(36).substring(2, 10)
+  return `${timestamp}-${random}`
+}
+
 const baseURL = import.meta.env.VITE_SOME_KEY
 const sseBaseURL = import.meta.env.VITE_SSE_URL || baseURL
 const service = axios.create({ baseURL, timeout: 60000 })
@@ -130,6 +137,8 @@ service.interceptors.request.use(
     
     setHeader(config, 'platform', platform)
     setHeader(config, 'device-id', deviceId)
+    // 添加 trace_id 用于链路追踪
+    setHeader(config, 'X-Trace-Id', generateTraceId())
     return config
   },
   (error) => Promise.reject(error)
@@ -175,7 +184,7 @@ service.interceptors.response.use(
 type AnyObject = Record<string, any>
 
 /**
- * 获取通用请求头（token, platform, device-id）
+ * 获取通用请求头（token, platform, device-id, trace-id）
  */
 export function getCommonHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -187,6 +196,7 @@ export function getCommonHeaders(): Record<string, string> {
   }
   headers['platform'] = getPlatform()
   headers['device-id'] = getDeviceId()
+  headers['X-Trace-Id'] = generateTraceId()
   return headers
 }
 

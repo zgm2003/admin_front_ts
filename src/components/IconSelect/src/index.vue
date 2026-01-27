@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import { ref, computed, onMounted, shallowRef, type Component } from 'vue'
 import { Icon } from '@iconify/vue'
 
 const iconBoxShow = ref(false)
@@ -8,9 +7,25 @@ const selectedIcon = ref('')
 const searchTerm = ref('')
 const iconType = ref<'all' | 'element' | 'iconify'>('all')
 const emit = defineEmits(['select-icon'])
+const isLoading = ref(false)
 
-// Element Plus 图标
-const elementIcons = ref(ElementPlusIconsVue)
+// Element Plus 图标（异步加载，避免打包体积过大）
+const elementIconEntries = shallowRef<[string, Component][]>([])
+let epIconsPromise: Promise<Record<string, Component>> | null = null
+
+async function loadElementPlusIcons() {
+  if (elementIconEntries.value.length > 0) return
+  if (!epIconsPromise) {
+    isLoading.value = true
+    epIconsPromise = import('@element-plus/icons-vue') as unknown as Promise<Record<string, Component>>
+  }
+  try {
+    const mod = await epIconsPromise
+    elementIconEntries.value = Object.entries(mod).filter(([name]) => name !== 'default')
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // Iconify 图标分类
 const iconifyCategories = [
@@ -74,6 +89,8 @@ const show = () => {
   iconBoxShow.value = true
   searchTerm.value = ''
   iconType.value = 'all'
+  // 弹窗打开时加载 Element Plus 图标
+  loadElementPlusIcons()
 }
 defineExpose({ show })
 
@@ -101,7 +118,7 @@ const filteredElementIcons = computed(() => {
   if (iconType.value === 'iconify') return []
   
   const term = searchTerm.value.trim().toLowerCase()
-  const entries = Object.entries(elementIcons.value as any)
+  const entries = elementIconEntries.value
   
   if (!term) return entries
   return entries.filter(([name]) => name.toLowerCase().includes(term))

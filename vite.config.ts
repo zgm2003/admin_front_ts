@@ -4,8 +4,10 @@ import { fileURLToPath, URL } from 'node:url'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const host = process.env.TAURI_DEV_HOST
+const isAnalyze = process.env.ANALYZE === 'true'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,7 +22,14 @@ export default defineConfig({
       dts: 'src/types/components.d.ts',
       globs: ['src/components/*/index.vue'], // 只扫描组件根目录的 index.vue
     }),
-  ],
+    // Bundle 可视化分析（ANALYZE=true npm run build 启用）
+    isAnalyze && visualizer({
+      open: true,
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -55,19 +64,43 @@ export default defineConfig({
       'vue-router',
       'pinia',
       'vue-i18n',
-      '@element-plus/icons-vue',
       'axios',
       'js-cookie',
       '@iconify/vue',
     ],
+    // 排除大体积依赖，让它们按需加载
+    exclude: ['@element-plus/icons-vue'],
   },
   build: {
     // 分包策略
     rollupOptions: {
+      // ali-oss 为可选依赖，未安装时不打包
+      external: ['ali-oss'],
       output: {
-        manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia', 'vue-i18n'],
-          'editor': ['@wangeditor/editor-for-vue', '@wangeditor/plugin-md'],
+        manualChunks: (id) => {
+          // Vue 核心库
+          if (id.includes('node_modules/vue') || 
+              id.includes('node_modules/vue-router') || 
+              id.includes('node_modules/pinia') ||
+              id.includes('node_modules/vue-i18n')) {
+            return 'vue-vendor'
+          }
+          // 编辑器（按需加载）
+          if (id.includes('@wangeditor')) {
+            return 'editor'
+          }
+          // Element Plus 图标（按需加载）
+          if (id.includes('@element-plus/icons-vue')) {
+            return 'ep-icons'
+          }
+          // 云存储 SDK（按需加载）
+          if (id.includes('cos-js-sdk')) {
+            return 'cos-js-sdk-v5'
+          }
+          // Iconify
+          if (id.includes('@iconify')) {
+            return 'iconify'
+          }
         }
       }
     },

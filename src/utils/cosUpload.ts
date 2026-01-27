@@ -2,7 +2,20 @@ import request from '@/utils/request'
 
 // 动态导入 SDK，只在实际上传时才加载
 const loadCOS = () => import('cos-js-sdk-v5').then(m => m.default)
-const loadOSS = () => import('ali-oss').then(m => m.default)
+const loadOSS = async () => {
+  try {
+    // 用变量绕过 Vite 静态分析，实现真正的可选依赖
+    const pkg = 'ali-oss'
+    const m = await import(/* @vite-ignore */ pkg)
+    return m.default
+  } catch {
+    throw new Error(
+      '阿里云 OSS 依赖未安装。\n' +
+      '请在 admin_front_ts 目录执行：npm install ali-oss\n' +
+      '或切换上传驱动为腾讯云 COS'
+    )
+  }
+}
 
 export type Provider = 'cos' | 'oss'
 

@@ -7,14 +7,59 @@
     "dev": "vite",
     "build": "vite build",
     "build:check": "vue-tsc -b && vite build",
+    "build:analyze": "cross-env ANALYZE=true vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
+  "perfBudget": {
+    "_comment": "性能预算基线 (Phase 0) - 用于 CI 检查和告警",
+    "bundles": {
+      "total": {
+        "maxSize": "5MB",
+        "maxGzip": "1.5MB",
+        "baseline": "5.2MB"
+      },
+      "icons": {
+        "maxSize": "500KB",
+        "baseline": "2957KB",
+        "target": "-80%"
+      },
+      "editor": {
+        "maxSize": "300KB",
+        "baseline": "810KB",
+        "note": "按需加载后不影响首屏"
+      },
+      "vue-vendor": {
+        "maxSize": "250KB",
+        "baseline": "213KB"
+      },
+      "initial": {
+        "maxSize": "300KB",
+        "note": "首屏关键 JS"
+      }
+    },
+    "api": {
+      "login": {
+        "p95": "300ms"
+      },
+      "list": {
+        "p95": "200ms"
+      },
+      "aiStream": {
+        "firstToken": "2000ms",
+        "note": "AI 供应商延迟不可控"
+      }
+    },
+    "lighthouse": {
+      "performance": 70,
+      "accessibility": 90,
+      "bestPractices": 90
+    }
+  },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@iconify-json/mdi": "^1.2.3",
     "@iconify/vue": "^5.0.0",
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-process": "^2.3.1",
@@ -23,7 +68,6 @@
     "@vueuse/core": "^11.0.3",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "@wangeditor/plugin-md": "^1.0.0",
-    "ali-oss": "^6.23.0",
     "axios": "^1.8.4",
     "cos-js-sdk-v5": "^1.8.7",
     "element-plus": "^2.13.0",
@@ -41,6 +85,8 @@
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "cross-env": "^10.1.0",
+    "rollup-plugin-visualizer": "^6.0.5",
     "sass": "^1.83.0",
     "typescript": "~5.9.3",
     "unplugin-auto-import": "^21.0.0",
