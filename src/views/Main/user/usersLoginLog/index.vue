@@ -50,7 +50,7 @@ onMounted(loadInitial)
   <div class="page">
     <Search v-model="searchForm" :fields="searchFields" @query="refresh" @reset="refresh" />
     <div class="stream">
-      <LogStream :list="list" :loading="loading" :has-more="hasMore" @load-more="loadMore" @refresh="refresh">
+      <LogStream :list="list" :loading="loading" :has-more="hasMore" @load-more="loadMore">
         <template #default="{ item }">
           <ElCard shadow="hover" :body-style="{ padding: '12px 16px' }">
             <ElSpace :size="12" wrap alignment="center">

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ElButton, ElEmpty, ElIcon, ElScrollbar, ElDivider, ElSpace, ElText } from 'element-plus'
+import { ElButton, ElEmpty, ElIcon, ElScrollbar, ElDivider, ElSpace, ElText, ElBacktop } from 'element-plus'
 import type { ScrollbarDirection } from 'element-plus'
-import { Loading, RefreshRight, ArrowDown } from '@element-plus/icons-vue'
+import { Loading, ArrowDown } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import type { LogStreamItem } from '../types'
 
@@ -21,13 +21,10 @@ const props = withDefaults(defineProps<{
   timeFormatter?: (date: string) => string
   /** 空状态文案 */
   emptyText?: string
-  /** 显示刷新按钮 */
-  showRefresh?: boolean
 }>(), {
   loading: false,
   hasMore: true,
   showDateDivider: true,
-  showRefresh: true,
   dateDividerFormatter: (date: string) => {
     const d = new Date(date)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -40,7 +37,6 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   loadMore: []
-  refresh: []
 }>()
 
 const { t } = useI18n()
@@ -86,7 +82,6 @@ const handleEndReached = (direction: ScrollbarDirection) => {
       </div>
       <ElSpace class="toolbar-right">
         <slot name="toolbar-right" />
-        <ElButton v-if="showRefresh" :icon="RefreshRight" circle :loading="loading" @click="emit('refresh')" />
       </ElSpace>
     </div>
 
@@ -141,6 +136,8 @@ const handleEndReached = (direction: ScrollbarDirection) => {
           </template>
         </div>
       </template>
+      <!-- 回到顶部 -->
+      <ElBacktop target=".log-stream-content .el-scrollbar__wrap" :right="24" :bottom="24" />
     </ElScrollbar>
   </div>
 </template>
@@ -224,9 +221,9 @@ const handleEndReached = (direction: ScrollbarDirection) => {
 }
 
 .log-body {
-  background: var(--el-fill-color-lighter);
+  /* background: var(--el-fill-color-lighter); */
   border-radius: 8px;
-  padding: 12px;
+  /* padding: 12px; */
 }
 
 .log-default {
