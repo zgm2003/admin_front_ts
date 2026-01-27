@@ -29,7 +29,7 @@ const sexLabel = computed(() => {
 </script>
 
 <template>
-  <el-card shadow="none" v-loading="loading" class="user-info-card">
+  <el-card shadow="never" v-loading="loading" class="user-info-card">
     <template #header>
       <div class="card-header"><span>{{ t('personal.title') }}</span></div>
     </template>

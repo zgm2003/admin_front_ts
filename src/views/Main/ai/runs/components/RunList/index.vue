@@ -230,7 +230,7 @@ onMounted(() => {
                     :key="idx"
                     :src="attachment.url"
                     :preview-src-list="detailData.user_message.meta_json.attachments.map((a: any) => a.url)"
-                    :initial-index="idx"
+                    :initial-index="Number(idx)"
                     fit="cover"
                     class="attachment-thumb"
                     lazy

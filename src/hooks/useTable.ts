@@ -17,7 +17,7 @@ interface ApiModule {
   status?: (params: any) => Promise<any>
 }
 
-interface UseTableOptions<T> {
+interface UseTableOptions {
   // API 模块（包含 list、del 等方法）
   api: ApiModule
   // 搜索表单（响应式对象，支持 ref 或 reactive）
@@ -32,7 +32,7 @@ interface UseTableOptions<T> {
   afterDel?: () => void
 }
 
-export function useTable<T = any>(options: UseTableOptions<T>) {
+export function useTable<T = any>(options: UseTableOptions) {
   const { api, searchForm = {}, immediate = false, initPage = {}, dataCallback, afterDel } = options
 
   const loading = ref(false)

@@ -167,13 +167,13 @@ function systemColor(color: string) {
   document.documentElement.style.setProperty('--el-color-primary', color)
 }
 
-function breadcrumb(val: boolean) { menuStore.changeBreadcrumb(val) }
-function hamburger(val: boolean) { menuStore.changeHamburger(val) }
-function screenfull(val: boolean) { menuStore.changeScreenfull(val) }
-function tabtag(val: boolean) { menuStore.changeTabtag(val) }
-function uniqueOpen(val: boolean) { menuStore.changeUniqueOpen(val) }
-function changeFooter(val: boolean) { menuStore.changeFooter(val) }
-function pageTransition(val: boolean) { menuStore.changePageTransition(val) }
+function breadcrumb(val: string | number | boolean) { menuStore.changeBreadcrumb(val as boolean) }
+function hamburger(val: string | number | boolean) { menuStore.changeHamburger(val as boolean) }
+function screenfull(val: string | number | boolean) { menuStore.changeScreenfull(val as boolean) }
+function tabtag(val: string | number | boolean) { menuStore.changeTabtag(val as boolean) }
+function uniqueOpen(val: string | number | boolean) { menuStore.changeUniqueOpen(val as boolean) }
+function changeFooter(val: string | number | boolean) { menuStore.changeFooter(val as boolean) }
+function pageTransition(val: string | number | boolean) { menuStore.changePageTransition(val as boolean) }
 function transitionName(val: string) { menuStore.changeTransitionName(val) }
 
 function clear() {

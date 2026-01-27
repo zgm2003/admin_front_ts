@@ -22,7 +22,6 @@ const {
   loading: listLoading,
   data: listData,
   page,
-  selectedIds,
   onSearch,
   onPageChange,
   refresh,

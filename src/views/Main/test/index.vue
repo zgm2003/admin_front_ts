@@ -18,15 +18,21 @@
 </template>
 <script setup lang="ts">
 import {ref, onMounted} from 'vue'
-import {toggleDarkMode} from '@/utils/theme'
+import {toggleDarkMode as _toggleDarkMode} from '@/utils/theme'
 import {Editor as RichEditor} from '@/components/Editor'
 
 const isDark = ref(false)
 const content = ref('<p>欢迎使用富文本编辑器</p>')
+
+const toggleDarkMode = (val: string | number | boolean) => {
+  _toggleDarkMode(Boolean(val))
+}
+
 const onEditorChange = () => {
 }
+
 onMounted(() => {
-  isDark.value = localStorage.getItem('theme') === 'dark';
-  toggleDarkMode(isDark.value)
+  isDark.value = localStorage.getItem('theme') === 'dark'
+  _toggleDarkMode(isDark.value)
 })
 </script>

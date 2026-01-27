@@ -345,7 +345,7 @@ onMounted(() => {
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="t('permission.form.parent_id')">
-          <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable check-strictly=true
+          <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable :check-strictly="true"
                           :render-after-expand="false"/>
         </el-form-item>
         <el-form-item :label="t('permission.form.name')" prop="name" required>

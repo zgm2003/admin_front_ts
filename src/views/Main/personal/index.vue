@@ -70,7 +70,7 @@ onMounted(() => {
       
       <!-- 右侧：编辑区域（仅本人可见） -->
       <el-col :lg="18" :md="16" :sm="24" v-if="userinfo.is_self === CommonEnum.YES">
-        <el-card shadow="none">
+        <el-card shadow="never">
           <el-tabs v-model="activeTab">
             <el-tab-pane :label="t('personal.tabs.basic')" name="basic" lazy>
               <BaseInfo :userinfo="userinfo" :addressTree="addressTree" :sexArr="sexArr" @refresh="initPersonal"/>

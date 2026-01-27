@@ -60,7 +60,6 @@ import NotificationCenter from './components/NotificationCenter.vue'
 import { Search, Setting, FullScreen } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
-import { useUserStore } from '@/store/user.ts'
 import { toggleDarkMode } from '@/utils/theme'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
@@ -68,7 +67,6 @@ import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
 
 const menuStore = useMenuStore()
-const userStore = useUserStore()
 const { t, locale } = useI18n()
 
 const isDark = ref(false)
