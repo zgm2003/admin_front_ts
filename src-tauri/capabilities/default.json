@@ -4,7 +4,11 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "remote": {
-    "urls": ["http://localhost:5173/*", "https://zgm2003.cn/*"]
+    "urls": [
+      "http://localhost:5173/*",
+      "https://zgm2003.cn/*",
+      "https://*.zgm2003.cn/*"
+    ]
   },
   "permissions": [
     "core:default",
