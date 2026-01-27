@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElNotification } from 'element-plus'
+import { User, Lock, Message, Iphone } from '@element-plus/icons-vue'
 import { UsersApi } from '@/api/user/users'
 import { useRouter } from 'vue-router'
 import { clearAllCookies } from '@/utils/cookie'
@@ -134,7 +135,7 @@ const handleLogin = async () => {
                 size="large"
               >
                 <template #prefix>
-                  <el-icon><component :is="activeTab === 'email' ? 'Message' : activeTab === 'phone' ? 'Iphone' : 'User'" /></el-icon>
+                  <el-icon><component :is="activeTab === 'email' ? Message : activeTab === 'phone' ? Iphone : User" /></el-icon>
                 </template>
               </el-input>
             </el-form-item>
