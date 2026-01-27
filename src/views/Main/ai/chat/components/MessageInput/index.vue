@@ -676,22 +676,9 @@ defineExpose({
 }
 
 @media (max-width: 768px) {
-  .input-wrapper {
-    padding: 12px 16px 16px;
-  }
-
-  .input-container {
-    border-radius: 12px;
-    padding: 10px 12px;
-  }
-
-  .input-hint {
-    display: none;
-  }
-  
-  .attachment-item {
-    width: 60px;
-    height: 60px;
-  }
+  .input-wrapper { padding: 12px 16px 16px; }
+  .input-container { border-radius: 12px; padding: 10px 12px; }
+  .input-hint { display: none; }
+  .attachment-item { width: 60px; height: 60px; }
 }
 </style>

@@ -9,7 +9,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum } from '@/enums'
-import {ArrowRight, ArrowDown, ArrowUp} from "@element-plus/icons-vue"
+import {ArrowRight, ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
 import { DynamicIcon } from '@/components/DynamicIcon'
 
 const userStore = useUserStore()
@@ -368,7 +368,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.icon')" v-if="isMenuType">
           <el-input v-model="form.icon" style="width:80%" clearable/>
-          <el-button icon="Setting" @click="openIconSelect">{{ t('common.actions.edit') }}</el-button>
+          <el-button :icon="Setting" @click="openIconSelect">{{ t('common.actions.edit') }}</el-button>
         </el-form-item>
         <el-form-item :label="t('permission.form.path')" v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>

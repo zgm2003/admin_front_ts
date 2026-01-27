@@ -51,3 +51,41 @@ img, video { max-width: 100%; height: auto; }
 ::-webkit-scrollbar-thumb { background: var(--el-text-color-placeholder); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--el-text-color-secondary); }
 
+/* ========== 移动端全局样式 ========== */
+@media (max-width: 768px) {
+  /* Element Plus token 覆盖 */
+  :root {
+    --el-font-size-base: 13px;
+    --el-component-size: 28px;
+    --el-component-size-small: 24px;
+  }
+
+  /* 通用布局 */
+  .page { padding: 16px !important; }
+  .page-card { padding: 16px !important; }
+  .layout-content { padding: 16px !important; }
+
+  /* 表格分页 */
+  .table-footer { justify-content: center; }
+  .table-footer .el-pagination { flex-wrap: wrap; justify-content: center; gap: 4px; }
+  .table-toolbar { flex-wrap: wrap; gap: 8px; }
+
+  /* 对话框 */
+  .el-dialog { --el-dialog-width: 94vw !important; margin: 3vh auto !important; }
+  .el-dialog__body { padding: 12px 16px !important; }
+
+  /* 表单 */
+  .el-form--label-top .el-form-item__label { padding-bottom: 4px; }
+  .el-form-item { margin-bottom: 12px; }
+
+  /* 按钮组 */
+  .el-button + .el-button { margin-left: 8px; }
+  .el-button-group .el-button { padding: 8px 12px; }
+
+  /* 下拉菜单 */
+  .el-dropdown-menu { max-height: 60vh; overflow-y: auto; }
+
+  /* 消息列表 */
+  .el-message-box { width: 90vw !important; }
+}
+

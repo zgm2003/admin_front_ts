@@ -377,24 +377,11 @@ const formTypeExamples = computed(() => [
 }
 
 @media (max-width: 768px) {
-  .gen-container {
-    padding: 12px;
-  }
-  .gen-header h2 {
-    font-size: 18px;
-  }
-  .step-content {
-    min-height: 300px;
-  }
-  .code-preview {
-    font-size: 12px;
-    max-height: 400px;
-  }
-  .help-content {
-    max-height: 500px;
-  }
-  .help-content h3 {
-    font-size: 15px;
-  }
+  .gen-container { padding: 12px; }
+  .gen-header h2 { font-size: 18px; }
+  .step-content { min-height: 300px; }
+  .code-preview { font-size: 12px; max-height: 400px; }
+  .help-content { max-height: 500px; }
+  .help-content h3 { font-size: 15px; }
 }
 </style>

@@ -4,7 +4,8 @@
     <div class="header-left">
       <button v-if="menuStore.hamburger" class="menu-toggle" @click="ClickMenu">
         <el-icon :size="20">
-          <component :is="menuStore.collapse ? 'Expand' : 'Fold'" />
+          <Expand v-if="menuStore.collapse" />
+          <Fold v-else />
         </el-icon>
       </button>
       
@@ -57,7 +58,7 @@ import { ref, onMounted } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
-import { Search, Setting, FullScreen } from '@element-plus/icons-vue'
+import { Search, Setting, FullScreen, Expand, Fold } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
 import { toggleDarkMode } from '@/utils/theme'

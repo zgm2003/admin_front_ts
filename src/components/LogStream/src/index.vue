@@ -245,14 +245,8 @@ const handleEndReached = (direction: ScrollbarDirection) => {
   padding: 16px;
 }
 
-/* 响应式 */
 @media (max-width: 768px) {
-  .log-item {
-    padding: 0 8px;
-  }
-  
-  .log-body {
-    padding: 8px;
-  }
+  .log-item { padding: 0 8px; }
+  .log-body { padding: 8px; }
 }
 </style>

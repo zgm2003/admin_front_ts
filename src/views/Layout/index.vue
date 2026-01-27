@@ -93,9 +93,4 @@ watch(isMobile, (val) => {
 .slide-left-leave-to { opacity: 0; transform: translateX(-20px); }
 .slide-right-enter-from { opacity: 0; transform: translateX(-20px); }
 .slide-right-leave-to { opacity: 0; transform: translateX(20px); }
-
-@media (max-width: 768px) {
-  .layout-content { padding: 12px; }
-  .page-card { padding: 16px; }
-}
 </style>

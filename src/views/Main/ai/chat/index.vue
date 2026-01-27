@@ -460,12 +460,7 @@ watch(currentConversationId, async (newId, oldId) => {
 }
 
 @media (max-width: 768px) {
-  .welcome-content {
-    padding: 0 16px;
-  }
-
-  .welcome-title {
-    font-size: 24px;
-  }
+  .welcome-content { padding: 0 16px; }
+  .welcome-title { font-size: 24px; }
 }
 </style>

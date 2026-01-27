@@ -105,18 +105,8 @@ pointer-events: none 不阻挡点击事件。
 }
 
 @media (max-width: 768px) {
-  .demo-block {
-    padding: 16px;
-  }
-
-  .demo-section :deep(.el-table) {
-    font-size: 12px;
-  }
-
-  .preview-block {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
+  .demo-block { padding: 16px; }
+  .demo-section :deep(.el-table) { font-size: 12px; }
+  .preview-block { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 </style>

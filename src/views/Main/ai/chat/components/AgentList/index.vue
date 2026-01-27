@@ -173,9 +173,6 @@ const handleSelect = (agent: Agent) => {
 }
 
 @media (max-width: 768px) {
-  .agent-sidebar {
-    width: 100%;
-    min-width: 100%;
-  }
+  .agent-sidebar { width: 100%; min-width: 100%; }
 }
 </style>

@@ -76,9 +76,4 @@ const getColumnBindings = (col: any) => {
 .toolbar-left,.toolbar-right{display:flex;align-items:center}
 .flex-table{flex:1;overflow:hidden}
 .table-footer{display:flex;justify-content:flex-end;margin-top:8px;flex-shrink:0}
-@media (max-width: 768px){
-  .table-footer{justify-content:center}
-  .table-footer :deep(.el-pagination){flex-wrap:wrap;justify-content:center;gap:4px}
-  .table-toolbar{flex-wrap:wrap;gap:8px}
-}
 </style>

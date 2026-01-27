@@ -100,8 +100,8 @@ const onInputChange = (val: string) => {
 .up-media-container.vertical .url-input { width: 100% }
 
 @media (max-width: 768px) {
-  .up-media-container { flex-direction: column; align-items: flex-start }
-  .url-input { width: 100% }
+  .up-media-container { flex-direction: column; align-items: flex-start; }
+  .url-input { width: 100%; }
 }
 
 .media-uploader-wrapper {

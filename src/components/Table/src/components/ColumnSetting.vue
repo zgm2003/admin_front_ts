@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ElCheckboxGroup, ElCheckbox, ElButton, ElPopover } from 'element-plus'
+import { Setting } from '@element-plus/icons-vue'
 
 const props = defineProps<{ columns: any[]; modelValue: any[] }>()
 const emit = defineEmits(['update:modelValue'])
@@ -12,7 +13,7 @@ const value = computed({ get: () => props.modelValue, set: (v) => emit('update:m
 <template>
   <ElPopover placement="bottom" trigger="click" :width="200">
     <template #reference>
-      <ElButton icon="setting">列设置</ElButton>
+      <ElButton :icon="Setting">列设置</ElButton>
     </template>
     <div style="max-height: 400px; overflow-y: auto;">
       <ElCheckboxGroup v-model="value">

@@ -298,12 +298,7 @@ const remoteSelectProps = [
 }
 
 @media (max-width: 768px) {
-  .demo-block {
-    padding: 16px;
-  }
-
-  .demo-section :deep(.el-table) {
-    font-size: 12px;
-  }
+  .demo-block { padding: 16px; }
+  .demo-section :deep(.el-table) { font-size: 12px; }
 }
 </style>

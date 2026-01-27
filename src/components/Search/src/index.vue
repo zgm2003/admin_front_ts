@@ -23,7 +23,7 @@ interface Field {
 }
 
 const { locale, t } = useI18n()
-const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number, size?: 'large' | 'default' | 'small' }>(), { inline: true, collapseCount: 1, size: 'default' })
+const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number, size?: 'large' | 'default' | 'small' }>(), { inline: true, collapseCount: 1 })
 const emit = defineEmits(['update:modelValue', 'query', 'reset'])
 
 const formRef = ref<FormInstance>()

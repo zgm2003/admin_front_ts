@@ -5,14 +5,16 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import enUs from 'element-plus/dist/locale/en.mjs'
 import { TauriUpdater } from '@/components/TauriUpdater'
 import { isTauri } from '@/store/tauri'
+import { useIsMobile } from '@/hooks/useResponsive'
 
 const { locale } = useI18n()
+const isMobile = useIsMobile()
 const elementLocale = computed(() => (locale.value === 'en-US' ? enUs : zhCn))
+const elementSize = computed(() => (isMobile.value ? 'small' : 'default'))
 </script>
 
 <template>
-  <el-config-provider :locale="elementLocale">
-    <!-- Tauri 环境才加载更新组件 -->
+  <el-config-provider :locale="elementLocale" :size="elementSize">
     <TauriUpdater v-if="isTauri()" />
     <router-view />
   </el-config-provider>
