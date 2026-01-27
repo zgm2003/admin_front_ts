@@ -212,16 +212,8 @@ const upFileEvents = [
 }
 
 @media (max-width: 768px) {
-  .demo-block {
-    padding: 16px;
-  }
-
-  .demo-section :deep(.el-table) {
-    font-size: 12px;
-  }
-
-  .demo-section :deep(.el-table-column) {
-    min-width: 80px;
-  }
+  .demo-block { padding: 16px; }
+  .demo-section :deep(.el-table) { font-size: 12px; }
+  .demo-section :deep(.el-table-column) { min-width: 80px; }
 }
 </style>

@@ -398,32 +398,12 @@ const handleFeedback = (msg: any, feedback: number) => {
   }
 }
 
-/* 移动端响应式 */
 @media (max-width: 768px) {
-  .message-list {
-    gap: 20px;
-    padding: 16px 0;
-  }
-
-  .message-row {
-    padding: 0 12px;
-  }
-
-  .user-body {
-    max-width: 85%;
-  }
-
-  .message-text {
-    font-size: 14px;
-  }
-  
-  .message-attachments {
-    max-width: 200px;
-  }
-  
-  .attachment-image {
-    max-width: 200px;
-  }
+  .message-list { gap: 20px; padding: 16px 0; }
+  .message-row { padding: 0 12px; }
+  .user-body { max-width: 85%; }
+  .message-text { font-size: 14px; }
+  .message-attachments, .attachment-image { max-width: 200px; }
 }
 
 /* 消息附件图片 */

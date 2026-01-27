@@ -360,9 +360,6 @@ const groupedConversations = computed(() =>
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    min-width: 100%;
-  }
+  .sidebar { width: 100%; min-width: 100%; }
 }
 </style>

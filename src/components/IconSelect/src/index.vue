@@ -375,22 +375,9 @@ const getIconCategoryColor = (icon: string) => {
 }
 
 @media (max-width: 768px) {
-  .icon-grid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
-  }
-  
-  .icon-item {
-    padding: 12px 6px;
-  }
-  
-  .icon-wrapper {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .selected-preview {
-    flex-wrap: wrap;
-  }
+  .icon-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  .icon-item { padding: 12px 6px; }
+  .icon-wrapper { width: 40px; height: 40px; }
+  .selected-preview { flex-wrap: wrap; }
 }
 </style>

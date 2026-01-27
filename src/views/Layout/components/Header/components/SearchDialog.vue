@@ -303,25 +303,10 @@ kbd {
 }
 
 @media (max-width: 768px) {
-  .search-container {
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-  }
-
-  .search-input :deep(.el-input__inner) {
-    height: 36px;
-    font-size: 14px;
-  }
-
-  .result-item {
-    padding: 10px 12px;
-  }
+  .search-container { padding: 16px; gap: 12px; }
+  .logo { width: 48px; height: 48px; border-radius: 10px; }
+  .search-input :deep(.el-input__inner) { height: 36px; font-size: 14px; }
+  .result-item { padding: 10px 12px; }
 }
 </style>
 

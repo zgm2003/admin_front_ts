@@ -370,19 +370,9 @@ onMounted(async () => {
   padding: 12px 0;
 }
 
-/* 移动端适配 */
 @media (max-width: 768px) {
-  .stat-card {
-    padding: 12px 8px;
-    margin: 0 8px 12px;
-  }
-
-  .stat-value {
-    font-size: 18px;
-  }
-
-  .stat-label {
-    font-size: 12px;
-  }
+  .stat-card { padding: 12px 8px; margin: 0 8px 12px; }
+  .stat-value { font-size: 18px; }
+  .stat-label { font-size: 12px; }
 }
 </style>
