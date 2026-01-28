@@ -191,6 +191,7 @@ onMounted(() => {
         <el-form-item :label="t('role.form.permission')">
           <div style="display: flex; gap: 8px; width: 100%">
             <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" clearable
+                         filterable placeholder="请选择权限" collapse-tags
                          style="flex: 1"/>
             <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
           </div>

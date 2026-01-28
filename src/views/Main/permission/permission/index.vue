@@ -8,7 +8,7 @@ import {ElNotification, ElMessageBox} from 'element-plus'
 import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
-import { CommonEnum, PermissionTypeEnum } from '@/enums'
+import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
 import {ArrowRight, ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
 import { DynamicIcon } from '@/components/DynamicIcon'
 
@@ -17,10 +17,25 @@ const {t} = useI18n()
 
 const permissionTree = ref<any[]>([])
 const permissionTypeArr = ref<{ value: number | string; label: string }[]>([])
+const platformOptions = ref<{ value: number; label: string }[]>([])
+
+// 按平台过滤权限树（用于父级菜单选择）
+const filterTreeByPlatform = (tree: any[], platform: string): any[] => {
+  return tree
+    .filter(node => node.platform === platform)
+    .map(node => ({
+      ...node,
+      children: node.children ? filterTreeByPlatform(node.children, platform) : []
+    }))
+}
+const filteredPermissionTree = computed(() => {
+  return filterTreeByPlatform(permissionTree.value, activePlatform.value)
+})
 const init = () => {
   PermissionApi.init().then((data: any) => {
     permissionTree.value = data.dict.permission_tree;
     permissionTypeArr.value = data.dict.permission_type_arr
+    platformOptions.value = data.dict.permission_platform_arr || []
   }).catch(() => {
   })
 }
@@ -38,6 +53,7 @@ const form = ref<{
   i18n_key: string
   sort: number
   show_menu: number
+  platform: string
 }>({
   id: '',
   name: '',
@@ -49,7 +65,8 @@ const form = ref<{
   code: '',
   i18n_key: '',
   sort: 1,
-  show_menu: 1
+  show_menu: 1,
+  platform: PlatformEnum.ADMIN
 })
 const add = () => {
   dialogMode.value = 'add'
@@ -60,11 +77,12 @@ const add = () => {
     icon: '',
     path: '',
     component: '',
-    type: '',
+    type: activePlatform.value === PlatformEnum.APP ? PermissionTypeEnum.PAGE : PermissionTypeEnum.DIR,  // APP默认页面
     code: '',
     i18n_key: '',
     sort: 1,
-    show_menu: 1
+    show_menu: 1,
+    platform: activePlatform.value
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -85,7 +103,8 @@ const addChild = (current: any) => {
     code: '',
     i18n_key: '',
     sort: 1,
-    show_menu: 1
+    show_menu: 1,
+    platform: activePlatform.value
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -94,10 +113,18 @@ const addChild = (current: any) => {
 }
 const listLoading = ref(false)
 const listData = ref([])
+const activePlatform = ref<string>(PlatformEnum.ADMIN)
+// H5/APP无目录概念，只有页面和按钮
+const filteredTypeArr = computed(() => {
+  if (activePlatform.value === PlatformEnum.APP) {
+    return permissionTypeArr.value.filter(item => item.value !== PermissionTypeEnum.DIR)
+  }
+  return permissionTypeArr.value
+})
 const searchForm = ref({name: ''})
 const getList = () => {
   listLoading.value = true;
-  const param = searchForm.value;
+  const param = { ...searchForm.value, platform: activePlatform.value };
   PermissionApi.list(param).then((data: any) => {
     listData.value = data
   }).finally(() => {
@@ -137,7 +164,8 @@ const edit = (current: any) => {
     code: current.code,
     i18n_key: current.i18n_key,
     sort: current.sort,
-    show_menu: current.show_menu
+    show_menu: current.show_menu,
+    platform: current.platform ?? activePlatform.value
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -247,6 +275,9 @@ const changeStatus = async (row: any) => {
     row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
   })
 }
+const onPlatformChange = () => {
+  getList()
+}
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])
@@ -259,6 +290,9 @@ onMounted(() => {
 
 <template>
   <div class="box">
+    <el-tabs v-model="activePlatform" @tab-change="onPlatformChange" style="margin-bottom: 10px;">
+      <el-tab-pane v-for="item in platformOptions" :key="item.value" :label="item.label" :name="item.value" />
+    </el-tabs>
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <el-button v-if="userStore.can('permission_permission_add')" type="success" @click="add">{{
@@ -338,14 +372,14 @@ onMounted(() => {
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
         <el-form-item :label="t('permission.form.type')" prop="type" required>
           <el-radio-group v-model="form.type">
-            <el-radio :value="item.value" border v-for="(item,index) in permissionTypeArr" :key="index">{{
+            <el-radio :value="item.value" border v-for="(item,index) in filteredTypeArr" :key="index">{{
                 item.label
               }}
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="t('permission.form.parent_id')">
-          <el-tree-select v-model="form.parent_id" :data="permissionTree" show-checkbox clearable :check-strictly="true"
+        <el-form-item :label="t('permission.form.parent_id')" v-if="!(activePlatform === PlatformEnum.APP && form.type === PermissionTypeEnum.PAGE)">
+          <el-tree-select v-model="form.parent_id" :data="filteredPermissionTree" show-checkbox clearable :check-strictly="true"
                           :render-after-expand="false"/>
         </el-form-item>
         <el-form-item :label="t('permission.form.name')" prop="name" required>

@@ -15,6 +15,12 @@ export const PermissionTypeEnum = {
   BUTTON: 3,
 } as const
 
+/** 平台（字符串标识） */
+export const PlatformEnum = {
+  ADMIN: 'admin',
+  APP: 'app',
+} as const
+
 /** AI 消息角色 */
 export const AiRoleEnum = {
   USER: 1,
