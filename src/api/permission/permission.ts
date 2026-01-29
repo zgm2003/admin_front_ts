@@ -8,4 +8,10 @@ export const PermissionApi = {
   del: (params: any) => request.post('/api/admin/Permission/del', params),
   batchEdit: (params: any) => request.post('/api/admin/Permission/batchEdit', params),
   status: (params: any) => request.post('/api/admin/Permission/status', params),
+  // APP/H5/小程序 按钮权限
+  appButtonList: (params: any) => request.post('/api/admin/Permission/appButtonList', params),
+  appButtonAdd: (params: any) => request.post('/api/admin/Permission/appButtonAdd', params),
+  appButtonEdit: (params: any) => request.post('/api/admin/Permission/appButtonEdit', params),
+  appButtonStatus: (params: any) => request.post('/api/admin/Permission/appButtonStatus', params),
+  appButtonDel: (params: any) => request.post('/api/admin/Permission/appButtonDel', params),
 }

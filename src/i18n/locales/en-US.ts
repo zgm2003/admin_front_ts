@@ -143,7 +143,7 @@ export default {
     user_userManager: 'User Manager',
     user_usersLoginLog: 'Login Log',
     // Permission module
-    permission_permission: 'Menu Manager',
+    permission_permission: 'Admin Menu Manager',
     permission_role: 'Role Manager',
     // System module
     system_operationLog: 'Operation Log',

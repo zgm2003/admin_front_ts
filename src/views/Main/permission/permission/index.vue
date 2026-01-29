@@ -77,7 +77,7 @@ const add = () => {
     icon: '',
     path: '',
     component: '',
-    type: activePlatform.value === PlatformEnum.APP ? PermissionTypeEnum.PAGE : PermissionTypeEnum.DIR,  // APP默认页面
+    type: PermissionTypeEnum.DIR,
     code: '',
     i18n_key: '',
     sort: 1,
@@ -114,13 +114,7 @@ const addChild = (current: any) => {
 const listLoading = ref(false)
 const listData = ref([])
 const activePlatform = ref<string>(PlatformEnum.ADMIN)
-// H5/APP无目录概念，只有页面和按钮
-const filteredTypeArr = computed(() => {
-  if (activePlatform.value === PlatformEnum.APP) {
-    return permissionTypeArr.value.filter(item => item.value !== PermissionTypeEnum.DIR)
-  }
-  return permissionTypeArr.value
-})
+const filteredTypeArr = computed(() => permissionTypeArr.value)
 const searchForm = ref({name: ''})
 const getList = () => {
   listLoading.value = true;
@@ -290,9 +284,6 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <el-tabs v-model="activePlatform" @tab-change="onPlatformChange" style="margin-bottom: 10px;">
-      <el-tab-pane v-for="item in platformOptions" :key="item.value" :label="item.label" :name="item.value" />
-    </el-tabs>
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <el-button v-if="userStore.can('permission_permission_add')" type="success" @click="add">{{
@@ -328,8 +319,6 @@ onMounted(() => {
             <DynamicIcon v-if="scope.row.icon" :icon="scope.row.icon" :size="24" />
           </template>
         </el-table-column>
-        <!--        <el-table-column prop="path" :label="t('permission.table.path')" align="center"/>-->
-        <!--        <el-table-column prop="component" :label="t('permission.table.component')" align="center"/>-->
         <el-table-column :label="t('permission.table.status')" align="center">
           <template #default="scope">
             <el-switch
@@ -349,8 +338,6 @@ onMounted(() => {
             <el-tag effect="dark" v-if="scope.row.type === PermissionTypeEnum.BUTTON" type="danger">{{ scope.row.type_name }}</el-tag>
           </template>
         </el-table-column>
-        <!--        <el-table-column :label="t('permission.table.code')" align="center" prop="code"/>-->
-        <!--        <el-table-column :label="t('permission.table.i18n_key')" align="center" prop="i18n_key"/>-->
         <el-table-column :label="t('permission.table.actions')" align="center" min-width="180" fixed="right"
                          header-align="center">
           <template #default="scope">
@@ -378,7 +365,7 @@ onMounted(() => {
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="t('permission.form.parent_id')" v-if="!(activePlatform === PlatformEnum.APP && form.type === PermissionTypeEnum.PAGE)">
+        <el-form-item :label="t('permission.form.parent_id')">
           <el-tree-select v-model="form.parent_id" :data="filteredPermissionTree" show-checkbox clearable :check-strictly="true"
                           :render-after-expand="false"/>
         </el-form-item>

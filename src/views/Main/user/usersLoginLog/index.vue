@@ -68,7 +68,7 @@ onMounted(loadInitial)
               </div>
               <ElSpace :size="8" wrap class="tags">
                 <ElButton type="primary" size="small" round plain>{{ item.login_type_name }}</ElButton>
-                <ElButton size="small" :icon="getDeviceIcon(item.platform, item.ua)" round plain>{{ item.platform }}</ElButton>
+                <ElButton size="small" :icon="getDeviceIcon(item.platform, item.ua)" round plain>{{ item.platform_name }}</ElButton>
                 <ElButton size="small" round plain>{{ item.ip }}</ElButton>
                 <ElButton v-if="item.is_success !== CommonEnum.YES" type="danger" size="small" round plain>
                   {{ item.reason || t('common.fail.login') }}

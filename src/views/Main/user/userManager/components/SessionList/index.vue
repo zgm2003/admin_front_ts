@@ -139,7 +139,7 @@ onMounted(() => {
       <AppTable
         :columns="[
           { key: 'username', label: t('userSession.table.username') },
-          { key: 'platform', label: t('userSession.table.platform'), width: 80 },
+          { key: 'platform', label: t('userSession.table.platform'), width: 120 },
           { key: 'device_id', label: t('userSession.table.device_id'), overflowTooltip: true },
           { key: 'ip', label: t('userSession.table.ip'), width: 120 },
           { key: 'last_seen_at', label: t('userSession.table.last_seen_at'), width: 170 },
@@ -160,7 +160,7 @@ onMounted(() => {
           <el-button type="danger" @click="batchKick" v-if="userStore.can('user_userManager_kick')">{{ t('userSession.batchKick') }}</el-button>
         </template>
         <template #cell-platform="{ row }">
-          <el-tag :type="row.platform === 'admin' ? 'primary' : 'success'" size="small">{{ platformArr.find(p => p.value === row.platform)?.label || row.platform }}</el-tag>
+          <el-tag :type="row.platform === 'admin' ? 'primary' : 'success'" size="small">{{ row.platform_name }}</el-tag>
         </template>
         <template #cell-status="{ row }">
           <el-tag :type="getStatusType(row.status)" size="small">{{ t(`userSession.status.${row.status}`) }}</el-tag>

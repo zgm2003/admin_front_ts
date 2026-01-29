@@ -145,7 +145,7 @@ export default {
     user_userManager: '用户管理',
     user_usersLoginLog: '登录日志',
     // 权限管理模块
-    permission_permission: '菜单管理',
+    permission_permission: '后台菜单管理',
     permission_role: '角色管理',
     // 系统管理模块
     system_operationLog: '操作日志',
