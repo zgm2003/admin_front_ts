@@ -144,7 +144,7 @@ onMounted(() => {
         </template>
         <template #cell-status="{ row }">
           <el-tag type="success" v-if="row.status === CommonEnum.YES">启用</el-tag>
-          <el-tag type="info" v-else>禁用</el-tag>
+          <el-tag type="danger" v-else>禁用</el-tag>
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text v-if="userStore.can('permission_appButton_edit')" @click="edit(row)">
