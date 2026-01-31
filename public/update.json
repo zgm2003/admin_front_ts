@@ -1,0 +1,11 @@
+{
+  "version": "1.0.4",
+  "notes": "更新说明...",
+  "pub_date": "2026-01-31T20:48:35+08:00",
+  "platforms": {
+    "windows-x86_64": {
+      "url": "https://cos.zgm2003.cn/releases/1769863691978-CloudAdmin_1.0.4_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZkRRclNMQkc5QzJObVNNYzg4aE81ai9iK2FFeWFjRWlidEdldFQ4L3l5YkcvSDNmdkp6YUFBZ3N5bThueUNDOTFPT3hhRmZINExOeHFHRzRoa2Vic3l2bzRUdmFmYmd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY5ODYzNTk0CWZpbGU6Q2xvdWRBZG1pbl8xLjAuNF94NjQtc2V0dXAuZXhlCmhMNTV5bEhmMHB3QzNpbkZmS2s5Zml2NmpUL29tVDZGNW1aTmxBNGNwZUNyVTVmNHp4eC83bi80ZGhXUGN2NlBzamJZT3hRQjZqL2gvc0lONk9FWUR3PT0K"
+    }
+  }
+}
