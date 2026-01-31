@@ -614,9 +614,19 @@ const handleLoginSuccess = async (data: any) => {
   ElNotification.success('登录成功')
   clearAllCookies()
 
-  const expires = new Date(new Date().getTime() + data.expires_in * 1000)
-  Cookies.set('access_token', data.access_token, { expires })
-  Cookies.set('refresh_token', data.refresh_token, { expires: 14 })
+  // 根据「记住密码」决定 Cookie 过期策略
+  // 勾选：设置过期时间，保持登录状态
+  // 不勾选：不设置过期时间（session cookie），关闭浏览器即登出
+  if (loginForm.remember) {
+    const expires = new Date(new Date().getTime() + data.expires_in * 1000)
+    const refreshExpires = new Date(new Date().getTime() + data.refresh_expires_in * 1000)
+    Cookies.set('access_token', data.access_token, { expires })
+    Cookies.set('refresh_token', data.refresh_token, { expires: refreshExpires })
+  } else {
+    // session cookie，浏览器关闭后自动清除
+    Cookies.set('access_token', data.access_token)
+    Cookies.set('refresh_token', data.refresh_token)
+  }
 
   await setupDynamicRoutes()
 
