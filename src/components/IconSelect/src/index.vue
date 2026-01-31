@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, shallowRef, type Component } from 'vue'
+import { ref, computed, shallowRef, type Component } from 'vue'
 import { Icon } from '@iconify/vue'
 
 const iconBoxShow = ref(false)

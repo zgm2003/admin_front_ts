@@ -269,9 +269,6 @@ const changeStatus = async (row: any) => {
     row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
   })
 }
-const onPlatformChange = () => {
-  getList()
-}
 const searchFields = computed<SearchField[]>(() => [
   {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
 ])

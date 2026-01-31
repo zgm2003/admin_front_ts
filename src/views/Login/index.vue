@@ -309,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import { ElMessage, ElNotification } from 'element-plus'
@@ -337,28 +337,32 @@ import {
   Timer
 } from '@element-plus/icons-vue'
 
+type LoginTypeItem = { label: string; value: string }
+type SendCodeRef = InstanceType<typeof SendCode>
+
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const isMobile = useIsMobile()
+const loginTypes = ref<LoginTypeItem[]>([])
 
 // 登录方式配置
-const typeConfig: Record<string, { label: string; icon: any; placeholder: string }> = {
+const typeConfig: Record<string, { label: string; icon: Component; placeholder: string }> = {
   password: { label: '账号', icon: Message, placeholder: '请输入账号' },
   email: { label: '邮箱', icon: Message, placeholder: '请输入邮箱' },
   phone: { label: '手机号', icon: Iphone, placeholder: '请输入手机号' }
 }
 
 const showPassword = ref(false)
-const sendCodeRefs = ref<any[]>([])
-
-// 登录配置（来自后端）
-const loginTypes = ref<Array<{ label: string; value: string }>>([])
+const sendCodeRefs = ref<SendCodeRef[]>([])
 
 // 服务条款勾选
 const agreePolicy = ref(false)
 
 // 表单数据
-const loginForm = ref({
+const LOGIN_REMEMBER_KEY = 'loginRemember'
+const LOGIN_ACCOUNT_KEY = 'loginAccount'
+
+const loginForm = reactive({
   login_account: '',
   password: '',
   code: '',
@@ -370,7 +374,6 @@ const activeAccountType = ref<string>('password')
 
 // 当前登录参数里的 login_type
 const loginType = computed(() => activeAccountType.value)
-
 const isPasswordLogin = computed(() => activeAccountType.value === 'password')
 
 // 表单验证规则（对齐旧页面逻辑：账号=A 动态）
@@ -396,22 +399,31 @@ const rules = computed<FormRules>(() => {
   return baseRules
 })
 
+const resetLoginForm = () => {
+  loginForm.login_account = ''
+  loginForm.password = ''
+  loginForm.code = ''
+  sendCodeRefs.value.forEach(ref => ref?.reset?.())
+  formRef.value?.clearValidate()
+}
+
+const resolveActiveType = (types: LoginTypeItem[]) => {
+  if (!types.length)
+    return 'password'
+  const firstValue = types[0]?.value
+  if (firstValue)
+    return firstValue
+  const fallback = types.find(t => t.value === 'password' || t.value === 'email' || t.value === 'phone')
+  return fallback?.value || 'password'
+}
+
 watch(
   () => loginTypes.value,
-  (newVal) => {
-    if (!newVal || newVal.length === 0) return
-    const firstType = newVal[0]
-    const firstValue = firstType?.value
-    if (firstValue) {
-      activeAccountType.value = firstValue
-    } else {
-      const fallback = newVal.find(t => t.value === 'password' || t.value === 'email' || t.value === 'phone')
-      activeAccountType.value = fallback?.value || 'password'
-    }
-
-    loginForm.value = { ...loginForm.value, login_account: '', password: '', code: '' }
-    sendCodeRefs.value.forEach(ref => ref?.reset?.())
-    formRef.value?.clearValidate()
+  (types) => {
+    if (!types.length)
+      return
+    activeAccountType.value = resolveActiveType(types)
+    resetLoginForm()
   },
   { immediate: true }
 )
@@ -441,16 +453,44 @@ const forgotForm = reactive({
 
 const openForgotDialog = () => {
   forgotVisible.value = true
-  forgotStep.value = 1
-  forgotForm.account = ''
-  forgotForm.code = ''
-  forgotForm.newPassword = ''
-  forgotForm.confirmPassword = ''
+  resetForgotForm()
 }
 
 // 账号格式校验
 const isValidEmail = (str: string) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(str)
 const isValidPhone = (str: string) => /^1[3-9]\d{9}$/.test(str)
+
+const forgotTimer = ref<ReturnType<typeof setInterval> | null>(null)
+
+const clearForgotTimer = () => {
+  if (forgotTimer.value) {
+    clearInterval(forgotTimer.value)
+    forgotTimer.value = null
+  }
+}
+
+const startForgotCountdown = () => {
+  forgotCountdown.value = 60
+  clearForgotTimer()
+  forgotTimer.value = setInterval(() => {
+    if (forgotCountdown.value <= 1) {
+      clearForgotTimer()
+      forgotCountdown.value = 0
+    } else {
+      forgotCountdown.value--
+    }
+  }, 1000)
+}
+
+const resetForgotForm = () => {
+  forgotStep.value = 1
+  forgotForm.account = ''
+  forgotForm.code = ''
+  forgotForm.newPassword = ''
+  forgotForm.confirmPassword = ''
+  forgotCountdown.value = 0
+  clearForgotTimer()
+}
 
 const sendForgotCode = async () => {
   if (!forgotForm.account) return ElMessage.warning('请输入邮箱或手机号')
@@ -463,17 +503,7 @@ const sendForgotCode = async () => {
   try {
     await UsersApi.sendCode({ account: forgotForm.account, scene: 'forget' })
     ElMessage.success('验证码已发送')
-    
-    // 倒计时
-    forgotCountdown.value = 60
-    const timer = setInterval(() => {
-      if (forgotCountdown.value <= 1) {
-        clearInterval(timer)
-        forgotCountdown.value = 0
-      } else {
-        forgotCountdown.value--
-      }
-    }, 1000)
+    startForgotCountdown()
   } catch (error: any) {
     ElMessage.error(error?.message || '发送失败')
   } finally {
@@ -554,17 +584,17 @@ const handleSubmit = async () => {
 const submitForm = async () => {
   isSubmitting.value = true
   try {
-    const param: any = {
+    const account = loginForm.login_account.trim()
+    const param: Record<string, any> = {
       login_type: loginType.value,
-      remember: loginForm.value.remember
+      remember: loginForm.remember,
+      login_account: account
     }
 
     if (loginType.value === 'password') {
-      param.login_account = loginForm.value.login_account
-      param.password = loginForm.value.password
+      param.password = loginForm.password
     } else {
-      param.login_account = loginForm.value.login_account
-      param.code = loginForm.value.code
+      param.code = loginForm.code
     }
 
     const data: any = await UsersApi.login(param)
@@ -601,34 +631,29 @@ const handleLoginSuccess = async (data: any) => {
 
 // 记住密码（仅前端记住输入，用 localStorage；不再依赖项目外的 utils/auth）
 const rememberPwd = () => {
-  if (loginForm.value.remember) {
-    localStorage.setItem('loginRemember', '1')
-    localStorage.setItem('loginAccount', loginForm.value.login_account)
+  if (loginForm.remember) {
+    localStorage.setItem(LOGIN_REMEMBER_KEY, '1')
+    localStorage.setItem(LOGIN_ACCOUNT_KEY, loginForm.login_account)
   } else {
-    localStorage.removeItem('loginRemember')
-    localStorage.removeItem('loginAccount')
+    localStorage.removeItem(LOGIN_REMEMBER_KEY)
+    localStorage.removeItem(LOGIN_ACCOUNT_KEY)
   }
 }
 
 // 从缓存获取登录表单（本文件内实现）
 const getLoginFormCache = () => {
-  const remember = localStorage.getItem('loginRemember') === '1'
-  if (!remember) return
+  const remember = localStorage.getItem(LOGIN_REMEMBER_KEY) === '1'
+  if (!remember)
+    return
 
-  loginForm.value.login_account = localStorage.getItem('loginAccount') || ''
-  loginForm.value.remember = true
+  loginForm.login_account = localStorage.getItem(LOGIN_ACCOUNT_KEY) || ''
+  loginForm.remember = true
 }
 
 // Tab切换处理
 const handleTabChange = (method: string) => {
   activeAccountType.value = method
-  formRef.value?.clearValidate()
-
-  loginForm.value.login_account = ''
-  loginForm.value.password = ''
-  loginForm.value.code = ''
-
-  sendCodeRefs.value.forEach(ref => ref?.reset?.())
+  resetLoginForm()
 }
 
 onMounted(() => {
@@ -636,6 +661,11 @@ onMounted(() => {
     loginTypes.value = res?.login_type_arr || res?.data?.login_type_arr || []
   })
   getLoginFormCache()
+})
+
+watch(() => forgotVisible.value, (visible) => {
+  if (!visible)
+    resetForgotForm()
 })
 </script>
 
