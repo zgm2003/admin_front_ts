@@ -27,7 +27,13 @@ Promise.all([
 // 移除原生 loading
 const removeLoading = () => {
   const el = document.getElementById('app-loading')
-  if (el) el.remove()
+  if (el) {
+    el.classList.add('fade-out')
+    // 动画结束后从 DOM 移除，避免内存占用
+    setTimeout(() => {
+      el.remove()
+    }, 600)
+  }
 }
 
 // 先挂载应用，再初始化动态路由

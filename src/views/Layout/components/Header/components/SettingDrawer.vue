@@ -46,6 +46,9 @@
           >
             <el-icon v-if="menuStore.systemColor === c.value" :size="14"><Check /></el-icon>
           </div>
+          <div class="color-item custom-picker-wrapper">
+            <el-color-picker v-model="customColor" @change="onCustomColor" />
+          </div>
         </div>
       </div>
       
@@ -134,6 +137,7 @@ const menuStore = useMenuStore()
 const tauriStore = useTauriStore()
 const { t } = useI18n()
 const isDark = ref(localStorage.getItem('theme') === 'dark')
+const customColor = ref(menuStore.systemColor)
 
 // 企业简约风配色
 const themeColors = ref([
@@ -144,7 +148,6 @@ const themeColors = ref([
   { label: '稳重青', value: '#0891B2' },
   { label: '优雅紫', value: '#7C3AED' },
   { label: '活力橙', value: '#EA580C' },
-  { label: '经典红', value: '#DC2626' },
 ])
 
 const transitionOptions = ref([
@@ -165,6 +168,11 @@ function onThemeChange(dark: boolean) {
 function systemColor(color: string) {
   menuStore.changeSystemColor(color)
   document.documentElement.style.setProperty('--el-color-primary', color)
+  customColor.value = color
+}
+
+function onCustomColor(color: string | null) {
+  if (color) systemColor(color)
 }
 
 function breadcrumb(val: string | number | boolean) { menuStore.changeBreadcrumb(val as boolean) }
@@ -197,6 +205,7 @@ function resetTheme() {
 .theme-option { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; border: 2px solid var(--el-border-color); border-radius: 8px; cursor: pointer; transition: all 0.15s; color: var(--el-text-color-regular); &:hover { border-color: var(--el-color-primary-light-5); color: var(--el-text-color-primary); } &.active { border-color: var(--el-color-primary); background: var(--el-color-primary-light-9); color: var(--el-color-primary); } span { font-size: 13px; font-weight: 500; } }
 .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 .color-item { aspect-ratio: 1; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; border: 2px solid transparent; &:hover { transform: scale(1.05); } &.active { border-color: var(--el-text-color-primary); box-shadow: 0 0 0 2px var(--el-bg-color); } }
+.custom-picker-wrapper { border: 2px dashed var(--el-border-color); background: var(--el-fill-color-lighter); :deep(.el-color-picker) { width: 100%; height: 100%; } :deep(.el-color-picker__trigger) { width: 100%; height: 100%; padding: 0; border: none; border-radius: 6px; } }
 .setting-list { display: flex; flex-direction: column; gap: 4px; }
 .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--el-border-color-lighter); &:last-child { border-bottom: none; } span { font-size: 14px; color: var(--el-text-color-primary); } }
 .setting-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--el-border-color-lighter); }
