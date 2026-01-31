@@ -21,9 +21,9 @@ const loading = ref(false)
 const confirmEdit = () => {
   const param = {
     avatar: props.userinfo.avatar,
-    username: props.userinfo.username,
+    username: props.userinfo.username?.trim?.() || props.userinfo.username,
     sex: props.userinfo.sex,
-    birthday: props.userinfo.birthday,
+    birthday: props.userinfo.birthday || null,
     address: props.userinfo.address,
     detail_address: props.userinfo.detail_address,
     bio: props.userinfo.bio,
