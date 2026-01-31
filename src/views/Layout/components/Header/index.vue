@@ -10,9 +10,11 @@
       </button>
       
       <el-breadcrumb v-if="menuStore.breadcrumb && !isMobile" separator="/">
-        <el-breadcrumb-item v-for="item in menuStore.tabList" :key="item.index" :to="{ path: item.path }" replace>
-          {{ getBreadcrumbLabel(item) }}
-        </el-breadcrumb-item>
+        <transition-group name="breadcrumb">
+          <el-breadcrumb-item v-for="item in breadcrumbs" :key="item.index" :to="item.path ? { path: item.path } : undefined">
+            {{ getBreadcrumbLabel(item) }}
+          </el-breadcrumb-item>
+        </transition-group>
       </el-breadcrumb>
     </div>
     
@@ -54,13 +56,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import { Search, Setting, FullScreen, Expand, Fold } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
+import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/utils/theme'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
@@ -68,11 +71,32 @@ import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
 
 const menuStore = useMenuStore()
+const userStore = useUserStore()
 const { t, locale } = useI18n()
 
 const isDark = ref(false)
 const drawer = ref(false)
 const searchOpen = ref(false)
+
+const breadcrumbs = computed(() => {
+  const selectedIndex = menuStore.selectedMenu
+  if (!selectedIndex || selectedIndex === '0') {
+    return [{ index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' }]
+  }
+
+  const getPath = (items: any[], target: string): any[] | null => {
+    for (const item of items) {
+      if (String(item.index) === target) return [item]
+      if (item.children && item.children.length > 0) {
+        const subPath = getPath(item.children, target)
+        if (subPath) return [item, ...subPath]
+      }
+    }
+    return null
+  }
+
+  return getPath(userStore.permissions, selectedIndex) || []
+})
 
 function getBreadcrumbLabel(item: any) {
   return resolveMenuLabel(t, item)
@@ -104,7 +128,55 @@ function setLang(lang: string) {
 
 <style scoped lang="scss">
 .header-bar { display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 20px; background: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-lighter); }
-.header-left { display: flex; align-items: center; gap: 16px; }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden; // 防止面包屑过长撑开
+  flex: 1;
+}
+
+:deep(.el-breadcrumb) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  
+  .el-breadcrumb__item {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    
+    .el-breadcrumb__inner {
+      max-width: 120px; // 限制单项最大宽度
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+/* 面包屑切换动画 */
+.breadcrumb-enter-active,
+.breadcrumb-leave-active {
+  transition: all 0.3s ease;
+}
+
+.breadcrumb-enter-from,
+.breadcrumb-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.breadcrumb-move {
+  transition: all 0.3s ease;
+}
+
+.breadcrumb-leave-active {
+  position: absolute;
+}
+
 .menu-toggle, .header-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 8px; color: var(--el-text-color-regular); cursor: pointer; transition: all 0.15s; &:hover { background: var(--el-fill-color-light); color: var(--el-text-color-primary); } }
 .header-right { display: flex; align-items: center; gap: 4px; }
 
