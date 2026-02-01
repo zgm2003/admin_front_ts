@@ -101,7 +101,10 @@ export default {
       batchEdit: '批量修改',
       action: '操作',
       detail: '详情',
+      view: '查看',
       close: '关闭',
+      expand: '展开',
+      collapse: '收起',
       selectAll: '全选',
       refresh: '刷新'
     },
@@ -968,11 +971,14 @@ export default {
     }
   },
   notification: {
-    title: '通知',
+    title: '通知中心',
     empty: '暂无通知',
     markAllRead: '全部已读',
     loadMore: '加载更多',
-    newNotification: '收到新通知'
+    newNotification: '收到新通知',
+    unreadCount: '{count} 条未读通知',
+    allRead: '已处理所有通知',
+    delete: '删除'
   },
   notificationTask: {
     title: '标题',

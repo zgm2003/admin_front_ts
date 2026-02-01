@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, Delete } from '@element-plus/icons-vue'
+import { Bell, Check, Delete, ArrowRight, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { ElNotification } from 'element-plus'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -18,6 +18,12 @@ const isMobile = useIsMobile()
 const visible = ref(false)
 const unreadCount = ref(0)
 const { list, loading, hasMore, loadInitial, loadMore, prepend } = useLogStream<NotificationItem>({ api: NotificationApi, pageSize: 20 })
+
+const expandedItems = ref<Set<string | number>>(new Set())
+const toggleExpand = (id: string | number) => {
+  if (expandedItems.value.has(id)) expandedItems.value.delete(id)
+  else expandedItems.value.add(id)
+}
 
 // 跳转链接
 const navigateTo = (link?: string) => {
@@ -103,25 +109,85 @@ onUnmounted(() => unsubscribe?.())
     <div class="notification-panel">
       <!-- 头部 -->
       <div class="panel-header">
-        <span class="title">{{ t('notification.title') }}</span>
-        <el-button v-if="unreadCount > 0" type="primary" link size="small" @click="markAllRead">
+        <div class="header-left">
+          <span class="title">{{ t('notification.title') }}</span>
+          <span v-if="unreadCount > 0" class="unread-dot-label">
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
+          </span>
+        </div>
+        <el-button v-if="unreadCount > 0" type="primary" link size="small" @click="markAllRead" class="mark-all-btn">
           <el-icon><Check /></el-icon>
           {{ t('notification.markAllRead') }}
         </el-button>
       </div>
 
       <!-- 列表 -->
-      <div class="panel-body" v-loading="loading && list.length === 0">
+      <div class="panel-body no-scrollbar" v-loading="loading && list.length === 0">
         <template v-if="list.length > 0">
-          <div v-for="(item, index) in list" :key="item.id" :class="['notification-item', { unread: item.is_read === UNREAD }]" @click="handleClick(item)">
-            <div class="item-content">
-              <div class="item-title"><span class="dot" v-if="item.is_read === UNREAD" />{{ item.title }}</div>
-              <div class="item-desc" v-if="item.content">{{ item.content }}</div>
-              <div class="item-time">{{ formatTimeAgo(item.created_at) }}</div>
+          <transition-group name="list-fade">
+            <div 
+              v-for="(item, index) in list" 
+              :key="item.id" 
+              :class="[
+                'notification-item', 
+                { unread: item.is_read === UNREAD },
+                { 'is-urgent': item.level === 'urgent' }
+              ]" 
+              @click="handleClick(item)"
+            >
+              <!-- 业务图标适配 -->
+              <div class="item-icon-wrapper" :class="item.type">
+                <el-icon v-if="item.type === 'success'"><Check /></el-icon>
+                <el-icon v-else-if="item.type === 'error'"><Delete /></el-icon>
+                <el-icon v-else><Bell /></el-icon>
+              </div>
+
+              <div class="item-content">
+                <div class="item-title-row">
+                  <div class="item-title">
+                    <span class="unread-dot" v-if="item.is_read === UNREAD" />
+                    {{ item.title }}
+                  </div>
+                  <div class="item-time">{{ formatTimeAgo(item.created_at) }}</div>
+                </div>
+
+                <div class="item-desc-wrapper">
+                  <div 
+                    class="item-desc" 
+                    v-if="item.content"
+                    :class="{ expanded: expandedItems.has(item.id) }"
+                  >
+                    {{ item.content }}
+                  </div>
+                  <div v-if="item.content && item.content.length > 40" class="expand-action" @click.stop="toggleExpand(item.id)">
+                    {{ expandedItems.has(item.id) ? t('common.actions.collapse') : t('common.actions.expand') }}
+                    <el-icon><component :is="expandedItems.has(item.id) ? ArrowUp : ArrowDown" /></el-icon>
+                  </div>
+                </div>
+
+                <div class="item-footer">
+                  <div class="tags">
+                    <el-tag v-if="item.level === 'urgent'" size="small" type="warning" effect="plain" class="urgent-tag">Urgent</el-tag>
+                    <span v-if="item.is_read === UNREAD" class="new-tag">NEW</span>
+                  </div>
+                  <div class="actions">
+                    <el-button v-if="item.link" type="primary" link size="small" class="go-btn">
+                      {{ t('common.actions.detail') }}
+                      <el-icon><ArrowRight /></el-icon>
+                    </el-button>
+                    <el-button type="danger" link size="small" class="delete-btn" @click.stop="handleDelete(item, index)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <el-button type="danger" link size="small" class="delete-btn" @click.stop="handleDelete(item, index)"><el-icon><Delete /></el-icon></el-button>
+          </transition-group>
+          <div class="load-more" v-if="hasMore">
+            <el-button type="primary" link :loading="loading" @click="loadMore">
+              {{ t('notification.loadMore') }}
+            </el-button>
           </div>
-          <div class="load-more" v-if="hasMore"><el-button type="primary" link :loading="loading" @click="loadMore">{{ t('notification.loadMore') }}</el-button></div>
         </template>
         <el-empty v-else-if="!loading" :description="t('notification.empty')" :image-size="80" />
       </div>
@@ -129,18 +195,287 @@ onUnmounted(() => unsubscribe?.())
   </el-popover>
 </template>
 
-<style scoped>
-.notification-badge { display: flex; }
-.trigger-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 8px; color: var(--el-text-color-regular); cursor: pointer; transition: all 0.15s; &:hover { background: var(--el-fill-color-light); color: var(--el-text-color-primary); } }
-.notification-panel { margin: -12px; }
-.panel-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--el-border-color-lighter); .title { font-weight: 600; font-size: 14px; } }
-.panel-body { max-height: 400px; overflow-y: auto; }
-.notification-item { display: flex; align-items: flex-start; padding: 12px 16px; cursor: pointer; transition: background-color 0.2s; &:hover { background: var(--el-fill-color-light); .delete-btn { opacity: 1; } } &.unread { background: var(--el-color-primary-light-9); &:hover { background: var(--el-color-primary-light-8); } } }
-.item-content { flex: 1; min-width: 0; }
-.item-title { display: flex; align-items: center; font-size: 14px; font-weight: 500; color: var(--el-text-color-primary); margin-bottom: 4px; .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--el-color-primary); margin-right: 8px; flex-shrink: 0; } }
-.item-desc { font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item-time { font-size: 12px; color: var(--el-text-color-placeholder); }
-.delete-btn { opacity: 0; transition: opacity 0.2s; }
-.load-more { text-align: center; padding: 12px; }
-@media (max-width: 768px) { .trigger-btn { width: 32px; height: 32px; } .panel-body { max-height: 60vh; } .delete-btn { opacity: 1; } }
+<style scoped lang="scss">
+.notification-badge {
+  display: flex;
+  :deep(.el-badge__content) {
+    top: 6px;
+    right: 6px;
+    border: none;
+    box-shadow: 0 0 0 2px var(--el-bg-color);
+  }
+}
+
+.trigger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: var(--el-fill-color-light);
+    color: var(--el-color-primary);
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.notification-panel {
+  margin: -12px;
+  background: var(--el-bg-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-blank);
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .title {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--el-text-color-primary);
+    }
+    
+    .unread-dot-label {
+      padding: 0 6px;
+      height: 18px;
+      line-height: 18px;
+      background: var(--el-color-primary-light-9);
+      color: var(--el-color-primary);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  }
+  
+  .mark-all-btn {
+    font-weight: 600;
+    font-size: 13px;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.panel-body {
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 1px solid transparent;
+  
+  &:hover {
+    background: var(--el-fill-color-light);
+    .delete-btn { opacity: 1; }
+  }
+  
+  &.unread {
+    background: var(--el-color-primary-light-9);
+    &:hover {
+      background: var(--el-color-primary-light-8);
+    }
+  }
+  
+  &.is-urgent {
+    border-left: 2px solid var(--el-color-warning);
+  }
+}
+
+.item-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-secondary);
+  border: 1px solid var(--el-border-color-lighter);
+  
+  &.success {
+    background: var(--el-color-success-light-9);
+    color: var(--el-color-success);
+    border-color: var(--el-color-success-light-8);
+  }
+  &.error {
+    background: var(--el-color-danger-light-9);
+    color: var(--el-color-danger);
+    border-color: var(--el-color-danger-light-8);
+  }
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+  
+  .item-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    
+    .item-title {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+      line-height: 1.4;
+      
+      .unread-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--el-color-primary);
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+    }
+    
+    .item-time {
+      font-size: 12px;
+      color: var(--el-text-color-placeholder);
+      flex-shrink: 0;
+    }
+  }
+}
+
+.item-desc-wrapper {
+  margin-bottom: 8px;
+  
+  .item-desc {
+    font-size: 13px;
+    color: var(--el-text-color-secondary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    transition: all 0.3s;
+    
+    &.expanded {
+      -webkit-line-clamp: unset;
+    }
+  }
+  
+  .expand-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--el-color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    cursor: pointer;
+    
+    &:hover { opacity: 1; }
+  }
+}
+
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    .urgent-tag {
+      font-weight: 800;
+      border-radius: 4px;
+      padding: 0 6px;
+      height: 18px;
+    }
+    
+    .new-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--el-color-primary);
+      background: var(--el-color-primary-light-8);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .go-btn {
+      font-weight: 600;
+      font-size: 12px;
+      .el-icon { margin-left: 2px; }
+    }
+    
+    .delete-btn {
+      opacity: 0;
+      transition: all 0.2s;
+      font-size: 16px;
+    }
+  }
+}
+
+.load-more {
+  text-align: center;
+  padding: 16px;
+  border-top: 1px solid var(--el-border-color-extra-light);
+}
+
+/* 列表过渡动画 */
+.list-fade-enter-active,
+.list-fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.list-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.list-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width: 768px) {
+  .panel-body { max-height: 60vh; }
+  .delete-btn { opacity: 1 !important; }
+}
 </style>

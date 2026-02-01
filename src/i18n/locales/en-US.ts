@@ -101,7 +101,10 @@ export default {
       batchEdit: 'Batch Edit',
       action: 'Actions',
       detail: 'Detail',
+      view: 'View',
       close: 'Close',
+      expand: 'Expand',
+      collapse: 'Collapse',
       selectAll: 'Select All',
       refresh: 'Refresh'
     },
@@ -867,7 +870,10 @@ export default {
     empty: 'No notifications',
     markAllRead: 'Mark all as read',
     loadMore: 'Load more',
-    newNotification: 'New notification received'
+    newNotification: 'New notification received',
+    unreadCount: '{count} unread notifications',
+    allRead: 'All caught up',
+    delete: 'Delete'
   },
   notificationTask: {
     title: 'Title',
