@@ -981,6 +981,7 @@ export default {
     level: '级别',
     levelHelp: '普通：仅更新角标；紧急：弹窗提醒',
     link: '跳转链接',
+    platform: '推送平台',
     targetType: '目标类型',
     status: '状态',
     errorMsg: '错误信息',

@@ -869,6 +869,29 @@ export default {
     loadMore: 'Load more',
     newNotification: 'New notification received'
   },
+  notificationTask: {
+    title: 'Title',
+    content: 'Content',
+    type: 'Type',
+    level: 'Level',
+    levelHelp: 'Normal: badge only; Urgent: popup alert',
+    link: 'Link',
+    platform: 'Platform',
+    targetType: 'Target',
+    status: 'Status',
+    errorMsg: 'Error',
+    progress: 'Progress',
+    sendAt: 'Send Time',
+    sendAtPlaceholder: 'Empty for immediate',
+    immediate: 'Immediate',
+    publish: 'Publish',
+    cancel: 'Cancel',
+    cancelConfirm: 'Are you sure to cancel this task?',
+    selectUsers: 'Select Users',
+    selectRoles: 'Select Roles',
+    searchUsers: 'Search users',
+    searchRoles: 'Search roles'
+  },
   components: {
     upMedia: {
       imagePlaceholder: 'Or enter image URL',

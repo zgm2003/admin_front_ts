@@ -25,6 +25,7 @@ const searchForm = ref({status: '', title: ''})
 const typeArr = ref<any[]>([])
 const levelArr = ref<any[]>([])
 const targetTypeArr = ref<any[]>([])
+const platformArr = ref<any[]>([])
 
 const loadStatusCount = () => {
   NotificationTaskApi.statusCount({title: searchForm.value.title}).then((data: any) => {
@@ -64,6 +65,7 @@ const columns = [
   {key: 'title', label: t('notificationTask.title')},
   {key: 'type', label: t('notificationTask.type')},
   {key: 'level', label: t('notificationTask.level')},
+  {key: 'platform', label: t('notificationTask.platform'), width: 120},
   {key: 'target_type', label: t('notificationTask.targetType')},
   {key: 'progress', label: t('notificationTask.progress')},
   {key: 'status', label: t('notificationTask.status')},
@@ -96,13 +98,14 @@ const form = ref({
   type: 1,
   level: 1,
   link: '',
+  platform: 'all',
   target_type: 1,
   target_ids: [] as number[],
   send_at: ''
 })
 
 const showAdd = () => {
-  form.value = {title: '', content: '', type: 1, level: 1, link: '', target_type: 1, target_ids: [], send_at: ''}
+  form.value = {title: '', content: '', type: 1, level: 1, link: '', platform: 'all', target_type: 1, target_ids: [], send_at: ''}
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
@@ -141,6 +144,7 @@ onMounted(() => {
     typeArr.value = data.dict.notification_type_arr
     levelArr.value = data.dict.notification_level_arr
     targetTypeArr.value = data.dict.notification_target_type_arr
+    platformArr.value = data.dict.platformArr
   })
   loadStatusCount()
 })
@@ -172,6 +176,10 @@ onMounted(() => {
       
       <template #cell-level="{row}">
         <el-tag :type="row.level === 2 ? 'danger' : 'info'" size="small">{{ row.level_text }}</el-tag>
+      </template>
+      
+      <template #cell-platform="{row}">
+        <el-tag size="small">{{ row.platform_text }}</el-tag>
       </template>
       
       <template #cell-target_type="{row}">
@@ -230,6 +238,11 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('notificationTask.link')">
           <el-input v-model="form.link" placeholder="/path/to/page" />
+        </el-form-item>
+        <el-form-item :label="t('notificationTask.platform')">
+          <el-radio-group v-model="form.platform">
+            <el-radio v-for="item in platformArr" :key="item.value" :value="item.value">{{ item.label }}</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item :label="t('notificationTask.targetType')" prop="target_type" :rules="[{required: true, message: t('notificationTask.targetType') + t('common.required')}]">
           <el-radio-group v-model="form.target_type" @change="form.target_ids = []">
