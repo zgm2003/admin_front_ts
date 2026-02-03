@@ -30,7 +30,9 @@
         <div class="brand-content">
           <div class="brand-header animate-fade-in-down">
             <div class="logo-box">
-              <el-image src="/logo.png" />
+              <div class="logo-icon">
+                <img src="/logo.png" alt="Logo" />
+              </div>
             </div>
             <div class="brand-info">
               <h2 class="brand-name">智澜系统</h2>
@@ -822,6 +824,23 @@ watch(() => forgotVisible.value, (visible) => {
       transform: rotate(15deg) scale(1.1);
       box-shadow: 0 15px 30px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.3);
     }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--el-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      img {
+        width: 24px;
+        height: 24px;
+        filter: brightness(0) invert(1);
+      }
+    }
   }
 
   .brand-name { font-size: 26px; font-weight: 800; margin: 0; color: #111827; }
@@ -952,6 +971,23 @@ watch(() => forgotVisible.value, (visible) => {
     align-items: center;
     justify-content: center;
     margin-bottom: 12px;
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--el-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      img {
+        width: 24px;
+        height: 24px;
+        filter: brightness(0) invert(1);
+      }
+    }
   }
   .brand-name { font-size: 24px; font-weight: 800; color: #111827; }
 }
