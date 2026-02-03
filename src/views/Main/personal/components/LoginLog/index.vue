@@ -18,7 +18,7 @@ const logList = ref<any[]>([])
 
 const getList = () => {
   loading.value = true
-  UsersLoginLogApi.list({page: 1, page_size: 5, user_id: props.userId}).then((data: any) => {
+  UsersLoginLogApi.list({current_page: 1, page_size: 5, user_id: props.userId}).then((data: any) => {
     logList.value = data.list || []
   }).finally(() => {
     loading.value = false

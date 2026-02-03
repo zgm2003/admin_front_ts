@@ -5,7 +5,7 @@ import { AiMessageApi } from '@/api/ai/messages'
 import { useCopy } from '@/hooks/useCopy'
 import type { Message } from './types'
 
-const PAGE_SIZE = 200
+const PAGE_SIZE = 50
 
 export function useMessages() {
   const {t} = useI18n()
