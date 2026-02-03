@@ -30,6 +30,7 @@ export const useMenuStore = defineStore('menu', {
       this.breadcrumb = false
       this.screenfull = false
       this.drawer = false
+      this.collapse = false
     },
     toggleCollapse(isMobile: boolean) {
       if (isMobile) this.drawer = !this.drawer

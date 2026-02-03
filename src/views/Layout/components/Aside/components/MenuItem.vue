@@ -32,7 +32,6 @@ const hasChildren = computed(() => props.item.children?.length > 0);
 
 function handleClick(item: any) {
   router.push(item.path);
-  menuStore.selectMenu(item);
   menuStore.closeDrawer();
 }
 </script>

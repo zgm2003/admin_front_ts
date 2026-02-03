@@ -83,7 +83,7 @@ const confirmLogout = () => {
 
 <style scoped lang="scss">
 .aside-wrapper { display: flex; flex-direction: column; height: 100%; background: var(--el-bg-color); }
-.aside-menu { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; border-right: none; background: transparent; width: 64px; transition: width 0.2s; &:not(.el-menu--collapse) { width: 220px; } }
+.aside-menu { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; border-right: none; background: transparent; width: 64px; &:not(.el-menu--collapse) { width: 220px; } }
 
 .logo-container { display: flex; align-items: center; height: 60px; padding: 0 20px; gap: 12px; border-bottom: 1px solid var(--el-border-color-lighter); &.is-collapse { padding: 0; justify-content: center; } }
 .logo-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--el-color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; img { width: 24px; height: 24px; filter: brightness(0) invert(1); } }
