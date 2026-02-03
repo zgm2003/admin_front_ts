@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from 'vue'
+import { computed, shallowRef, watchEffect } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Component } from 'vue'
 
@@ -55,18 +55,21 @@ async function resolveElementPlusIcon(name: string): Promise<Component | null> {
   }
 }
 
-watch(
-  () => props.icon,
-  async (val) => {
-    if (!val || isIconify.value) {
-      resolvedEpIcon.value = null
-      return
-    }
+watchEffect(async () => {
+  const iconName = props.icon
+  if (!iconName || isIconify.value) {
+    resolvedEpIcon.value = null
+    return
+  }
 
-    resolvedEpIcon.value = await resolveElementPlusIcon(val)
-  },
-  { immediate: true }
-)
+  // Try to resolve from cache synchronously first
+  if (epIconCache.has(iconName)) {
+    resolvedEpIcon.value = epIconCache.get(iconName) ?? null
+  } else {
+    // If not in cache, then go async
+    resolvedEpIcon.value = await resolveElementPlusIcon(iconName)
+  }
+})
 </script>
 
 <style scoped>
