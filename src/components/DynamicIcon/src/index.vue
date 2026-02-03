@@ -1,9 +1,11 @@
 <template>
   <!-- Iconify 图标 -->
-  <Icon v-if="isIconify && icon" :icon="icon" :width="size" :height="size" />
+  <el-icon v-if="isIconify && icon" :size="size" class="dynamic-icon">
+    <Icon :icon="icon" class="iconify" />
+  </el-icon>
 
   <!-- Element Plus 图标（运行时按需加载） -->
-  <el-icon v-else-if="resolvedEpIcon" :size="size">
+  <el-icon v-else-if="resolvedEpIcon" :size="size" class="dynamic-icon">
     <component :is="resolvedEpIcon" />
   </el-icon>
 </template>
@@ -68,9 +70,15 @@ watch(
 </script>
 
 <style scoped>
-.el-icon {
+.dynamic-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.dynamic-icon :deep(.iconify) {
+  width: 1em;
+  height: 1em;
+  display: block;
 }
 </style>
