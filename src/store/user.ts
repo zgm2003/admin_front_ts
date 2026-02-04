@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { UsersApi } from '@/api/user/users'
+import { HOME_MENU_ITEM } from './menu'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -39,7 +40,7 @@ export const useUserStore = defineStore('user', {
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'
         this.role_name = data.role_name || ''
-        data.permissions.unshift({ icon: 'HomeFilled', index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' })
+        data.permissions.unshift(HOME_MENU_ITEM)
         this.permissions = data.permissions
         this.router = data.router
         this.buttonCodes = data.buttonCodes || []

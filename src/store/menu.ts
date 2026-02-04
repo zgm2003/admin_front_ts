@@ -3,6 +3,15 @@ import { defineStore } from 'pinia'
 const LIGHT_SYSTEM_DEFAULT = '#409EFF'
 const DARK_SYSTEM_DEFAULT = '#1890ff'
 
+// 首页菜单配置（统一管理，避免硬编码）
+export const HOME_MENU_ITEM = {
+  index: '0',
+  label: '首页',
+  path: '/home',
+  icon: 'HomeFilled',
+  i18n_key: 'menu.home'
+} as const
+
 export const useMenuStore = defineStore('menu', {
   state: () => ({
     collapse: false,
@@ -10,9 +19,7 @@ export const useMenuStore = defineStore('menu', {
     selectedMenu: localStorage.getItem('selectedMenu') || '0',
     tabList: localStorage.getItem('tabList')
       ? JSON.parse(localStorage.getItem('tabList') as string)
-      : [
-          { index: '0', label: '首页', path: '/home', icon: 'HomeFilled' },
-        ],
+      : [HOME_MENU_ITEM],
     systemColor: localStorage.getItem('systemColor') || LIGHT_SYSTEM_DEFAULT,
     breadcrumb: localStorage.getItem('breadcrumb') !== 'false',
     hamburger: localStorage.getItem('hamburger') !== 'false',
@@ -53,7 +60,7 @@ export const useMenuStore = defineStore('menu', {
       }
     },
     clearTabList() {
-      this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
+      this.tabList = [HOME_MENU_ITEM]
       localStorage.setItem('tabList', JSON.stringify(this.tabList))
     },
     applyDefaultSystemColor(isDark: boolean) {
@@ -73,7 +80,7 @@ export const useMenuStore = defineStore('menu', {
     toggleContentFullscreen() { this.contentFullscreen = !this.contentFullscreen },
     reset() {
       this.selectedMenu = '0'
-      this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
+      this.tabList = [HOME_MENU_ITEM]
       localStorage.removeItem('selectedMenu')
       localStorage.removeItem('tabList')
     }

@@ -58,7 +58,7 @@ import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import { Search, Setting, Expand, Fold } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
-import { useMenuStore } from '@/store/menu.ts'
+import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/utils/theme'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -77,7 +77,7 @@ const searchOpen = ref(false)
 const breadcrumbs = computed(() => {
   const selectedIndex = menuStore.selectedMenu
   if (!selectedIndex || selectedIndex === '0') {
-    return [{ index: '0', label: '首页', path: '/home', i18n_key: 'menu.home' }]
+    return [HOME_MENU_ITEM]
   }
 
   const getPath = (items: any[], target: string): any[] | null => {
