@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import Cookies from 'js-cookie'
 
 const LIGHT_SYSTEM_DEFAULT = '#409EFF'
 const DARK_SYSTEM_DEFAULT = '#1890ff'
@@ -8,9 +7,9 @@ export const useMenuStore = defineStore('menu', {
   state: () => ({
     collapse: false,
     drawer: false,
-    selectedMenu: Cookies.get('selectedMenu') || '0',
-    tabList: Cookies.get('tabList')
-      ? JSON.parse(Cookies.get('tabList') as string)
+    selectedMenu: localStorage.getItem('selectedMenu') || '0',
+    tabList: localStorage.getItem('tabList')
+      ? JSON.parse(localStorage.getItem('tabList') as string)
       : [
           { index: '0', label: '首页', path: '/home', icon: 'HomeFilled' },
         ],
@@ -44,7 +43,7 @@ export const useMenuStore = defineStore('menu', {
         const index = this.tabList.findIndex((item: any) => item.index === val.index)
         if (index === -1) {
           this.tabList.push(val)
-          Cookies.set('tabList', JSON.stringify(this.tabList))
+          localStorage.setItem('tabList', JSON.stringify(this.tabList))
         }
       }
     },
@@ -52,12 +51,12 @@ export const useMenuStore = defineStore('menu', {
       const index = this.tabList.findIndex((item: any) => item.index === val.index)
       if (index !== -1) {
         this.tabList.splice(index, 1)
-        Cookies.set('tabList', JSON.stringify(this.tabList))
+        localStorage.setItem('tabList', JSON.stringify(this.tabList))
       }
     },
     clearTabList() {
       this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
-      Cookies.set('tabList', JSON.stringify(this.tabList))
+      localStorage.setItem('tabList', JSON.stringify(this.tabList))
     },
     applyDefaultSystemColor(isDark: boolean) {
       const def = isDark ? DARK_SYSTEM_DEFAULT : LIGHT_SYSTEM_DEFAULT
@@ -77,8 +76,8 @@ export const useMenuStore = defineStore('menu', {
     reset() {
       this.selectedMenu = '0'
       this.tabList = [{ index: '0', label: '首页', path: '/home', icon: 'HomeFilled' }]
-      Cookies.remove('selectedMenu')
-      Cookies.remove('tabList')
+      localStorage.removeItem('selectedMenu')
+      localStorage.removeItem('tabList')
     }
   },
 })

@@ -102,10 +102,11 @@ function handle401(originalRequest: any, messageFromServer?: string) {
       .then((refreshRes) => {
         const newData = refreshRes.data
         if (newData?.code === 0 && newData?.data) {
-          const { access_token, refresh_token: newRefreshToken, expires_in } = newData.data
-          const expires = new Date(new Date().getTime() + expires_in * 1000)
-          Cookies.set('access_token', access_token, { expires })
-          if (newRefreshToken) Cookies.set('refresh_token', newRefreshToken, { expires: 14 })
+          const { access_token, refresh_token: newRefreshToken, expires_in, refresh_expires_in } = newData.data;
+          const expires = new Date(new Date().getTime() + expires_in * 1000);
+          const refreshExpires = new Date(new Date().getTime() + refresh_expires_in * 1000);
+          Cookies.set('access_token', access_token, { expires });
+          Cookies.set('refresh_token', newRefreshToken, { expires: refreshExpires });
 
           isRefreshing = false
           processQueue(null, access_token)

@@ -105,7 +105,7 @@ router.afterEach((to) => {
     const menuId = (to.meta.menuId as string) || '';
     
     menuStore.selectedMenu = menuId;
-    Cookies.set('selectedMenu', menuId)
+    if (menuId) localStorage.setItem('selectedMenu', menuId)
 
     if (menuId) {
         // Use the flat permissionMap for O(1) lookup

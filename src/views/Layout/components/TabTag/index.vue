@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
 import { CircleClose, Close, DArrowLeft, DArrowRight, FolderDelete, Refresh, Setting } from '@element-plus/icons-vue'
 import { ElScrollbar } from 'element-plus'
+import { onClickOutside } from '@vueuse/core'
 
 const menuStore = useMenuStore()
 const router = useRouter()
@@ -75,6 +76,7 @@ const visible = ref(false)
 const top = ref(0)
 const left = ref(0)
 const selectedTag = ref<any>({})
+const contextMenuRef = ref<HTMLElement | null>(null)
 
 const openMenu = (tag: TagItem, e: MouseEvent) => {
   left.value = e.clientX
@@ -85,9 +87,8 @@ const openMenu = (tag: TagItem, e: MouseEvent) => {
 
 const closeMenu = () => { visible.value = false }
 
-watch(visible, (value) => {
-  if (value) document.body.addEventListener('click', closeMenu)
-  else document.body.removeEventListener('click', closeMenu)
+onClickOutside(contextMenuRef, () => {
+  if (visible.value) closeMenu()
 })
 
 const handleContextRefresh = () => {
@@ -160,7 +161,7 @@ const handleContextCloseAll = () => {
     </el-dropdown>
     
     <!-- 右键菜单 -->
-    <ul v-show="visible" class="context-menu" :style="{ left: left + 'px', top: top + 'px' }">
+    <ul ref="contextMenuRef" v-show="visible" class="context-menu" :style="{ left: left + 'px', top: top + 'px' }">
       <li @click="handleContextRefresh">
         <el-icon><Refresh /></el-icon>刷新
       </li>
