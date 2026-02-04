@@ -6,22 +6,9 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
-import { 
-  Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus,
-  // 常用图标按需导入
-  HomeFilled, Folder, Files, Management, Tools, DataAnalysis,
-  Monitor, Setting as SettingIcon, List, Grid, ChatDotRound,
-  Notification, Message, Bell, Star, Calendar, Location
-} from '@element-plus/icons-vue'
+import { Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus } from '@element-plus/icons-vue'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import draggable from 'vuedraggable'
-
-// 图标映射表（只包含常用图标）
-const iconMap: Record<string, any> = {
-  Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus,
-  HomeFilled, Folder, Files, Management, Tools, DataAnalysis,
-  Monitor, SettingIcon, List, Grid, ChatDotRound,
-  Notification, Message, Bell, Star, Calendar, Location
-}
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -124,9 +111,9 @@ const onDragEnd = async () => {
   }
 }
 
-// 获取图标组件（从映射表中获取，避免全量导入）
+// 动态获取图标组件（支持所有 Element Plus 图标）
 const getIconComponent = (iconName: string) => {
-  return iconMap[iconName] || Document
+  return (ElementPlusIconsVue as any)[iconName] || Document
 }
 
 // 最近活动（模拟数据）
