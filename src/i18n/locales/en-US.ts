@@ -156,6 +156,7 @@ export default {
     systemLog: 'System Log',
     // Component module
     component_upload: 'Upload',
+    component_download: 'Download Manager',
     component_form: 'Form',
     component_display: 'Display',
     component_effect: 'Effect',
@@ -262,6 +263,7 @@ export default {
     theme: 'Theme',
     settings: 'Settings',
     search: 'Search',
+    downloads: 'Downloads',
     systemTheme: 'System Theme',
     headerTheme: 'Header Theme',
     menuTheme: 'Menu Theme',
@@ -873,7 +875,9 @@ export default {
     newNotification: 'New notification received',
     unreadCount: '{count} unread notifications',
     allRead: 'All caught up',
-    delete: 'Delete'
+    delete: 'Delete',
+    urgent: 'Urgent',
+    new: 'New'
   },
   notificationTask: {
     title: 'Title',

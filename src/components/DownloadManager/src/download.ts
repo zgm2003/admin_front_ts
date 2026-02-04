@@ -106,7 +106,7 @@ class DownloadManager {
 
     if (!savePath) throw new Error('用户取消下载')
 
-    const id = `download_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const id = `download_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     this.callbacks.set(id, {
       onProgress: options.onProgress,
       onCompleted: options.onCompleted,
@@ -115,7 +115,6 @@ class DownloadManager {
 
     const filename = savePath.split(/[/\\]/).pop() || suggestedFilename
     await invoke('start_download', { id, url: options.url, savePath, filename })
-    ElMessage.success('开始下载')
     return id
   }
 
@@ -216,11 +215,13 @@ export const downloadFile = async (
     try {
       return await downloadManager.download({ url, filename, ...options })
     } catch (error: any) {
-      if (error.message !== '用户取消下载') {
-        console.error('[download] Error:', error)
-        await openUrl(url)
+      // 用户取消下载，直接返回，不做任何操作
+      if (error.message === '用户取消下载') {
+        return undefined
       }
-      return undefined
+      // 其他错误，记录日志并抛出
+      console.error('[download] Error:', error)
+      throw error
     }
   }
 

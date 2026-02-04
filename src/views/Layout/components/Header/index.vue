@@ -23,6 +23,13 @@
       <!-- 通知中心 -->
       <NotificationCenter />
       
+      <!-- 下载管理（仅 Tauri 环境） -->
+      <el-badge v-if="isTauri()" :value="downloadCount" :hidden="downloadCount === 0" :max="99">
+        <button class="header-btn" @click="showDownloadManager = true" :title="t('header.downloads')">
+          <el-icon :size="18"><Download /></el-icon>
+        </button>
+      </el-badge>
+      
       <el-dropdown trigger="click" @command="setLang">
         <button class="header-btn" :title="t('common.language')">
           <Icon icon="mdi:translate" width="18" />
@@ -49,6 +56,9 @@
   
   <SettingDrawer v-model="drawer" />
   <SearchDialog v-model="searchOpen" />
+  
+  <!-- 下载管理器抽屉（仅 Tauri 环境） -->
+  <DownloadManager v-if="isTauri()" v-model:visible="showDownloadManager" />
 </template>
 
 <script setup lang="ts">
@@ -56,7 +66,7 @@ import { ref, onMounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
-import { Search, Setting, Expand, Fold } from '@element-plus/icons-vue'
+import { Search, Setting, Expand, Fold, Download } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user'
@@ -65,6 +75,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
+import { isTauri, downloadManager, DownloadManager } from '@/components/DownloadManager'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
@@ -73,6 +84,8 @@ const { t, locale } = useI18n()
 const isDark = ref(false)
 const drawer = ref(false)
 const searchOpen = ref(false)
+const showDownloadManager = ref(false)
+const downloadCount = ref(0)
 
 const breadcrumbs = computed(() => {
   const selectedIndex = menuStore.selectedMenu
@@ -98,12 +111,25 @@ function getBreadcrumbLabel(item: any) {
   return resolveMenuLabel(t, item)
 }
 
+// 更新下载数量
+async function updateDownloadCount() {
+  if (!isTauri()) return
+  const downloads = await downloadManager.getAllDownloads()
+  downloadCount.value = downloads.filter(d => d.status === 'downloading').length
+}
+
 onMounted(() => {
   isDark.value = localStorage.getItem('theme') === 'dark'
   toggleDarkMode(isDark.value)
   // 不再强制重置为默认颜色，直接使用 store 中已持久化的主题色
   // menuStore.applyDefaultSystemColor(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
+  
+  // 定时更新下载数量（仅 Tauri 环境）
+  if (isTauri()) {
+    updateDownloadCount()
+    setInterval(updateDownloadCount, 2000)
+  }
 })
 
 const isMobile = useIsMobile()

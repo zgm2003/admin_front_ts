@@ -159,6 +159,7 @@ export default {
     systemLog: '系统日志',
     // 组件演示模块
     component_upload: '上传',
+    component_download: '下载管理器',
     component_form: '表单',
     component_display: '展示',
     component_effect: '特效',
@@ -265,6 +266,7 @@ export default {
     theme: '主题',
     settings: '设置',
     search: '搜索',
+    downloads: '下载管理',
     systemTheme: '系统主题',
     headerTheme: '头部主题',
     menuTheme: '菜单主题',
@@ -978,7 +980,9 @@ export default {
     newNotification: '收到新通知',
     unreadCount: '{count} 条未读通知',
     allRead: '已处理所有通知',
-    delete: '删除'
+    delete: '删除',
+    urgent: '紧急',
+    new: '新'
   },
   notificationTask: {
     title: '标题',

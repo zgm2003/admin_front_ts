@@ -63,11 +63,6 @@ const columns = [
   {key: 'actions', label: t('common.actions.action'), width: 180}
 ]
 
-const handleDownload = (row: any) => {
-  if (!row.file_url) return ElMessage.warning(t('exportTask.noFile'))
-  downloadFile(row.file_url, row.file_name)
-}
-
 const handleChangeStatus = () => {
   getList()
   refreshStatusCount()
@@ -122,7 +117,7 @@ onMounted(() => {
       </template>
       
       <template #cell-actions="{row}">
-        <el-button type="primary" text @click="handleDownload(row)" :disabled="row.status !== 2">{{ t('exportTask.download') }}</el-button>
+        <el-button type="primary" text @click="row.file_url ? downloadFile(row.file_url, row.file_name) : ElMessage.warning(t('exportTask.noFile'))" :disabled="row.status !== 2">{{ t('exportTask.download') }}</el-button>
         <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
       </template>
     </AppTable>

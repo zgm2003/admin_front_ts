@@ -167,8 +167,10 @@ onUnmounted(() => unsubscribe?.())
 
                 <div class="item-footer">
                   <div class="tags">
-                    <el-tag v-if="item.level === 'urgent'" size="small" type="warning" effect="plain" class="urgent-tag">Urgent</el-tag>
-                    <span v-if="item.is_read === UNREAD" class="new-tag">NEW</span>
+                    <el-tag v-if="item.level === 'urgent'" size="small" type="warning" effect="plain" class="urgent-tag">
+                      {{ t('notification.urgent') }}
+                    </el-tag>
+                    <span v-if="item.is_read === UNREAD" class="new-tag">{{ t('notification.new') }}</span>
                   </div>
                   <div class="actions">
                     <el-button v-if="item.link" type="primary" link size="small" class="go-btn">

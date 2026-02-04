@@ -183,7 +183,7 @@ const handleDownloadWithProgress = async () => {
   try {
     currentDownload.value = null
     
-    await downloadFile(testUrl.value, testFilename.value || undefined, {
+    const downloadId = await downloadFile(testUrl.value, testFilename.value || undefined, {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
@@ -198,10 +198,13 @@ const handleDownloadWithProgress = async () => {
         currentDownload.value = null
       },
     })
-  } catch (error: any) {
-    if (error.message !== '用户取消下载') {
-      ElMessage.error(error.message || '下载失败')
+    
+    // 用户取消时，清空当前下载状态
+    if (!downloadId) {
+      currentDownload.value = null
     }
+  } catch (error: any) {
+    ElMessage.error(error.message || '下载失败')
     currentDownload.value = null
   }
 }
