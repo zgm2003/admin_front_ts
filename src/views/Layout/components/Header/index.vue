@@ -9,7 +9,7 @@
         </el-icon>
       </button>
       
-      <el-breadcrumb v-if="menuStore.breadcrumb && !isMobile" separator="/">
+      <el-breadcrumb v-if="menuStore.breadcrumb" separator="/">
         <transition-group name="breadcrumb">
           <el-breadcrumb-item v-for="item in breadcrumbs" :key="item.index" :to="item.path ? { path: item.path } : undefined">
             {{ getBreadcrumbLabel(item) }}

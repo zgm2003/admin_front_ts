@@ -26,7 +26,6 @@ export const useMenuStore = defineStore('menu', {
   }),
   actions: {
     mobile() {
-      this.breadcrumb = false
       this.screenfull = false
       this.drawer = false
       this.collapse = false
