@@ -162,7 +162,9 @@ function onThemeChange(dark: boolean) {
   isDark.value = dark
   toggleDarkMode(dark)
   localStorage.setItem('theme', dark ? 'dark' : 'light')
-  menuStore.applyDefaultSystemColor(dark)
+  // 不再强制重置为默认颜色，保持用户选择的主题色
+  // menuStore.applyDefaultSystemColor(dark)
+  // 主题色已经在 localStorage 中持久化，直接应用即可
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
@@ -197,6 +199,8 @@ function clear() {
 function resetTheme() {
   onThemeChange(false)
   systemColor('#409EFF')
+  // 重置时也要应用默认颜色到 store
+  menuStore.applyDefaultSystemColor(false)
   ElNotification.success({ title: '提示', message: '配置已重置' })
 }
 </script>

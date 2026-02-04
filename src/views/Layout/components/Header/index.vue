@@ -105,7 +105,8 @@ function getBreadcrumbLabel(item: any) {
 onMounted(() => {
   isDark.value = localStorage.getItem('theme') === 'dark'
   toggleDarkMode(isDark.value)
-  menuStore.applyDefaultSystemColor(isDark.value)
+  // 不再强制重置为默认颜色，直接使用 store 中已持久化的主题色
+  // menuStore.applyDefaultSystemColor(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 })
 
