@@ -65,10 +65,6 @@
             <el-switch v-model="menuStore.hamburger" @change="hamburger" />
           </div>
           <div class="setting-item">
-            <span>{{ t('header.fullscreen') }}</span>
-            <el-switch v-model="menuStore.screenfull" @change="screenfull" />
-          </div>
-          <div class="setting-item">
             <span>{{ t('header.tab') }}</span>
             <el-switch v-model="menuStore.tabtag" @change="tabtag" />
           </div>
@@ -180,7 +176,6 @@ function onCustomColor(color: string | null) {
 
 function breadcrumb(val: string | number | boolean) { menuStore.changeBreadcrumb(val as boolean) }
 function hamburger(val: string | number | boolean) { menuStore.changeHamburger(val as boolean) }
-function screenfull(val: string | number | boolean) { menuStore.changeScreenfull(val as boolean) }
 function tabtag(val: string | number | boolean) { menuStore.changeTabtag(val as boolean) }
 function uniqueOpen(val: string | number | boolean) { menuStore.changeUniqueOpen(val as boolean) }
 function changeFooter(val: string | number | boolean) { menuStore.changeFooter(val as boolean) }

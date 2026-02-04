@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMenuStore } from '@/store/menu'
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
-import { CircleClose, Close, DArrowLeft, DArrowRight, FolderDelete, Refresh, Setting } from '@element-plus/icons-vue'
+import { CircleClose, Close, DArrowLeft, DArrowRight, FolderDelete, FullScreen, Refresh, Setting } from '@element-plus/icons-vue'
 import { ElScrollbar } from 'element-plus'
 import { onClickOutside } from '@vueuse/core'
 
@@ -55,6 +55,9 @@ const handleCommand = (command: string) => {
   switch (command) {
     case 'refresh':
       router.go(0)
+      break
+    case 'fullscreen':
+      menuStore.toggleContentFullscreen()
       break
     case 'closeOther':
       const current = tags.value.find(item => item.path === activePath.value)
@@ -154,6 +157,7 @@ const handleContextCloseAll = () => {
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item command="refresh" :icon="Refresh">刷新当前</el-dropdown-item>
+          <el-dropdown-item command="fullscreen" :icon="FullScreen">{{ menuStore.contentFullscreen ? '退出全屏' : '内容全屏' }}</el-dropdown-item>
           <el-dropdown-item command="closeOther" :icon="CircleClose">关闭其他</el-dropdown-item>
           <el-dropdown-item command="closeAll" :icon="FolderDelete">关闭所有</el-dropdown-item>
         </el-dropdown-menu>

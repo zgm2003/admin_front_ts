@@ -38,13 +38,13 @@ watch(isMobile, (val) => {
     </el-drawer>
     
     <!-- 桌面端侧边栏 -->
-    <el-aside v-else width="auto" class="layout-aside">
+    <el-aside v-if="!isMobile && !menuStore.contentFullscreen" width="auto" class="layout-aside">
       <Aside />
     </el-aside>
     
     <!-- 主内容区 -->
     <el-container class="layout-main">
-      <el-header height="auto" class="layout-header">
+      <el-header v-if="!menuStore.contentFullscreen" height="auto" class="layout-header">
         <Header />
       </el-header>
       
@@ -68,7 +68,7 @@ watch(isMobile, (val) => {
         </router-view>
       </el-main>
       
-      <el-footer v-if="menuStore.footer" height="48px" class="layout-footer">
+      <el-footer v-if="menuStore.footer && !menuStore.contentFullscreen" height="48px" class="layout-footer">
         <Footer />
       </el-footer>
     </el-container>

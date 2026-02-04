@@ -23,10 +23,6 @@
       <!-- 通知中心 -->
       <NotificationCenter />
       
-      <button v-if="menuStore.screenfull" class="header-btn" @click="toggleFullScreen" :title="t('header.fullscreen')">
-        <el-icon :size="18"><FullScreen /></el-icon>
-      </button>
-      
       <el-dropdown trigger="click" @command="setLang">
         <button class="header-btn" :title="t('common.language')">
           <Icon icon="mdi:translate" width="18" />
@@ -60,7 +56,7 @@ import { ref, onMounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
-import { Search, Setting, FullScreen, Expand, Fold } from '@element-plus/icons-vue'
+import { Search, Setting, Expand, Fold } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { useMenuStore } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user'
@@ -114,11 +110,6 @@ const isMobile = useIsMobile()
 
 function ClickMenu() {
   menuStore.toggleCollapse(isMobile.value)
-}
-
-function toggleFullScreen() {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen()
-  else if (document.exitFullscreen) document.exitFullscreen()
 }
 
 function setLang(lang: string) {
