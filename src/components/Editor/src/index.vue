@@ -1,8 +1,21 @@
 <script setup lang="ts">
-import {onBeforeUnmount, computed, nextTick, ref, watch, shallowRef} from 'vue'
+import {onBeforeUnmount, onMounted, computed, nextTick, ref, watch, shallowRef} from 'vue'
 import {Editor, Toolbar} from '@wangeditor/editor-for-vue'
 import {ElMessage} from 'element-plus'
 import {getUploadToken, uploadFileToCloud} from '@/utils/cosUpload'
+
+let editorRegisterPromise: Promise<void> | null = null
+const ensureEditorRegistered = () => {
+  if (editorRegisterPromise) return editorRegisterPromise
+  editorRegisterPromise = Promise.all([
+    import('@wangeditor/editor'),
+    import('@wangeditor/plugin-md'),
+  ]).then(([editorModule, markdownModule]) => {
+    const Boot = (editorModule as any).Boot
+    Boot.registerModule(markdownModule.default || markdownModule)
+  })
+  return editorRegisterPromise
+}
 
 const props = defineProps({
   editorId: {type: String, default: 'wangeditor-1'},
@@ -15,6 +28,7 @@ const props = defineProps({
 const emit = defineEmits(['change', 'update:modelValue'])
 const editorRef = shallowRef()
 const valueHtml = ref('')
+const editorReady = ref(false)
 watch(() => props.modelValue, (val) => {
   if (val === valueHtml.value) return;
   valueHtml.value = val || ''
@@ -60,9 +74,18 @@ const getEditorRef = async () => {
   return editorRef.value
 }
 defineExpose({getEditorRef})
+
+onMounted(async () => {
+  try {
+    await ensureEditorRegistered()
+  } finally {
+    editorReady.value = true
+  }
+})
 </script>
 <template>
-  <div class="editor-wrap">
+  <el-skeleton v-if="!editorReady" :rows="10" animated />
+  <div v-else class="editor-wrap">
     <Toolbar :editor="editorRef" :editorId="props.editorId" class="toolbar"/>
     <Editor v-model="valueHtml" :editorId="props.editorId" :defaultConfig="cfg" :style="editorStyle"
             @on-change="handleChange" @on-created="handleCreated"/>

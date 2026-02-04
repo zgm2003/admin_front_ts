@@ -17,9 +17,9 @@
   </el-card>
 </template>
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, defineAsyncComponent} from 'vue'
 import {toggleDarkMode as _toggleDarkMode} from '@/utils/theme'
-import {Editor as RichEditor} from '@/components/Editor'
+const RichEditor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
 
 const isDark = ref(false)
 const content = ref('<p>欢迎使用富文本编辑器</p>')

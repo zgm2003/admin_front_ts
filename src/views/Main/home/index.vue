@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineAsyncComponent, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
@@ -7,13 +7,32 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
 import { Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus } from '@element-plus/icons-vue'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import draggable from 'vuedraggable'
+
+const Draggable = defineAsyncComponent(() => import('vuedraggable'))
 
 const router = useRouter()
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
+
+const iconModule = shallowRef<Record<string, any> | null>(null)
+let iconModulePromise: Promise<void> | null = null
+const loadIconModule = () => {
+  if (iconModule.value) return Promise.resolve()
+  if (!iconModulePromise) {
+    iconModulePromise = import('@element-plus/icons-vue').then((mod) => {
+      iconModule.value = mod as Record<string, any>
+    })
+  }
+  return iconModulePromise
+}
+const scheduleIdle = (cb: () => void) => {
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(cb)
+  } else {
+    setTimeout(cb, 16)
+  }
+}
 
 // 统计数据
 const stats = ref([
@@ -113,7 +132,8 @@ const onDragEnd = async () => {
 
 // 动态获取图标组件（支持所有 Element Plus 图标）
 const getIconComponent = (iconName: string) => {
-  return (ElementPlusIconsVue as any)[iconName] || Document
+  const mod = iconModule.value as any
+  return (mod && mod[iconName]) || Document
 }
 
 // 最近活动（模拟数据）
@@ -129,6 +149,9 @@ const goToPersonal = () => router.push({ path: '/personal', query: { user_id: us
 
 // 模拟加载数据
 onMounted(() => {
+  scheduleIdle(() => {
+    loadIconModule().catch(() => {})
+  })
   setTimeout(() => {
     if (stats.value[0]) stats.value[0].value = 1248
     if (stats.value[1]) stats.value[1].value = 856
@@ -188,7 +211,7 @@ onMounted(() => {
           </div>
           
           <!-- 编辑模式 -->
-          <draggable 
+          <Draggable 
             v-if="isEditMode" 
             v-model="userStore.quickEntry" 
             item-key="id"
@@ -224,7 +247,7 @@ onMounted(() => {
                 </div>
               </div>
             </template>
-          </draggable>
+          </Draggable>
           
           <!-- 正常模式 -->
           <div v-else-if="entries.length" class="quick-grid">

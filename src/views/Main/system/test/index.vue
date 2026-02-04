@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
+import {ref, computed, onMounted, nextTick, defineAsyncComponent} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {TestApi} from '@/api/system/test'
 import {useIsMobile} from '@/hooks/useResponsive'
@@ -11,7 +11,7 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {useUserStore} from '@/store/user'
 import {useTable} from '@/hooks/useTable'
-import {Editor} from '@/components/Editor'
+const Editor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
 import { UpMedia } from '@/components/UpMedia'
 
 const {t} = useI18n()

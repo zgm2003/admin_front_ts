@@ -13,14 +13,6 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 
-// 延迟加载 wangEditor（编辑器仅在需要时加载）
-Promise.all([
-  import('@wangeditor/editor').then(({ Boot }) => Boot),
-  import('@wangeditor/plugin-md'),
-]).then(([Boot, markdownModule]) => {
-  Boot.registerModule(markdownModule.default || markdownModule)
-})
-
 // Iconify 图标不需要预加载，@iconify/vue 会自动从 CDN 获取
 // 对于 Tauri 离线模式，常用图标会被缓存
 

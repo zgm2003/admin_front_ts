@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, defineAsyncComponent} from 'vue'
 import {AppTable} from '@/components/Table'
-import {Editor} from '@/components/Editor'
-import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DynamicIcon} from '@/components/DynamicIcon'
 import {LogStream, useLogStream} from '@/components/LogStream'
 import type {LogStreamItem, LogStreamApi, CursorPaginateResponse} from '@/components/LogStream'
+
+const Editor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
+const MarkdownRenderer = defineAsyncComponent(() => import('@/components/MarkdownRenderer').then(m => m.MarkdownRenderer))
 
 const activeTab = ref('Table')
 
