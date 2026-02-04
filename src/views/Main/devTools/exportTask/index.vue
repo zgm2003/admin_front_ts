@@ -8,7 +8,7 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
 import {ExportTaskApi} from '@/api/devTools/exportTask'
-import {downloadFile} from '@/utils/download'
+import {downloadFile} from '@/components/DownloadManager'
 
 const {t} = useI18n()
 const statusArr = ref<any[]>([])

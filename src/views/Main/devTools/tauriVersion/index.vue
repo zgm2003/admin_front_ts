@@ -11,7 +11,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useCopy } from '@/hooks/useCopy'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { openUrl } from '@/utils/download'
+import { downloadFile } from '@/components/DownloadManager'
 import { UpFile } from '@/components/UpFile'
 import { CommonEnum } from '@/enums'
 
@@ -172,7 +172,7 @@ onMounted(() => init())
       <template #cell-actions="{ row }">
         <el-button v-if="userStore.can('devTools_tauriVersion_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_setLatest')" type="warning" text @click="handleSetLatest(row)">{{ t('tauriVersion.setLatest') }}</el-button>
-        <el-button type="primary" text @click="openUrl(row.file_url)">{{ t('tauriVersion.download') }}</el-button>
+        <el-button type="primary" text @click="downloadFile(row.file_url, row.version + '.zip')">{{ t('tauriVersion.download') }}</el-button>
         <el-button v-if="row.is_latest !== CommonEnum.YES && userStore.can('devTools_tauriVersion_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         <el-button v-if="userStore.can('devTools_tauriVersion_forceUpdate')" type="warning" text @click="toggleForceUpdate(row)">
           {{ row.force_update === CommonEnum.YES ? t('tauriVersion.cancelForce') : t('tauriVersion.setForce') }}

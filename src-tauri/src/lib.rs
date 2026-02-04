@@ -1,14 +1,17 @@
 use tauri::{
-    AppHandle, Emitter, Manager, UserAttentionType,
+    AppHandle, Emitter, Manager, UserAttentionType, State,
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
 };
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use std::thread;
 use std::time::Duration;
 use notify_rust::Notification;
+
+mod download;
+use download::{DownloadManager, DownloadProgress};
 
 // 未读消息数
 static UNREAD_COUNT: AtomicU32 = AtomicU32::new(0);
@@ -102,6 +105,104 @@ fn clear_unread(app: AppHandle) {
     }
 }
 
+/// 开始下载文件
+#[tauri::command]
+async fn start_download(
+    app: AppHandle,
+    manager: State<'_, Arc<DownloadManager>>,
+    id: String,
+    url: String,
+    save_path: String,
+    filename: String,
+) -> Result<(), String> {
+    use std::path::PathBuf;
+    
+    let path = PathBuf::from(save_path);
+    manager.create_task(id.clone(), url, path, filename)?;
+    manager.start_download(id, app).await?;
+    Ok(())
+}
+
+/// 取消下载
+#[tauri::command]
+fn cancel_download(
+    manager: State<'_, Arc<DownloadManager>>,
+    id: String,
+) -> Result<(), String> {
+    manager.cancel_download(&id)
+}
+
+/// 获取下载进度
+#[tauri::command]
+fn get_download_progress(
+    manager: State<'_, Arc<DownloadManager>>,
+    id: String,
+) -> Option<DownloadProgress> {
+    manager.get_progress(&id)
+}
+
+/// 获取所有下载任务
+#[tauri::command]
+fn get_all_downloads(
+    manager: State<'_, Arc<DownloadManager>>,
+) -> Vec<DownloadProgress> {
+    manager.get_all_tasks()
+}
+
+/// 删除下载任务
+#[tauri::command]
+fn remove_download(
+    manager: State<'_, Arc<DownloadManager>>,
+    id: String,
+) -> Result<(), String> {
+    manager.remove_task(&id)
+}
+
+/// 打开文件所在文件夹
+#[tauri::command]
+fn open_file_folder(path: String) -> Result<(), String> {
+    use std::path::Path;
+    
+    let file_path = Path::new(&path);
+    
+    // 获取文件所在目录
+    let folder = if file_path.is_file() {
+        file_path.parent().ok_or("无法获取父目录")?
+    } else {
+        file_path
+    };
+    
+    // 根据操作系统打开文件夹
+    #[cfg(target_os = "windows")]
+    {
+        // Windows: 使用 explorer 并选中文件
+        std::process::Command::new("explorer")
+            .args(["/select,", &path])
+            .spawn()
+            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+    }
+    
+    #[cfg(target_os = "macos")]
+    {
+        // macOS: 使用 open 命令
+        std::process::Command::new("open")
+            .arg(folder)
+            .spawn()
+            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        // Linux: 尝试使用 xdg-open
+        std::process::Command::new("xdg-open")
+            .arg(folder)
+            .spawn()
+            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+    }
+    
+    Ok(())
+}
+
 /// 唤醒窗口并通知前端
 fn wake_window(app: &AppHandle) {
     // 清除未读并停止闪烁
@@ -123,11 +224,24 @@ fn wake_window(app: &AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let download_manager = Arc::new(DownloadManager::new());
+    
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![send_notification, clear_unread])
+        .manage(download_manager)
+        .invoke_handler(tauri::generate_handler![
+            send_notification,
+            clear_unread,
+            start_download,
+            cancel_download,
+            get_download_progress,
+            get_all_downloads,
+            remove_download,
+            open_file_folder,
+        ])
         .setup(|app| {
             // 创建托盘菜单
             let show = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
