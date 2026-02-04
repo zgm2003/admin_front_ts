@@ -55,7 +55,7 @@ import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { ArrowUp, User, SwitchButton, Warning } from '@element-plus/icons-vue'
-import { clearAllCookies } from '@/utils/cookie'
+import { clearAllCookies } from '@/utils/storage.ts'
 import { UsersApi } from '@/api/user/users'
 import MenuItem from './components/MenuItem.vue'
 

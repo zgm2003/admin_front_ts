@@ -66,7 +66,7 @@ export async function setupDynamicRoutes() {
     if (!router.hasRoute('CatchAll404')) router.addRoute({ path: '/:pathMatch(.*)*', name: 'CatchAll404', redirect: '/404' })
 
     const current = router.currentRoute.value
-    const last = Cookies.get('lastVisitedPath')
+    const last = localStorage.getItem('lastVisitedPath')
     const target = current?.fullPath || current?.path || ''
     if (current && current.path === '/') {
         await router.replace(last && last !== '/login' ? last : '/home').catch(() => {})
@@ -96,7 +96,7 @@ router.beforeEach((to, _from, next) => {
         return next('/login')
     }
     
-    Cookies.set('lastVisitedPath', to.fullPath)
+    localStorage.setItem('lastVisitedPath', to.fullPath)
     next()
 })
 router.afterEach((to) => {

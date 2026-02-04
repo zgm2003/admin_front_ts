@@ -1,4 +1,4 @@
-const DEVICE_KEY = 'device_id'
+export const DEVICE_KEY = 'device_id'
 
 export function getDeviceId(): string {
   let deviceId = localStorage.getItem(DEVICE_KEY)

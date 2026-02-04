@@ -127,6 +127,7 @@ import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { toggleDarkMode } from '@/utils/theme'
+import { clearLocalStorageExcept } from '@/utils/storage.ts'
 import { Setting, Sunny, Moon, Check, Delete, RefreshRight } from '@element-plus/icons-vue'
 
 const props = defineProps<{ modelValue: boolean }>()
@@ -185,8 +186,12 @@ function pageTransition(val: string | number | boolean) { menuStore.changePageTr
 function transitionName(val: string) { menuStore.changeTransitionName(val) }
 
 function clear() {
-  localStorage.clear()
-  ElNotification.success({ title: '提示', message: '缓存已清除，请刷新页面' })
+  clearLocalStorageExcept()
+
+  ElNotification.success({ title: '提示', message: 'UI缓存已清除，正在刷新页面...' })
+  setTimeout(() => {
+    location.reload()
+  }, 800)
 }
 
 function resetTheme() {

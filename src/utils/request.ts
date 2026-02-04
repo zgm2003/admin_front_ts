@@ -2,7 +2,7 @@ import axios, { AxiosHeaders } from 'axios'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { ElNotification } from 'element-plus'
-import { clearAllCookies } from '@/utils/cookie'
+import { clearAllCookies } from '@/utils/storage.ts'
 import { getDeviceId } from '@/utils/device'
 import { useMenuStore } from '@/store/menu'
 
