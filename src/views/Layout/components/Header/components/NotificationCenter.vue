@@ -101,7 +101,7 @@ onUnmounted(() => unsubscribe?.())
     <template #reference>
       <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99" class="notification-badge">
         <el-button text class="trigger-btn">
-          <DIcon icon="mdi:bell" :size="18" />
+          <DIcon icon="Bell" :size="18" />
         </el-button>
       </el-badge>
     </template>
@@ -116,7 +116,7 @@ onUnmounted(() => unsubscribe?.())
           </span>
         </div>
         <el-button v-if="unreadCount > 0" type="primary" link size="small" @click="markAllRead" class="mark-all-btn">
-          <DIcon icon="mdi:check-all" :size="14" />
+          <DIcon icon="Check" :size="14" />
           {{ t('notification.markAllRead') }}
         </el-button>
       </div>
@@ -137,9 +137,9 @@ onUnmounted(() => unsubscribe?.())
             >
               <!-- 业务图标适配 -->
               <div class="item-icon-wrapper" :class="item.type">
-                <DIcon v-if="item.type === 'success'" icon="mdi:check-circle" :size="18" />
-                <DIcon v-else-if="item.type === 'error'" icon="mdi:alert-circle" :size="18" />
-                <DIcon v-else icon="mdi:bell" :size="18" />
+                <DIcon v-if="item.type === 'success'" icon="SuccessFilled" :size="18" />
+                <DIcon v-else-if="item.type === 'error'" icon="CircleCloseFilled" :size="18" />
+                <DIcon v-else icon="Bell" :size="18" />
               </div>
 
               <div class="item-content">
@@ -161,7 +161,7 @@ onUnmounted(() => unsubscribe?.())
                   </div>
                   <div v-if="item.content && item.content.length > 40" class="expand-action" @click.stop="toggleExpand(item.id)">
                     {{ expandedItems.has(item.id) ? t('common.actions.collapse') : t('common.actions.expand') }}
-                    <DIcon :icon="expandedItems.has(item.id) ? 'mdi:chevron-up' : 'mdi:chevron-down'" :size="14" />
+                    <DIcon :icon="expandedItems.has(item.id) ? 'ArrowUp' : 'ArrowDown'" :size="14" />
                   </div>
                 </div>
 
@@ -175,10 +175,10 @@ onUnmounted(() => unsubscribe?.())
                   <div class="actions">
                     <el-button v-if="item.link" type="primary" link size="small" class="go-btn">
                       {{ t('common.actions.detail') }}
-                      <DIcon icon="mdi:arrow-right" :size="14" />
+                      <DIcon icon="ArrowRight" :size="14" />
                     </el-button>
                     <el-button type="danger" link size="small" class="delete-btn" @click.stop="handleDelete(item, index)">
-                      <DIcon icon="mdi:delete" :size="16" />
+                      <DIcon icon="Delete" :size="16" />
                     </el-button>
                   </div>
                 </div>
@@ -200,264 +200,59 @@ onUnmounted(() => unsubscribe?.())
 <style scoped lang="scss">
 .notification-badge {
   display: flex;
-  :deep(.el-badge__content) {
-    top: 6px;
-    right: 6px;
-    border: none;
-    box-shadow: 0 0 0 2px var(--el-bg-color);
-  }
+  :deep(.el-badge__content) { top: 6px; right: 6px; border: none; box-shadow: 0 0 0 2px var(--el-bg-color); }
 }
 
-.trigger-btn {
-  padding: 8px;
-}
+.trigger-btn { padding: 8px; }
 
-.notification-panel {
-  margin: -12px;
-  background: var(--el-bg-color);
-  border-radius: 12px;
-  overflow: hidden;
-}
+.notification-panel { margin: -12px; border-radius: 12px; overflow: hidden; }
 
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  background: var(--el-fill-color-blank);
-  
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    
-    .title {
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--el-text-color-primary);
-    }
-    
-    .unread-dot-label {
-      padding: 0 6px;
-      height: 18px;
-      line-height: 18px;
-      background: var(--el-color-primary-light-9);
-      color: var(--el-color-primary);
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-  }
-  
-  .mark-all-btn {
-    font-weight: 600;
-    font-size: 13px;
-    &:hover {
-      opacity: 0.8;
-    }
-  }
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; border-bottom: 1px solid var(--el-border-color-lighter);
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .title { font-weight: 700; font-size: 15px; }
+  .unread-dot-label { padding: 0 6px; height: 18px; line-height: 18px; background: var(--el-color-primary-light-9); color: var(--el-color-primary); border-radius: 10px; font-size: 11px; font-weight: 700; }
 }
 
-.panel-body {
-  max-height: 480px;
-  overflow-y: auto;
-  padding: 8px 0;
-}
+.panel-body { max-height: 480px; overflow-y: auto; padding: 8px 0; }
 
 .notification-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 14px 18px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: 1px solid transparent;
-  
-  &:hover {
-    background: var(--el-fill-color-light);
-    .delete-btn { opacity: 1; }
-  }
-  
-  &.unread {
-    background: var(--el-color-primary-light-9);
-    &:hover {
-      background: var(--el-color-primary-light-8);
-    }
-  }
-  
-  &.is-urgent {
-    border-left: 2px solid var(--el-color-warning);
-  }
+  display: flex; gap: 14px; padding: 14px 18px; cursor: pointer; transition: background 0.2s;
+  &:hover { background: var(--el-fill-color-light); .delete-btn { opacity: 1; } }
+  &.unread { background: var(--el-color-primary-light-9); }
+  &.is-urgent { border-left: 2px solid var(--el-color-warning); }
 }
 
 .item-icon-wrapper {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 16px;
-  background: var(--el-fill-color-lighter);
-  color: var(--el-text-color-secondary);
-  border: 1px solid var(--el-border-color-lighter);
-  
-  &.success {
-    background: var(--el-color-success-light-9);
-    color: var(--el-color-success);
-    border-color: var(--el-color-success-light-8);
-  }
-  &.error {
-    background: var(--el-color-danger-light-9);
-    color: var(--el-color-danger);
-    border-color: var(--el-color-danger-light-8);
-  }
+  width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--el-fill-color-lighter); color: var(--el-text-color-secondary); border: 1px solid var(--el-border-color-lighter);
+  &.success { background: var(--el-color-success-light-9); color: var(--el-color-success); }
+  &.error { background: var(--el-color-danger-light-9); color: var(--el-color-danger); }
 }
 
-.item-content {
-  flex: 1;
-  min-width: 0;
-  
-  .item-title-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-    
-    .item-title {
-      display: flex;
-      align-items: center;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      line-height: 1.4;
-      
-      .unread-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--el-color-primary);
-        margin-right: 8px;
-        flex-shrink: 0;
-      }
-    }
-    
-    .item-time {
-      font-size: 12px;
-      color: var(--el-text-color-placeholder);
-      flex-shrink: 0;
-    }
-  }
-}
+.item-content { flex: 1; min-width: 0; }
+.item-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.item-title { display: flex; align-items: center; font-size: 14px; font-weight: 600; }
+.unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--el-color-primary); margin-right: 8px; }
+.item-time { font-size: 12px; color: var(--el-text-color-placeholder); }
 
-.item-desc-wrapper {
-  margin-bottom: 8px;
-  
-  .item-desc {
-    font-size: 13px;
-    color: var(--el-text-color-secondary);
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-    transition: all 0.3s;
-    
-    &.expanded {
-      -webkit-line-clamp: unset;
-    }
-  }
-  
-  .expand-action {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--el-color-primary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.7;
-    cursor: pointer;
-    
-    &:hover { opacity: 1; }
-  }
-}
+.item-desc { font-size: 13px; color: var(--el-text-color-secondary); line-height: 1.6; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; &.expanded { -webkit-line-clamp: unset; } }
+.expand-action { display: flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 11px; color: var(--el-color-primary); cursor: pointer; &:hover { opacity: 0.8; } }
 
-.item-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .tags {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    
-    .urgent-tag {
-      font-weight: 800;
-      border-radius: 4px;
-      padding: 0 6px;
-      height: 18px;
-    }
-    
-    .new-tag {
-      font-size: 10px;
-      font-weight: 800;
-      color: var(--el-color-primary);
-      background: var(--el-color-primary-light-8);
-      padding: 1px 4px;
-      border-radius: 4px;
-    }
-  }
-  
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    
-    .go-btn {
-      font-weight: 600;
-      font-size: 12px;
-      .el-icon { margin-left: 2px; }
-    }
-    
-    .delete-btn {
-      opacity: 0;
-      transition: all 0.2s;
-      font-size: 16px;
-    }
-  }
-}
+.item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.tags { display: flex; align-items: center; gap: 6px; }
+.new-tag { font-size: 10px; font-weight: 700; color: var(--el-color-primary); background: var(--el-color-primary-light-8); padding: 1px 4px; border-radius: 4px; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.delete-btn { opacity: 0; transition: opacity 0.2s; }
 
-.load-more {
-  text-align: center;
-  padding: 16px;
-  border-top: 1px solid var(--el-border-color-extra-light);
-}
+.load-more { text-align: center; padding: 16px; border-top: 1px solid var(--el-border-color-extra-light); }
 
-/* 列表过渡动画 */
-.list-fade-enter-active,
-.list-fade-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.list-fade-enter-from {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-.list-fade-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
+.list-fade-enter-active, .list-fade-leave-active { transition: all 0.3s; }
+.list-fade-enter-from { opacity: 0; transform: translateY(-10px); }
+.list-fade-leave-to { opacity: 0; transform: translateX(20px); }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar { scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
 
-@media (max-width: 768px) {
-  .panel-body { max-height: 60vh; }
-  .delete-btn { opacity: 1 !important; }
-}
+@media (max-width: 768px) { .panel-body { max-height: 60vh; } .delete-btn { opacity: 1 !important; } }
 </style>

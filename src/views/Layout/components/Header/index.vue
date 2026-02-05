@@ -26,7 +26,7 @@
       <!-- 下载管理（仅 Tauri 环境） -->
       <el-badge v-if="isTauri()" :value="downloadCount" :hidden="downloadCount === 0" :max="99">
         <el-button text :title="t('header.downloads')" @click="showDownloadManager = true">
-          <DIcon icon="mdi:download" :size="18" />
+          <DIcon icon="Download" :size="18" />
         </el-button>
       </el-badge>
       
@@ -43,11 +43,11 @@
       </el-dropdown>
       
       <el-button text :title="t('header.settings')" @click="drawer = true">
-        <DIcon icon="mdi:cog" :size="18" />
+        <DIcon icon="Setting" :size="18" />
       </el-button>
       
       <el-button text :title="t('header.search')" @click="searchOpen = true">
-        <DIcon icon="mdi:magnify" :size="18" />
+        <DIcon icon="Search" :size="18" />
       </el-button>
     </div>
   </div>
@@ -146,57 +146,20 @@ function setLang(lang: string) {
 
 <style scoped lang="scss">
 .header-bar { display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 20px; background: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-lighter); }
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  overflow: hidden;
-  flex: 1;
-}
+.header-left { display: flex; align-items: center; gap: 16px; overflow: hidden; flex: 1; }
+.header-right { display: flex; align-items: center; gap: 4px; :deep(.el-button + .el-button) { margin-left: 0; } }
+.menu-toggle { padding: 8px; }
 
 :deep(.el-breadcrumb) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  
-  .el-breadcrumb__item {
-    float: none;
-    display: inline-flex;
-    align-items: center;
-    
-    .el-breadcrumb__inner {
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
+  display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+  .el-breadcrumb__item { float: none; display: inline-flex; align-items: center; }
+  .el-breadcrumb__inner { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
-/* 面包屑切换动画 */
-.breadcrumb-enter-active,
-.breadcrumb-leave-active {
-  transition: all 0.3s ease;
-}
-
-.breadcrumb-enter-from,
-.breadcrumb-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.breadcrumb-move {
-  transition: all 0.3s ease;
-}
-
-.breadcrumb-leave-active {
-  position: absolute;
-}
-
-.menu-toggle { padding: 8px; }
-.header-right { display: flex; align-items: center; gap: 4px; }
+.breadcrumb-enter-active, .breadcrumb-leave-active { transition: all 0.3s; }
+.breadcrumb-enter-from, .breadcrumb-leave-to { opacity: 0; transform: translateX(20px); }
+.breadcrumb-move { transition: all 0.3s; }
+.breadcrumb-leave-active { position: absolute; }
 
 @media (max-width: 768px) {
   .header-bar { padding: 0 12px; height: 56px; }
