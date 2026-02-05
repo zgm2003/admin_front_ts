@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef, type Component } from 'vue'
 import { Icon } from '@iconify/vue'
+import { DIcon } from '@/components/DIcon'
 
 const iconBoxShow = ref(false)
 const selectedIcon = ref('')
@@ -182,8 +183,7 @@ const getIconCategoryColor = (icon: string) => {
     <div v-if="selectedIcon" class="selected-preview">
       <span class="preview-label">当前选中：</span>
       <div class="preview-icon">
-        <Icon v-if="isIconifyIcon(selectedIcon)" :icon="selectedIcon" :width="32" :height="32" />
-        <el-icon v-else :size="32"><component :is="selectedIcon" /></el-icon>
+        <DIcon :icon="selectedIcon" :size="32" />
       </div>
       <span class="preview-name">{{ selectedIcon }}</span>
       <el-button size="small" @click="clearSelection">清除</el-button>
@@ -384,6 +384,7 @@ const getIconCategoryColor = (icon: string) => {
 
 .footer-info {
   flex: 1;
+  margin-right: 16px;
 }
 
 .footer-actions {
