@@ -2,12 +2,12 @@
   <div class="header-bar">
     <!-- 左侧：菜单按钮 + 面包屑 -->
     <div class="header-left">
-      <button v-if="menuStore.hamburger" class="menu-toggle" @click="ClickMenu">
+      <el-button v-if="menuStore.hamburger" text class="menu-toggle" @click="ClickMenu">
         <el-icon :size="20">
           <Expand v-if="menuStore.collapse" />
           <Fold v-else />
         </el-icon>
-      </button>
+      </el-button>
       
       <el-breadcrumb v-if="menuStore.breadcrumb" separator="/">
         <transition-group name="breadcrumb">
@@ -25,15 +25,15 @@
       
       <!-- 下载管理（仅 Tauri 环境） -->
       <el-badge v-if="isTauri()" :value="downloadCount" :hidden="downloadCount === 0" :max="99">
-        <button class="header-btn" @click="showDownloadManager = true" :title="t('header.downloads')">
-          <el-icon :size="18"><Download /></el-icon>
-        </button>
+        <el-button text :title="t('header.downloads')" @click="showDownloadManager = true">
+          <DIcon icon="mdi:download" :size="18" />
+        </el-button>
       </el-badge>
       
       <el-dropdown trigger="click" @command="setLang">
-        <button class="header-btn" :title="t('common.language')">
-          <Icon icon="mdi:translate" width="18" />
-        </button>
+        <el-button text :title="t('common.language')">
+          <DIcon icon="mdi:translate" :size="18" />
+        </el-button>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="zh-CN">{{ $t('common.zh') }}</el-dropdown-item>
@@ -42,13 +42,13 @@
         </template>
       </el-dropdown>
       
-      <button class="header-btn" @click="drawer = true" :title="t('header.settings')">
-        <el-icon :size="18"><Setting /></el-icon>
-      </button>
+      <el-button text :title="t('header.settings')" @click="drawer = true">
+        <DIcon icon="mdi:cog" :size="18" />
+      </el-button>
       
-      <button class="header-btn" @click="searchOpen = true" :title="t('header.search')">
-        <el-icon :size="18"><Search /></el-icon>
-      </button>
+      <el-button text :title="t('header.search')" @click="searchOpen = true">
+        <DIcon icon="mdi:magnify" :size="18" />
+      </el-button>
     </div>
   </div>
 
@@ -66,8 +66,8 @@ import { ref, onMounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
-import { Search, Setting, Expand, Fold, Download } from '@element-plus/icons-vue'
-import { Icon } from '@iconify/vue'
+import { Expand, Fold } from '@element-plus/icons-vue'
+import { DIcon } from '@/components/DIcon'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/utils/theme'
@@ -150,7 +150,7 @@ function setLang(lang: string) {
   display: flex;
   align-items: center;
   gap: 16px;
-  overflow: hidden; // 防止面包屑过长撑开
+  overflow: hidden;
   flex: 1;
 }
 
@@ -167,7 +167,7 @@ function setLang(lang: string) {
     align-items: center;
     
     .el-breadcrumb__inner {
-      max-width: 120px; // 限制单项最大宽度
+      max-width: 120px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -195,13 +195,12 @@ function setLang(lang: string) {
   position: absolute;
 }
 
-.menu-toggle, .header-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 8px; color: var(--el-text-color-regular); cursor: pointer; transition: all 0.15s; &:hover { background: var(--el-fill-color-light); color: var(--el-text-color-primary); } }
+.menu-toggle { padding: 8px; }
 .header-right { display: flex; align-items: center; gap: 4px; }
 
 @media (max-width: 768px) {
   .header-bar { padding: 0 12px; height: 56px; }
   .header-left { gap: 8px; }
   .header-right { gap: 2px; }
-  .header-btn { width: 32px; height: 32px; }
 }
 </style>

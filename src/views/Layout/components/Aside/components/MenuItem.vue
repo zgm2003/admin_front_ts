@@ -1,12 +1,12 @@
 <template>
   <template v-if="!item.show_menu || item.show_menu === 1">
     <el-menu-item v-if="!hasChildren" :index="item.index" @click="handleClick(item)">
-      <DynamicIcon :icon="item.icon" :size="18" />
+      <DIcon :icon="item.icon" :size="18" />
       <span>{{ displayLabel }}</span>
     </el-menu-item>
     <el-sub-menu v-else :index="item.index">
       <template #title>
-        <DynamicIcon :icon="item.icon" :size="18" />
+        <DIcon :icon="item.icon" :size="18" />
         <span>{{ displayLabel }}</span>
       </template>
       <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
@@ -20,7 +20,7 @@ import { useRouter } from 'vue-router';
 import { useMenuStore } from '@/store/menu';
 import { useI18n } from 'vue-i18n';
 import { resolveMenuLabel } from '@/utils/menuI18n';
-import { DynamicIcon } from '@/components/DynamicIcon';
+import { DIcon } from '@/components/DIcon';
 
 const props = defineProps({ item: { type: Object, required: true } });
 const router = useRouter();
@@ -44,6 +44,9 @@ function handleClick(item: any) {
 }
 .el-menu-item:hover {
   background-color: var(--el-fill-color-light);
+}
+.d-icon {
+  margin-right: 8px;
 }
 </style>
 

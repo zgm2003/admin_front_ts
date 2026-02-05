@@ -2,8 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, Delete, ArrowRight, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { ElNotification } from 'element-plus'
+import { DIcon } from '@/components/DIcon'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useLogStream } from '@/components/LogStream/src/useLogStream'
@@ -100,9 +100,9 @@ onUnmounted(() => unsubscribe?.())
   >
     <template #reference>
       <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99" class="notification-badge">
-        <button class="trigger-btn">
-          <el-icon :size="18"><Bell /></el-icon>
-        </button>
+        <el-button text class="trigger-btn">
+          <DIcon icon="mdi:bell" :size="18" />
+        </el-button>
       </el-badge>
     </template>
 
@@ -116,7 +116,7 @@ onUnmounted(() => unsubscribe?.())
           </span>
         </div>
         <el-button v-if="unreadCount > 0" type="primary" link size="small" @click="markAllRead" class="mark-all-btn">
-          <el-icon><Check /></el-icon>
+          <DIcon icon="mdi:check-all" :size="14" />
           {{ t('notification.markAllRead') }}
         </el-button>
       </div>
@@ -137,9 +137,9 @@ onUnmounted(() => unsubscribe?.())
             >
               <!-- 业务图标适配 -->
               <div class="item-icon-wrapper" :class="item.type">
-                <el-icon v-if="item.type === 'success'"><Check /></el-icon>
-                <el-icon v-else-if="item.type === 'error'"><Delete /></el-icon>
-                <el-icon v-else><Bell /></el-icon>
+                <DIcon v-if="item.type === 'success'" icon="mdi:check-circle" :size="18" />
+                <DIcon v-else-if="item.type === 'error'" icon="mdi:alert-circle" :size="18" />
+                <DIcon v-else icon="mdi:bell" :size="18" />
               </div>
 
               <div class="item-content">
@@ -161,7 +161,7 @@ onUnmounted(() => unsubscribe?.())
                   </div>
                   <div v-if="item.content && item.content.length > 40" class="expand-action" @click.stop="toggleExpand(item.id)">
                     {{ expandedItems.has(item.id) ? t('common.actions.collapse') : t('common.actions.expand') }}
-                    <el-icon><component :is="expandedItems.has(item.id) ? ArrowUp : ArrowDown" /></el-icon>
+                    <DIcon :icon="expandedItems.has(item.id) ? 'mdi:chevron-up' : 'mdi:chevron-down'" :size="14" />
                   </div>
                 </div>
 
@@ -175,10 +175,10 @@ onUnmounted(() => unsubscribe?.())
                   <div class="actions">
                     <el-button v-if="item.link" type="primary" link size="small" class="go-btn">
                       {{ t('common.actions.detail') }}
-                      <el-icon><ArrowRight /></el-icon>
+                      <DIcon icon="mdi:arrow-right" :size="14" />
                     </el-button>
                     <el-button type="danger" link size="small" class="delete-btn" @click.stop="handleDelete(item, index)">
-                      <el-icon><Delete /></el-icon>
+                      <DIcon icon="mdi:delete" :size="16" />
                     </el-button>
                   </div>
                 </div>
@@ -209,27 +209,7 @@ onUnmounted(() => unsubscribe?.())
 }
 
 .trigger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  border-radius: 10px;
-  color: var(--el-text-color-regular);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &:hover {
-    background: var(--el-fill-color-light);
-    color: var(--el-color-primary);
-    transform: translateY(-1px);
-  }
-  
-  &:active {
-    transform: scale(0.95);
-  }
+  padding: 8px;
 }
 
 .notification-panel {

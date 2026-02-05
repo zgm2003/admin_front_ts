@@ -1,13 +1,9 @@
 <template>
   <!-- Iconify 图标 -->
-  <el-icon v-if="isIconify && icon" :size="size" class="dynamic-icon">
-    <Icon :icon="icon" class="iconify" />
-  </el-icon>
+  <Icon v-if="isIconify && icon" :icon="icon" :width="size" :height="size" class="d-icon" />
 
   <!-- Element Plus 图标（运行时按需加载） -->
-  <el-icon v-else-if="resolvedEpIcon" :size="size" class="dynamic-icon">
-    <component :is="resolvedEpIcon" />
-  </el-icon>
+  <component v-else-if="resolvedEpIcon" :is="resolvedEpIcon" :style="iconStyle" class="d-icon" />
 </template>
 
 <script setup lang="ts">
@@ -29,6 +25,11 @@ const props = withDefaults(defineProps<Props>(), {
 const isIconify = computed(() => {
   return props.icon && props.icon.includes(':')
 })
+
+const iconStyle = computed(() => ({
+  width: typeof props.size === 'number' ? `${props.size}px` : props.size,
+  height: typeof props.size === 'number' ? `${props.size}px` : props.size,
+}))
 
 const resolvedEpIcon = shallowRef<Component | null>(null)
 
@@ -62,26 +63,17 @@ watchEffect(async () => {
     return
   }
 
-  // Try to resolve from cache synchronously first
   if (epIconCache.has(iconName)) {
     resolvedEpIcon.value = epIconCache.get(iconName) ?? null
   } else {
-    // If not in cache, then go async
     resolvedEpIcon.value = await resolveElementPlusIcon(iconName)
   }
 })
 </script>
 
 <style scoped>
-.dynamic-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dynamic-icon :deep(.iconify) {
-  width: 1em;
-  height: 1em;
-  display: block;
+.d-icon {
+  display: inline-block;
+  vertical-align: middle;
 }
 </style>

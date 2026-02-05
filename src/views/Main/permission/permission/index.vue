@@ -10,7 +10,7 @@ import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
 import {ArrowRight, ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
-import { DynamicIcon } from '@/components/DynamicIcon'
+import { DIcon } from '@/components/DIcon'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -313,7 +313,7 @@ onMounted(() => {
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
         <el-table-column :label="t('permission.table.icon')" align="center" width="80">
           <template #default="scope">
-            <DynamicIcon v-if="scope.row.icon" :icon="scope.row.icon" :size="24" />
+            <DIcon v-if="scope.row.icon" :icon="scope.row.icon" :size="24" />
           </template>
         </el-table-column>
         <el-table-column :label="t('permission.table.status')" align="center">

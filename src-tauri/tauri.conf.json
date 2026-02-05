@@ -29,7 +29,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' https://zgm2003.cn https://*.zgm2003.cn; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://zgm2003.cn https://*.zgm2003.cn; style-src 'self' 'unsafe-inline' https://zgm2003.cn https://*.zgm2003.cn https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://zgm2003.cn https://*.zgm2003.cn wss://zgm2003.cn wss://*.zgm2003.cn https://api.iconify.design; frame-src 'self' https: blob:"
+      "csp": "default-src 'self' https://zgm2003.cn https://*.zgm2003.cn; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://zgm2003.cn https://*.zgm2003.cn; style-src 'self' 'unsafe-inline' https://zgm2003.cn https://*.zgm2003.cn https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://zgm2003.cn https://*.zgm2003.cn wss://zgm2003.cn wss://*.zgm2003.cn https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com; frame-src 'self' https: blob:"
     }
   },
   "bundle": {
