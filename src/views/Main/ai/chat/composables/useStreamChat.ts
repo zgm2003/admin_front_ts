@@ -114,6 +114,16 @@ export function useStreamChat(options: StreamChatOptions) {
         currentRunId.value = null
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg) lastMsg.isStreaming = false
+
+        // 用服务端真实 ID 替换临时 ID
+        if (data.assistant_message_id) {
+          const aiMsg = messages.value.findLast(m => m.role === AiRoleEnum.ASSISTANT)
+          if (aiMsg) aiMsg.id = data.assistant_message_id
+        }
+        if (data.user_message_id) {
+          const userMsg = messages.value.findLast(m => m.role === AiRoleEnum.USER)
+          if (userMsg) userMsg.id = data.user_message_id
+        }
         
         // 最终滚动到底部
         nextTick(() => scrollToBottom())
@@ -147,7 +157,7 @@ export function useStreamChat(options: StreamChatOptions) {
   // 添加 AI 占位消息
   const addAiPlaceholder = (): Message => {
     const aiMessage: Message = {
-      id: Date.now(),
+      id: -(Date.now() + Math.random()),
       role: AiRoleEnum.ASSISTANT,
       content: '',
       created_at: new Date().toISOString(),
@@ -177,7 +187,7 @@ export function useStreamChat(options: StreamChatOptions) {
 
     // 添加用户消息
     const userMessage: Message = {
-      id: Date.now(),
+      id: -(Date.now() + Math.random()),
       role: AiRoleEnum.USER,
       content,
       created_at: new Date().toISOString(),

@@ -5,7 +5,7 @@ import {AiRunApi} from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
 import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
-import {Icon} from '@iconify/vue'
+import {DIcon} from '@/components/DIcon'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
@@ -259,9 +259,9 @@ onMounted(() => {
                 <div class="message-meta">
                   <span>{{ detailData.assistant_message.created_at }}</span>
                   <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
-                    <Icon v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" 
-                          icon="mdi:thumb-up" width="14" style="color: var(--el-color-primary)"/>
-                    <Icon v-else icon="mdi:thumb-down" width="14" style="color: var(--el-color-danger)"/>
+                    <DIcon v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" 
+                          icon="mdi:thumb-up" :size="14" style="color: var(--el-color-primary)"/>
+                    <DIcon v-else icon="mdi:thumb-down" :size="14" style="color: var(--el-color-danger)"/>
                   </span>
                 </div>
                 <div v-if="detailData.assistant_message.meta_json" class="meta-json">

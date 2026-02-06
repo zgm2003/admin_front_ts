@@ -3,7 +3,7 @@ import {ref} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
 import {MarkdownRenderer} from '@/components/MarkdownRenderer'
-import {Icon} from '@iconify/vue'
+import {DIcon} from '@/components/DIcon'
 import { CommonEnum, AiRoleEnum } from '@/enums'
 
 const {t} = useI18n()
@@ -158,7 +158,7 @@ const handleFeedback = (msg: any, feedback: number) => {
                   :class="{ 'feedback-like-active': getFeedback(msg) === CommonEnum.YES }"
                   @click="handleFeedback(msg, 1)"
               >
-                <Icon icon="mdi:thumb-up" width="16" />
+                <DIcon icon="mdi:thumb-up" :size="16" />
               </el-button>
               <el-button
                   text size="small"
@@ -166,7 +166,7 @@ const handleFeedback = (msg: any, feedback: number) => {
                   :class="{ 'feedback-dislike-active': getFeedback(msg) === CommonEnum.NO }"
                   @click="handleFeedback(msg, 2)"
               >
-                <Icon icon="mdi:thumb-down" width="16" />
+                <DIcon icon="mdi:thumb-down" :size="16" />
               </el-button>
             </template>
             <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">

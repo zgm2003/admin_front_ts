@@ -19,7 +19,7 @@ export interface StreamCallbacks {
   onContent?: (delta: string) => void
   onConversation?: (conversationId: number) => void
   onRun?: (runId: number, requestId: string) => void
-  onDone?: (data: { conversation_id: number; run_id: number }) => void
+  onDone?: (data: { conversation_id: number; run_id: number; user_message_id: number; assistant_message_id: number }) => void
   onError?: (msg: string) => void
 }
 
