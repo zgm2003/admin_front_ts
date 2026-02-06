@@ -1,11 +1,11 @@
 {
-  "version": "1.0.5",
-  "notes": "下载管理",
-  "pub_date": "2026-02-05T19:20:58+08:00",
+  "version": "1.0.6",
+  "notes": "更新面板＋全体关闭",
+  "pub_date": "2026-02-06T15:43:13+08:00",
   "platforms": {
     "windows-x86_64": {
-      "url": "https://cos.zgm2003.cn/releases/1770290447539-CloudAdmin_1.0.5_x64-setup.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZkRRclNMQkc5QzRaVVRJd0VZOVBlMFdQamZHNXVYaytBUVltSEhPWEJUTXN2NzlackVhMDd5WHBYUGpLYW1hRmtXTWdPR1FDdnFLd0ZyeXN5ckhMbWVyWEtsWlpsOVE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcwMjkwNDE3CWZpbGU6Q2xvdWRBZG1pbl8xLjAuNV94NjQtc2V0dXAuZXhlCitveTFDRHpubFpVQVRjemtrR01YTTJvRkx3REhEV1YwUGVtNnI3TzkramNyWmMvb0VZeFdZT1VVYjVJajJyMlhpQlc5T3A2STZlcEpjdU9uSXRreUJRPT0K"
+      "url": "https://cos.zgm2003.cn/releases/1770363774974-CloudAdmin_1.0.6_x64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZkRRclNMQkc5QzZlaFVZS2FRUE9zWUVQaUdhS0M2VUVpTXhSQmxZeFBQVnpURHBHazg2cm5UMHR4eFFlaEEzYUxGMUIrZjV2NXo1MjdwYTRvTVBHYVkxQ1UyZzdUSFFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzcwMzYzNzU0CWZpbGU6Q2xvdWRBZG1pbl8xLjAuNl94NjQtc2V0dXAuZXhlCkQ3Zkt2YU9KWDVXYnVhVEF5UTB0bS9jem5oVmRFL3ZSUDZPdm9aWGdERlB6YndBamNFZ2l0ZnZDU01EWFk3YnVGeS9IMEVBVFVzcmpnUDBiNHBsb0NBPT0K"
     }
   }
 }
