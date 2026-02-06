@@ -153,7 +153,7 @@ export default {
     system_uploadConfig: 'Upload Config',
     system_setting: 'System Settings',
     system_test: 'Test',
-    systemLog: 'System Log',
+    system_log: 'System Log',
     // Component module
     component_upload: 'Upload',
     component_download: 'Download Manager',
@@ -908,5 +908,11 @@ export default {
       videoPlaceholder: 'Or enter video URL'
     }
   },
-  error: {notFound: 'Sorry, the page you visited does not exist'}
+  error: {notFound: 'Sorry, the page you visited does not exist'},
+  systemLog: {
+    sidebar: { title: 'Log Files', empty: 'No log files' },
+    toolbar: { keyword: 'Search keyword', level: 'Log level', query: 'Query', refresh: 'Refresh', autoScroll: 'Auto scroll', lines: 'lines' },
+    empty: 'No log content',
+    error: { loadFiles: 'Failed to load file list', loadContent: 'Failed to load log content' }
+  }
 }

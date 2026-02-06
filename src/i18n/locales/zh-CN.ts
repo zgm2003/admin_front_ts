@@ -156,7 +156,7 @@ export default {
     system_setting: '系统设置',
     system_test: '测试',
     system_notificationTask: '通知管理',
-    systemLog: '系统日志',
+    system_log: '系统日志',
     // 组件演示模块
     component_upload: '上传',
     component_download: '下载管理器',
@@ -1013,5 +1013,11 @@ export default {
       videoPlaceholder: '或输入视频URL'
     }
   },
-  error: {notFound: '抱歉，您访问的页面不存在'}
+  error: {notFound: '抱歉，您访问的页面不存在'},
+  systemLog: {
+    sidebar: { title: '日志文件', empty: '暂无日志文件' },
+    toolbar: { keyword: '搜索关键字', level: '日志级别', query: '查询', refresh: '刷新', autoScroll: '自动滚底', lines: '行' },
+    empty: '暂无日志内容',
+    error: { loadFiles: '加载文件列表失败', loadContent: '加载日志内容失败' }
+  }
 }
