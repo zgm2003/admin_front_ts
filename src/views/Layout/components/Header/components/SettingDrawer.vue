@@ -89,9 +89,18 @@
           </div>
           <div class="setting-item">
             <span>{{ t('header.transitionType') }}</span>
-            <el-select v-model="menuStore.transitionName" style="width: 140px" size="small" @change="transitionName">
-              <el-option v-for="opt in transitionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-            </el-select>
+            <el-select-v2 v-model="menuStore.transitionName" :options="transitionOptions" style="width: 140px" size="small" @change="transitionName" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- 桌面应用设置（仅 Tauri 环境） -->
+      <div v-if="tauriStore.isTauriEnv" class="setting-section">
+        <div class="section-title">桌面应用</div>
+        <div class="setting-list">
+          <div class="setting-item">
+            <span>关闭时最小化到托盘</span>
+            <el-select-v2 v-model="closeActionValue" :options="closeActionOptions" style="width: 140px" size="small" @change="onCloseActionChange" />
           </div>
         </div>
       </div>
@@ -117,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useMenuStore } from '@/store/menu.ts'
 import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
@@ -135,6 +144,14 @@ const tauriStore = useTauriStore()
 const { t } = useI18n()
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 const customColor = ref(menuStore.systemColor)
+const closeActionValue = ref<string>(tauriStore.closeAction ?? 'ask')
+
+// 抽屉打开时同步关闭行为偏好（可能被弹窗修改过）
+watch(show, (visible) => {
+  if (visible) {
+    closeActionValue.value = tauriStore.closeAction ?? 'ask'
+  }
+})
 
 // 企业简约风配色
 const themeColors = ref([
@@ -147,12 +164,18 @@ const themeColors = ref([
   { label: '活力橙', value: '#EA580C' },
 ])
 
-const transitionOptions = ref([
+const transitionOptions = [
   { label: '淡入淡出', value: 'fade' },
   { label: '左滑', value: 'slide-left' },
   { label: '右滑', value: 'slide-right' },
   { label: '缩放', value: 'el-zoom-in-center' },
-])
+]
+
+const closeActionOptions = [
+  { label: '每次询问', value: 'ask' },
+  { label: '最小化到托盘', value: 'minimize' },
+  { label: '直接退出', value: 'exit' },
+]
 
 function onThemeChange(dark: boolean) {
   isDark.value = dark
@@ -182,6 +205,14 @@ function changeFooter(val: string | number | boolean) { menuStore.changeFooter(v
 function pageTransition(val: string | number | boolean) { menuStore.changePageTransition(val as boolean) }
 function transitionName(val: string) { menuStore.changeTransitionName(val) }
 
+function onCloseActionChange(val: string) {
+  if (val === 'ask') {
+    tauriStore.clearCloseAction()
+  } else {
+    tauriStore.setCloseAction(val as 'minimize' | 'exit')
+  }
+}
+
 function clear() {
   clearLocalStorageExcept()
 
@@ -194,8 +225,9 @@ function clear() {
 function resetTheme() {
   onThemeChange(false)
   systemColor('#409EFF')
-  // 重置时也要应用默认颜色到 store
   menuStore.applyDefaultSystemColor(false)
+  tauriStore.clearCloseAction()
+  closeActionValue.value = 'ask'
   ElNotification.success({ title: '提示', message: '配置已重置' })
 }
 </script>

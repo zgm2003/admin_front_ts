@@ -22,25 +22,86 @@ const getPlatform = (): string => {
   return ua.includes('mac') ? 'darwin-x86_64' : 'windows-x86_64'
 }
 
+const CLOSE_ACTION_KEY = 'tauri_close_action'
+export type CloseAction = 'minimize' | 'exit'
+
 export const useTauriStore = defineStore('tauri', {
   state: () => ({
     version: '',
     platform: '',
     forceUpdate: false,
+    showCloseDialog: false,
+    rememberChoice: false,
+    _closeHandlerReady: false,
   }),
   getters: {
     isTauriEnv: () => isTauri(),
+    closeAction(): CloseAction | null {
+      const val = localStorage.getItem(CLOSE_ACTION_KEY)
+      if (val === 'minimize' || val === 'exit') return val
+      return null
+    },
   },
   actions: {
     async init() {
       if (!isTauri()) return
-      
+
       const { getVersion } = await import('@tauri-apps/api/app')
       this.version = await getVersion()
       this.platform = getPlatform()
+
+      // 初始化窗口关闭事件监听
+      await this.setupCloseHandler()
     },
     setForceUpdate(val: boolean) {
       this.forceUpdate = val
+    },
+    setCloseAction(action: CloseAction) {
+      localStorage.setItem(CLOSE_ACTION_KEY, action)
+    },
+    clearCloseAction() {
+      localStorage.removeItem(CLOSE_ACTION_KEY)
+    },
+    async hideWindow() {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window')
+      await getCurrentWindow().hide()
+    },
+    async exitApp() {
+      const { exit } = await import('@tauri-apps/plugin-process')
+      await exit(0)
+    },
+    async handleMinimize() {
+      this.showCloseDialog = false
+      if (this.rememberChoice) this.setCloseAction('minimize')
+      await this.hideWindow()
+    },
+    async handleExit() {
+      this.showCloseDialog = false
+      if (this.rememberChoice) this.setCloseAction('exit')
+      await this.exitApp()
+    },
+    async setupCloseHandler() {
+      if (!isTauri() || this._closeHandlerReady) return
+      this._closeHandlerReady = true
+
+      const { listen } = await import('@tauri-apps/api/event')
+
+      await listen('window-close-requested', async () => {
+        const saved = this.closeAction
+
+        if (saved === 'minimize') {
+          await this.hideWindow()
+          return
+        }
+
+        if (saved === 'exit') {
+          await this.exitApp()
+          return
+        }
+
+        this.rememberChoice = false
+        this.showCloseDialog = true
+      })
     },
   },
 })

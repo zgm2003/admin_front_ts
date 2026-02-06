@@ -12,9 +12,11 @@
   },
   "permissions": [
     "core:default",
+    "core:window:allow-hide",
     "opener:default",
     "dialog:default",
     "updater:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "process:allow-exit"
   ]
 }

@@ -277,9 +277,10 @@ pub fn run() {
         .on_window_event(|window, event| {
             match event {
                 tauri::WindowEvent::CloseRequested { api, .. } => {
-                    // 阻止默认关闭，改为隐藏窗口
+                    // 阻止默认关闭，交给前端决定行为
                     api.prevent_close();
-                    let _ = window.hide();
+                    let app = window.app_handle();
+                    let _ = app.emit("window-close-requested", ());
                 }
                 tauri::WindowEvent::Focused(focused) => {
                     if !focused {

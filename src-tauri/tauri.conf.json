@@ -20,8 +20,8 @@
     "windows": [
       {
         "title": "CloudAdmin",
-        "width": 1600,
-        "height": 1000,
+        "width": 1280,
+        "height": 800,
         "center": true,
         "resizable": true,
         "fullscreen": false,
