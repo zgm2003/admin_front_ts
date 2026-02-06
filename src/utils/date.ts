@@ -69,6 +69,19 @@ export function groupByTimeRange<T>(
 }
 
 /**
+ * 判断日期字符串是否为今天
+ */
+export function isToday(dateStr: string): boolean {
+  if (!dateStr) return false
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return false
+  const today = new Date()
+  return date.getFullYear() === today.getFullYear()
+    && date.getMonth() === today.getMonth()
+    && date.getDate() === today.getDate()
+}
+
+/**
  * 格式化日期时间
  */
 export function formatDateTime(dateStr: string, format = 'YYYY-MM-DD HH:mm:ss'): string {

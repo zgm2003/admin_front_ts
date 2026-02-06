@@ -2,14 +2,27 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { AiConversationApi } from '@/api/ai/conversations'
+import { isToday } from '@/utils/date'
 import type { Conversation } from './types'
 
 const PAGE_SIZE = 50
+
+/**
+ * 从降序列表中找到第一个今日会话（即 last_message_at 最新的今日会话）
+ */
+export function findTodayConversation(
+  conversations: Conversation[]
+): Conversation | null {
+  return conversations.find(
+    c => c.last_message_at && isToday(c.last_message_at)
+  ) ?? null
+}
 
 export function useConversations() {
   const { t } = useI18n()
 
   const conversations = ref<Conversation[]>([])
+  const loaded = ref(false)
   const loading = ref(false)
   const loadingMore = ref(false)
   const page = ref(1)
@@ -38,6 +51,7 @@ export function useConversations() {
       const list = res.list || []
       conversations.value = list
       hasMore.value = list.length >= PAGE_SIZE
+      loaded.value = true
     } finally {
       loading.value = false
     }
@@ -128,6 +142,7 @@ export function useConversations() {
 
   return {
     conversations,
+    loaded,
     loading,
     loadingMore,
     hasMore,

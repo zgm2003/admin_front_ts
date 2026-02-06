@@ -11,6 +11,7 @@ import MessageInput from './components/MessageInput/index.vue'
 
 import {
   useConversations,
+  findTodayConversation,
   useMessages,
   useAgents,
   useStreamChat
@@ -23,10 +24,13 @@ const isMobile = useIsMobile()
 // ========== 状态管理 ==========
 const currentConversationId = ref<number | null>(null)
 const showConversationDrawer = ref(false)
+const switchingAgent = ref(false)
+let switchId = 0
 
 // ========== Composables ==========
 const {
   conversations,
+  loaded,
   loading: conversationsLoading,
   loadingMore: conversationsLoadingMore,
   hasMore: conversationsHasMore,
@@ -95,25 +99,59 @@ const currentModalities = computed(() => {
 
 // ========== 智能体选择处理 ==========
 const handleSelectAgent = async (agent: Agent) => {
+  // 如果点击的是当前已选中的智能体，忽略
+  if (selectedAgentId.value === agent.id) return
+
+  // 竞态守卫：每次切换递增 id，异步回来后比对
+  const currentSwitchId = ++switchId
+  switchingAgent.value = true
+
   // 取消正在进行的流式响应
   await cancelOnSwitch()
-  
-  // 选择智能体（会持久化到 localStorage）
-  selectAgent(agent)
-  
-  // 清空当前状态，准备新对话
+
+  // 立即清空旧状态，避免新旧内容闪烁
   currentConversationId.value = null
   messages.value = []
-  
+
+  // 选择智能体（会持久化到 localStorage）
+  selectAgent(agent)
+
+  try {
+    // 加载该智能体的会话列表 (Req 1.1)
+    await loadConversations({ agent_id: agent.id })
+
+    // 竞态检查：如果用户在等待期间又切换了，丢弃本次结果
+    if (currentSwitchId !== switchId) return
+
+    // 查找今日会话 (Req 1.2, 1.3, 4.1, 4.2)
+    const todayConv = findTodayConversation(conversations.value)
+    if (todayConv) {
+      currentConversationId.value = todayConv.id
+    }
+    // 无今日会话时状态已经是清空的，无需额外操作
+  } catch {
+    // 竞态检查
+    if (currentSwitchId !== switchId) return
+    // 请求失败时保持空白欢迎界面 (Req 1.5)
+    currentConversationId.value = null
+    messages.value = []
+  } finally {
+    if (currentSwitchId === switchId) {
+      switchingAgent.value = false
+    }
+  }
+
   // 自动聚焦输入框
-  nextTick(() => messageInputRef.value?.focus())
+  if (currentSwitchId === switchId) {
+    nextTick(() => messageInputRef.value?.focus())
+  }
 }
 
 // ========== 会话抽屉处理 ==========
 const handleOpenDrawer = async () => {
   showConversationDrawer.value = true
-  // 打开抽屉时才加载会话列表
-  if (selectedAgentId.value) {
+  // 仅在未加载过时才请求（切换智能体时已加载过）(Req 2.2, 2.3)
+  if (selectedAgentId.value && !loaded.value) {
     await loadConversations({ agent_id: selectedAgentId.value })
   }
 }
@@ -246,8 +284,15 @@ watch(currentConversationId, async (newId, oldId) => {
 
       <!-- 消息滚动区 -->
       <el-scrollbar :ref="(el: any) => { if (el) messageScrollRef = el }" class="message-area" @scroll="handleScroll">
+        <!-- 切换智能体加载中 -->
+        <div v-if="switchingAgent" class="welcome-area">
+          <div class="welcome-content">
+            <el-icon class="is-loading" :size="32" color="var(--el-color-primary)"><Loading /></el-icon>
+          </div>
+        </div>
+
         <!-- 欢迎界面（选中智能体但无会话时） -->
-        <div v-if="selectedAgentId && !currentConversationId && messages.length === 0" class="welcome-area">
+        <div v-else-if="selectedAgentId && !currentConversationId && messages.length === 0" class="welcome-area">
           <div class="welcome-content">
             <el-avatar :size="64" :src="selectedAgent?.avatar" class="welcome-avatar">
               {{ selectedAgent?.name?.charAt(0) || '?' }}
