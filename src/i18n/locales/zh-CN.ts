@@ -982,7 +982,22 @@ export default {
     allRead: '已处理所有通知',
     delete: '删除',
     urgent: '紧急',
-    new: '新'
+    new: '新',
+    page: {
+      keyword: '搜索标题',
+      type: '类型',
+      level: '级别',
+      readStatus: '状态',
+      batchRead: '批量已读',
+      batchDelete: '批量删除',
+      viewAll: '查看全部',
+      read: '已读',
+      unread: '未读',
+      markRead: '标记已读',
+      noLink: '无链接',
+      confirmBatchRead: '确定将选中的通知标记为已读吗？',
+      confirmBatchDelete: '确定批量删除选中的通知吗？'
+    }
   },
   notificationTask: {
     title: '标题',

@@ -877,7 +877,22 @@ export default {
     allRead: 'All caught up',
     delete: 'Delete',
     urgent: 'Urgent',
-    new: 'New'
+    new: 'New',
+    page: {
+      keyword: 'Search title',
+      type: 'Type',
+      level: 'Level',
+      readStatus: 'Status',
+      batchRead: 'Batch Read',
+      batchDelete: 'Batch Delete',
+      viewAll: 'View All',
+      read: 'Read',
+      unread: 'Unread',
+      markRead: 'Mark Read',
+      noLink: 'No link',
+      confirmBatchRead: 'Mark selected notifications as read?',
+      confirmBatchDelete: 'Delete selected notifications?'
+    }
   },
   notificationTask: {
     title: 'Title',

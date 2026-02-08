@@ -27,3 +27,25 @@ export const AiRoleEnum = {
   ASSISTANT: 2,
   SYSTEM: 3,
 } as const
+
+/** 通知类型（对应后端 NotificationEnum::TYPE_*） */
+export const NotificationTypeEnum = {
+  INFO: 1,
+  SUCCESS: 2,
+  WARNING: 3,
+  ERROR: 4,
+} as const
+
+/** 通知级别（对应后端 NotificationEnum::LEVEL_*） */
+export const NotificationLevelEnum = {
+  NORMAL: 1,
+  URGENT: 2,
+} as const
+
+/** 通知类型 → el-tag type 映射 */
+export const NotificationTypeColorMap: Record<number, 'info' | 'success' | 'warning' | 'danger'> = {
+  [NotificationTypeEnum.INFO]: 'info',
+  [NotificationTypeEnum.SUCCESS]: 'success',
+  [NotificationTypeEnum.WARNING]: 'warning',
+  [NotificationTypeEnum.ERROR]: 'danger',
+}
