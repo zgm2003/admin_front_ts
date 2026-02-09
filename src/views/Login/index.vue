@@ -1,5 +1,13 @@
 <template>
   <div class="login-container" :class="{ 'is-mobile': isMobile }">
+    <!-- Tauri 无边框模式：顶部拖拽条 -->
+    <div v-if="isTauriEnv()" class="tauri-drag-bar">
+      <div class="tauri-drag-controls">
+        <el-button text size="small" :icon="SemiSelect" @click="tauriMinimize" />
+        <el-button text size="small" type="danger" :icon="CloseBold" @click="tauriClose" />
+      </div>
+    </div>
+
     <!-- 全局背景装饰 -->
     <div class="global-bg">
       <div class="mesh-gradient"></div>
@@ -321,6 +329,7 @@ import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
 import { SendCode } from '@/components/SendCode'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { isTauri as isTauriEnv } from '@/store/tauri'
 import {
   Message,
   Lock,
@@ -336,7 +345,9 @@ import {
   FirstAidKit,
   ChatDotRound,
   Bell,
-  Timer
+  Timer,
+  SemiSelect,
+  CloseBold
 } from '@element-plus/icons-vue'
 
 type LoginTypeItem = { label: string; value: string }
@@ -346,6 +357,16 @@ const router = useRouter()
 const formRef = ref<FormInstance>()
 const isMobile = useIsMobile()
 const loginTypes = ref<LoginTypeItem[]>([])
+
+// Tauri 窗口操作
+async function tauriMinimize() {
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  await getCurrentWindow().minimize()
+}
+async function tauriClose() {
+  const { getCurrentWindow } = await import('@tauri-apps/api/window')
+  await getCurrentWindow().close()
+}
 
 // 登录方式配置
 const typeConfig: Record<string, { label: string; icon: Component; placeholder: string }> = {
@@ -703,6 +724,27 @@ watch(() => forgotVisible.value, (visible) => {
     padding: 16px 0;
     align-items: flex-start;
   }
+}
+
+/* Tauri 无边框拖拽条 */
+.tauri-drag-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  z-index: 9998;
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.tauri-drag-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
 }
 
 /* 全局背景装饰 - 改为 fixed 确保滚动时背景不动 */

@@ -143,6 +143,7 @@ export default {
     devTools: '开发工具',
     // 独立页面
     personal: '个人资料',
+    notification: '通知中心',
     test: '测试页',
     // 用户模块
     user_userManager: '用户管理',
@@ -950,6 +951,15 @@ export default {
       notesPlaceholder: '本次更新内容...',
       fileSize: '文件大小',
       forceUpdate: '强制更新'
+    },
+    signature: {
+      dropHint: '拖拽 .sig 文件到此处，或点击选择文件',
+      acceptTip: '仅支持 .sig 签名文件',
+      placeholder: '或在此手动粘贴签名内容...',
+      or: '或手动输入',
+      reUpload: '重新上传',
+      clear: '清空',
+      onlySig: '仅支持 .sig 格式文件'
     }
   },
   updater: {

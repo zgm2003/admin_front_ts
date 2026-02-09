@@ -141,6 +141,7 @@ export default {
     devTools: 'Dev Tools',
     // Standalone pages
     personal: 'Personal',
+    notification: 'Notifications',
     test: 'Test',
     // User module
     user_userManager: 'User Manager',
@@ -857,6 +858,15 @@ export default {
       notesPlaceholder: 'What\'s new in this release...',
       fileSize: 'File Size',
       forceUpdate: 'Force Update'
+    },
+    signature: {
+      dropHint: 'Drop .sig file here, or click to browse',
+      acceptTip: 'Only .sig signature files accepted',
+      placeholder: 'Or paste signature content here...',
+      or: 'or enter manually',
+      reUpload: 'Re-upload',
+      clear: 'Clear',
+      onlySig: 'Only .sig files are supported'
     }
   },
   updater: {

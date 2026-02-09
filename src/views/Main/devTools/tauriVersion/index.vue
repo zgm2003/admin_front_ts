@@ -13,6 +13,7 @@ import { ElNotification, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { downloadFile } from '@/components/DownloadManager'
 import { UpFile } from '@/components/UpFile'
+import { SignatureInput } from '@/components/SignatureInput'
 import { CommonEnum } from '@/enums'
 
 const { t } = useI18n()
@@ -182,7 +183,7 @@ onMounted(() => init())
   </div>
 
   <!-- 新增/编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile">
+  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile" destroy-on-close>
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('tauriVersion.addVersion') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
@@ -197,7 +198,7 @@ onMounted(() => init())
         <UpFile v-model="form.file_url" folder-name="releases" accept=".zip,.msi,.exe,.dmg,.AppImage" tip="支持 .zip/.msi/.exe/.dmg/.AppImage" @success="onUploadSuccess" />
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.signature')" prop="signature" required>
-        <el-input v-model="form.signature" type="textarea" :rows="4" placeholder=".sig 文件内容" />
+        <SignatureInput v-model="form.signature" />
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.notes')">
         <el-input v-model="form.notes" type="textarea" :rows="2" :placeholder="t('tauriVersion.form.notesPlaceholder')" />

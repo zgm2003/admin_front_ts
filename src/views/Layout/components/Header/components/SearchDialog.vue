@@ -21,13 +21,13 @@
             v-model="keyword"
             :placeholder="t('search.placeholder')"
             clearable
-            prefix-icon="Search"
+            :prefix-icon="Search"
             class="search-input"
             size="large"
         />
       </div>
       <div class="search-hints" v-if="!isMobile">
-        <div class="hint-item"><kbd>ALT</kbd> + <kbd>S</kbd> {{ t('search.wake') }}</div>
+        <div class="hint-item"><kbd>Ctrl</kbd> + <kbd>K</kbd> {{ t('search.wake') }}</div>
         <div class="hint-item">
           <el-icon>
             <Top/>
@@ -45,9 +45,7 @@
         <div v-for="(it, index) in filtered" :key="it.path" :class="['result-item', { active: index === activeIndex }]"
              @click="go(it)" @mouseenter="activeIndex = index">
           <div class="row">
-            <el-icon class="left-icon">
-              <component :is="it.icon || 'Menu'"/>
-            </el-icon>
+            <DIcon :icon="it.icon || 'Menu'" :size="20" class="left-icon" />
             <div class="content">
               <div class="title">{{ resolveMenuLabel(t, it) }}</div>
               <div class="sub">{{ it.path }}</div>
@@ -68,10 +66,11 @@
 import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useUserStore} from '@/store/user'
-import {Top, Bottom, Right, Close} from '@element-plus/icons-vue'
+import {Top, Bottom, Right, Close, Search} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {resolveMenuLabel} from '@/utils/menuI18n'
+import {DIcon} from '@/components/DIcon'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue'])
@@ -120,8 +119,8 @@ const go = (it: Item) => {
 
 const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') show.value = false
-  if (e.altKey && e.code === 'KeyS') {
-    e.preventDefault();
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
+    e.preventDefault()
     show.value = !show.value
   }
 

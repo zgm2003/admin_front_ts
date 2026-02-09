@@ -1,5 +1,5 @@
 <template>
-  <div class="header-bar">
+  <div class="header-bar" :class="{ 'header-bar--draggable': isTauri() }">
     <!-- 左侧：菜单按钮 + 面包屑 -->
     <div class="header-left">
       <el-button v-if="menuStore.hamburger" text class="menu-toggle" @click="ClickMenu">
@@ -49,6 +49,9 @@
       <el-button text :title="t('header.search')" @click="searchOpen = true">
         <DIcon icon="Search" :size="18" />
       </el-button>
+      
+      <!-- Tauri 窗口控制按钮 -->
+      <WindowControls />
     </div>
   </div>
 
@@ -66,6 +69,7 @@ import { ref, onMounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
+import WindowControls from './components/WindowControls.vue'
 import { Expand, Fold } from '@element-plus/icons-vue'
 import { DIcon } from '@/components/DIcon'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
@@ -75,7 +79,8 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
 import { resolveMenuLabel } from '@/utils/menuI18n'
 import Cookies from 'js-cookie'
-import { isTauri, downloadManager, DownloadManager } from '@/components/DownloadManager'
+import { downloadManager, DownloadManager } from '@/components/DownloadManager'
+import { isTauri } from '@/store/tauri'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
@@ -146,8 +151,9 @@ function setLang(lang: string) {
 
 <style scoped lang="scss">
 .header-bar { display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 20px; background: var(--el-bg-color); border-bottom: 1px solid var(--el-border-color-lighter); }
-.header-left { display: flex; align-items: center; gap: 16px; overflow: hidden; flex: 1; }
-.header-right { display: flex; align-items: center; gap: 4px; :deep(.el-button + .el-button) { margin-left: 0; } }
+.header-bar--draggable { -webkit-app-region: drag; }
+.header-left { display: flex; align-items: center; gap: 16px; overflow: hidden; flex: 1; -webkit-app-region: no-drag; }
+.header-right { display: flex; align-items: center; gap: 4px; -webkit-app-region: no-drag; :deep(.el-button + .el-button) { margin-left: 0; } }
 .menu-toggle { padding: 8px; }
 
 :deep(.el-breadcrumb) {

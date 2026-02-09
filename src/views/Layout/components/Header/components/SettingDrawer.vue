@@ -99,7 +99,7 @@
         <div class="section-title">桌面应用</div>
         <div class="setting-list">
           <div class="setting-item">
-            <span>关闭时最小化到托盘</span>
+            <span>关闭时</span>
             <el-select-v2 v-model="closeActionValue" :options="closeActionOptions" style="width: 140px" size="small" @change="onCloseActionChange" />
           </div>
         </div>

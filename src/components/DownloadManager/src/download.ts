@@ -8,8 +8,6 @@ import { save } from '@tauri-apps/plugin-dialog'
 import { ElMessage, ElNotification } from 'element-plus'
 import { isTauri } from '@/store/tauri'
 
-export { isTauri }
-
 // ==================== 类型定义 ====================
 
 export interface DownloadProgress {

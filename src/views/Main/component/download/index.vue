@@ -15,9 +15,9 @@ import {
   downloadFile, 
   downloadManager, 
   DownloadManager,
-  isTauri,
   type DownloadProgress 
 } from '@/components/DownloadManager'
+import { isTauri } from '@/store/tauri'
 
 const activeTab = ref('basic')
 const showDownloadManager = ref(false)
