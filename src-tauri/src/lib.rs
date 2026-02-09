@@ -6,18 +6,21 @@ use tauri::{
 };
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, OnceLock};
-use std::thread;
-use std::time::Duration;
 use notify_rust::Notification;
 
 mod download;
-use download::{DownloadManager, DownloadProgress};
+mod error;
 
-// 未读消息数
+use download::{DownloadManager, DownloadProgress};
+use error::AppError;
+
+// ==================== 全局状态（原子操作，无锁） ====================
+
+/// 未读消息数
 static UNREAD_COUNT: AtomicU32 = AtomicU32::new(0);
-// 是否正在闪烁
+/// 是否正在闪烁
 static IS_BLINKING: AtomicBool = AtomicBool::new(false);
-// 通知图标缓存（避免重复 decode）
+/// 通知图标缓存（避免重复 decode）
 static NOTIFY_ICON: OnceLock<Option<Image<'static>>> = OnceLock::new();
 
 /// 获取缓存的通知图标
@@ -32,57 +35,7 @@ fn get_notify_icon() -> Option<&'static Image<'static>> {
     }).as_ref()
 }
 
-/// 发送系统通知
-#[tauri::command]
-fn send_notification(app: AppHandle, title: String, body: String) {
-    // 增加未读数并更新托盘提示
-    let count = UNREAD_COUNT.fetch_add(1, Ordering::SeqCst) + 1;
-    if let Some(tray) = app.tray_by_id("main") {
-        let _ = tray.set_tooltip(Some(&format!("CloudAdmin - {} 条新消息", count)));
-    }
-    // 任务栏图标闪烁
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.request_user_attention(Some(UserAttentionType::Critical));
-    }
-    // 启动托盘图标闪烁
-    start_tray_blink(app.clone());
-    // 异步发送通知
-    thread::spawn(move || {
-        let _ = Notification::new()
-            .summary(&title)
-            .body(&format!("{}\n\n点击托盘图标查看", body))
-            .appname("CloudAdmin")
-            .timeout(notify_rust::Timeout::Milliseconds(10000))
-            .show();
-    });
-}
-
-/// 启动托盘图标闪烁
-fn start_tray_blink(app: AppHandle) {
-    // 已经在闪烁则跳过
-    if IS_BLINKING.swap(true, Ordering::SeqCst) {
-        return;
-    }
-    
-    thread::spawn(move || {
-        let mut show_normal = true;
-        while IS_BLINKING.load(Ordering::SeqCst) {
-            if let Some(tray) = app.tray_by_id("main") {
-                if show_normal {
-                    if let Some(icon) = app.default_window_icon() {
-                        let _ = tray.set_icon(Some(icon.clone()));
-                    }
-                } else if let Some(icon) = get_notify_icon() {
-                    let _ = tray.set_icon(Some(icon.clone()));
-                }
-            }
-            show_normal = !show_normal;
-            thread::sleep(Duration::from_millis(500));
-        }
-        // 停止闪烁后恢复正常图标
-        restore_default_icon(&app);
-    });
-}
+// ==================== 托盘相关 ====================
 
 /// 恢复默认托盘图标
 fn restore_default_icon(app: &AppHandle) {
@@ -93,13 +46,87 @@ fn restore_default_icon(app: &AppHandle) {
     }
 }
 
+/// 启动托盘图标闪烁（tokio 异步，不占系统线程）
+fn start_tray_blink(app: AppHandle) {
+    if IS_BLINKING.swap(true, Ordering::SeqCst) {
+        return; // 已经在闪烁
+    }
+
+    tokio::spawn(async move {
+        let mut show_normal = true;
+        let mut interval = tokio::time::interval(std::time::Duration::from_millis(500));
+
+        while IS_BLINKING.load(Ordering::SeqCst) {
+            interval.tick().await;
+
+            if let Some(tray) = app.tray_by_id("main") {
+                if show_normal {
+                    if let Some(icon) = app.default_window_icon() {
+                        let _ = tray.set_icon(Some(icon.clone()));
+                    }
+                } else if let Some(icon) = get_notify_icon() {
+                    let _ = tray.set_icon(Some(icon.clone()));
+                }
+            }
+            show_normal = !show_normal;
+        }
+
+        restore_default_icon(&app);
+    });
+}
+
+/// 唤醒窗口并清除未读状态
+fn wake_window(app: &AppHandle) {
+    UNREAD_COUNT.store(0, Ordering::SeqCst);
+    IS_BLINKING.store(false, Ordering::SeqCst);
+    restore_default_icon(app);
+
+    if let Some(tray) = app.tray_by_id("main") {
+        let _ = tray.set_tooltip(Some("CloudAdmin"));
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.request_user_attention(None::<UserAttentionType>);
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+        let _ = app.emit("tray-clicked", ());
+    }
+}
+
+// ==================== Tauri Commands ====================
+
+/// 发送系统通知
+#[tauri::command]
+fn send_notification(app: AppHandle, title: String, body: String) {
+    let count = UNREAD_COUNT.fetch_add(1, Ordering::SeqCst) + 1;
+
+    if let Some(tray) = app.tray_by_id("main") {
+        let _ = tray.set_tooltip(Some(&format!("CloudAdmin - {} 条新消息", count)));
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.request_user_attention(Some(UserAttentionType::Critical));
+    }
+
+    start_tray_blink(app.clone());
+
+    // 系统通知是同步阻塞调用（Windows API），用 spawn_blocking 避免阻塞 tokio 线程池
+    tokio::task::spawn_blocking(move || {
+        let _ = Notification::new()
+            .summary(&title)
+            .body(&format!("{}\n\n点击托盘图标查看", body))
+            .appname("CloudAdmin")
+            .timeout(notify_rust::Timeout::Milliseconds(10000))
+            .show();
+    });
+}
+
 /// 清除未读数
 #[tauri::command]
 fn clear_unread(app: AppHandle) {
     UNREAD_COUNT.store(0, Ordering::SeqCst);
-    // 停止闪烁并恢复默认图标
     IS_BLINKING.store(false, Ordering::SeqCst);
     restore_default_icon(&app);
+
     if let Some(tray) = app.tray_by_id("main") {
         let _ = tray.set_tooltip(Some("CloudAdmin"));
     }
@@ -114,10 +141,8 @@ async fn start_download(
     url: String,
     save_path: String,
     filename: String,
-) -> Result<(), String> {
-    use std::path::PathBuf;
-    
-    let path = PathBuf::from(save_path);
+) -> Result<(), AppError> {
+    let path = std::path::PathBuf::from(save_path);
     manager.create_task(id.clone(), url, path, filename)?;
     manager.start_download(id, app).await?;
     Ok(())
@@ -128,7 +153,7 @@ async fn start_download(
 fn cancel_download(
     manager: State<'_, Arc<DownloadManager>>,
     id: String,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     manager.cancel_download(&id)
 }
 
@@ -154,78 +179,52 @@ fn get_all_downloads(
 fn remove_download(
     manager: State<'_, Arc<DownloadManager>>,
     id: String,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     manager.remove_task(&id)
 }
 
 /// 打开文件所在文件夹
 #[tauri::command]
-fn open_file_folder(path: String) -> Result<(), String> {
-    use std::path::Path;
-    
-    let file_path = Path::new(&path);
-    
-    // 获取文件所在目录
-    let folder = if file_path.is_file() {
-        file_path.parent().ok_or("无法获取父目录")?
-    } else {
-        file_path
-    };
-    
-    // 根据操作系统打开文件夹
+fn open_file_folder(path: String) -> Result<(), AppError> {
     #[cfg(target_os = "windows")]
     {
-        // Windows: 使用 explorer 并选中文件
         std::process::Command::new("explorer")
             .args(["/select,", &path])
             .spawn()
-            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
     }
-    
+
     #[cfg(target_os = "macos")]
     {
-        // macOS: 使用 open 命令
+        let folder = std::path::Path::new(&path)
+            .parent()
+            .unwrap_or(std::path::Path::new(&path));
         std::process::Command::new("open")
             .arg(folder)
             .spawn()
-            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
     }
-    
+
     #[cfg(target_os = "linux")]
     {
-        // Linux: 尝试使用 xdg-open
+        let folder = std::path::Path::new(&path)
+            .parent()
+            .unwrap_or(std::path::Path::new(&path));
         std::process::Command::new("xdg-open")
             .arg(folder)
             .spawn()
-            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
     }
-    
+
     Ok(())
 }
 
-/// 唤醒窗口并通知前端
-fn wake_window(app: &AppHandle) {
-    // 清除未读并停止闪烁
-    UNREAD_COUNT.store(0, Ordering::SeqCst);
-    IS_BLINKING.store(false, Ordering::SeqCst);
-    restore_default_icon(app);
-    if let Some(tray) = app.tray_by_id("main") {
-        let _ = tray.set_tooltip(Some("CloudAdmin"));
-    }
-    // 显示窗口并停止任务栏闪烁
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.request_user_attention(None::<UserAttentionType>);
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-        let _ = app.emit("tray-clicked", ());
-    }
-}
+// ==================== App Entry ====================
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let download_manager = Arc::new(DownloadManager::new());
-    
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -248,7 +247,7 @@ pub fn run() {
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit])?;
 
-            // 创建托盘图标（安全处理：缺 icon 时跳过设置）
+            // 创建托盘图标
             let mut tray_builder = TrayIconBuilder::with_id("main")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
@@ -259,39 +258,35 @@ pub fn run() {
                     _ => {}
                 })
                 .on_tray_icon_event(|tray: &TrayIcon, event| {
-                    // 左键唤醒窗口
-                    if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
                         wake_window(tray.app_handle());
                     }
                 });
 
-            // 安全设置图标：有则设置，无则跳过（不 panic）
             if let Some(icon) = app.default_window_icon() {
                 tray_builder = tray_builder.icon(icon.clone());
             }
 
             let _tray = tray_builder.build(app)?;
-
             Ok(())
         })
         .on_window_event(|window, event| {
             match event {
                 tauri::WindowEvent::CloseRequested { api, .. } => {
-                    // 阻止默认关闭，交给前端决定行为
                     api.prevent_close();
-                    let app = window.app_handle();
-                    let _ = app.emit("window-close-requested", ());
+                    let _ = window.app_handle().emit("window-close-requested", ());
                 }
-                tauri::WindowEvent::Focused(focused) => {
-                    if !focused {
-                        return;
-                    }
-                    // 窗口获得焦点时停止闪烁
-                    let app_handle = window.app_handle();
+                tauri::WindowEvent::Focused(true) => {
+                    let app = window.app_handle();
                     UNREAD_COUNT.store(0, Ordering::SeqCst);
                     IS_BLINKING.store(false, Ordering::SeqCst);
-                    restore_default_icon(app_handle);
-                    if let Some(tray) = app_handle.tray_by_id("main") {
+                    restore_default_icon(app);
+                    if let Some(tray) = app.tray_by_id("main") {
                         let _ = tray.set_tooltip(Some("CloudAdmin"));
                     }
                 }

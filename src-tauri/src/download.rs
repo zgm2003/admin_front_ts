@@ -3,35 +3,48 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 
+use crate::error::AppError;
+
 /// 下载任务状态
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DownloadStatus {
-    Pending,    // 等待中
-    Downloading, // 下载中
-    Paused,     // 已暂停
-    Completed,  // 已完成
-    Failed,     // 失败
-    Cancelled,  // 已取消
+    Pending,
+    Downloading,
+    Paused,
+    Completed,
+    Failed,
+    Cancelled,
 }
 
-/// 下载进度信息
+/// 下载进度信息（前端可见）
 #[derive(Debug, Clone, Serialize)]
 pub struct DownloadProgress {
     pub id: String,
     pub status: DownloadStatus,
-    pub downloaded: u64,      // 已下载字节数
-    pub total: u64,           // 总字节数
-    pub speed: u64,           // 下载速度 (bytes/s)
-    pub progress: f64,        // 进度百分比 (0-100)
+    pub downloaded: u64,
+    pub total: u64,
+    pub speed: u64,
+    pub progress: f64,
     pub filename: String,
     pub save_path: String,
     pub error: Option<String>,
+}
+
+/// 单个任务的内部状态（独立锁）
+struct TaskState {
+    status: DownloadStatus,
+    downloaded: u64,
+    total: u64,
+    speed: u64,
+    progress: f64,
+    error: Option<String>,
 }
 
 /// 下载任务
@@ -40,25 +53,48 @@ struct DownloadTask {
     url: String,
     save_path: PathBuf,
     filename: String,
-    status: DownloadStatus,
-    downloaded: u64,
-    total: u64,
-    speed: u64,
-    progress: f64,
-    error: Option<String>,
-    cancel_flag: Arc<Mutex<bool>>,
+    cancel_flag: Arc<AtomicBool>,
+    state: Arc<Mutex<TaskState>>,
+}
+
+impl DownloadTask {
+    fn to_progress(&self) -> DownloadProgress {
+        let state = self.state.lock().unwrap();
+        DownloadProgress {
+            id: self.id.clone(),
+            status: state.status.clone(),
+            downloaded: state.downloaded,
+            total: state.total,
+            speed: state.speed,
+            progress: state.progress,
+            filename: self.filename.clone(),
+            save_path: self.save_path.to_string_lossy().to_string(),
+            error: state.error.clone(),
+        }
+    }
+}
+
+/// 下载上下文（收拢 download_file 参数）
+struct DownloadContext {
+    url: String,
+    save_path: PathBuf,
+    task_id: String,
+    state: Arc<Mutex<TaskState>>,
+    cancel_flag: Arc<AtomicBool>,
+    app: AppHandle,
+    filename: String,
 }
 
 /// 下载管理器
 pub struct DownloadManager {
-    tasks: Arc<Mutex<HashMap<String, DownloadTask>>>,
+    tasks: Mutex<HashMap<String, DownloadTask>>,
     client: Client,
 }
 
 impl DownloadManager {
     pub fn new() -> Self {
         Self {
-            tasks: Arc::new(Mutex::new(HashMap::new())),
+            tasks: Mutex::new(HashMap::new()),
             client: Client::builder()
                 .timeout(std::time::Duration::from_secs(30))
                 .build()
@@ -73,81 +109,78 @@ impl DownloadManager {
         url: String,
         save_path: PathBuf,
         filename: String,
-    ) -> Result<(), String> {
+    ) -> Result<(), AppError> {
         let mut tasks = self.tasks.lock().unwrap();
-        
+
         if tasks.contains_key(&id) {
-            return Err("任务 ID 已存在".to_string());
+            return Err(AppError::TaskExists(id));
         }
 
-        tasks.insert(
-            id.clone(),
-            DownloadTask {
-                id,
-                url,
-                save_path,
-                filename,
+        tasks.insert(id.clone(), DownloadTask {
+            id,
+            url,
+            save_path,
+            filename,
+            cancel_flag: Arc::new(AtomicBool::new(false)),
+            state: Arc::new(Mutex::new(TaskState {
                 status: DownloadStatus::Pending,
                 downloaded: 0,
                 total: 0,
                 speed: 0,
                 progress: 0.0,
                 error: None,
-                cancel_flag: Arc::new(Mutex::new(false)),
-            },
-        );
+            })),
+        });
 
         Ok(())
     }
 
     /// 开始下载
-    pub async fn start_download(&self, id: String, app: AppHandle) -> Result<(), String> {
-        let (url, save_path, _filename, cancel_flag) = {
-            let mut tasks = self.tasks.lock().unwrap();
-            let task = tasks.get_mut(&id).ok_or("任务不存在")?;
-            
-            if !matches!(task.status, DownloadStatus::Pending | DownloadStatus::Paused) {
-                return Err("任务状态不允许开始下载".to_string());
+    pub async fn start_download(&self, id: String, app: AppHandle) -> Result<(), AppError> {
+        let ctx = {
+            let tasks = self.tasks.lock().unwrap();
+            let task = tasks.get(&id).ok_or_else(|| AppError::TaskNotFound(id.clone()))?;
+
+            {
+                let mut state = task.state.lock().unwrap();
+                if !matches!(state.status, DownloadStatus::Pending | DownloadStatus::Paused) {
+                    return Err(AppError::InvalidState("任务状态不允许开始下载".into()));
+                }
+                state.status = DownloadStatus::Downloading;
             }
 
-            task.status = DownloadStatus::Downloading;
-            (
-                task.url.clone(),
-                task.save_path.clone(),
-                task.filename.clone(),
-                task.cancel_flag.clone(),
-            )
+            DownloadContext {
+                url: task.url.clone(),
+                save_path: task.save_path.clone(),
+                task_id: task.id.clone(),
+                state: Arc::clone(&task.state),
+                cancel_flag: Arc::clone(&task.cancel_flag),
+                app: app.clone(),
+                filename: task.filename.clone(),
+            }
         };
+        // 锁已释放，spawn 异步下载
 
-        let tasks = self.tasks.clone();
         let client = self.client.clone();
-        let task_id = id.clone();
-
         tokio::spawn(async move {
-            let result = Self::download_file(
-                client,
-                &url,
-                &save_path,
-                &task_id,
-                tasks.clone(),
-                app.clone(),
-                cancel_flag,
-            )
-            .await;
+            let result = Self::download_file(&client, &ctx).await;
 
-            let mut tasks = tasks.lock().unwrap();
-            if let Some(task) = tasks.get_mut(&task_id) {
-                match result {
-                    Ok(_) => {
-                        task.status = DownloadStatus::Completed;
-                        task.progress = 100.0;
-                        let _ = app.emit("download-completed", task_id.clone());
-                    }
-                    Err(e) => {
-                        task.status = DownloadStatus::Failed;
-                        task.error = Some(e.clone());
-                        let _ = app.emit("download-failed", (task_id.clone(), e));
-                    }
+            let mut state = ctx.state.lock().unwrap();
+            match result {
+                Ok(_) => {
+                    state.status = DownloadStatus::Completed;
+                    state.progress = 100.0;
+                    let _ = ctx.app.emit("download-completed", &ctx.task_id);
+                }
+                Err(e) => {
+                    let msg = e.to_string();
+                    state.status = if ctx.cancel_flag.load(Ordering::Relaxed) {
+                        DownloadStatus::Cancelled
+                    } else {
+                        DownloadStatus::Failed
+                    };
+                    state.error = Some(msg.clone());
+                    let _ = ctx.app.emit("download-failed", (&ctx.task_id, &msg));
                 }
             }
         });
@@ -156,227 +189,144 @@ impl DownloadManager {
     }
 
     /// 执行文件下载
-    async fn download_file(
-        client: Client,
-        url: &str,
-        save_path: &PathBuf,
-        task_id: &str,
-        tasks: Arc<Mutex<HashMap<String, DownloadTask>>>,
-        app: AppHandle,
-        cancel_flag: Arc<Mutex<bool>>,
-    ) -> Result<(), String> {
-        // 检查取消标志
-        if *cancel_flag.lock().unwrap() {
-            return Err("下载已取消".to_string());
+    async fn download_file(client: &Client, ctx: &DownloadContext) -> Result<(), AppError> {
+        if ctx.cancel_flag.load(Ordering::Relaxed) {
+            return Err(AppError::Cancelled);
         }
 
-        // 发送 HTTP 请求（带超时）
         let response = tokio::time::timeout(
             std::time::Duration::from_secs(30),
-            client.get(url).send()
+            client.get(&ctx.url).send(),
         )
         .await
-        .map_err(|_| "请求超时".to_string())?
-        .map_err(|e| format!("请求失败: {}", e))?;
+        .map_err(|_| AppError::Timeout)?
+        .map_err(AppError::network)?;
 
-        // 再次检查取消标志
-        if *cancel_flag.lock().unwrap() {
-            return Err("下载已取消".to_string());
+        if ctx.cancel_flag.load(Ordering::Relaxed) {
+            return Err(AppError::Cancelled);
         }
 
         if !response.status().is_success() {
-            return Err(format!("HTTP 错误: {}", response.status()));
+            return Err(AppError::Http(response.status().to_string()));
         }
 
         let total_size = response.content_length().unwrap_or(0);
-
-        // 更新总大小
         {
-            let mut tasks = tasks.lock().unwrap();
-            if let Some(task) = tasks.get_mut(task_id) {
-                task.total = total_size;
-            }
+            let mut state = ctx.state.lock().unwrap();
+            state.total = total_size;
         }
 
-        // 创建文件
-        let mut file = File::create(save_path)
-            .map_err(|e| format!("创建文件失败: {}", e))?;
+        let mut file = File::create(&ctx.save_path)
+            .map_err(|e| AppError::io("创建文件失败", e))?;
 
         let mut stream = response.bytes_stream();
         let mut downloaded: u64 = 0;
         let mut last_update = std::time::Instant::now();
         let mut last_downloaded = 0u64;
 
-        // 流式下载（支持取消）
-        loop {
-            // 使用 tokio::select! 实现可中断的下载
-            tokio::select! {
-                // 检查取消标志
-                _ = async {
-                    loop {
-                        if *cancel_flag.lock().unwrap() {
-                            break;
-                        }
-                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                    }
-                } => {
-                    // 取消下载
-                    let _ = std::fs::remove_file(save_path);
-                    return Err("下载已取消".to_string());
+        while let Some(chunk_result) = stream.next().await {
+            // 每个 chunk 检查取消
+            if ctx.cancel_flag.load(Ordering::Relaxed) {
+                drop(file);
+                let _ = std::fs::remove_file(&ctx.save_path);
+                return Err(AppError::Cancelled);
+            }
+
+            let chunk = chunk_result.map_err(AppError::network)?;
+            file.write_all(&chunk)
+                .map_err(|e| AppError::io("写入文件失败", e))?;
+
+            downloaded += chunk.len() as u64;
+
+            // 每 500ms 更新一次进度
+            let now = std::time::Instant::now();
+            if now.duration_since(last_update).as_millis() >= 500 {
+                let elapsed = now.duration_since(last_update).as_secs_f64();
+                let speed = ((downloaded - last_downloaded) as f64 / elapsed) as u64;
+                let progress = if total_size > 0 {
+                    (downloaded as f64 / total_size as f64) * 100.0
+                } else {
+                    0.0
+                };
+
+                {
+                    let mut state = ctx.state.lock().unwrap();
+                    state.downloaded = downloaded;
+                    state.speed = speed;
+                    state.progress = progress;
                 }
-                
-                // 下载数据
-                chunk_result = stream.next() => {
-                    match chunk_result {
-                        Some(Ok(chunk)) => {
-                            file.write_all(&chunk)
-                                .map_err(|e| format!("写入文件失败: {}", e))?;
 
-                            downloaded += chunk.len() as u64;
+                let _ = ctx.app.emit("download-progress", DownloadProgress {
+                    id: ctx.task_id.clone(),
+                    status: DownloadStatus::Downloading,
+                    downloaded,
+                    total: total_size,
+                    speed,
+                    progress,
+                    filename: ctx.filename.clone(),
+                    save_path: ctx.save_path.to_string_lossy().to_string(),
+                    error: None,
+                });
 
-                            let now = std::time::Instant::now();
-                            if now.duration_since(last_update).as_millis() >= 500 {
-                                let elapsed = now.duration_since(last_update).as_secs_f64();
-                                let speed = ((downloaded - last_downloaded) as f64 / elapsed) as u64;
-                                let progress = if total_size > 0 {
-                                    (downloaded as f64 / total_size as f64) * 100.0
-                                } else {
-                                    0.0
-                                };
-
-                                // 更新任务状态
-                                {
-                                    let mut tasks = tasks.lock().unwrap();
-                                    if let Some(task) = tasks.get_mut(task_id) {
-                                        task.downloaded = downloaded;
-                                        task.speed = speed;
-                                        task.progress = progress;
-                                    }
-                                }
-
-                                // 发送进度事件
-                                let _ = app.emit(
-                                    "download-progress",
-                                    DownloadProgress {
-                                        id: task_id.to_string(),
-                                        status: DownloadStatus::Downloading,
-                                        downloaded,
-                                        total: total_size,
-                                        speed,
-                                        progress,
-                                        filename: save_path
-                                            .file_name()
-                                            .unwrap_or_default()
-                                            .to_string_lossy()
-                                            .to_string(),
-                                        save_path: save_path.to_string_lossy().to_string(),
-                                        error: None,
-                                    },
-                                );
-
-                                last_update = now;
-                                last_downloaded = downloaded;
-                            }
-                        }
-                        Some(Err(e)) => {
-                            // 下载出错
-                            let _ = std::fs::remove_file(save_path);
-                            return Err(format!("下载数据失败: {}", e));
-                        }
-                        None => {
-                            // 下载完成
-                            break;
-                        }
-                    }
-                }
+                last_update = now;
+                last_downloaded = downloaded;
             }
         }
 
-        file.flush().map_err(|e| format!("保存文件失败: {}", e))?;
-        
-        // 下载完成后发送最终进度
+        file.flush().map_err(|e| AppError::io("保存文件失败", e))?;
+
+        // 发送最终进度
         let final_progress = if total_size > 0 {
             (downloaded as f64 / total_size as f64) * 100.0
         } else {
             100.0
         };
-        
-        let _ = app.emit(
-            "download-progress",
-            DownloadProgress {
-                id: task_id.to_string(),
-                status: DownloadStatus::Downloading,
-                downloaded,
-                total: total_size,
-                speed: 0,
-                progress: final_progress,
-                filename: save_path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .to_string(),
-                save_path: save_path.to_string_lossy().to_string(),
-                error: None,
-            },
-        );
-        
+        let _ = ctx.app.emit("download-progress", DownloadProgress {
+            id: ctx.task_id.clone(),
+            status: DownloadStatus::Completed,
+            downloaded,
+            total: total_size,
+            speed: 0,
+            progress: final_progress,
+            filename: ctx.filename.clone(),
+            save_path: ctx.save_path.to_string_lossy().to_string(),
+            error: None,
+        });
+
         Ok(())
     }
 
     /// 取消下载
-    pub fn cancel_download(&self, id: &str) -> Result<(), String> {
-        let mut tasks = self.tasks.lock().unwrap();
-        let task = tasks.get_mut(id).ok_or("任务不存在")?;
+    pub fn cancel_download(&self, id: &str) -> Result<(), AppError> {
+        let tasks = self.tasks.lock().unwrap();
+        let task = tasks.get(id).ok_or_else(|| AppError::TaskNotFound(id.into()))?;
 
-        if !matches!(task.status, DownloadStatus::Downloading | DownloadStatus::Paused) {
-            return Err("任务状态不允许取消".to_string());
+        let state = task.state.lock().unwrap();
+        if !matches!(state.status, DownloadStatus::Downloading | DownloadStatus::Paused) {
+            return Err(AppError::InvalidState("任务状态不允许取消".into()));
         }
+        drop(state);
 
-        *task.cancel_flag.lock().unwrap() = true;
-        task.status = DownloadStatus::Cancelled;
-
+        task.cancel_flag.store(true, Ordering::Relaxed);
         Ok(())
     }
 
     /// 获取任务进度
     pub fn get_progress(&self, id: &str) -> Option<DownloadProgress> {
         let tasks = self.tasks.lock().unwrap();
-        tasks.get(id).map(|task| DownloadProgress {
-            id: task.id.clone(),
-            status: task.status.clone(),
-            downloaded: task.downloaded,
-            total: task.total,
-            speed: task.speed,
-            progress: task.progress,
-            filename: task.filename.clone(),
-            save_path: task.save_path.to_string_lossy().to_string(),
-            error: task.error.clone(),
-        })
+        tasks.get(id).map(|t| t.to_progress())
     }
 
-    /// 获取所有任务
+    /// 获取所有任务摘要
     pub fn get_all_tasks(&self) -> Vec<DownloadProgress> {
         let tasks = self.tasks.lock().unwrap();
-        tasks
-            .values()
-            .map(|task| DownloadProgress {
-                id: task.id.clone(),
-                status: task.status.clone(),
-                downloaded: task.downloaded,
-                total: task.total,
-                speed: task.speed,
-                progress: task.progress,
-                filename: task.filename.clone(),
-                save_path: task.save_path.to_string_lossy().to_string(),
-                error: task.error.clone(),
-            })
-            .collect()
+        tasks.values().map(|t| t.to_progress()).collect()
     }
 
     /// 删除任务
-    pub fn remove_task(&self, id: &str) -> Result<(), String> {
+    pub fn remove_task(&self, id: &str) -> Result<(), AppError> {
         let mut tasks = self.tasks.lock().unwrap();
-        tasks.remove(id).ok_or("任务不存在")?;
+        tasks.remove(id).ok_or_else(|| AppError::TaskNotFound(id.into()))?;
         Ok(())
     }
 }
