@@ -76,6 +76,7 @@ export default {
     mobileError: 'Invalid mobile number format',
     urlError: 'Invalid URL format',
     yes: 'Yes',
+    no: 'No',
     language: 'Language', zh: 'Chinese', en: 'English',
     status: {
       show: 'Show',
@@ -117,8 +118,10 @@ export default {
     scrollLoadMore: 'Scroll to load more',
     noMore: 'No more data',
     noData: 'No data',
+    createdAt: 'Created At',
     startDate: 'Start Date',
     endDate: 'End Date',
+    pleaseSelect: 'Please select a record first',
     placeholder: {
       leaveEmpty: 'Leave empty to keep unchanged'
     },
@@ -153,7 +156,9 @@ export default {
     system_operationLog: 'Operation Log',
     system_uploadConfig: 'Upload Config',
     system_setting: 'System Settings',
+    system_authPlatform: 'Auth Platform',
     system_test: 'Test',
+    system_notificationTask: 'Notifications',
     system_log: 'System Log',
     // Component module
     component_upload: 'Upload',
@@ -743,6 +748,108 @@ export default {
       tagsPlaceholder: 'Multiple tags separated by commas'
     }
   },
+  codeGen: {
+    title: 'Code Generator',
+    helpButton: 'Help',
+    steps: {
+      selectTable: 'Select Table',
+      configFields: 'Configure Fields',
+      previewCode: 'Preview Code'
+    },
+    form: {
+      selectTable: 'Select Table',
+      selectTablePlaceholder: 'Please select a table',
+      moduleName: 'Module Name',
+      moduleNamePlaceholder: 'e.g. Article (PascalCase)',
+      domain: 'Domain',
+      domainPlaceholder: 'Select domain',
+      menuName: 'Menu Name',
+      menuNamePlaceholder: 'Name shown in menu',
+      routePath: 'Route Path',
+      routePathPlaceholder: 'e.g. /article'
+    },
+    table: {
+      columnName: 'Column',
+      comment: 'Comment',
+      dataType: 'Type',
+      showInList: 'List',
+      showInSearch: 'Search',
+      showInForm: 'Form',
+      formType: 'Form Type'
+    },
+    formTypes: {
+      input: 'Text',
+      password: 'Password',
+      number: 'Number',
+      textarea: 'Textarea',
+      editor: 'Rich Text',
+      select: 'Select',
+      date: 'Date',
+      datetime: 'DateTime',
+      image: 'Image Upload'
+    },
+    actions: {
+      prevStep: 'Previous',
+      nextStep: 'Next',
+      generate: 'Generate',
+      iKnow: 'Got it'
+    },
+    messages: {
+      selectTableRequired: 'Please select a table',
+      moduleNameRequired: 'Please enter module name',
+      generateConfirm: 'Generate code? Existing files will be skipped.',
+      generateSuccess: 'Successfully generated {count} files',
+      generateSkipped: 'Skipped {count} existing files'
+    },
+    help: {
+      quickStart: 'Quick Start',
+      quickStartDesc: 'The code generator creates complete CRUD code (backend + frontend) from database table structure.',
+      usageSteps: 'Usage Steps',
+      step1: 'Step 1: Select Table',
+      step1Desc: 'Select a database table and configure module name, domain, etc.',
+      step2: 'Step 2: Configure Fields',
+      step2Desc: 'Toggle field visibility in list, search, and form; select form types',
+      step3: 'Step 3: Preview & Generate',
+      step3Desc: 'Preview generated code and click generate to confirm',
+      configDesc: 'Configuration',
+      moduleNameDesc: 'PascalCase format, e.g. Article, UserProfile',
+      domainDesc: 'Business module the code belongs to, e.g. System, User, Ai',
+      menuNameDesc: 'Name displayed in the frontend menu',
+      routePathDesc: 'Frontend route path, e.g. /system/article',
+      fieldConfig: 'Field Configuration',
+      showInListDesc: 'When checked, the field will be shown in the list page',
+      showInSearchDesc: 'When checked, the field can be used as a search filter (fuzzy match)',
+      showInFormDesc: 'When checked, the field will appear in add/edit forms',
+      formTypeDesc: 'Select the appropriate form control type',
+      formTypeExamples: 'Form Type Reference',
+      formTypeTable: {
+        type: 'Type',
+        desc: 'Description',
+        example: 'Use Case'
+      },
+      generatedFiles: 'Generated Files',
+      backendFiles: 'Backend files:',
+      controller: 'Controller - Route entry point',
+      module: 'Module - Business logic layer',
+      dep: 'Dep - Data access layer',
+      model: 'Model - Data model',
+      validate: 'Validate - Validation rules',
+      frontendFiles: 'Frontend files:',
+      api: 'API - API definitions',
+      vue: 'Vue - Page component (list, search, form)',
+      notices: 'Notes',
+      notice1: 'After generation, manually add routes to routes/admin.php',
+      notice2: 'Create menu and permissions in the database',
+      notice3: 'For select fields, configure dictionary data in Module init() method',
+      notice4: 'Existing files will not be overwritten; delete old files to regenerate',
+      bestPractices: 'Best Practices',
+      practice1: 'Use lowercase + underscore for table names, e.g. user_profile',
+      practice2: 'Add clear column comments — they become form labels automatically',
+      practice3: 'Set NOT NULL constraints for required fields',
+      practice4: 'Use standard fields: is_del, created_at, updated_at',
+      practice5: 'Status fields: 1=enabled/yes, 2=disabled/no'
+    }
+  },
   queueMonitor: {
     title: 'Queue Monitor',
     queueName: 'Queue Name',
@@ -939,5 +1046,51 @@ export default {
     toolbar: { keyword: 'Search keyword', level: 'Log level', query: 'Query', refresh: 'Refresh', autoScroll: 'Auto scroll', lines: 'lines' },
     empty: 'No log content',
     error: { loadFiles: 'Failed to load file list', loadContent: 'Failed to load log content' }
+  },
+  authPlatform: {
+    filter: { name: 'Platform Name', status: 'Status' },
+    table: {
+      code: 'Code',
+      name: 'Name',
+      login_types: 'Login Types',
+      access_ttl: 'Access TTL',
+      refresh_ttl: 'Refresh TTL',
+      bind_platform: 'Bind Platform',
+      bind_device: 'Bind Device',
+      bind_ip: 'Bind IP',
+      single_session: 'Single Session',
+      max_sessions: 'Max Sessions',
+      allow_register: 'Allow Register',
+      status: 'Status',
+      created_at: 'Created At',
+      updated_at: 'Updated At'
+    },
+    form: {
+      code: 'Platform Code',
+      codePlaceholder: 'Lowercase, e.g. admin, app, mini',
+      codeHelp: 'Cannot be changed after creation, used in platform header',
+      name: 'Platform Name',
+      namePlaceholder: 'e.g. Admin Panel, Mobile App',
+      login_types: 'Login Types',
+      access_ttl: 'Access Token TTL (seconds)',
+      refresh_ttl: 'Refresh Token TTL (seconds)',
+      bind_platform: 'Bind Platform',
+      bind_device: 'Bind Device',
+      bind_ip: 'Bind IP',
+      single_session: 'Single Session (kick)',
+      max_sessions: 'Max Sessions',
+      max_sessions_help: '0 means unlimited',
+      allow_register: 'Allow Register',
+      section_basic: 'Basic Info',
+      section_token: 'Token Policy',
+      section_security: 'Security Policy'
+    },
+    addTitle: 'Add Auth Platform',
+    editTitle: 'Edit Auth Platform',
+    ttlFormat: {
+      day: 'days',
+      hour: 'hours',
+      minute: 'minutes'
+    }
   }
 }

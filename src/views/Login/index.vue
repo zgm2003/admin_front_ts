@@ -196,6 +196,15 @@
                   忘记密码
                 </span>
               </div>
+
+              <div class="terms-checkbox">
+                <el-checkbox v-model="agreePolicy">
+                  我已阅读并同意
+                  <span class="term-btn" @click.prevent.stop="openService">服务条款</span>
+                  和
+                  <span class="term-btn" @click.prevent.stop="openPolicy">隐私政策</span>
+                </el-checkbox>
+              </div>
             </div>
 
             <el-button
@@ -212,15 +221,6 @@
             还没有账户？
             <span class="register-link">立即注册</span>
           </p> -->
-
-          <div class="terms-checkbox">
-            <el-checkbox v-model="agreePolicy">
-              我已阅读并同意
-              <span class="term-btn" @click.prevent.stop="openService">服务条款</span>
-              和
-              <span class="term-btn" @click.prevent.stop="openPolicy">隐私政策</span>
-            </el-checkbox>
-          </div>
 
         </div>
       </div>
@@ -1243,7 +1243,7 @@ watch(() => forgotVisible.value, (visible) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 12px;
   height: 24px;
 
   .is-invisible {
@@ -1323,8 +1323,7 @@ watch(() => forgotVisible.value, (visible) => {
 }
 
 .terms-checkbox {
-  text-align: center;
-  margin-top: 32px;
+  margin-bottom: 16px;
   font-size: 13px;
   color: #64748b;
   

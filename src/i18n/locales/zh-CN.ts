@@ -76,6 +76,7 @@ export default {
     mobileError: '手机号格式不正确',
     urlError: 'URL格式不正确',
     yes: '是',
+    no: '否',
     language: '语言', zh: '中文', en: '英文',
     status: {
       show: '显示',
@@ -155,6 +156,7 @@ export default {
     system_operationLog: '操作日志',
     system_uploadConfig: '上传配置',
     system_setting: '系统设置',
+    system_authPlatform: '认证平台',
     system_test: '测试',
     system_notificationTask: '通知管理',
     system_log: '系统日志',
@@ -1044,5 +1046,51 @@ export default {
     toolbar: { keyword: '搜索关键字', level: '日志级别', query: '查询', refresh: '刷新', autoScroll: '自动滚底', lines: '行' },
     empty: '暂无日志内容',
     error: { loadFiles: '加载文件列表失败', loadContent: '加载日志内容失败' }
+  },
+  authPlatform: {
+    filter: { name: '平台名称', status: '状态' },
+    table: {
+      code: '平台标识',
+      name: '平台名称',
+      login_types: '登录方式',
+      access_ttl: 'Access TTL',
+      refresh_ttl: 'Refresh TTL',
+      bind_platform: '绑定平台',
+      bind_device: '绑定设备',
+      bind_ip: '绑定IP',
+      single_session: '单端登录',
+      max_sessions: '最大会话数',
+      allow_register: '允许注册',
+      status: '状态',
+      created_at: '创建时间',
+      updated_at: '更新时间'
+    },
+    form: {
+      code: '平台标识',
+      codePlaceholder: '小写字母开头，如 admin、app、mini',
+      codeHelp: '创建后不可修改，用于请求头 platform 字段',
+      name: '平台名称',
+      namePlaceholder: '如：PC后台、H5/APP',
+      login_types: '登录方式',
+      access_ttl: 'Access Token 有效期（秒）',
+      refresh_ttl: 'Refresh Token 有效期（秒）',
+      bind_platform: '绑定平台',
+      bind_device: '绑定设备',
+      bind_ip: '绑定IP',
+      single_session: '单端登录（互踢）',
+      max_sessions: '最大会话数',
+      max_sessions_help: '0 表示不限制',
+      allow_register: '允许注册',
+      section_basic: '基本信息',
+      section_token: 'Token 策略',
+      section_security: '安全策略'
+    },
+    addTitle: '新增认证平台',
+    editTitle: '编辑认证平台',
+    ttlFormat: {
+      day: '天',
+      hour: '小时',
+      minute: '分钟'
+    }
   }
 }
