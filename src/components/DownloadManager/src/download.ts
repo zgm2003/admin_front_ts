@@ -2,11 +2,14 @@
  * 统一下载工具 - 自动适配浏览器和 Tauri 环境
  * Tauri 环境提供完整的桌面下载体验（进度、暂停、取消）
  */
-import { invoke } from '@tauri-apps/api/core'
-import { listen, type UnlistenFn } from '@tauri-apps/api/event'
-import { save } from '@tauri-apps/plugin-dialog'
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ElMessage, ElNotification } from 'element-plus'
 import { isTauri } from '@/store/tauri'
+
+// 动态导入 Tauri API，避免 Web 环境加载失败
+const tauriCore = () => import('@tauri-apps/api/core')
+const tauriEvent = () => import('@tauri-apps/api/event')
+const tauriDialog = () => import('@tauri-apps/plugin-dialog')
 
 // ==================== 类型定义 ====================
 
@@ -48,6 +51,7 @@ class DownloadManager {
   }
 
   private async initListeners() {
+    const { listen } = await tauriEvent()
     const progressListener = await listen<DownloadProgress>('download-progress', (event) => {
       const progress = event.payload
       this.downloads.set(progress.id, progress)
@@ -94,6 +98,8 @@ class DownloadManager {
       throw new Error('Web 环境不支持下载管理')
     }
 
+    const { save } = await tauriDialog()
+    const { invoke } = await tauriCore()
     const urlFilename = options.url.split('/').pop()?.split('?')[0] || 'download'
     const suggestedFilename = options.filename || urlFilename
 
@@ -119,6 +125,7 @@ class DownloadManager {
   async cancel(id: string) {
     if (!isTauri()) return
     try {
+      const { invoke } = await tauriCore()
       await invoke('cancel_download', { id })
       this.downloads.delete(id)
       this.callbacks.delete(id)
@@ -130,6 +137,7 @@ class DownloadManager {
   async getProgress(id: string): Promise<DownloadProgress | null> {
     if (!isTauri()) return null
     try {
+      const { invoke } = await tauriCore()
       const progress = await invoke<DownloadProgress | null>('get_download_progress', { id })
       if (progress) this.downloads.set(id, progress)
       return progress
@@ -141,6 +149,7 @@ class DownloadManager {
   async getAllDownloads(): Promise<DownloadProgress[]> {
     if (!isTauri()) return []
     try {
+      const { invoke } = await tauriCore()
       const downloads = await invoke<DownloadProgress[]>('get_all_downloads')
       downloads.forEach(d => this.downloads.set(d.id, d))
       return downloads
@@ -151,6 +160,7 @@ class DownloadManager {
 
   async remove(id: string) {
     if (!isTauri()) return
+    const { invoke } = await tauriCore()
     await invoke('remove_download', { id })
     this.downloads.delete(id)
     this.callbacks.delete(id)
@@ -159,6 +169,7 @@ class DownloadManager {
   async openFolder(savePath: string) {
     if (!isTauri()) return
     try {
+      const { invoke } = await tauriCore()
       await invoke('open_file_folder', { path: savePath })
       ElMessage.success('已打开文件夹')
     } catch (error) {
@@ -240,6 +251,7 @@ export const downloadFile = async (
 export const openUrl = async (url: string) => {
   if (isTauri()) {
     try {
+      const { invoke } = await tauriCore()
       await invoke('plugin:opener|open_url', { url })
     } catch (e) {
       console.error('[openUrl] Error:', e)

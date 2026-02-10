@@ -1,5 +1,5 @@
 <script setup>
-import { watch } from 'vue'
+import { watch, computed } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import Aside from '@/views/Layout/components/Aside/index.vue'
@@ -14,6 +14,9 @@ const userStore = useUserStore()
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
+
+// 不需要 page-card 白色卡片包裹的路由
+const isPlainPage = computed(() => route.path === '/home')
 
 // WebSocket 连接
 useWebSocket()
@@ -57,12 +60,12 @@ watch(isMobile, (val) => {
             :name="menuStore.transitionName"
             mode="out-in"
           >
-            <div :key="route.fullPath" class="page-card">
+            <div :key="route.fullPath" :class="{ 'page-card': !isPlainPage }">
               <component :is="Component" />
             </div>
           </transition>
           
-          <div v-else class="page-card">
+          <div v-else :class="{ 'page-card': !isPlainPage }">
             <component :is="Component" />
           </div>
         </router-view>
