@@ -80,7 +80,9 @@ export default {
     language: 'Language', zh: 'Chinese', en: 'English',
     status: {
       show: 'Show',
-      hide: 'Hide'
+      hide: 'Hide',
+      enabled: 'Enabled',
+      disabled: 'Disabled'
     },
     actions: {
       add: 'Add',
@@ -442,7 +444,8 @@ export default {
         component: 'Example: user/userManager (file path without /)',
         path: 'Should be "/" + component, e.g., /user/userManager',
         i18n_key: 'Format: menu.{parent}_{current}, e.g., menu.user_userManager'
-      }
+      },
+      codeHint: 'Naming convention: module_action, e.g. profile_edit, scan_submit'
     }
   },
   upload: {

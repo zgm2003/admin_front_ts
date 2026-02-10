@@ -73,8 +73,8 @@ const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref({ id: '', name: '', code: '', sort: 1, platform: '' })
 const formRef = ref<FormInstance | null>(null)
 const rules = computed<FormRules>(() => ({
-  name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入权限标识', trigger: 'blur' }]
+  name: [{ required: true, message: t('permission.form.rule.name'), trigger: 'blur' }],
+  code: [{ required: true, message: t('permission.form.rule.code'), trigger: 'blur' }]
 }))
 
 const add = () => {
@@ -143,8 +143,8 @@ onMounted(() => {
           </el-dropdown>
         </template>
         <template #cell-status="{ row }">
-          <el-tag type="success" v-if="row.status === CommonEnum.YES">启用</el-tag>
-          <el-tag type="danger" v-else>禁用</el-tag>
+          <el-tag type="success" v-if="row.status === CommonEnum.YES">{{ t('common.status.enabled') }}</el-tag>
+          <el-tag type="danger" v-else>{{ t('common.status.disabled') }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text v-if="userStore.can('permission_appButton_edit')" @click="edit(row)">
@@ -173,7 +173,7 @@ onMounted(() => {
       <el-form-item :label="t('permission.form.code')" prop="code" required>
         <el-input v-model="form.code" clearable :placeholder="t('permission.form.placeholder.code')" />
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-          命名规范：模块_操作，如 profile_edit、scan_submit
+          {{ t('permission.form.codeHint') }}
         </div>
       </el-form-item>
       <el-form-item :label="t('permission.form.sort')" prop="sort">

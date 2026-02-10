@@ -80,7 +80,9 @@ export default {
     language: '语言', zh: '中文', en: '英文',
     status: {
       show: '显示',
-      hide: '隐藏'
+      hide: '隐藏',
+      enabled: '启用',
+      disabled: '禁用'
     },
     actions: {
       add: '新增',
@@ -442,7 +444,8 @@ export default {
         component: '示例：user/userManager（文件路径，不带 /）',
         path: '应为 "/" + component，如：/user/userManager',
         i18n_key: '格式：menu.[parent]_[current]，如：menu.user_userManager'
-      }
+      },
+      codeHint: '命名规范：模块_操作，如 profile_edit、scan_submit'
     }
   },
   upload: {
