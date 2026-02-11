@@ -58,7 +58,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    // 明确包含需要预构建的依赖
     include: [
       'vue',
       'vue-router',
@@ -67,9 +66,8 @@ export default defineConfig({
       'axios',
       'js-cookie',
       '@iconify/vue',
+      '@element-plus/icons-vue',
     ],
-    // 排除大体积依赖，让它们按需加载
-    exclude: ['@element-plus/icons-vue'],
   },
   build: {
     // 分包策略
@@ -89,10 +87,6 @@ export default defineConfig({
           if (id.includes('@wangeditor')) {
             return 'editor'
           }
-          // Element Plus 图标（按需加载）
-          if (id.includes('@element-plus/icons-vue')) {
-            return 'ep-icons'
-          }
           // 云存储 SDK（按需加载）
           if (id.includes('cos-js-sdk')) {
             return 'cos-js-sdk-v5'
@@ -101,6 +95,9 @@ export default defineConfig({
           if (id.includes('@iconify')) {
             return 'iconify'
           }
+          // 注意：@element-plus/icons-vue 不再强制合并为单个 chunk
+          // 各页面按需 import 的图标会被 tree-shake，只打包实际使用的
+          // home 页面的动态全量 import() 会生成独立的异步 chunk，不影响其他页面
         }
       }
     },

@@ -1121,13 +1121,11 @@ watch(() => forgotVisible.value, (visible) => {
   width: 100%;
   opacity: 0;
   pointer-events: none;
-  visibility: hidden;
   transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateX(20px) scale(0.98);
 
   &.is-active {
     opacity: 1;
-    visibility: visible;
     pointer-events: auto;
     transform: translateX(0) scale(1);
     transition-delay: 0.1s;
@@ -1247,7 +1245,7 @@ watch(() => forgotVisible.value, (visible) => {
   height: 24px;
 
   .is-invisible {
-    visibility: hidden;
+    opacity: 0;
     pointer-events: none;
   }
 
