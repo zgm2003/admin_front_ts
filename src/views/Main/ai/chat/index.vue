@@ -14,7 +14,8 @@ import {
   findTodayConversation,
   useMessages,
   useAgents,
-  useStreamChat
+  useStreamChat,
+  useChatSessionManager
 } from './composables'
 import type { Agent, Conversation } from './composables/types'
 
@@ -25,7 +26,9 @@ const isMobile = useIsMobile()
 const currentConversationId = ref<number | null>(null)
 const showConversationDrawer = ref(false)
 const switchingAgent = ref(false)
-let switchId = 0
+
+// ========== Session Manager ==========
+const sessionManager = useChatSessionManager()
 
 // ========== Composables ==========
 const {
@@ -76,7 +79,6 @@ const {
   isStreaming,
   send: sendMessage,
   regenerate: regenerateMessage,
-  cancelOnSwitch,
   stop: stopGeneration
 } = useStreamChat({
   messages,
@@ -85,7 +87,9 @@ const {
   selectedAgentId,
   selectedAgent,
   scrollToBottom,
-  loadMessages
+  loadMessages,
+  getActiveAgentId: () => selectedAgentId.value,
+  getSession: (agentId: number) => sessionManager.getOrCreate(agentId),
 })
 
 // ========== 计算属性 ==========
@@ -97,74 +101,125 @@ const currentModalities = computed(() => {
   return getAgentModalities(selectedAgentId.value)
 })
 
-// ========== 智能体选择处理 ==========
+// ========== 挂起当前 agent 状态到 session ==========
+const suspendCurrentAgent = () => {
+  const agentId = selectedAgentId.value
+  if (!agentId) return
+
+  const session = sessionManager.getOrCreate(agentId)
+  // 保存 UI 状态到 session
+  session.conversationId = currentConversationId.value
+  session.messages = [...messages.value]
+  session.conversations = [...conversations.value]
+  session.conversationsLoaded = loaded.value
+  session.isStreaming = isStreaming.value
+  session.sending = sending.value
+}
+
+// ========== 从 session 恢复 agent 状态到 UI ==========
+const resumeAgent = (agentId: number) => {
+  const session = sessionManager.resume(agentId)
+  if (!session) return false
+
+  currentConversationId.value = session.conversationId
+  messages.value = [...session.messages]
+  conversations.value = [...session.conversations]
+  loaded.value = session.conversationsLoaded
+  // 恢复流式状态
+  isStreaming.value = session.isStreaming
+  sending.value = session.sending
+
+  if (session.isStreaming) {
+    nextTick(() => scrollToBottom())
+  }
+  return true
+}
+
+// ========== 智能体选择处理（断点续连版） ==========
 const handleSelectAgent = async (agent: Agent) => {
-  // 如果点击的是当前已选中的智能体，忽略
   if (selectedAgentId.value === agent.id) return
 
-  // 竞态守卫：每次切换递增 id，异步回来后比对
-  const currentSwitchId = ++switchId
   switchingAgent.value = true
 
-  // 取消正在进行的流式响应
-  await cancelOnSwitch()
+  // 1. 挂起当前 agent 的状态（不中断 SSE）
+  suspendCurrentAgent()
 
-  // 立即清空旧状态，避免新旧内容闪烁
+  // 2. 切换到新 agent
+  selectAgent(agent)
+
+  // 3. 尝试从 session 恢复
+  const restored = resumeAgent(agent.id)
+
+  if (restored) {
+    // 恢复成功，直接显示缓存的状态
+    switchingAgent.value = false
+    nextTick(() => {
+      scrollToBottom()
+      messageInputRef.value?.focus()
+    })
+    return
+  }
+
+  // 4. 没有缓存，正常加载
   currentConversationId.value = null
   messages.value = []
 
-  // 选择智能体（会持久化到 localStorage）
-  selectAgent(agent)
-
   try {
-    // 加载该智能体的会话列表 (Req 1.1)
     await loadConversations({ agent_id: agent.id })
 
-    // 竞态检查：如果用户在等待期间又切换了，丢弃本次结果
-    if (currentSwitchId !== switchId) return
+    // 确保还是当前 agent（防竞态）
+    if (selectedAgentId.value !== agent.id) return
 
-    // 查找今日会话 (Req 1.2, 1.3, 4.1, 4.2)
+    // 初始化 session
+    const session = sessionManager.getOrCreate(agent.id)
+    session.conversations = [...conversations.value]
+    session.conversationsLoaded = true
+
     const todayConv = findTodayConversation(conversations.value)
     if (todayConv) {
       currentConversationId.value = todayConv.id
+      session.conversationId = todayConv.id
     }
-    // 无今日会话时状态已经是清空的，无需额外操作
   } catch {
-    // 竞态检查
-    if (currentSwitchId !== switchId) return
-    // 请求失败时保持空白欢迎界面 (Req 1.5)
+    if (selectedAgentId.value !== agent.id) return
     currentConversationId.value = null
     messages.value = []
   } finally {
-    if (currentSwitchId === switchId) {
+    if (selectedAgentId.value === agent.id) {
       switchingAgent.value = false
     }
   }
 
-  // 自动聚焦输入框
-  if (currentSwitchId === switchId) {
-    nextTick(() => messageInputRef.value?.focus())
-  }
+  nextTick(() => messageInputRef.value?.focus())
 }
 
 // ========== 会话抽屉处理 ==========
 const handleOpenDrawer = async () => {
   showConversationDrawer.value = true
-  // 仅在未加载过时才请求（切换智能体时已加载过）(Req 2.2, 2.3)
   if (selectedAgentId.value && !loaded.value) {
     await loadConversations({ agent_id: selectedAgentId.value })
   }
 }
 
 const handleSelectConversation = async (conv: Conversation) => {
-  await cancelOnSwitch()
   currentConversationId.value = conv.id
+  // 同步到 session
+  const agentId = selectedAgentId.value
+  if (agentId) {
+    const session = sessionManager.getOrCreate(agentId)
+    session.conversationId = conv.id
+  }
 }
 
 const handleCreateConversation = async () => {
-  await cancelOnSwitch()
   currentConversationId.value = null
   messages.value = []
+  const agentId = selectedAgentId.value
+  if (agentId) {
+    const session = sessionManager.getOrCreate(agentId)
+    session.conversationId = null
+    session.messages = []
+  }
 }
 
 // 重命名弹窗
@@ -226,6 +281,7 @@ const handleRegenerateMessage = async (msg: any) => {
 
 // ========== 移动端返回 ==========
 const handleBackToAgentList = () => {
+  suspendCurrentAgent()
   selectedAgentId.value = null
   currentConversationId.value = null
   messages.value = []
@@ -233,9 +289,7 @@ const handleBackToAgentList = () => {
 
 // ========== 生命周期 ==========
 onMounted(async () => {
-  // 只加载智能体列表，不加载会话
   await loadAgents()
-  // 如果已有选中的智能体，自动聚焦输入框
   if (selectedAgentId.value) {
     nextTick(() => messageInputRef.value?.focus())
   }
@@ -244,11 +298,14 @@ onMounted(async () => {
 watch(currentConversationId, async (newId, oldId) => {
   if (newId) {
     const isNewConversationFromSend = oldId === null && isStreaming.value
-
-    // 只加载消息，不调用会话详情接口
-    // modalities 直接从选中的智能体获取
     if (currentConversationId.value === newId && !isNewConversationFromSend) {
       await loadMessages()
+      // 同步到 session
+      const agentId = selectedAgentId.value
+      if (agentId) {
+        const session = sessionManager.getOrCreate(agentId)
+        session.messages = [...messages.value]
+      }
     }
   }
 })

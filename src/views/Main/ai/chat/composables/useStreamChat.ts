@@ -5,20 +5,23 @@ import { AiChatApi } from '@/api/ai/chat'
 import { AiMessageApi } from '@/api/ai/messages'
 import { AiRoleEnum } from '@/enums'
 import type { StreamCallbacks, Attachment, StreamChatOptions, Message } from './types'
+import type { ChatSession } from './useChatSessionManager'
 
 // SSE 渲染节流配置
-const FLUSH_INTERVAL = 50 // 每 50ms flush 一次，约 20fps
-const SCROLL_THROTTLE = 100 // 滚动节流 100ms
+const FLUSH_INTERVAL = 50
+const SCROLL_THROTTLE = 100
 
-export function useStreamChat(options: StreamChatOptions) {
+export interface StreamChatOptionsV2 extends StreamChatOptions {
+  getActiveAgentId: () => number | null
+  getSession: (agentId: number) => ChatSession | undefined
+}
+
+export function useStreamChat(options: StreamChatOptionsV2) {
   const { t } = useI18n()
   const {
-    messages,
-    conversations,
-    currentConversationId,
-    selectedAgentId,
-    selectedAgent,
-    scrollToBottom
+    messages, conversations, currentConversationId,
+    selectedAgentId, selectedAgent, scrollToBottom,
+    getActiveAgentId, getSession,
   } = options
 
   const sending = ref(false)
@@ -26,136 +29,177 @@ export function useStreamChat(options: StreamChatOptions) {
   const streamingContent = ref('')
   const currentRunId = ref<number | null>(null)
 
-  // 渲染节流状态
-  let deltaBuffer = ''
-  let flushTimer: ReturnType<typeof setTimeout> | null = null
+  const flushTimers = new Map<number, ReturnType<typeof setTimeout>>()
   let lastScrollTime = 0
   let rafId: number | null = null
 
-  // 清理定时器
-  const clearTimers = () => {
-    if (flushTimer) {
-      clearTimeout(flushTimer)
-      flushTimer = null
-    }
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-      rafId = null
-    }
+  const clearAgentTimer = (agentId: number) => {
+    const timer = flushTimers.get(agentId)
+    if (timer) { clearTimeout(timer); flushTimers.delete(agentId) }
   }
 
-  // 节流滚动
+  const clearAllTimers = () => {
+    flushTimers.forEach(timer => clearTimeout(timer))
+    flushTimers.clear()
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+  }
+
   const throttledScroll = () => {
     const now = Date.now()
     if (now - lastScrollTime >= SCROLL_THROTTLE) {
       lastScrollTime = now
-      rafId = requestAnimationFrame(() => {
-        scrollToBottom()
-        rafId = null
-      })
+      rafId = requestAnimationFrame(() => { scrollToBottom(); rafId = null })
     }
   }
 
-  // flush 缓冲区内容到 UI
-  const flushBuffer = () => {
-    if (!deltaBuffer) return
-    
-    streamingContent.value += deltaBuffer
-    const lastMsg = messages.value[messages.value.length - 1]
-    if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
-      lastMsg.content = streamingContent.value
+  const isActiveAgent = (agentId: number): boolean => getActiveAgentId() === agentId
+
+  const flushBuffer = (agentId: number) => {
+    const session = getSession(agentId)
+    if (!session || !session.deltaBuffer) return
+
+    if (isActiveAgent(agentId)) {
+      streamingContent.value += session.deltaBuffer
+      const lastMsg = messages.value[messages.value.length - 1]
+      if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
+        lastMsg.content = streamingContent.value
+      }
+      session.deltaBuffer = ''
+      session.streamingContent = streamingContent.value
+      throttledScroll()
+    } else {
+      session.streamingContent += session.deltaBuffer
+      const lastMsg = session.messages[session.messages.length - 1]
+      if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
+        lastMsg.content = session.streamingContent
+      }
+      session.deltaBuffer = ''
     }
-    deltaBuffer = ''
-    throttledScroll()
   }
 
-  // 启动定时 flush
-  const startFlushTimer = () => {
-    if (flushTimer) return
-    flushTimer = setTimeout(() => {
-      flushBuffer()
-      flushTimer = null
-      if (isStreaming.value && deltaBuffer) {
-        startFlushTimer()
+  const startFlushTimer = (agentId: number) => {
+    if (flushTimers.has(agentId)) return
+    const timer = setTimeout(() => {
+      flushTimers.delete(agentId)
+      flushBuffer(agentId)
+      const session = getSession(agentId)
+      if (session?.isStreaming && session.deltaBuffer) {
+        startFlushTimer(agentId)
       }
     }, FLUSH_INTERVAL)
+    flushTimers.set(agentId, timer)
   }
 
-  // 创建流式回调
   const createCallbacks = (
-    requestConversationId: number | null,
+    requestAgentId: number,
+    _requestConversationId: number | null,
     onNewConversation?: (id: number) => void
-  ): StreamCallbacks => {
-    return {
-      onContent: (delta) => {
-        // 会话已切换，忽略
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) return
-        // 将 delta 加入缓冲区，而不是直接更新 UI
-        deltaBuffer += delta
-        startFlushTimer()
-      },
-      onConversation: onNewConversation,
-      onRun: (runId) => {
-        currentRunId.value = runId
-      },
-      onDone: (data) => {
-        // 会话已切换，清空 buffer 并退出（防止串话）
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) {
-          deltaBuffer = ''
-          clearTimers()
-          return
-        }
-        
-        // flush 剩余内容
-        flushBuffer()
-        clearTimers()
+  ): StreamCallbacks => ({
+    onContent: (delta) => {
+      const session = getSession(requestAgentId)
+      if (!session) return
+      session.deltaBuffer += delta
+      startFlushTimer(requestAgentId)
+    },
+    onConversation: (conversationId) => {
+      const session = getSession(requestAgentId)
+      if (isActiveAgent(requestAgentId)) {
+        onNewConversation?.(conversationId)
+      } else if (session && !session.conversationId) {
+        session.conversationId = conversationId
+        session.conversations.unshift({
+          id: conversationId, title: '', agent_id: requestAgentId,
+          last_message_at: new Date().toISOString()
+        })
+      }
+    },
+    onRun: (runId) => {
+      const session = getSession(requestAgentId)
+      if (session) session.currentRunId = runId
+      if (isActiveAgent(requestAgentId)) currentRunId.value = runId
+    },
+    onDone: (data) => {
+      const session = getSession(requestAgentId)
+      if (!session) return
+
+      flushBuffer(requestAgentId)
+      clearAgentTimer(requestAgentId)
+
+      session.isStreaming = false
+      session.sending = false
+      session.streamingContent = ''
+      session.currentRunId = null
+      session.deltaBuffer = ''
+      const sLastMsg = session.messages[session.messages.length - 1]
+      if (sLastMsg) sLastMsg.isStreaming = false
+
+      if (data.assistant_message_id) {
+        const aiMsg = [...session.messages].reverse().find(m => m.role === AiRoleEnum.ASSISTANT)
+        if (aiMsg) aiMsg.id = data.assistant_message_id
+      }
+      if (data.user_message_id) {
+        const userMsg = [...session.messages].reverse().find(m => m.role === AiRoleEnum.USER)
+        if (userMsg) userMsg.id = data.user_message_id
+      }
+
+      const convId = data.conversation_id || session.conversationId
+      if (convId) {
+        const conv = session.conversations.find(c => c.id === convId)
+        if (conv) conv.last_message_at = new Date().toISOString()
+      }
+
+      if (isActiveAgent(requestAgentId)) {
         isStreaming.value = false
+        sending.value = false
         streamingContent.value = ''
         currentRunId.value = null
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg) lastMsg.isStreaming = false
-
-        // 用服务端真实 ID 替换临时 ID
+        const uiLastMsg = messages.value[messages.value.length - 1]
+        if (uiLastMsg) uiLastMsg.isStreaming = false
         if (data.assistant_message_id) {
-          const aiMsg = messages.value.findLast(m => m.role === AiRoleEnum.ASSISTANT)
+          const aiMsg = [...messages.value].reverse().find(m => m.role === AiRoleEnum.ASSISTANT)
           if (aiMsg) aiMsg.id = data.assistant_message_id
         }
         if (data.user_message_id) {
-          const userMsg = messages.value.findLast(m => m.role === AiRoleEnum.USER)
+          const userMsg = [...messages.value].reverse().find(m => m.role === AiRoleEnum.USER)
           if (userMsg) userMsg.id = data.user_message_id
         }
-        
-        // 最终滚动到底部
-        nextTick(() => scrollToBottom())
-        
-        // 更新会话时间（标题由后端异步生成，打开历史抽屉时会刷新）
-        const convId = data.conversation_id || currentConversationId.value
         if (convId) {
-          const conv = conversations.value.find(c => c.id === convId)
-          if (conv) {
-            conv.last_message_at = new Date().toISOString()
-          }
+          const uiConv = conversations.value.find(c => c.id === convId)
+          if (uiConv) uiConv.last_message_at = new Date().toISOString()
         }
-      },
-      onError: (msg) => {
-        clearTimers()
-        deltaBuffer = ''
-        if (currentConversationId.value !== requestConversationId && requestConversationId !== null) return
+        nextTick(() => scrollToBottom())
+      }
+    },
+    onError: (msg) => {
+      clearAgentTimer(requestAgentId)
+      const session = getSession(requestAgentId)
+      if (session) {
+        session.deltaBuffer = ''
+        session.isStreaming = false
+        session.sending = false
+        session.streamingContent = ''
+        session.currentRunId = null
+        const lastMsg = session.messages[session.messages.length - 1]
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) {
+          session.messages.pop()
+        }
+      }
+      if (isActiveAgent(requestAgentId)) {
         isStreaming.value = false
+        sending.value = false
         streamingContent.value = ''
         currentRunId.value = null
         ElNotification.error({ message: msg })
-        // 移除 AI 占位消息
         const lastMsg = messages.value[messages.value.length - 1]
         if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) {
           messages.value.pop()
         }
       }
     }
-  }
+  })
 
-  // 添加 AI 占位消息
-  const addAiPlaceholder = (): Message => {
+
+  const addAiPlaceholder = (agentId: number): Message => {
     const aiMessage: Message = {
       id: -(Date.now() + Math.random()),
       role: AiRoleEnum.ASSISTANT,
@@ -163,11 +207,12 @@ export function useStreamChat(options: StreamChatOptions) {
       created_at: new Date().toISOString(),
       isStreaming: true
     }
-    messages.value.push(aiMessage)
+    const session = getSession(agentId)
+    if (session) session.messages.push(aiMessage)
+    if (isActiveAgent(agentId)) messages.value.push(aiMessage)
     return aiMessage
   }
 
-  // 发送消息
   const send = async (content: string, attachments?: Attachment[]) => {
     if (sending.value) return
 
@@ -177,15 +222,23 @@ export function useStreamChat(options: StreamChatOptions) {
       return
     }
 
+    const session = agentId ? getSession(agentId) : undefined
+
     sending.value = true
     isStreaming.value = true
     streamingContent.value = ''
     currentRunId.value = null
-    deltaBuffer = ''
+
+    if (session) {
+      session.sending = true
+      session.isStreaming = true
+      session.streamingContent = ''
+      session.currentRunId = null
+      session.deltaBuffer = ''
+    }
 
     const requestConversationId = currentConversationId.value
 
-    // 添加用户消息
     const userMessage: Message = {
       id: -(Date.now() + Math.random()),
       role: AiRoleEnum.USER,
@@ -194,23 +247,30 @@ export function useStreamChat(options: StreamChatOptions) {
       meta_json: attachments?.length ? { attachments } : undefined
     }
     messages.value.push(userMessage)
+    if (session) session.messages.push({ ...userMessage, meta_json: userMessage.meta_json ? { ...userMessage.meta_json } : undefined })
     await nextTick()
     scrollToBottom()
 
-    // 添加 AI 占位
-    addAiPlaceholder()
+    addAiPlaceholder(agentId!)
 
     try {
-      const callbacks = createCallbacks(requestConversationId, (conversationId) => {
+      const callbacks = createCallbacks(agentId!, requestConversationId, (conversationId) => {
         if (!currentConversationId.value) {
           currentConversationId.value = conversationId
-          conversations.value.unshift({
+          const newConv = {
             id: conversationId,
             title: '',
             agent_id: selectedAgentId.value ?? undefined,
             agent_name: selectedAgent.value?.name || '',
             last_message_at: new Date().toISOString()
-          })
+          }
+          conversations.value.unshift(newConv)
+          if (session) {
+            session.conversationId = conversationId
+            if (!session.conversations.some(c => c.id === conversationId)) {
+              session.conversations.unshift({ ...newConv })
+            }
+          }
         }
       })
 
@@ -221,9 +281,17 @@ export function useStreamChat(options: StreamChatOptions) {
         attachments: attachments?.length ? attachments : undefined
       }, callbacks)
     } catch (error: any) {
-      clearTimers()
-      deltaBuffer = ''
-      if (currentConversationId.value === requestConversationId || requestConversationId === null) {
+      clearAgentTimer(agentId!)
+      if (session) {
+        session.deltaBuffer = ''
+        session.isStreaming = false
+        session.sending = false
+        session.streamingContent = ''
+        session.currentRunId = null
+        const lastMsg = session.messages[session.messages.length - 1]
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) session.messages.pop()
+      }
+      if (isActiveAgent(agentId!)) {
         isStreaming.value = false
         streamingContent.value = ''
         currentRunId.value = null
@@ -232,12 +300,15 @@ export function useStreamChat(options: StreamChatOptions) {
       }
     } finally {
       sending.value = false
+      if (session) session.sending = false
     }
   }
 
-  // 重新生成
   const regenerate = async (msg: Message) => {
     if (sending.value) return
+
+    const agentId = selectedAgentId.value
+    if (!agentId) return
 
     const msgIndex = messages.value.findIndex(m => m.id === msg.id)
     if (msgIndex <= 0) return
@@ -248,35 +319,52 @@ export function useStreamChat(options: StreamChatOptions) {
       return
     }
 
-    // 删除旧的 AI 回复
-    try {
-      await AiMessageApi.del({ id: msg.id })
-    } catch { /* ignore */ }
+    try { await AiMessageApi.del({ id: msg.id }) } catch { /* ignore */ }
 
     messages.value.splice(msgIndex, 1)
+    const session = getSession(agentId)
+    if (session) {
+      const sIdx = session.messages.findIndex(m => m.id === msg.id)
+      if (sIdx >= 0) session.messages.splice(sIdx, 1)
+    }
 
     sending.value = true
     isStreaming.value = true
     streamingContent.value = ''
     currentRunId.value = null
-    deltaBuffer = ''
+
+    if (session) {
+      session.sending = true
+      session.isStreaming = true
+      session.streamingContent = ''
+      session.currentRunId = null
+      session.deltaBuffer = ''
+    }
 
     const requestConversationId = currentConversationId.value
 
-    addAiPlaceholder()
+    addAiPlaceholder(agentId)
     await nextTick()
     scrollToBottom()
 
     try {
-      const callbacks = createCallbacks(requestConversationId)
+      const callbacks = createCallbacks(agentId, requestConversationId)
       await AiChatApi.stream({
         content: userMsg.content,
         conversation_id: currentConversationId.value!
       }, callbacks)
     } catch (error: any) {
-      clearTimers()
-      deltaBuffer = ''
-      if (currentConversationId.value === requestConversationId) {
+      clearAgentTimer(agentId)
+      if (session) {
+        session.deltaBuffer = ''
+        session.isStreaming = false
+        session.sending = false
+        session.streamingContent = ''
+        session.currentRunId = null
+        const lastMsg = session.messages[session.messages.length - 1]
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) session.messages.pop()
+      }
+      if (isActiveAgent(agentId)) {
         isStreaming.value = false
         streamingContent.value = ''
         currentRunId.value = null
@@ -285,74 +373,52 @@ export function useStreamChat(options: StreamChatOptions) {
       }
     } finally {
       sending.value = false
+      if (session) session.sending = false
     }
   }
 
-  // 切换会话时取消当前流式输出
-  const cancelOnSwitch = async () => {
-    if (!isStreaming.value || !currentRunId.value) return
-    
-    const runId = currentRunId.value
-    // 立即重置状态
-    isStreaming.value = false
-    sending.value = false
-    streamingContent.value = ''
-    currentRunId.value = null
-    deltaBuffer = ''
-    clearTimers()
-    
-    // 移除 AI 占位消息
-    const lastMsg = messages.value[messages.value.length - 1]
-    if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) {
-      messages.value.pop()
-    }
-    
-    // 后台取消请求（不等待结果）
-    AiChatApi.cancel(runId).catch(() => {})
-  }
-
-  // 停止生成
   const stop = async () => {
     if (!isStreaming.value || !currentRunId.value) return
 
+    const agentId = selectedAgentId.value
     const runId = currentRunId.value
-    
+
     try {
       await AiChatApi.cancel(runId)
-      
-      // flush 剩余内容
-      flushBuffer()
-      clearTimers()
-      
-      if (isStreaming.value) {
-        isStreaming.value = false
-        sending.value = false
-        streamingContent.value = ''
-        currentRunId.value = null
-        deltaBuffer = ''
-        
-        const lastMsg = messages.value[messages.value.length - 1]
-        if (lastMsg && lastMsg.isStreaming) {
-          lastMsg.isStreaming = false
-        }
+
+      if (agentId) { flushBuffer(agentId); clearAgentTimer(agentId) }
+
+      const session = agentId ? getSession(agentId) : undefined
+      if (session) {
+        session.isStreaming = false
+        session.sending = false
+        session.streamingContent = ''
+        session.currentRunId = null
+        session.deltaBuffer = ''
+        const lastMsg = session.messages[session.messages.length - 1]
+        if (lastMsg && lastMsg.isStreaming) lastMsg.isStreaming = false
       }
+
+      isStreaming.value = false
+      sending.value = false
+      streamingContent.value = ''
+      currentRunId.value = null
+      const lastMsg = messages.value[messages.value.length - 1]
+      if (lastMsg && lastMsg.isStreaming) lastMsg.isStreaming = false
     } catch (error: any) {
       ElNotification.error({ message: error.message || t('aiChat.stopFailed') })
     }
   }
 
-  // 组件卸载时清理
-  onUnmounted(() => {
-    clearTimers()
-  })
+  onUnmounted(() => { clearAllTimers() })
 
   return {
     sending,
     isStreaming,
     currentRunId,
+    streamingContent,
     send,
     regenerate,
-    cancelOnSwitch,
     stop
   }
 }
