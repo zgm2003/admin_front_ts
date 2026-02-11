@@ -14,17 +14,27 @@ const loadDict = async () => {
   try {
     const res = await AiRunApi.init()
     dict.value = res.dict || {}
-  } catch { /* ignore */
-  }
+  } catch { /* ignore */ }
 }
 
-// 筛选表单
+// 筛选表单 — dateRange 是数组 [start, end]，Search 组件 date-range 类型绑定到单个 key
 const searchForm = ref({
-  date_start: '',
-  date_end: '',
+  dateRange: [] as string[],
   agent_id: '',
   user_id: ''
 })
+
+// 将 dateRange 数组拆分为后端需要的 date_start / date_end
+const buildParams = (extra: Record<string, any> = {}) => {
+  const [date_start, date_end] = searchForm.value.dateRange || []
+  return {
+    date_start: date_start || '',
+    date_end: date_end || '',
+    agent_id: searchForm.value.agent_id,
+    user_id: searchForm.value.user_id,
+    ...extra
+  }
+}
 
 // 筛选字段配置
 const searchFields = computed<SearchField[]>(() => [
@@ -32,8 +42,6 @@ const searchFields = computed<SearchField[]>(() => [
     key: 'dateRange',
     type: 'date-range',
     label: t('aiRuns.stats.dateRange'),
-    startKey: 'date_start',
-    endKey: 'date_end'
   },
   {
     key: 'agent_id',
@@ -54,115 +62,64 @@ const searchFields = computed<SearchField[]>(() => [
   }
 ])
 
-// 概览数据
+// ==================== 概览 ====================
 const summaryData = ref<any>(null)
 const summaryLoading = ref(false)
 
 const loadSummary = async () => {
   summaryLoading.value = true
   try {
-    summaryData.value = await AiRunApi.stats({...searchForm.value})
-  } catch { /* ignore */
-  }
+    summaryData.value = await AiRunApi.stats(buildParams())
+  } catch { /* ignore */ }
   summaryLoading.value = false
 }
 
-// 按日期统计
-const dateData = ref<any[]>([])
-const dateLoading = ref(false)
-const dateHasMore = ref(false)
-const datePage = ref(1)
-
-const loadDateData = async (reset = false) => {
-  if (reset) {
-    datePage.value = 1
-    dateData.value = []
-  }
-  dateLoading.value = true
-  try {
-    const res = await AiRunApi.statsByDate({
-      ...searchForm.value,
-      current_page: datePage.value,
-      page_size: 10
-    })
-    dateData.value = reset ? res.list : [...dateData.value, ...res.list]
-    dateHasMore.value = res.has_more
-  } catch { /* ignore */
-  }
-  dateLoading.value = false
+// ==================== 通用分页加载器 ====================
+interface PagedState {
+  data: any[]
+  loading: boolean
+  hasMore: boolean
+  page: number
 }
 
-const loadMoreDate = () => {
-  datePage.value++
-  loadDateData()
-}
+const createPagedLoader = (apiFn: (params: any) => Promise<any>) => {
+  const state = ref<PagedState>({ data: [], loading: false, hasMore: false, page: 1 })
 
-// 按智能体统计
-const agentData = ref<any[]>([])
-const agentLoading = ref(false)
-const agentHasMore = ref(false)
-const agentPage = ref(1)
-
-const loadAgentData = async (reset = false) => {
-  if (reset) {
-    agentPage.value = 1
-    agentData.value = []
+  const load = async (reset = false) => {
+    if (reset) {
+      state.value.page = 1
+      state.value.data = []
+    }
+    state.value.loading = true
+    try {
+      const res = await apiFn(buildParams({
+        current_page: state.value.page,
+        page_size: 10
+      }))
+      state.value.data = reset ? res.list : [...state.value.data, ...res.list]
+      state.value.hasMore = res.has_more
+    } catch { /* ignore */ }
+    state.value.loading = false
   }
-  agentLoading.value = true
-  try {
-    const res = await AiRunApi.statsByAgent({
-      ...searchForm.value,
-      current_page: agentPage.value,
-      page_size: 10
-    })
-    agentData.value = reset ? res.list : [...agentData.value, ...res.list]
-    agentHasMore.value = res.has_more
-  } catch { /* ignore */
+
+  const loadMore = () => {
+    state.value.page++
+    load()
   }
-  agentLoading.value = false
+
+  return { state, load, loadMore }
 }
 
-const loadMoreAgent = () => {
-  agentPage.value++
-  loadAgentData()
-}
-
-// 按用户统计
-const userData = ref<any[]>([])
-const userLoading = ref(false)
-const userHasMore = ref(false)
-const userPage = ref(1)
-
-const loadUserData = async (reset = false) => {
-  if (reset) {
-    userPage.value = 1
-    userData.value = []
-  }
-  userLoading.value = true
-  try {
-    const res = await AiRunApi.statsByUser({
-      ...searchForm.value,
-      current_page: userPage.value,
-      page_size: 10
-    })
-    userData.value = reset ? res.list : [...userData.value, ...res.list]
-    userHasMore.value = res.has_more
-  } catch { /* ignore */
-  }
-  userLoading.value = false
-}
-
-const loadMoreUser = () => {
-  userPage.value++
-  loadUserData()
-}
+const dateLoader = createPagedLoader(AiRunApi.statsByDate)
+const agentLoader = createPagedLoader(AiRunApi.statsByAgent)
+const userLoader = createPagedLoader(AiRunApi.statsByUser)
 
 // 统一搜索
 const onSearch = () => {
   loadSummary()
-  loadDateData(true)
-  loadAgentData(true)
-  loadUserData(true)
+  dateLoader.load(true)
+  agentLoader.load(true)
+  userLoader.load(true)
 }
 
 // 格式化数字
@@ -173,12 +130,34 @@ const formatNumber = (num: number) => {
   return num.toLocaleString()
 }
 
+// 概览卡片配置
+const summaryCards = computed(() => {
+  const s = summaryData.value?.summary
+  if (!s) return []
+  return [
+    { value: formatNumber(s.total_runs || 0), label: t('aiRuns.stats.totalRuns'), color: '' },
+    { value: `${s.success_rate ?? 0}%`, label: t('aiRuns.stats.successRate'), color: 'var(--el-color-success)' },
+    { value: formatNumber(s.fail_runs || 0), label: t('aiRuns.stats.failRuns'), color: 'var(--el-color-danger)' },
+    { value: formatNumber(s.total_tokens || 0), label: t('aiRuns.stats.totalTokens'), color: '' },
+    { value: formatNumber(s.total_prompt_tokens || 0), label: t('aiRuns.stats.promptTokens'), color: '' },
+    { value: formatNumber(s.total_completion_tokens || 0), label: t('aiRuns.stats.completionTokens'), color: '' },
+    { value: `${s.avg_latency_ms || 0}ms`, label: t('aiRuns.stats.avgLatency'), color: '' },
+  ]
+})
+
+// 统计表格列定义（三个表共用）
+const statsColumns = (nameKey: string, nameLabel: string) => [
+  { prop: nameKey, label: nameLabel },
+  { prop: 'total_runs', label: t('aiRuns.stats.runs') },
+  { prop: 'total_tokens', label: t('aiRuns.stats.tokens'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
+  { prop: 'total_prompt_tokens', label: t('aiRuns.stats.input'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
+  { prop: 'total_completion_tokens', label: t('aiRuns.stats.output'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
+  { prop: 'avg_latency_ms', label: t('aiRuns.stats.latency'), formatter: (_r: any, _c: any, v: number) => v ? Math.round(v) + 'ms' : '-' },
+]
+
 onMounted(async () => {
   await loadDict()
-  loadSummary()
-  loadDateData(true)
-  loadAgentData(true)
-  loadUserData(true)
+  onSearch()
 })
 </script>
 
@@ -190,120 +169,53 @@ onMounted(async () => {
     <!-- 概览卡片 -->
     <div class="stats-section" v-loading="summaryLoading">
       <h3 class="section-title">{{ t('aiRuns.stats.overview') }}</h3>
-      <el-row :gutter="16">
-        <el-col :xs="12" :sm="8" :md="4">
+      <el-row :gutter="16" v-if="summaryCards.length">
+        <el-col v-for="(card, i) in summaryCards" :key="i" :xs="12" :sm="8" :md="6" :lg="4">
           <div class="stat-card">
-            <div class="stat-value">{{ formatNumber(summaryData?.summary?.total_runs || 0) }}</div>
-            <div class="stat-label">{{ t('aiRuns.stats.totalRuns') }}</div>
-          </div>
-        </el-col>
-        <el-col :xs="12" :sm="8" :md="4">
-          <div class="stat-card">
-            <div class="stat-value">{{ formatNumber(summaryData?.summary?.total_tokens || 0) }}</div>
-            <div class="stat-label">{{ t('aiRuns.stats.totalTokens') }}</div>
-          </div>
-        </el-col>
-        <el-col :xs="12" :sm="8" :md="4">
-          <div class="stat-card">
-            <div class="stat-value">{{ formatNumber(summaryData?.summary?.total_prompt_tokens || 0) }}</div>
-            <div class="stat-label">{{ t('aiRuns.stats.promptTokens') }}</div>
-          </div>
-        </el-col>
-        <el-col :xs="12" :sm="8" :md="4">
-          <div class="stat-card">
-            <div class="stat-value">{{ formatNumber(summaryData?.summary?.total_completion_tokens || 0) }}</div>
-            <div class="stat-label">{{ t('aiRuns.stats.completionTokens') }}</div>
-          </div>
-        </el-col>
-        <el-col :xs="12" :sm="8" :md="4">
-          <div class="stat-card">
-            <div class="stat-value">{{ summaryData?.summary?.avg_latency_ms || 0 }}<span class="stat-unit">ms</span>
-            </div>
-            <div class="stat-label">{{ t('aiRuns.stats.avgLatency') }}</div>
-          </div>
-        </el-col>
-        <el-col :xs="12" :sm="8" :md="4">
-          <div class="stat-card">
-            <div class="stat-value">¥{{ (summaryData?.summary?.total_cost || 0).toFixed(4) }}</div>
-            <div class="stat-label">{{ t('aiRuns.stats.totalCost') }}</div>
+            <div class="stat-value" :style="card.color ? { color: card.color } : {}">{{ card.value }}</div>
+            <div class="stat-label">{{ card.label }}</div>
           </div>
         </el-col>
       </el-row>
     </div>
 
     <!-- 按日期统计 -->
-    <div class="stats-section" v-if="dateData.length || dateLoading">
+    <div class="stats-section" v-if="dateLoader.state.value.data.length || dateLoader.state.value.loading">
       <h3 class="section-title">{{ t('aiRuns.stats.byDate') }}</h3>
-      <el-table :data="dateData" v-loading="dateLoading" stripe size="small">
-        <el-table-column prop="date" :label="t('aiRuns.stats.date')"/>
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
-        <el-table-column :label="t('aiRuns.stats.tokens')">
-          <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.input')">
-          <template #default="{row}">{{ formatNumber(row.total_prompt_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.output')">
-          <template #default="{row}">{{ formatNumber(row.total_completion_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.latency')">
-          <template #default="{row}">{{ Math.round(row.avg_latency_ms) }}ms</template>
-        </el-table-column>
+      <el-table :data="dateLoader.state.value.data" v-loading="dateLoader.state.value.loading" stripe size="small">
+        <el-table-column v-for="col in statsColumns('date', t('aiRuns.stats.date'))" :key="col.prop"
+          :prop="col.prop" :label="col.label" :formatter="col.formatter" />
       </el-table>
-      <div class="load-more" v-if="dateHasMore">
-        <el-button @click="loadMoreDate" :loading="dateLoading" text type="primary">
+      <div class="load-more" v-if="dateLoader.state.value.hasMore">
+        <el-button @click="dateLoader.loadMore()" :loading="dateLoader.state.value.loading" text type="primary">
           {{ t('common.loadMore') }}
         </el-button>
       </div>
     </div>
 
     <!-- 按智能体统计 -->
-    <div class="stats-section" v-if="agentData.length || agentLoading">
+    <div class="stats-section" v-if="agentLoader.state.value.data.length || agentLoader.state.value.loading">
       <h3 class="section-title">{{ t('aiRuns.stats.byAgent') }}</h3>
-      <el-table :data="agentData" v-loading="agentLoading" stripe size="small">
-        <el-table-column prop="agent_name" :label="t('aiRuns.stats.agent')"/>
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
-        <el-table-column :label="t('aiRuns.stats.tokens')">
-          <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.input')">
-          <template #default="{row}">{{ formatNumber(row.total_prompt_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.output')">
-          <template #default="{row}">{{ formatNumber(row.total_completion_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.latency')">
-          <template #default="{row}">{{ Math.round(row.avg_latency_ms) }}ms</template>
-        </el-table-column>
+      <el-table :data="agentLoader.state.value.data" v-loading="agentLoader.state.value.loading" stripe size="small">
+        <el-table-column v-for="col in statsColumns('agent_name', t('aiRuns.stats.agent'))" :key="col.prop"
+          :prop="col.prop" :label="col.label" :formatter="col.formatter" />
       </el-table>
-      <div class="load-more" v-if="agentHasMore">
-        <el-button @click="loadMoreAgent" :loading="agentLoading" text type="primary">
+      <div class="load-more" v-if="agentLoader.state.value.hasMore">
+        <el-button @click="agentLoader.loadMore()" :loading="agentLoader.state.value.loading" text type="primary">
           {{ t('common.loadMore') }}
         </el-button>
       </div>
     </div>
 
     <!-- 按用户统计 -->
-    <div class="stats-section" v-if="userData.length || userLoading">
+    <div class="stats-section" v-if="userLoader.state.value.data.length || userLoader.state.value.loading">
       <h3 class="section-title">{{ t('aiRuns.stats.byUser') }}</h3>
-      <el-table :data="userData" v-loading="userLoading" stripe size="small">
-        <el-table-column prop="username" :label="t('aiRuns.stats.user')"/>
-        <el-table-column prop="total_runs" :label="t('aiRuns.stats.runs')"/>
-        <el-table-column :label="t('aiRuns.stats.tokens')">
-          <template #default="{row}">{{ formatNumber(row.total_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.input')">
-          <template #default="{row}">{{ formatNumber(row.total_prompt_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.output')">
-          <template #default="{row}">{{ formatNumber(row.total_completion_tokens) }}</template>
-        </el-table-column>
-        <el-table-column :label="t('aiRuns.stats.latency')">
-          <template #default="{row}">{{ Math.round(row.avg_latency_ms) }}ms</template>
-        </el-table-column>
+      <el-table :data="userLoader.state.value.data" v-loading="userLoader.state.value.loading" stripe size="small">
+        <el-table-column v-for="col in statsColumns('username', t('aiRuns.stats.user'))" :key="col.prop"
+          :prop="col.prop" :label="col.label" :formatter="col.formatter" />
       </el-table>
-      <div class="load-more" v-if="userHasMore">
-        <el-button @click="loadMoreUser" :loading="userLoading" text type="primary">
+      <div class="load-more" v-if="userLoader.state.value.hasMore">
+        <el-button @click="userLoader.loadMore()" :loading="userLoader.state.value.loading" text type="primary">
           {{ t('common.loadMore') }}
         </el-button>
       </div>
@@ -351,12 +263,6 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--el-color-primary);
   line-height: 1.2;
-}
-
-.stat-unit {
-  font-size: 14px;
-  font-weight: normal;
-  margin-left: 2px;
 }
 
 .stat-label {

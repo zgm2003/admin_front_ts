@@ -668,8 +668,10 @@ export default {
   aiRuns: {
     filter: {
       status: '状态',
+      agent: '智能体',
       user: '用户',
       request_id: 'Request ID',
+      dateRange: '日期范围',
       date_start: '开始日期',
       date_end: '结束日期'
     },
@@ -712,6 +714,8 @@ export default {
       endDate: '结束日期',
       overview: '概览',
       totalRuns: '总请求数',
+      successRate: '成功率',
+      failRuns: '失败数',
       totalTokens: '总 Tokens',
       promptTokens: '输入 Tokens',
       completionTokens: '输出 Tokens',

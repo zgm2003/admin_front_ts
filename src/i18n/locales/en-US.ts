@@ -668,8 +668,10 @@ export default {
   aiRuns: {
     filter: {
       status: 'Status',
+      agent: 'Agent',
       user: 'User',
       request_id: 'Request ID',
+      dateRange: 'Date Range',
       date_start: 'Start Date',
       date_end: 'End Date'
     },
@@ -712,6 +714,8 @@ export default {
       endDate: 'End Date',
       overview: 'Overview',
       totalRuns: 'Total Runs',
+      successRate: 'Success Rate',
+      failRuns: 'Failed',
       totalTokens: 'Total Tokens',
       promptTokens: 'Input Tokens',
       completionTokens: 'Output Tokens',

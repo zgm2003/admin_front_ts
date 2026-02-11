@@ -19,7 +19,14 @@ const isMobile = useIsMobile()
 const {copy} = useCopy()
 const dict = ref({run_status_arr: []} as any)
 
-const searchForm = ref({run_status: '', user_id: '', request_id: '', date_start: '', date_end: ''} as any)
+const searchForm = ref({run_status: '', user_id: '', request_id: '', dateRange: [] as string[], agent_id: ''} as any)
+
+// useTable 会 unref 并展开 searchForm，需要转换 dateRange → date_start/date_end
+const apiSearchForm = computed(() => {
+  const {dateRange, ...rest} = searchForm.value
+  const [date_start, date_end] = dateRange || []
+  return {...rest, date_start: date_start || '', date_end: date_end || ''}
+})
 
 const {
   loading: listLoading,
@@ -31,7 +38,7 @@ const {
   getList
 } = useTable({
   api: AiRunApi,
-  searchForm
+  searchForm: apiSearchForm
 })
 
 const init = () => {
@@ -48,6 +55,15 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('aiRuns.filter.status'),
     width: 140,
     options: dict.value.run_status_arr
+  },
+  {
+    key: 'agent_id',
+    type: 'select-v2',
+    label: t('aiRuns.filter.agent'),
+    placeholder: t('aiRuns.filter.agent'),
+    width: 160,
+    options: dict.value.agentArr || [],
+    clearable: true
   },
   {
     key: 'user_id',
@@ -67,18 +83,9 @@ const searchFields = computed<SearchField[]>(() => [
     width: 220
   },
   {
-    key: 'date_start',
-    type: 'date',
-    label: t('aiRuns.filter.date_start'),
-    placeholder: t('aiRuns.filter.date_start'),
-    width: 160
-  },
-  {
-    key: 'date_end',
-    type: 'date',
-    label: t('aiRuns.filter.date_end'),
-    placeholder: t('aiRuns.filter.date_end'),
-    width: 160
+    key: 'dateRange',
+    type: 'date-range',
+    label: t('aiRuns.filter.dateRange'),
   }
 ])
 
