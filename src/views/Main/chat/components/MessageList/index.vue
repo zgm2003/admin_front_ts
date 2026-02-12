@@ -5,7 +5,7 @@ import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { MessageType, type MessageItem } from '@/api/chat'
-import { formatTimeAgo } from '@/utils/date'
+import { formatChatTime } from '@/utils/date'
 import { downloadFile } from '@/components/DownloadManager'
 
 const chatStore = useChatStore()
@@ -102,7 +102,7 @@ defineExpose({ scrollToBottom })
           <div class="msg-body">
             <div class="msg-meta">
               <span class="msg-sender">{{ getSenderName(msg) }}</span>
-              <span class="msg-time">{{ formatTimeAgo(msg.created_at) }}</span>
+              <span class="msg-time">{{ formatChatTime(msg.created_at) }}</span>
             </div>
 
             <!-- 文本消息 -->

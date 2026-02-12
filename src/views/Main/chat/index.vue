@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
 import type { ConversationItem, ContactItem } from '@/api/chat'
+import { formatDateTime } from '@/utils/date'
 import { UsersListApi } from '@/api/user/users'
 import { RemoteSelect } from '@/components/RemoteSelect'
 import ConversationList from './components/ConversationList/index.vue'
@@ -19,9 +20,8 @@ const asideTab = ref<'chat' | 'contacts'>('chat')
 // 选中的联系人（用于右侧资料卡）
 const selectedContact = ref<ContactItem | null>(null)
 
-// 创建私聊对话框
-const showPrivateDialog = ref(false)
-const privateUserId = ref<number>()
+// ContactList 组件引用（lazy 加载）
+const contactListRef = ref<InstanceType<typeof ContactList>>()
 
 // 创建群聊对话框
 const showGroupDialog = ref(false)
@@ -39,6 +39,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   chatStore.unregisterWsListeners()
+})
+
+// lazy：切到联系人 tab 时才加载联系人列表
+watch(asideTab, (tab) => {
+  if (tab === 'contacts') contactListRef.value?.activate()
 })
 
 /** 移动端返回列表 */
@@ -76,15 +81,6 @@ async function handleSendMessage() {
   }
 }
 
-/** 创建私聊 */
-async function handleCreatePrivate() {
-  if (!privateUserId.value) return
-  const conv = await chatStore.createPrivateChat(privateUserId.value)
-  showPrivateDialog.value = false
-  privateUserId.value = undefined
-  if (conv && isMobile.value) showMainPanel.value = true
-}
-
 /** 创建群聊 */
 async function handleCreateGroup() {
   if (!groupForm.value.name || groupForm.value.user_ids.length < 2) return
@@ -105,11 +101,6 @@ async function handleCreateGroup() {
             <span class="tab-item" :class="{ active: asideTab === 'contacts' }" @click="asideTab = 'contacts'">联系人</span>
           </div>
           <div v-if="asideTab === 'chat'" class="aside-actions">
-            <el-tooltip content="发起私聊" placement="bottom">
-              <el-button text size="small" @click="showPrivateDialog = true">
-                <el-icon :size="18"><User /></el-icon>
-              </el-button>
-            </el-tooltip>
             <el-tooltip content="创建群聊" placement="bottom">
               <el-button text size="small" @click="showGroupDialog = true">
                 <el-icon :size="18"><Plus /></el-icon>
@@ -118,7 +109,7 @@ async function handleCreateGroup() {
           </div>
         </div>
         <ConversationList v-show="asideTab === 'chat'" @select="handleSelectConversation" />
-        <ContactList v-show="asideTab === 'contacts'" @select="handleSelectContact" />
+        <ContactList ref="contactListRef" v-show="asideTab === 'contacts'" @select="handleSelectContact" />
       </div>
 
       <!-- 右侧面板 -->
@@ -151,7 +142,7 @@ async function handleCreateGroup() {
             </div>
             <div class="profile-info">
               <span class="profile-info-label">添加时间</span>
-              <span class="profile-info-value">{{ selectedContact.created_at }}</span>
+              <span class="profile-info-value">{{ formatDateTime(selectedContact.created_at, 'YYYY-MM-DD HH:mm') }}</span>
             </div>
             <el-button type="primary" round @click="handleSendMessage">
               <el-icon style="margin-right: 6px"><ChatDotRound /></el-icon>
@@ -170,26 +161,6 @@ async function handleCreateGroup() {
         </template>
       </div>
     </div>
-
-    <!-- 创建私聊对话框 -->
-    <el-dialog v-model="showPrivateDialog" title="发起私聊" :width="isMobile ? '90%' : '400px'">
-      <el-form>
-        <el-form-item label="选择用户">
-          <RemoteSelect
-            v-model="privateUserId"
-            :fetch-method="UsersListApi.list"
-            :label-field="(item: any) => `${item.username} (${item.email})`"
-            value-field="id"
-            placeholder="搜索用户"
-            width="100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showPrivateDialog = false">取消</el-button>
-        <el-button type="primary" :disabled="!privateUserId" @click="handleCreatePrivate">确定</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 创建群聊对话框 -->
     <el-dialog v-model="showGroupDialog" title="创建群聊" :width="isMobile ? '90%' : '400px'">

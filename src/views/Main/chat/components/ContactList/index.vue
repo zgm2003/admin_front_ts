@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Check, Close } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
@@ -43,7 +43,6 @@ async function loadAll() {
   }
 }
 
-onMounted(loadAll)
 
 /** 添加联系人 */
 async function handleAdd() {
@@ -94,10 +93,20 @@ async function handleDelete(contact: ContactItem) {
   }
 }
 
+/** 外部调用：首次激活时加载 */
+let loaded = false
+async function activate() {
+  if (loaded) return
+  loaded = true
+  await loadAll()
+}
+
 /** 点击联系人 → 选中展示资料卡 */
 function handleSelect(contact: ContactItem) {
   emit('select', contact)
 }
+
+defineExpose({ activate })
 </script>
 
 <template>

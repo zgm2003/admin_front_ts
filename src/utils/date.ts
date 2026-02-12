@@ -69,6 +69,48 @@ export function groupByTimeRange<T>(
 }
 
 /**
+ * 格式化聊天时间（微信风格）
+ * - 1分钟内：刚刚
+ * - 今天：HH:mm
+ * - 昨天：昨天 HH:mm
+ * - 本周内：周X HH:mm
+ * - 今年内：MM-DD HH:mm
+ * - 跨年：YYYY-MM-DD HH:mm
+ */
+export function formatChatTime(dateStr: string): string {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return ''
+
+  const now = new Date()
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
+  if (diff < 60) return '刚刚'
+
+  const hm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+
+  const todayStart = new Date(now)
+  todayStart.setHours(0, 0, 0, 0)
+
+  if (date >= todayStart) return hm
+
+  const yesterdayStart = new Date(todayStart)
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1)
+  if (date >= yesterdayStart) return `昨天 ${hm}`
+
+  const weekStart = new Date(todayStart)
+  weekStart.setDate(weekStart.getDate() - 6)
+  if (date >= weekStart) {
+    const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    return `${days[date.getDay()]} ${hm}`
+  }
+
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  if (date.getFullYear() === now.getFullYear()) return `${mm}-${dd} ${hm}`
+  return `${date.getFullYear()}-${mm}-${dd} ${hm}`
+}
+
+/**
  * 判断日期字符串是否为今天
  */
 export function isToday(dateStr: string): boolean {
