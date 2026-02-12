@@ -5,6 +5,7 @@ import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { MessageType, type MessageItem } from '@/api/chat'
 import { formatTimeAgo } from '@/utils/date'
+import { downloadFile } from '@/components/DownloadManager'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
@@ -124,9 +125,9 @@ defineExpose({ scrollToBottom })
                 <span class="file-name">{{ msg.meta_json?.name || '文件' }}</span>
                 <span class="file-size">{{ formatFileSize(msg.meta_json?.size) }}</span>
               </div>
-              <a :href="msg.content" target="_blank" class="file-download">
+              <button class="file-download" @click="downloadFile(msg.content, msg.meta_json?.name)">
                 <el-icon :size="16"><Download /></el-icon>
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -299,6 +300,8 @@ defineExpose({ scrollToBottom })
   width: 32px;
   height: 32px;
   border-radius: 6px;
+  border: none;
+  cursor: pointer;
   color: var(--el-color-primary);
   background: var(--el-color-primary-light-9);
   transition: background 0.15s;

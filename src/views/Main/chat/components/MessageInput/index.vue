@@ -1,17 +1,58 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Picture, Document, Promotion } from '@element-plus/icons-vue'
+import { ref, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Picture, FolderOpened, Promotion, Close } from '@element-plus/icons-vue'
 import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
+import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/utils/cosUpload'
 
 const chatStore = useChatStore()
 
 const content = ref('')
-const fileInput = ref<HTMLInputElement>()
+const textareaRef = ref<InstanceType<typeof import('element-plus')['ElInput']>>()
 const imageInput = ref<HTMLInputElement>()
+const fileInput = ref<HTMLInputElement>()
+const uploading = ref(false)
 
-/** 防抖：正在输入通知，3 秒内只发一次 */
-let typingTimer: ReturnType<typeof setTimeout> | null = null
+// ==================== 待发送附件（粘贴/拖拽） ====================
+
+interface PendingAttachment {
+  id: string
+  file: File
+  type: 'image' | 'file'
+  previewUrl?: string // 图片预览用的 blob URL
+}
+
+const pendingAttachments = ref<PendingAttachment[]>([])
+
+function addPendingImage(file: File) {
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const previewUrl = URL.createObjectURL(file)
+  pendingAttachments.value.push({ id, file, type: 'image', previewUrl })
+}
+
+function addPendingFile(file: File) {
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  pendingAttachments.value.push({ id, file, type: 'file' })
+}
+
+function removePending(id: string) {
+  const idx = pendingAttachments.value.findIndex(a => a.id === id)
+  if (idx !== -1) {
+    const found = pendingAttachments.value[idx]
+    if (found?.previewUrl) URL.revokeObjectURL(found.previewUrl)
+    pendingAttachments.value.splice(idx, 1)
+  }
+}
+
+function formatPendingSize(size: number): string {
+  if (size < 1024) return `${size} B`
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// ==================== 正在输入通知 ====================
+
 let lastTypingTime = 0
 
 function handleInput() {
@@ -21,107 +62,252 @@ function handleInput() {
   const conv = chatStore.currentConversation
   if (!conv || conv.type !== ConversationType.Private) return
   ChatRoomApi.typing({ conversation_id: conv.id }).catch(() => {})
-  if (typingTimer) clearTimeout(typingTimer)
-  typingTimer = setTimeout(() => { lastTypingTime = 0 }, 3000)
 }
 
-/** 发送文本消息 */
+// ==================== 发送（文本 + 待发送附件） ====================
+
 async function handleSend() {
   const text = content.value.trim()
-  if (!text || !chatStore.currentConversation) return
+  const attachments = [...pendingAttachments.value]
+  if (!text && attachments.length === 0) return
+  if (!chatStore.currentConversation) return
+
+  const convId = chatStore.currentConversation.id
+
+  // 清空输入
   content.value = ''
-  await chatStore.sendMessage(chatStore.currentConversation.id, MessageType.Text, text)
+  pendingAttachments.value = []
+
+  // 先发文本
+  if (text) {
+    await chatStore.sendMessage(convId, MessageType.Text, text)
+  }
+
+  // 再逐个上传并发送附件
+  if (attachments.length > 0) {
+    uploading.value = true
+    try {
+      // 分别获取图片和文件的上传凭证
+      const hasImages = attachments.some(a => a.type === 'image')
+      const hasFiles = attachments.some(a => a.type === 'file')
+      let imageConfig: UploadConfig | null = null
+      let fileConfig: UploadConfig | null = null
+      if (hasImages) imageConfig = await getUploadToken({ folderName: 'chat_images' })
+      if (hasFiles) fileConfig = await getUploadToken({ folderName: 'chat_files' })
+
+      for (const att of attachments) {
+        try {
+          const config = att.type === 'image' ? imageConfig! : fileConfig!
+          validateFile(att.file, config, att.type === 'image' ? 'image' : 'file')
+          const { url } = await uploadFileToCloud(att.file, config)
+          const msgType = att.type === 'image' ? MessageType.Image : MessageType.File
+          await chatStore.sendMessage(convId, msgType, url, {
+            name: att.file.name || (att.type === 'image' ? 'clipboard.png' : 'file'),
+            size: att.file.size,
+          })
+        } catch (err: any) {
+          ElMessage.error(err.message || `${att.file.name} 上传失败`)
+        }
+        // 释放 blob URL
+        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl)
+      }
+    } catch (err: any) {
+      ElMessage.error(err.message || '获取上传凭证失败')
+    } finally {
+      uploading.value = false
+    }
+  }
+
+  nextTick(() => textareaRef.value?.focus())
 }
 
-/** 键盘事件：Enter 发送，Shift+Enter 换行 */
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault()
+function handleKeydown(e: Event | KeyboardEvent) {
+  const ke = e as KeyboardEvent
+  if (ke.key === 'Enter' && !ke.shiftKey) {
+    ke.preventDefault()
     handleSend()
   }
 }
 
-/** 选择图片 */
+// ==================== 工具栏按钮：图片/文件（直接发送） ====================
+
 function handlePickImage() {
   imageInput.value?.click()
 }
 
-/** 选择文件 */
+async function handleImageChange(e: Event) {
+  const files = (e.target as HTMLInputElement).files
+  if (!files?.length || !chatStore.currentConversation) return
+
+  uploading.value = true
+  try {
+    const config: UploadConfig = await getUploadToken({ folderName: 'chat_images' })
+    for (const file of Array.from(files)) {
+      try {
+        validateFile(file, config, 'image')
+        const { url } = await uploadFileToCloud(file, config)
+        await chatStore.sendMessage(
+          chatStore.currentConversation!.id,
+          MessageType.Image,
+          url,
+          { name: file.name, size: file.size },
+        )
+      } catch (err: any) {
+        ElMessage.error(err.message || `图片 ${file.name} 上传失败`)
+      }
+    }
+  } catch (err: any) {
+    ElMessage.error(err.message || '获取上传凭证失败')
+  } finally {
+    uploading.value = false
+    if (imageInput.value) imageInput.value.value = ''
+  }
+}
+
 function handlePickFile() {
   fileInput.value?.click()
 }
 
-/** 图片选中后发送 */
-async function handleImageChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file || !chatStore.currentConversation) return
-  // 简单使用本地 URL 占位（实际 COS 上传后续添加）
-  const url = URL.createObjectURL(file)
-  await chatStore.sendMessage(
-    chatStore.currentConversation.id,
-    MessageType.Image,
-    url,
-    { name: file.name, size: file.size },
-  )
-  // 重置 input
-  if (imageInput.value) imageInput.value.value = ''
-}
-
-/** 文件选中后发送 */
 async function handleFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file || !chatStore.currentConversation) return
-  const url = URL.createObjectURL(file)
-  await chatStore.sendMessage(
-    chatStore.currentConversation.id,
-    MessageType.File,
-    url,
-    { name: file.name, size: file.size },
-  )
-  if (fileInput.value) fileInput.value.value = ''
+
+  uploading.value = true
+  try {
+    const config: UploadConfig = await getUploadToken({ folderName: 'chat_files' })
+    validateFile(file, config, 'file')
+    const { url } = await uploadFileToCloud(file, config)
+    await chatStore.sendMessage(
+      chatStore.currentConversation.id,
+      MessageType.File,
+      url,
+      { name: file.name, size: file.size },
+    )
+  } catch (err: any) {
+    ElMessage.error(err.message || '文件上传失败')
+  } finally {
+    uploading.value = false
+    if (fileInput.value) fileInput.value.value = ''
+  }
+}
+
+// ==================== 粘贴：图片放入待发送区 ====================
+
+function handlePaste(e: ClipboardEvent) {
+  const items = e.clipboardData?.items
+  if (!items) return
+
+  for (const item of Array.from(items)) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault()
+      const file = item.getAsFile()
+      if (file) addPendingImage(file)
+      break
+    }
+  }
+}
+
+// ==================== 拖拽：文件/图片放入待发送区 ====================
+
+function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  const files = e.dataTransfer?.files
+  if (!files?.length) return
+
+  for (const file of Array.from(files)) {
+    if (file.type.startsWith('image/')) {
+      addPendingImage(file)
+    } else {
+      addPendingFile(file)
+    }
+  }
+}
+
+function handleDragover(e: DragEvent) {
+  e.preventDefault()
 }
 </script>
 
 <template>
-  <div class="message-input">
+  <div
+    class="message-input"
+    :class="{ uploading }"
+    @drop="handleDrop"
+    @dragover="handleDragover"
+  >
     <!-- 工具栏 -->
     <div class="input-toolbar">
-      <el-tooltip content="发送图片" placement="top">
-        <el-button text size="small" @click="handlePickImage">
-          <el-icon :size="18"><Picture /></el-icon>
-        </el-button>
-      </el-tooltip>
-      <el-tooltip content="发送文件" placement="top">
-        <el-button text size="small" @click="handlePickFile">
-          <el-icon :size="18"><Document /></el-icon>
-        </el-button>
-      </el-tooltip>
+      <div class="toolbar-left">
+        <el-tooltip content="发送图片" placement="top">
+          <button class="toolbar-btn" @click="handlePickImage" :disabled="uploading">
+            <el-icon :size="18"><Picture /></el-icon>
+          </button>
+        </el-tooltip>
+        <el-tooltip content="发送文件" placement="top">
+          <button class="toolbar-btn" @click="handlePickFile" :disabled="uploading">
+            <el-icon :size="18"><FolderOpened /></el-icon>
+          </button>
+        </el-tooltip>
+      </div>
     </div>
 
-    <!-- 输入区域 -->
-    <div class="input-area">
+    <!-- 待发送附件预览区 -->
+    <div v-if="pendingAttachments.length" class="pending-area">
+      <div
+        v-for="att in pendingAttachments"
+        :key="att.id"
+        class="pending-item"
+        :class="att.type === 'image' ? 'pending-image' : 'pending-file'"
+      >
+        <!-- 图片缩略图 -->
+        <img v-if="att.type === 'image'" :src="att.previewUrl" class="pending-thumb" />
+        <!-- 文件信息 -->
+        <div v-else class="pending-file-info">
+          <span class="pending-file-name">{{ att.file.name }}</span>
+          <span class="pending-file-size">{{ formatPendingSize(att.file.size) }}</span>
+        </div>
+        <!-- 移除按钮 -->
+        <button class="pending-remove" @click="removePending(att.id)">
+          <el-icon :size="12"><Close /></el-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- 文本输入区 -->
+    <div class="input-body">
       <el-input
+        ref="textareaRef"
         v-model="content"
         type="textarea"
-        :autosize="{ minRows: 1, maxRows: 6 }"
+        :autosize="{ minRows: 3, maxRows: 8 }"
         placeholder="输入消息，Enter 发送，Shift+Enter 换行"
         resize="none"
+        :disabled="uploading"
         @input="handleInput"
         @keydown="handleKeydown"
+        @paste="handlePaste"
       />
+    </div>
+
+    <!-- 底部：上传状态 + 发送按钮 -->
+    <div class="input-footer">
+      <span v-if="uploading" class="upload-status">
+        <el-icon class="is-loading" :size="14"><Promotion /></el-icon>
+        上传中...
+      </span>
+      <span v-else class="input-hint">Enter 发送 / Shift+Enter 换行</span>
       <el-button
         type="primary"
-        :icon="Promotion"
-        circle
         size="small"
-        class="send-btn"
-        :disabled="!content.trim() || chatStore.sending"
+        :disabled="(!content.trim() && pendingAttachments.length === 0) || uploading || chatStore.sending"
         @click="handleSend"
-      />
+      >
+        发送(S)
+      </el-button>
     </div>
 
     <!-- 隐藏的文件选择器 -->
-    <input ref="imageInput" type="file" accept="image/*" hidden @change="handleImageChange" />
+    <input ref="imageInput" type="file" accept="image/*" multiple hidden @change="handleImageChange" />
     <input ref="fileInput" type="file" hidden @change="handleFileChange" />
   </div>
 </template>
@@ -129,39 +315,164 @@ async function handleFileChange(e: Event) {
 <style scoped>
 .message-input {
   border-top: 1px solid var(--el-border-color-lighter);
-  padding: 8px 16px 12px;
   background: var(--el-bg-color);
+  display: flex;
+  flex-direction: column;
 }
 
+/* 工具栏 */
 .input-toolbar {
   display: flex;
-  gap: 2px;
-  margin-bottom: 4px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 2px;
 }
 
-.input-area {
+.toolbar-left {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  gap: 2px;
 }
 
-.input-area :deep(.el-textarea__inner) {
-  border-radius: 8px;
-  padding: 8px 12px;
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--el-text-color-regular);
+  transition: background 0.15s, color 0.15s;
+}
+
+.toolbar-btn:hover {
+  background: var(--el-fill-color-light);
+  color: var(--el-color-primary);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 待发送附件预览区 */
+.pending-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.pending-item {
+  position: relative;
+}
+
+.pending-image {
+  display: inline-block;
+}
+
+.pending-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.pending-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
+  max-width: 200px;
+}
+
+.pending-file-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pending-file-name {
+  font-size: 12px;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-file-size {
+  font-size: 11px;
+  color: var(--el-text-color-placeholder);
+}
+
+.pending-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--el-color-danger);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.pending-remove:hover {
+  transform: scale(1.15);
+}
+
+/* 输入区 */
+.input-body {
+  padding: 0 12px;
+}
+
+.input-body :deep(.el-textarea__inner) {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 6px 4px;
   font-size: 14px;
   line-height: 1.6;
-  background: var(--el-fill-color-light);
+  resize: none;
+}
+
+.input-body :deep(.el-textarea__inner:focus) {
   box-shadow: none;
-  border: 1px solid transparent;
-  transition: border-color 0.2s;
 }
 
-.input-area :deep(.el-textarea__inner:focus) {
-  border-color: var(--el-color-primary-light-5);
+/* 底部 */
+.input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 8px;
 }
 
-.send-btn {
-  flex-shrink: 0;
-  margin-bottom: 2px;
+.input-hint {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--el-color-primary);
+}
+
+/* 上传中整体降低透明度 */
+.message-input.uploading .input-body {
+  opacity: 0.6;
 }
 </style>

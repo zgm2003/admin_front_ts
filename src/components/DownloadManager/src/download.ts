@@ -234,15 +234,22 @@ export const downloadFile = async (
     }
   }
 
-  // Web 环境
-  if (filename) {
+  // Web 环境：通过 fetch blob 强制下载（解决跨域 COS 链接 <a download> 无效的问题）
+  try {
+    const resp = await fetch(url)
+    if (!resp.ok) throw new Error(`下载失败: ${resp.status}`)
+    const blob = await resp.blob()
+    const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = url
-    link.download = filename
+    link.href = blobUrl
+    link.download = filename || url.split('/').pop()?.split('?')[0] || 'download'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  } else {
+    URL.revokeObjectURL(blobUrl)
+  } catch (err: any) {
+    console.error('[downloadFile] Web fetch error:', err)
+    // 兜底：直接打开
     window.open(url, '_blank')
   }
   return undefined
