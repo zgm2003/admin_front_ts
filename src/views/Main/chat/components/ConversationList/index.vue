@@ -5,6 +5,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { onClickOutside } from '@vueuse/core'
 import { useChatStore } from '@/store/chat'
 import { ConversationType, type ConversationItem } from '@/api/chat'
+import { CommonEnum } from '@/enums'
 import { formatChatTime } from '@/utils/date'
 
 const chatStore = useChatStore()
@@ -13,32 +14,17 @@ const emit = defineEmits<{
   select: [conv: ConversationItem]
 }>()
 
-// ========== 置顶（本地） ==========
-const pinnedIds = ref<Set<number>>(new Set())
-
+// ========== 置顶 ==========
 function isPinned(conv: ConversationItem): boolean {
-  return pinnedIds.value.has(conv.id)
+  return conv.is_pinned === CommonEnum.YES
 }
 
-function togglePin(conv: ConversationItem) {
-  if (pinnedIds.value.has(conv.id)) {
-    pinnedIds.value.delete(conv.id)
-  } else {
-    pinnedIds.value.add(conv.id)
+async function togglePin(conv: ConversationItem) {
+  try {
+    await chatStore.togglePin(conv.id)
+  } catch {
+    ElMessage.error('操作失败')
   }
-  // 触发响应式更新
-  pinnedIds.value = new Set(pinnedIds.value)
-}
-
-/** 排序后的会话列表：置顶在前，其余按原顺序 */
-function getSortedConversations(): ConversationItem[] {
-  const pinned: ConversationItem[] = []
-  const normal: ConversationItem[] = []
-  for (const c of chatStore.conversations) {
-    if (pinnedIds.value.has(c.id)) pinned.push(c)
-    else normal.push(c)
-  }
-  return [...pinned, ...normal]
 }
 
 // ========== 右键菜单 ==========
@@ -92,7 +78,6 @@ async function ctxDelete() {
   await ElMessageBox.confirm(msg, '移除会话', { type: 'warning' })
   try {
     await chatStore.deleteConversation(conv.id)
-    pinnedIds.value.delete(conv.id)
     ElMessage.success('已移除')
   } catch {
     ElMessage.error('操作失败')
@@ -133,7 +118,7 @@ function handleSelect(conv: ConversationItem) {
     <!-- 会话列表 -->
     <el-scrollbar v-else class="list-scrollbar">
       <div
-        v-for="conv in getSortedConversations()"
+        v-for="conv in chatStore.conversations"
         :key="conv.id"
         class="conversation-item"
         :class="{ active: chatStore.currentConversation?.id === conv.id, pinned: isPinned(conv) }"

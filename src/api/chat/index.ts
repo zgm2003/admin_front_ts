@@ -31,6 +31,7 @@ export interface ConversationItem {
   last_message_preview: string
   member_count: number
   unread_count: number
+  is_pinned: number
   created_at: string
 }
 
@@ -85,6 +86,7 @@ export const ChatRoomApi = {
   createPrivate: (params: { user_id: number }) => request.post<{ conversation: ConversationItem }>(`${BASE}/createPrivate`, params),
   createGroup: (params: { name: string; user_ids: number[] }) => request.post<{ conversation: ConversationItem }>(`${BASE}/createGroup`, params),
   deleteConversation: (params: { conversation_id: number }) => request.post(`${BASE}/deleteConversation`, params),
+  togglePin: (params: { conversation_id: number }) => request.post(`${BASE}/togglePin`, params),
 
   // 群聊管理
   groupInfo: (params: { conversation_id: number }) => request.post(`${BASE}/groupInfo`, params),

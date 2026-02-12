@@ -124,6 +124,11 @@ export const useChatStore = defineStore('chat', {
       this.hasMoreMap.delete(conversationId)
     },
 
+    async togglePin(conversationId: number) {
+      await ChatRoomApi.togglePin({ conversation_id: conversationId })
+      await this.loadConversations()
+    },
+
     // ============ 消息 ============
 
     async loadMessages(conversationId: number, pageSize = 30) {
