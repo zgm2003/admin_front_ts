@@ -178,6 +178,8 @@ export default {
     devTools_gen: 'Code Generator',
     devTools_queueMonitor: 'Queue Monitor',
     devTools_operationLog: 'Operation Log',
+    // Chat
+    chat: 'Chat Room',
     devTools_exportTask: 'Export Tasks',
     devTools_cronTask: 'Scheduled Tasks',
     devTools_tauriVersion: 'Version Management',

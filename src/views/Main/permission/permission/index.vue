@@ -9,7 +9,7 @@ import {useUserStore} from '@/store/user'
 import {useI18n} from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
-import {ArrowRight, ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
+import {ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
 import { DIcon } from '@/components/DIcon'
 
 const userStore = useUserStore()
@@ -200,24 +200,6 @@ const confirmSubmit = async () => {
   }).catch(() => {
   })
 }
-const confirmDel = async (current: any) => {
-  try {
-    await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
-    )
-  } catch {
-    return
-  }
-  const param = {id: current.id}
-  PermissionApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList();
-    init()
-  }).catch(() => {
-  })
-}
 const selectedIds = ref([] as any[])
 const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map((item: any) => item.id)
@@ -287,20 +269,10 @@ onMounted(() => {
           t('common.actions.add')
         }}
       </el-button>
-      <el-dropdown>
-        <el-button type="primary">{{ t('common.actions.batchDelete') }}
-          <el-icon class="el-icon--right">
-            <arrow-right/>
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="batchDel" v-if="userStore.can('permission_permission_del')">
-              {{ t('common.actions.batchDelete') }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <el-button v-if="userStore.can('permission_permission_del')" type="danger" @click="batchDel">{{
+          t('common.actions.batchDelete')
+        }}
+      </el-button>
       <el-button @click="toggleExpand" :icon="isExpanded ? ArrowUp : ArrowDown" type="danger">
         {{ isExpanded ? t('common.actions.collapseAll') : t('common.actions.expandAll') }}
       </el-button>
@@ -342,8 +314,6 @@ onMounted(() => {
                        v-if="userStore.can('permission_permission_add') && scope.row.type !== PermissionTypeEnum.BUTTON">新增
             </el-button>
             <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission_permission_edit')">编辑
-            </el-button>
-            <el-button type="danger" text v-if="userStore.can('permission_permission_del')" @click="confirmDel(scope.row)">删除
             </el-button>
           </template>
         </el-table-column>

@@ -178,6 +178,8 @@ export default {
     devTools_gen: '代码生成',
     devTools_queueMonitor: '队列监控',
     devTools_operationLog: '操作日志',
+    // 聊天
+    chat: '聊天室',
     devTools_exportTask: '导出任务',
     devTools_cronTask: '定时任务',
     devTools_tauriVersion: '版本管理',
