@@ -651,6 +651,9 @@ export default {
     startNewChat: 'Start a new conversation',
     noMoreConversations: 'No more conversations',
     searchPlaceholder: 'Search conversations...',
+    editMessage: 'Edit',
+    editSubmit: 'Save & Resend',
+    editFailed: 'Edit failed',
     // Time groups
     timeGroup: {
       today: 'Today',

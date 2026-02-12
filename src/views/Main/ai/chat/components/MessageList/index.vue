@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight} from '@element-plus/icons-vue'
+import {Loading, CopyDocument, Delete, RefreshRight, Edit} from '@element-plus/icons-vue'
 import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DIcon} from '@/components/DIcon'
 import { CommonEnum, AiRoleEnum } from '@/enums'
@@ -26,8 +26,38 @@ const emit = defineEmits<{
   copy: [msg: any]
   delete: [msg: any]
   regenerate: [msg: any]
-  feedback: [msg: any, feedback: number | null]  // 1=点赞 2=点踩 null=取消
+  edit: [msg: any, newContent: string]
+  feedback: [msg: any, feedback: number | null]
 }>()
+
+// 编辑状态
+const editingMsgId = ref<number | null>(null)
+const editContent = ref('')
+
+// 是否可编辑（仅用户消息 + 非流式中 + 有真实 id）
+const canEdit = (msg: any) => {
+  return msg.role === AiRoleEnum.USER && !msg.isStreaming && msg.id > 0 && !props.sending
+}
+
+const startEdit = (msg: any) => {
+  editingMsgId.value = msg.id
+  editContent.value = msg.content
+}
+
+const cancelEdit = () => {
+  editingMsgId.value = null
+  editContent.value = ''
+}
+
+const confirmEdit = (msg: any) => {
+  const trimmed = editContent.value.trim()
+  if (!trimmed || trimmed === msg.content) {
+    cancelEdit()
+    return
+  }
+  emit('edit', msg, trimmed)
+  cancelEdit()
+}
 
 // 图片预览相关
 const previewVisible = ref(false)
@@ -90,7 +120,6 @@ const getFeedback = (msg: any): number | null => {
 // 点击反馈按钮
 const handleFeedback = (msg: any, feedback: number) => {
   const current = getFeedback(msg)
-  // 点击已选中的反馈则取消
   emit('feedback', msg, current === feedback ? null : feedback)
 }
 </script>
@@ -99,92 +128,71 @@ const handleFeedback = (msg: any, feedback: number) => {
   <div class="message-list-container">
     <!-- 只在没有消息且正在加载时显示 loading -->
     <div v-if="loading && messages.length === 0" class="loading-tip">
-      <el-icon class="is-loading" :size="24">
-        <Loading/>
-      </el-icon>
+      <el-icon class="is-loading" :size="24"><Loading/></el-icon>
       <span>{{ t('aiChat.loading') }}</span>
     </div>
-    <!-- 有消息时始终显示消息列表 -->
+    <!-- 消息列表 - 豆包风格单列文档流 -->
     <div v-else class="message-list">
-      <div
-          v-for="(msg, index) in messages"
-          :key="msg.id"
-          class="message-row"
-          :class="{'user-row': msg.role === AiRoleEnum.USER}"
-      >
-        <!-- 消息内容区 -->
-        <div class="message-body" :class="{'user-body': msg.role === AiRoleEnum.USER}">
-          <div class="message-bubble" :class="msg.role === AiRoleEnum.USER ? 'user-bubble' : 'ai-bubble'">
-            <!-- 用户消息图片附件 -->
-            <div v-if="msg.role === AiRoleEnum.USER && getAttachments(msg).length > 0" class="message-attachments">
-              <div 
-                v-for="(attachment, idx) in getAttachments(msg)" 
-                :key="idx" 
-                class="attachment-image-wrapper"
-              >
-                <!-- Loading 占位符 -->
-                <div 
-                  v-if="getImageLoadingState(attachment.url) === 'loading'" 
-                  class="attachment-loading"
-                >
-                  <el-icon class="is-loading" :size="24">
-                    <Loading />
-                  </el-icon>
-                </div>
-                <!-- 图片 -->
-                <img 
-                  :src="attachment.url" 
-                  :alt="attachment.name"
-                  class="attachment-image"
-                  :class="{ 'image-loaded': getImageLoadingState(attachment.url) === 'loaded' }"
-                  @load="handleImageLoad(attachment.url)"
-                  @error="handleImageError(attachment.url)"
-                  @click="handleImageClick(msg, idx)"
-                />
-              </div>
-            </div>
-            <!-- 用户消息纯文本，AI 消息用 Markdown 渲染 -->
-            <div v-if="msg.role === AiRoleEnum.USER" class="message-text">{{ msg.content }}</div>
-            <MarkdownRenderer v-else :content="msg.content" class="message-text"/>
-          </div>
-
-          <!-- 操作按钮 - 仅 hover 时显示 -->
-          <div class="message-actions" v-if="!msg.isStreaming">
-            <!-- AI 消息显示点赞/点踩 -->
-            <template v-if="msg.role === AiRoleEnum.ASSISTANT">
-              <el-button
-                  text size="small"
-                  class="feedback-btn"
-                  :class="{ 'feedback-like-active': getFeedback(msg) === CommonEnum.YES }"
-                  @click="handleFeedback(msg, 1)"
-              >
-                <DIcon icon="mdi:thumb-up" :size="16" />
-              </el-button>
-              <el-button
-                  text size="small"
-                  class="feedback-btn"
-                  :class="{ 'feedback-dislike-active': getFeedback(msg) === CommonEnum.NO }"
-                  @click="handleFeedback(msg, 2)"
-              >
-                <DIcon icon="mdi:thumb-down" :size="16" />
-              </el-button>
-            </template>
-            <el-button type="info" text size="small" :icon="CopyDocument" @click="emit('copy', msg)">
-              {{ t('aiChat.copyMessage') }}
-            </el-button>
-            <el-button type="info" text size="small" :icon="Delete" @click="emit('delete', msg)">
-              {{ t('aiChat.deleteMessage') }}
-            </el-button>
-            <el-button
-                v-if="showRegenerate(msg, index)"
-                type="info" text size="small"
-                :icon="RefreshRight"
-                :disabled="sending"
-                @click="emit('regenerate', msg)"
+      <template v-for="(msg, index) in messages" :key="msg.id">
+        <!-- ====== 用户消息：横条卡片 ====== -->
+        <div v-if="msg.role === AiRoleEnum.USER" class="user-block">
+          <!-- 用户消息图片附件 -->
+          <div v-if="getAttachments(msg).length > 0" class="user-attachments">
+            <div
+              v-for="(attachment, idx) in getAttachments(msg)"
+              :key="idx"
+              class="attachment-image-wrapper"
             >
-              {{ t('aiChat.regenerate') }}
-            </el-button>
+              <div v-if="getImageLoadingState(attachment.url) === 'loading'" class="attachment-loading">
+                <el-icon class="is-loading" :size="20"><Loading /></el-icon>
+              </div>
+              <img
+                :src="attachment.url"
+                :alt="attachment.name"
+                class="attachment-image"
+                :class="{ 'image-loaded': getImageLoadingState(attachment.url) === 'loaded' }"
+                @load="handleImageLoad(attachment.url)"
+                @error="handleImageError(attachment.url)"
+                @click="handleImageClick(msg, idx)"
+              />
+            </div>
           </div>
+          <!-- 编辑模式 -->
+          <div v-if="editingMsgId === msg.id" class="user-card editing">
+            <el-input
+              v-model="editContent"
+              type="textarea"
+              :autosize="{ minRows: 1, maxRows: 8 }"
+              class="edit-textarea"
+              @keydown.enter.exact.prevent="confirmEdit(msg)"
+              @keydown.escape="cancelEdit"
+            />
+            <div class="edit-actions">
+              <el-button size="small" @click="cancelEdit">{{ t('common.actions.cancel') }}</el-button>
+              <el-button size="small" type="primary" @click="confirmEdit(msg)">{{ t('aiChat.editSubmit') }}</el-button>
+            </div>
+          </div>
+          <!-- 正常显示 -->
+          <div v-else class="user-card">
+            <span class="user-text">{{ msg.content }}</span>
+          </div>
+          <!-- 用户消息操作 -->
+          <div class="msg-actions user-actions" v-if="!msg.isStreaming && editingMsgId !== msg.id">
+            <button v-if="canEdit(msg)" class="action-btn" @click="startEdit(msg)" :title="t('aiChat.editMessage')">
+              <el-icon :size="15"><Edit /></el-icon>
+            </button>
+            <button class="action-btn" @click="emit('copy', msg)" :title="t('aiChat.copyMessage')">
+              <el-icon :size="15"><CopyDocument /></el-icon>
+            </button>
+            <button class="action-btn" @click="emit('delete', msg)" :title="t('aiChat.deleteMessage')">
+              <el-icon :size="15"><Delete /></el-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- ====== AI 消息：全宽平铺 ====== -->
+        <div v-else class="ai-block">
+          <MarkdownRenderer :content="msg.content" class="ai-content"/>
 
           <!-- 流式输出指示器 -->
           <div v-if="msg.isStreaming" class="streaming-indicator">
@@ -192,10 +200,50 @@ const handleFeedback = (msg: any, feedback: number) => {
             <span class="typing-dot"></span>
             <span class="typing-dot"></span>
           </div>
+
+          <!-- AI 消息操作 -->
+          <div class="msg-actions ai-actions" v-if="!msg.isStreaming">
+            <!-- 点赞/点踩 -->
+            <button
+              class="action-btn"
+              :class="{ 'like-active': getFeedback(msg) === CommonEnum.YES }"
+              @click="handleFeedback(msg, 1)"
+              title="赞"
+            >
+              <DIcon icon="mdi:thumb-up" :size="15" />
+            </button>
+            <button
+              class="action-btn"
+              :class="{ 'dislike-active': getFeedback(msg) === CommonEnum.NO }"
+              @click="handleFeedback(msg, 2)"
+              title="踩"
+            >
+              <DIcon icon="mdi:thumb-down" :size="15" />
+            </button>
+            <span class="action-divider"></span>
+            <button class="action-btn" @click="emit('copy', msg)" :title="t('aiChat.copyMessage')">
+              <el-icon :size="15"><CopyDocument /></el-icon>
+            </button>
+            <button class="action-btn" @click="emit('delete', msg)" :title="t('aiChat.deleteMessage')">
+              <el-icon :size="15"><Delete /></el-icon>
+            </button>
+            <button
+              v-if="showRegenerate(msg, index)"
+              class="action-btn"
+              :disabled="sending"
+              @click="emit('regenerate', msg)"
+              :title="t('aiChat.regenerate')"
+            >
+              <el-icon :size="15"><RefreshRight /></el-icon>
+            </button>
+          </div>
         </div>
-      </div>
+
+        <!-- 消息分隔线（AI 消息后面，且不是最后一条） -->
+        <div v-if="msg.role !== AiRoleEnum.USER && index < messages.length - 1" class="msg-divider"></div>
+      </template>
     </div>
-    
+
     <!-- 图片预览 -->
     <el-image-viewer
       v-if="previewVisible"
@@ -225,194 +273,45 @@ const handleFeedback = (msg: any, feedback: number) => {
 .message-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
   padding: 24px 0;
   max-width: 768px;
   margin: 0 auto;
 }
 
-/* 消息行 */
-.message-row {
-  display: flex;
-  flex-direction: column;
+/* ====== 用户消息块 ====== */
+.user-block {
   padding: 0 16px;
+  margin-bottom: 24px;
 }
 
-.message-row.user-row {
-  align-items: flex-end;
-}
-
-/* 消息体 */
-.message-body {
-  max-width: 100%;
-  min-width: 0;
+.user-card {
+  background: var(--el-fill-color-light);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+  white-space: pre-wrap;
   position: relative;
 }
 
-.user-body {
-  max-width: 70%;
+.user-card.editing {
+  background: var(--el-fill-color);
+  border: 1px solid var(--el-color-primary-light-5);
 }
 
-/* 消息气泡 */
-.message-bubble {
-  padding: 12px 16px;
-  border-radius: 20px;
+.user-text {
+  display: block;
 }
 
-/* 用户消息 - 渐变气泡 */
-.user-bubble {
-  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-light-3) 100%);
-  color: #fff;
-  border-radius: 20px 20px 4px 20px;
-  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.2);
-}
-
-/* AI 消息 - 浅色卡片风格 */
-.ai-bubble {
-  padding: 16px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 16px;
-  color: var(--el-text-color-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-.message-text {
-  font-size: 15px;
-  line-height: 1.75;
-  word-break: break-word;
-}
-
-.user-bubble .message-text {
-  white-space: pre-wrap;
-}
-
-/* 操作按钮 - ChatGPT 风格 */
-.message-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-top: 8px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.user-row .message-actions {
-  justify-content: flex-end;
-}
-
-.message-row:hover .message-actions {
-  opacity: 1;
-}
-
-.message-actions :deep(.el-button) {
-  font-size: 13px;
-  padding: 6px 8px;
-  height: auto;
-  color: var(--el-text-color-secondary);
-  border-radius: 6px;
-}
-
-.message-actions :deep(.el-button:hover) {
-  background: var(--el-fill-color-light);
-  color: var(--el-text-color-primary);
-}
-
-.message-actions :deep(.el-button .el-icon) {
-  font-size: 16px;
-  color: var(--el-text-color-secondary);
-  transition: color 0.15s ease;
-}
-
-.message-actions :deep(.el-button:hover .el-icon) {
-  color: var(--el-text-color-primary);
-}
-
-/* 反馈按钮 */
-.message-actions :deep(.feedback-btn svg) {
-  color: var(--el-text-color-secondary);
-  transition: color 0.15s ease;
-}
-
-.message-actions :deep(.feedback-btn:hover svg) {
-  color: var(--el-text-color-primary);
-}
-
-/* 点赞选中 - 蓝色 */
-.message-actions :deep(.feedback-like-active),
-.message-actions :deep(.feedback-like-active:hover) {
-  background: var(--el-color-primary-light-9) !important;
-}
-
-.message-actions :deep(.feedback-like-active svg) {
-  color: var(--el-color-primary) !important;
-}
-
-/* 点踩选中 - 红色 */
-.message-actions :deep(.feedback-dislike-active),
-.message-actions :deep(.feedback-dislike-active:hover) {
-  background: var(--el-color-danger-light-9) !important;
-}
-
-.message-actions :deep(.feedback-dislike-active svg) {
-  color: var(--el-color-danger) !important;
-}
-
-/* 流式输出指示器 */
-.streaming-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 12px;
-  padding-left: 4px;
-}
-
-.typing-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--el-text-color-secondary);
-  animation: typing 1.4s infinite ease-in-out both;
-}
-
-.typing-dot:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes typing {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.4;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@media (max-width: 768px) {
-  .message-list { gap: 20px; padding: 16px 0; }
-  .message-row { padding: 0 12px; }
-  .user-body { max-width: 85%; }
-  .message-text { font-size: 14px; }
-  .message-attachments, .attachment-image { max-width: 200px; }
-}
-
-/* 消息附件图片 */
-.message-attachments {
+/* 用户附件 */
+.user-attachments {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
-  max-width: 300px;
+  padding: 0 16px;
 }
 
 .attachment-image-wrapper {
@@ -426,10 +325,7 @@ const handleFeedback = (msg: any, feedback: number) => {
 
 .attachment-loading {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,11 +335,11 @@ const handleFeedback = (msg: any, feedback: number) => {
 
 .attachment-image {
   display: block;
-  max-width: 300px;
-  max-height: 200px;
+  max-width: 200px;
+  max-height: 150px;
   border-radius: 8px;
   cursor: pointer;
-  transition: opacity 0.3s ease, transform 0.2s ease;
+  transition: opacity 0.3s ease;
   opacity: 0;
 }
 
@@ -451,7 +347,135 @@ const handleFeedback = (msg: any, feedback: number) => {
   opacity: 1;
 }
 
-.attachment-image:hover {
-  transform: scale(1.02);
+/* 编辑模式 */
+.edit-textarea :deep(.el-textarea__inner) {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: 15px;
+  line-height: 1.75;
+  padding: 0;
+  resize: none;
+  color: var(--el-text-color-primary);
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ====== AI 消息块 ====== */
+.ai-block {
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+
+.ai-content {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+}
+
+/* ====== 操作按钮 - 豆包风格 ====== */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.user-block:hover .msg-actions,
+.ai-block:hover .msg-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-btn:hover {
+  background: var(--el-fill-color);
+  color: var(--el-text-color-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.like-active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.action-btn.dislike-active {
+  color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
+}
+
+.action-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--el-border-color-lighter);
+  margin: 0 4px;
+}
+
+/* ====== 分隔线 ====== */
+.msg-divider {
+  height: 1px;
+  background: var(--el-border-color-extra-light);
+  margin: 16px 16px 24px;
+}
+
+/* ====== 流式输出指示器 ====== */
+.streaming-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding-left: 2px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--el-text-color-placeholder);
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ====== 移动端适配 ====== */
+@media (max-width: 768px) {
+  .message-list { padding: 16px 0; }
+  .user-block, .ai-block { padding: 0 12px; }
+  .msg-divider { margin: 12px 12px 20px; }
+  .user-card { padding: 12px 14px; font-size: 14px; }
+  .ai-content { font-size: 14px; }
+  .user-attachments { padding: 0 12px; }
+  .attachment-image { max-width: 160px; max-height: 120px; }
 }
 </style>

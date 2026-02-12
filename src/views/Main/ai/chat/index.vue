@@ -80,6 +80,7 @@ const {
   isStreaming,
   send: sendMessage,
   regenerate: regenerateMessage,
+  editAndResend: editAndResendMessage,
   stop: stopGeneration
 } = useStreamChat({
   messages,
@@ -280,6 +281,10 @@ const handleRegenerateMessage = async (msg: any) => {
   await regenerateMessage(msg)
 }
 
+const handleEditMessage = async (msg: any, newContent: string) => {
+  await editAndResendMessage(msg, newContent)
+}
+
 // ========== 移动端返回 ==========
 const handleBackToAgentList = () => {
   suspendCurrentAgent()
@@ -392,6 +397,7 @@ watch(currentConversationId, async (newId, oldId) => {
           @copy="copyMessage"
           @delete="handleDeleteMessage"
           @regenerate="handleRegenerateMessage"
+          @edit="handleEditMessage"
           @feedback="handleFeedbackMessage"
         />
       </el-scrollbar>

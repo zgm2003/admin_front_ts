@@ -410,6 +410,84 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     }
   }
 
+  const editAndResend = async (msg: Message, newContent: string) => {
+    if (sending.value) return
+
+    const agentId = selectedAgentId.value
+    if (!agentId || !currentConversationId.value) return
+
+    // 1. 后端：更新消息内容 + 删除后续消息
+    try {
+      await AiMessageApi.editContent({ id: msg.id, content: newContent })
+    } catch (error: any) {
+      ElNotification.error({ message: error.message || t('aiChat.editFailed') })
+      return
+    }
+
+    // 2. 前端：更新消息内容 + 移除后续消息
+    const msgIndex = messages.value.findIndex(m => m.id === msg.id)
+    if (msgIndex < 0) return
+
+    messages.value[msgIndex].content = newContent
+    messages.value.splice(msgIndex + 1)
+
+    const session = getSession(agentId)
+    if (session) {
+      const sIdx = session.messages.findIndex(m => m.id === msg.id)
+      if (sIdx >= 0) {
+        session.messages[sIdx].content = newContent
+        session.messages.splice(sIdx + 1)
+      }
+    }
+
+    // 3. 重新发送（复用 stream 逻辑）
+    sending.value = true
+    isStreaming.value = true
+    streamingContent.value = ''
+    currentRunId.value = null
+
+    if (session) {
+      session.sending = true
+      session.isStreaming = true
+      session.streamingContent = ''
+      session.currentRunId = null
+      session.deltaBuffer = ''
+    }
+
+    addAiPlaceholder(agentId)
+    await nextTick()
+    scrollToBottom()
+
+    try {
+      const callbacks = createCallbacks(agentId, currentConversationId.value)
+      await AiChatApi.stream({
+        content: newContent,
+        conversation_id: currentConversationId.value!
+      }, callbacks)
+    } catch (error: any) {
+      clearAgentTimer(agentId)
+      if (session) {
+        session.deltaBuffer = ''
+        session.isStreaming = false
+        session.sending = false
+        session.streamingContent = ''
+        session.currentRunId = null
+        const lastMsg = session.messages[session.messages.length - 1]
+        if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) session.messages.pop()
+      }
+      if (isActiveAgent(agentId)) {
+        isStreaming.value = false
+        streamingContent.value = ''
+        currentRunId.value = null
+        ElNotification.error({ message: error.message || t('aiChat.editFailed') })
+        messages.value.pop()
+      }
+    } finally {
+      sending.value = false
+      if (session) session.sending = false
+    }
+  }
+
   onUnmounted(() => { clearAllTimers() })
 
   return {
@@ -419,6 +497,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     streamingContent,
     send,
     regenerate,
+    editAndResend,
     stop
   }
 }

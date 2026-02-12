@@ -651,6 +651,9 @@ export default {
     startNewChat: '开始一个新对话吧',
     noMoreConversations: '没有更多会话了',
     searchPlaceholder: '搜索会话...',
+    editMessage: '编辑',
+    editSubmit: '保存并重新生成',
+    editFailed: '编辑失败',
     // 时间分组
     timeGroup: {
       today: '今天',
