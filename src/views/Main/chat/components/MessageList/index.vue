@@ -3,12 +3,14 @@ import { ref, nextTick, watch, onMounted, computed } from 'vue'
 import { Loading, Download } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { MessageType, type MessageItem } from '@/api/chat'
 import { formatTimeAgo } from '@/utils/date'
 import { downloadFile } from '@/components/DownloadManager'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
+const isMobile = useIsMobile()
 
 const scrollRef = ref<InstanceType<typeof import('element-plus')['ElScrollbar']>>()
 const loadingMore = ref(false)
@@ -71,7 +73,7 @@ defineExpose({ scrollToBottom })
 </script>
 
 <template>
-  <el-scrollbar ref="scrollRef" class="message-list" @scroll="handleScroll">
+  <el-scrollbar ref="scrollRef" class="message-list" :class="{ 'is-mobile': isMobile }" @scroll="handleScroll">
     <!-- 加载更多 -->
     <div v-if="chatStore.currentHasMore" class="load-more-tip">
       <template v-if="loadingMore">
@@ -318,5 +320,25 @@ defineExpose({ scrollToBottom })
   padding: 48px 16px;
   font-size: 13px;
   color: var(--el-text-color-placeholder);
+}
+
+/* ========== 移动端适配 ========== */
+.message-list.is-mobile .messages {
+  padding: 12px 8px;
+  gap: 12px;
+}
+
+.message-list.is-mobile .msg-row {
+  max-width: 90%;
+}
+
+.message-list.is-mobile .msg-image-bubble {
+  max-width: 200px;
+}
+
+.message-list.is-mobile .msg-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
 }
 </style>

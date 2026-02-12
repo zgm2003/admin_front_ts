@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ChatLineRound, Plus, User, ChatDotRound } from '@element-plus/icons-vue'
+import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/store/chat'
+import { useIsMobile } from '@/hooks/useResponsive'
 import type { ConversationItem, ContactItem } from '@/api/chat'
 import { UsersListApi } from '@/api/user/users'
 import { RemoteSelect } from '@/components/RemoteSelect'
@@ -26,14 +27,37 @@ const privateUserId = ref<number>()
 const showGroupDialog = ref(false)
 const groupForm = ref({ name: '', user_ids: [] as number[] })
 
+// ========== 响应式：移动端检测（使用项目 hook） ==========
+const isMobile = useIsMobile()
+// 移动端下：是否显示右侧面板（聊天窗口/资料卡）
+const showMainPanel = ref(false)
+
+onMounted(() => {
+  chatStore.registerWsListeners()
+  chatStore.loadConversations()
+})
+
+onUnmounted(() => {
+  chatStore.unregisterWsListeners()
+})
+
+/** 移动端返回列表 */
+function goBackToList() {
+  showMainPanel.value = false
+  chatStore.currentConversation = null
+  selectedContact.value = null
+}
+
 /** 选中会话 */
 async function handleSelectConversation(conv: ConversationItem) {
   await chatStore.selectConversation(conv)
+  if (isMobile.value) showMainPanel.value = true
 }
 
 /** 选中联系人 → 显示资料卡 */
 function handleSelectContact(contact: ContactItem) {
   selectedContact.value = contact
+  if (isMobile.value) showMainPanel.value = true
 }
 
 /** 资料卡 → 发消息 */
@@ -45,6 +69,7 @@ async function handleSendMessage() {
       await chatStore.selectConversation(conv)
       asideTab.value = 'chat'
       selectedContact.value = null
+      if (isMobile.value) showMainPanel.value = true
     }
   } catch {
     ElMessage.error('发起聊天失败')
@@ -54,9 +79,10 @@ async function handleSendMessage() {
 /** 创建私聊 */
 async function handleCreatePrivate() {
   if (!privateUserId.value) return
-  await chatStore.createPrivateChat(privateUserId.value)
+  const conv = await chatStore.createPrivateChat(privateUserId.value)
   showPrivateDialog.value = false
   privateUserId.value = undefined
+  if (conv && isMobile.value) showMainPanel.value = true
 }
 
 /** 创建群聊 */
@@ -66,23 +92,13 @@ async function handleCreateGroup() {
   showGroupDialog.value = false
   groupForm.value = { name: '', user_ids: [] }
 }
-
-// 生命周期：注册 WebSocket 监听，加载会话列表
-onMounted(() => {
-  chatStore.registerWsListeners()
-  chatStore.loadConversations()
-})
-
-onUnmounted(() => {
-  chatStore.unregisterWsListeners()
-})
 </script>
 
 <template>
   <div class="chat-page">
-    <el-container class="chat-container">
+    <div class="chat-container" :class="{ 'is-mobile': isMobile, 'show-main': showMainPanel }">
       <!-- 左侧：会话列表 / 联系人 -->
-      <el-aside width="320px" class="chat-aside">
+      <div class="chat-aside">
         <div class="aside-header">
           <div class="aside-tabs">
             <span class="tab-item" :class="{ active: asideTab === 'chat' }" @click="asideTab = 'chat'">聊天</span>
@@ -103,10 +119,16 @@ onUnmounted(() => {
         </div>
         <ConversationList v-show="asideTab === 'chat'" @select="handleSelectConversation" />
         <ContactList v-show="asideTab === 'contacts'" @select="handleSelectContact" />
-      </el-aside>
+      </div>
 
       <!-- 右侧面板 -->
-      <el-main class="chat-main">
+      <div class="chat-main">
+        <!-- 移动端返回按钮 -->
+        <div v-if="isMobile && showMainPanel" class="mobile-back" @click="goBackToList">
+          <el-icon :size="20"><ArrowLeft /></el-icon>
+          <span>返回</span>
+        </div>
+
         <!-- 联系人 tab：资料卡 -->
         <template v-if="asideTab === 'contacts'">
           <div v-if="!selectedContact" class="empty-chat">
@@ -146,11 +168,11 @@ onUnmounted(() => {
           </div>
           <ChatWindow v-else />
         </template>
-      </el-main>
-    </el-container>
+      </div>
+    </div>
 
     <!-- 创建私聊对话框 -->
-    <el-dialog v-model="showPrivateDialog" title="发起私聊" width="400px">
+    <el-dialog v-model="showPrivateDialog" title="发起私聊" :width="isMobile ? '90%' : '400px'">
       <el-form>
         <el-form-item label="选择用户">
           <RemoteSelect
@@ -170,7 +192,7 @@ onUnmounted(() => {
     </el-dialog>
 
     <!-- 创建群聊对话框 -->
-    <el-dialog v-model="showGroupDialog" title="创建群聊" width="400px">
+    <el-dialog v-model="showGroupDialog" title="创建群聊" :width="isMobile ? '90%' : '400px'">
       <el-form>
         <el-form-item label="群名称">
           <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="50" />
@@ -206,7 +228,9 @@ onUnmounted(() => {
   height: 100%;
 }
 
+/* ========== 桌面端：左右并排 ========== */
 .chat-container {
+  display: flex;
   height: 100%;
   background: var(--el-bg-color);
   border-radius: 8px;
@@ -215,6 +239,8 @@ onUnmounted(() => {
 }
 
 .chat-aside {
+  width: 320px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--el-border-color-lighter);
@@ -222,6 +248,56 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ========== 移动端：左右切换 ========== */
+.chat-container.is-mobile {
+  position: relative;
+}
+
+.chat-container.is-mobile .chat-aside {
+  width: 100%;
+  border-right: none;
+}
+
+.chat-container.is-mobile .chat-main {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--el-bg-color);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.chat-container.is-mobile.show-main .chat-main {
+  transform: translateX(0);
+}
+
+/* 移动端返回按钮 */
+.mobile-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--el-color-primary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  flex-shrink: 0;
+}
+
+.mobile-back:active {
+  background: var(--el-fill-color-light);
+}
+
+/* ========== 通用样式 ========== */
 .aside-header {
   display: flex;
   align-items: center;
@@ -260,13 +336,6 @@ onUnmounted(() => {
   gap: 4px;
 }
 
-.chat-main {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-
 .empty-chat {
   flex: 1;
   display: flex;
@@ -293,7 +362,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 40px;
+  padding: 40px 20px;
 }
 
 .profile-avatar {

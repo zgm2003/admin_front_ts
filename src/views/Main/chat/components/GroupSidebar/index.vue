@@ -4,12 +4,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Close, Switch } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { ChatRoomApi, ParticipantRole, type ParticipantItem } from '@/api/chat'
 import { UsersListApi } from '@/api/user/users'
 import { RemoteSelect } from '@/components/RemoteSelect'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
+const isMobile = useIsMobile()
 
 const props = defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ 'update:visible': [val: boolean] }>()
@@ -138,7 +140,7 @@ async function handleTransfer(member: ParticipantItem) {
   <el-drawer
     :model-value="visible"
     direction="rtl"
-    size="320px"
+    :size="isMobile ? '85%' : '320px'"
     :with-header="false"
     :append-to-body="true"
     @update:model-value="emit('update:visible', $event)"
@@ -206,7 +208,7 @@ async function handleTransfer(member: ParticipantItem) {
     </div>
 
     <!-- 编辑群设置对话框 -->
-    <el-dialog v-model="showEditDialog" title="编辑群设置" width="400px" append-to-body>
+    <el-dialog v-model="showEditDialog" title="编辑群设置" :width="isMobile ? '90%' : '400px'" append-to-body>
       <el-form label-width="70px">
         <el-form-item label="群名称">
           <el-input v-model="editForm.name" maxlength="50" placeholder="请输入群名称" />
@@ -222,7 +224,7 @@ async function handleTransfer(member: ParticipantItem) {
     </el-dialog>
 
     <!-- 邀请成员对话框 -->
-    <el-dialog v-model="showInviteDialog" title="邀请成员" width="400px" append-to-body>
+    <el-dialog v-model="showInviteDialog" title="邀请成员" :width="isMobile ? '90%' : '400px'" append-to-body>
       <RemoteSelect
         v-model="inviteUserIds"
         :fetch-method="UsersListApi.list"

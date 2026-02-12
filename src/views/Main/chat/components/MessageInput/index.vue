@@ -4,9 +4,11 @@ import { ElMessage } from 'element-plus'
 import { Picture, FolderOpened, Promotion, Close } from '@element-plus/icons-vue'
 import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/utils/cosUpload'
 
 const chatStore = useChatStore()
+const isMobile = useIsMobile()
 
 const content = ref('')
 const textareaRef = ref<InstanceType<typeof import('element-plus')['ElInput']>>()
@@ -231,7 +233,7 @@ function handleDragover(e: DragEvent) {
 <template>
   <div
     class="message-input"
-    :class="{ uploading }"
+    :class="{ uploading, 'is-mobile': isMobile }"
     @drop="handleDrop"
     @dragover="handleDragover"
   >
@@ -474,5 +476,19 @@ function handleDragover(e: DragEvent) {
 /* 上传中整体降低透明度 */
 .message-input.uploading .input-body {
   opacity: 0.6;
+}
+
+/* ========== 移动端适配 ========== */
+.message-input.is-mobile .pending-thumb {
+  width: 48px;
+  height: 48px;
+}
+
+.message-input.is-mobile .pending-file {
+  max-width: 160px;
+}
+
+.message-input.is-mobile .input-hint {
+  display: none;
 }
 </style>
