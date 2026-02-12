@@ -43,7 +43,8 @@ const {
   rename: renameConversation,
   remove: removeConversation,
   archive: archiveConversation,
-  toggleArchived
+  toggleArchived,
+  search: searchConversations
 } = useConversations()
 
 const {
@@ -426,6 +427,7 @@ watch(currentConversationId, async (newId, oldId) => {
       @archive="handleArchiveConversation"
       @load-more="loadMoreConversations"
       @toggle-archived="handleToggleArchived"
+      @search="searchConversations"
     />
   </div>
 

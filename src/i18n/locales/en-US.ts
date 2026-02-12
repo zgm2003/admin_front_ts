@@ -650,6 +650,7 @@ export default {
     doUnarchive: 'Unarchive',
     startNewChat: 'Start a new conversation',
     noMoreConversations: 'No more conversations',
+    searchPlaceholder: 'Search conversations...',
     // Time groups
     timeGroup: {
       today: 'Today',

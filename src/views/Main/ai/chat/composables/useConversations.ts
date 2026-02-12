@@ -29,6 +29,21 @@ export function useConversations() {
   const hasMore = ref(true)
   const showArchived = ref(false)
   const currentAgentId = ref<number | null>(null)
+  const searchKeyword = ref('')
+
+  // 构建请求参数
+  const buildListParams = (pageNum: number) => {
+    const params: Record<string, any> = {
+      page_size: PAGE_SIZE,
+      current_page: pageNum,
+      status: showArchived.value ? 2 : 1,
+      agent_id: currentAgentId.value || undefined,
+    }
+    if (searchKeyword.value.trim()) {
+      params.title = searchKeyword.value.trim()
+    }
+    return params
+  }
 
   // 加载会话列表（支持按 agent_id 过滤）
   const loadConversations = async (options?: { agent_id?: number }) => {
@@ -42,12 +57,7 @@ export function useConversations() {
     }
     
     try {
-      const res = await AiConversationApi.list({
-        page_size: PAGE_SIZE,
-        current_page: 1,
-        status: showArchived.value ? 2 : 1,
-        agent_id: currentAgentId.value || undefined
-      })
+      const res = await AiConversationApi.list(buildListParams(1))
       const list = res.list || []
       conversations.value = list
       hasMore.value = list.length >= PAGE_SIZE
@@ -65,12 +75,7 @@ export function useConversations() {
     const nextPage = page.value + 1
 
     try {
-      const res = await AiConversationApi.list({
-        page_size: PAGE_SIZE,
-        current_page: nextPage,
-        status: showArchived.value ? 2 : 1,
-        agent_id: currentAgentId.value || undefined
-      })
+      const res = await AiConversationApi.list(buildListParams(nextPage))
       const list = res.list || []
 
       if (list.length > 0) {
@@ -140,6 +145,12 @@ export function useConversations() {
     return conversations.value[0] // 已按 last_message_at 降序排列
   }
 
+  // 搜索会话
+  const search = (keyword: string) => {
+    searchKeyword.value = keyword
+    loadConversations()
+  }
+
   return {
     conversations,
     loaded,
@@ -148,8 +159,10 @@ export function useConversations() {
     hasMore,
     showArchived,
     currentAgentId,
+    searchKeyword,
     loadConversations,
     loadMore,
+    search,
     rename,
     remove,
     archive,

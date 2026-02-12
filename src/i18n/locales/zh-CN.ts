@@ -650,6 +650,7 @@ export default {
     doUnarchive: '取消归档',
     startNewChat: '开始一个新对话吧',
     noMoreConversations: '没有更多会话了',
+    searchPlaceholder: '搜索会话...',
     // 时间分组
     timeGroup: {
       today: '今天',

@@ -10,11 +10,14 @@ import {
   ChatDotRound,
   FolderOpened,
   FolderChecked,
-  Close
+  Close,
+  Search
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const scrollbarRef = ref<any>(null)
+const searchInput = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 interface Conversation {
   id: number
@@ -45,10 +48,19 @@ const emit = defineEmits<{
   archive: [conv: Conversation]
   loadMore: []
   toggleArchived: [showArchived: boolean]
+  search: [keyword: string]
 }>()
 
 const handleClose = () => {
   emit('update:visible', false)
+}
+
+// 防抖搜索（300ms）
+const handleSearchInput = (val: string) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    emit('search', val.trim())
+  }, 300)
 }
 
 const handleSelect = (conv: Conversation) => {
@@ -145,6 +157,19 @@ const groupedConversations = computed(() => {
           <el-icon :size="16"><Plus /></el-icon>
           <span>{{ t('aiChat.newConversation') }}</span>
         </el-button>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="search-box">
+        <el-input
+          v-model="searchInput"
+          :placeholder="t('aiChat.searchPlaceholder')"
+          clearable
+          :prefix-icon="Search"
+          size="small"
+          @input="handleSearchInput"
+          @clear="emit('search', '')"
+        />
       </div>
 
       <!-- 归档切换 -->
@@ -297,6 +322,14 @@ const groupedConversations = computed(() => {
   display: flex;
   padding: 0 16px 8px;
   gap: 4px;
+}
+
+.search-box {
+  padding: 0 16px 8px;
+}
+
+.search-box :deep(.el-input__wrapper) {
+  border-radius: 8px;
 }
 
 .tab-item {
