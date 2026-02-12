@@ -35,6 +35,11 @@ const showMainPanel = ref(false)
 onMounted(() => {
   chatStore.registerWsListeners()
   chatStore.loadConversations()
+  
+  // 如果有当前选中的会话，重新加载消息（防止切换路由后消息不同步）
+  if (chatStore.currentConversation) {
+    chatStore.loadMessages(chatStore.currentConversation.id, 30, true)
+  }
 })
 
 onUnmounted(() => {

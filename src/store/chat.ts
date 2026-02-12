@@ -131,7 +131,14 @@ export const useChatStore = defineStore('chat', {
 
     // ============ 消息 ============
 
-    async loadMessages(conversationId: number, pageSize = 30) {
+    async loadMessages(conversationId: number, pageSize = 30, reload = false) {
+      // reload 模式：清空缓存，重新加载最新消息
+      if (reload) {
+        this.messagesMap.delete(conversationId)
+        this.cursorMap.delete(conversationId)
+        this.hasMoreMap.delete(conversationId)
+      }
+
       const cursor = this.cursorMap.get(conversationId)
       const data = await ChatRoomApi.messageList({
         conversation_id: conversationId,
