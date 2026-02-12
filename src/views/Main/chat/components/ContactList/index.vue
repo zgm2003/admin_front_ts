@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Check, Close } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { ChatRoomApi, ContactStatus, type ContactItem } from '@/api/chat'
 import { UsersListApi } from '@/api/user/users'
 import { RemoteSelect } from '@/components/RemoteSelect'
@@ -12,6 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const chatStore = useChatStore()
+const isMobile = useIsMobile()
 
 const loading = ref(false)
 const showAddDialog = ref(false)
@@ -165,7 +167,7 @@ function handleSelect(contact: ContactItem) {
     </el-scrollbar>
 
     <!-- 添加联系人对话框 -->
-    <el-dialog v-model="showAddDialog" title="添加联系人" width="400px" append-to-body>
+    <el-dialog v-model="showAddDialog" title="添加联系人" :width="isMobile ? '90%' : '400px'" append-to-body>
       <el-form>
         <el-form-item label="选择用户">
           <RemoteSelect
