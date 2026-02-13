@@ -235,6 +235,9 @@ export const useChatStore = defineStore('chat', {
         case 'chat_contact_confirmed':
           this._handleContactConfirmed(message.data)
           break
+        case 'chat_contact_deleted':
+          this._handleContactDeleted(message.data)
+          break
       }
     },
 
@@ -316,6 +319,21 @@ export const useChatStore = defineStore('chat', {
       this.loadContacts()
     },
 
+    _handleContactDeleted(data: { deleted_by: number; conversation_id: number | null }) {
+      // 被对方删除联系人，刷新联系人列表
+      this.loadContacts()
+      // 如果关联了私聊会话，从本地清理
+      if (data.conversation_id) {
+        this.conversations = this.conversations.filter(c => c.id !== data.conversation_id)
+        if (this.currentConversation?.id === data.conversation_id) {
+          this.currentConversation = null
+        }
+        this.messagesMap.delete(data.conversation_id)
+        this.cursorMap.delete(data.conversation_id)
+        this.hasMoreMap.delete(data.conversation_id)
+      }
+    },
+
     // ============ 内部工具 ============
 
     _appendMessage(conversationId: number, message: MessageItem) {
@@ -348,7 +366,7 @@ export const useChatStore = defineStore('chat', {
 
     /** 注册 WebSocket 消息监听（在聊天页面挂载时调用） */
     registerWsListeners() {
-      const types = ['chat_message', 'chat_typing', 'chat_read', 'chat_online', 'chat_group_update', 'chat_contact_request', 'chat_contact_rejected', 'chat_contact_confirmed']
+      const types = ['chat_message', 'chat_typing', 'chat_read', 'chat_online', 'chat_group_update', 'chat_contact_request', 'chat_contact_rejected', 'chat_contact_confirmed', 'chat_contact_deleted']
       const handler = (msg: WsMessage) => this.handleWsMessage(msg)
       for (const type of types) {
         const cleanup = onWsMessage(type, handler)

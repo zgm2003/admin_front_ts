@@ -109,5 +109,5 @@ export const ChatRoomApi = {
 
   // 实时
   typing: (params: { conversation_id: number }) => request.post(`${BASE}/typing`, params),
-  onlineStatus: (params: { user_ids: number[] }) => request.post<{ list: { user_id: number; is_online: boolean }[] }>(`${BASE}/onlineStatus`, params),
+  onlineStatus: (params: { user_ids: number[] }) => request.post<{ online_status: Record<number, boolean> }>(`${BASE}/onlineStatus`, params),
 }
