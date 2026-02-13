@@ -55,6 +55,11 @@ watch(() => props.visible, (val) => {
   if (val) loadGroupInfo()
 })
 
+// WebSocket 群更新时自动刷新（面板打开状态下）
+watch(() => chatStore.groupInfoVersion, () => {
+  if (props.visible) loadGroupInfo()
+})
+
 /** 打开编辑对话框 */
 function openEditDialog() {
   editForm.value = { name: groupName.value, announcement: announcement.value }

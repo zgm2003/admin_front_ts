@@ -20,6 +20,8 @@ interface ChatState {
   typingUsers: Map<number, Set<number>>
   /** 在线用户集合 */
   onlineUsers: Set<number>
+  /** 群信息更新版本号（用于触发面板刷新） */
+  groupInfoVersion: number
   /** 会话列表加载中 */
   loading: boolean
   /** 消息发送中 */
@@ -41,6 +43,7 @@ export const useChatStore = defineStore('chat', {
     contacts: [],
     typingUsers: new Map(),
     onlineUsers: new Set(),
+    groupInfoVersion: 0,
     loading: false,
     sending: false,
     _wsCleanups: [],
@@ -287,9 +290,15 @@ export const useChatStore = defineStore('chat', {
     },
 
     _handleGroupUpdate(data: { conversation_id: number; [key: string]: any }) {
-      // 群信息更新，刷新会话列表
-      this.loadConversations()
-      void data
+      // 群信息更新，刷新会话列表 + 通知群信息面板刷新
+      this.loadConversations().then(() => {
+        // 同步更新当前选中的会话对象
+        if (this.currentConversation?.id === data.conversation_id) {
+          const updated = this.conversations.find(c => c.id === data.conversation_id)
+          if (updated) this.currentConversation = updated
+        }
+      })
+      this.groupInfoVersion++
     },
 
     _handleContactRequest(_data: { from_user_id: number }) {
