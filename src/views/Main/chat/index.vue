@@ -91,7 +91,8 @@ async function handleSendMessage() {
 
 /** 创建群聊 */
 async function handleCreateGroup() {
-  if (!groupForm.value.name || groupForm.value.user_ids.length < 2) return
+  // 至少选择1个好友（加上自己就是2人）
+  if (!groupForm.value.name || groupForm.value.user_ids.length < 1) return
   await chatStore.createGroupChat(groupForm.value.name, groupForm.value.user_ids)
   showGroupDialog.value = false
   groupForm.value = { name: '', user_ids: [] }
@@ -188,7 +189,7 @@ function openCreateGroupDialog() {
         <el-form-item label="选择好友">
           <el-select
             v-model="groupForm.user_ids"
-            placeholder="请选择好友（至少2人）"
+            placeholder="请选择好友（至少1人）"
             multiple
             filterable
             style="width: 100%"
@@ -214,10 +215,10 @@ function openCreateGroupDialog() {
         <el-button @click="showGroupDialog = false">取消</el-button>
         <el-button
           type="primary"
-          :disabled="!groupForm.name || groupForm.user_ids.length < 2"
+          :disabled="!groupForm.name || groupForm.user_ids.length < 1"
           @click="handleCreateGroup"
         >
-          创建（{{ groupForm.user_ids.length }}/{{ confirmedContacts.length }}）
+          创建
         </el-button>
       </template>
     </el-dialog>
