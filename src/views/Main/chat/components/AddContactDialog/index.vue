@@ -91,7 +91,7 @@ const dialogVisible = computed({
   <el-dialog
     v-model="dialogVisible"
     title="添加联系人"
-    :width="isMobile ? '95%' : '700px'"
+    :width="isMobile ? '95%' : '800px'"
     :fullscreen="isMobile"
     append-to-body
     class="add-contact-dialog"
@@ -100,7 +100,7 @@ const dialogVisible = computed({
     <div class="search-bar">
       <el-input
         v-model="searchKeyword"
-        placeholder="搜索用户名"
+        placeholder="搜索用户名 / 邮箱 / 手机号"
         clearable
         @keyup.enter="handleSearch"
         @clear="handleSearch"
@@ -124,28 +124,41 @@ const dialogVisible = computed({
             <div
               v-for="user in userList"
               :key="user.id"
-              class="user-item"
+              class="user-card"
             >
-              <div class="user-info">
-                <el-avatar :size="isMobile ? 40 : 48" :src="user.avatar">
+              <div class="card-left">
+                <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
                   {{ user.username?.charAt(0) || '?' }}
                 </el-avatar>
-                <div class="user-detail">
-                  <div class="user-name">{{ user.username }}</div>
-                  <div class="user-meta">
-                    <el-tag v-if="user.sex_show" size="small" type="info">{{ user.sex_show }}</el-tag>
-                    <span v-if="user.address_show" class="user-address">{{ user.address_show }}</span>
-                  </div>
+              </div>
+              <div class="card-body">
+                <div class="user-name">{{ user.username }}</div>
+                <div class="user-info-row">
+                  <span class="info-label">邮箱：</span>
+                  <span class="info-value">{{ user.email || '-' }}</span>
+                </div>
+                <div class="user-info-row">
+                  <span class="info-label">手机：</span>
+                  <span class="info-value">{{ user.phone || '-' }}</span>
+                </div>
+                <div class="user-info-row">
+                  <span class="info-label">性别：</span>
+                  <span class="info-value">{{ user.sex_show || '-' }}</span>
+                </div>
+                <div class="user-info-row">
+                  <span class="info-label">地址：</span>
+                  <span class="info-value">{{ user.address_show || '-' }}</span>
                 </div>
               </div>
-              <el-button
-                type="primary"
-                size="small"
-                :loading="adding"
-                @click="handleAddContact(user)"
-              >
-                添加
-              </el-button>
+              <div class="card-right">
+                <el-button
+                  type="primary"
+                  :loading="adding"
+                  @click="handleAddContact(user)"
+                >
+                  添加好友
+                </el-button>
+              </div>
             </div>
           </template>
         </div>
@@ -178,7 +191,7 @@ const dialogVisible = computed({
 }
 
 .search-tabs {
-  min-height: 400px;
+  min-height: 450px;
 }
 
 .search-tabs :deep(.el-tabs__content) {
@@ -188,62 +201,68 @@ const dialogVisible = computed({
 .user-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: var(--el-border-color-lighter);
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 300px;
-}
-
-.user-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--el-bg-color);
-  transition: background 0.15s;
-}
-
-.user-item:hover {
-  background: var(--el-fill-color-light);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
   gap: 12px;
+  min-height: 350px;
+}
+
+.user-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.user-card:hover {
+  border-color: var(--el-color-primary-light-5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-left {
+  flex-shrink: 0;
+}
+
+.card-body {
   flex: 1;
   min-width: 0;
-}
-
-.user-detail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+  gap: 8px;
 }
 
 .user-name {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 4px;
 }
 
-.user-meta {
+.user-info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.user-address {
+.info-label {
+  color: var(--el-text-color-secondary);
+  min-width: 50px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: var(--el-text-color-regular);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.card-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .pagination {
@@ -262,16 +281,40 @@ const dialogVisible = computed({
     width: 100%;
   }
 
-  .user-item {
-    padding: 10px 12px;
+  .user-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .card-left {
+    display: flex;
+    justify-content: center;
+  }
+
+  .card-body {
+    gap: 6px;
   }
 
   .user-name {
-    font-size: 14px;
+    font-size: 15px;
+    text-align: center;
   }
 
-  .user-meta {
-    font-size: 11px;
+  .user-info-row {
+    font-size: 12px;
+  }
+
+  .info-label {
+    min-width: 45px;
+  }
+
+  .card-right {
+    justify-content: center;
+  }
+
+  .card-right .el-button {
+    width: 100%;
   }
 }
 
