@@ -105,10 +105,10 @@ defineExpose({ scrollToBottom })
             </div>
 
             <!-- 图片消息 -->
-            <div v-else-if="msg.type === MessageType.Image" class="msg-bubble msg-image-bubble">
+            <div v-else-if="msg.type === MessageType.Image" class="msg-image-wrapper">
               <el-image
                 :src="msg.content"
-                fit="cover"
+                fit="contain"
                 class="msg-image"
                 :preview-src-list="[msg.content]"
                 preview-teleported
@@ -246,17 +246,21 @@ defineExpose({ scrollToBottom })
   color: var(--el-text-color-primary);
 }
 
-/* 图片消息 */
-.msg-image-bubble {
-  padding: 4px;
+/* 图片消息 - 无气泡背景，像微信一样 */
+.msg-image-wrapper {
   max-width: 280px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .msg-image {
-  border-radius: 8px;
+  display: block;
   max-width: 100%;
-  max-height: 200px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 /* 文件消息 */
@@ -326,8 +330,12 @@ defineExpose({ scrollToBottom })
   max-width: 90%;
 }
 
-.message-list.is-mobile .msg-image-bubble {
-  max-width: 200px;
+.message-list.is-mobile .msg-image-wrapper {
+  max-width: 220px;
+}
+
+.message-list.is-mobile .msg-image {
+  max-height: 250px;
 }
 
 .message-list.is-mobile .msg-avatar {
