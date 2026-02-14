@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Picture, FolderOpened, Promotion, Close } from '@element-plus/icons-vue'
+import { Picture, FolderOpened, Promotion, Close, Microphone } from '@element-plus/icons-vue'
 import { DIcon } from '@/components/DIcon'
 import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
@@ -19,6 +19,94 @@ const imageInput = ref<HTMLInputElement>()
 const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
 const showEmojiPicker = ref(false)
+
+// ==================== 语音转文字（Web Speech API） ====================
+
+const isRecording = ref(false)
+let recognition: any = null
+
+function toggleVoiceInput() {
+  if (isRecording.value) {
+    stopVoiceInput()
+  } else {
+    startVoiceInput()
+  }
+}
+
+function startVoiceInput() {
+  // 检查浏览器支持
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+  if (!SpeechRecognition) {
+    ElMessage.error('当前浏览器不支持语音识别')
+    return
+  }
+
+  try {
+    recognition = new SpeechRecognition()
+    recognition.lang = 'zh-CN' // 中文识别
+    recognition.continuous = true // 持续识别
+    recognition.interimResults = true // 显示临时结果
+
+    recognition.onstart = () => {
+      isRecording.value = true
+      ElMessage.success('开始语音输入')
+    }
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript
+        }
+      }
+
+      // 将识别结果追加到输入框
+      if (finalTranscript) {
+        content.value += finalTranscript
+      }
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('语音识别错误:', event.error)
+      if (event.error === 'no-speech') {
+        ElMessage.warning('未检测到语音，请重试')
+      } else if (event.error === 'not-allowed') {
+        ElMessage.error('麦克风权限被拒绝')
+      } else {
+        ElMessage.error('语音识别失败: ' + event.error)
+      }
+      stopVoiceInput()
+    }
+
+    recognition.onend = () => {
+      isRecording.value = false
+    }
+
+    recognition.start()
+  } catch (err: any) {
+    ElMessage.error(err.message || '启动语音识别失败')
+    isRecording.value = false
+  }
+}
+
+function stopVoiceInput() {
+  if (recognition) {
+    recognition.stop()
+    recognition = null
+  }
+  isRecording.value = false
+  ElMessage.info('语音输入已停止')
+}
+
+// 组件卸载时清理语音识别
+onUnmounted(() => {
+  if (recognition) {
+    recognition.stop()
+    recognition = null
+  }
+})
 
 // ==================== 待发送附件（粘贴/拖拽） ====================
 
@@ -201,18 +289,32 @@ async function handleFileChange(e: Event) {
   }
 }
 
-// ==================== 粘贴：图片放入待发送区 ====================
+// ==================== 粘贴：图片和文件放入待发送区 ====================
 
 function handlePaste(e: ClipboardEvent) {
   const items = e.clipboardData?.items
   if (!items) return
 
+  // 优先处理图片
   for (const item of Array.from(items)) {
     if (item.type.startsWith('image/')) {
       e.preventDefault()
       const file = item.getAsFile()
       if (file) addPendingImage(file)
-      break
+      return
+    }
+  }
+
+  // 处理文件（Windows 文件管理器复制的文件）
+  const files = e.clipboardData?.files
+  if (files && files.length > 0) {
+    e.preventDefault()
+    for (const file of Array.from(files)) {
+      if (file.type.startsWith('image/')) {
+        addPendingImage(file)
+      } else {
+        addPendingFile(file)
+      }
     }
   }
 }
@@ -270,11 +372,21 @@ function handleEmojiSelect(emoji: string) {
     <!-- 工具栏 -->
     <div class="input-toolbar">
       <div class="toolbar-left">
-        <el-button text class="toolbar-btn" @click="handlePickImage" :disabled="uploading" title="发送图片">
+        <el-button text class="toolbar-btn" @click="handlePickImage" :disabled="uploading || isRecording" title="发送图片">
           <el-icon :size="18"><Picture /></el-icon>
         </el-button>
-        <el-button text class="toolbar-btn" @click="handlePickFile" :disabled="uploading" title="发送文件">
+        <el-button text class="toolbar-btn" @click="handlePickFile" :disabled="uploading || isRecording" title="发送文件">
           <el-icon :size="18"><FolderOpened /></el-icon>
+        </el-button>
+        <el-button
+          text
+          class="toolbar-btn voice-btn"
+          :class="{ 'is-recording': isRecording }"
+          @click="toggleVoiceInput"
+          :disabled="uploading"
+          title="语音转文字"
+        >
+          <el-icon :size="18"><Microphone /></el-icon>
         </el-button>
         <el-popover
           v-model:visible="showEmojiPicker"
@@ -285,7 +397,7 @@ function handleEmojiSelect(emoji: string) {
           popper-class="emoji-popover"
         >
           <template #reference>
-            <el-button text class="toolbar-btn" :disabled="uploading" title="插入表情">
+            <el-button text class="toolbar-btn" :disabled="uploading || isRecording" title="插入表情">
               <DIcon icon="fluent-emoji:grinning-face" :size="18" />
             </el-button>
           </template>
@@ -325,7 +437,7 @@ function handleEmojiSelect(emoji: string) {
         :autosize="{ minRows: 3, maxRows: 8 }"
         placeholder="输入消息，Enter 发送，Shift+Enter 换行"
         resize="none"
-        :disabled="uploading"
+        :disabled="uploading || isRecording"
         @input="handleInput"
         @keydown="handleKeydown"
         @paste="handlePaste"
@@ -334,7 +446,11 @@ function handleEmojiSelect(emoji: string) {
 
     <!-- 底部：上传状态 + 发送按钮 -->
     <div class="input-footer">
-      <span v-if="uploading" class="upload-status">
+      <span v-if="isRecording" class="recording-status">
+        <el-icon class="recording-icon" :size="14"><Microphone /></el-icon>
+        正在识别语音，点击停止
+      </span>
+      <span v-else-if="uploading" class="upload-status">
         <el-icon class="is-loading" :size="14"><Promotion /></el-icon>
         上传中...
       </span>
@@ -342,7 +458,7 @@ function handleEmojiSelect(emoji: string) {
       <el-button
         type="primary"
         size="small"
-        :disabled="(!content.trim() && pendingAttachments.length === 0) || uploading || chatStore.sending"
+        :disabled="(!content.trim() && pendingAttachments.length === 0) || uploading || chatStore.sending || isRecording"
         @click="handleSend"
       >
         发送(S)
@@ -381,6 +497,22 @@ function handleEmojiSelect(emoji: string) {
   height: 32px;
   padding: 0;
   min-height: 32px;
+}
+
+/* 语音按钮 - 录音时变绿 */
+.voice-btn.is-recording {
+  color: #fff !important;
+  background: #07c160 !important;
+  animation: voice-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voice-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(7, 193, 96, 0);
+  }
 }
 
 /* 待发送附件预览区 */
@@ -489,6 +621,27 @@ function handleEmojiSelect(emoji: string) {
   gap: 4px;
   font-size: 12px;
   color: var(--el-color-primary);
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #07c160;
+}
+
+.recording-icon {
+  animation: recording-blink 1s ease-in-out infinite;
+}
+
+@keyframes recording-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* 上传中整体降低透明度 */
