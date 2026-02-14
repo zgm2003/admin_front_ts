@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ElMessage } from 'element-plus'
 import { ChatRoomApi, type ConversationItem, type MessageItem, type ContactItem, MessageType } from '@/api/chat'
 import { useUserStore } from '@/store/user'
 import { onWsMessage, type WsMessage } from '@/hooks/useWebSocket'
@@ -292,13 +293,25 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    _handleGroupUpdate(data: { conversation_id: number; [key: string]: any }) {
+    _handleGroupUpdate(data: { conversation_id: number; action?: string; [key: string]: any }) {
+      const conversationId = data.conversation_id
+      
       // 群信息更新，刷新会话列表 + 通知群信息面板刷新
       this.loadConversations().then(() => {
-        // 同步更新当前选中的会话对象
-        if (this.currentConversation?.id === data.conversation_id) {
-          const updated = this.conversations.find(c => c.id === data.conversation_id)
-          if (updated) this.currentConversation = updated
+        // 检查当前会话是否还存在（可能被踢出群或退群）
+        if (this.currentConversation?.id === conversationId) {
+          const stillExists = this.conversations.find(c => c.id === conversationId)
+          if (stillExists) {
+            // 会话仍存在，同步更新
+            this.currentConversation = stillExists
+          } else {
+            // 会话已消失（被踢出群或退群），清空当前会话
+            this.currentConversation = null
+            // 如果是被踢出，显示提示
+            if (data.action === 'kicked') {
+              ElMessage.warning('你已被移出该群聊')
+            }
+          }
         }
       })
       this.groupInfoVersion++

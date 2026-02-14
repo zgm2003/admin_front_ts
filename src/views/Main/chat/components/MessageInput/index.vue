@@ -2,10 +2,12 @@
 import { ref, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Picture, FolderOpened, Promotion, Close } from '@element-plus/icons-vue'
+import { DIcon } from '@/components/DIcon'
 import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/utils/cosUpload'
+import { EmojiPicker } from '@/components/EmojiPicker'
 
 const chatStore = useChatStore()
 const isMobile = useIsMobile()
@@ -15,6 +17,7 @@ const textareaRef = ref<InstanceType<typeof import('element-plus')['ElInput']>>(
 const imageInput = ref<HTMLInputElement>()
 const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
+const showEmojiPicker = ref(false)
 
 // ==================== 待发送附件（粘贴/拖拽） ====================
 
@@ -76,14 +79,20 @@ async function handleSend() {
 
   const convId = chatStore.currentConversation.id
 
-  // 清空输入
-  content.value = ''
-  pendingAttachments.value = []
-
   // 先发文本
   if (text) {
-    await chatStore.sendMessage(convId, MessageType.Text, text)
+    try {
+      await chatStore.sendMessage(convId, MessageType.Text, text)
+      // 发送成功后才清空输入
+      content.value = ''
+    } catch (err: any) {
+      ElMessage.error(err.message || '发送失败')
+      return // 文本发送失败，不继续发送附件
+    }
   }
+
+  // 清空待发送附件
+  pendingAttachments.value = []
 
   // 再逐个上传并发送附件
   if (attachments.length > 0) {
@@ -103,10 +112,14 @@ async function handleSend() {
           validateFile(att.file, config, att.type === 'image' ? 'image' : 'file')
           const { url } = await uploadFileToCloud(att.file, config)
           const msgType = att.type === 'image' ? MessageType.Image : MessageType.File
-          await chatStore.sendMessage(convId, msgType, url, {
-            name: att.file.name || (att.type === 'image' ? 'clipboard.png' : 'file'),
-            size: att.file.size,
-          })
+          try {
+            await chatStore.sendMessage(convId, msgType, url, {
+              name: att.file.name || (att.type === 'image' ? 'clipboard.png' : 'file'),
+              size: att.file.size,
+            })
+          } catch (sendErr: any) {
+            ElMessage.error(sendErr.message || `${att.file.name} 发送失败`)
+          }
         } catch (err: any) {
           ElMessage.error(err.message || `${att.file.name} 上传失败`)
         }
@@ -228,6 +241,28 @@ function handleDrop(e: DragEvent) {
 function handleDragover(e: DragEvent) {
   e.preventDefault()
 }
+
+// ==================== Emoji 选择 ====================
+
+function handleEmojiSelect(emoji: string) {
+  // 在光标位置插入 emoji
+  const textarea = textareaRef.value?.$el?.querySelector('textarea')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = content.value
+    content.value = text.substring(0, start) + emoji + text.substring(end)
+    // 恢复光标位置
+    nextTick(() => {
+      textarea.focus()
+      const newPos = start + emoji.length
+      textarea.setSelectionRange(newPos, newPos)
+    })
+  } else {
+    content.value += emoji
+  }
+  showEmojiPicker.value = false
+}
 </script>
 
 <template>
@@ -240,16 +275,27 @@ function handleDragover(e: DragEvent) {
     <!-- 工具栏 -->
     <div class="input-toolbar">
       <div class="toolbar-left">
-        <el-tooltip content="发送图片" placement="top">
-          <button class="toolbar-btn" @click="handlePickImage" :disabled="uploading">
-            <el-icon :size="18"><Picture /></el-icon>
-          </button>
-        </el-tooltip>
-        <el-tooltip content="发送文件" placement="top">
-          <button class="toolbar-btn" @click="handlePickFile" :disabled="uploading">
-            <el-icon :size="18"><FolderOpened /></el-icon>
-          </button>
-        </el-tooltip>
+        <el-button text class="toolbar-btn" @click="handlePickImage" :disabled="uploading" title="发送图片">
+          <el-icon :size="18"><Picture /></el-icon>
+        </el-button>
+        <el-button text class="toolbar-btn" @click="handlePickFile" :disabled="uploading" title="发送文件">
+          <el-icon :size="18"><FolderOpened /></el-icon>
+        </el-button>
+        <el-popover
+          v-model:visible="showEmojiPicker"
+          placement="top-start"
+          :width="320"
+          trigger="click"
+          :show-arrow="false"
+          popper-class="emoji-popover"
+        >
+          <template #reference>
+            <el-button text class="toolbar-btn" :disabled="uploading" title="插入表情">
+              <DIcon icon="fluent-emoji:grinning-face" :size="18" />
+            </el-button>
+          </template>
+          <EmojiPicker @select="handleEmojiSelect" />
+        </el-popover>
       </div>
     </div>
 
@@ -269,9 +315,9 @@ function handleDragover(e: DragEvent) {
           <span class="pending-file-size">{{ formatPendingSize(att.file.size) }}</span>
         </div>
         <!-- 移除按钮 -->
-        <button class="pending-remove" @click="removePending(att.id)">
+        <el-button circle size="small" type="danger" class="pending-remove" @click="removePending(att.id)">
           <el-icon :size="12"><Close /></el-icon>
-        </button>
+        </el-button>
       </div>
     </div>
 
@@ -336,27 +382,10 @@ function handleDragover(e: DragEvent) {
 }
 
 .toolbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--el-text-color-regular);
-  transition: background 0.15s, color 0.15s;
-}
-
-.toolbar-btn:hover {
-  background: var(--el-fill-color-light);
-  color: var(--el-color-primary);
-}
-
-.toolbar-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  padding: 0;
+  min-height: 32px;
 }
 
 /* 待发送附件预览区 */
@@ -418,14 +447,8 @@ function handleDragover(e: DragEvent) {
   right: -6px;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
-  border: none;
-  background: var(--el-color-danger);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  min-height: 18px;
+  padding: 0;
   transition: transform 0.15s;
 }
 
@@ -490,5 +513,12 @@ function handleDragover(e: DragEvent) {
 
 .message-input.is-mobile .input-hint {
   display: none;
+}
+
+/* Emoji popover 样式 */
+:global(.emoji-popover) {
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 </style>
