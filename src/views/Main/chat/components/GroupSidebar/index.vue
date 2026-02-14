@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Edit, Plus, Close, Switch } from '@element-plus/icons-vue'
+import { Edit, Plus, Close, Switch, Star, MoreFilled } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -32,6 +32,17 @@ const inviteUserIds = ref<number[]>([])
 const conversation = computed(() => chatStore.currentConversation)
 const currentUserId = computed(() => Number(userStore.user_id))
 const isOwner = computed(() => conversation.value?.owner_id === currentUserId.value)
+
+// 当前用户的角色
+const currentUserRole = computed(() => {
+  const member = members.value.find(m => m.user_id === currentUserId.value)
+  return member?.role
+})
+
+// 是否为群主或管理员
+const isOwnerOrAdmin = computed(() => {
+  return currentUserRole.value === ParticipantRole.Owner || currentUserRole.value === ParticipantRole.Admin
+})
 
 // 排除已在群内的成员ID列表
 const excludeMemberIds = computed(() => members.value.map(m => m.user_id))
@@ -79,8 +90,7 @@ async function handleSaveEdit() {
     })
     ElMessage.success('群设置已更新')
     showEditDialog.value = false
-    await loadGroupInfo()
-    chatStore.loadConversations()
+    // WebSocket 会自动推送更新,不需要手动刷新
   } catch {
     ElMessage.error('更新失败')
   }
@@ -94,7 +104,7 @@ async function handleInvite() {
     ElMessage.success('邀请成功')
     showInviteDialog.value = false
     inviteUserIds.value = []
-    await loadGroupInfo()
+    // WebSocket 会自动推送更新,不需要手动刷新
   } catch {
     ElMessage.error('邀请失败')
   }
@@ -112,7 +122,7 @@ async function handleKick(member: ParticipantItem) {
   try {
     await ChatRoomApi.groupKick({ conversation_id: conversation.value.id, user_id: member.user_id })
     ElMessage.success('已移除')
-    await loadGroupInfo()
+    // WebSocket 会自动推送更新,不需要手动刷新
   } catch {
     ElMessage.error('移除失败')
   }
@@ -126,8 +136,9 @@ async function handleLeave() {
     await ChatRoomApi.groupLeave({ conversation_id: conversation.value.id })
     ElMessage.success('已退出群聊')
     emit('update:visible', false)
-    chatStore.loadConversations()
     chatStore.currentConversation = null
+    // 退出后需要刷新会话列表(因为自己已不在群内,WebSocket 收不到推送)
+    chatStore.loadConversations()
   } catch {
     ElMessage.error('退出失败')
   }
@@ -140,10 +151,40 @@ async function handleTransfer(member: ParticipantItem) {
   try {
     await ChatRoomApi.groupTransfer({ conversation_id: conversation.value.id, user_id: member.user_id })
     ElMessage.success('群主已转让')
-    await loadGroupInfo()
-    chatStore.loadConversations()
+    // WebSocket 会自动推送更新,不需要手动刷新
   } catch {
     ElMessage.error('转让失败')
+  }
+}
+
+/** 设置/取消管理员 */
+async function handleToggleAdmin(member: ParticipantItem) {
+  if (!conversation.value) return
+  const isAdmin = member.role === ParticipantRole.Admin
+  const action = isAdmin ? '取消管理员' : '设为管理员'
+  await ElMessageBox.confirm(`确定${action} ${member.username}？`, action, { type: 'info' })
+  try {
+    await ChatRoomApi.setAdmin({ conversation_id: conversation.value.id, user_id: member.user_id, is_admin: !isAdmin })
+    ElMessage.success(`已${action}`)
+    // WebSocket 会自动推送更新,不需要手动刷新
+  } catch {
+    ElMessage.error(`${action}失败`)
+  }
+}
+
+/** 成员操作统一处理 */
+async function handleMemberAction(command: string, member: ParticipantItem) {
+  switch (command) {
+    case 'setAdmin':
+    case 'removeAdmin':
+      await handleToggleAdmin(member)
+      break
+    case 'transfer':
+      await handleTransfer(member)
+      break
+    case 'kick':
+      await handleKick(member)
+      break
   }
 }
 </script>
@@ -161,7 +202,7 @@ async function handleTransfer(member: ParticipantItem) {
       <!-- 群信息头部 -->
       <div class="sidebar-header">
         <span class="sidebar-title">群聊信息</span>
-        <el-button v-if="isOwner" text size="small" @click="openEditDialog">
+        <el-button v-if="isOwnerOrAdmin" text size="small" @click="openEditDialog">
           <el-icon><Edit /></el-icon>
         </el-button>
       </div>
@@ -182,7 +223,7 @@ async function handleTransfer(member: ParticipantItem) {
       <div class="member-section">
         <div class="section-header">
           <span>成员（{{ members.length }}）</span>
-          <el-button v-if="isOwner" text size="small" @click="openInviteDialog">
+          <el-button text size="small" @click="openInviteDialog">
             <el-icon><Plus /></el-icon>
           </el-button>
         </div>
@@ -196,18 +237,33 @@ async function handleTransfer(member: ParticipantItem) {
               </div>
               <span class="member-name">{{ m.username }}</span>
               <el-tag v-if="m.role === ParticipantRole.Owner" size="small" type="warning" class="role-tag">群主</el-tag>
+              <el-tag v-else-if="m.role === ParticipantRole.Admin" size="small" type="success" class="role-tag">管理员</el-tag>
             </div>
-            <div v-if="isOwner && m.user_id !== currentUserId" class="member-actions">
-              <el-tooltip content="转让群主">
-                <el-button text size="small" @click="handleTransfer(m)">
-                  <el-icon :size="14"><Switch /></el-icon>
+            <div v-if="m.user_id !== currentUserId && (isOwner || (currentUserRole === ParticipantRole.Admin && m.role === ParticipantRole.Member))" class="member-actions">
+              <el-dropdown trigger="click" @command="(cmd: string) => handleMemberAction(cmd, m)">
+                <el-button text size="small">
+                  <el-icon :size="14"><MoreFilled /></el-icon>
                 </el-button>
-              </el-tooltip>
-              <el-tooltip content="移除">
-                <el-button text size="small" type="danger" @click="handleKick(m)">
-                  <el-icon :size="14"><Close /></el-icon>
-                </el-button>
-              </el-tooltip>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <!-- 只有群主可以设置/取消管理员 -->
+                    <el-dropdown-item v-if="isOwner" :command="m.role === ParticipantRole.Admin ? 'removeAdmin' : 'setAdmin'">
+                      <el-icon><Star /></el-icon>
+                      {{ m.role === ParticipantRole.Admin ? '取消管理员' : '设为管理员' }}
+                    </el-dropdown-item>
+                    <!-- 只有群主可以转让群主 -->
+                    <el-dropdown-item v-if="isOwner" command="transfer">
+                      <el-icon><Switch /></el-icon>
+                      转让群主
+                    </el-dropdown-item>
+                    <!-- 群主可以踢所有人，管理员只能踢普通成员 -->
+                    <el-dropdown-item command="kick" :divided="isOwner">
+                      <el-icon><Close /></el-icon>
+                      移除成员
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </div>
         </el-scrollbar>

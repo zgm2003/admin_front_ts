@@ -95,6 +95,7 @@ export const ChatRoomApi = {
   groupKick: (params: { conversation_id: number; user_id: number }) => request.post(`${BASE}/groupKick`, params),
   groupLeave: (params: { conversation_id: number }) => request.post(`${BASE}/groupLeave`, params),
   groupTransfer: (params: { conversation_id: number; user_id: number }) => request.post(`${BASE}/groupTransfer`, params),
+  setAdmin: (params: { conversation_id: number; user_id: number; is_admin: boolean }) => request.post(`${BASE}/setAdmin`, params),
 
   // 消息
   sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => request.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
