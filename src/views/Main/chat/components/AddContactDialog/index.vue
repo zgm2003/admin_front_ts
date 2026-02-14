@@ -116,52 +116,54 @@ const dialogVisible = computed({
     <el-tabs v-model="activeTab" class="search-tabs">
       <el-tab-pane label="用户" name="user">
         <!-- 用户列表 -->
-        <div v-loading="userLoading" class="user-list">
-          <template v-if="userList.length === 0 && !userLoading">
-            <el-empty description="暂无搜索结果" :image-size="80" />
-          </template>
-          <template v-else>
-            <div
-              v-for="user in userList"
-              :key="user.id"
-              class="user-card"
-            >
-              <div class="card-left">
-                <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
-                  {{ user.username?.charAt(0) || '?' }}
-                </el-avatar>
+        <el-scrollbar height="450px">
+          <div v-loading="userLoading" class="user-list">
+            <template v-if="userList.length === 0 && !userLoading">
+              <el-empty description="暂无搜索结果" :image-size="80" />
+            </template>
+            <template v-else>
+              <div
+                v-for="user in userList"
+                :key="user.id"
+                class="user-card"
+              >
+                <div class="card-left">
+                  <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
+                    {{ user.username?.charAt(0) || '?' }}
+                  </el-avatar>
+                </div>
+                <div class="card-body">
+                  <div class="user-name">{{ user.username }}</div>
+                  <div class="user-info-row">
+                    <span class="info-label">邮箱：</span>
+                    <span class="info-value">{{ user.email || '-' }}</span>
+                  </div>
+                  <div class="user-info-row">
+                    <span class="info-label">手机：</span>
+                    <span class="info-value">{{ user.phone || '-' }}</span>
+                  </div>
+                  <div class="user-info-row">
+                    <span class="info-label">性别：</span>
+                    <span class="info-value">{{ user.sex_show || '-' }}</span>
+                  </div>
+                  <div class="user-info-row">
+                    <span class="info-label">地址：</span>
+                    <span class="info-value">{{ user.address_show || '-' }}</span>
+                  </div>
+                </div>
+                <div class="card-right">
+                  <el-button
+                    type="primary"
+                    :loading="adding"
+                    @click="handleAddContact(user)"
+                  >
+                    添加好友
+                  </el-button>
+                </div>
               </div>
-              <div class="card-body">
-                <div class="user-name">{{ user.username }}</div>
-                <div class="user-info-row">
-                  <span class="info-label">邮箱：</span>
-                  <span class="info-value">{{ user.email || '-' }}</span>
-                </div>
-                <div class="user-info-row">
-                  <span class="info-label">手机：</span>
-                  <span class="info-value">{{ user.phone || '-' }}</span>
-                </div>
-                <div class="user-info-row">
-                  <span class="info-label">性别：</span>
-                  <span class="info-value">{{ user.sex_show || '-' }}</span>
-                </div>
-                <div class="user-info-row">
-                  <span class="info-label">地址：</span>
-                  <span class="info-value">{{ user.address_show || '-' }}</span>
-                </div>
-              </div>
-              <div class="card-right">
-                <el-button
-                  type="primary"
-                  :loading="adding"
-                  @click="handleAddContact(user)"
-                >
-                  添加好友
-                </el-button>
-              </div>
-            </div>
-          </template>
-        </div>
+            </template>
+          </div>
+        </el-scrollbar>
 
         <!-- 分页 -->
         <el-pagination
@@ -190,10 +192,6 @@ const dialogVisible = computed({
   flex: 1;
 }
 
-.search-tabs {
-  min-height: 450px;
-}
-
 .search-tabs :deep(.el-tabs__content) {
   padding: 0;
 }
@@ -202,7 +200,7 @@ const dialogVisible = computed({
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 350px;
+  padding: 12px;
 }
 
 .user-card {
