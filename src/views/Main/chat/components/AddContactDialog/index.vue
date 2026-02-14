@@ -35,7 +35,6 @@ const confirmedContactIds = computed(() => {
 
 // ========== 搜索 ==========
 const searchKeyword = ref('')
-const activeTab = ref('user')
 
 // ========== 用户列表 ==========
 const userLoading = ref(false)
@@ -120,7 +119,6 @@ const dialogVisible = computed({
     v-model="dialogVisible"
     title="添加联系人"
     :width="isMobile ? '95%' : '800px'"
-    :fullscreen="isMobile"
     append-to-body
     class="add-contact-dialog"
   >
@@ -141,93 +139,84 @@ const dialogVisible = computed({
       <el-button type="primary" size="large" @click="handleSearch">搜索</el-button>
     </div>
 
-    <!-- Tabs -->
-    <el-tabs v-model="activeTab" class="search-tabs">
-      <el-tab-pane label="用户" name="user">
+    <!-- 用户列表 -->
+    <el-scrollbar :height="isMobile ? 'auto' : '450px'" :max-height="isMobile ? '60vh' : '450px'">
+      <div v-loading="userLoading" class="user-list">
+        <!-- 空状态 -->
+        <template v-if="filteredUserList.length === 0 && !userLoading">
+          <el-empty 
+            :description="searchKeyword ? '未找到匹配的用户' : '请输入关键词搜索'" 
+            :image-size="80" 
+          />
+        </template>
+
         <!-- 用户列表 -->
-        <el-scrollbar height="450px">
-          <div v-loading="userLoading" class="user-list">
-            <!-- 空状态 -->
-            <template v-if="filteredUserList.length === 0 && !userLoading">
-              <el-empty 
-                :description="searchKeyword ? '未找到匹配的用户' : '请输入关键词搜索'" 
-                :image-size="80" 
-              />
-            </template>
-
-            <!-- 用户列表 -->
-            <template v-else>
-              <div
-                v-for="user in filteredUserList"
-                :key="user.id"
-                class="user-card"
-                :class="{ 'is-added': isAdded(user.id) }"
-              >
-                <div class="card-left">
-                  <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
-                    {{ user.username?.charAt(0) || '?' }}
-                  </el-avatar>
-                </div>
-                <div class="card-body">
-                  <div class="user-name">
-                    {{ user.username }}
-                    <el-tag v-if="isAdded(user.id)" type="success" size="small" effect="plain">好友</el-tag>
-                  </div>
-                  <div class="user-info-row">
-                    <span class="info-label">邮箱：</span>
-                    <span class="info-value">{{ user.email || '-' }}</span>
-                  </div>
-                  <div class="user-info-row">
-                    <span class="info-label">手机：</span>
-                    <span class="info-value">{{ user.phone || '-' }}</span>
-                  </div>
-                  <div class="user-info-row">
-                    <span class="info-label">性别：</span>
-                    <span class="info-value">{{ user.sex_show || '-' }}</span>
-                  </div>
-                  <div class="user-info-row">
-                    <span class="info-label">地址：</span>
-                    <span class="info-value">{{ user.address_show || '-' }}</span>
-                  </div>
-                </div>
-                <div class="card-right">
-                  <el-button
-                    v-if="isAdded(user.id)"
-                    type="success"
-                    plain
-                    disabled
-                  >
-                    <el-icon style="margin-right: 4px"><Check /></el-icon>
-                    已添加
-                  </el-button>
-                  <el-button
-                    v-else
-                    type="primary"
-                    :loading="addingUserId === user.id"
-                    @click="handleAddContact(user)"
-                  >
-                    <el-icon v-if="addingUserId !== user.id" style="margin-right: 4px"><Plus /></el-icon>
-                    添加好友
-                  </el-button>
-                </div>
+        <template v-else>
+          <div
+            v-for="user in filteredUserList"
+            :key="user.id"
+            class="user-card"
+            :class="{ 'is-added': isAdded(user.id) }"
+          >
+            <div class="card-left">
+              <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
+                {{ user.username?.charAt(0) || '?' }}
+              </el-avatar>
+            </div>
+            <div class="card-body">
+              <div class="user-name">
+                {{ user.username }}
+                <el-tag v-if="isAdded(user.id)" type="success" size="small" effect="plain">好友</el-tag>
               </div>
-            </template>
+              <div v-if="user.email" class="user-info-row">
+                <span class="info-label">邮箱</span>
+                <span class="info-value">{{ user.email }}</span>
+              </div>
+              <div v-if="user.phone" class="user-info-row">
+                <span class="info-label">手机</span>
+                <span class="info-value">{{ user.phone }}</span>
+              </div>
+              <div v-if="user.sex_show || user.address_show" class="user-info-row">
+                <span class="info-label">{{ user.sex_show ? '性别' : '地址' }}</span>
+                <span class="info-value">{{ user.sex_show || user.address_show }}</span>
+              </div>
+            </div>
+            <div class="card-right">
+              <el-button
+                v-if="isAdded(user.id)"
+                type="success"
+                plain
+                disabled
+              >
+                <el-icon style="margin-right: 4px"><Check /></el-icon>
+                已添加
+              </el-button>
+              <el-button
+                v-else
+                type="primary"
+                :loading="addingUserId === user.id"
+                @click="handleAddContact(user)"
+              >
+                <el-icon v-if="addingUserId !== user.id" style="margin-right: 4px"><Plus /></el-icon>
+                添加好友
+              </el-button>
+            </div>
           </div>
-        </el-scrollbar>
+        </template>
+      </div>
+    </el-scrollbar>
 
-        <!-- 分页 -->
-        <el-pagination
-          v-if="userPage.total > 0"
-          v-model:current-page="userPage.current_page"
-          :page-size="userPage.page_size"
-          :total="userPage.total"
-          layout="prev, pager, next"
-          :small="isMobile"
-          class="pagination"
-          @current-change="handlePageChange"
-        />
-      </el-tab-pane>
-    </el-tabs>
+    <!-- 分页 -->
+    <el-pagination
+      v-if="userPage.total > 0"
+      v-model:current-page="userPage.current_page"
+      :page-size="userPage.page_size"
+      :total="userPage.total"
+      layout="prev, pager, next"
+      :small="isMobile"
+      class="pagination"
+      @current-change="handlePageChange"
+    />
   </el-dialog>
 </template>
 
@@ -240,10 +229,6 @@ const dialogVisible = computed({
 
 .search-bar .el-input {
   flex: 1;
-}
-
-.search-tabs :deep(.el-tabs__content) {
-  padding: 0;
 }
 
 .user-list {
@@ -261,6 +246,7 @@ const dialogVisible = computed({
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 8px;
   transition: all 0.2s;
+  align-items: flex-start;
 }
 
 .user-card:hover {
@@ -317,15 +303,15 @@ const dialogVisible = computed({
 
 .info-value {
   color: var(--el-text-color-regular);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .card-right {
   flex-shrink: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 4px;
 }
 
 .card-right .el-button {
@@ -340,48 +326,81 @@ const dialogVisible = computed({
 /* 移动端适配 */
 @media (max-width: 768px) {
   .search-bar {
-    flex-direction: column;
     gap: 8px;
   }
 
-  .search-bar .el-button {
-    width: 100%;
+  .user-list {
+    gap: 10px;
+    padding: 10px;
   }
 
   .user-card {
-    flex-direction: column;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 10px;
   }
 
-  .card-left {
-    display: flex;
-    justify-content: center;
+  .card-left .el-avatar {
+    width: 44px !important;
+    height: 44px !important;
   }
 
   .card-body {
-    gap: 6px;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
   }
 
   .user-name {
-    font-size: 15px;
-    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+  }
+
+  .user-name .el-tag {
+    font-size: 11px;
+    height: 18px;
+    line-height: 18px;
+    padding: 0 4px;
   }
 
   .user-info-row {
     font-size: 12px;
+    line-height: 1.3;
   }
 
   .info-label {
-    min-width: 45px;
+    min-width: 36px;
+    font-size: 11px;
+    color: var(--el-text-color-placeholder);
+  }
+
+  .info-value {
+    font-size: 11px;
+    flex: 1;
+    word-break: break-all;
   }
 
   .card-right {
-    justify-content: center;
+    flex-shrink: 0;
+    align-items: flex-start;
+    padding-top: 0;
   }
 
   .card-right .el-button {
-    width: 100%;
+    min-width: 72px;
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .card-right .el-button .el-icon {
+    margin-right: 2px !important;
+    font-size: 12px;
+  }
+
+  .card-right .el-button.is-disabled {
+    min-width: 60px;
   }
 }
 

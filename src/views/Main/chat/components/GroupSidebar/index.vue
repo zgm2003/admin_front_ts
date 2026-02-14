@@ -5,7 +5,8 @@ import { Edit, Plus, Close, Switch } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { ChatRoomApi, ParticipantRole, ContactStatus, type ParticipantItem } from '@/api/chat'
+import { ChatRoomApi, ParticipantRole, type ParticipantItem } from '@/api/chat'
+import FriendSelector from '../FriendSelector/index.vue'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
@@ -32,12 +33,8 @@ const conversation = computed(() => chatStore.currentConversation)
 const currentUserId = computed(() => Number(userStore.user_id))
 const isOwner = computed(() => conversation.value?.owner_id === currentUserId.value)
 
-// 已确认的好友列表（排除已在群内的成员）
-const availableContacts = computed(() => {
-  const memberIds = new Set(members.value.map(m => m.user_id))
-  return chatStore.contacts
-    .filter(c => c.status === ContactStatus.Confirmed && !memberIds.has(c.contact_user_id))
-})
+// 排除已在群内的成员ID列表
+const excludeMemberIds = computed(() => members.value.map(m => m.user_id))
 
 /** 加载群信息 */
 async function loadGroupInfo() {
@@ -105,10 +102,6 @@ async function handleInvite() {
 
 /** 打开邀请对话框 */
 function openInviteDialog() {
-  // 确保联系人列表已加载
-  if (chatStore.contacts.length === 0) {
-    chatStore.loadContacts()
-  }
   showInviteDialog.value = true
 }
 
@@ -244,28 +237,12 @@ async function handleTransfer(member: ParticipantItem) {
 
     <!-- 邀请成员对话框 -->
     <el-dialog v-model="showInviteDialog" title="邀请好友" :width="isMobile ? '90%' : '450px'" append-to-body>
-      <el-select
+      <FriendSelector
         v-model="inviteUserIds"
-        placeholder="请选择要邀请的好友"
         multiple
-        filterable
-        style="width: 100%"
-      >
-        <el-option
-          v-for="contact in availableContacts"
-          :key="contact.contact_user_id"
-          :label="contact.username"
-          :value="contact.contact_user_id"
-        >
-          <div style="display: flex; align-items: center; gap: 8px">
-            <el-avatar :size="24" :src="contact.avatar || undefined">
-              {{ contact.username?.charAt(0) || '?' }}
-            </el-avatar>
-            <span>{{ contact.username }}</span>
-            <el-tag v-if="contact.is_online || chatStore.onlineUsers.has(contact.contact_user_id)" type="success" size="small">在线</el-tag>
-          </div>
-        </el-option>
-      </el-select>
+        placeholder="请选择要邀请的好友"
+        :exclude-ids="excludeMemberIds"
+      />
       <template #footer>
         <el-button @click="showInviteDialog = false">取消</el-button>
         <el-button type="primary" :disabled="inviteUserIds.length === 0" @click="handleInvite">邀请</el-button>

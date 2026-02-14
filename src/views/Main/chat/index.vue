@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/store/chat'
@@ -9,6 +9,7 @@ import { formatDateTime } from '@/utils/date'
 import ConversationList from './components/ConversationList/index.vue'
 import ChatWindow from './components/ChatWindow/index.vue'
 import ContactList from './components/ContactList/index.vue'
+import FriendSelector from './components/FriendSelector/index.vue'
 
 const chatStore = useChatStore()
 
@@ -24,11 +25,6 @@ const contactListRef = ref<InstanceType<typeof ContactList>>()
 // 创建群聊对话框
 const showGroupDialog = ref(false)
 const groupForm = ref({ name: '', user_ids: [] as number[] })
-
-// 已确认的好友列表（用于创建群聊）
-const confirmedContacts = computed(() => {
-  return chatStore.contacts.filter(c => c.status === 2) // ContactStatus.Confirmed = 2
-})
 
 // ========== 响应式：移动端检测（使用项目 hook） ==========
 const isMobile = useIsMobile()
@@ -100,10 +96,6 @@ async function handleCreateGroup() {
 
 /** 打开创建群聊对话框 */
 function openCreateGroupDialog() {
-  // 确保联系人列表已加载
-  if (chatStore.contacts.length === 0) {
-    chatStore.loadContacts()
-  }
   showGroupDialog.value = true
 }
 </script>
@@ -187,28 +179,11 @@ function openCreateGroupDialog() {
           <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="50" />
         </el-form-item>
         <el-form-item label="选择好友">
-          <el-select
+          <FriendSelector
             v-model="groupForm.user_ids"
-            placeholder="请选择好友（至少1人）"
             multiple
-            filterable
-            style="width: 100%"
-          >
-            <el-option
-              v-for="contact in confirmedContacts"
-              :key="contact.contact_user_id"
-              :label="contact.username"
-              :value="contact.contact_user_id"
-            >
-              <div style="display: flex; align-items: center; gap: 8px">
-                <el-avatar :size="24" :src="contact.avatar || undefined">
-                  {{ contact.username?.charAt(0) || '?' }}
-                </el-avatar>
-                <span>{{ contact.username }}</span>
-                <el-tag v-if="contact.is_online || chatStore.onlineUsers.has(contact.contact_user_id)" type="success" size="small">在线</el-tag>
-              </div>
-            </el-option>
-          </el-select>
+            placeholder="请选择好友（至少1人）"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
