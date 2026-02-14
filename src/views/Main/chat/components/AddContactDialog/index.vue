@@ -146,24 +146,9 @@ const dialogVisible = computed({
       <el-tab-pane label="用户" name="user">
         <!-- 用户列表 -->
         <el-scrollbar height="450px">
-          <div class="user-list">
-            <!-- 骨架屏 -->
-            <template v-if="userLoading">
-              <div v-for="i in 3" :key="i" class="user-card skeleton-card">
-                <div class="card-left">
-                  <el-skeleton-item variant="circle" style="width: 60px; height: 60px" />
-                </div>
-                <div class="card-body">
-                  <el-skeleton :rows="4" animated />
-                </div>
-                <div class="card-right">
-                  <el-skeleton-item variant="button" style="width: 100px; height: 32px" />
-                </div>
-              </div>
-            </template>
-
+          <div v-loading="userLoading" class="user-list">
             <!-- 空状态 -->
-            <template v-else-if="filteredUserList.length === 0">
+            <template v-if="filteredUserList.length === 0 && !userLoading">
               <el-empty 
                 :description="searchKeyword ? '未找到匹配的用户' : '请输入关键词搜索'" 
                 :image-size="80" 
@@ -291,16 +276,6 @@ const dialogVisible = computed({
 
 .user-card.is-added:hover {
   border-color: var(--el-border-color-light);
-  box-shadow: none;
-  transform: none;
-}
-
-.skeleton-card {
-  pointer-events: none;
-}
-
-.skeleton-card:hover {
-  border-color: var(--el-border-color-lighter);
   box-shadow: none;
   transform: none;
 }
