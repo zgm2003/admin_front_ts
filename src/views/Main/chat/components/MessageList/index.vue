@@ -6,7 +6,7 @@ import { onClickOutside } from '@vueuse/core'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { MessageType, type MessageItem, ChatRoomApi } from '@/api/chat'
+import { MessageType, type MessageItem, ChatRoomApi, ParticipantRole, type ParticipantItem } from '@/api/chat'
 import { formatChatTime } from '@/utils/date'
 import { formatFileSize } from '@/utils/format'
 import { downloadFile } from '@/components/DownloadManager'
@@ -19,6 +19,44 @@ const scrollRef = ref<InstanceType<typeof import('element-plus')['ElScrollbar']>
 const loadingMore = ref(false)
 
 const currentUserId = computed(() => Number(userStore.user_id))
+
+// 群成员列表(用于判断角色)
+const groupParticipants = ref<ParticipantItem[]>([])
+
+// 当前用户在群聊中的角色
+const currentUserRole = computed(() => {
+  const conversation = chatStore.currentConversation
+  if (!conversation || conversation.type !== 2) return null // 2=群聊
+  
+  const currentParticipant = groupParticipants.value.find(p => p.user_id === currentUserId.value)
+  return currentParticipant?.role
+})
+
+// 加载群成员信息
+async function loadGroupParticipants() {
+  const conversation = chatStore.currentConversation
+  if (!conversation || conversation.type !== 2) {
+    groupParticipants.value = []
+    return
+  }
+  
+  try {
+    const data: any = await ChatRoomApi.groupInfo({ conversation_id: conversation.id })
+    groupParticipants.value = data.participants || []
+  } catch {
+    groupParticipants.value = []
+  }
+}
+
+// 监听会话切换,重新加载群成员
+watch(() => chatStore.currentConversation?.id, () => {
+  loadGroupParticipants()
+}, { immediate: true })
+
+// 监听群信息更新
+watch(() => chatStore.groupInfoVersion, () => {
+  loadGroupParticipants()
+})
 
 // 右键菜单
 const contextMenuVisible = ref(false)
@@ -82,12 +120,52 @@ onClickOutside(contextMenuRef, () => {
   if (contextMenuVisible.value) closeContextMenu()
 })
 
-// 检查消息是否可撤回（2分钟内）
+// 检查消息是否可撤回
 function canRecall(msg: MessageItem): boolean {
-  if (!isSelf(msg)) return false
-  const createdTime = new Date(msg.created_at).getTime()
-  const now = Date.now()
-  return (now - createdTime) <= 120000 // 2分钟 = 120000毫秒
+  const conversation = chatStore.currentConversation
+  const isGroupChat = conversation?.type === 2 // 2=群聊
+  const isSelfMessage = isSelf(msg)
+  
+  // 自己的消息
+  if (isSelfMessage) {
+    if (isGroupChat) {
+      // 群聊:群主和管理员无时间限制,普通成员2分钟限制
+      const role = currentUserRole.value
+      if (role === ParticipantRole.Owner || role === ParticipantRole.Admin) {
+        return true // 无时间限制
+      }
+      // 普通成员:2分钟限制
+      const createdTime = new Date(msg.created_at).getTime()
+      const now = Date.now()
+      return (now - createdTime) <= 120000
+    } else {
+      // 私聊:2分钟限制
+      const createdTime = new Date(msg.created_at).getTime()
+      const now = Date.now()
+      return (now - createdTime) <= 120000
+    }
+  }
+  
+  // 别人的消息:仅群聊中的群主和管理员可以撤回
+  if (!isGroupChat) return false
+  
+  const role = currentUserRole.value
+  if (!role) return false
+  
+  // 群主可以撤回所有人的消息
+  if (role === ParticipantRole.Owner) return true
+  
+  // 管理员可以撤回普通成员的消息
+  if (role === ParticipantRole.Admin) {
+    // 需要获取消息发送者的角色
+    const senderParticipant = groupParticipants.value.find(p => p.user_id === msg.sender_id)
+    const senderRole = senderParticipant?.role
+    
+    // 管理员不能撤回群主和其他管理员的消息
+    return senderRole !== ParticipantRole.Owner && senderRole !== ParticipantRole.Admin
+  }
+  
+  return false
 }
 
 // 复制消息内容
@@ -127,11 +205,6 @@ async function handleRecall() {
   if (!contextMenuMessage.value) return
   const msg = contextMenuMessage.value
   closeContextMenu()
-
-  if (!canRecall(msg)) {
-    ElMessage.warning('消息发送超过2分钟，无法撤回')
-    return
-  }
 
   try {
     await ChatRoomApi.recallMessage({ message_id: msg.id })
@@ -237,7 +310,7 @@ defineExpose({ scrollToBottom })
         class="context-menu"
         :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
       >
-        <li v-if="contextMenuMessage && isSelf(contextMenuMessage) && canRecall(contextMenuMessage)" @click="handleRecall">
+        <li v-if="contextMenuMessage && canRecall(contextMenuMessage)" @click="handleRecall">
           <el-icon><RefreshLeft /></el-icon>撤回
         </li>
         <li v-if="contextMenuMessage" @click="handleCopy">
