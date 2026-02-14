@@ -11,6 +11,8 @@ interface ChatState {
   currentConversation: ConversationItem | null
   /** 消息列表，按 conversationId 分组 */
   messagesMap: Map<number, MessageItem[]>
+  /** 消息 ID 集合，用于 O(1) 去重 */
+  messageIdSets: Map<number, Set<number>>
   /** 各会话游标，用于加载更多 */
   cursorMap: Map<number, number | null>
   /** 各会话是否还有更多消息 */
@@ -39,6 +41,7 @@ export const useChatStore = defineStore('chat', {
     conversations: [],
     currentConversation: null,
     messagesMap: new Map(),
+    messageIdSets: new Map(),
     cursorMap: new Map(),
     hasMoreMap: new Map(),
     contacts: [],
@@ -105,14 +108,14 @@ export const useChatStore = defineStore('chat', {
 
     async createPrivateChat(userId: number) {
       const data = await ChatRoomApi.createPrivate({ user_id: userId })
-      const conv = (data as any).conversation ?? data
+      const conv = data.conversation
       await this.loadConversations()
       return conv
     },
 
     async createGroupChat(name: string, userIds: number[]) {
       const data = await ChatRoomApi.createGroup({ name, user_ids: userIds })
-      const conv = (data as any).conversation ?? data
+      const conv = data.conversation
       await this.loadConversations()
       return conv
     },
@@ -124,6 +127,7 @@ export const useChatStore = defineStore('chat', {
         this.currentConversation = null
       }
       this.messagesMap.delete(conversationId)
+      this.messageIdSets.delete(conversationId)
       this.cursorMap.delete(conversationId)
       this.hasMoreMap.delete(conversationId)
     },
@@ -139,6 +143,7 @@ export const useChatStore = defineStore('chat', {
       // reload 模式：清空缓存，重新加载最新消息
       if (reload) {
         this.messagesMap.delete(conversationId)
+        this.messageIdSets.delete(conversationId)
         this.cursorMap.delete(conversationId)
         this.hasMoreMap.delete(conversationId)
       }
@@ -153,7 +158,10 @@ export const useChatStore = defineStore('chat', {
       const existing = this.messagesMap.get(conversationId) || []
       // 历史消息插入到前面（消息按 id DESC 返回，需要反转）
       const newMessages = (data.list || []).reverse()
-      this.messagesMap.set(conversationId, [...newMessages, ...existing])
+      const merged = [...newMessages, ...existing]
+      this.messagesMap.set(conversationId, merged)
+      // 重建 ID 集合
+      this.messageIdSets.set(conversationId, new Set(merged.map(m => m.id)))
       this.cursorMap.set(conversationId, data.next_cursor)
       this.hasMoreMap.set(conversationId, data.has_more)
     },
@@ -342,6 +350,7 @@ export const useChatStore = defineStore('chat', {
           this.currentConversation = null
         }
         this.messagesMap.delete(data.conversation_id)
+        this.messageIdSets.delete(data.conversation_id)
         this.cursorMap.delete(data.conversation_id)
         this.hasMoreMap.delete(data.conversation_id)
       }
@@ -352,11 +361,12 @@ export const useChatStore = defineStore('chat', {
     _appendMessage(conversationId: number, message: MessageItem) {
       if (!this.messagesMap.has(conversationId)) {
         this.messagesMap.set(conversationId, [])
+        this.messageIdSets.set(conversationId, new Set())
       }
-      const messages = this.messagesMap.get(conversationId)!
-      // 避免重复
-      if (!messages.some(m => m.id === message.id)) {
-        messages.push(message)
+      const idSet = this.messageIdSets.get(conversationId)!
+      if (!idSet.has(message.id)) {
+        idSet.add(message.id)
+        this.messagesMap.get(conversationId)!.push(message)
       }
     },
 

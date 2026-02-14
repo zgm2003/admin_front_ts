@@ -7,6 +7,7 @@ import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/utils/cosUpload'
+import { formatFileSize } from '@/utils/format'
 import { EmojiPicker } from '@/components/EmojiPicker'
 
 const chatStore = useChatStore()
@@ -48,12 +49,6 @@ function removePending(id: string) {
     if (found?.previewUrl) URL.revokeObjectURL(found.previewUrl)
     pendingAttachments.value.splice(idx, 1)
   }
-}
-
-function formatPendingSize(size: number): string {
-  if (size < 1024) return `${size} B`
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // ==================== 正在输入通知 ====================
@@ -312,7 +307,7 @@ function handleEmojiSelect(emoji: string) {
         <!-- 文件信息 -->
         <div v-else class="pending-file-info">
           <span class="pending-file-name">{{ att.file.name }}</span>
-          <span class="pending-file-size">{{ formatPendingSize(att.file.size) }}</span>
+          <span class="pending-file-size">{{ formatFileSize(att.file.size) }}</span>
         </div>
         <!-- 移除按钮 -->
         <el-button circle size="small" type="danger" class="pending-remove" @click="removePending(att.id)">

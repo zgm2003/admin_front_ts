@@ -6,6 +6,7 @@ import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { MessageType, type MessageItem } from '@/api/chat'
 import { formatChatTime } from '@/utils/date'
+import { formatFileSize } from '@/utils/format'
 import { downloadFile } from '@/components/DownloadManager'
 
 const chatStore = useChatStore()
@@ -27,13 +28,6 @@ function getSenderName(msg: MessageItem): string {
 
 function getAvatarText(msg: MessageItem): string {
   return getSenderName(msg).charAt(0)
-}
-
-function formatFileSize(size?: number): string {
-  if (!size) return ''
-  if (size < 1024) return `${size} B`
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function scrollToBottom() {
