@@ -3,8 +3,10 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { useUserStore } from '@/store/user'
+import { useChatStore } from '@/store/chat'
 import { UsersListApi } from '@/api/user/users'
-import { ChatRoomApi } from '@/api/chat'
+import { ChatRoomApi, ContactStatus } from '@/api/chat'
 
 const props = defineProps<{
   visible: boolean
@@ -16,6 +18,20 @@ const emit = defineEmits<{
 }>()
 
 const isMobile = useIsMobile()
+const userStore = useUserStore()
+const chatStore = useChatStore()
+
+// 当前用户ID
+const currentUserId = computed(() => Number(userStore.user_id))
+
+// 已确认的好友ID集合
+const confirmedContactIds = computed(() => {
+  return new Set(
+    chatStore.contacts
+      .filter(c => c.status === ContactStatus.Confirmed)
+      .map(c => c.contact_user_id)
+  )
+})
 
 // ========== 搜索 ==========
 const searchKeyword = ref('')
@@ -25,6 +41,11 @@ const activeTab = ref('user')
 const userLoading = ref(false)
 const userList = ref<any[]>([])
 const userPage = ref({ current_page: 1, page_size: 10, total: 0 })
+
+// 过滤后的用户列表（排除自己）
+const filteredUserList = computed(() => {
+  return userList.value.filter(user => user.id !== currentUserId.value)
+})
 
 const loadUsers = async () => {
   userLoading.value = true
@@ -55,6 +76,11 @@ const handleSearch = () => {
 const handlePageChange = (page: number) => {
   userPage.value.current_page = page
   loadUsers()
+}
+
+// ========== 判断是否已添加 ==========
+const isAdded = (userId: number) => {
+  return confirmedContactIds.value.has(userId)
 }
 
 // ========== 添加联系人 ==========
@@ -118,12 +144,12 @@ const dialogVisible = computed({
         <!-- 用户列表 -->
         <el-scrollbar height="450px">
           <div v-loading="userLoading" class="user-list">
-            <template v-if="userList.length === 0 && !userLoading">
+            <template v-if="filteredUserList.length === 0 && !userLoading">
               <el-empty description="暂无搜索结果" :image-size="80" />
             </template>
             <template v-else>
               <div
-                v-for="user in userList"
+                v-for="user in filteredUserList"
                 :key="user.id"
                 class="user-card"
               >
@@ -153,6 +179,14 @@ const dialogVisible = computed({
                 </div>
                 <div class="card-right">
                   <el-button
+                    v-if="isAdded(user.id)"
+                    type="info"
+                    disabled
+                  >
+                    已添加
+                  </el-button>
+                  <el-button
+                    v-else
                     type="primary"
                     :loading="adding"
                     @click="handleAddContact(user)"
