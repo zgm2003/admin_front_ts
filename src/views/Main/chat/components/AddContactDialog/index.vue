@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Plus, Check } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useChatStore } from '@/store/chat'
@@ -84,17 +84,19 @@ const isAdded = (userId: number) => {
 }
 
 // ========== 添加联系人 ==========
-const adding = ref(false)
+const addingUserId = ref<number | null>(null)
 const handleAddContact = async (user: any) => {
-  adding.value = true
+  addingUserId.value = user.id
   try {
     await ChatRoomApi.contactAdd({ user_id: user.id })
     ElMessage.success(`已向 ${user.username} 发送好友请求`)
     emit('success')
+    // 添加成功后刷新列表，显示"已添加"状态
+    await loadUsers()
   } catch (err: any) {
     ElMessage.error(err.message || '添加失败')
   } finally {
-    adding.value = false
+    addingUserId.value = null
   }
 }
 
@@ -130,13 +132,24 @@ const dialogVisible = computed({
         clearable
         @keyup.enter="handleSearch"
         @clear="handleSearch"
+        size="large"
       >
         <template #prefix>
           <el-icon><Search /></el-icon>
         </template>
       </el-input>
-      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button type="primary" size="large" @click="handleSearch">搜索</el-button>
     </div>
+
+    <!-- 提示信息 -->
+    <el-alert
+      v-if="!searchKeyword && filteredUserList.length === 0 && !userLoading"
+      title="输入关键词搜索用户"
+      type="info"
+      :closable="false"
+      show-icon
+      class="search-tip"
+    />
 
     <!-- Tabs -->
     <el-tabs v-model="activeTab" class="search-tabs">
@@ -145,13 +158,17 @@ const dialogVisible = computed({
         <el-scrollbar height="450px">
           <div v-loading="userLoading" class="user-list">
             <template v-if="filteredUserList.length === 0 && !userLoading">
-              <el-empty description="暂无搜索结果" :image-size="80" />
+              <el-empty 
+                :description="searchKeyword ? '未找到匹配的用户' : '请输入关键词搜索'" 
+                :image-size="80" 
+              />
             </template>
             <template v-else>
               <div
                 v-for="user in filteredUserList"
                 :key="user.id"
                 class="user-card"
+                :class="{ 'is-added': isAdded(user.id) }"
               >
                 <div class="card-left">
                   <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
@@ -159,7 +176,10 @@ const dialogVisible = computed({
                   </el-avatar>
                 </div>
                 <div class="card-body">
-                  <div class="user-name">{{ user.username }}</div>
+                  <div class="user-name">
+                    {{ user.username }}
+                    <el-tag v-if="isAdded(user.id)" type="success" size="small" effect="plain">好友</el-tag>
+                  </div>
                   <div class="user-info-row">
                     <span class="info-label">邮箱：</span>
                     <span class="info-value">{{ user.email || '-' }}</span>
@@ -180,17 +200,20 @@ const dialogVisible = computed({
                 <div class="card-right">
                   <el-button
                     v-if="isAdded(user.id)"
-                    type="info"
+                    type="success"
+                    plain
                     disabled
                   >
+                    <el-icon style="margin-right: 4px"><Check /></el-icon>
                     已添加
                   </el-button>
                   <el-button
                     v-else
                     type="primary"
-                    :loading="adding"
+                    :loading="addingUserId === user.id"
                     @click="handleAddContact(user)"
                   >
+                    <el-icon v-if="addingUserId !== user.id" style="margin-right: 4px"><Plus /></el-icon>
                     添加好友
                   </el-button>
                 </div>
@@ -226,6 +249,10 @@ const dialogVisible = computed({
   flex: 1;
 }
 
+.search-tip {
+  margin-bottom: 16px;
+}
+
 .search-tabs :deep(.el-tabs__content) {
   padding: 0;
 }
@@ -250,6 +277,18 @@ const dialogVisible = computed({
 .user-card:hover {
   border-color: var(--el-color-primary-light-5);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.user-card.is-added {
+  background: var(--el-fill-color-extra-light);
+  opacity: 0.85;
+}
+
+.user-card.is-added:hover {
+  border-color: var(--el-border-color-light);
+  box-shadow: none;
+  transform: none;
 }
 
 .card-left {
@@ -269,6 +308,9 @@ const dialogVisible = computed({
   font-weight: 600;
   color: var(--el-text-color-primary);
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .user-info-row {
@@ -295,6 +337,10 @@ const dialogVisible = computed({
   flex-shrink: 0;
   display: flex;
   align-items: center;
+}
+
+.card-right .el-button {
+  min-width: 100px;
 }
 
 .pagination {
@@ -330,7 +376,7 @@ const dialogVisible = computed({
 
   .user-name {
     font-size: 15px;
-    text-align: center;
+    justify-content: center;
   }
 
   .user-info-row {
