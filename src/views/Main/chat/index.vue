@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
 import type { ConversationItem, ContactItem } from '@/api/chat'
 import { formatDateTime } from '@/utils/date'
-import { UsersListApi } from '@/api/user/users'
-import { RemoteSelect } from '@/components/RemoteSelect'
 import ConversationList from './components/ConversationList/index.vue'
 import ChatWindow from './components/ChatWindow/index.vue'
 import ContactList from './components/ContactList/index.vue'
@@ -26,6 +24,11 @@ const contactListRef = ref<InstanceType<typeof ContactList>>()
 // 创建群聊对话框
 const showGroupDialog = ref(false)
 const groupForm = ref({ name: '', user_ids: [] as number[] })
+
+// 已确认的好友列表（用于创建群聊）
+const confirmedContacts = computed(() => {
+  return chatStore.contacts.filter(c => c.status === 2) // ContactStatus.Confirmed = 2
+})
 
 // ========== 响应式：移动端检测（使用项目 hook） ==========
 const isMobile = useIsMobile()
@@ -93,6 +96,15 @@ async function handleCreateGroup() {
   showGroupDialog.value = false
   groupForm.value = { name: '', user_ids: [] }
 }
+
+/** 打开创建群聊对话框 */
+function openCreateGroupDialog() {
+  // 确保联系人列表已加载
+  if (chatStore.contacts.length === 0) {
+    chatStore.loadContacts()
+  }
+  showGroupDialog.value = true
+}
 </script>
 
 <template>
@@ -107,7 +119,7 @@ async function handleCreateGroup() {
           </div>
           <div v-if="asideTab === 'chat'" class="aside-actions">
             <el-tooltip content="创建群聊" placement="bottom">
-              <el-button text size="small" @click="showGroupDialog = true">
+              <el-button text size="small" @click="openCreateGroupDialog">
                 <el-icon :size="18"><Plus /></el-icon>
               </el-button>
             </el-tooltip>
@@ -168,21 +180,34 @@ async function handleCreateGroup() {
     </div>
 
     <!-- 创建群聊对话框 -->
-    <el-dialog v-model="showGroupDialog" title="创建群聊" :width="isMobile ? '90%' : '400px'">
-      <el-form>
+    <el-dialog v-model="showGroupDialog" title="创建群聊" :width="isMobile ? '90%' : '500px'">
+      <el-form label-width="80px">
         <el-form-item label="群名称">
           <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="50" />
         </el-form-item>
-        <el-form-item label="选择成员">
-          <RemoteSelect
+        <el-form-item label="选择好友">
+          <el-select
             v-model="groupForm.user_ids"
-            :fetch-method="UsersListApi.list"
-            :label-field="(item: any) => `${item.username} (${item.email})`"
-            value-field="id"
-            placeholder="搜索用户"
+            placeholder="请选择好友（至少2人）"
             multiple
-            width="100%"
-          />
+            filterable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="contact in confirmedContacts"
+              :key="contact.contact_user_id"
+              :label="contact.username"
+              :value="contact.contact_user_id"
+            >
+              <div style="display: flex; align-items: center; gap: 8px">
+                <el-avatar :size="24" :src="contact.avatar || undefined">
+                  {{ contact.username?.charAt(0) || '?' }}
+                </el-avatar>
+                <span>{{ contact.username }}</span>
+                <el-tag v-if="contact.is_online || chatStore.onlineUsers.has(contact.contact_user_id)" type="success" size="small">在线</el-tag>
+              </div>
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -192,7 +217,7 @@ async function handleCreateGroup() {
           :disabled="!groupForm.name || groupForm.user_ids.length < 2"
           @click="handleCreateGroup"
         >
-          确定
+          创建（{{ groupForm.user_ids.length }}/{{ confirmedContacts.length }}）
         </el-button>
       </template>
     </el-dialog>
