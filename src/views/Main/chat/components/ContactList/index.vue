@@ -3,21 +3,17 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Check, Close } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { ChatRoomApi, ContactStatus, type ContactItem } from '@/api/chat'
-import { UsersListApi } from '@/api/user/users'
-import { RemoteSelect } from '@/components/RemoteSelect'
+import AddContactDialog from '../AddContactDialog/index.vue'
 
 const emit = defineEmits<{
   select: [contact: ContactItem]
 }>()
 
 const chatStore = useChatStore()
-const isMobile = useIsMobile()
 
 const loading = ref(false)
 const showAddDialog = ref(false)
-const addUserId = ref<number>()
 
 const pendingContacts = computed(() =>
   chatStore.contacts.filter(c => c.status === ContactStatus.Pending && c.is_initiator === 0)
@@ -44,18 +40,9 @@ async function loadAll() {
 }
 
 
-/** 添加联系人 */
-async function handleAdd() {
-  if (!addUserId.value) return
-  try {
-    await ChatRoomApi.contactAdd({ user_id: addUserId.value })
-    ElMessage.success('已发送联系人请求')
-    showAddDialog.value = false
-    addUserId.value = undefined
-    await loadAll()
-  } catch {
-    ElMessage.error('添加失败')
-  }
+/** 添加成功回调 */
+async function handleAddSuccess() {
+  await loadAll()
 }
 
 /** 确认联系人请求 */
@@ -176,24 +163,7 @@ defineExpose({ activate })
     </el-scrollbar>
 
     <!-- 添加联系人对话框 -->
-    <el-dialog v-model="showAddDialog" title="添加联系人" :width="isMobile ? '90%' : '400px'" append-to-body>
-      <el-form>
-        <el-form-item label="选择用户">
-          <RemoteSelect
-            v-model="addUserId"
-            :fetch-method="UsersListApi.list"
-            :label-field="(item: any) => `${item.username} (${item.email})`"
-            value-field="id"
-            placeholder="搜索用户"
-            width="100%"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddDialog = false">取消</el-button>
-        <el-button type="primary" :disabled="!addUserId" @click="handleAdd">添加</el-button>
-      </template>
-    </el-dialog>
+    <AddContactDialog v-model:visible="showAddDialog" @success="handleAddSuccess" />
   </div>
 </template>
 
