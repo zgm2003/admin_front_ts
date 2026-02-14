@@ -100,6 +100,7 @@ export const ChatRoomApi = {
   sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => request.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
   messageList: (params: { conversation_id: number; cursor?: number; page_size?: number }) => request.post<CursorPageResponse<MessageItem>>(`${BASE}/messageList`, params),
   markRead: (params: { conversation_id: number }) => request.post(`${BASE}/markRead`, params),
+  recallMessage: (params: { message_id: number }) => request.post(`${BASE}/recallMessage`, params),
 
   // 联系人
   contactList: (params?: any) => request.post<{ list: ContactItem[] }>(`${BASE}/contactList`, params),

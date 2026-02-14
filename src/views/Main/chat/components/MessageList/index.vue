@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted, computed } from 'vue'
-import { Loading, Download } from '@element-plus/icons-vue'
+import { Loading, Download, RefreshLeft, CopyDocument } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { onClickOutside } from '@vueuse/core'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { MessageType, type MessageItem } from '@/api/chat'
+import { MessageType, type MessageItem, ChatRoomApi } from '@/api/chat'
 import { formatChatTime } from '@/utils/date'
 import { formatFileSize } from '@/utils/format'
 import { downloadFile } from '@/components/DownloadManager'
@@ -17,6 +19,13 @@ const scrollRef = ref<InstanceType<typeof import('element-plus')['ElScrollbar']>
 const loadingMore = ref(false)
 
 const currentUserId = computed(() => Number(userStore.user_id))
+
+// 右键菜单
+const contextMenuVisible = ref(false)
+const contextMenuX = ref(0)
+const contextMenuY = ref(0)
+const contextMenuMessage = ref<MessageItem | null>(null)
+const contextMenuRef = ref<HTMLElement | null>(null)
 
 function isSelf(msg: MessageItem): boolean {
   return msg.sender_id === currentUserId.value
@@ -49,6 +58,86 @@ async function handleScroll({ scrollTop }: { scrollTop: number }) {
     })
   } finally {
     loadingMore.value = false
+  }
+}
+
+// 右键菜单
+function handleContextMenu(e: MouseEvent, msg: MessageItem) {
+  // 系统消息或已撤回的消息不显示菜单
+  if (msg.type === MessageType.System || msg.meta_json?.recalled) return
+  
+  e.preventDefault()
+  contextMenuMessage.value = msg
+  contextMenuX.value = e.clientX
+  contextMenuY.value = e.clientY + 10
+  contextMenuVisible.value = true
+}
+
+function closeContextMenu() {
+  contextMenuVisible.value = false
+  contextMenuMessage.value = null
+}
+
+onClickOutside(contextMenuRef, () => {
+  if (contextMenuVisible.value) closeContextMenu()
+})
+
+// 检查消息是否可撤回（2分钟内）
+function canRecall(msg: MessageItem): boolean {
+  if (!isSelf(msg)) return false
+  const createdTime = new Date(msg.created_at).getTime()
+  const now = Date.now()
+  return (now - createdTime) <= 120000 // 2分钟 = 120000毫秒
+}
+
+// 复制消息内容
+async function handleCopy() {
+  if (!contextMenuMessage.value) return
+  const msg = contextMenuMessage.value
+  closeContextMenu()
+
+  let copyText = ''
+  
+  // 根据消息类型复制不同内容
+  switch (msg.type) {
+    case MessageType.Text:
+      copyText = msg.content
+      break
+    case MessageType.Image:
+      copyText = msg.content // 图片URL
+      break
+    case MessageType.File:
+      copyText = msg.content // 文件URL
+      break
+    default:
+      ElMessage.warning('该消息类型不支持复制')
+      return
+  }
+
+  try {
+    await navigator.clipboard.writeText(copyText)
+    ElMessage.success('已复制')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
+// 撤回消息
+async function handleRecall() {
+  if (!contextMenuMessage.value) return
+  const msg = contextMenuMessage.value
+  closeContextMenu()
+
+  if (!canRecall(msg)) {
+    ElMessage.warning('消息发送超过2分钟，无法撤回')
+    return
+  }
+
+  try {
+    await ChatRoomApi.recallMessage({ message_id: msg.id })
+    ElMessage.success('已撤回')
+  } catch (error: any) {
+    ElMessage.error(error.message || '撤回失败')
   }
 }
 
@@ -86,7 +175,12 @@ defineExpose({ scrollToBottom })
         </div>
 
         <!-- 普通消息 -->
-        <div v-else class="msg-row" :class="{ 'msg-self': isSelf(msg) }">
+        <div
+          v-else
+          class="msg-row"
+          :class="{ 'msg-self': isSelf(msg) }"
+          @contextmenu="handleContextMenu($event, msg)"
+        >
           <!-- 头像 -->
           <el-avatar :size="36" :src="msg.sender?.avatar || undefined" class="msg-avatar">
             {{ getAvatarText(msg) }}
@@ -134,6 +228,23 @@ defineExpose({ scrollToBottom })
     <div v-if="chatStore.currentMessages.length === 0" class="empty-messages">
       <span>暂无消息，发送第一条消息吧</span>
     </div>
+
+    <!-- 右键菜单 -->
+    <Teleport to="body">
+      <ul
+        ref="contextMenuRef"
+        v-show="contextMenuVisible"
+        class="context-menu"
+        :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
+      >
+        <li v-if="contextMenuMessage && isSelf(contextMenuMessage) && canRecall(contextMenuMessage)" @click="handleRecall">
+          <el-icon><RefreshLeft /></el-icon>撤回
+        </li>
+        <li v-if="contextMenuMessage" @click="handleCopy">
+          <el-icon><CopyDocument /></el-icon>复制
+        </li>
+      </ul>
+    </Teleport>
   </el-scrollbar>
 </template>
 
@@ -342,5 +453,38 @@ defineExpose({ scrollToBottom })
   width: 32px;
   height: 32px;
   font-size: 12px;
+}
+
+/* ========== 右键菜单 - 对齐 TabTag 风格 ========== */
+.context-menu {
+  position: fixed;
+  z-index: 3000;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  box-shadow: var(--el-box-shadow-light);
+  min-width: 120px;
+}
+
+.context-menu li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--el-text-color-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.context-menu li:hover {
+  background: var(--el-fill-color-light);
+}
+
+.context-menu .el-icon {
+  color: var(--el-text-color-regular);
 }
 </style>

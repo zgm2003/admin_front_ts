@@ -232,6 +232,9 @@ export const useChatStore = defineStore('chat', {
         case 'chat_online':
           this._handleChatOnline(message.data)
           break
+        case 'chat_message_recall':
+          this._handleMessageRecall(message.data)
+          break
         case 'chat_group_update':
           this._handleGroupUpdate(message.data)
           break
@@ -299,6 +302,23 @@ export const useChatStore = defineStore('chat', {
       } else {
         this.onlineUsers.delete(data.user_id)
       }
+    },
+
+    _handleMessageRecall(data: { conversation_id: number; message_id: number }) {
+      const { conversation_id, message_id } = data
+      const messages = this.messagesMap.get(conversation_id)
+      if (!messages) return
+
+      // 找到被撤回的消息
+      const msg = messages.find(m => m.id === message_id)
+      if (!msg) return
+
+      // 标记为已撤回（修改内容为撤回提示）
+      const userStore = useUserStore()
+      const isMyMessage = msg.sender_id === Number(userStore.user_id)
+      msg.content = isMyMessage ? '你撤回了一条消息' : `${msg.sender?.username || '对方'}撤回了一条消息`
+      msg.type = MessageType.System
+      msg.meta_json = { recalled: true }
     },
 
     _handleGroupUpdate(data: { conversation_id: number; action?: string; [key: string]: any }) {
@@ -389,7 +409,7 @@ export const useChatStore = defineStore('chat', {
 
     /** 注册 WebSocket 消息监听（在聊天页面挂载时调用） */
     registerWsListeners() {
-      const types = ['chat_message', 'chat_typing', 'chat_read', 'chat_online', 'chat_group_update', 'chat_contact_request', 'chat_contact_rejected', 'chat_contact_confirmed', 'chat_contact_deleted']
+      const types = ['chat_message', 'chat_typing', 'chat_read', 'chat_online', 'chat_message_recall', 'chat_group_update', 'chat_contact_request', 'chat_contact_rejected', 'chat_contact_confirmed', 'chat_contact_deleted']
       const handler = (msg: WsMessage) => this.handleWsMessage(msg)
       for (const type of types) {
         const cleanup = onWsMessage(type, handler)
