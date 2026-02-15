@@ -18,6 +18,10 @@ export type ParticipantRole = (typeof ParticipantRole)[keyof typeof ParticipantR
 export const ContactStatus = { Pending: 1, Confirmed: 2 } as const
 export type ContactStatus = (typeof ContactStatus)[keyof typeof ContactStatus]
 
+/** 通用是否枚举 */
+export const CommonYesNo = { Yes: 1, No: 2 } as const
+export type CommonYesNo = (typeof CommonYesNo)[keyof typeof CommonYesNo]
+
 /** 会话项 */
 export interface ConversationItem {
   id: number

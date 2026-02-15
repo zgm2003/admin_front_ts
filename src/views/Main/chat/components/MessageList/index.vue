@@ -6,7 +6,7 @@ import { onClickOutside } from '@vueuse/core'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { MessageType, type MessageItem, ChatRoomApi, ParticipantRole, type ParticipantItem } from '@/api/chat'
+import { MessageType, ConversationType, type MessageItem, ChatRoomApi, ParticipantRole, type ParticipantItem } from '@/api/chat'
 import { formatChatTime } from '@/utils/date'
 import { formatFileSize } from '@/utils/format'
 import { downloadFile } from '@/components/DownloadManager'
@@ -26,7 +26,7 @@ const groupParticipants = ref<ParticipantItem[]>([])
 // 当前用户在群聊中的角色
 const currentUserRole = computed(() => {
   const conversation = chatStore.currentConversation
-  if (!conversation || conversation.type !== 2) return null // 2=群聊
+  if (!conversation || conversation.type !== ConversationType.Group) return null
   
   const currentParticipant = groupParticipants.value.find(p => p.user_id === currentUserId.value)
   return currentParticipant?.role
@@ -35,7 +35,7 @@ const currentUserRole = computed(() => {
 // 加载群成员信息
 async function loadGroupParticipants() {
   const conversation = chatStore.currentConversation
-  if (!conversation || conversation.type !== 2) {
+  if (!conversation || conversation.type !== ConversationType.Group) {
     groupParticipants.value = []
     return
   }
@@ -123,7 +123,7 @@ onClickOutside(contextMenuRef, () => {
 // 检查消息是否可撤回
 function canRecall(msg: MessageItem): boolean {
   const conversation = chatStore.currentConversation
-  const isGroupChat = conversation?.type === 2 // 2=群聊
+  const isGroupChat = conversation?.type === ConversationType.Group
   const isSelfMessage = isSelf(msg)
   
   // 自己的消息

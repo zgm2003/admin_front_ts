@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Check, Close } from '@element-plus/icons-vue'
 import { useChatStore } from '@/store/chat'
-import { ChatRoomApi, ContactStatus, type ContactItem } from '@/api/chat'
+import { ChatRoomApi, ContactStatus, CommonYesNo, type ContactItem } from '@/api/chat'
 import AddContactDialog from '../AddContactDialog/index.vue'
 
 const emit = defineEmits<{
@@ -16,11 +16,11 @@ const loading = ref(false)
 const showAddDialog = ref(false)
 
 const pendingContacts = computed(() =>
-  chatStore.contacts.filter(c => c.status === ContactStatus.Pending && c.is_initiator === 0)
+  chatStore.contacts.filter(c => c.status === ContactStatus.Pending && c.is_initiator === CommonYesNo.No)
 )
 
 const sentContacts = computed(() =>
-  chatStore.contacts.filter(c => c.status === ContactStatus.Pending && c.is_initiator === 1)
+  chatStore.contacts.filter(c => c.status === ContactStatus.Pending && c.is_initiator === CommonYesNo.Yes)
 )
 
 const confirmedContacts = computed(() =>
