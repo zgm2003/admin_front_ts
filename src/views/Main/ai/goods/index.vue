@@ -352,7 +352,7 @@ onMounted(() => {
   </el-dialog>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :width="isMobile ? '94vw' : '750px'" :title="t('goods.detailTitle')" destroy-on-close class="detail-dialog">
+  <el-dialog v-model="detailVisible" :fullscreen="isMobile" width="750px" :title="t('goods.detailTitle')" destroy-on-close class="detail-dialog">
     <div class="detail-body">
       <el-descriptions :column="isMobile ? 1 : 2" border label-width="80px">
         <el-descriptions-item :label="t('goods.table.title')">{{ detailData.title || '-' }}</el-descriptions-item>
@@ -453,14 +453,24 @@ onMounted(() => {
   .detail-section-title { font-size: 13px; margin: 12px 0 6px }
   .detail-text-block { padding: 8px; font-size: 12px }
   .image-grid :deep(.el-image) { width: 60px !important; height: 60px !important }
-  .image-select-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px }
   .platform-grid { grid-template-columns: repeat(3, 1fr); gap: 10px }
   .platform-card { padding: 14px 8px }
   .platform-img { width: 36px; height: 36px }
   .platform-name { font-size: 12px }
-  .wb-columns { flex-direction: column }
+
+  /* 工作台移动端 */
+  .wb-body { padding: 12px; height: calc(100vh - 110px) }
+  .wb-images { padding: 12px }
+  .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px }
+  .wb-columns { flex-direction: column; gap: 12px }
   .wb-col { min-width: 0 }
-  .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 4px }
+  .wb-col-title { font-size: 12px; padding: 8px 12px }
+  .wb-col-body { padding: 10px; gap: 8px }
+  .wb-field label { font-size: 11px }
+  .wb-text-block { padding: 8px; font-size: 11px; max-height: 150px }
+
+  :deep(.workbench-dialog .el-dialog__header) { padding: 10px 14px }
+  :deep(.workbench-dialog .el-dialog__footer) { padding: 8px 14px }
 }
 
 /* ==================== 工作台弹窗 ==================== */
@@ -542,4 +552,20 @@ onMounted(() => {
   color: var(--el-text-color-regular);
 }
 .wb-text-sm { max-height: 150px; font-size: 11px; color: var(--el-text-color-secondary) }
+</style>
+
+<style>
+/* 移动端工作台弹窗强制全屏（unscoped 穿透 teleport） */
+@media (max-width: 768px) {
+  .workbench-dialog.el-dialog {
+    --el-dialog-margin-top: 0 !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  .workbench-dialog .el-dialog__header { padding: 10px 14px }
+  .workbench-dialog .el-dialog__footer { padding: 8px 14px }
+}
 </style>
