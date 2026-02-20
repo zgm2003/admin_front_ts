@@ -12,7 +12,7 @@ import { useTable } from '@/hooks/useTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ platformArr: [], statusArr: [] } as any)
+const dict = ref({ goods_platform_arr: [], goods_status_arr: [] } as any)
 
 // ==================== 搜索 & 状态Tab ====================
 const searchForm = ref({ title: '', platform: '', status: '' } as any)
@@ -56,7 +56,7 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'title', type: 'input', label: t('goods.filter.title'), placeholder: t('goods.filter.title'), width: 180 },
   {
     key: 'platform', type: 'select-v2', label: t('goods.filter.platform'),
-    placeholder: t('goods.filter.platform'), width: 140, options: dict.value.platformArr
+    placeholder: t('goods.filter.platform'), width: 140, options: dict.value.goods_platform_arr
   }
 ])
 

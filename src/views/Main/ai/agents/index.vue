@@ -14,7 +14,7 @@ import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ai_mode_arr: [], common_status_arr: [], model_list: []} as any)
+const dict = ref({ai_mode_arr: [], ai_scene_arr: [], common_status_arr: [], model_list: []} as any)
 
 const searchForm = ref({name: '', model_id: '', mode: '', status: ''} as any)
 
@@ -41,6 +41,7 @@ const form = ref({
   avatar: '',
   system_prompt: '',
   mode: 'chat',
+  scene: 'chat',
   temperature: 1,
   max_tokens: '',
   extra_params: '',
@@ -92,6 +93,7 @@ const columns = computed(() => [
   {key: 'name', label: t('aiAgents.table.name'), width: 140},
   {key: 'model_name', label: t('aiAgents.table.model_name'), width: 160},
   {key: 'mode', label: t('aiAgents.table.mode'), width: 90},
+  {key: 'scene', label: t('aiAgents.table.scene'), width: 120},
   {key: 'temperature', label: t('aiAgents.table.temperature'), width: 80},
   {key: 'system_prompt', label: t('aiAgents.table.system_prompt'), overflowTooltip: true},
   {key: 'status', label: t('aiAgents.table.status'), width: 90},
@@ -125,6 +127,7 @@ const edit = (row: any) => {
     avatar: row.avatar || '',
     system_prompt: row.system_prompt || '',
     mode: row.mode,
+    scene: row.scene || 'chat',
     temperature: row.temperature,
     max_tokens: row.max_tokens || '',
     extra_params: row.extra_params ? JSON.stringify(row.extra_params) : '',
@@ -149,6 +152,7 @@ const confirmSubmit = async () => {
     avatar: v.avatar || null,
     system_prompt: v.system_prompt || null,
     mode: v.mode,
+    scene: v.scene,
     temperature: v.temperature,
     max_tokens: v.max_tokens || null,
     status: v.status
@@ -206,6 +210,9 @@ onMounted(() => {
         <template #cell-mode="{row}">
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
+        <template #cell-scene="{row}">
+          <el-tag size="small" :type="row.scene === 'goods_script' ? 'warning' : ''">{{ row.scene_name }}</el-tag>
+        </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
@@ -240,6 +247,11 @@ onMounted(() => {
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiAgents.form.mode')" prop="mode">
             <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%"/>
+          </el-form-item>
+        </el-col>
+        <el-col :md="12" :span="24">
+          <el-form-item :label="t('aiAgents.form.scene')" prop="scene">
+            <el-select-v2 v-model="form.scene" :options="dict.ai_scene_arr" style="width:100%"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

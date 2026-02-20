@@ -581,6 +581,7 @@ export default {
       temperature: '温度',
       max_tokens: '最大输出',
       status: '状态',
+      scene: '场景',
       created_at: '创建时间'
     },
     form: {
@@ -592,7 +593,8 @@ export default {
       temperature: '温度',
       max_tokens: '最大输出',
       extra_params: '额外参数',
-      status: '状态'
+      status: '状态',
+      scene: '场景'
     },
     addTitle: '新增智能体',
     editTitle: '编辑智能体'

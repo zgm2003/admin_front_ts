@@ -581,6 +581,7 @@ export default {
       temperature: 'Temperature',
       max_tokens: 'Max Tokens',
       status: 'Status',
+      scene: 'Scene',
       created_at: 'Created At'
     },
     form: {
@@ -592,7 +593,8 @@ export default {
       temperature: 'Temperature',
       max_tokens: 'Max Tokens',
       extra_params: 'Extra Params',
-      status: 'Status'
+      status: 'Status',
+      scene: 'Scene'
     },
     addTitle: 'Add Agent',
     editTitle: 'Edit Agent'
