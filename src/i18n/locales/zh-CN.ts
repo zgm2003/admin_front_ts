@@ -174,6 +174,7 @@ export default {
     ai_chat: '对话',
     ai_runs: '运行监控',
     ai_prompt: '提示词',
+    ai_goods: '电商口播',
     // 开发工具模块
     devTools_gen: '代码生成',
     devTools_queueMonitor: '队列监控',
@@ -1059,6 +1060,34 @@ export default {
     toolbar: { keyword: '搜索关键字', level: '日志级别', query: '查询', refresh: '刷新', autoScroll: '自动滚底', lines: '行' },
     empty: '暂无日志内容',
     error: { loadFiles: '加载文件列表失败', loadContent: '加载日志内容失败' }
+  },
+  goods: {
+    filter: { title: '商品标题', platform: '平台', status: '状态' },
+    table: {
+      title: '商品标题', main_img: '主图', platform: '平台',
+      status: '状态', audio_url: '音频'
+    },
+    form: {
+      title: '商品标题', main_img: '商品主图URL',
+      link: '商品链接', tips: '提示词', point: '卖点', script_text: '口播词'
+    },
+    actions: { generate: '生成口播', selectProduct: '去选品' },
+    editTitle: '编辑商品', detailTitle: '商品详情',
+    platform: { title: '选品平台', hint: '打开平台后，使用浏览器插件抓取商品数据' },
+    detail: { ocrResult: '识别结果', images: '详情图片' },
+    ocr: {
+      title: 'OCR图片识别', hint: '点击选择需要识别的图片，选中后点击开始识别',
+      selectImages: '请至少选择一张图片', start: '开始识别',
+      imagesSelected: '张已选', previousResult: '上次识别结果'
+    },
+    generate: {
+      title: 'AI生成口播词', noOcr: '暂无OCR结果，建议先进行图片识别',
+      tipsPlaceholder: '可选，如：突出性价比、适合年轻人等', start: '开始生成'
+    },
+    tts: {
+      title: '语音合成', noScript: '请先填写口播词内容',
+      placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频'
+    }
   },
   authPlatform: {
     filter: { name: '平台名称', status: '状态' },

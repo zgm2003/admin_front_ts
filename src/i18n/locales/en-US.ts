@@ -174,6 +174,7 @@ export default {
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
     ai_prompt: 'Prompts',
+    ai_goods: 'E-commerce Script',
     // DevTools module
     devTools_gen: 'Code Generator',
     devTools_queueMonitor: 'Queue Monitor',
@@ -1059,6 +1060,34 @@ export default {
     toolbar: { keyword: 'Search keyword', level: 'Log level', query: 'Query', refresh: 'Refresh', autoScroll: 'Auto scroll', lines: 'lines' },
     empty: 'No log content',
     error: { loadFiles: 'Failed to load file list', loadContent: 'Failed to load log content' }
+  },
+  goods: {
+    filter: { title: 'Product Title', platform: 'Platform', status: 'Status' },
+    table: {
+      title: 'Title', main_img: 'Image', platform: 'Platform',
+      status: 'Status', audio_url: 'Audio'
+    },
+    form: {
+      title: 'Title', main_img: 'Main Image URL',
+      link: 'Product Link', tips: 'Prompt', point: 'Selling Points', script_text: 'Script'
+    },
+    actions: { generate: 'Generate', selectProduct: 'Select Product' },
+    editTitle: 'Edit Product', detailTitle: 'Product Detail',
+    platform: { title: 'Select Platform', hint: 'Open platform and use browser extension to capture product data' },
+    detail: { ocrResult: 'Result', images: 'Detail Images' },
+    ocr: {
+      title: 'OCR Recognition', hint: 'Click to select images for recognition',
+      selectImages: 'Please select at least one image', start: 'Start OCR',
+      imagesSelected: ' selected', previousResult: 'Previous Result'
+    },
+    generate: {
+      title: 'AI Script Generation', noOcr: 'No OCR result yet, recommend running OCR first',
+      tipsPlaceholder: 'Optional, e.g.: highlight value, target young audience', start: 'Generate'
+    },
+    tts: {
+      title: 'Text to Speech', noScript: 'Please enter script text first',
+      placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio'
+    }
   },
   authPlatform: {
     filter: { name: 'Platform Name', status: 'Status' },
