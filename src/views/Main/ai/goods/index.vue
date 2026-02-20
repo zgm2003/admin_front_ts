@@ -101,18 +101,20 @@ const init = () => {
 // ==================== 选品平台 ====================
 const platformVisible = ref(false)
 const platforms = [
-  { name: '淘宝', icon: '🛒', url: 'https://www.taobao.com', color: '#FF5000' },
-  { name: '京东', icon: '🏪', url: 'https://www.jd.com', color: '#E2231A' },
-  { name: '天猫', icon: '🐱', url: 'https://www.tmall.com', color: '#FF0036' },
-  { name: '天猫超市', icon: '🛍️', url: 'https://chaoshi.tmall.com', color: '#E4393C' },
-  { name: '拼多多', icon: '🍊', url: 'https://www.pinduoduo.com', color: '#E02E24' },
-  { name: '抖音', icon: '🎵', url: 'https://www.douyin.com', color: '#000000' },
-  { name: '快手', icon: '🎬', url: 'https://www.kuaishou.com', color: '#FF4906' },
-  { name: '小红书', icon: '📕', url: 'https://www.xiaohongshu.com', color: '#FE2C55' },
-  { name: '1688', icon: '🏭', url: 'https://www.1688.com', color: '#FF6A00' },
-  { name: '唯品会', icon: '👗', url: 'https://www.vip.com', color: '#FF1493' },
-  { name: '苏宁', icon: '🏬', url: 'https://www.suning.com', color: '#F28B00' },
+  { name: '淘宝', img: 'taobao.webp', url: 'https://www.taobao.com' },
+  { name: '京东', img: 'jingdong.jpg', url: 'https://www.jd.com' },
+  { name: '天猫', img: 'tianmao.webp', url: 'https://www.tmall.com' },
+  { name: '天猫超市', img: 'tianmaoShop.webp', url: 'https://chaoshi.tmall.com' },
+  { name: '拼多多', img: 'pinduoduo.png', url: 'https://www.pinduoduo.com' },
+  { name: '1688', img: '1688.png', url: 'https://www.1688.com' },
+  { name: '唯品会', img: 'weipinhui.jpg', url: 'https://www.vip.com' },
+  { name: '苏宁', img: 'suning.webp', url: 'https://www.suning.com' },
 ]
+const platformImgs = import.meta.glob('@/assets/img/platform/*', { eager: true, import: 'default' }) as Record<string, string>
+const getPlatformImg = (filename: string) => {
+  const key = Object.keys(platformImgs).find(k => k.endsWith('/' + filename))
+  return key ? platformImgs[key] : ''
+}
 const openPlatform = (url: string) => window.open(url, '_blank')
 
 // ==================== CRUD ====================
@@ -424,7 +426,7 @@ onMounted(() => {
   <el-dialog v-model="platformVisible" :width="isMobile ? '94vw' : '480px'" :title="t('goods.platform.title')" destroy-on-close>
     <div class="platform-grid">
       <div v-for="p in platforms" :key="p.name" class="platform-card" @click="openPlatform(p.url)">
-        <div class="platform-icon">{{ p.icon }}</div>
+        <img :src="getPlatformImg(p.img)" :alt="p.name" class="platform-img" />
         <div class="platform-name">{{ p.name }}</div>
       </div>
     </div>
@@ -478,7 +480,7 @@ onMounted(() => {
   background: var(--el-fill-color-light); transition: all .2s;
 }
 .platform-card:hover { background: var(--el-color-primary-light-9); transform: translateY(-2px) }
-.platform-icon { font-size: 32px }
+.platform-img { width: 48px; height: 48px; border-radius: 8px; object-fit: contain }
 .platform-name { font-size: 14px; font-weight: 500 }
 .platform-hint {
   margin-top: 16px; font-size: 12px; color: var(--el-text-color-secondary); text-align: center;
@@ -493,7 +495,7 @@ onMounted(() => {
   .image-select-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px }
   .platform-grid { grid-template-columns: repeat(3, 1fr); gap: 10px }
   .platform-card { padding: 14px 8px }
-  .platform-icon { font-size: 26px }
+  .platform-img { width: 36px; height: 36px }
   .platform-name { font-size: 12px }
 }
 </style>
