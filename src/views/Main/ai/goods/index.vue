@@ -39,12 +39,6 @@ const handleSearch = () => {
   refreshStatusCount()
 }
 
-const handleTabChange = () => {
-  page.value.current_page = 1
-  getList()
-  refreshStatusCount()
-}
-
 const {
   loading: listLoading, data: listData, page,
   onPageChange, refresh, getList, onSelectionChange, confirmDel, batchDel
@@ -129,46 +123,37 @@ const toggleEditImage = (img: string) => {
   idx > -1 ? list.splice(idx, 1) : list.push(img)
 }
 
+/** 关闭编辑弹窗并刷新列表 */
+const closeAndRefresh = () => {
+  dialogVisible.value = false
+  getList()
+  refreshStatusCount()
+}
+
 const doEditOcr = async () => {
-  if (!form.value.image_list_success?.length) {
-    ElNotification.warning({ message: t('goods.ocr.selectImages') })
-    return
-  }
+  if (!form.value.image_list_success?.length) return ElNotification.warning({ message: t('goods.ocr.selectImages') })
   editOcrLoading.value = true
   try {
     await GoodsApi.ocr({ id: form.value.id, image_list_success: form.value.image_list_success })
     ElNotification.success({ message: 'OCR任务已提交' })
-    dialogVisible.value = false
-    getList()
-    refreshStatusCount()
-  } finally {
-    editOcrLoading.value = false
-  }
+    closeAndRefresh()
+  } finally { editOcrLoading.value = false }
 }
 
 const doEditGenerate = async () => {
-  if (!editAgentId.value) {
-    ElNotification.warning({ message: t('goods.generate.selectAgent') })
-    return
-  }
+  if (!editAgentId.value) return ElNotification.warning({ message: t('goods.generate.selectAgent') })
   editGenLoading.value = true
   try {
     await GoodsApi.generate({ id: form.value.id, agent_id: editAgentId.value, tips: form.value.tips })
     ElNotification.success({ message: '生成任务已提交' })
-    dialogVisible.value = false
-    getList()
-    refreshStatusCount()
-  } finally {
-    editGenLoading.value = false
-  }
+    closeAndRefresh()
+  } finally { editGenLoading.value = false }
 }
 
 const confirmSubmit = async () => {
   await GoodsApi.edit(form.value)
   ElNotification.success({ message: t('common.success.operation') })
-  dialogVisible.value = false
-  getList()
-  refreshStatusCount()
+  closeAndRefresh()
 }
 
 // ==================== 详情 ====================
@@ -194,7 +179,7 @@ onMounted(() => {
 <template>
   <div class="box">
     <!-- 状态Tab -->
-    <el-tabs v-model="searchForm.status" @tab-change="handleTabChange">
+    <el-tabs v-model="searchForm.status" @tab-change="handleSearch">
       <el-tab-pane v-for="item in statusArr" :key="item.value" :name="item.value">
         <template #label>{{ item.label }} ({{ item.num }})</template>
       </el-tab-pane>
@@ -409,20 +394,9 @@ onMounted(() => {
 <style scoped>
 .box { display: flex; flex-direction: column; height: 100% }
 .table { flex: 1 1 auto; min-height: 0; overflow: auto }
-.hint-text { color: var(--el-text-color-secondary); font-size: 13px; margin-bottom: 12px }
 
-/* 详情弹窗：固定高度 + 内部滚动 */
-:deep(.detail-dialog .el-dialog__body) {
-  padding: 0;
-  overflow: hidden;
-}
-.detail-body {
-  max-height: 65vh;
-  overflow-y: auto;
-  padding: 16px 20px;
-}
-/* 链接截断由 el-text truncated 处理 */
-
+/* 详情弹窗 */
+.detail-body { max-height: 65vh; overflow-y: auto }
 .detail-section-title {
   font-weight: 600; font-size: 14px; margin: 16px 0 8px; padding-left: 8px;
   border-left: 3px solid var(--el-color-primary);
@@ -432,9 +406,9 @@ onMounted(() => {
   white-space: pre-wrap; word-break: break-all; font-size: 13px; line-height: 1.6;
 }
 .image-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
-.platform-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px;
-}
+
+/* 选品平台 */
+.platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px }
 .platform-card {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 20px 12px; border-radius: 10px; cursor: pointer;
@@ -443,129 +417,72 @@ onMounted(() => {
 .platform-card:hover { background: var(--el-color-primary-light-9); transform: translateY(-2px) }
 .platform-img { width: 48px; height: 48px; border-radius: 8px; object-fit: contain }
 .platform-name { font-size: 14px; font-weight: 500 }
-.platform-hint {
-  margin-top: 16px; font-size: 12px; color: var(--el-text-color-secondary); text-align: center;
-}
+.platform-hint { margin-top: 16px; font-size: 12px; color: var(--el-text-color-secondary); text-align: center }
 
-/* ==================== 移动端适配 ==================== */
-@media (max-width: 768px) {
-  .detail-body { max-height: 70vh; padding: 12px }
-  .detail-section-title { font-size: 13px; margin: 12px 0 6px }
-  .detail-text-block { padding: 8px; font-size: 12px }
-  .image-grid :deep(.el-image) { width: 60px !important; height: 60px !important }
-  .platform-grid { grid-template-columns: repeat(3, 1fr); gap: 10px }
-  .platform-card { padding: 14px 8px }
-  .platform-img { width: 36px; height: 36px }
-  .platform-name { font-size: 12px }
-
-  /* 工作台移动端 */
-  .wb-body { padding: 12px; height: calc(100vh - 110px) }
-  .wb-images { padding: 12px }
-  .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px }
-  .wb-columns { flex-direction: column; gap: 12px }
-  .wb-col { min-width: 0 }
-  .wb-col-title { font-size: 12px; padding: 8px 12px }
-  .wb-col-body { padding: 10px; gap: 8px }
-  .wb-field label { font-size: 11px }
-  .wb-text-block { padding: 8px; font-size: 11px; max-height: 150px }
-
-  :deep(.workbench-dialog .el-dialog__header) { padding: 10px 14px }
-  :deep(.workbench-dialog .el-dialog__footer) { padding: 8px 14px }
-}
-
-/* ==================== 工作台弹窗 ==================== */
-:deep(.workbench-dialog .el-dialog__header) {
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  margin-right: 0;
-  padding: 16px 20px;
-}
-:deep(.workbench-dialog .el-dialog__body) {
-  padding: 0;
-  overflow: hidden;
-}
-:deep(.workbench-dialog .el-dialog__footer) {
-  border-top: 1px solid var(--el-border-color-lighter);
-  padding: 12px 20px;
-}
+/* 工作台 */
 .wb-header { display: flex; align-items: center; font-size: 15px; font-weight: 600 }
-.wb-body {
-  height: calc(100vh - 130px);
-  overflow-y: auto;
-  padding: 20px;
-  background: var(--el-bg-color-page);
-}
+.wb-body { height: calc(100vh - 130px); overflow-y: auto; padding: 20px; background: var(--el-bg-color-page) }
 .wb-images {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: var(--el-bg-color);
-  border-radius: 8px;
-  border: 1px solid var(--el-border-color-lighter);
+  margin-bottom: 20px; padding: 16px; background: var(--el-bg-color);
+  border-radius: 8px; border: 1px solid var(--el-border-color-lighter);
 }
-.wb-section-title {
-  font-size: 13px; font-weight: 500; color: var(--el-text-color-regular); margin-bottom: 10px;
-}
-.wb-image-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px;
-}
+.wb-section-title { font-size: 13px; font-weight: 500; color: var(--el-text-color-regular); margin-bottom: 10px }
+.wb-image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px }
 .wb-image-item {
   position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden;
   border: 2px solid var(--el-border-color-lighter); transition: all .2s;
 }
 .wb-image-item:hover { border-color: var(--el-color-primary-light-3) }
 .wb-image-item.selected { border-color: var(--el-color-primary); box-shadow: 0 0 0 1px var(--el-color-primary-light-5) }
-.wb-image-check {
-  position: absolute; top: 4px; right: 4px; z-index: 1;
-}
-.wb-image-check :deep(.el-checkbox__inner) {
-  border-radius: 50%;
-}
-.wb-columns {
-  display: flex; gap: 16px;
-}
+.wb-image-check { position: absolute; top: 4px; right: 4px; z-index: 1 }
+.wb-columns { display: flex; gap: 16px }
 .wb-col {
-  flex: 1; min-width: 0;
-  background: var(--el-bg-color);
-  border-radius: 8px;
-  border: 1px solid var(--el-border-color-lighter);
-  display: flex; flex-direction: column;
-  overflow: hidden;
+  flex: 1; min-width: 0; background: var(--el-bg-color); border-radius: 8px;
+  border: 1px solid var(--el-border-color-lighter); display: flex; flex-direction: column; overflow: hidden;
 }
 .wb-col-title {
   font-size: 13px; font-weight: 600; padding: 10px 14px;
   border-bottom: 1px solid var(--el-border-color-lighter);
-  color: var(--el-text-color-primary);
-  background: var(--el-fill-color-lighter);
+  color: var(--el-text-color-primary); background: var(--el-fill-color-lighter);
 }
 .wb-col-title--info { border-left: 3px solid var(--el-color-primary) }
 .wb-col-title--prompt { border-left: 3px solid var(--el-color-warning) }
 .wb-col-title--point { border-left: 3px solid var(--el-color-success) }
 .wb-col-title--script { border-left: 3px solid var(--el-color-danger) }
 .wb-col-body { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px }
-.wb-field label {
-  display: block; font-size: 12px; color: var(--el-text-color-secondary);
-  margin-bottom: 4px; font-weight: 500;
-}
+.wb-field label { display: block; font-size: 12px; color: var(--el-text-color-secondary); margin-bottom: 4px; font-weight: 500 }
 .wb-text-block {
   background: var(--el-fill-color-lighter); padding: 10px; border-radius: 6px;
   font-size: 12px; line-height: 1.7; white-space: pre-wrap; word-break: break-all;
   max-height: 200px; overflow-y: auto; border: 1px solid var(--el-border-color-lighter);
-  color: var(--el-text-color-regular);
 }
 .wb-text-sm { max-height: 150px; font-size: 11px; color: var(--el-text-color-secondary) }
+
+/* 移动端 */
+@media (max-width: 768px) {
+  .detail-body { max-height: none }
+  .image-grid :deep(.el-image) { width: 60px !important; height: 60px !important }
+  .platform-grid { grid-template-columns: repeat(3, 1fr); gap: 10px }
+  .platform-card { padding: 14px 8px }
+  .platform-img { width: 36px; height: 36px }
+  .platform-name { font-size: 12px }
+  .wb-body { padding: 12px; height: calc(100vh - 110px) }
+  .wb-images { padding: 12px }
+  .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px }
+  .wb-columns { flex-direction: column; gap: 12px }
+  .wb-col { min-width: 0 }
+}
 </style>
 
 <style>
-/* 移动端工作台弹窗强制全屏（unscoped 穿透 teleport） */
+/* 工作台弹窗：body 无 padding 让 wb-body 自控 */
+.workbench-dialog .el-dialog__body { padding: 0; overflow: hidden }
+/* 移动端强制全屏（穿透 teleport） */
 @media (max-width: 768px) {
   .workbench-dialog.el-dialog {
     --el-dialog-margin-top: 0 !important;
-    margin: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    border-radius: 0 !important;
+    margin: 0 !important; width: 100vw !important; max-width: 100vw !important;
+    height: 100vh !important; border-radius: 0 !important;
   }
-  .workbench-dialog .el-dialog__header { padding: 10px 14px }
-  .workbench-dialog .el-dialog__footer { padding: 8px 14px }
 }
 </style>
