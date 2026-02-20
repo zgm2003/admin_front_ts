@@ -1084,7 +1084,8 @@ export default {
     },
     generate: {
       title: 'AI Script Generation', noOcr: 'No OCR result yet, recommend running OCR first',
-      tipsPlaceholder: 'Optional, e.g.: highlight value, target young audience', start: 'Generate'
+      tipsPlaceholder: 'Optional, e.g.: highlight value, target young audience', start: 'Generate',
+      agent: 'Select Agent', selectAgent: 'Please select an agent'
     },
     tts: {
       title: 'Text to Speech', noScript: 'Please enter script text first',

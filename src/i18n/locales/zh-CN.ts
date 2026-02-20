@@ -1084,7 +1084,8 @@ export default {
     },
     generate: {
       title: 'AI生成口播词', noOcr: '暂无OCR结果，建议先进行图片识别',
-      tipsPlaceholder: '可选，如：突出性价比、适合年轻人等', start: '开始生成'
+      tipsPlaceholder: '可选，如：突出性价比、适合年轻人等', start: '开始生成',
+      agent: '选择智能体', selectAgent: '请选择智能体'
     },
     tts: {
       title: '语音合成', noScript: '请先填写口播词内容',

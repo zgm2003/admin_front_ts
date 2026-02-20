@@ -109,6 +109,7 @@ const add = () => {
     avatar: '',
     system_prompt: '',
     mode: 'chat',
+    scene: 'chat',
     temperature: 1,
     max_tokens: '',
     extra_params: '',

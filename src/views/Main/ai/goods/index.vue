@@ -12,7 +12,7 @@ import { useTable } from '@/hooks/useTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ goods_platform_arr: [], goods_status_arr: [] } as any)
+const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [] } as any)
 
 // ==================== 搜索 & 状态Tab ====================
 const searchForm = ref({ title: '', platform: '', status: '' } as any)
@@ -87,6 +87,7 @@ const generateVisible = ref(false)
 const generateLoading = ref(false)
 const generateRow = ref({} as any)
 const generateTips = ref('')
+const generateAgentId = ref<number | ''>('')
 
 const ttsVisible = ref(false)
 const ttsLoading = ref(false)
@@ -176,13 +177,18 @@ const doOcr = async () => {
 const showGenerate = (row: any) => {
   generateRow.value = row
   generateTips.value = row.tips || ''
+  generateAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
   generateVisible.value = true
 }
 
 const doGenerate = async () => {
+  if (!generateAgentId.value) {
+    ElNotification.warning({ message: t('goods.generate.selectAgent') })
+    return
+  }
   generateLoading.value = true
   try {
-    await GoodsApi.generate({ id: generateRow.value.id, tips: generateTips.value })
+    await GoodsApi.generate({ id: generateRow.value.id, agent_id: generateAgentId.value, tips: generateTips.value })
     ElNotification.success({ message: t('common.success.operation') })
     generateVisible.value = false
     getList()
@@ -392,6 +398,10 @@ onMounted(() => {
   <el-dialog v-model="generateVisible" :width="isMobile ? '94vw' : '600px'" :title="t('goods.generate.title')" destroy-on-close>
     <el-form label-width="auto">
       <el-form-item :label="t('goods.table.title')">{{ generateRow.title || '-' }}</el-form-item>
+      <el-form-item :label="t('goods.generate.agent')">
+        <el-select-v2 v-model="generateAgentId" :options="dict.goods_agent_list" style="width:100%"
+          :placeholder="t('goods.generate.selectAgent')" />
+      </el-form-item>
       <el-form-item label="OCR">
         <div v-if="generateRow.ocr" class="detail-text-block" style="max-height:120px;overflow:auto">{{ generateRow.ocr }}</div>
         <span v-else class="hint-text">{{ t('goods.generate.noOcr') }}</span>
