@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { GoodsApi } from '@/api/ai/goods'
 import { ElNotification } from 'element-plus'
-import type { FormInstance } from 'element-plus'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
@@ -67,32 +66,15 @@ const columns = computed(() => [
   { key: 'status', label: t('goods.table.status'), width: 110 },
   { key: 'audio_url', label: t('goods.table.audio_url'), width: 100 },
   { key: 'created_at', label: t('common.createdAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 400 }
+  { key: 'actions', label: t('common.actions.action'), width: 200 }
 ])
 
 // ==================== 弹窗状态 ====================
 const dialogVisible = ref(false)
-const formRef = ref<FormInstance | null>(null)
 const form = ref({} as any)
 
 const detailVisible = ref(false)
 const detailData = ref({} as any)
-
-const ocrVisible = ref(false)
-const ocrLoading = ref(false)
-const ocrRow = ref({} as any)
-const ocrSelectedImages = ref<string[]>([])
-
-const generateVisible = ref(false)
-const generateLoading = ref(false)
-const generateRow = ref({} as any)
-const generateTips = ref('')
-const generateAgentId = ref<number | ''>('')
-
-const ttsVisible = ref(false)
-const ttsLoading = ref(false)
-const ttsRow = ref({} as any)
-const ttsScriptText = ref('')
 
 // ==================== Init ====================
 const init = () => {
@@ -123,11 +105,62 @@ const openPlatform = (url: string) => window.open(url, '_blank')
 const edit = (row: any) => {
   form.value = {
     id: row.id, title: row.title, main_img: row.main_img,
-    link: row.link,
-    tips: row.tips || '', point: row.point || '', script_text: row.script_text || ''
+    link: row.link, platform_name: row.platform_name || '',
+    tips: row.tips || '', point: row.point || '', script_text: row.script_text || '',
+    ocr: row.ocr || '', model_origin: row.model_origin || '',
+    image_list: row.image_list || [], image_list_success: row.image_list_success || row.image_list || [],
+    status: row.status, status_name: row.status_name || '',
   }
+  // 编辑弹窗内的智能体选择
+  editAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
+  editOcrLoading.value = false
+  editGenLoading.value = false
   dialogVisible.value = true
-  nextTick(() => formRef.value?.clearValidate())
+}
+
+// 编辑弹窗内的操作状态
+const editAgentId = ref<number | ''>('')
+const editOcrLoading = ref(false)
+const editGenLoading = ref(false)
+
+const toggleEditImage = (img: string) => {
+  const list = form.value.image_list_success
+  const idx = list.indexOf(img)
+  idx > -1 ? list.splice(idx, 1) : list.push(img)
+}
+
+const doEditOcr = async () => {
+  if (!form.value.image_list_success?.length) {
+    ElNotification.warning({ message: t('goods.ocr.selectImages') })
+    return
+  }
+  editOcrLoading.value = true
+  try {
+    await GoodsApi.ocr({ id: form.value.id, image_list_success: form.value.image_list_success })
+    ElNotification.success({ message: 'OCR任务已提交' })
+    dialogVisible.value = false
+    getList()
+    refreshStatusCount()
+  } finally {
+    editOcrLoading.value = false
+  }
+}
+
+const doEditGenerate = async () => {
+  if (!editAgentId.value) {
+    ElNotification.warning({ message: t('goods.generate.selectAgent') })
+    return
+  }
+  editGenLoading.value = true
+  try {
+    await GoodsApi.generate({ id: form.value.id, agent_id: editAgentId.value, tips: form.value.tips })
+    ElNotification.success({ message: '生成任务已提交' })
+    dialogVisible.value = false
+    getList()
+    refreshStatusCount()
+  } finally {
+    editGenLoading.value = false
+  }
 }
 
 const confirmSubmit = async () => {
@@ -142,84 +175,6 @@ const confirmSubmit = async () => {
 const showDetail = (row: any) => {
   detailData.value = row
   detailVisible.value = true
-}
-
-// ==================== OCR ====================
-const showOcr = (row: any) => {
-  ocrRow.value = row
-  ocrSelectedImages.value = [...(row.image_list_success || row.image_list || [])]
-  ocrVisible.value = true
-}
-
-const toggleImage = (img: string) => {
-  const idx = ocrSelectedImages.value.indexOf(img)
-  idx > -1 ? ocrSelectedImages.value.splice(idx, 1) : ocrSelectedImages.value.push(img)
-}
-
-const doOcr = async () => {
-  if (!ocrSelectedImages.value.length) {
-    ElNotification.warning({ message: t('goods.ocr.selectImages') })
-    return
-  }
-  ocrLoading.value = true
-  try {
-    await GoodsApi.ocr({ id: ocrRow.value.id, image_list_success: ocrSelectedImages.value })
-    ElNotification.success({ message: t('common.success.operation') })
-    ocrVisible.value = false
-    getList()
-    refreshStatusCount()
-  } finally {
-    ocrLoading.value = false
-  }
-}
-
-// ==================== AI生成 ====================
-const showGenerate = (row: any) => {
-  generateRow.value = row
-  generateTips.value = row.tips || ''
-  generateAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
-  generateVisible.value = true
-}
-
-const doGenerate = async () => {
-  if (!generateAgentId.value) {
-    ElNotification.warning({ message: t('goods.generate.selectAgent') })
-    return
-  }
-  generateLoading.value = true
-  try {
-    await GoodsApi.generate({ id: generateRow.value.id, agent_id: generateAgentId.value, tips: generateTips.value })
-    ElNotification.success({ message: t('common.success.operation') })
-    generateVisible.value = false
-    getList()
-    refreshStatusCount()
-  } finally {
-    generateLoading.value = false
-  }
-}
-
-// ==================== TTS ====================
-const showTts = (row: any) => {
-  ttsRow.value = row
-  ttsScriptText.value = row.script_text || ''
-  ttsVisible.value = true
-}
-
-const doTts = async () => {
-  if (!ttsScriptText.value.trim()) {
-    ElNotification.warning({ message: t('goods.tts.noScript') })
-    return
-  }
-  ttsLoading.value = true
-  try {
-    await GoodsApi.tts({ id: ttsRow.value.id, script_text: ttsScriptText.value })
-    ElNotification.success({ message: t('common.success.operation') })
-    ttsVisible.value = false
-    getList()
-    refreshStatusCount()
-  } finally {
-    ttsLoading.value = false
-  }
 }
 
 // ==================== 工具 ====================
@@ -288,40 +243,108 @@ onMounted(() => {
         <template #cell-actions="{ row }">
           <el-button type="primary" text size="small" @click="showDetail(row)">{{ t('common.actions.detail') }}</el-button>
           <el-button type="primary" text size="small" @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="warning" text size="small" @click="showOcr(row)" :disabled="!row.image_list?.length">OCR</el-button>
-          <el-button type="success" text size="small" @click="showGenerate(row)">{{ t('goods.actions.generate') }}</el-button>
-          <el-button type="info" text size="small" @click="showTts(row)" :disabled="!row.script_text">TTS</el-button>
           <el-button type="danger" text size="small" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>
   </div>
 
-  <!-- 编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '650px'" destroy-on-close>
-    <template #header>{{ t('goods.editTitle') }}</template>
-    <el-form :model="form" ref="formRef" label-width="auto">
-      <el-row :gutter="12">
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.title')"><el-input v-model="form.title" clearable /></el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.main_img')"><el-input v-model="form.main_img" clearable /></el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.link')"><el-input v-model="form.link" clearable /></el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.tips')"><el-input v-model="form.tips" type="textarea" :rows="2" placeholder="可选，例如：突出性价比、强调限时优惠、语气活泼等" /></el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.point')"><el-input v-model="form.point" type="textarea" :rows="2" /></el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('goods.form.script_text')"><el-input v-model="form.script_text" type="textarea" :rows="4" /></el-form-item>
-        </el-col>
-      </el-row>
-    </el-form>
+  <!-- 编辑工作台弹窗 -->
+  <el-dialog v-model="dialogVisible" fullscreen destroy-on-close class="workbench-dialog">
+    <template #header>
+      <div class="wb-header">
+        <span>{{ t('goods.editTitle') }}</span>
+        <el-tag :type="statusType(form.status)" size="small" style="margin-left:8px">{{ form.status_name }}</el-tag>
+      </div>
+    </template>
+
+    <div class="wb-body">
+      <!-- 图片选择区 -->
+      <div v-if="form.image_list?.length" class="wb-images">
+        <div class="wb-section-title">{{ t('goods.detail.images') }}（{{ t('goods.ocr.hint') }}）</div>
+        <div class="wb-image-grid">
+          <div v-for="(img, i) in form.image_list" :key="i"
+            class="wb-image-item" :class="{ selected: form.image_list_success?.includes(img) }">
+            <el-image :src="img" fit="cover" style="width:100%;height:100%" lazy
+              :preview-src-list="form.image_list" :initial-index="Number(i)" preview-teleported />
+            <el-checkbox class="wb-image-check" :model-value="form.image_list_success?.includes(img)"
+              @change="toggleEditImage(img)" />
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <el-button type="warning" size="small" :loading="editOcrLoading" @click="doEditOcr"
+            :disabled="!form.image_list_success?.length">
+            OCR识别（{{ form.image_list_success?.length || 0 }}张已选）
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 四列工作区 -->
+      <div class="wb-columns">
+        <!-- 1. 商品信息 -->
+        <div class="wb-col">
+          <div class="wb-col-title wb-col-title--info">{{ t('goods.detail.productInfo') }}</div>
+          <div class="wb-col-body">
+            <div class="wb-field">
+              <label>{{ t('goods.form.title') }}</label>
+              <el-input v-model="form.title" size="small" />
+            </div>
+            <div class="wb-field">
+              <label>{{ t('goods.form.link') }}</label>
+              <el-input v-model="form.link" size="small" />
+            </div>
+            <div class="wb-field">
+              <label>OCR {{ t('goods.detail.ocrResult') }}</label>
+              <div class="wb-text-block">{{ form.ocr || '-' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. AI提示词工程 -->
+        <div class="wb-col">
+          <div class="wb-col-title wb-col-title--prompt">{{ t('goods.detail.promptEng') }}</div>
+          <div class="wb-col-body">
+            <div class="wb-field">
+              <label>{{ t('goods.generate.agent') }}</label>
+              <el-select-v2 v-model="editAgentId" :options="dict.goods_agent_list" style="width:100%" size="small"
+                :placeholder="t('goods.generate.selectAgent')" />
+            </div>
+            <div class="wb-field">
+              <label>{{ t('goods.form.tips') }}</label>
+              <el-input v-model="form.tips" type="textarea" :rows="4" size="small"
+                placeholder="可选，例如：突出性价比、强调限时优惠、语气活泼等" />
+            </div>
+            <el-button type="primary" size="small" :loading="editGenLoading" @click="doEditGenerate"
+              style="margin-top:8px;width:100%">
+              {{ t('goods.generate.start') }}
+            </el-button>
+            <div v-if="form.model_origin" class="wb-field" style="margin-top:12px">
+              <label>{{ t('goods.detail.modelOrigin') }}</label>
+              <div class="wb-text-block wb-text-sm">{{ form.model_origin }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 卖点 -->
+        <div class="wb-col">
+          <div class="wb-col-title wb-col-title--point">{{ t('goods.detail.sellingPoints') }}</div>
+          <div class="wb-col-body">
+            <el-input v-model="form.point" type="textarea" :rows="16" size="small"
+              :placeholder="t('goods.detail.sellingPointsHint')" />
+          </div>
+        </div>
+
+        <!-- 4. 口播词 -->
+        <div class="wb-col">
+          <div class="wb-col-title wb-col-title--script">{{ t('goods.detail.finalScript') }}</div>
+          <div class="wb-col-body">
+            <el-input v-model="form.script_text" type="textarea" :rows="16" size="small"
+              :placeholder="t('goods.detail.finalScriptHint')" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <template #footer>
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
@@ -371,67 +394,6 @@ onMounted(() => {
     </div>
   </el-dialog>
 
-  <!-- OCR弹窗 -->
-  <el-dialog v-model="ocrVisible" :width="isMobile ? '94vw' : '700px'" :title="t('goods.ocr.title')" destroy-on-close>
-    <p class="hint-text">{{ t('goods.ocr.hint') }}</p>
-    <div class="image-select-grid">
-      <div v-for="(img, i) in (ocrRow.image_list || [])" :key="i"
-        class="image-select-item" :class="{ selected: ocrSelectedImages.includes(img) }"
-        @click="toggleImage(img)">
-        <el-image :src="img" fit="cover" style="width:100%;height:100%" lazy />
-        <div v-if="ocrSelectedImages.includes(img)" class="image-check">✓</div>
-      </div>
-    </div>
-    <template v-if="ocrRow.ocr">
-      <div class="detail-section-title">{{ t('goods.ocr.previousResult') }}</div>
-      <div class="detail-text-block" style="max-height:150px;overflow:auto">{{ ocrRow.ocr }}</div>
-    </template>
-    <template #footer>
-      <el-button @click="ocrVisible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="ocrLoading" @click="doOcr">
-        {{ t('goods.ocr.start') }}（{{ ocrSelectedImages.length }}{{ t('goods.ocr.imagesSelected') }}）
-      </el-button>
-    </template>
-  </el-dialog>
-
-  <!-- 生成口播词弹窗 -->
-  <el-dialog v-model="generateVisible" :width="isMobile ? '94vw' : '600px'" :title="t('goods.generate.title')" destroy-on-close>
-    <el-form label-width="auto">
-      <el-form-item :label="t('goods.table.title')">{{ generateRow.title || '-' }}</el-form-item>
-      <el-form-item :label="t('goods.generate.agent')">
-        <el-select-v2 v-model="generateAgentId" :options="dict.goods_agent_list" style="width:100%"
-          :placeholder="t('goods.generate.selectAgent')" />
-      </el-form-item>
-      <el-form-item label="OCR">
-        <div v-if="generateRow.ocr" class="detail-text-block" style="max-height:120px;overflow:auto">{{ generateRow.ocr }}</div>
-        <span v-else class="hint-text">{{ t('goods.generate.noOcr') }}</span>
-      </el-form-item>
-      <el-form-item :label="t('goods.form.tips')">
-        <el-input v-model="generateTips" type="textarea" :rows="3" :placeholder="t('goods.generate.tipsPlaceholder')" />
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="generateVisible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="generateLoading" @click="doGenerate">{{ t('goods.generate.start') }}</el-button>
-    </template>
-  </el-dialog>
-
-  <!-- TTS弹窗 -->
-  <el-dialog v-model="ttsVisible" :width="isMobile ? '94vw' : '600px'" :title="t('goods.tts.title')" destroy-on-close>
-    <el-form label-width="auto">
-      <el-form-item :label="t('goods.form.script_text')">
-        <el-input v-model="ttsScriptText" type="textarea" :rows="6" :placeholder="t('goods.tts.placeholder')" />
-      </el-form-item>
-      <el-form-item v-if="ttsRow.audio_url" :label="t('goods.tts.currentAudio')">
-        <audio :src="ttsRow.audio_url" controls style="width:100%" />
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="ttsVisible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="ttsLoading" @click="doTts">{{ t('goods.tts.start') }}</el-button>
-    </template>
-  </el-dialog>
-
   <!-- 选品平台弹窗 -->
   <el-dialog v-model="platformVisible" :width="isMobile ? '94vw' : '480px'" :title="t('goods.platform.title')" destroy-on-close>
     <div class="platform-grid">
@@ -470,17 +432,6 @@ onMounted(() => {
   white-space: pre-wrap; word-break: break-all; font-size: 13px; line-height: 1.6;
 }
 .image-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
-.image-select-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px }
-.image-select-item {
-  position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden;
-  cursor: pointer; border: 2px solid transparent; transition: border-color .2s;
-}
-.image-select-item.selected { border-color: var(--el-color-primary) }
-.image-check {
-  position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
-  background: var(--el-color-primary); color: #fff; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; font-size: 12px;
-}
 .platform-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px;
 }
@@ -507,5 +458,88 @@ onMounted(() => {
   .platform-card { padding: 14px 8px }
   .platform-img { width: 36px; height: 36px }
   .platform-name { font-size: 12px }
+  .wb-columns { flex-direction: column }
+  .wb-col { min-width: 0 }
+  .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 4px }
 }
+
+/* ==================== 工作台弹窗 ==================== */
+:deep(.workbench-dialog .el-dialog__header) {
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin-right: 0;
+  padding: 16px 20px;
+}
+:deep(.workbench-dialog .el-dialog__body) {
+  padding: 0;
+  overflow: hidden;
+}
+:deep(.workbench-dialog .el-dialog__footer) {
+  border-top: 1px solid var(--el-border-color-lighter);
+  padding: 12px 20px;
+}
+.wb-header { display: flex; align-items: center; font-size: 15px; font-weight: 600 }
+.wb-body {
+  height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--el-bg-color-page);
+}
+.wb-images {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+.wb-section-title {
+  font-size: 13px; font-weight: 500; color: var(--el-text-color-regular); margin-bottom: 10px;
+}
+.wb-image-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px;
+}
+.wb-image-item {
+  position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden;
+  border: 2px solid var(--el-border-color-lighter); transition: all .2s;
+}
+.wb-image-item:hover { border-color: var(--el-color-primary-light-3) }
+.wb-image-item.selected { border-color: var(--el-color-primary); box-shadow: 0 0 0 1px var(--el-color-primary-light-5) }
+.wb-image-check {
+  position: absolute; top: 4px; right: 4px; z-index: 1;
+}
+.wb-image-check :deep(.el-checkbox__inner) {
+  border-radius: 50%;
+}
+.wb-columns {
+  display: flex; gap: 16px;
+}
+.wb-col {
+  flex: 1; min-width: 0;
+  background: var(--el-bg-color);
+  border-radius: 8px;
+  border: 1px solid var(--el-border-color-lighter);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.wb-col-title {
+  font-size: 13px; font-weight: 600; padding: 10px 14px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-lighter);
+}
+.wb-col-title--info { border-left: 3px solid var(--el-color-primary) }
+.wb-col-title--prompt { border-left: 3px solid var(--el-color-warning) }
+.wb-col-title--point { border-left: 3px solid var(--el-color-success) }
+.wb-col-title--script { border-left: 3px solid var(--el-color-danger) }
+.wb-col-body { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px }
+.wb-field label {
+  display: block; font-size: 12px; color: var(--el-text-color-secondary);
+  margin-bottom: 4px; font-weight: 500;
+}
+.wb-text-block {
+  background: var(--el-fill-color-lighter); padding: 10px; border-radius: 6px;
+  font-size: 12px; line-height: 1.7; white-space: pre-wrap; word-break: break-all;
+  max-height: 200px; overflow-y: auto; border: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-regular);
+}
+.wb-text-sm { max-height: 150px; font-size: 11px; color: var(--el-text-color-secondary) }
 </style>

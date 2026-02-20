@@ -1076,7 +1076,10 @@ export default {
     actions: { generate: '生成口播', selectProduct: '去选品' },
     editTitle: '编辑商品', detailTitle: '商品详情',
     platform: { title: '选品平台', hint: '打开平台后，使用浏览器插件抓取商品数据' },
-    detail: { ocrResult: '识别结果', images: '详情图片' },
+    detail: { ocrResult: '识别结果', images: '详情图片', productInfo: '商品信息',
+      promptEng: 'AI提示词工程', sellingPoints: '生成卖点', sellingPointsHint: 'AI生成的核心卖点，可手动编辑',
+      finalScript: '最终卖点效应，口播词', finalScriptHint: 'AI生成的口播词，可手动编辑调整',
+      modelOrigin: 'AI原始输出' },
     ocr: {
       title: 'OCR图片识别', hint: '点击选择需要识别的图片，选中后点击开始识别',
       selectImages: '请至少选择一张图片', start: '开始识别',

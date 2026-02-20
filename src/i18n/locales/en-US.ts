@@ -1076,7 +1076,10 @@ export default {
     actions: { generate: 'Generate', selectProduct: 'Select Product' },
     editTitle: 'Edit Product', detailTitle: 'Product Detail',
     platform: { title: 'Select Platform', hint: 'Open platform and use browser extension to capture product data' },
-    detail: { ocrResult: 'Result', images: 'Detail Images' },
+    detail: { ocrResult: 'Result', images: 'Detail Images', productInfo: 'Product Info',
+      promptEng: 'AI Prompt Engineering', sellingPoints: 'Selling Points', sellingPointsHint: 'AI generated selling points, editable',
+      finalScript: 'Final Script', finalScriptHint: 'AI generated script, editable',
+      modelOrigin: 'AI Raw Output' },
     ocr: {
       title: 'OCR Recognition', hint: 'Click to select images for recognition',
       selectImages: 'Please select at least one image', start: 'Start OCR',
