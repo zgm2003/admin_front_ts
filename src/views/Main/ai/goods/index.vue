@@ -11,7 +11,7 @@ import { useTable } from '@/hooks/useTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [] } as any)
+const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [], goods_voice_arr: [] } as any)
 
 // ==================== 搜索 & 状态Tab ====================
 const searchForm = ref({ title: '', platform: '', status: '' } as any)
@@ -83,9 +83,6 @@ const platforms = [
   { name: '天猫', img: 'tianmao.webp', url: 'https://www.tmall.com' },
   { name: '天猫超市', img: 'tianmaoShop.webp', url: 'https://chaoshi.tmall.com' },
   { name: '拼多多', img: 'pinduoduo.png', url: 'https://www.pinduoduo.com' },
-  { name: '1688', img: '1688.png', url: 'https://www.1688.com' },
-  { name: '唯品会', img: 'weipinhui.jpg', url: 'https://www.vip.com' },
-  { name: '苏宁', img: 'suning.webp', url: 'https://www.suning.com' },
 ]
 const platformImgs = import.meta.glob('@/assets/img/platform/*', { eager: true, import: 'default' }) as Record<string, string>
 const getPlatformImg = (filename: string) => {
@@ -109,6 +106,8 @@ const edit = (row: any) => {
   editAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
   editOcrLoading.value = false
   editGenLoading.value = false
+  editTtsLoading.value = false
+  editVoice.value = dict.value.goods_voice_arr?.[0]?.value ?? 'zh-CN-XiaoxiaoNeural'
   dialogVisible.value = true
 }
 
@@ -116,6 +115,8 @@ const edit = (row: any) => {
 const editAgentId = ref<number | ''>('')
 const editOcrLoading = ref(false)
 const editGenLoading = ref(false)
+const editTtsLoading = ref(false)
+const editVoice = ref('zh-CN-XiaoxiaoNeural')
 
 const toggleEditImage = (img: string) => {
   const list = form.value.image_list_success
@@ -148,6 +149,16 @@ const doEditGenerate = async () => {
     ElNotification.success({ message: '生成任务已提交' })
     closeAndRefresh()
   } finally { editGenLoading.value = false }
+}
+
+const doEditTts = async () => {
+  if (!form.value.script_text) return ElNotification.warning({ message: '没有口播词内容' })
+  editTtsLoading.value = true
+  try {
+    await GoodsApi.tts({ id: form.value.id, voice: editVoice.value, script_text: form.value.script_text })
+    ElNotification.success({ message: 'TTS任务已提交' })
+    closeAndRefresh()
+  } finally { editTtsLoading.value = false }
 }
 
 const confirmSubmit = async () => {
@@ -323,8 +334,16 @@ onMounted(() => {
         <div class="wb-col">
           <div class="wb-col-title wb-col-title--script">{{ t('goods.detail.finalScript') }}</div>
           <div class="wb-col-body">
-            <el-input v-model="form.script_text" type="textarea" :rows="16" size="small"
+            <el-input v-model="form.script_text" type="textarea" :rows="12" size="small"
               :placeholder="t('goods.detail.finalScriptHint')" />
+            <div class="wb-field">
+              <label>TTS音色</label>
+              <el-select-v2 v-model="editVoice" :options="dict.goods_voice_arr" style="width:100%" size="small" />
+            </div>
+            <el-button type="danger" size="small" :loading="editTtsLoading" @click="doEditTts"
+              style="width:100%" :disabled="!form.script_text">
+              语音合成
+            </el-button>
           </div>
         </div>
       </div>
