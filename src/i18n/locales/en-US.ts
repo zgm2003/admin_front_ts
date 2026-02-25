@@ -1110,6 +1110,35 @@ export default {
       placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio'
     }
   },
+  download: {
+    manager: 'Downloads',
+    noTasks: 'No download tasks',
+    completed: 'Download completed',
+    failed: 'Download failed',
+    cancelled: 'Cancelled',
+    cancel: 'Cancel',
+    openFolder: 'Open Folder',
+    clearCompleted: 'Clear Completed',
+    clearAll: 'Clear All',
+    confirmCancel: 'Are you sure to cancel this download?',
+    confirmClearAll: 'Are you sure to clear all download records?',
+    hint: 'Hint',
+    savedTo: 'saved to',
+    webNotSupported: 'Download manager is not supported in web environment',
+    userCancelled: 'User cancelled download',
+    folderOpened: 'Folder opened',
+    folderOpenFailed: 'Failed to open folder',
+    fileType: {
+      pdf: 'PDF Document',
+      word: 'Word Document',
+      excel: 'Excel Spreadsheet',
+      archive: 'Archive',
+      image: 'Image',
+      video: 'Video',
+      audio: 'Audio',
+      all: 'All Files'
+    }
+  },
   authPlatform: {
     filter: { name: 'Platform Name', status: 'Status' },
     table: {

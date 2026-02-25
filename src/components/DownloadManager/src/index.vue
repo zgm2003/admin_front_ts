@@ -1,14 +1,14 @@
 <template>
   <el-drawer
     v-model="visible"
-    title="下载管理"
+    :title="t('download.manager')"
     direction="rtl"
     size="500px"
     :close-on-click-modal="true"
   >
     <div class="download-manager">
       <!-- 空状态 -->
-      <el-empty v-if="downloads.length === 0" description="暂无下载任务" :image-size="120" />
+      <el-empty v-if="downloads.length === 0" :description="t('download.noTasks')" :image-size="120" />
 
       <!-- 下载列表 -->
       <div v-else ref="listRef" class="download-list">
@@ -78,13 +78,13 @@
             <!-- 状态信息 -->
             <div v-if="item.status !== 'downloading' || item.downloaded === 0" class="status-message">
               <span v-if="item.status === 'completed'" class="success-text">
-                下载完成
+                {{ t('download.completed') }}
               </span>
               <span v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)" class="error-text">
-                {{ item.error || '下载失败' }}
+                {{ item.error || t('download.failed') }}
               </span>
               <span v-else-if="item.status === 'cancelled'" class="info-text">
-                已取消
+                {{ t('download.cancelled') }}
               </span>
             </div>
 
@@ -99,7 +99,7 @@
                 @click="handleCancel(item.id)"
               >
                 <el-icon><Close /></el-icon>
-                取消
+                {{ t('download.cancel') }}
               </el-button>
               
               <template v-if="item.status === 'completed'">
@@ -110,7 +110,7 @@
                   @click="handleOpenFolder(item.save_path)"
                 >
                   <el-icon><FolderOpened /></el-icon>
-                  打开文件夹
+                  {{ t('download.openFolder') }}
                 </el-button>
                 <el-button
                   size="small"
@@ -119,7 +119,7 @@
                   @click="handleRemove(item.id)"
                 >
                   <el-icon><Delete /></el-icon>
-                  删除
+                  {{ t('common.actions.del') }}
                 </el-button>
               </template>
 
@@ -132,7 +132,7 @@
                 @click="handleRemove(item.id)"
               >
                 <el-icon><Delete /></el-icon>
-                删除
+                {{ t('common.actions.del') }}
               </el-button>
             </div>
           </div>
@@ -143,11 +143,11 @@
       <div v-if="downloads.length > 0" class="footer-actions">
         <el-button @click="handleClearCompleted" :disabled="!hasCompleted">
           <el-icon><CircleCheck /></el-icon>
-          清除已完成
+          {{ t('download.clearCompleted') }}
         </el-button>
         <el-button type="danger" plain @click="handleClearAll">
           <el-icon><Delete /></el-icon>
-          清空列表
+          {{ t('download.clearAll') }}
         </el-button>
       </div>
     </div>
@@ -156,6 +156,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Document,
   Picture,
@@ -170,6 +171,8 @@ import {
 } from '@element-plus/icons-vue'
 import { downloadManager, type DownloadProgress } from './download'
 import { ElMessageBox } from 'element-plus'
+
+const { t } = useI18n()
 
 const visible = defineModel<boolean>('visible', { default: false })
 const downloads = ref<DownloadProgress[]>([])
@@ -238,10 +241,10 @@ watch(visible, (newVal) => {
 // 取消下载
 const handleCancel = async (id: string) => {
   try {
-    await ElMessageBox.confirm('确定要取消这个下载吗？', '提示', {
+    await ElMessageBox.confirm(t('download.confirmCancel'), t('download.hint'), {
       type: 'warning',
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: t('common.actions.confirm'),
+      cancelButtonText: t('common.actions.cancel'),
     })
     
     // 立即更新 UI 状态
@@ -287,10 +290,10 @@ const handleClearCompleted = async () => {
 // 清空列表
 const handleClearAll = async () => {
   try {
-    await ElMessageBox.confirm('确定要清空所有下载记录吗？', '提示', {
+    await ElMessageBox.confirm(t('download.confirmClearAll'), t('download.hint'), {
       type: 'warning',
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: t('common.actions.confirm'),
+      cancelButtonText: t('common.actions.cancel'),
     })
     
     const allIds = downloads.value.map(d => d.id)

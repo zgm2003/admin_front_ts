@@ -1110,6 +1110,35 @@ export default {
       placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频'
     }
   },
+  download: {
+    manager: '下载管理',
+    noTasks: '暂无下载任务',
+    completed: '下载完成',
+    failed: '下载失败',
+    cancelled: '已取消',
+    cancel: '取消',
+    openFolder: '打开文件夹',
+    clearCompleted: '清除已完成',
+    clearAll: '清空列表',
+    confirmCancel: '确定要取消这个下载吗？',
+    confirmClearAll: '确定要清空所有下载记录吗？',
+    hint: '提示',
+    savedTo: '已保存至',
+    webNotSupported: 'Web环境不支持下载管理',
+    userCancelled: '用户取消下载',
+    folderOpened: '已打开文件夹',
+    folderOpenFailed: '打开文件夹失败',
+    fileType: {
+      pdf: 'PDF文档',
+      word: 'Word文档',
+      excel: 'Excel表格',
+      archive: '压缩文件',
+      image: '图片文件',
+      video: '视频文件',
+      audio: '音频文件',
+      all: '所有文件'
+    }
+  },
   authPlatform: {
     filter: { name: '平台名称', status: '状态' },
     table: {

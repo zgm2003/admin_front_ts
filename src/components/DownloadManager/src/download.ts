@@ -5,6 +5,9 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ElMessage, ElNotification } from 'element-plus'
 import { isTauri } from '@/store/tauri'
+import i18n from '@/i18n'
+
+const t = i18n.global.t
 
 // 动态导入 Tauri API，避免 Web 环境加载失败
 const tauriCore = () => import('@tauri-apps/api/core')
@@ -64,8 +67,8 @@ class DownloadManager {
       
       if (progress) {
         ElNotification({
-          title: '下载完成',
-          message: `${progress.filename} 已保存到 ${progress.save_path}`,
+          title: t('download.completed'),
+          message: `${progress.filename} ${t('download.savedTo')} ${progress.save_path}`,
           type: 'success',
           duration: 5000,
           onClick: () => this.openFolder(progress.save_path),
@@ -80,7 +83,7 @@ class DownloadManager {
       
       if (progress && !error.includes('取消')) {
         ElNotification({
-          title: '下载失败',
+          title: t('download.failed'),
           message: `${progress.filename}: ${error}`,
           type: 'error',
           duration: 5000,
@@ -95,7 +98,7 @@ class DownloadManager {
   async download(options: DownloadOptions): Promise<string> {
     if (!isTauri()) {
       window.open(options.url, '_blank')
-      throw new Error('Web 环境不支持下载管理')
+      throw new Error(t('download.webNotSupported'))
     }
 
     const { save } = await tauriDialog()
@@ -108,7 +111,7 @@ class DownloadManager {
       filters: this.getFileFilters(suggestedFilename),
     })
 
-    if (!savePath) throw new Error('用户取消下载')
+    if (!savePath) throw new Error(t('download.userCancelled'))
 
     const id = `download_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     this.callbacks.set(id, {
@@ -171,29 +174,29 @@ class DownloadManager {
     try {
       const { invoke } = await tauriCore()
       await invoke('open_file_folder', { path: savePath })
-      ElMessage.success('已打开文件夹')
+      ElMessage.success(t('download.folderOpened'))
     } catch (error) {
       console.error('[openFolder] Error:', error)
-      ElMessage.error('打开文件夹失败')
+      ElMessage.error(t('download.folderOpenFailed'))
     }
   }
 
   private getFileFilters(filename: string) {
     const ext = filename.split('.').pop()?.toLowerCase()
     const filterMap: Record<string, { name: string; extensions: string[] }> = {
-      'pdf': { name: 'PDF 文档', extensions: ['pdf'] },
-      'doc': { name: 'Word 文档', extensions: ['doc', 'docx'] },
-      'docx': { name: 'Word 文档', extensions: ['doc', 'docx'] },
-      'xls': { name: 'Excel 表格', extensions: ['xls', 'xlsx'] },
-      'xlsx': { name: 'Excel 表格', extensions: ['xls', 'xlsx'] },
-      'zip': { name: '压缩文件', extensions: ['zip', 'rar', '7z'] },
-      'jpg': { name: '图片文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
-      'png': { name: '图片文件', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
-      'mp4': { name: '视频文件', extensions: ['mp4', 'avi', 'mkv', 'mov'] },
-      'mp3': { name: '音频文件', extensions: ['mp3', 'wav', 'flac'] },
+      'pdf': { name: t('download.fileType.pdf'), extensions: ['pdf'] },
+      'doc': { name: t('download.fileType.word'), extensions: ['doc', 'docx'] },
+      'docx': { name: t('download.fileType.word'), extensions: ['doc', 'docx'] },
+      'xls': { name: t('download.fileType.excel'), extensions: ['xls', 'xlsx'] },
+      'xlsx': { name: t('download.fileType.excel'), extensions: ['xls', 'xlsx'] },
+      'zip': { name: t('download.fileType.archive'), extensions: ['zip', 'rar', '7z'] },
+      'jpg': { name: t('download.fileType.image'), extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
+      'png': { name: t('download.fileType.image'), extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
+      'mp4': { name: t('download.fileType.video'), extensions: ['mp4', 'avi', 'mkv', 'mov'] },
+      'mp3': { name: t('download.fileType.audio'), extensions: ['mp3', 'wav', 'flac'] },
     }
     const filter = ext ? filterMap[ext] : undefined
-    return filter ? [filter, { name: '所有文件', extensions: ['*'] }] : [{ name: '所有文件', extensions: ['*'] }]
+    return filter ? [filter, { name: t('download.fileType.all'), extensions: ['*'] }] : [{ name: t('download.fileType.all'), extensions: ['*'] }]
   }
 
   formatSize(bytes: number): string {
@@ -225,7 +228,7 @@ export const downloadFile = async (
       return await downloadManager.download({ url, filename, ...options })
     } catch (error: any) {
       // 用户取消下载，直接返回，不做任何操作
-      if (error.message === '用户取消下载') {
+      if (error.message === t('download.userCancelled')) {
         return undefined
       }
       // 其他错误，记录日志并抛出
@@ -237,7 +240,7 @@ export const downloadFile = async (
   // Web 环境：通过 fetch blob 强制下载（解决跨域 COS 链接 <a download> 无效的问题）
   try {
     const resp = await fetch(url)
-    if (!resp.ok) throw new Error(`下载失败: ${resp.status}`)
+    if (!resp.ok) throw new Error(`${t('download.failed')}: ${resp.status}`)
     const blob = await resp.blob()
     const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
