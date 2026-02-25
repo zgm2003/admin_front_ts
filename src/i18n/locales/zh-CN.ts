@@ -1122,7 +1122,7 @@ export default {
     tts: {
       title: '语音合成', noScript: '请先填写口播词内容',
       placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频',
-      voice: 'TTS音色', submitted: 'TTS任务已提交'
+      voice: 'TTS音色', emotion: '情绪预设', submitted: 'TTS任务已提交'
     }
   },
   tabTag: {

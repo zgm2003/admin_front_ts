@@ -1121,7 +1121,7 @@ export default {
     tts: {
       title: 'Text to Speech', noScript: 'Please enter script text first',
       placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio',
-      voice: 'TTS Voice', submitted: 'TTS task submitted'
+      voice: 'TTS Voice', emotion: 'Emotion Preset', submitted: 'TTS task submitted'
     }
   },
   tabTag: {

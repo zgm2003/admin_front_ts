@@ -11,7 +11,7 @@ import { useTable } from '@/hooks/useTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [], goods_voice_arr: [] } as any)
+const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [], goods_voice_arr: [], goods_emotion_arr: [] } as any)
 
 // ==================== 搜索 & 状态Tab ====================
 const searchForm = ref({ title: '', platform: '', status: '' } as any)
@@ -108,6 +108,7 @@ const edit = (row: any) => {
   editGenLoading.value = false
   editTtsLoading.value = false
   editVoice.value = dict.value.goods_voice_arr?.[0]?.value ?? 'zh-CN-XiaoxiaoNeural'
+  editEmotion.value = 'default'
   dialogVisible.value = true
 }
 
@@ -117,6 +118,7 @@ const editOcrLoading = ref(false)
 const editGenLoading = ref(false)
 const editTtsLoading = ref(false)
 const editVoice = ref('zh-CN-XiaoxiaoNeural')
+const editEmotion = ref('default')
 
 const toggleEditImage = (img: string) => {
   const list = form.value.image_list_success
@@ -155,7 +157,7 @@ const doEditTts = async () => {
   if (!form.value.script_text) return ElNotification.warning({ message: t('goods.tts.noScript') })
   editTtsLoading.value = true
   try {
-    await GoodsApi.tts({ id: form.value.id, voice: editVoice.value, script_text: form.value.script_text })
+    await GoodsApi.tts({ id: form.value.id, voice: editVoice.value, emotion: editEmotion.value, script_text: form.value.script_text })
     ElNotification.success({ message: t('goods.tts.submitted') })
     closeAndRefresh()
   } finally { editTtsLoading.value = false }
@@ -339,6 +341,10 @@ onMounted(() => {
             <div class="wb-field">
               <label>{{ t('goods.tts.voice') }}</label>
               <el-select-v2 v-model="editVoice" :options="dict.goods_voice_arr" style="width:100%" size="small" />
+            </div>
+            <div class="wb-field">
+              <label>{{ t('goods.tts.emotion') }}</label>
+              <el-select-v2 v-model="editEmotion" :options="dict.goods_emotion_arr" style="width:100%" size="small" />
             </div>
             <el-button type="danger" size="small" :loading="editTtsLoading" @click="doEditTts"
               style="width:100%" :disabled="!form.script_text">
