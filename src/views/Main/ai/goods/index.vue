@@ -82,7 +82,6 @@ const platforms = [
   { name: '京东', img: 'jingdong.jpg', url: 'https://www.jd.com' },
   { name: '天猫', img: 'tianmao.webp', url: 'https://www.tmall.com' },
   { name: '天猫超市', img: 'tianmaoShop.webp', url: 'https://chaoshi.tmall.com' },
-  { name: '拼多多', img: 'pinduoduo.png', url: 'https://www.pinduoduo.com' },
 ]
 const platformImgs = import.meta.glob('@/assets/img/platform/*', { eager: true, import: 'default' }) as Record<string, string>
 const getPlatformImg = (filename: string) => {
@@ -101,6 +100,7 @@ const edit = (row: any) => {
     ocr: row.ocr || '', model_origin: row.model_origin || '',
     image_list: row.image_list || [], image_list_success: row.image_list_success || row.image_list || [],
     status: row.status, status_name: row.status_name || '',
+    meta: row.meta || {},
   }
   // 编辑弹窗内的智能体选择
   editAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
@@ -109,6 +109,7 @@ const edit = (row: any) => {
   editTtsLoading.value = false
   editVoice.value = dict.value.goods_voice_arr?.[0]?.value ?? 'zh-CN-XiaoxiaoNeural'
   editEmotion.value = 'default'
+  editMetaText.value = metaToText(form.value.meta)
   dialogVisible.value = true
 }
 
@@ -164,6 +165,7 @@ const doEditTts = async () => {
 }
 
 const confirmSubmit = async () => {
+  form.value.meta = textToMeta(editMetaText.value)
   await GoodsApi.edit(form.value)
   ElNotification.success({ message: t('common.success.operation') })
   closeAndRefresh()
@@ -176,6 +178,46 @@ const showDetail = (row: any) => {
 }
 
 // ==================== 工具 ====================
+const metaLabels: Record<string, string> = {
+  price: 'goods.meta.price', originalPrice: 'goods.meta.originalPrice', sales: 'goods.meta.sales',
+  brand: 'goods.meta.brand', shop: 'goods.meta.shop', specs: 'goods.meta.specs',
+  description: 'goods.meta.description', reviews: 'goods.meta.reviews',
+}
+
+/** 将 meta 对象格式化为可读文本（key: value 每行一个） */
+const metaToText = (meta: any): string => {
+  if (!meta || typeof meta !== 'object') return ''
+  return Object.entries(meta)
+    .filter(([, v]) => v && String(v).trim())
+    .map(([k, v]) => {
+      const label = metaLabels[k] ? t(metaLabels[k]) : k
+      const val = Array.isArray(v) ? v.join('、') : String(v)
+      return `${label}: ${val}`
+    })
+    .join('\n')
+}
+
+/** 将文本解析回 meta 对象 */
+const textToMeta = (text: string): Record<string, string> => {
+  const result: Record<string, string> = {}
+  const labelToKey: Record<string, string> = {}
+  for (const [k, v] of Object.entries(metaLabels)) {
+    labelToKey[t(v)] = k
+    labelToKey[k] = k // 也支持直接用英文 key
+  }
+  for (const line of text.split('\n')) {
+    const idx = line.indexOf(':')
+    if (idx < 1) continue
+    const rawLabel = line.slice(0, idx).trim()
+    const val = line.slice(idx + 1).trim()
+    const key = labelToKey[rawLabel] || rawLabel
+    if (val) result[key] = val
+  }
+  return result
+}
+
+const editMetaText = ref('')
+
 const statusType = (status: number): 'info' | 'warning' | 'success' | 'danger' | 'primary' => {
   const map: Record<number, 'info' | 'warning' | 'success' | 'danger' | 'primary'> = {
     1: 'info', 2: 'warning', 3: 'primary', 4: 'warning', 5: 'primary', 6: 'warning', 7: 'success', 8: 'danger'
@@ -295,6 +337,13 @@ onMounted(() => {
               <label>OCR {{ t('goods.detail.ocrResult') }}</label>
               <div class="wb-text-block">{{ form.ocr || '-' }}</div>
             </div>
+            <!-- 采集元数据（文本编辑） -->
+            <div class="wb-field">
+              <label>{{ t('goods.meta.title') }}</label>
+              <div class="wb-meta-hint">{{ t('goods.meta.hint') }}</div>
+              <el-input v-model="editMetaText" type="textarea" :rows="5" size="small"
+                :placeholder="t('goods.meta.placeholder')" />
+            </div>
           </div>
         </div>
 
@@ -401,6 +450,10 @@ onMounted(() => {
             :preview-src-list="detailData.image_list" :initial-index="Number(i)" preview-teleported lazy />
         </div>
       </template>
+      <template v-if="detailData.meta && Object.keys(detailData.meta).some(k => detailData.meta[k])">
+        <div class="detail-section-title">{{ t('goods.meta.title') }}</div>
+        <div class="detail-text-block">{{ metaToText(detailData.meta) }}</div>
+      </template>
     </div>
   </el-dialog>
 
@@ -482,6 +535,7 @@ onMounted(() => {
   max-height: 200px; overflow-y: auto; border: 1px solid var(--el-border-color-lighter);
 }
 .wb-text-sm { max-height: 150px; font-size: 11px; color: var(--el-text-color-secondary) }
+.wb-meta-hint { font-size: 11px; color: var(--el-color-warning); margin-bottom: 6px }
 
 /* 移动端 */
 @media (max-width: 768px) {

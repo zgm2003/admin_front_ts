@@ -1106,6 +1106,12 @@ export default {
       promptEng: 'AI Prompt Engineering', sellingPoints: 'Selling Points', sellingPointsHint: 'AI generated selling points, editable',
       finalScript: 'Final Script', finalScriptHint: 'AI generated script, editable',
       modelOrigin: 'AI Raw Output' },
+    meta: {
+      title: 'Scraped Metadata', hint: 'Auto-collected by scraper, may be inaccurate, editable',
+      placeholder: 'One per line, format: field: value\ne.g.: Price: 58\nSales: 10000+',
+      price: 'Price', originalPrice: 'Original Price', sales: 'Sales', brand: 'Brand',
+      shop: 'Shop', specs: 'Specs', description: 'Description', reviews: 'Reviews'
+    },
     ocr: {
       title: 'OCR Recognition', hint: 'Click to select images for recognition',
       selectImages: 'Please select at least one image', start: 'Start OCR',

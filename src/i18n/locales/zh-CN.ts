@@ -1107,6 +1107,12 @@ export default {
       promptEng: 'AI提示词工程', sellingPoints: '生成卖点', sellingPointsHint: 'AI生成的核心卖点，可手动编辑',
       finalScript: '最终卖点效应，口播词', finalScriptHint: 'AI生成的口播词，可手动编辑调整',
       modelOrigin: 'AI原始输出' },
+    meta: {
+      title: '采集元数据', hint: '由爬虫自动采集，可能不准确，可手动修正',
+      placeholder: '每行一条，格式：字段名: 值\n如：价格: 58\n销量: 已售 1万+',
+      price: '价格', originalPrice: '原价', sales: '销量', brand: '品牌',
+      shop: '店铺', specs: '规格', description: '描述', reviews: '评论'
+    },
     ocr: {
       title: 'OCR图片识别', hint: '点击选择需要识别的图片，选中后点击开始识别',
       selectImages: '请至少选择一张图片', start: '开始识别',
