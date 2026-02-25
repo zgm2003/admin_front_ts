@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '@/store/chat'
@@ -11,6 +12,7 @@ import ChatWindow from './components/ChatWindow/index.vue'
 import ContactList from './components/ContactList/index.vue'
 import FriendSelector from './components/FriendSelector/index.vue'
 
+const { t } = useI18n()
 const chatStore = useChatStore()
 
 // 左侧面板 tab
@@ -81,7 +83,7 @@ async function handleSendMessage() {
       if (isMobile.value) showMainPanel.value = true
     }
   } catch {
-    ElMessage.error('发起聊天失败')
+    ElMessage.error(t('chat.startChatFailed'))
   }
 }
 
@@ -107,11 +109,11 @@ function openCreateGroupDialog() {
       <div class="chat-aside">
         <div class="aside-header">
           <div class="aside-tabs">
-            <span class="tab-item" :class="{ active: asideTab === 'chat' }" @click="asideTab = 'chat'">聊天</span>
-            <span class="tab-item" :class="{ active: asideTab === 'contacts' }" @click="asideTab = 'contacts'">联系人</span>
+            <span class="tab-item" :class="{ active: asideTab === 'chat' }" @click="asideTab = 'chat'">{{ t('chat.tabs.chat') }}</span>
+            <span class="tab-item" :class="{ active: asideTab === 'contacts' }" @click="asideTab = 'contacts'">{{ t('chat.tabs.contacts') }}</span>
           </div>
           <div v-if="asideTab === 'chat'" class="aside-actions">
-            <el-tooltip content="创建群聊" placement="bottom">
+            <el-tooltip :content="t('chat.createGroup')" placement="bottom">
               <el-button text size="small" @click="openCreateGroupDialog">
                 <el-icon :size="18"><Plus /></el-icon>
               </el-button>
@@ -127,14 +129,14 @@ function openCreateGroupDialog() {
         <!-- 移动端返回按钮 -->
         <div v-if="isMobile && showMainPanel" class="mobile-back" @click="goBackToList">
           <el-icon :size="20"><ArrowLeft /></el-icon>
-          <span>返回</span>
+          <span>{{ t('common.back') }}</span>
         </div>
 
         <!-- 联系人 tab：资料卡 -->
         <template v-if="asideTab === 'contacts'">
           <div v-if="!selectedContact" class="empty-chat">
             <el-icon :size="64" class="empty-chat-icon"><User /></el-icon>
-            <p class="empty-chat-text">选择一个联系人查看资料</p>
+            <p class="empty-chat-text">{{ t('chat.selectContact') }}</p>
           </div>
           <div v-else class="contact-profile-card">
             <el-avatar :size="80" :src="selectedContact.avatar || undefined" class="profile-avatar">
@@ -147,16 +149,16 @@ function openCreateGroupDialog() {
                 :class="{ online: selectedContact.is_online || chatStore.onlineUsers.has(selectedContact.contact_user_id) }"
               ></span>
               <span class="status-text">
-                {{ (selectedContact.is_online || chatStore.onlineUsers.has(selectedContact.contact_user_id)) ? '在线' : '离线' }}
+              {{ (selectedContact.is_online || chatStore.onlineUsers.has(selectedContact.contact_user_id)) ? t('chat.online') : t('chat.offline') }}
               </span>
             </div>
             <div class="profile-info">
-              <span class="profile-info-label">添加时间</span>
+              <span class="profile-info-label">{{ t('chat.addedTime') }}</span>
               <span class="profile-info-value">{{ formatDateTime(selectedContact.created_at, 'YYYY-MM-DD HH:mm') }}</span>
             </div>
             <el-button type="primary" round @click="handleSendMessage">
               <el-icon style="margin-right: 6px"><ChatDotRound /></el-icon>
-              发消息
+              {{ t('chat.sendMessage') }}
             </el-button>
           </div>
         </template>
@@ -165,7 +167,7 @@ function openCreateGroupDialog() {
         <template v-else>
           <div v-if="!chatStore.currentConversation" class="empty-chat">
             <el-icon :size="64" class="empty-chat-icon"><ChatLineRound /></el-icon>
-            <p class="empty-chat-text">选择一个会话开始聊天</p>
+            <p class="empty-chat-text">{{ t('chat.selectConversation') }}</p>
           </div>
           <ChatWindow v-else />
         </template>
@@ -173,27 +175,27 @@ function openCreateGroupDialog() {
     </div>
 
     <!-- 创建群聊对话框 -->
-    <el-dialog v-model="showGroupDialog" title="创建群聊" :width="isMobile ? '90%' : '500px'">
+    <el-dialog v-model="showGroupDialog" :title="t('chat.createGroup')" :width="isMobile ? '90%' : '500px'">
       <el-form label-width="80px">
-        <el-form-item label="群名称">
-          <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="50" />
+        <el-form-item :label="t('chat.groupName')">
+          <el-input v-model="groupForm.name" :placeholder="t('chat.groupNamePlaceholder')" maxlength="50" />
         </el-form-item>
-        <el-form-item label="选择好友">
+        <el-form-item :label="t('chat.selectFriends')">
           <FriendSelector
             v-model="groupForm.user_ids"
             multiple
-            placeholder="请选择好友（至少1人）"
+            :placeholder="t('chat.selectFriendsPlaceholder')"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showGroupDialog = false">取消</el-button>
+        <el-button @click="showGroupDialog = false">{{ t('common.actions.cancel') }}</el-button>
         <el-button
           type="primary"
           :disabled="!groupForm.name || groupForm.user_ids.length < 1"
           @click="handleCreateGroup"
         >
-          创建
+          {{ t('common.actions.confirm') }}
         </el-button>
       </template>
     </el-dialog>

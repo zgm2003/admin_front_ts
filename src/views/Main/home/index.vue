@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
-import { Setting, ArrowRight, TrendCharts, User, Document, Clock, Plus } from '@element-plus/icons-vue'
+import { Setting, ArrowRight, Document, Plus } from '@element-plus/icons-vue'
 
 const Draggable = defineAsyncComponent(() => import('vuedraggable'))
 
@@ -33,14 +33,6 @@ const scheduleIdle = (cb: () => void) => {
     setTimeout(cb, 16)
   }
 }
-
-// 统计数据
-const stats = ref([
-  { label: '总用户数', value: 0, icon: User, color: '#409EFF', trend: '+12%' },
-  { label: '今日访问', value: 0, icon: TrendCharts, color: '#67C23A', trend: '+8%' },
-  { label: '系统日志', value: 0, icon: Document, color: '#E6A23C', trend: '+5%' },
-  { label: '在线用户', value: 0, icon: Clock, color: '#F56C6C', trend: '+3%' },
-])
 
 // 快捷入口设置
 const isEditMode = ref(false)
@@ -136,28 +128,13 @@ const getIconComponent = (iconName: string) => {
   return (mod && mod[iconName]) || Document
 }
 
-// 最近活动（模拟数据）
-const activities = ref([
-  { user: '张三!', action: '创建了新用户', time: '2 分钟前', type: 'success' as const },
-  { user: '李四', action: '修改了角色权限', time: '15 分钟前', type: 'warning' as const },
-  { user: '王五', action: '删除了系统日志', time: '1 小时前', type: 'danger' as const },
-  { user: '赵六', action: '登录了系统', time: '2 小时前', type: 'info' as const },
-])
-
 const goTo = (path: string) => router.push(path)
 const goToPersonal = () => router.push({ path: '/personal', query: { user_id: userStore.user_id } })
 
-// 模拟加载数据
 onMounted(() => {
   scheduleIdle(() => {
     loadIconModule().catch(() => {})
   })
-  setTimeout(() => {
-    if (stats.value[0]) stats.value[0].value = 1248
-    if (stats.value[1]) stats.value[1].value = 856
-    if (stats.value[2]) stats.value[2].value = 3421
-    if (stats.value[3]) stats.value[3].value = 42
-  }, 300)
 })
 </script>
 
@@ -178,124 +155,78 @@ onMounted(() => {
       </el-button>
     </div>
 
-    <!-- 数据统计卡片 -->
-    <div class="stats-grid">
-      <div v-for="stat in stats" :key="stat.label" class="stat-card">
-        <div class="stat-icon" :style="{ backgroundColor: stat.color + '15', color: stat.color }">
-          <el-icon :size="28"><component :is="stat.icon" /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">{{ stat.label }}</div>
-          <el-statistic 
-            :value="stat.value" 
-            :precision="0"
-            class="stat-value"
-          />
-          <div class="stat-trend" :class="{ positive: stat.trend.startsWith('+') }">
-            {{ stat.trend }}
+    <!-- 快捷入口 -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3 class="section-title">{{ t('home.quickEntry') }}</h3>
+        <el-button :type="isEditMode ? 'default' : 'primary'" @click="toggleEditMode">
+          <el-icon><Setting /></el-icon>
+          <span>{{ t('common.setting') }}</span>
+        </el-button>
+      </div>
+          
+      <!-- 编辑模式 -->
+      <Draggable 
+        v-if="isEditMode" 
+        v-model="userStore.quickEntry" 
+        item-key="id"
+        class="quick-grid"
+        :animation="300"
+        ghost-class="drag-ghost"
+        chosen-class="drag-chosen"
+        drag-class="drag-active"
+        @end="onDragEnd"
+      >
+        <template #item="{ element, index }">
+          <div v-if="userStore.permissionMap.get(String(element.permission_id))" class="quick-card edit-mode">
+            <div class="quick-icon" :style="{ backgroundColor: entryColors[index % 4] + '15', color: entryColors[index % 4] }">
+              <el-icon :size="24"><component :is="getIconComponent(userStore.permissionMap.get(String(element.permission_id))?.icon || 'Document')" /></el-icon>
+            </div>
+            <div class="quick-content">
+              <span class="quick-label">{{ t(userStore.permissionMap.get(String(element.permission_id))?.i18n_key || '') || userStore.permissionMap.get(String(element.permission_id))?.label }}</span>
+              <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete({ id: element.id } as any)">
+                <template #reference>
+                  <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+          </div>
+        </template>
+        <template #footer>
+          <div class="quick-card add-card" @click="addSelectVisible = true">
+            <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
+              <el-icon :size="24"><Plus /></el-icon>
+            </div>
+            <div class="quick-content">
+              <span class="quick-label">{{ t('common.actions.add') }}</span>
+            </div>
+          </div>
+        </template>
+      </Draggable>
+      
+      <!-- 正常模式 -->
+      <div v-else-if="entries.length" class="quick-grid">
+        <div 
+          v-for="entry in entries" 
+          :key="entry.path" 
+          class="quick-card"
+          @click="goTo(entry.path)"
+        >
+          <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
+            <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
+          </div>
+          <div class="quick-content">
+            <span class="quick-label">{{ entry.label }}</span>
+            <el-icon class="quick-arrow"><ArrowRight /></el-icon>
           </div>
         </div>
       </div>
+      <el-empty v-else :description="t('home.noQuickEntry')" :image-size="80" />
     </div>
-
-    <el-row :gutter="24">
-      <!-- 快捷入口 -->
-      <el-col :xs="24" :lg="16">
-        <div class="section-card">
-          <div class="section-header">
-            <h3 class="section-title">{{ t('home.quickEntry') }}</h3>
-            <el-button :type="isEditMode ? 'default' : 'primary'" @click="toggleEditMode">
-              <el-icon><Setting /></el-icon>
-              <span>{{ t('common.setting') }}</span>
-            </el-button>
-          </div>
-          
-          <!-- 编辑模式 -->
-          <Draggable 
-            v-if="isEditMode" 
-            v-model="userStore.quickEntry" 
-            item-key="id"
-            class="quick-grid"
-            :animation="300"
-            ghost-class="drag-ghost"
-            chosen-class="drag-chosen"
-            drag-class="drag-active"
-            @end="onDragEnd"
-          >
-            <template #item="{ element, index }">
-              <div v-if="userStore.permissionMap.get(String(element.permission_id))" class="quick-card edit-mode">
-                <div class="quick-icon" :style="{ backgroundColor: entryColors[index % 4] + '15', color: entryColors[index % 4] }">
-                  <el-icon :size="24"><component :is="getIconComponent(userStore.permissionMap.get(String(element.permission_id))?.icon || 'Document')" /></el-icon>
-                </div>
-                <div class="quick-content">
-                  <span class="quick-label">{{ t(userStore.permissionMap.get(String(element.permission_id))?.i18n_key || '') || userStore.permissionMap.get(String(element.permission_id))?.label }}</span>
-                  <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete({ id: element.id } as any)">
-                    <template #reference>
-                      <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
-                    </template>
-                  </el-popconfirm>
-                </div>
-              </div>
-            </template>
-            <template #footer>
-              <div class="quick-card add-card" @click="addSelectVisible = true">
-                <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
-                  <el-icon :size="24"><Plus /></el-icon>
-                </div>
-                <div class="quick-content">
-                  <span class="quick-label">{{ t('common.actions.add') }}</span>
-                </div>
-              </div>
-            </template>
-          </Draggable>
-          
-          <!-- 正常模式 -->
-          <div v-else-if="entries.length" class="quick-grid">
-            <div 
-              v-for="entry in entries" 
-              :key="entry.path" 
-              class="quick-card"
-              @click="goTo(entry.path)"
-            >
-              <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
-                <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
-              </div>
-              <div class="quick-content">
-                <span class="quick-label">{{ entry.label }}</span>
-                <el-icon class="quick-arrow"><ArrowRight /></el-icon>
-              </div>
-            </div>
-          </div>
-          <el-empty v-else :description="t('home.noQuickEntry')" :image-size="80" />
-        </div>
-      </el-col>
-
-      <!-- 最近活动 -->
-      <el-col :xs="24" :lg="8">
-        <div class="section-card">
-          <div class="section-header">
-            <h3 class="section-title">最近活动</h3>
-          </div>
-          <div class="activity-list">
-            <div v-for="(activity, index) in activities" :key="index" class="activity-item">
-              <el-tag :type="activity.type" size="small" class="activity-tag">
-                {{ activity.user }}
-              </el-tag>
-              <div class="activity-content">
-                <div class="activity-action">{{ activity.action }}</div>
-                <div class="activity-time">{{ activity.time }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </el-col>
-    </el-row>
 
     <!-- 新增选择弹窗 -->
     <el-dialog v-model="addSelectVisible" :title="t('home.addQuickEntry')" :width="isMobile ? '90%' : '400px'">
-      <el-select v-model="selectedPermissionId" :placeholder="t('common.pleaseSelect')" filterable style="width: 100%">
-        <el-option v-for="opt in menuOptions" :key="opt.value" :value="opt.value" :label="opt.label" />
-      </el-select>
+      <el-select-v2 v-model="selectedPermissionId" :placeholder="t('common.pleaseSelect')" filterable :options="menuOptions" style="width: 100%" />
       <template #footer>
         <el-button @click="addSelectVisible = false">{{ t('common.actions.cancel') }}</el-button>
         <el-button type="primary" :disabled="!selectedPermissionId" @click="handleAdd">{{ t('common.actions.confirm') }}</el-button>
@@ -374,72 +305,6 @@ onMounted(() => {
   }
 }
 
-// 数据统计
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-
-  @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
-  transition: all 0.3s;
-
-  &:hover {
-    border-color: var(--el-color-primary-light-5);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-}
-
-.stat-icon {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.stat-content {
-  flex: 1;
-
-  .stat-label {
-    font-size: 13px;
-    color: var(--el-text-color-secondary);
-    margin-bottom: 4px;
-  }
-
-  .stat-value {
-    :deep(.el-statistic__content) {
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      line-height: 1.2;
-    }
-    margin-bottom: 4px;
-  }
-
-  .stat-trend {
-    font-size: 12px;
-    font-weight: 500;
-    
-    &.positive {
-      color: #67C23A;
-    }
-  }
-}
-
 // 区块卡片
 .section-card {
   background: var(--el-bg-color);
@@ -466,9 +331,10 @@ onMounted(() => {
 // 快捷入口
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 
+  @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
   @media (max-width: 768px) { 
     grid-template-columns: 1fr; 
   }
@@ -556,44 +422,6 @@ onMounted(() => {
     opacity: 0;
     transform: translateX(-8px);
     transition: all 0.3s;
-  }
-}
-
-// 最近活动
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.activity-item {
-  display: flex;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-}
-
-.activity-tag {
-  flex-shrink: 0;
-}
-
-.activity-content {
-  flex: 1;
-
-  .activity-action {
-    font-size: 14px;
-    color: var(--el-text-color-primary);
-    margin-bottom: 4px;
-  }
-
-  .activity-time {
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
   }
 }
 </style>
