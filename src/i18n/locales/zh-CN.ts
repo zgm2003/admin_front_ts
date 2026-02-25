@@ -1110,6 +1110,14 @@ export default {
       placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频'
     }
   },
+  tabTag: {
+    refresh: '刷新当前',
+    fullscreen: '内容全屏',
+    exitFullscreen: '退出全屏',
+    close: '关闭',
+    closeOther: '关闭其他',
+    closeAll: '关闭所有'
+  },
   download: {
     manager: '下载管理',
     noTasks: '暂无下载任务',
@@ -1128,6 +1136,7 @@ export default {
     userCancelled: '用户取消下载',
     folderOpened: '已打开文件夹',
     folderOpenFailed: '打开文件夹失败',
+    clickToOpen: '点击打开文件夹',
     fileType: {
       pdf: 'PDF文档',
       word: 'Word文档',

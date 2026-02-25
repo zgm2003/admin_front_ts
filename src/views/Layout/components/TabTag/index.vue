@@ -95,13 +95,18 @@ onClickOutside(contextMenuRef, () => {
 })
 
 const handleContextRefresh = () => {
+  closeMenu()
   if (selectedTag.value.path === route.path) router.go(0)
   else router.push(selectedTag.value.path).then(() => router.go(0))
 }
 
-const handleContextClose = () => closeTag(selectedTag.value)
+const handleContextClose = () => {
+  closeMenu()
+  closeTag(selectedTag.value)
+}
 
 const handleContextCloseOther = () => {
+  closeMenu()
   const current = selectedTag.value
   const home = tags.value.find(item => item.path === '/home')
   const keepPaths = (home && home.path !== current.path) ? [home.path, current.path] : [current.path]
@@ -110,6 +115,7 @@ const handleContextCloseOther = () => {
 }
 
 const handleContextCloseAll = () => {
+  closeMenu()
   menuStore.clearTabList()
   router.push('/home')
 }
@@ -156,10 +162,10 @@ const handleContextCloseAll = () => {
       </button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item command="refresh" :icon="Refresh">刷新当前</el-dropdown-item>
-          <el-dropdown-item command="fullscreen" :icon="FullScreen">{{ menuStore.contentFullscreen ? '退出全屏' : '内容全屏' }}</el-dropdown-item>
-          <el-dropdown-item command="closeOther" :icon="CircleClose">关闭其他</el-dropdown-item>
-          <el-dropdown-item command="closeAll" :icon="FolderDelete">关闭所有</el-dropdown-item>
+          <el-dropdown-item command="refresh" :icon="Refresh">{{ t('tabTag.refresh') }}</el-dropdown-item>
+          <el-dropdown-item command="fullscreen" :icon="FullScreen">{{ menuStore.contentFullscreen ? t('tabTag.exitFullscreen') : t('tabTag.fullscreen') }}</el-dropdown-item>
+          <el-dropdown-item command="closeOther" :icon="CircleClose">{{ t('tabTag.closeOther') }}</el-dropdown-item>
+          <el-dropdown-item command="closeAll" :icon="FolderDelete">{{ t('tabTag.closeAll') }}</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -167,16 +173,16 @@ const handleContextCloseAll = () => {
     <!-- 右键菜单 -->
     <ul ref="contextMenuRef" v-show="visible" class="context-menu" :style="{ left: left + 'px', top: top + 'px' }">
       <li @click="handleContextRefresh">
-        <el-icon><Refresh /></el-icon>刷新
+        <el-icon><Refresh /></el-icon>{{ t('tabTag.refresh') }}
       </li>
       <li v-if="!isAffix(selectedTag)" @click="handleContextClose">
-        <el-icon><Close /></el-icon>关闭
+        <el-icon><Close /></el-icon>{{ t('tabTag.close') }}
       </li>
       <li @click="handleContextCloseOther">
-        <el-icon><CircleClose /></el-icon>关闭其他
+        <el-icon><CircleClose /></el-icon>{{ t('tabTag.closeOther') }}
       </li>
       <li @click="handleContextCloseAll">
-        <el-icon><FolderDelete /></el-icon>关闭所有
+        <el-icon><FolderDelete /></el-icon>{{ t('tabTag.closeAll') }}
       </li>
     </ul>
   </div>

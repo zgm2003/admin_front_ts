@@ -1110,6 +1110,14 @@ export default {
       placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio'
     }
   },
+  tabTag: {
+    refresh: 'Refresh',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
+    close: 'Close',
+    closeOther: 'Close Others',
+    closeAll: 'Close All'
+  },
   download: {
     manager: 'Downloads',
     noTasks: 'No download tasks',
@@ -1128,6 +1136,7 @@ export default {
     userCancelled: 'User cancelled download',
     folderOpened: 'Folder opened',
     folderOpenFailed: 'Failed to open folder',
+    clickToOpen: 'Click to open folder',
     fileType: {
       pdf: 'PDF Document',
       word: 'Word Document',

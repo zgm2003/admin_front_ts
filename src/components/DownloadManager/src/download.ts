@@ -68,10 +68,11 @@ class DownloadManager {
       if (progress) {
         ElNotification({
           title: t('download.completed'),
-          message: `${progress.filename} ${t('download.savedTo')} ${progress.save_path}`,
+          message: `${progress.filename} ${t('download.savedTo')} ${progress.save_path}\n${t('download.clickToOpen')}`,
           type: 'success',
           duration: 5000,
           onClick: () => this.openFolder(progress.save_path),
+          customClass: 'download-notification-clickable',
         })
         this.callbacks.get(id)?.onCompleted?.(progress.save_path)
       }

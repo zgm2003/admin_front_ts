@@ -337,78 +337,74 @@ defineExpose({
   flex: 1;
   overflow-y: auto;
   padding: 0 4px;
-  
+
   // 列表动画
   .list-enter-active,
   .list-leave-active {
-    transition: all 0.3s ease;
+    transition: all 0.25s ease-out;
   }
-  
+
   .list-enter-from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateY(12px);
   }
-  
+
   .list-leave-to {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-20px);
+  }
+}
+
+// 尊重用户减少动画偏好
+@media (prefers-reduced-motion: reduce) {
+  .download-list {
+    .list-enter-active,
+    .list-leave-active {
+      transition: none;
+    }
+  }
+
+  .download-item.status-downloading::before {
+    animation: none !important;
+  }
+
+  .status-icon .loading {
+    animation: none !important;
   }
 }
 
 .download-item {
   padding: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
-  transition: all 0.3s;
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
   position: relative;
-  overflow: hidden;
+  cursor: default;
 
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: var(--el-color-primary);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+  // 左侧状态条（用 border-left 代替 ::before，避免 overflow:hidden 裁剪圆角）
+  border-left: 3px solid transparent;
 
   &:hover {
     border-color: var(--el-border-color);
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-    
-    &::before {
-      opacity: 1;
-    }
+    box-shadow: var(--el-box-shadow-lighter);
   }
 
-  &.status-completed::before {
-    background: var(--el-color-success);
-    opacity: 1;
+  &.status-completed {
+    border-left-color: var(--el-color-success);
   }
 
-  &.status-failed::before {
-    background: var(--el-color-danger);
-    opacity: 1;
+  &.status-failed {
+    border-left-color: var(--el-color-danger);
   }
 
-  &.status-downloading::before {
-    background: var(--el-color-primary);
-    opacity: 1;
-    animation: pulse 2s ease-in-out infinite;
+  &.status-downloading {
+    border-left-color: var(--el-color-primary);
   }
-}
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
+  &.status-cancelled {
+    border-left-color: var(--el-border-color);
   }
 }
 
@@ -421,14 +417,14 @@ defineExpose({
 
 .file-icon-wrapper {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--el-fill-color-light);
-  border-radius: 10px;
-  
+  border-radius: 8px;
+
   .file-icon {
     color: var(--el-color-primary);
   }
@@ -445,7 +441,7 @@ defineExpose({
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     line-height: 1.4;
   }
 
@@ -468,61 +464,63 @@ defineExpose({
 
 .status-icon {
   flex-shrink: 0;
-  
+
   .success {
     color: var(--el-color-success);
   }
-  
+
   .error {
     color: var(--el-color-danger);
   }
-  
+
   .loading {
     color: var(--el-color-primary);
     animation: rotate 1s linear infinite;
   }
-  
+
   .info {
     color: var(--el-text-color-secondary);
   }
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .progress-wrapper {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
-  
+
+  :deep(.el-progress) {
+    flex: 1;
+  }
+
   .progress-text {
-    position: absolute;
-    right: 0;
-    top: -20px;
+    flex-shrink: 0;
     font-size: 12px;
     font-weight: 600;
     color: var(--el-color-primary);
+    min-width: 36px;
+    text-align: right;
   }
 }
 
 .status-message {
   margin-bottom: 12px;
   font-size: 13px;
-  
+
   .success-text {
     color: var(--el-color-success);
     font-weight: 500;
   }
-  
+
   .error-text {
     color: var(--el-color-danger);
   }
-  
+
   .info-text {
     color: var(--el-text-color-secondary);
   }
@@ -537,7 +535,7 @@ defineExpose({
 }
 
 .footer-actions {
-  padding: 16px 0 0;
+  padding: 12px 0 0;
   border-top: 1px solid var(--el-border-color);
   display: flex;
   gap: 12px;

@@ -91,3 +91,17 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25
   .el-message-box { width: 90vw !important; }
 }
 
+/* 下载完成通知 - 可点击打开文件夹 */
+.download-notification-clickable {
+  cursor: pointer;
+}
+.download-notification-clickable .el-notification__content {
+  color: var(--el-color-primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.2s;
+}
+.download-notification-clickable:hover .el-notification__content {
+  text-decoration-color: var(--el-color-primary);
+}
+
