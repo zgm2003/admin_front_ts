@@ -58,7 +58,7 @@ const columns = computed(() => [
   { key: 'title', label: t('goods.table.title'), minWidth: 180, overflowTooltip: true },
   { key: 'platform', label: t('goods.table.platform'), width: 100 },
   { key: 'status', label: t('goods.table.status'), width: 110 },
-  { key: 'audio_url', label: t('goods.table.audio_url'), width: 100 },
+  { key: 'audio_url', label: t('goods.table.audio_url'), width: 280, overflowTooltip: false },
   { key: 'created_at', label: t('common.createdAt'), width: 160 },
   { key: 'actions', label: t('common.actions.action'), width: 200 }
 ])
@@ -136,7 +136,7 @@ const doEditOcr = async () => {
   editOcrLoading.value = true
   try {
     await GoodsApi.ocr({ id: form.value.id, image_list_success: form.value.image_list_success })
-    ElNotification.success({ message: 'OCR任务已提交' })
+    ElNotification.success({ message: t('goods.ocr.submitted') })
     closeAndRefresh()
   } finally { editOcrLoading.value = false }
 }
@@ -146,17 +146,17 @@ const doEditGenerate = async () => {
   editGenLoading.value = true
   try {
     await GoodsApi.generate({ id: form.value.id, agent_id: editAgentId.value, tips: form.value.tips })
-    ElNotification.success({ message: '生成任务已提交' })
+    ElNotification.success({ message: t('goods.generate.submitted') })
     closeAndRefresh()
   } finally { editGenLoading.value = false }
 }
 
 const doEditTts = async () => {
-  if (!form.value.script_text) return ElNotification.warning({ message: '没有口播词内容' })
+  if (!form.value.script_text) return ElNotification.warning({ message: t('goods.tts.noScript') })
   editTtsLoading.value = true
   try {
     await GoodsApi.tts({ id: form.value.id, voice: editVoice.value, script_text: form.value.script_text })
-    ElNotification.success({ message: 'TTS任务已提交' })
+    ElNotification.success({ message: t('goods.tts.submitted') })
     closeAndRefresh()
   } finally { editTtsLoading.value = false }
 }
@@ -232,7 +232,7 @@ onMounted(() => {
         </template>
 
         <template #cell-audio_url="{ row }">
-          <audio v-if="row.audio_url" :src="row.audio_url" controls style="height:30px;max-width:80px" />
+          <audio v-if="row.audio_url" :src="row.audio_url" controls style="height:30px;width:250px" />
           <span v-else>-</span>
         </template>
 
@@ -270,7 +270,7 @@ onMounted(() => {
         <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
           <el-button type="warning" size="small" :loading="editOcrLoading" @click="doEditOcr"
             :disabled="!form.image_list_success?.length">
-            OCR识别（{{ form.image_list_success?.length || 0 }}张已选）
+            {{ t('goods.ocr.buttonText', { count: form.image_list_success?.length || 0 }) }}
           </el-button>
         </div>
       </div>
@@ -308,7 +308,7 @@ onMounted(() => {
             <div class="wb-field">
               <label>{{ t('goods.form.tips') }}</label>
               <el-input v-model="form.tips" type="textarea" :rows="4" size="small"
-                placeholder="可选，例如：突出性价比、强调限时优惠、语气活泼等" />
+                :placeholder="t('goods.generate.tipsPlaceholder')" />
             </div>
             <el-button type="primary" size="small" :loading="editGenLoading" @click="doEditGenerate"
               style="margin-top:8px;width:100%">
@@ -337,12 +337,12 @@ onMounted(() => {
             <el-input v-model="form.script_text" type="textarea" :rows="12" size="small"
               :placeholder="t('goods.detail.finalScriptHint')" />
             <div class="wb-field">
-              <label>TTS音色</label>
+              <label>{{ t('goods.tts.voice') }}</label>
               <el-select-v2 v-model="editVoice" :options="dict.goods_voice_arr" style="width:100%" size="small" />
             </div>
             <el-button type="danger" size="small" :loading="editTtsLoading" @click="doEditTts"
               style="width:100%" :disabled="!form.script_text">
-              语音合成
+              {{ t('goods.tts.start') }}
             </el-button>
           </div>
         </div>

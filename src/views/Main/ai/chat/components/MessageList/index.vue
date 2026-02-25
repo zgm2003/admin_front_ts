@@ -208,7 +208,7 @@ const handleFeedback = (msg: any, feedback: number) => {
               class="action-btn"
               :class="{ 'like-active': getFeedback(msg) === CommonEnum.YES }"
               @click="handleFeedback(msg, 1)"
-              title="赞"
+              :title="t('aiChat.like')"
             >
               <DIcon icon="mdi:thumb-up" :size="15" />
             </button>
@@ -216,7 +216,7 @@ const handleFeedback = (msg: any, feedback: number) => {
               class="action-btn"
               :class="{ 'dislike-active': getFeedback(msg) === CommonEnum.NO }"
               @click="handleFeedback(msg, 2)"
-              title="踩"
+              :title="t('aiChat.dislike')"
             >
               <DIcon icon="mdi:thumb-down" :size="15" />
             </button>

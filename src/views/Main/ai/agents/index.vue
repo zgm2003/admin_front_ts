@@ -162,7 +162,7 @@ const confirmSubmit = async () => {
     try {
       payload.extra_params = JSON.parse(v.extra_params)
     } catch {
-      ElNotification.error({message: '额外参数必须为合法JSON'})
+      ElNotification.error({message: t('aiAgents.form.invalidJson')})
       return
     }
   }
@@ -204,7 +204,7 @@ onMounted(() => {
             <el-text>{{ row.model_name }}</el-text>
           </p>
           <p>
-            <el-tag v-if="row.model_deleted" type="danger" size="small" style="margin-left:4px">已删除</el-tag>
+            <el-tag v-if="row.model_deleted" type="danger" size="small" style="margin-left:4px">{{ t('aiAgents.table.deleted') }}</el-tag>
           </p>
 
         </template>
@@ -273,7 +273,7 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiAgents.form.system_prompt')" prop="system_prompt">
-            <el-input v-model="form.system_prompt" type="textarea" :rows="4" placeholder="设定智能体的角色和行为"/>
+            <el-input v-model="form.system_prompt" type="textarea" :rows="4" :placeholder="t('aiAgents.form.systemPromptPlaceholder')"/>
           </el-form-item>
         </el-col>
         <el-col :span="24">

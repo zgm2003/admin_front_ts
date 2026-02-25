@@ -239,8 +239,8 @@ onMounted(() => {
         <el-col :span="24">
           <el-form-item :label="t('upload.setting.form.status')" prop="status" required>
             <el-radio-group v-model="form.status">
-              <el-radio :value="CommonEnum.YES">启用</el-radio>
-              <el-radio :value="CommonEnum.NO">禁用</el-radio>
+              <el-radio :value="CommonEnum.YES">{{ t('common.status.enabled') }}</el-radio>
+              <el-radio :value="CommonEnum.NO">{{ t('common.status.disabled') }}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-col>

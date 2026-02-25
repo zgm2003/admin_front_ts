@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
@@ -116,11 +116,33 @@ function getBreadcrumbLabel(item: any) {
   return resolveMenuLabel(t, item)
 }
 
-// 更新下载数量
+// 更新下载数量（智能轮询：仅在有活跃下载时轮询）
+let downloadTimer: number | null = null
+
 async function updateDownloadCount() {
   if (!isTauri()) return
   const downloads = await downloadManager.getAllDownloads()
-  downloadCount.value = downloads.filter(d => d.status === 'downloading').length
+  const activeCount = downloads.filter(d => d.status === 'downloading').length
+  downloadCount.value = activeCount
+
+  // 有活跃下载 → 启动轮询；没有 → 停掉
+  if (activeCount > 0) {
+    startDownloadPolling()
+  } else {
+    stopDownloadPolling()
+  }
+}
+
+function startDownloadPolling() {
+  if (downloadTimer) return
+  downloadTimer = window.setInterval(updateDownloadCount, 2000)
+}
+
+function stopDownloadPolling() {
+  if (downloadTimer) {
+    clearInterval(downloadTimer)
+    downloadTimer = null
+  }
 }
 
 onMounted(() => {
@@ -130,11 +152,17 @@ onMounted(() => {
   // menuStore.applyDefaultSystemColor(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
   
-  // 定时更新下载数量（仅 Tauri 环境）
+  // 初始检查下载数量（仅 Tauri 环境），后续由智能轮询接管
   if (isTauri()) {
     updateDownloadCount()
-    setInterval(updateDownloadCount, 2000)
+    // 监听新下载事件，立即刷新 badge 并启动轮询
+    window.addEventListener('download-started', updateDownloadCount)
   }
+})
+
+onUnmounted(() => {
+  stopDownloadPolling()
+  window.removeEventListener('download-started', updateDownloadCount)
 })
 
 const isMobile = useIsMobile()

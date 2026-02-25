@@ -565,10 +565,16 @@ export default {
       image: '图片',
       audio: '音频',
       video: '视频',
-      file: '文件'
+      file: '文件',
+      modelCodePlaceholder: '如 gpt-4o / qwen-turbo',
+      endpointPlaceholder: '可留空，使用驱动默认地址',
+      apiKeyPlaceholder: '输入API Key',
+      apiKeyEditPlaceholder: '留空则不修改',
+      invalidJson: '默认参数必须为合法JSON'
     },
     addTitle: '新增AI模型',
-    editTitle: '编辑AI模型'
+    editTitle: '编辑AI模型',
+    invalidJson: '默认参数必须为合法JSON'
   },
   aiAgents: {
     filter: { name: '智能体名称', model_id: '关联模型', mode: '模式', status: '状态' },
@@ -594,10 +600,13 @@ export default {
       max_tokens: '最大输出',
       extra_params: '额外参数',
       status: '状态',
-      scene: '场景'
+      scene: '场景',
+      systemPromptPlaceholder: '设定智能体的角色和行为',
+      invalidJson: '额外参数必须为合法JSON'
     },
     addTitle: '新增智能体',
-    editTitle: '编辑智能体'
+    editTitle: '编辑智能体',
+    deleted: '已删除'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -659,6 +668,8 @@ export default {
     editMessage: '编辑',
     editSubmit: '保存并重新生成',
     editFailed: '编辑失败',
+    like: '赞',
+    dislike: '踩',
     // 时间分组
     timeGroup: {
       today: '今天',
@@ -711,7 +722,8 @@ export default {
       error: '错误信息',
       userMessage: '用户消息',
       assistantMessage: 'AI 回复',
-      executionSteps: '执行步骤'
+      executionSteps: '执行步骤',
+      fetchFailed: '获取详情失败'
     },
     tabs: {
       list: '运行列表',
@@ -1098,16 +1110,19 @@ export default {
     ocr: {
       title: 'OCR图片识别', hint: '点击选择需要识别的图片，选中后点击开始识别',
       selectImages: '请至少选择一张图片', start: '开始识别',
-      imagesSelected: '张已选', previousResult: '上次识别结果'
+      imagesSelected: '张已选', previousResult: '上次识别结果',
+      submitted: 'OCR任务已提交', buttonText: 'OCR识别（{count}张已选）'
     },
     generate: {
       title: 'AI生成口播词', noOcr: '暂无OCR结果，建议先进行图片识别',
-      tipsPlaceholder: '可选，如：突出性价比、适合年轻人等', start: '开始生成',
-      agent: '选择智能体', selectAgent: '请选择智能体'
+      tipsPlaceholder: '可选，例如：突出性价比、强调限时优惠、语气活泼等', start: '开始生成',
+      agent: '选择智能体', selectAgent: '请选择智能体',
+      submitted: '生成任务已提交'
     },
     tts: {
       title: '语音合成', noScript: '请先填写口播词内容',
-      placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频'
+      placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频',
+      voice: 'TTS音色', submitted: 'TTS任务已提交'
     }
   },
   tabTag: {

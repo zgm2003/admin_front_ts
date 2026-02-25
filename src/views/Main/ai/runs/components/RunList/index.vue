@@ -130,7 +130,7 @@ const showDetail = async (row: any) => {
     const data = await AiRunApi.detail({id: row.id})
     detailData.value = data
   } catch (e: any) {
-    ElNotification.error({message: e.message || '获取详情失败'})
+    ElNotification.error({message: e.message || t('aiRuns.detail.fetchFailed')})
   } finally {
     detailLoading.value = false
   }

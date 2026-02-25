@@ -123,6 +123,10 @@ class DownloadManager {
 
     const filename = savePath.split(/[/\\]/).pop() || suggestedFilename
     await invoke('start_download', { id, url: options.url, savePath, filename })
+
+    // 通知 Header 等组件有新下载开始，触发 badge 更新
+    window.dispatchEvent(new CustomEvent('download-started'))
+
     return id
   }
 

@@ -179,6 +179,11 @@ const downloads = ref<DownloadProgress[]>([])
 const listRef = ref<HTMLElement>()
 let refreshTimer: number | null = null
 
+// 是否有活跃下载任务（pending / downloading）
+const hasActiveDownloads = computed(() => {
+  return downloads.value.some(d => d.status === 'downloading' || d.status === 'pending')
+})
+
 // 正序显示（最新的在下面）
 const sortedDownloads = computed(() => {
   return downloads.value
@@ -231,9 +236,13 @@ const refreshDownloads = async () => {
   }
 }
 
-// 监听抽屉打开，滚动到底部
-watch(visible, (newVal) => {
+// 监听抽屉打开，刷新列表并滚动到底部
+watch(visible, async (newVal) => {
   if (newVal) {
+    await refreshDownloads()
+    if (hasActiveDownloads.value) {
+      startPolling()
+    }
     scrollToBottom()
   }
 })
@@ -307,22 +316,65 @@ const handleClearAll = async () => {
   }
 }
 
-// 启动定时刷新
-onMounted(() => {
-  refreshDownloads()
-  refreshTimer = window.setInterval(refreshDownloads, 1000)
-})
+// 智能轮询：只在有活跃下载时才轮询，空闲时停掉
+const startPolling = () => {
+  if (refreshTimer) return
+  refreshTimer = window.setInterval(async () => {
+    await refreshDownloads()
+    // 没有活跃下载了，停止轮询
+    if (!hasActiveDownloads.value) {
+      stopPolling()
+    }
+  }, 1000)
+}
 
-// 清理定时器
-onUnmounted(() => {
+const stopPolling = () => {
   if (refreshTimer) {
     clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+}
+
+// 监听活跃下载状态变化，自动启停轮询
+watch(hasActiveDownloads, (active) => {
+  if (active) {
+    startPolling()
+  } else {
+    stopPolling()
   }
 })
 
-// 暴露刷新方法
+// 新下载开始时刷新列表并启动轮询
+const onDownloadStarted = async () => {
+  await refreshDownloads()
+  if (hasActiveDownloads.value) {
+    startPolling()
+  }
+}
+
+// 初始化：加载一次列表，如果有活跃任务则启动轮询
+onMounted(async () => {
+  await refreshDownloads()
+  if (hasActiveDownloads.value) {
+    startPolling()
+  }
+  window.addEventListener('download-started', onDownloadStarted)
+})
+
+// 清理定时器和事件监听
+onUnmounted(() => {
+  stopPolling()
+  window.removeEventListener('download-started', onDownloadStarted)
+})
+
+// 暴露刷新方法（外部调用时也触发轮询检查）
 defineExpose({
-  refresh: refreshDownloads,
+  refresh: async () => {
+    await refreshDownloads()
+    if (hasActiveDownloads.value) {
+      startPolling()
+    }
+  },
 })
 </script>
 

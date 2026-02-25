@@ -161,7 +161,7 @@ const confirmSubmit = async () => {
     try {
       payload.default_params = JSON.parse(v.default_params)
     } catch {
-      ElNotification.error({message: '默认参数必须为合法JSON'})
+      ElNotification.error({message: t('aiModels.form.invalidJson')})
       return
     }
   }
@@ -249,18 +249,18 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiModels.form.model_code')" prop="model_code" required>
-            <el-input v-model="form.model_code" placeholder="如 gpt-4o / qwen-turbo" clearable/>
+            <el-input v-model="form.model_code" :placeholder="t('aiModels.form.modelCodePlaceholder')" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiModels.form.endpoint')" prop="endpoint">
-            <el-input v-model="form.endpoint" placeholder="可留空，使用驱动默认地址" clearable/>
+            <el-input v-model="form.endpoint" :placeholder="t('aiModels.form.endpointPlaceholder')" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiModels.form.api_key')" prop="api_key">
             <el-input v-model="form.api_key" type="password" show-password
-                      :placeholder="dialogMode === 'edit' ? '留空则不修改' : '输入API Key'" clearable/>
+                      :placeholder="dialogMode === 'edit' ? t('aiModels.form.apiKeyEditPlaceholder') : t('aiModels.form.apiKeyPlaceholder')" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="24">

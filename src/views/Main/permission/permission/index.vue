@@ -169,19 +169,19 @@ const edit = (current: any) => {
 const formRef = ref<any>(null)
 const isMenuType = computed(() => form.value.type === PermissionTypeEnum.DIR || form.value.type === PermissionTypeEnum.PAGE)
 const rules = computed(() => ({
-  type: [{required: true, message: '请选择类型', trigger: 'change'}],
-  name: [{required: true, message: '请输入名称', trigger: 'blur'}],
+  type: [{required: true, message: t('permission.form.rule.type'), trigger: 'change'}],
+  name: [{required: true, message: t('permission.form.rule.name'), trigger: 'blur'}],
   i18n_key: isMenuType.value ? [{
     required: true,
-    message: '请输入 i18n_key',
+    message: t('permission.form.rule.i18n_key'),
     trigger: 'blur'
   }] : [],
   show_menu: isMenuType.value ? [{
     required: true,
-    message: '请选择是否显示',
+    message: t('permission.form.rule.show_menu'),
     trigger: 'change'
   }] : [],
-  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: '请输入 code', trigger: 'blur'}] : []
+  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: t('permission.form.rule.code'), trigger: 'blur'}] : []
 }))
 const confirmSubmit = async () => {
   try {
@@ -311,9 +311,9 @@ onMounted(() => {
                          header-align="center">
           <template #default="scope">
             <el-button type="success" @click="addChild(scope.row)" text
-                       v-if="userStore.can('permission_permission_add') && scope.row.type !== PermissionTypeEnum.BUTTON">新增
+                       v-if="userStore.can('permission_permission_add') && scope.row.type !== PermissionTypeEnum.BUTTON">{{ t('common.actions.add') }}
             </el-button>
-            <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission_permission_edit')">编辑
+            <el-button type="primary" @click="edit(scope.row)" text v-if="userStore.can('permission_permission_edit')">{{ t('common.actions.edit') }}
             </el-button>
           </template>
         </el-table-column>
@@ -373,7 +373,7 @@ onMounted(() => {
         <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === PermissionTypeEnum.BUTTON">
           <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>
           <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            命名规范：一级菜单_二级菜单_操作，如 user_userManager_edit、permission_permission_del
+            {{ t('permission.form.codeHint') }}
           </div>
         </el-form-item>
       </el-form>

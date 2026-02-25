@@ -565,7 +565,12 @@ export default {
       image: 'Image',
       audio: 'Audio',
       video: 'Video',
-      file: 'File'
+      file: 'File',
+      modelCodePlaceholder: 'e.g. gpt-4o / qwen-turbo',
+      endpointPlaceholder: 'Optional, uses driver default',
+      apiKeyPlaceholder: 'Enter API Key',
+      apiKeyEditPlaceholder: 'Leave empty to keep unchanged',
+      invalidJson: 'Default params must be valid JSON'
     },
     addTitle: 'Add AI Model',
     editTitle: 'Edit AI Model'
@@ -594,10 +599,13 @@ export default {
       max_tokens: 'Max Tokens',
       extra_params: 'Extra Params',
       status: 'Status',
-      scene: 'Scene'
+      scene: 'Scene',
+      systemPromptPlaceholder: 'Define the agent\'s role and behavior',
+      invalidJson: 'Extra params must be valid JSON'
     },
     addTitle: 'Add Agent',
-    editTitle: 'Edit Agent'
+    editTitle: 'Edit Agent',
+    deleted: 'Deleted'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -659,6 +667,8 @@ export default {
     editMessage: 'Edit',
     editSubmit: 'Save & Resend',
     editFailed: 'Edit failed',
+    like: 'Like',
+    dislike: 'Dislike',
     // Time groups
     timeGroup: {
       today: 'Today',
@@ -711,7 +721,8 @@ export default {
       error: 'Error',
       userMessage: 'User Message',
       assistantMessage: 'AI Response',
-      executionSteps: 'Execution Steps'
+      executionSteps: 'Execution Steps',
+      fetchFailed: 'Failed to fetch details'
     },
     tabs: {
       list: 'Run List',
@@ -1098,16 +1109,19 @@ export default {
     ocr: {
       title: 'OCR Recognition', hint: 'Click to select images for recognition',
       selectImages: 'Please select at least one image', start: 'Start OCR',
-      imagesSelected: ' selected', previousResult: 'Previous Result'
+      imagesSelected: ' selected', previousResult: 'Previous Result',
+      submitted: 'OCR task submitted', buttonText: 'OCR ({count} selected)'
     },
     generate: {
       title: 'AI Script Generation', noOcr: 'No OCR result yet, recommend running OCR first',
-      tipsPlaceholder: 'Optional, e.g.: highlight value, target young audience', start: 'Generate',
-      agent: 'Select Agent', selectAgent: 'Please select an agent'
+      tipsPlaceholder: 'Optional, e.g.: highlight value, emphasize limited-time offer, lively tone', start: 'Generate',
+      agent: 'Select Agent', selectAgent: 'Please select an agent',
+      submitted: 'Generation task submitted'
     },
     tts: {
       title: 'Text to Speech', noScript: 'Please enter script text first',
-      placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio'
+      placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio',
+      voice: 'TTS Voice', submitted: 'TTS task submitted'
     }
   },
   tabTag: {
