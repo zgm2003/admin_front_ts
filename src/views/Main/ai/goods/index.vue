@@ -59,6 +59,7 @@ const columns = computed(() => [
   { key: 'platform', label: t('goods.table.platform'), width: 100 },
   { key: 'status', label: t('goods.table.status'), width: 110 },
   { key: 'audio_url', label: t('goods.table.audio_url'), width: 280, overflowTooltip: false },
+  { key: 'srt_url', label: 'SRT', width: 130 },
   { key: 'created_at', label: t('common.createdAt'), width: 160 },
   { key: 'actions', label: t('common.actions.action'), width: 200 }
 ])
@@ -82,6 +83,7 @@ const platforms = [
   { name: '京东', img: 'jingdong.jpg', url: 'https://www.jd.com' },
   { name: '天猫', img: 'tianmao.webp', url: 'https://www.tmall.com' },
   { name: '天猫超市', img: 'tianmaoShop.webp', url: 'https://chaoshi.tmall.com' },
+  { name: '拼多多', img: 'pinduoduo.png', url: 'https://mobile.yangkeduo.com' },
 ]
 const platformImgs = import.meta.glob('@/assets/img/platform/*', { eager: true, import: 'default' }) as Record<string, string>
 const getPlatformImg = (filename: string) => {
@@ -101,6 +103,7 @@ const edit = (row: any) => {
     image_list: row.image_list || [], image_list_success: row.image_list_success || row.image_list || [],
     status: row.status, status_name: row.status_name || '',
     meta: row.meta || {},
+    srt_url: row.srt_url || '',
   }
   // 编辑弹窗内的智能体选择
   editAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
@@ -218,6 +221,13 @@ const textToMeta = (text: string): Record<string, string> => {
 
 const editMetaText = ref('')
 
+const downloadSrt = (url: string) => {
+  const a = document.createElement('a')
+  a.href = url
+  a.download = url.split('/').pop() || 'subtitle.srt'
+  a.click()
+}
+
 const statusType = (status: number): 'info' | 'warning' | 'success' | 'danger' | 'primary' => {
   const map: Record<number, 'info' | 'warning' | 'success' | 'danger' | 'primary'> = {
     1: 'info', 2: 'warning', 3: 'primary', 4: 'warning', 5: 'primary', 6: 'warning', 7: 'success', 8: 'danger'
@@ -277,6 +287,11 @@ onMounted(() => {
 
         <template #cell-audio_url="{ row }">
           <audio v-if="row.audio_url" :src="row.audio_url" controls style="height:30px;width:250px" />
+          <span v-else>-</span>
+        </template>
+
+        <template #cell-srt_url="{ row }">
+          <el-button v-if="row.srt_url" type="primary" text size="small" @click="downloadSrt(row.srt_url)">{{ t('goods.srt.download') }}</el-button>
           <span v-else>-</span>
         </template>
 
@@ -399,6 +414,10 @@ onMounted(() => {
               style="width:100%" :disabled="!form.script_text">
               {{ t('goods.tts.start') }}
             </el-button>
+            <el-button v-if="form.srt_url" type="success" size="small" style="width:100%;margin-top:6px"
+              @click="downloadSrt(form.srt_url)">
+              {{ t('goods.srt.download') }}
+            </el-button>
           </div>
         </div>
       </div>
@@ -441,6 +460,12 @@ onMounted(() => {
       <template v-if="detailData.audio_url">
         <div class="detail-section-title">{{ t('goods.table.audio_url') }}</div>
         <audio :src="detailData.audio_url" controls style="width:100%;margin-top:8px" />
+      </template>
+      <template v-if="detailData.srt_url">
+        <div class="detail-section-title">SRT {{ t('goods.srt.download') }}</div>
+        <el-button type="primary" size="small" style="margin-top:8px" @click="downloadSrt(detailData.srt_url)">
+          {{ t('goods.srt.download') }}
+        </el-button>
       </template>
       <template v-if="detailData.image_list?.length">
         <div class="detail-section-title">{{ t('goods.detail.images') }}</div>

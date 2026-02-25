@@ -1128,7 +1128,8 @@ export default {
       title: 'Text to Speech', noScript: 'Please enter script text first',
       placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio',
       voice: 'TTS Voice', emotion: 'Emotion Preset', submitted: 'TTS task submitted'
-    }
+    },
+    srt: { download: 'Download SRT Subtitle', noSrt: 'No subtitle file' }
   },
   tabTag: {
     refresh: 'Refresh',

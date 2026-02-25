@@ -1129,7 +1129,8 @@ export default {
       title: '语音合成', noScript: '请先填写口播词内容',
       placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频',
       voice: 'TTS音色', emotion: '情绪预设', submitted: 'TTS任务已提交'
-    }
+    },
+    srt: { download: '下载SRT字幕', noSrt: '暂无字幕文件' }
   },
   tabTag: {
     refresh: '刷新当前',
