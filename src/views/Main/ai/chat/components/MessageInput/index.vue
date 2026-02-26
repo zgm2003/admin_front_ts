@@ -430,11 +430,7 @@ defineExpose({
               {{ runtimeTemperature !== null ? runtimeTemperature.toFixed(1) : t('aiChat.useDefault') }}
             </span>
           </div>
-          <div class="params-slider-wrap">
-            <span class="params-bound">0</span>
-            <input type="range" class="params-range" :value="runtimeTemperature ?? 1" @input="(e: Event) => runtimeTemperature = parseFloat((e.target as HTMLInputElement).value)" min="0" max="2" step="0.1" />
-            <span class="params-bound">2</span>
-          </div>
+          <el-slider :model-value="runtimeTemperature ?? 1" @update:model-value="(v: number | number[]) => runtimeTemperature = v as number" :min="0" :max="2" :step="0.1" :show-tooltip="false" size="small" />
         </div>
         <div class="params-item">
           <div class="params-item-header">
@@ -443,11 +439,7 @@ defineExpose({
               {{ runtimeMaxTokens !== null ? runtimeMaxTokens.toLocaleString() : t('aiChat.useDefault') }}
             </span>
           </div>
-          <div class="params-slider-wrap">
-            <span class="params-bound">256</span>
-            <input type="range" class="params-range" :value="runtimeMaxTokens ?? 4096" @input="(e: Event) => runtimeMaxTokens = parseInt((e.target as HTMLInputElement).value)" min="256" max="32768" step="256" />
-            <span class="params-bound">32k</span>
-          </div>
+          <el-slider :model-value="runtimeMaxTokens ?? 4096" @update:model-value="(v: number | number[]) => runtimeMaxTokens = v as number" :min="256" :max="32768" :step="256" :show-tooltip="false" size="small" />
         </div>
       </div>
       <div class="params-item params-item-full">
@@ -457,11 +449,7 @@ defineExpose({
             {{ runtimeMaxHistory !== null ? runtimeMaxHistory : '20' }}
           </span>
         </div>
-        <div class="params-slider-wrap">
-          <span class="params-bound">1</span>
-          <input type="range" class="params-range" :value="runtimeMaxHistory ?? 20" @input="(e: Event) => runtimeMaxHistory = parseInt((e.target as HTMLInputElement).value)" min="1" max="50" step="1" />
-          <span class="params-bound">50</span>
-        </div>
+        <el-slider :model-value="runtimeMaxHistory ?? 20" @update:model-value="(v: number | number[]) => runtimeMaxHistory = v as number" :min="1" :max="50" :step="1" :show-tooltip="false" size="small" />
       </div>
     </div>
 
@@ -826,65 +814,10 @@ defineExpose({
   font-weight: 500;
 }
 
-.params-slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.params-bound {
-  font-size: 10px;
-  color: var(--el-text-color-placeholder);
-  flex-shrink: 0;
-  min-width: 20px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.params-range {
-  flex: 1;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--el-border-color-lighter);
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.params-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--el-color-primary);
-  border: 2px solid #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.params-range::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-}
-
-.params-range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--el-color-primary);
-  border: 2px solid #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-}
-
-.params-range::-moz-range-track {
-  height: 4px;
-  background: var(--el-border-color-lighter);
-  border-radius: 2px;
+/* el-slider 微调 */
+:deep(.el-slider) {
+  --el-slider-height: 4px;
+  --el-slider-button-size: 14px;
 }
 
 /* 移动端适配：参数面板竖排 + 整体紧凑 */
@@ -919,21 +852,6 @@ defineExpose({
 
   .params-item-header {
     margin-bottom: 2px;
-  }
-
-  .params-bound {
-    min-width: 14px;
-    font-size: 9px;
-  }
-
-  .params-range::-webkit-slider-thumb {
-    width: 12px;
-    height: 12px;
-  }
-
-  .params-range::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
   }
 
   .input-toolbar {
