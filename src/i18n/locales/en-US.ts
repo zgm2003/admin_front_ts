@@ -682,7 +682,16 @@ export default {
     noAgent: 'No agents available',
     // History conversations
     historyConversations: 'History',
-    currentAgent: 'Current Agent'
+    currentAgent: 'Current Agent',
+    // 语音输入
+    voiceInput: 'Voice Input',
+    voiceNotSupported: 'Voice recognition not supported in this browser',
+    voiceNoSpeech: 'No speech detected, please try again',
+    voiceDenied: 'Microphone permission denied',
+    voiceError: 'Voice recognition failed',
+    voiceRecording: 'Listening... click to stop',
+    // Emoji
+    insertEmoji: 'Insert Emoji'
   },
   aiRuns: {
     filter: {

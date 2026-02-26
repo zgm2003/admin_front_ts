@@ -683,7 +683,16 @@ export default {
     noAgent: '暂无智能体',
     // 历史会话
     historyConversations: '历史会话',
-    currentAgent: '当前智能体'
+    currentAgent: '当前智能体',
+    // 语音输入
+    voiceInput: '语音输入',
+    voiceNotSupported: '当前浏览器不支持语音识别',
+    voiceNoSpeech: '未检测到语音，请重试',
+    voiceDenied: '麦克风权限被拒绝',
+    voiceError: '语音识别失败',
+    voiceRecording: '正在识别语音，点击停止',
+    // Emoji
+    insertEmoji: '插入表情'
   },
   aiRuns: {
     filter: {
