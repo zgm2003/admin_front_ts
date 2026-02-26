@@ -697,6 +697,7 @@ export default {
     runtimeParams: 'Parameters',
     temperature: 'Temperature',
     maxTokens: 'Max Tokens',
+    maxHistory: 'Context Rounds',
     useDefault: 'Default',
     resetParams: 'Reset'
   },

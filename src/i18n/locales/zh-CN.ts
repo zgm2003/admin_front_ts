@@ -698,6 +698,7 @@ export default {
     runtimeParams: '参数设置',
     temperature: '温度',
     maxTokens: '最大输出',
+    maxHistory: '上下文轮数',
     useDefault: '默认',
     resetParams: '重置'
   },

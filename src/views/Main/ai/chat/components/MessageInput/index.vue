@@ -60,19 +60,22 @@ const showParamsPanel = ref(false)
 // ==================== Runtime Params ====================
 const runtimeTemperature = ref<number | null>(null)
 const runtimeMaxTokens = ref<number | null>(null)
+const runtimeMaxHistory = ref<number | null>(null)
 
-const hasCustomParams = computed(() => runtimeTemperature.value !== null || runtimeMaxTokens.value !== null)
+const hasCustomParams = computed(() => runtimeTemperature.value !== null || runtimeMaxTokens.value !== null || runtimeMaxHistory.value !== null)
 
 const getRequestParams = () => {
   const result: Record<string, number> = {}
   if (runtimeTemperature.value !== null) result.temperature = runtimeTemperature.value
   if (runtimeMaxTokens.value !== null) result.max_tokens = runtimeMaxTokens.value
+  if (runtimeMaxHistory.value !== null) result.max_history = runtimeMaxHistory.value
   return result
 }
 
 const resetParams = () => {
   runtimeTemperature.value = null
   runtimeMaxTokens.value = null
+  runtimeMaxHistory.value = null
 }
 
 const MAX_IMAGES = 5
@@ -445,6 +448,19 @@ defineExpose({
             <input type="range" class="params-range" :value="runtimeMaxTokens ?? 4096" @input="(e: Event) => runtimeMaxTokens = parseInt((e.target as HTMLInputElement).value)" min="256" max="32768" step="256" />
             <span class="params-bound">32k</span>
           </div>
+        </div>
+      </div>
+      <div class="params-item params-item-full">
+        <div class="params-item-header">
+          <span class="params-item-label">{{ t('aiChat.maxHistory') }}</span>
+          <span class="params-item-value" :class="{ custom: runtimeMaxHistory !== null }">
+            {{ runtimeMaxHistory !== null ? runtimeMaxHistory : '20' }}
+          </span>
+        </div>
+        <div class="params-slider-wrap">
+          <span class="params-bound">1</span>
+          <input type="range" class="params-range" :value="runtimeMaxHistory ?? 20" @input="(e: Event) => runtimeMaxHistory = parseInt((e.target as HTMLInputElement).value)" min="1" max="50" step="1" />
+          <span class="params-bound">50</span>
         </div>
       </div>
     </div>
