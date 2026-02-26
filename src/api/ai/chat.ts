@@ -13,6 +13,8 @@ export interface StreamParams {
   agent_id?: number
   max_history?: number
   attachments?: Attachment[]
+  temperature?: number
+  max_tokens?: number
 }
 
 export interface StreamCallbacks {
@@ -30,6 +32,8 @@ export const AiChatApi = {
     conversation_id?: number
     agent_id?: number
     max_history?: number
+    temperature?: number
+    max_tokens?: number
   }) => request.post('/api/admin/AiChat/send', params),
 
   // 发送消息并获取 AI 回复（流式 SSE）

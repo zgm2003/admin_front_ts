@@ -42,9 +42,6 @@ const form = ref({
   system_prompt: '',
   mode: 'chat',
   scene: 'chat',
-  temperature: 1,
-  max_tokens: '',
-  extra_params: '',
   status: 1
 } as any)
 const formRef = ref<FormInstance | null>(null)
@@ -94,7 +91,6 @@ const columns = computed(() => [
   {key: 'model_name', label: t('aiAgents.table.model_name'), width: 160},
   {key: 'mode', label: t('aiAgents.table.mode'), width: 90},
   {key: 'scene', label: t('aiAgents.table.scene'), width: 120},
-  {key: 'temperature', label: t('aiAgents.table.temperature'), width: 80},
   {key: 'system_prompt', label: t('aiAgents.table.system_prompt'), overflowTooltip: true},
   {key: 'status', label: t('aiAgents.table.status'), width: 90},
   {key: 'created_at', label: t('aiAgents.table.created_at'), width: 160},
@@ -110,9 +106,6 @@ const add = () => {
     system_prompt: '',
     mode: 'chat',
     scene: 'chat',
-    temperature: 1,
-    max_tokens: '',
-    extra_params: '',
     status: 1
   }
   dialogVisible.value = true
@@ -129,9 +122,6 @@ const edit = (row: any) => {
     system_prompt: row.system_prompt || '',
     mode: row.mode,
     scene: row.scene || 'chat',
-    temperature: row.temperature,
-    max_tokens: row.max_tokens || '',
-    extra_params: row.extra_params ? JSON.stringify(row.extra_params) : '',
     status: row.status
   }
   dialogVisible.value = true
@@ -154,17 +144,7 @@ const confirmSubmit = async () => {
     system_prompt: v.system_prompt || null,
     mode: v.mode,
     scene: v.scene,
-    temperature: v.temperature,
-    max_tokens: v.max_tokens || null,
     status: v.status
-  }
-  if (v.extra_params) {
-    try {
-      payload.extra_params = JSON.parse(v.extra_params)
-    } catch {
-      ElNotification.error({message: t('aiAgents.form.invalidJson')})
-      return
-    }
   }
   if (dialogMode.value === 'edit') payload.id = v.id
 
@@ -260,26 +240,9 @@ onMounted(() => {
             <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width:100%"/>
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="12">
-          <el-form-item :label="t('aiAgents.form.temperature')" prop="temperature">
-            <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" :precision="2" :controls="false"
-                             style="width:100%"/>
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="12">
-          <el-form-item :label="t('aiAgents.form.max_tokens')" prop="max_tokens">
-            <el-input-number v-model="form.max_tokens" :min="1" :controls="false" style="width:100%"/>
-          </el-form-item>
-        </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiAgents.form.system_prompt')" prop="system_prompt">
             <el-input v-model="form.system_prompt" type="textarea" :rows="4" :placeholder="t('aiAgents.form.systemPromptPlaceholder')"/>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiAgents.form.extra_params')" prop="extra_params">
-            <el-input v-model="form.extra_params" type="textarea" :rows="2"
-                      placeholder='{"top_p": 0.9, "presence_penalty": 0}'/>
           </el-form-item>
         </el-col>
         <el-col :span="24">

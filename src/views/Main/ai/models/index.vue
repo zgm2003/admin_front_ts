@@ -41,7 +41,6 @@ const form = ref({
   model_code: '',
   endpoint: '',
   api_key: '',
-  default_params: '',
   status: 1,
   modalities: {
     image: false,
@@ -91,7 +90,6 @@ const columns = computed(() => [
   {key: 'endpoint', label: t('aiModels.table.endpoint'), overflowTooltip: true},
   {key: 'api_key_hint', label: t('aiModels.table.api_key_hint'), width: 120},
   {key: 'modalities', label: t('aiModels.table.modalities'), width: 150},
-  {key: 'default_params', label: t('aiModels.table.default_params'), width: 200, overflowTooltip: true},
   {key: 'status', label: t('aiModels.table.status'), width: 100},
   {key: 'created_at', label: t('aiModels.table.created_at'), width: 160},
   {key: 'actions', label: t('common.actions.action'), width: 250}
@@ -105,7 +103,6 @@ const add = () => {
     model_code: '',
     endpoint: '',
     api_key: '',
-    default_params: '',
     status: 1,
     modalities: {
       image: false,
@@ -127,7 +124,6 @@ const edit = (row: any) => {
     model_code: row.model_code || '',
     endpoint: row.endpoint || '',
     api_key: '',
-    default_params: row.default_params ? JSON.stringify(row.default_params) : '',
     status: row.status,
     modalities: row.modalities || {
       image: false,
@@ -156,14 +152,6 @@ const confirmSubmit = async () => {
     endpoint: v.endpoint || null,
     status: v.status,
     modalities: v.modalities
-  }
-  if (v.default_params) {
-    try {
-      payload.default_params = JSON.parse(v.default_params)
-    } catch {
-      ElNotification.error({message: t('aiModels.form.invalidJson')})
-      return
-    }
   }
   if (v.api_key) payload.api_key = v.api_key
   if (dialogMode.value === 'edit') payload.id = v.id
@@ -212,10 +200,6 @@ onMounted(() => {
             <span v-if="!row.modalities?.image && !row.modalities?.audio && !row.modalities?.video && !row.modalities?.file">-</span>
           </div>
         </template>
-        <template #cell-default_params="{row}">
-          <el-text v-if="row.default_params" truncated>{{ JSON.stringify(row.default_params) }}</el-text>
-          <span v-else>-</span>
-        </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
@@ -261,12 +245,6 @@ onMounted(() => {
           <el-form-item :label="t('aiModels.form.api_key')" prop="api_key">
             <el-input v-model="form.api_key" type="password" show-password
                       :placeholder="dialogMode === 'edit' ? t('aiModels.form.apiKeyEditPlaceholder') : t('aiModels.form.apiKeyPlaceholder')" clearable/>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiModels.form.default_params')" prop="default_params">
-            <el-input v-model="form.default_params" type="textarea" :rows="3"
-                      placeholder='{"temperature": 0.7, "max_tokens": 2048}'/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

@@ -683,7 +683,15 @@ export default {
     noAgent: '暂无智能体',
     // 历史会话
     historyConversations: '历史会话',
-    currentAgent: '当前智能体'
+    currentAgent: '当前智能体',
+    // 运行时参数
+    runtimeParams: '参数设置',
+    temperature: '温度',
+    temperatureTip: '值越高回复越随机，越低越确定',
+    maxTokens: '最大Token',
+    maxTokensTip: '限制单次回复的最大长度',
+    useDefault: '默认',
+    resetParams: '重置为默认',
   },
   aiRuns: {
     filter: {
