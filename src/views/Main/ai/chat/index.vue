@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, Loading, Setting } from '@element-plus/icons-vue'
+import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 import AgentList from './components/AgentList/index.vue'
@@ -15,8 +15,7 @@ import {
   useMessages,
   useAgents,
   useStreamChat,
-  useChatSessionManager,
-  useRuntimeParams
+  useChatSessionManager
 } from './composables'
 import type { Agent, Conversation } from './composables/types'
 
@@ -30,10 +29,6 @@ const switchingAgent = ref(false)
 
 // ========== Session Manager ==========
 const sessionManager = useChatSessionManager()
-
-// ========== Runtime Params ==========
-const { params: runtimeParams, hasCustomParams, getRequestParams, reset: resetRuntimeParams } = useRuntimeParams()
-const showParamsPopover = ref(false)
 
 // ========== Composables ==========
 const {
@@ -97,7 +92,6 @@ const {
   loadMessages,
   getActiveAgentId: () => selectedAgentId.value,
   getSession: (agentId: number) => sessionManager.getOrCreate(agentId),
-  getRuntimeParams: getRequestParams,
 })
 
 // ========== 计算属性 ==========
@@ -300,26 +294,9 @@ const handleBackToAgentList = () => {
 }
 
 // ========== 生命周期 ==========
-// 组件是否已卸载（防止异步回调更新已卸载组件的状态）
-let unmounted = false
-onUnmounted(() => { unmounted = true })
-
 onMounted(async () => {
   await loadAgents()
-  if (selectedAgentId.value && !unmounted) {
-    // 初始加载会话列表并打开今日会话
-    loadConversations({ agent_id: selectedAgentId.value }).then(() => {
-      if (unmounted) return
-      const session = sessionManager.getOrCreate(selectedAgentId.value!)
-      session.conversations = [...conversations.value]
-      session.conversationsLoaded = true
-
-      const todayConv = findTodayConversation(conversations.value)
-      if (todayConv) {
-        currentConversationId.value = todayConv.id
-        session.conversationId = todayConv.id
-      }
-    }).catch(() => { /* ignore */ })
+  if (selectedAgentId.value) {
     nextTick(() => messageInputRef.value?.focus())
   }
 })
@@ -366,52 +343,6 @@ watch(currentConversationId, async (newId, oldId) => {
             {{ selectedAgent.name }}
           </span>
         </div>
-        <!-- 参数设置按钮 -->
-        <el-popover
-          v-if="selectedAgentId"
-          v-model:visible="showParamsPopover"
-          placement="bottom-end"
-          :width="280"
-          trigger="click"
-        >
-          <template #reference>
-            <el-button text :class="{ 'params-btn-active': hasCustomParams }">
-              <el-icon :size="18"><Setting /></el-icon>
-            </el-button>
-          </template>
-          <div class="params-panel">
-            <div class="params-header">
-              <span>{{ t('aiChat.runtimeParams') }}</span>
-              <el-button text size="small" @click="resetRuntimeParams">{{ t('aiChat.resetParams') }}</el-button>
-            </div>
-            <div class="params-item">
-              <div class="params-label">
-                <span>{{ t('aiChat.temperature') }}</span>
-                <span class="params-value">{{ runtimeParams.temperature !== null ? runtimeParams.temperature.toFixed(1) : t('aiChat.useDefault') }}</span>
-              </div>
-              <el-slider
-                :model-value="runtimeParams.temperature ?? 0.7"
-                @update:model-value="(v: number) => runtimeParams.temperature = v"
-                :min="0" :max="2" :step="0.1"
-                :show-tooltip="false"
-              />
-              <div class="params-tip">{{ t('aiChat.temperatureTip') }}</div>
-            </div>
-            <div class="params-item">
-              <div class="params-label">
-                <span>{{ t('aiChat.maxTokens') }}</span>
-                <span class="params-value">{{ runtimeParams.max_tokens !== null ? runtimeParams.max_tokens : t('aiChat.useDefault') }}</span>
-              </div>
-              <el-slider
-                :model-value="runtimeParams.max_tokens ?? 4096"
-                @update:model-value="(v: number) => runtimeParams.max_tokens = v"
-                :min="256" :max="32768" :step="256"
-                :show-tooltip="false"
-              />
-              <div class="params-tip">{{ t('aiChat.maxTokensTip') }}</div>
-            </div>
-          </div>
-        </el-popover>
       </div>
 
       <!-- 消息滚动区 -->
@@ -641,50 +572,5 @@ watch(currentConversationId, async (newId, oldId) => {
 @media (max-width: 768px) {
   .welcome-content { padding: 0 16px; }
   .welcome-title { font-size: 24px; }
-}
-
-.params-btn-active {
-  color: var(--el-color-primary) !important;
-}
-
-.params-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.params-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--el-text-color-primary);
-}
-
-.params-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.params-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: var(--el-text-color-primary);
-}
-
-.params-value {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.params-tip {
-  font-size: 11px;
-  color: var(--el-text-color-placeholder);
-  line-height: 1.4;
 }
 </style>

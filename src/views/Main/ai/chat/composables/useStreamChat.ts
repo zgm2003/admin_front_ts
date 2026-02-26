@@ -14,7 +14,6 @@ const SCROLL_THROTTLE = 100
 export interface StreamChatOptionsV2 extends StreamChatOptions {
   getActiveAgentId: () => number | null
   getSession: (agentId: number) => ChatSession | undefined
-  getRuntimeParams?: () => Record<string, number>
 }
 
 export function useStreamChat(options: StreamChatOptionsV2) {
@@ -22,7 +21,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
   const {
     messages, conversations, currentConversationId,
     selectedAgentId, selectedAgent, scrollToBottom,
-    getActiveAgentId, getSession, getRuntimeParams,
+    getActiveAgentId, getSession,
   } = options
 
   const sending = ref(false)
@@ -279,8 +278,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         content,
         conversation_id: currentConversationId.value || undefined,
         agent_id: currentConversationId.value ? undefined : agentId ?? undefined,
-        attachments: attachments?.length ? attachments : undefined,
-        ...getRuntimeParams?.(),
+        attachments: attachments?.length ? attachments : undefined
       }, callbacks)
     } catch (error: any) {
       clearAgentTimer(agentId!)
@@ -353,8 +351,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       const callbacks = createCallbacks(agentId, requestConversationId)
       await AiChatApi.stream({
         content: userMsg.content,
-        conversation_id: currentConversationId.value!,
-        ...getRuntimeParams?.(),
+        conversation_id: currentConversationId.value!
       }, callbacks)
     } catch (error: any) {
       clearAgentTimer(agentId)
@@ -465,8 +462,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       const callbacks = createCallbacks(agentId, currentConversationId.value)
       await AiChatApi.stream({
         content: newContent,
-        conversation_id: currentConversationId.value!,
-        ...getRuntimeParams?.(),
+        conversation_id: currentConversationId.value!
       }, callbacks)
     } catch (error: any) {
       clearAgentTimer(agentId)

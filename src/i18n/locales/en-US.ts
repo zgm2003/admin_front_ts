@@ -682,15 +682,7 @@ export default {
     noAgent: 'No agents available',
     // History conversations
     historyConversations: 'History',
-    currentAgent: 'Current Agent',
-    // Runtime params
-    runtimeParams: 'Parameters',
-    temperature: 'Temperature',
-    temperatureTip: 'Higher values make output more random, lower more deterministic',
-    maxTokens: 'Max Tokens',
-    maxTokensTip: 'Limit the maximum length of a single response',
-    useDefault: 'Default',
-    resetParams: 'Reset to Default',
+    currentAgent: 'Current Agent'
   },
   aiRuns: {
     filter: {
