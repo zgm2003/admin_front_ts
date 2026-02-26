@@ -297,7 +297,30 @@ const handleBackToAgentList = () => {
 // ========== 生命周期 ==========
 onMounted(async () => {
   await loadAgents()
-  if (selectedAgentId.value) {
+
+  // 自动初始化第一个智能体的会话（loadAgents 已设置 selectedAgentId）
+  const agentId = selectedAgentId.value
+  if (agentId) {
+    switchingAgent.value = true
+    try {
+      await loadConversations({ agent_id: agentId })
+      if (selectedAgentId.value !== agentId) return // 防竞态
+
+      const session = sessionManager.getOrCreate(agentId)
+      session.conversations = [...conversations.value]
+      session.conversationsLoaded = true
+
+      const todayConv = findTodayConversation(conversations.value)
+      if (todayConv) {
+        currentConversationId.value = todayConv.id
+        session.conversationId = todayConv.id
+      }
+    } catch { /* ignore */ }
+    finally {
+      if (selectedAgentId.value === agentId) {
+        switchingAgent.value = false
+      }
+    }
     nextTick(() => messageInputRef.value?.focus())
   }
 })
