@@ -65,7 +65,7 @@ export const AiChatApi = {
       onError: callbacks.onError,
       onComplete: () => {
         if (!doneReceived) {
-          callbacks.onDone?.({ conversation_id: 0, run_id: 0 })
+          callbacks.onDone?.({ conversation_id: 0, run_id: 0, user_message_id: 0, assistant_message_id: 0 })
         }
       },
     })

@@ -79,9 +79,11 @@ const resetParams = () => {
 }
 
 const MAX_IMAGES = 5
+const MAX_CONTENT_LENGTH = 30000
 
 const supportsImage = computed(() => props.modalities?.image === true)
 const isImageLimitReached = computed(() => pendingAttachments.value.length >= MAX_IMAGES)
+const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
 
 // ==================== textarea 自动高度 ====================
 
@@ -482,6 +484,7 @@ defineExpose({
         @paste="handlePaste"
         :placeholder="disabled ? t('aiChat.selectAgentFirst') : t('aiChat.inputPlaceholder')"
         :disabled="sending || disabled || isRecording"
+        :maxlength="MAX_CONTENT_LENGTH"
         rows="1"
         class="chat-textarea"
       />
@@ -496,6 +499,9 @@ defineExpose({
       <span v-else class="input-hint">
         {{ isMobile ? t('aiChat.inputHintMobile') : t('aiChat.inputHint') }}
         <template v-if="supportsImage && !isMobile">{{ t('aiChat.inputHintImage') }}</template>
+      </span>
+      <span v-if="showCharCount" class="char-count" :class="{ 'near-limit': inputText.length >= MAX_CONTENT_LENGTH }">
+        {{ inputText.length.toLocaleString() }} / {{ MAX_CONTENT_LENGTH.toLocaleString() }}
       </span>
       <!-- 停止按钮 -->
       <button v-if="isStreaming" class="stop-button" @click="emit('stop')">
@@ -818,6 +824,21 @@ defineExpose({
 :deep(.el-slider) {
   --el-slider-height: 4px;
   --el-slider-button-size: 14px;
+}
+
+/* 字数计数器 */
+.char-count {
+  font-size: 11px;
+  color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.char-count.near-limit {
+  color: var(--el-color-danger);
+  font-weight: 500;
 }
 
 /* 移动端适配：参数面板竖排 + 整体紧凑 */
