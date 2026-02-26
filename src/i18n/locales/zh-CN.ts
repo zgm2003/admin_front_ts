@@ -644,6 +644,7 @@ export default {
     // 输入框提示
     inputHint: 'Enter 发送，Shift + Enter 换行',
     inputHintImage: '，支持粘贴/拖拽图片',
+    inputHintMobile: 'Enter 发送',
     selectAgentFirst: '请先选择智能体',
     // 消息操作
     copyFailed: '复制失败',
@@ -692,7 +693,13 @@ export default {
     voiceError: '语音识别失败',
     voiceRecording: '正在识别语音，点击停止',
     // Emoji
-    insertEmoji: '插入表情'
+    insertEmoji: '插入表情',
+    // 运行时参数
+    runtimeParams: '参数设置',
+    temperature: '温度',
+    maxTokens: '最大输出',
+    useDefault: '默认',
+    resetParams: '重置'
   },
   aiRuns: {
     filter: {

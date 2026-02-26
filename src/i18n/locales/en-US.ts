@@ -643,6 +643,7 @@ export default {
     // Input hints
     inputHint: 'Enter to send, Shift + Enter for new line',
     inputHintImage: ', supports paste/drag images',
+    inputHintMobile: 'Enter to send',
     selectAgentFirst: 'Please select an agent first',
     // Message actions
     copyFailed: 'Copy failed',
@@ -691,7 +692,13 @@ export default {
     voiceError: 'Voice recognition failed',
     voiceRecording: 'Listening... click to stop',
     // Emoji
-    insertEmoji: 'Insert Emoji'
+    insertEmoji: 'Insert Emoji',
+    // Runtime Params
+    runtimeParams: 'Parameters',
+    temperature: 'Temperature',
+    maxTokens: 'Max Tokens',
+    useDefault: 'Default',
+    resetParams: 'Reset'
   },
   aiRuns: {
     filter: {

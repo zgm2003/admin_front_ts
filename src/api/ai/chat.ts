@@ -13,6 +13,8 @@ export interface StreamParams {
   agent_id?: number
   max_history?: number
   attachments?: Attachment[]
+  temperature?: number
+  max_tokens?: number
 }
 
 export interface StreamCallbacks {

@@ -2,12 +2,14 @@
 import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { Picture, Close, Loading, ChatLineSquare, Microphone } from '@element-plus/icons-vue'
+import { Picture, Close, Loading, ChatLineSquare, Microphone, Setting, RefreshRight } from '@element-plus/icons-vue'
 import { DIcon } from '@/components/DIcon'
 import { EmojiPicker } from '@/components/EmojiPicker'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } from '@/utils/cosUpload'
 
 const { t } = useI18n()
+const isMobile = useIsMobile()
 
 // Types
 interface Modalities {
@@ -42,7 +44,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  send: [content: string, attachments?: Attachment[]]
+  send: [content: string, attachments?: Attachment[], runtimeParams?: Record<string, number>]
   stop: []
   openHistory: []
 }>()
@@ -53,6 +55,25 @@ const fileInputRef = ref<HTMLInputElement>()
 const pendingAttachments = ref<PendingAttachment[]>([])
 const isDragging = ref(false)
 const showEmojiPicker = ref(false)
+const showParamsPanel = ref(false)
+
+// ==================== Runtime Params ====================
+const runtimeTemperature = ref<number | null>(null)
+const runtimeMaxTokens = ref<number | null>(null)
+
+const hasCustomParams = computed(() => runtimeTemperature.value !== null || runtimeMaxTokens.value !== null)
+
+const getRequestParams = () => {
+  const result: Record<string, number> = {}
+  if (runtimeTemperature.value !== null) result.temperature = runtimeTemperature.value
+  if (runtimeMaxTokens.value !== null) result.max_tokens = runtimeMaxTokens.value
+  return result
+}
+
+const resetParams = () => {
+  runtimeTemperature.value = null
+  runtimeMaxTokens.value = null
+}
 
 const MAX_IMAGES = 5
 
@@ -322,7 +343,7 @@ const handleSend = () => {
     .filter(a => a.status === 'done' && a.url)
     .map(a => ({ type: 'image' as const, url: a.url!, name: a.file.name, size: a.file.size }))
 
-  emit('send', content, attachments.length > 0 ? attachments : undefined)
+  emit('send', content, attachments.length > 0 ? attachments : undefined, hasCustomParams.value ? getRequestParams() : undefined)
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
@@ -345,7 +366,8 @@ defineExpose({
     pendingAttachments.value = []
     if (textareaRef.value) textareaRef.value.style.height = 'auto'
   },
-  focus: () => { textareaRef.value?.focus() }
+  focus: () => { textareaRef.value?.focus() },
+  getRequestParams
 })
 </script>
 
@@ -381,6 +403,49 @@ defineExpose({
           </template>
           <EmojiPicker @select="handleEmojiSelect" />
         </el-popover>
+        <!-- 参数设置 -->
+        <el-button text class="toolbar-btn" :class="{ 'params-active': hasCustomParams }" :disabled="sending || disabled" @click="showParamsPanel = !showParamsPanel" :title="t('aiChat.runtimeParams')">
+          <el-icon :size="18"><Setting /></el-icon>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 参数设置面板（v-if 懒加载，不常驻 DOM） -->
+    <div v-if="showParamsPanel" class="params-panel">
+      <div class="params-header">
+        <span class="params-title">{{ t('aiChat.runtimeParams') }}</span>
+        <button class="params-reset-btn" :class="{ active: hasCustomParams }" @click="resetParams">
+          <el-icon :size="12"><RefreshRight /></el-icon>
+          {{ t('aiChat.resetParams') }}
+        </button>
+      </div>
+      <div class="params-items">
+        <div class="params-item">
+          <div class="params-item-header">
+            <span class="params-item-label">{{ t('aiChat.temperature') }}</span>
+            <span class="params-item-value" :class="{ custom: runtimeTemperature !== null }">
+              {{ runtimeTemperature !== null ? runtimeTemperature.toFixed(1) : t('aiChat.useDefault') }}
+            </span>
+          </div>
+          <div class="params-slider-wrap">
+            <span class="params-bound">0</span>
+            <input type="range" class="params-range" :value="runtimeTemperature ?? 1" @input="(e: Event) => runtimeTemperature = parseFloat((e.target as HTMLInputElement).value)" min="0" max="2" step="0.1" />
+            <span class="params-bound">2</span>
+          </div>
+        </div>
+        <div class="params-item">
+          <div class="params-item-header">
+            <span class="params-item-label">{{ t('aiChat.maxTokens') }}</span>
+            <span class="params-item-value" :class="{ custom: runtimeMaxTokens !== null }">
+              {{ runtimeMaxTokens !== null ? runtimeMaxTokens.toLocaleString() : t('aiChat.useDefault') }}
+            </span>
+          </div>
+          <div class="params-slider-wrap">
+            <span class="params-bound">256</span>
+            <input type="range" class="params-range" :value="runtimeMaxTokens ?? 4096" @input="(e: Event) => runtimeMaxTokens = parseInt((e.target as HTMLInputElement).value)" min="256" max="32768" step="256" />
+            <span class="params-bound">32k</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -425,8 +490,8 @@ defineExpose({
         {{ t('aiChat.voiceRecording') }}
       </span>
       <span v-else class="input-hint">
-        {{ t('aiChat.inputHint') }}
-        <template v-if="supportsImage">{{ t('aiChat.inputHintImage') }}</template>
+        {{ isMobile ? t('aiChat.inputHintMobile') : t('aiChat.inputHint') }}
+        <template v-if="supportsImage && !isMobile">{{ t('aiChat.inputHintImage') }}</template>
       </span>
       <!-- 停止按钮 -->
       <button v-if="isStreaming" class="stop-button" @click="emit('stop')">
@@ -654,5 +719,237 @@ defineExpose({
   padding: 0 !important;
   border: none !important;
   box-shadow: none !important;
+}
+
+/* 参数设置 */
+.params-active {
+  color: var(--el-color-primary) !important;
+}
+
+.params-panel {
+  margin: 4px 12px 2px;
+  padding: 10px 12px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.params-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.params-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.params-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: var(--el-text-color-placeholder);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.params-reset-btn:hover {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.params-reset-btn.active {
+  color: var(--el-color-primary);
+}
+
+.params-items {
+  display: flex;
+  gap: 16px;
+}
+
+.params-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.params-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.params-item-label {
+  font-size: 11px;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+}
+
+.params-item-value {
+  font-size: 11px;
+  color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--el-fill-color);
+  transition: all 0.2s;
+}
+
+.params-item-value.custom {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  font-weight: 500;
+}
+
+.params-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.params-bound {
+  font-size: 10px;
+  color: var(--el-text-color-placeholder);
+  flex-shrink: 0;
+  min-width: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.params-range {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--el-border-color-lighter);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.params-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.params-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
+.params-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.params-range::-moz-range-track {
+  height: 4px;
+  background: var(--el-border-color-lighter);
+  border-radius: 2px;
+}
+
+/* 移动端适配：参数面板竖排 + 整体紧凑 */
+@media (max-width: 768px) {
+  .params-items {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .params-panel {
+    margin: 2px 8px;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .params-title {
+    font-size: 11px;
+  }
+
+  .params-reset-btn {
+    font-size: 10px;
+  }
+
+  .params-item-label {
+    font-size: 10px;
+  }
+
+  .params-item-value {
+    font-size: 10px;
+    padding: 0 4px;
+  }
+
+  .params-item-header {
+    margin-bottom: 2px;
+  }
+
+  .params-bound {
+    min-width: 14px;
+    font-size: 9px;
+  }
+
+  .params-range::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+  }
+
+  .params-range::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+  }
+
+  .input-toolbar {
+    padding: 4px 8px 0;
+  }
+
+  .toolbar-btn {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .input-body {
+    padding: 0 8px;
+  }
+
+  .input-footer {
+    padding: 2px 8px 6px;
+  }
+
+  .input-hint {
+    font-size: 11px;
+  }
+
+  .pending-area {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .pending-item {
+    width: 48px;
+    height: 48px;
+  }
 }
 </style>

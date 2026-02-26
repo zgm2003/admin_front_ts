@@ -92,6 +92,7 @@ const {
   loadMessages,
   getActiveAgentId: () => selectedAgentId.value,
   getSession: (agentId: number) => sessionManager.getOrCreate(agentId),
+  getRuntimeParams: () => messageInputRef.value?.getRequestParams?.() ?? {},
 })
 
 // ========== 计算属性 ==========
