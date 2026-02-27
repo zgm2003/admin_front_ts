@@ -51,8 +51,35 @@ const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiTools.form.name') + t('common.required'), trigger: 'blur' }],
   code: [{ required: true, message: t('aiTools.form.code') + t('common.required'), trigger: 'blur' }],
-  executor_type: [{ required: true, message: t('aiTools.form.executorType') + t('common.required'), trigger: 'change' }]
+  executor_type: [{ required: true, message: t('aiTools.form.executorType') + t('common.required'), trigger: 'change' }],
+  'executor_config.url': [{
+    validator: (_rule, value, callback) => {
+      if (form.value.executor_type !== 2) return callback()
+      if (!value || typeof value !== 'string' || !value.trim()) {
+        return callback(new Error(t('aiTools.form.httpUrl') + t('common.required')))
+      }
+      callback()
+    },
+    trigger: 'blur'
+  }],
+  'executor_config.sql': [{
+    validator: (_rule, value, callback) => {
+      if (form.value.executor_type !== 3) return callback()
+      if (!value || typeof value !== 'string' || !value.trim()) {
+        return callback(new Error(t('aiTools.form.sqlQuery') + t('common.required')))
+      }
+      callback()
+    },
+    trigger: 'blur'
+  }]
 }))
+
+const onExecutorTypeChange = () => {
+  if (!form.value.executor_config || typeof form.value.executor_config !== 'object') {
+    form.value.executor_config = {}
+  }
+  nextTick(() => formRef.value?.clearValidate(['executor_config.url', 'executor_config.sql']))
+}
 
 const init = () => {
   AiToolApi.init().then((data: any) => {
@@ -204,7 +231,7 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiTools.form.executorType')" prop="executor_type" required>
-            <el-select-v2 v-model="form.executor_type" :options="dict.ai_executor_type_arr" style="width:100%" />
+            <el-select-v2 v-model="form.executor_type" :options="dict.ai_executor_type_arr" style="width:100%" @change="onExecutorTypeChange" />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
@@ -224,13 +251,13 @@ onMounted(() => {
         </el-col>
         <!-- executor_type=2 HTTP: URL -->
         <el-col :span="24" v-if="form.executor_type === 2">
-          <el-form-item :label="t('aiTools.form.httpUrl')">
+          <el-form-item :label="t('aiTools.form.httpUrl')" prop="executor_config.url" required>
             <el-input v-model="form.executor_config.url" placeholder="https://" clearable />
           </el-form-item>
         </el-col>
         <!-- executor_type=3 SQL -->
         <el-col :span="24" v-if="form.executor_type === 3">
-          <el-form-item :label="t('aiTools.form.sqlQuery')">
+          <el-form-item :label="t('aiTools.form.sqlQuery')" prop="executor_config.sql" required>
             <el-input v-model="form.executor_config.sql" type="textarea" :rows="4" placeholder="SELECT * FROM table WHERE id = :id" />
           </el-form-item>
         </el-col>
