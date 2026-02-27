@@ -175,6 +175,7 @@ export default {
     ai_runs: 'Run Monitor',
     ai_prompt: 'Prompts',
     ai_goods: 'E-commerce Script',
+    ai_tools: 'AI Tools',
     // DevTools module
     devTools_gen: 'Code Generator',
     devTools_queueMonitor: 'Queue Monitor',
@@ -605,7 +606,9 @@ export default {
     },
     addTitle: 'Add Agent',
     editTitle: 'Edit Agent',
-    deleted: 'Deleted'
+    deleted: 'Deleted',
+    tools: 'Bind Tools',
+    selectTools: 'Select tools'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -699,7 +702,35 @@ export default {
     maxTokens: 'Max Tokens',
     maxHistory: 'Context Rounds',
     useDefault: 'Default',
-    resetParams: 'Reset'
+    resetParams: 'Reset',
+    // Tool calling
+    toolCalling: 'Calling tool',
+    toolDone: 'Tool call done',
+  },
+  aiTools: {
+    filter: { name: 'Tool Name', status: 'Status' },
+    table: {
+      name: 'Tool Name',
+      code: 'Tool Code',
+      executorType: 'Executor Type',
+      description: 'Description',
+      status: 'Status',
+      createdAt: 'Created At'
+    },
+    form: {
+      name: 'Tool Name',
+      code: 'Tool Code',
+      description: 'Description',
+      schemaJson: 'Parameter Schema',
+      schemaJsonPlaceholder: '{"properties":{"keyword":{"type":"string","description":"Search keyword","required":true}}}',
+      executorType: 'Executor Type',
+      status: 'Status',
+      httpUrl: 'HTTP URL',
+      sqlQuery: 'SQL Query',
+      invalidJson: 'Parameter Schema must be valid JSON'
+    },
+    addTitle: 'Add Tool',
+    editTitle: 'Edit Tool'
   },
   aiRuns: {
     filter: {

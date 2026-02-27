@@ -21,6 +21,8 @@ export interface StreamCallbacks {
   onContent?: (delta: string) => void
   onConversation?: (conversationId: number) => void
   onRun?: (runId: number, requestId: string) => void
+  onToolCall?: (data: { call_id: string; tool_name: string; tool_inputs: Record<string, any> }) => void
+  onToolResult?: (data: { call_id: string; tool_name: string; tool_result: string }) => void
   onDone?: (data: { conversation_id: number; run_id: number; user_message_id: number; assistant_message_id: number }) => void
   onError?: (msg: string) => void
 }
@@ -57,6 +59,12 @@ export const AiChatApi = {
             doneReceived = true
             callbacks.onDone?.(data)
             return true
+          case 'tool_call':
+            callbacks.onToolCall?.(data)
+            break
+          case 'tool_result':
+            callbacks.onToolResult?.(data)
+            break
           case 'error':
             callbacks.onError?.(data.msg || '未知错误')
             return true

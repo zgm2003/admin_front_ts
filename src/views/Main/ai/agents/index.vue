@@ -2,6 +2,7 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {AiAgentApi} from '@/api/ai/agents'
+import {AiToolApi} from '@/api/ai/tools'
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
@@ -15,6 +16,8 @@ import { CommonEnum } from '@/enums'
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const dict = ref({ai_mode_arr: [], ai_scene_arr: [], common_status_arr: [], model_list: []} as any)
+const toolOptions = ref<any[]>([])
+const boundToolIds = ref<number[]>([])
 
 const searchForm = ref({name: '', model_id: '', mode: '', status: ''} as any)
 
@@ -42,7 +45,8 @@ const form = ref({
   system_prompt: '',
   mode: 'chat',
   scene: 'chat',
-  status: 1
+  status: 1,
+  tool_ids: [] as number[]
 } as any)
 const formRef = ref<FormInstance | null>(null)
 
@@ -54,6 +58,13 @@ const rules = computed<FormRules>(() => ({
 const init = () => {
   AiAgentApi.init().then((data: any) => {
     dict.value = data.dict || {}
+  })
+}
+
+const loadToolOptions = (agentId?: number) => {
+  AiToolApi.getAgentTools({ agent_id: agentId || 0 }).then((data: any) => {
+    toolOptions.value = data.all_tools || []
+    boundToolIds.value = data.bound_tool_ids || []
   })
 }
 
@@ -106,8 +117,10 @@ const add = () => {
     system_prompt: '',
     mode: 'chat',
     scene: 'chat',
-    status: 1
+    status: 1,
+    tool_ids: []
   }
+  toolOptions.value = []
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
@@ -122,7 +135,14 @@ const edit = (row: any) => {
     system_prompt: row.system_prompt || '',
     mode: row.mode,
     scene: row.scene || 'chat',
-    status: row.status
+    status: row.status,
+    tool_ids: []
+  }
+  if (row.mode === 'tool') {
+    AiToolApi.getAgentTools({ agent_id: row.id }).then((data: any) => {
+      toolOptions.value = data.all_tools || []
+      form.value.tool_ids = data.bound_tool_ids || []
+    })
   }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
@@ -146,6 +166,7 @@ const confirmSubmit = async () => {
     scene: v.scene,
     status: v.status
   }
+  if (v.mode === 'tool') payload.tool_ids = v.tool_ids || []
   if (dialogMode.value === 'edit') payload.id = v.id
 
   api(payload).then(() => {
@@ -227,12 +248,17 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiAgents.form.mode')" prop="mode">
-            <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%"/>
+            <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%" @change="(val: string) => { if (val === 'tool') loadToolOptions(form.id) }"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiAgents.form.scene')" prop="scene">
             <el-select-v2 v-model="form.scene" :options="dict.ai_scene_arr" style="width:100%"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="24" v-if="form.mode === 'tool'">
+          <el-form-item :label="t('aiAgents.tools')">
+            <el-select-v2 v-model="form.tool_ids" :options="toolOptions" multiple filterable :placeholder="t('aiAgents.selectTools')" style="width:100%"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

@@ -4,6 +4,16 @@ import type { Attachment as AttachmentType } from '@/api/ai/chat'
 // 从 API 层重新导出，统一类型来源
 export type { StreamCallbacks, Attachment } from '@/api/ai/chat'
 
+// 工具调用记录
+export interface ToolCallRecord {
+  call_id: string
+  tool_name: string
+  tool_inputs: Record<string, any>
+  tool_result?: string
+  status: 'calling' | 'done'
+  _expanded?: boolean
+}
+
 // 会话类型
 export interface Conversation {
   id: number
@@ -23,6 +33,7 @@ export interface Message {
   content: string
   created_at: string
   isStreaming?: boolean
+  tool_calls?: ToolCallRecord[]
   meta_json?: {
     attachments?: AttachmentType[]
     feedback?: number

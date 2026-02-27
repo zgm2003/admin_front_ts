@@ -175,6 +175,7 @@ export default {
     ai_runs: '运行监控',
     ai_prompt: '提示词',
     ai_goods: '电商口播',
+    ai_tools: 'AI工具管理',
     // 开发工具模块
     devTools_gen: '代码生成',
     devTools_queueMonitor: '队列监控',
@@ -606,7 +607,9 @@ export default {
     },
     addTitle: '新增智能体',
     editTitle: '编辑智能体',
-    deleted: '已删除'
+    deleted: '已删除',
+    tools: '绑定工具',
+    selectTools: '请选择工具'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -700,7 +703,35 @@ export default {
     maxTokens: '最大输出',
     maxHistory: '上下文轮数',
     useDefault: '默认',
-    resetParams: '重置'
+    resetParams: '重置',
+    // 工具调用
+    toolCalling: '正在调用工具',
+    toolDone: '工具调用完成',
+  },
+  aiTools: {
+    filter: { name: '工具名称', status: '状态' },
+    table: {
+      name: '工具名称',
+      code: '工具编码',
+      executorType: '执行器类型',
+      description: '描述',
+      status: '状态',
+      createdAt: '创建时间'
+    },
+    form: {
+      name: '工具名称',
+      code: '工具编码',
+      description: '描述',
+      schemaJson: '参数Schema',
+      schemaJsonPlaceholder: '{"properties":{"keyword":{"type":"string","description":"搜索关键词","required":true}}}',
+      executorType: '执行器类型',
+      status: '状态',
+      httpUrl: 'HTTP URL',
+      sqlQuery: 'SQL 查询',
+      invalidJson: '参数Schema必须为合法JSON'
+    },
+    addTitle: '新增工具',
+    editTitle: '编辑工具'
   },
   aiRuns: {
     filter: {

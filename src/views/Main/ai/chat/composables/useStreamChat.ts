@@ -171,6 +171,38 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         nextTick(() => scrollToBottom())
       }
     },
+    onToolCall: (data) => {
+      const session = getSession(requestAgentId)
+      if (!session) return
+      const lastMsg = session.messages[session.messages.length - 1]
+      if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT) {
+        if (!lastMsg.tool_calls) lastMsg.tool_calls = []
+        lastMsg.tool_calls.push({
+          call_id: data.call_id,
+          tool_name: data.tool_name,
+          tool_inputs: data.tool_inputs,
+          status: 'calling'
+        })
+      }
+      if (isActiveAgent(requestAgentId)) {
+        messages.value = [...messages.value]
+      }
+    },
+    onToolResult: (data) => {
+      const session = getSession(requestAgentId)
+      if (!session) return
+      const lastMsg = session.messages[session.messages.length - 1]
+      if (lastMsg && lastMsg.tool_calls) {
+        const tc = lastMsg.tool_calls.find(t => t.call_id === data.call_id)
+        if (tc) {
+          tc.tool_result = data.tool_result
+          tc.status = 'done'
+        }
+      }
+      if (isActiveAgent(requestAgentId)) {
+        messages.value = [...messages.value]
+      }
+    },
     onError: (msg) => {
       clearAgentTimer(requestAgentId)
       const session = getSession(requestAgentId)

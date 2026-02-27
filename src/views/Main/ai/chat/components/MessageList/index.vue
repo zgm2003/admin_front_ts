@@ -5,6 +5,7 @@ import {Loading, CopyDocument, Delete, RefreshRight, Edit} from '@element-plus/i
 import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DIcon} from '@/components/DIcon'
 import { CommonEnum, AiRoleEnum } from '@/enums'
+import ToolCallStatus from '../ToolCallStatus.vue'
 
 const {t} = useI18n()
 
@@ -192,6 +193,7 @@ const handleFeedback = (msg: any, feedback: number) => {
 
         <!-- ====== AI 消息：全宽平铺 ====== -->
         <div v-else class="ai-block">
+          <ToolCallStatus v-if="msg.tool_calls?.length" :tool-calls="msg.tool_calls" />
           <MarkdownRenderer :content="msg.content" class="ai-content"/>
 
           <!-- 流式输出指示器 -->
