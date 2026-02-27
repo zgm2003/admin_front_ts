@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { DIcon } from '@/components/DIcon'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
-import { CommonEnum, NotificationTypeEnum, NotificationLevelEnum } from '@/enums'
+import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { onWsMessage } from '@/hooks/useWebSocket'
 import { shouldUseNative } from '@/store/tauri'
@@ -58,14 +58,6 @@ const markAllRead = async () => {
 const handleClick = (item: NotificationItem) => {
   markRead(item)
   if (item.link) { visible.value = false; navigateTo(item.link) }
-}
-
-const handleDelete = async (item: NotificationItem, index: number) => {
-  try {
-    await NotificationApi.del({ id: item.id })
-    list.value.splice(index, 1)
-    if (isUnread(item)) unreadCount.value = Math.max(0, unreadCount.value - 1)
-  } catch {}
 }
 
 const goNotificationPage = () => {
@@ -129,17 +121,11 @@ onUnmounted(() => unsubscribe?.())
       <div class="panel-body" v-loading="loading">
         <template v-if="list.length > 0">
           <div
-            v-for="(item, index) in list"
+            v-for="item in list"
             :key="item.id"
-            :class="['notification-item', { unread: isUnread(item) }, { 'is-urgent': item.level === NotificationLevelEnum.URGENT }]"
+            :class="['notification-item', { unread: isUnread(item) }]"
             @click="handleClick(item)"
           >
-            <div class="item-icon-wrapper" :class="{ success: item.type === NotificationTypeEnum.SUCCESS, error: item.type === NotificationTypeEnum.ERROR }">
-              <DIcon v-if="item.type === NotificationTypeEnum.SUCCESS" icon="SuccessFilled" :size="18" />
-              <DIcon v-else-if="item.type === NotificationTypeEnum.ERROR" icon="CircleCloseFilled" :size="18" />
-              <DIcon v-else icon="Bell" :size="18" />
-            </div>
-
             <div class="item-content">
               <div class="item-title-row">
                 <div class="item-title">
@@ -147,22 +133,6 @@ onUnmounted(() => unsubscribe?.())
                   {{ item.title }}
                 </div>
                 <div class="item-time">{{ formatTimeAgo(item.created_at) }}</div>
-              </div>
-              <div class="item-desc" v-if="item.content">{{ item.content }}</div>
-              <div class="item-footer">
-                <div class="tags">
-                  <el-tag v-if="item.level === NotificationLevelEnum.URGENT" size="small" type="warning" effect="plain">{{ t('notification.urgent') }}</el-tag>
-                  <span v-if="isUnread(item)" class="new-tag">{{ t('notification.new') }}</span>
-                </div>
-                <div class="actions">
-                  <el-button v-if="item.link" type="primary" link size="small">
-                    {{ t('common.actions.detail') }}
-                    <DIcon icon="ArrowRight" :size="14" />
-                  </el-button>
-                  <el-button type="danger" link size="small" class="delete-btn" @click.stop="handleDelete(item, index)">
-                    <DIcon icon="Delete" :size="16" />
-                  </el-button>
-                </div>
               </div>
             </div>
           </div>
@@ -199,31 +169,18 @@ onUnmounted(() => unsubscribe?.())
 .panel-body { max-height: 420px; overflow-y: auto; padding: 8px 0; }
 
 .notification-item {
-  display: flex; gap: 14px; padding: 14px 18px; cursor: pointer; transition: background 0.2s;
-  &:hover { background: var(--el-fill-color-light); .delete-btn { opacity: 1; } }
+  padding: 12px 18px; cursor: pointer; border-bottom: 1px solid var(--el-border-color-extra-light); transition: background 0.2s;
+  &:hover { background: var(--el-fill-color-light); }
   &.unread { background: var(--el-color-primary-light-9); }
-  &.is-urgent { border-left: 2px solid var(--el-color-warning); }
-}
-
-.item-icon-wrapper {
-  width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  background: var(--el-fill-color-lighter); color: var(--el-text-color-secondary); border: 1px solid var(--el-border-color-lighter);
-  &.success { background: var(--el-color-success-light-9); color: var(--el-color-success); }
-  &.error { background: var(--el-color-danger-light-9); color: var(--el-color-danger); }
+  &:last-child { border-bottom: none; }
 }
 
 .item-content { flex: 1; min-width: 0; }
 .item-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.item-title { display: flex; align-items: center; font-size: 14px; font-weight: 600; }
+.item-title { display: flex; align-items: center; font-size: 14px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--el-color-primary); margin-right: 8px; }
 .item-time { font-size: 12px; color: var(--el-text-color-placeholder); }
-.item-desc { font-size: 13px; color: var(--el-text-color-secondary); line-height: 1.6; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.item-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-.tags { display: flex; align-items: center; gap: 6px; }
-.new-tag { font-size: 10px; font-weight: 700; color: var(--el-color-primary); background: var(--el-color-primary-light-8); padding: 1px 4px; border-radius: 4px; }
-.actions { display: flex; align-items: center; gap: 8px; }
-.delete-btn { opacity: 0; transition: opacity 0.2s; }
 .panel-footer { display: flex; justify-content: center; padding: 12px; border-top: 1px solid var(--el-border-color-lighter); }
 
-@media (max-width: 768px) { .panel-body { max-height: 60vh; } .delete-btn { opacity: 1 !important; } }
+@media (max-width: 768px) { .panel-body { max-height: 60vh; } }
 </style>

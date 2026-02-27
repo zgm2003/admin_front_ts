@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, watch} from 'vue'
 import {ElMessage} from 'element-plus'
 import {Close} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
+import {useRoute} from 'vue-router'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -11,13 +12,34 @@ import {ExportTaskApi} from '@/api/devTools/exportTask'
 import {downloadFile} from '@/components/DownloadManager'
 
 const {t} = useI18n()
+const route = useRoute()
 const statusArr = ref<any[]>([])
 const searchForm = ref({status: '', title: '', file_name: ''})
+
+const parseStatusQuery = (raw: unknown): number | null => {
+  if (raw === undefined || raw === null) return null
+  const val = String(raw).trim().toLowerCase()
+  if (val === '1' || val === 'pending' || val === 'processing') return 1
+  if (val === '2' || val === 'success' || val === 'completed' || val === 'done') return 2
+  if (val === '3' || val === 'failed' || val === 'fail' || val === 'error') return 3
+  return null
+}
+
+const applyStatusFromQuery = (options: any[]) => {
+  const target = parseStatusQuery(route.query.status)
+  if (!target) return false
+  const hit = options.find(item => Number(item.value) === target)
+  if (!hit) return false
+  searchForm.value.status = hit.value as any
+  return true
+}
 
 const loadStatusCount = () => {
   ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name}).then((data: any) => {
     statusArr.value = data
-    searchForm.value.status = data[0].value
+    if (!applyStatusFromQuery(data)) {
+      searchForm.value.status = data[0]?.value ?? ''
+    }
     getList()
   }).catch(() => {})
 }
@@ -74,6 +96,13 @@ const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info
 
 onMounted(() => {
   loadStatusCount()
+})
+
+watch(() => route.query.status, () => {
+  if (statusArr.value.length === 0) return
+  if (applyStatusFromQuery(statusArr.value)) {
+    getList()
+  }
 })
 </script>
 
