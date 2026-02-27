@@ -118,7 +118,7 @@ const add = () => {
     avatar: '',
     system_prompt: '',
     mode: 'chat',
-    scene: 'chat',
+    scene: '',
     status: 1,
     tool_ids: []
   }
@@ -136,7 +136,7 @@ const edit = (row: any) => {
     avatar: row.avatar || '',
     system_prompt: row.system_prompt || '',
     mode: row.mode,
-    scene: row.scene || 'chat',
+    scene: row.scene || '',
     status: row.status,
     tool_ids: []
   }
@@ -165,7 +165,7 @@ const confirmSubmit = async () => {
     avatar: v.avatar || null,
     system_prompt: v.system_prompt || null,
     mode: v.mode,
-    scene: v.scene,
+    scene: v.scene || null,
     status: v.status
   }
   if (v.mode === 'tool') payload.tool_ids = v.tool_ids || []
@@ -215,7 +215,7 @@ onMounted(() => {
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
         <template #cell-scene="{row}">
-          <el-tag size="small" :type="row.scene === 'goods_script' ? 'warning' : ''">{{ row.scene_name }}</el-tag>
+          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : ''">{{ row.scene_name }}</el-tag>
         </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
