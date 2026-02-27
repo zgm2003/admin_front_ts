@@ -7,6 +7,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
+import { JsonEditor } from '@/components/JsonEditor'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useTable } from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
@@ -45,6 +46,7 @@ const defaultForm = () => ({
 })
 const form = ref<any>(defaultForm())
 const formRef = ref<FormInstance | null>(null)
+const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiTools.form.name') + t('common.required'), trigger: 'blur' }],
@@ -114,6 +116,7 @@ const confirmSubmit = async () => {
   const v = form.value
   let schemaJson = null
   if (v.schema_json) {
+    if (!jsonEditorRef.value?.validate()) return
     try {
       schemaJson = JSON.parse(v.schema_json)
     } catch {
@@ -216,7 +219,7 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiTools.form.schemaJson')">
-            <el-input v-model="form.schema_json" type="textarea" :rows="5" :placeholder="t('aiTools.form.schemaJsonPlaceholder')" />
+            <JsonEditor v-model="form.schema_json" ref="jsonEditorRef" :rows="6" />
           </el-form-item>
         </el-col>
         <!-- executor_type=2 HTTP: URL -->

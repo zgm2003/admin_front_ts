@@ -62,7 +62,9 @@ const init = () => {
 }
 
 const loadToolOptions = (agentId?: number) => {
-  AiToolApi.getAgentTools({ agent_id: agentId || 0 }).then((data: any) => {
+  const params: any = {}
+  if (agentId) params.agent_id = agentId
+  AiToolApi.getAgentTools(params).then((data: any) => {
     toolOptions.value = data.all_tools || []
     boundToolIds.value = data.bound_tool_ids || []
   })

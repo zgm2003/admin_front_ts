@@ -723,7 +723,7 @@ export default {
       code: '工具编码',
       description: '描述',
       schemaJson: '参数Schema',
-      schemaJsonPlaceholder: '{"properties":{"keyword":{"type":"string","description":"搜索关键词","required":true}}}',
+      schemaJsonPlaceholder: '输入 JSON 格式的参数定义',
       executorType: '执行器类型',
       status: '状态',
       httpUrl: 'HTTP URL',

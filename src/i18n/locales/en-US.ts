@@ -722,7 +722,7 @@ export default {
       code: 'Tool Code',
       description: 'Description',
       schemaJson: 'Parameter Schema',
-      schemaJsonPlaceholder: '{"properties":{"keyword":{"type":"string","description":"Search keyword","required":true}}}',
+      schemaJsonPlaceholder: 'Enter JSON parameter definition',
       executorType: 'Executor Type',
       status: 'Status',
       httpUrl: 'HTTP URL',
