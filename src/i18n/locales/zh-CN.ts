@@ -173,7 +173,7 @@ export default {
     ai_agents: '智能体',
     ai_chat: '对话',
     ai_runs: '运行监控',
-    ai_prompt: '提示词',
+    ai_prompts: '提示词',
     ai_goods: '电商口播',
     ai_tools: 'AI工具管理',
     // 开发工具模块
@@ -804,7 +804,7 @@ export default {
       noData: '暂无统计数据'
     }
   },
-  aiPrompt: {
+  aiPrompts: {
     title: '提示词管理',
     search: '搜索标题/分类/标签',
     add: '新增',

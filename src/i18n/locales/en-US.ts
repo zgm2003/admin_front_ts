@@ -173,7 +173,7 @@ export default {
     ai_agents: 'Agents',
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
-    ai_prompt: 'Prompts',
+    ai_prompts: 'Prompts',
     ai_goods: 'E-commerce Script',
     ai_tools: 'AI Tools',
     // DevTools module
@@ -803,7 +803,7 @@ export default {
       noData: 'No statistics data'
     }
   },
-  aiPrompt: {
+  aiPrompts: {
     title: 'Prompt Management',
     search: 'Search title/category/tags',
     add: 'Add',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AiPromptApi } from '@/api/ai/prompt'
+import { AiPromptApi } from '@/api/ai/prompts'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useCopy } from '@/hooks/useCopy'
 import { useUserStore } from '@/store/user'
@@ -90,8 +90,8 @@ onMounted(getList)
 <template>
   <div class="page">
     <div class="header">
-      <ElInput v-model="keyword" :prefix-icon="Search" :placeholder="t('aiPrompt.search')" clearable class="search" />
-      <ElButton v-if="userStore.can('ai_prompt_add')" type="primary" :icon="Plus" @click="openAdd">{{ t('aiPrompt.add') }}</ElButton>
+      <ElInput v-model="keyword" :prefix-icon="Search" :placeholder="t('aiPrompts.search')" clearable class="search" />
+      <ElButton v-if="userStore.can('ai_prompt_add')" type="primary" :icon="Plus" @click="openAdd">{{ t('aiPrompts.add') }}</ElButton>
     </div>
 
     <ElScrollbar class="content">
@@ -106,32 +106,32 @@ onMounted(getList)
           </div>
           <ElText class="card-content" type="info" line-clamp="3">{{ item.content }}</ElText>
           <div class="card-footer">
-            <ElText size="small" type="info">{{ t('aiPrompt.useCount', { count: item.use_count }) }}</ElText>
+            <ElText size="small" type="info">{{ t('aiPrompts.useCount', { count: item.use_count }) }}</ElText>
             <ElSpace :size="4">
-              <ElButton type="primary" size="small" :icon="DocumentCopy" @click="handleUse(item)">{{ t('aiPrompt.use') }}</ElButton>
+              <ElButton type="primary" size="small" :icon="DocumentCopy" @click="handleUse(item)">{{ t('aiPrompts.use') }}</ElButton>
               <ElButton v-if="userStore.can('ai_prompt_edit')" size="small" type="primary" :icon="Edit" @click="openEdit(item)" />
               <ElButton v-if="userStore.can('ai_prompt_del')" size="small" type="danger" :icon="Delete" @click="handleDel(item)" />
             </ElSpace>
           </div>
         </ElCard>
       </div>
-      <ElEmpty v-else :description="t('aiPrompt.empty')" />
+      <ElEmpty v-else :description="t('aiPrompts.empty')" />
     </ElScrollbar>
   </div>
 
-  <ElDialog v-model="dialogVisible" :title="dialogMode === 'add' ? t('aiPrompt.addTitle') : t('aiPrompt.editTitle')" :width="isMobile ? '94vw' : '600px'">
+  <ElDialog v-model="dialogVisible" :title="dialogMode === 'add' ? t('aiPrompts.addTitle') : t('aiPrompts.editTitle')" :width="isMobile ? '94vw' : '600px'">
     <ElForm ref="formRef" :model="form" label-width="70px">
-      <ElFormItem :label="t('aiPrompt.form.title')" prop="title" :rules="[{ required: true, message: t('aiPrompt.form.title') + t('common.required') }]">
-        <ElInput v-model="form.title" :placeholder="t('aiPrompt.form.titlePlaceholder')" />
+      <ElFormItem :label="t('aiPrompts.form.title')" prop="title" :rules="[{ required: true, message: t('aiPrompts.form.title') + t('common.required') }]">
+        <ElInput v-model="form.title" :placeholder="t('aiPrompts.form.titlePlaceholder')" />
       </ElFormItem>
-      <ElFormItem :label="t('aiPrompt.form.content')" prop="content" :rules="[{ required: true, message: t('aiPrompt.form.content') + t('common.required') }]">
-        <ElInput v-model="form.content" type="textarea" :rows="8" :placeholder="t('aiPrompt.form.contentPlaceholder')" />
+      <ElFormItem :label="t('aiPrompts.form.content')" prop="content" :rules="[{ required: true, message: t('aiPrompts.form.content') + t('common.required') }]">
+        <ElInput v-model="form.content" type="textarea" :rows="8" :placeholder="t('aiPrompts.form.contentPlaceholder')" />
       </ElFormItem>
-      <ElFormItem :label="t('aiPrompt.form.category')">
-        <ElInput v-model="form.category" :placeholder="t('aiPrompt.form.categoryPlaceholder')" />
+      <ElFormItem :label="t('aiPrompts.form.category')">
+        <ElInput v-model="form.category" :placeholder="t('aiPrompts.form.categoryPlaceholder')" />
       </ElFormItem>
-      <ElFormItem :label="t('aiPrompt.form.tags')">
-        <ElInputTag v-model="form.tags" :placeholder="t('aiPrompt.form.tagsPlaceholder')" clearable tag-type="primary"/>
+      <ElFormItem :label="t('aiPrompts.form.tags')">
+        <ElInputTag v-model="form.tags" :placeholder="t('aiPrompts.form.tagsPlaceholder')" clearable tag-type="primary"/>
       </ElFormItem>
     </ElForm>
     <template #footer>
