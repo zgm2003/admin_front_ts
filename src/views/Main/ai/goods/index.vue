@@ -82,6 +82,7 @@ const platforms = [
   { name: '淘宝', img: 'taobao.webp', url: 'https://www.taobao.com' },
   { name: '京东', img: 'jingdong.jpg', url: 'https://www.jd.com' },
   { name: '天猫', img: 'tianmao.webp', url: 'https://www.tmall.com' },
+  { name: '天猫国际', img: 'tianmao.webp', url: 'https://detail.tmall.hk' },
   { name: '天猫超市', img: 'tianmaoShop.webp', url: 'https://chaoshi.tmall.com' },
   { name: '拼多多', img: 'pinduoduo.png', url: 'https://mobile.yangkeduo.com' },
 ]
@@ -382,7 +383,7 @@ onMounted(() => {
             </el-button>
             <div v-if="form.model_origin" class="wb-field" style="margin-top:12px">
               <label>{{ t('goods.detail.modelOrigin') }}</label>
-              <div class="wb-text-block wb-text-sm">{{ form.model_origin }}</div>
+              <el-input v-model="form.model_origin" type="textarea" :autosize="{ minRows: 4, maxRows: 12 }" size="small" readonly />
             </div>
           </div>
         </div>
@@ -414,7 +415,7 @@ onMounted(() => {
               style="width:100%" :disabled="!form.script_text">
               {{ t('goods.tts.start') }}
             </el-button>
-            <el-button v-if="form.srt_url" type="success" size="small" style="width:100%;margin-top:6px"
+            <el-button v-if="form.srt_url" class="wb-srt-btn" type="success" size="small" style="width:100%;margin-top:6px"
               @click="downloadSrt(form.srt_url)">
               {{ t('goods.srt.download') }}
             </el-button>
@@ -561,6 +562,7 @@ onMounted(() => {
 }
 .wb-text-sm { max-height: 150px; font-size: 11px; color: var(--el-text-color-secondary) }
 .wb-meta-hint { font-size: 11px; color: var(--el-color-warning); margin-bottom: 6px }
+.wb-srt-btn { margin-left: 0 !important }
 
 /* 移动端 */
 @media (max-width: 768px) {
