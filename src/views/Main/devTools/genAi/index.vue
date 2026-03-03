@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, onMounted } from 'vue'
+import { ref, nextTick, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { Delete, ChatLineSquare, Download, Monitor } from '@element-plus/icons-vue'
@@ -18,9 +18,28 @@ const phaseMsg = ref('')
 const sending = ref(false)
 const inputContent = ref('')
 const conversationId = ref<number | null>(null)
-const allowOverwrite = ref(false)
-const enableReview = ref(false)
-const enableTest = ref(false)
+const STORAGE_KEY = 'genAi_options'
+
+const loadOptions = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return { allowOverwrite: true, enableReview: true, enableTest: true }
+}
+
+const savedOptions = loadOptions()
+const allowOverwrite = ref<boolean>(savedOptions.allowOverwrite)
+const enableReview = ref<boolean>(savedOptions.enableReview)
+const enableTest = ref<boolean>(savedOptions.enableTest)
+
+const saveOptions = () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    allowOverwrite: allowOverwrite.value,
+    enableReview: enableReview.value,
+    enableTest: enableTest.value,
+  }))
+}
 const chatRef = ref<HTMLElement>()
 
 // ========== Sidebar ==========
@@ -81,6 +100,8 @@ const deleteConversation = async (conv: ConversationItem) => {
 const startNewChat = () => {
   handleClear()
 }
+
+watch([allowOverwrite, enableReview, enableTest], saveOptions)
 
 onMounted(() => {
   loadConversations()
