@@ -53,6 +53,7 @@ hljs.registerLanguage('sh', shell)
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('xml', xml)
 hljs.registerLanguage('html', xml)
+hljs.registerLanguage('vue', xml)
 hljs.registerLanguage('yaml', yaml)
 hljs.registerLanguage('yml', yaml)
 hljs.registerLanguage('markdown', markdown)
@@ -72,7 +73,9 @@ const md: MarkdownIt = new MarkdownIt({
   linkify: true,
   typographer: true,
   highlight: (str: string, lang: string): string => {
-    const langClass = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+    // 处理 "php:WRITE_FILE:path" 等复合标记，提取实际语言
+    const pureLang = lang ? lang.split(':')[0] : ''
+    const langClass = pureLang && hljs.getLanguage(pureLang) ? pureLang : 'plaintext'
     try {
       const highlighted = hljs.highlight(str, {language: langClass, ignoreIllegals: true}).value
       return `<pre class="code-block"><div class="code-header"><span class="code-lang">${langClass}</span><button class="copy-btn" data-code="${encodeURIComponent(str)}">复制</button></div><code class="hljs language-${langClass}">${highlighted}</code></pre>`
