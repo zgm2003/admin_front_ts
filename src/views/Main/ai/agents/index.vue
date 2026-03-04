@@ -103,7 +103,7 @@ const columns = computed(() => [
   {key: 'name', label: t('aiAgents.table.name'), width: 140},
   {key: 'model_name', label: t('aiAgents.table.model_name')},
   {key: 'mode', label: t('aiAgents.table.mode')},
-  {key: 'scene', label: t('aiAgents.table.scene')},
+  {key: 'scene', label: t('aiAgents.table.scene'), width: 150},
   {key: 'system_prompt', label: t('aiAgents.table.system_prompt'),width: 500, overflowTooltip: true},
   {key: 'status', label: t('aiAgents.table.status')},
   {key: 'created_at', label: t('aiAgents.table.created_at'), width: 160},
@@ -215,7 +215,7 @@ onMounted(() => {
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
         <template #cell-scene="{row}">
-          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : ''">{{ row.scene_name }}</el-tag>
+          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : row.scene?.startsWith('code_gen') ? 'primary' : ''">{{ row.scene_name }}</el-tag>
         </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
