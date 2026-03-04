@@ -215,7 +215,7 @@ onMounted(() => {
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
         <template #cell-scene="{row}">
-          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : row.scene?.startsWith('code_gen') ? 'primary' : ''">{{ row.scene_name }}</el-tag>
+          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : row.scene?.startsWith('code_gen') ? 'primary' : 'info'">{{ row.scene_name }}</el-tag>
         </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
