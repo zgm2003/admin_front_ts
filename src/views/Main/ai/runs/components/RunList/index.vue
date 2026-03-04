@@ -302,6 +302,13 @@ onMounted(() => {
                         }}
                       </el-tag>
                       <span class="step-status">{{ step.status_name }}</span>
+                      <el-tag v-if="step.agent_name" type="info" size="small" effect="plain">{{ step.agent_name }}</el-tag>
+                      <el-tag v-if="step.model_snapshot" type="warning" size="small" effect="plain">{{ step.model_snapshot }}</el-tag>
+                    </div>
+                    <div v-if="step.payload_json?.prompt_tokens != null || step.payload_json?.completion_tokens != null || step.payload_json?.total_tokens != null" class="step-tokens">
+                      <span v-if="step.payload_json.prompt_tokens != null">Prompt: {{ step.payload_json.prompt_tokens?.toLocaleString() }}</span>
+                      <span v-if="step.payload_json.completion_tokens != null">Completion: {{ step.payload_json.completion_tokens?.toLocaleString() }}</span>
+                      <span v-if="step.payload_json.total_tokens != null">Total: {{ step.payload_json.total_tokens?.toLocaleString() }}</span>
                     </div>
                     <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
                     <div v-if="step.payload_json" class="step-payload">
@@ -461,6 +468,14 @@ onMounted(() => {
 .step-status {
   font-size: 12px;
   color: #666;
+}
+
+.step-tokens {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #909399;
+  margin-bottom: 6px;
 }
 
 .step-error {

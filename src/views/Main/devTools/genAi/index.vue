@@ -69,6 +69,26 @@ const switchConversation = async (conv: ConversationItem) => {
     const res = await GenAiApi.messages({ conversation_id: conv.id })
     const list = (res as any)?.list || []
     for (const m of list) {
+      const metaType = m.meta?.type as string | undefined
+      // 审查/测试消息合并到前一个 assistant 消息上
+      if (metaType === 'review' || metaType === 'test') {
+        const prev = messages.value.length > 0 ? messages.value[messages.value.length - 1] : null
+        if (prev && prev.role === 'assistant') {
+          if (metaType === 'review') {
+            prev.reviewContent = m.content || ''
+          } else {
+            prev.testContent = m.content || ''
+          }
+        } else {
+          // 孤立的 review/test 消息（前一个 assistant 不在窗口内），作为独立 assistant 消息保留
+          messages.value.push({
+            role: 'assistant',
+            content: '',
+            ...(metaType === 'review' ? { reviewContent: m.content || '' } : { testContent: m.content || '' }),
+          })
+        }
+        continue
+      }
       messages.value.push({
         role: m.role as 'user' | 'assistant',
         content: m.content || '',
