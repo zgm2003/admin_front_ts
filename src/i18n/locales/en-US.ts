@@ -180,7 +180,6 @@ export default {
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
     system_queueMonitor: 'Queue Monitor',
-    devTools_operationLog: 'Operation Log',
     // Chat
     chat: 'Chat Room',
     devTools_exportTask: 'Export Tasks',

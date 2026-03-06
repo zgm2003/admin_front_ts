@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, onMounted} from 'vue'
-import {OperationLogApi} from '@/api/devTools/operationLog'
+import {OperationLogApi} from '@/api/system/operationLog'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {Clock} from '@element-plus/icons-vue'

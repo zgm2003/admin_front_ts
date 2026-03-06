@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { OperationLogApi } from '@/api/devTools/operationLog'
+import { OperationLogApi } from '@/api/system/operationLog'
 import { UsersListApi } from '@/api/user/users'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
