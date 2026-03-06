@@ -176,6 +176,7 @@ export default {
     ai_prompts: 'Prompts',
     ai_goods: 'E-commerce Script',
     ai_tools: 'AI Tools',
+    ai_genAi: 'AI Code Generator',
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
     devTools_operationLog: 'Operation Log',

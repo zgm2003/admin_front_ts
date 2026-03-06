@@ -176,6 +176,7 @@ export default {
     ai_prompts: '提示词',
     ai_goods: '电商口播',
     ai_tools: 'AI工具管理',
+    ai_genAi: 'AI代码生成',
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
     devTools_operationLog: '操作日志',

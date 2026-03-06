@@ -38,19 +38,19 @@ export interface MessageItem {
 }
 
 export const GenAiApi = {
-  init: (params?: any) => request.post('/api/admin/DevTools/GenAi/init', params),
+  init: (params?: any) => request.post('/api/admin/Ai/GenAi/init', params),
 
   conversations: (params?: { current_page?: number; page_size?: number }) =>
-    request.post('/api/admin/DevTools/GenAi/conversations', params),
+    request.post('/api/admin/Ai/GenAi/conversations', params),
 
   messages: (params: { conversation_id: number }) =>
-    request.post('/api/admin/DevTools/GenAi/messages', params),
+    request.post('/api/admin/Ai/GenAi/messages', params),
 
   deleteConversation: (params: { id: number }) =>
-    request.post('/api/admin/DevTools/GenAi/deleteConversation', params),
+    request.post('/api/admin/Ai/GenAi/deleteConversation', params),
 
   stream: (params: GenAiStreamParams, callbacks: GenAiStreamCallbacks): Promise<void> => {
-    return streamPost('/api/admin/DevTools/GenAi/stream', params, {
+    return streamPost('/api/admin/Ai/GenAi/stream', params, {
       onEvent: (event, data) => {
         switch (event) {
           case 'phase':

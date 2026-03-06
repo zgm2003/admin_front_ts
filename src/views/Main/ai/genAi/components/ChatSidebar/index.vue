@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { Plus, Delete, ChatLineSquare } from '@element-plus/icons-vue'
-import type { ConversationItem } from '@/api/devTools/genAi'
+import type { ConversationItem } from '@/api/ai/genAi'
 
 const { t } = useI18n()
 
