@@ -154,6 +154,7 @@ export default {
     // Permission module
     permission_permission: 'Admin Menu Manager',
     permission_role: 'Role Manager',
+    permission_authPlatform: 'Auth Platform',
     // System module
     system_operationLog: 'Operation Log',
     system_uploadConfig: 'Upload Config',

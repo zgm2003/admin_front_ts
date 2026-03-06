@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AuthPlatformApi } from '@/api/system/authPlatform'
+import { AuthPlatformApi } from '@/api/permission/authPlatform'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Search } from '@/components/Search'
@@ -191,8 +191,8 @@ onMounted(() => { init(); getList() })
         @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button v-if="userStore.can('system_authPlatform_add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
-          <el-button v-if="userStore.can('system_authPlatform_del')" type="danger" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_del')" type="danger" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-button>
         </template>
 
         <template #cell-login_types="{ row }">
@@ -222,10 +222,10 @@ onMounted(() => { init(); getList() })
         </template>
 
         <template #cell-actions="{ row }">
-          <el-button v-if="userStore.can('system_authPlatform_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button v-if="userStore.can('system_authPlatform_status') && row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-          <el-button v-if="userStore.can('system_authPlatform_status') && row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-          <el-button v-if="userStore.can('system_authPlatform_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_status') && row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_status') && row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
+          <el-button v-if="userStore.can('permission_authPlatform_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
     </div>

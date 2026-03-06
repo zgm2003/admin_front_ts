@@ -154,6 +154,7 @@ export default {
     // 权限管理模块
     permission_permission: '后台菜单管理',
     permission_role: '角色管理',
+    permission_authPlatform: '认证平台',
     // 系统管理模块
     system_operationLog: '操作日志',
     system_uploadConfig: '上传配置',
