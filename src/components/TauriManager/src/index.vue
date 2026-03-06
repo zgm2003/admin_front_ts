@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { Loading, CircleClose } from '@element-plus/icons-vue'
 import { useTauriStore } from '@/store/tauri'
-import { TauriVersionApi } from '@/api/devTools/tauriVersion'
+import { TauriVersionApi } from '@/api/system/tauriVersion'
 import type { DownloadEvent, Update } from '@tauri-apps/plugin-updater'
 
 const { t } = useI18n()

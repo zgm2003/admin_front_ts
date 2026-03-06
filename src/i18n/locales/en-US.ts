@@ -158,6 +158,8 @@ export default {
     // System module
     system_operationLog: 'Operation Log',
     system_exportTask: 'Export Tasks',
+    system_cronTask: 'Scheduled Tasks',
+    system_tauriVersion: 'Version Management',
     system_uploadConfig: 'Upload Config',
     system_setting: 'System Settings',
     system_authPlatform: 'Auth Platform',
@@ -183,8 +185,6 @@ export default {
     system_queueMonitor: 'Queue Monitor',
     // Chat
     chat: 'Chat Room',
-    devTools_cronTask: 'Scheduled Tasks',
-    devTools_tauriVersion: 'Version Management',
     devTools_genAi: 'AI Code Generator',
   },
   personal: {
