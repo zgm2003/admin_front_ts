@@ -8,7 +8,7 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
-import {ExportTaskApi} from '@/api/devTools/exportTask'
+import {ExportTaskApi} from '@/api/system/exportTask'
 import {downloadFile} from '@/components/DownloadManager'
 
 const {t} = useI18n()

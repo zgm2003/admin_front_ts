@@ -157,6 +157,7 @@ export default {
     permission_authPlatform: '认证平台',
     // 系统管理模块
     system_operationLog: '操作日志',
+    system_exportTask: '导出任务',
     system_uploadConfig: '上传配置',
     system_setting: '系统设置',
     system_authPlatform: '认证平台',
@@ -182,7 +183,6 @@ export default {
     system_queueMonitor: '队列监控',
     // 聊天
     chat: '聊天室',
-    devTools_exportTask: '导出任务',
     devTools_cronTask: '定时任务',
     devTools_tauriVersion: '版本管理',
     devTools_genAi: 'AI代码生成',

@@ -81,6 +81,11 @@ const handleBatchRead = async () => {
   } catch {}
 }
 
+const handleDetail = (link?: string) => {
+  if (!link) return
+  router.push(link)
+}
+
 onMounted(() => {
   NotificationApi.init().then((data) => {
     const res = data as unknown as NotificationInitResponse
@@ -136,7 +141,7 @@ onMounted(() => {
 
         <template #cell-actions="{ row }">
           <el-button v-if="isUnread(row)" type="primary" text @click="handleMarkRead(row)">{{ t('notification.page.markRead') }}</el-button>
-          <el-button v-if="row.link" type="success" text @click="router.push(row.link)">{{ t('common.actions.detail') }}</el-button>
+          <el-button v-if="row.link" type="success" text @click="handleDetail(row.link)">{{ t('common.actions.detail') }}</el-button>
           <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
         </template>
       </AppTable>
