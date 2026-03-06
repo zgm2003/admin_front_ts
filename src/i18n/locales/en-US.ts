@@ -160,7 +160,6 @@ export default {
     system_uploadConfig: 'Upload Config',
     system_setting: 'System Settings',
     system_authPlatform: 'Auth Platform',
-    system_test: 'Test',
     system_notificationTask: 'Notifications',
     system_log: 'System Log',
     // Component module

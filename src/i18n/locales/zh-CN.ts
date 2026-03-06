@@ -160,7 +160,6 @@ export default {
     system_uploadConfig: '上传配置',
     system_setting: '系统设置',
     system_authPlatform: '认证平台',
-    system_test: '测试',
     system_notificationTask: '通知管理',
     system_log: '系统日志',
     // 组件演示模块
