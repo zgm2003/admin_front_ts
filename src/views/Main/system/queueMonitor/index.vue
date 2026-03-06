@@ -5,7 +5,7 @@ import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {useCopy} from '@/hooks/useCopy'
-import {QueueMonitorApi} from '@/api/devTools/queueMonitor'
+import {QueueMonitorApi} from '@/api/system/queueMonitor'
 
 const {t} = useI18n()
 const {copy} = useCopy()

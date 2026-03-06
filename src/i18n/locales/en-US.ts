@@ -180,6 +180,7 @@ export default {
     ai_genAi: 'AI Code Generator',
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
+    system_queueMonitor: 'Queue Monitor',
     devTools_operationLog: 'Operation Log',
     // Chat
     chat: 'Chat Room',

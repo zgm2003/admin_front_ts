@@ -180,6 +180,7 @@ export default {
     ai_genAi: 'AI代码生成',
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
+    system_queueMonitor: '队列监控',
     devTools_operationLog: '操作日志',
     // 聊天
     chat: '聊天室',
