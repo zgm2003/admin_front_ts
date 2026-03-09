@@ -156,7 +156,7 @@ onMounted(() => {
         </template>
         <template #cell-avatar="{ row }"><el-avatar :src="row.avatar"/></template>
         <template #cell-role_name="{ row }"><el-tag :type="row.role_id === 1 ? 'success' : 'danger'">{{ row.role_name }}</el-tag></template>
-        <template #cell-bio="{ row }"><el-text v-html="row.bio"></el-text></template>
+        <template #cell-bio="{ row }"><el-text>{{ row.bio }}</el-text></template>
         <template #cell-actions="{ row }">
           <el-button type="primary" @click="edit(row)" text v-if="userStore.can('user_userManager_edit')">{{ t('common.actions.edit') }}</el-button>
           <el-button type="danger" text v-if="userStore.can('user_userManager_del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>

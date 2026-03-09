@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Cookies from 'js-cookie'
 import request from '@/utils/request'
 
@@ -198,7 +198,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   })
 
   return {
-    ws: ref(sharedWs),
+    ws: computed(() => sharedWs),
     isConnected,
     isBound,
     clientId,

@@ -1,7 +1,5 @@
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
-
 type Callback = (error?: string | Error | undefined) => void
 
 interface LengthRange {
@@ -11,6 +9,8 @@ interface LengthRange {
 }
 
 export const useValidator = () => {
+  const { t } = useI18n()
+
   const required = (message?: string) => {
     return {
       required: true,
@@ -50,8 +50,7 @@ export const useValidator = () => {
       callback(new Error(message || t('common.notEqual')))
     }
   }
-  
-  // AI 增强：常用正则校验
+
   const isEmail = (val: any, callback: Callback, message?: string) => {
     const reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     if (!reg.test(val)) {
@@ -60,7 +59,7 @@ export const useValidator = () => {
       callback()
     }
   }
-  
+
   const isMobile = (val: any, callback: Callback, message?: string) => {
     const reg = /^(?:(?:\+|00)86)?1[3-9]\d{9}$/
     if (!reg.test(val)) {
