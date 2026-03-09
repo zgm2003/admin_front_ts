@@ -273,7 +273,7 @@ onMounted(() => {
           t('common.actions.batchDelete')
         }}
       </el-button>
-      <el-button @click="toggleExpand" :icon="isExpanded ? ArrowUp : ArrowDown" type="danger">
+      <el-button @click="toggleExpand" :icon="isExpanded ? ArrowUp : ArrowDown" type="primary">
         {{ isExpanded ? t('common.actions.collapseAll') : t('common.actions.expandAll') }}
       </el-button>
     </div>
