@@ -54,7 +54,11 @@ const {
   refresh,
   getList,
   confirmDel
-} = useTable({api: NotificationTaskApi, searchForm})
+} = useTable({
+  api: NotificationTaskApi,
+  searchForm,
+  afterDel: refreshStatusCount
+})
 
 const searchFields = computed<SearchField[]>(() => [
   {key: 'title', type: 'input', label: t('notificationTask.title'), placeholder: t('notificationTask.title'), width: 180}

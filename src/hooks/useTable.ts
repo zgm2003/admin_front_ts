@@ -132,7 +132,9 @@ export function useTable<T = any>(options: UseTableOptions) {
     } catch {
       return
     }
+
     await api.del({ id: selectedIds.value })
+
     ElNotification.success({ message: t('common.success.operation') })
     selectedIds.value = []
     getList()

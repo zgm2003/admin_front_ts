@@ -42,7 +42,11 @@ const handleSearch = () => {
 const {
   loading: listLoading, data: listData, page,
   onPageChange, refresh, getList, onSelectionChange, confirmDel, batchDel
-} = useTable({ api: GoodsApi, searchForm })
+} = useTable({
+  api: GoodsApi,
+  searchForm,
+  afterDel: refreshStatusCount
+})
 
 // ==================== 搜索字段 & 列定义 ====================
 const searchFields = computed<SearchField[]>(() => [

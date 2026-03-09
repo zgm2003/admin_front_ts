@@ -66,7 +66,11 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel
-} = useTable({api: ExportTaskApi, searchForm})
+} = useTable({
+  api: ExportTaskApi,
+  searchForm,
+  afterDel: refreshStatusCount
+})
 
 const searchFields = computed<SearchField[]>(() => [
   {key: 'title', type: 'input', label: t('exportTask.title'), placeholder: t('exportTask.title'), width: 180},
