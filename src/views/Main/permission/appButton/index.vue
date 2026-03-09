@@ -64,7 +64,7 @@ const columns = computed(() => [
   { key: 'code', label: t('permission.table.code') },
   { key: 'status', label: t('permission.table.status'), width: 100 },
   { key: 'sort', label: t('permission.table.sort'), width: 80 },
-  { key: 'actions', label: t('common.actions.action'), width: 200 }
+  { key: 'actions', label: t('common.actions.action'), width: 260 }
 ])
 
 // 弹窗

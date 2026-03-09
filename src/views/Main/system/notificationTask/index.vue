@@ -133,10 +133,14 @@ const handleSubmit = async () => {
 
 // 取消任务
 const handleCancel = (row: any) => {
-  ElMessageBox.confirm(t('notificationTask.cancelConfirm'), t('common.warning'), {type: 'warning'})
+  ElMessageBox.confirm(t('notificationTask.cancelConfirm'), t('common.confirmTitle'), {
+    type: 'warning',
+    confirmButtonText: t('common.actions.confirm'),
+    cancelButtonText: t('common.actions.cancel')
+  })
     .then(() => {
       NotificationTaskApi.cancel({id: row.id}).then(() => {
-        ElMessage.success(t('common.success'))
+        ElMessage.success(t('common.success.operation'))
         loadStatusCount()
       })
     })
