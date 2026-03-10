@@ -443,7 +443,9 @@ export default {
         name: 'Please enter name',
         i18n_key: 'Please enter i18n_key',
         code: 'Please enter code',
-        show_menu: 'Please select show status'
+        show_menu: 'Please select show status',
+        path: 'Please enter route path',
+        component: 'Please enter component path'
       },
       help: {
         component: 'Example: user/userManager (file path without /)',

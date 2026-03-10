@@ -443,7 +443,9 @@ export default {
         name: '请输入名称',
         i18n_key: '请输入 i18n_key',
         code: '请输入 code',
-        show_menu: '请选择是否显示'
+        show_menu: '请选择是否显示',
+        path: '请输入路由地址',
+        component: '请输入组件路径'
       },
       help: {
         component: '示例：user/userManager（文件路径，不带 /）',

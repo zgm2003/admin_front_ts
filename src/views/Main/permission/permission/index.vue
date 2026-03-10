@@ -181,7 +181,9 @@ const rules = computed(() => ({
     message: t('permission.form.rule.show_menu'),
     trigger: 'change'
   }] : [],
-  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: t('permission.form.rule.code'), trigger: 'blur'}] : []
+  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: t('permission.form.rule.code'), trigger: 'blur'}] : [],
+  path: (form.value.type === PermissionTypeEnum.PAGE) ? [{required: true, message: t('permission.form.rule.path'), trigger: 'blur'}] : [],
+  component: (form.value.type === PermissionTypeEnum.PAGE) ? [{required: true, message: t('permission.form.rule.component'), trigger: 'blur'}] : [],
 }))
 const confirmSubmit = async () => {
   try {
@@ -358,13 +360,13 @@ onMounted(() => {
           <el-input v-model="form.icon" style="width:80%" clearable/>
           <el-button :icon="Setting" @click="openIconSelect">{{ t('common.actions.edit') }}</el-button>
         </el-form-item>
-        <el-form-item :label="t('permission.form.path')" v-if="form.type === PermissionTypeEnum.PAGE">
+        <el-form-item :label="t('permission.form.path')" prop="path" required v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>
           <div style="color: #909399; font-size: 12px; margin-top: 4px;">
             {{ t('permission.form.help.path') }}
           </div>
         </el-form-item>
-        <el-form-item :label="t('permission.form.component')" v-if="form.type === PermissionTypeEnum.PAGE">
+        <el-form-item :label="t('permission.form.component')" prop="component" required v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')"/>
           <div style="color: #909399; font-size: 12px; margin-top: 4px;">
             {{ t('permission.form.help.component') }}
