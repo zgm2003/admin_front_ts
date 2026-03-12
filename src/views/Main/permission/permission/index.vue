@@ -343,7 +343,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.i18n_key')" prop="i18n_key" required v-if="isMenuType">
           <el-input v-model="form.i18n_key" style="width:100%" clearable :placeholder="t('permission.form.placeholder.i18n_key')"/>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div class="form-help-text">
             {{ t('permission.form.help.i18n_key') }}
           </div>
         </el-form-item>
@@ -362,19 +362,19 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('permission.form.path')" prop="path" required v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')"/>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div class="form-help-text">
             {{ t('permission.form.help.path') }}
           </div>
         </el-form-item>
         <el-form-item :label="t('permission.form.component')" prop="component" required v-if="form.type === PermissionTypeEnum.PAGE">
           <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')"/>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div class="form-help-text">
             {{ t('permission.form.help.component') }}
           </div>
         </el-form-item>
         <el-form-item :label="t('permission.form.code')" prop="code" required v-if="form.type === PermissionTypeEnum.BUTTON">
           <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')"/>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+          <div class="form-help-text">
             {{ t('permission.form.codeHint') }}
           </div>
         </el-form-item>
@@ -397,5 +397,13 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto
+}
+
+.form-help-text {
+  width: 100%;
+  margin-top: 4px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
 }
 </style>

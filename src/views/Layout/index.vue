@@ -1,24 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
 import Footer from '@/views/Layout/components/Footer/index.vue'
-import { useUserStore } from '@/store/user'
 import { useMenuStore } from '@/store/menu'
-import { useRoute } from "vue-router"
 
-const userStore = useUserStore()
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
 
-// 不需要 page-card 白色卡片包裹的路由
 const isPlainPage = computed(() => route.path === '/home')
 
-// WebSocket 连接
 useWebSocket()
 
 watch(isMobile, (val) => {
@@ -28,31 +24,28 @@ watch(isMobile, (val) => {
 
 <template>
   <el-container class="layout-container">
-    <!-- 移动端抽屉菜单 -->
-    <el-drawer 
-      v-if="isMobile" 
-      v-model="menuStore.drawer" 
-      direction="ltr" 
+    <el-drawer
+      v-if="isMobile"
+      v-model="menuStore.drawer"
+      direction="ltr"
       size="220px"
       :with-header="false"
       class="mobile-drawer"
     >
       <Aside />
     </el-drawer>
-    
-    <!-- 桌面端侧边栏 -->
+
     <el-aside v-if="!isMobile && !menuStore.contentFullscreen" width="auto" class="layout-aside">
       <Aside />
     </el-aside>
-    
-    <!-- 主内容区 -->
+
     <el-container class="layout-main">
       <el-header v-if="!menuStore.contentFullscreen" height="auto" class="layout-header">
         <Header />
       </el-header>
-      
+
       <TabTag v-if="menuStore.tabtag" class="layout-tabs" />
-      
+
       <el-main class="layout-content">
         <router-view v-slot="{ Component }">
           <transition
@@ -64,13 +57,13 @@ watch(isMobile, (val) => {
               <component :is="Component" />
             </div>
           </transition>
-          
+
           <div v-else :class="{ 'page-card': !isPlainPage }">
             <component :is="Component" />
           </div>
         </router-view>
       </el-main>
-      
+
       <el-footer v-if="menuStore.footer && !menuStore.contentFullscreen" height="48px" class="layout-footer">
         <Footer />
       </el-footer>
@@ -88,7 +81,6 @@ watch(isMobile, (val) => {
 .layout-footer { padding: 0; flex-shrink: 0; border-top: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); }
 :deep(.mobile-drawer .el-drawer__body) { padding: 0; }
 
-/* 过渡动画 */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 .slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active { transition: all 0.2s; }

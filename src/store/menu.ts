@@ -48,8 +48,10 @@ export const useMenuStore = defineStore('menu', {
         const index = this.tabList.findIndex((item: any) => item.index === val.index)
         if (index === -1) {
           this.tabList.push(val)
-          localStorage.setItem('tabList', JSON.stringify(this.tabList))
+        } else {
+          this.tabList[index] = { ...this.tabList[index], ...val }
         }
+        localStorage.setItem('tabList', JSON.stringify(this.tabList))
       }
     },
     closeTag(val: any) {
