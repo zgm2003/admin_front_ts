@@ -10,7 +10,7 @@ import {UploadDriverApi} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
 import {useTable} from '@/hooks/useTable'
-import {ArrowRight} from "@element-plus/icons-vue";
+import {ArrowDown} from "@element-plus/icons-vue";
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -207,7 +207,7 @@ onMounted(() => {
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
               <el-icon class="el-icon--right">
-                <arrow-right/>
+                <ArrowDown />
               </el-icon>
             </el-button>
             <template #dropdown>

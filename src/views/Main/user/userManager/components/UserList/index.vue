@@ -11,7 +11,7 @@ import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useI18n} from 'vue-i18n'
 import {useTable} from '@/hooks/useTable'
-import {ArrowRight} from "@element-plus/icons-vue"
+import {ArrowDown} from "@element-plus/icons-vue"
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -141,7 +141,7 @@ onMounted(() => {
                 @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
         <template #toolbar-left>
           <el-dropdown>
-            <el-button type="primary">{{ t('common.actions.batchAction') }}<el-icon class="el-icon--right"><arrow-right/></el-icon></el-button>
+            <el-button type="primary">{{ t('common.actions.batchAction') }}<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="batchDel" v-if="userStore.can('user_userManager_del')">{{ t('common.actions.batchDelete') }}</el-dropdown-item>

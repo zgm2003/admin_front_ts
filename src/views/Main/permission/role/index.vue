@@ -11,6 +11,7 @@ import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const {t} = useI18n()
@@ -154,7 +155,7 @@ onMounted(() => {
           <el-dropdown>
             <el-button type="primary">{{ t('common.actions.batchAction') }}
               <el-icon class="el-icon--right">
-                <arrow-right/>
+                <ArrowDown />
               </el-icon>
             </el-button>
             <template #dropdown>

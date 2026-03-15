@@ -10,7 +10,7 @@ import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PlatformEnum, PermissionTypeEnum } from '@/enums'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { useTable } from '@/hooks/useTable'
 
 const userStore = useUserStore()
@@ -131,7 +131,7 @@ onMounted(() => {
           </el-button>
           <el-dropdown>
             <el-button type="primary">{{ t('common.actions.batchAction') }}
-              <el-icon class="el-icon--right"><arrow-right /></el-icon>
+              <el-icon class="el-icon--right"><ArrowDown /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
