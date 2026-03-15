@@ -24,7 +24,7 @@
         <el-icon class="float-item icon-3"><CircleCheckFilled /></el-icon>
         <el-icon class="float-item icon-4"><Plus /></el-icon>
         <el-icon class="float-item icon-5"><ChatDotRound /></el-icon>
-        <el-icon class="float-item icon-6"><FirstAidKit /></el-icon>
+        <el-icon class="float-item icon-6"><Setting /></el-icon>
         <el-icon class="float-item icon-7"><ChatDotRound /></el-icon>
         <el-icon class="float-item icon-8"><Bell /></el-icon>
         <el-icon class="float-item icon-9"><Timer /></el-icon>
@@ -341,8 +341,7 @@ import {
   Service,
   StarFilled,
   Plus,
-
-  FirstAidKit,
+  Setting,
   ChatDotRound,
   Bell,
   Timer,
@@ -574,7 +573,7 @@ const features = [
 const stats = [
   { value: '50万+', label: '信赖用户' },
   { value: '98.5%', label: '满意评价' },
-  { value: '2,000+', label: '三甲医院' }
+  { value: '2,000+', label: '企业客户' }
 ]
 
 const isSubmitting = ref(false)
@@ -1189,8 +1188,22 @@ watch(() => forgotVisible.value, (visible) => {
       box-shadow: 0 0 0 4px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.1) !important;
       transform: scale(1.01);
     }
+
+    &.is-focus .el-input__inner:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    }
   }
   .el-input__inner { height: 24px; }
+
+  /* 覆盖浏览器自动填充的蓝色/黄色背景 */
+  .el-input__inner:-webkit-autofill,
+  .el-input__inner:-webkit-autofill:hover,
+  .el-input__inner:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
+    -webkit-text-fill-color: var(--el-text-color-primary) !important;
+    caret-color: var(--el-text-color-primary);
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 .login-send-code {

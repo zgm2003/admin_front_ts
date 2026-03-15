@@ -4,6 +4,7 @@ import {AppTable} from '@/components/Table'
 import {DIcon} from '@/components/DIcon'
 import {LogStream, useLogStream} from '@/components/LogStream'
 import type {LogStreamItem, LogStreamApi, CursorPaginateResponse} from '@/components/LogStream'
+import AuditStreamLayoutDemo from './components/AuditStreamLayoutDemo.vue'
 
 const Editor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
 const MarkdownRenderer = defineAsyncComponent(() => import('@/components/MarkdownRenderer').then(m => m.MarkdownRenderer))
@@ -469,6 +470,10 @@ const useLogStreamOptions = [
             </ul>
           </el-alert>
         </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="AuditStreamLayout" name="AuditStreamLayout">
+        <AuditStreamLayoutDemo />
       </el-tab-pane>
     </el-tabs>
   </div>

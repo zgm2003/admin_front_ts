@@ -28,19 +28,29 @@ watch(isMobile, (val) => {
       v-if="isMobile"
       v-model="menuStore.drawer"
       direction="ltr"
-      size="220px"
+      size="272px"
       :with-header="false"
       class="mobile-drawer"
     >
       <Aside />
     </el-drawer>
 
-    <el-aside v-if="!isMobile && !menuStore.contentFullscreen" width="auto" class="layout-aside">
+    <el-aside
+      v-if="!isMobile && !menuStore.contentFullscreen"
+      width="auto"
+      class="layout-aside"
+      :class="{ 'layout-aside--collapse': menuStore.collapse }"
+    >
       <Aside />
     </el-aside>
 
     <el-container class="layout-main">
-      <el-header v-if="!menuStore.contentFullscreen" height="auto" class="layout-header">
+      <el-header
+        v-if="!menuStore.contentFullscreen"
+        height="auto"
+        class="layout-header"
+        :class="{ 'layout-header--detached': !menuStore.tabtag }"
+      >
         <Header />
       </el-header>
 
@@ -53,12 +63,12 @@ watch(isMobile, (val) => {
             :name="menuStore.transitionName"
             mode="out-in"
           >
-            <div :key="route.fullPath" :class="{ 'page-card': !isPlainPage }">
+            <div :key="route.fullPath" class="layout-view" :class="{ 'page-card': !isPlainPage }">
               <component :is="Component" />
             </div>
           </transition>
 
-          <div v-else :class="{ 'page-card': !isPlainPage }">
+          <div v-else class="layout-view" :class="{ 'page-card': !isPlainPage }">
             <component :is="Component" />
           </div>
         </router-view>
@@ -72,27 +82,162 @@ watch(isMobile, (val) => {
 </template>
 
 <style scoped lang="scss">
-.layout-container {height: 100dvh; overflow: hidden; background: var(--el-bg-color-page); }
-.layout-aside { border-right: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); overflow: hidden; }
-.layout-main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
-.layout-header, .layout-tabs { padding: 0; flex-shrink: 0; }
-.layout-content { flex: 1; padding: 20px; overflow: auto; background: var(--el-bg-color-page); }
-.page-card { height: 100%; background: var(--el-bg-color); border-radius: var(--el-border-radius-base); border: 1px solid var(--el-border-color-lighter); padding: 20px; overflow: auto; }
-.layout-footer { padding: 0; flex-shrink: 0; border-top: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); }
-:deep(.mobile-drawer .el-drawer__body) { padding: 0; }
+.layout-container {
+  height: 100dvh;
+  overflow: hidden;
+  background: transparent;
+}
 
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-.slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active { transition: all 0.2s; }
-.slide-left-enter-from { opacity: 0; transform: translateX(20px); }
-.slide-left-leave-to { opacity: 0; transform: translateX(-20px); }
-.slide-right-enter-from { opacity: 0; transform: translateX(-20px); }
-.slide-right-leave-to { opacity: 0; transform: translateX(20px); }
+.layout-aside {
+  width: 248px;
+  flex: 0 0 248px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.layout-aside--collapse {
+  width: 80px;
+  flex-basis: 80px;
+}
+
+.layout-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layout-header,
+.layout-tabs {
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.layout-header {
+  overflow: hidden;
+  border-bottom: 1px solid var(--shell-line);
+  background: var(--shell-panel-strong);
+}
+
+.layout-tabs {
+  overflow: hidden;
+  border-bottom: 1px solid var(--shell-line);
+  background: var(--shell-panel);
+}
+
+.layout-content {
+  flex: 1;
+  padding: 8px;
+  overflow: auto;
+  background: transparent;
+}
+
+.layout-view {
+  min-height: 100%;
+}
+
+.page-card {
+  height: 100%;
+  padding: 16px;
+  overflow: auto;
+  background: var(--shell-panel-strong);
+  border: 1px solid var(--shell-line);
+  border-radius: 12px;
+  box-shadow: var(--shell-shadow-soft);
+}
+
+.layout-footer {
+  margin-top: 0;
+  padding: 0 8px;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+:deep(.mobile-drawer .el-drawer__body) {
+  padding: 0;
+  overscroll-behavior: contain;
+}
+
+:deep(.mobile-drawer .el-drawer) {
+  background: var(--shell-nav-bg);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity var(--app-motion-base) var(--app-ease-standard),
+    transform var(--app-motion-base) var(--app-ease-emphasized);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-from {
+  transform: translateY(8px);
+}
+
+.fade-leave-to {
+  transform: translateY(-4px);
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition:
+    opacity var(--app-motion-base) var(--app-ease-standard),
+    transform var(--app-motion-base) var(--app-ease-emphasized);
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
 
 @media (max-width: 768px) {
+  .layout-aside {
+    width: auto;
+    flex-basis: auto;
+    padding: 0;
+    transition: none;
+  }
+
+  .layout-main {
+    padding: 0;
+  }
+
+  .layout-header {
+    border-inline: none;
+    border-top: none;
+    border-bottom: 1px solid var(--shell-line);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .layout-tabs {
+    border-inline: none;
+    box-shadow: none;
+  }
+
   .layout-content {
-    padding: 12px;
-    overflow: auto;
+    padding: 10px;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -101,6 +246,8 @@ watch(isMobile, (val) => {
     min-height: 100%;
     padding: 12px;
     overflow: visible;
+    box-shadow: none;
+    border-radius: 14px;
   }
 }
 
