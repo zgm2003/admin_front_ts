@@ -38,6 +38,32 @@ export default {
       newPassword: '新密码',
       submit: '修改密码',
       toEdit: '记得原来密码'
+    },
+    page: {
+      eyebrow: '变更轨迹',
+      description: '按时间追踪后台操作，动作、操作人、结果和请求/响应载荷在同一视线内完成扫描。',
+      total: '已加载记录',
+      totalHintMore: '下方还有更早的历史记录可继续加载',
+      totalHintDone: '当前结果已全部加载完成',
+      success: '成功操作',
+      successHint: '当前视图成功率 {rate}%',
+      failed: '失败操作',
+      failedHintClear: '当前视图内没有失败操作',
+      failedHintRisk: '当前视图内有 {count} 条失败操作待关注',
+      payload: '载荷记录',
+      filters: '筛选条件',
+      filtersHintNone: '当前未启用额外筛选',
+      filtersHintActive: '时间流已聚焦到目标范围',
+      timeline: '操作时间流',
+      timelineHint: '按日期自动分组，展开条目可查看请求与响应载荷。',
+      loadedTag: '已加载 {count} 条记录',
+      filterTag: '已启用 {count} 个筛选',
+      empty: '当前筛选条件下暂无操作日志'
+    },
+    entry: {
+      keys: '{count} 个字段',
+      items: '{count} 条项目',
+      payloadNone: '无请求或响应载荷'
     }
   },
   common: {
@@ -323,6 +349,32 @@ export default {
       is_success: '是否成功',
       created_at: '创建时间',
       params: '参数详情'
+    },
+    page: {
+      eyebrow: '变更轨迹',
+      description: '按时间追踪后台操作，动作、操作人、结果和请求/响应载荷在同一视线内完成扫描。',
+      total: '已加载记录',
+      totalHintMore: '下方还有更早的历史记录可继续加载',
+      totalHintDone: '当前结果已全部加载完成',
+      success: '成功操作',
+      successHint: '当前视图成功率 {rate}%',
+      failed: '失败操作',
+      failedHintClear: '当前视图内没有失败操作',
+      failedHintRisk: '当前视图内有 {count} 条失败操作待关注',
+      payload: '载荷记录',
+      filters: '筛选条件',
+      filtersHintNone: '当前未启用额外筛选',
+      filtersHintActive: '时间流已聚焦到目标范围',
+      timeline: '操作时间流',
+      timelineHint: '按日期自动分组，展开条目可查看请求与响应载荷。',
+      loadedTag: '已加载 {count} 条记录',
+      filterTag: '已启用 {count} 个筛选',
+      empty: '当前筛选条件下暂无操作日志'
+    },
+    entry: {
+      keys: '{count} 个字段',
+      items: '{count} 条项目',
+      payloadNone: '无请求或响应载荷'
     }
   },
   usersLoginLog: {
@@ -337,6 +389,26 @@ export default {
       is_success: '是否成功',
       reason: '原因',
       created_at: '创建时间'
+    },
+    page: {
+      eyebrow: '访问轨迹',
+      description: '按时间流梳理用户登录行为，让失败尝试、异常设备和筛选后的访问路径更容易被快速识别。',
+      total: '已加载记录',
+      totalHintMore: '下方还有更早的历史记录可继续加载',
+      totalHintDone: '当前结果已全部加载完成',
+      success: '成功登录',
+      successHint: '当前视图成功率 {rate}%',
+      failed: '失败登录',
+      failedHintClear: '当前视图内没有失败登录',
+      failedHintRisk: '当前视图内有 {count} 次失败登录待关注',
+      filters: '筛选条件',
+      filtersHintNone: '当前未启用额外筛选',
+      filtersHintActive: '时间流已聚焦到目标范围',
+      timeline: '登录时间流',
+      timelineHint: '按日期自动分组，滚动到底部可继续加载更早记录。',
+      loadedTag: '已加载 {count} 条记录',
+      filterTag: '已启用 {count} 个筛选',
+      empty: '当前筛选条件下暂无登录记录'
     }
   },
   user: {

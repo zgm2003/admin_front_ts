@@ -72,7 +72,7 @@ watch(isMobile, (val) => {
 </template>
 
 <style scoped lang="scss">
-.layout-container { height: 100vh; overflow: hidden; background: var(--el-bg-color-page); }
+.layout-container {height: 100dvh; overflow: hidden; background: var(--el-bg-color-page); }
 .layout-aside { border-right: 1px solid var(--el-border-color-lighter); background: var(--el-bg-color); overflow: hidden; }
 .layout-main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .layout-header, .layout-tabs { padding: 0; flex-shrink: 0; }
@@ -88,4 +88,30 @@ watch(isMobile, (val) => {
 .slide-left-leave-to { opacity: 0; transform: translateX(-20px); }
 .slide-right-enter-from { opacity: 0; transform: translateX(-20px); }
 .slide-right-leave-to { opacity: 0; transform: translateX(20px); }
+
+@media (max-width: 768px) {
+  .layout-content {
+    padding: 12px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-card {
+    height: auto;
+    min-height: 100%;
+    padding: 12px;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-content,
+  .page-card {
+    padding: 10px;
+  }
+
+  .page-card {
+    border-radius: 12px;
+  }
+}
 </style>

@@ -1,30 +1,30 @@
 import { ref, type Ref } from 'vue'
-import type { LogStreamItem, LogStreamApi } from '../types'
+import type { LogStreamApi, LogStreamItem } from '../types'
 
 export interface UseLogStreamOptions<T extends LogStreamItem = LogStreamItem> {
   api: LogStreamApi<T>
-  searchForm?: Ref<Record<string, any>>
+  searchForm?: Ref<Record<string, unknown>>
   pageSize?: number
-  /** 初始化时自动加载 */
+  /** Load immediately during setup. */
   immediate?: boolean
 }
 
 export interface UseLogStreamReturn<T extends LogStreamItem = LogStreamItem> {
-  /** 日志列表 */
+  /** Stream items in render order. */
   list: Ref<T[]>
-  /** 加载状态 */
+  /** Loading state for initial fetch and pagination. */
   loading: Ref<boolean>
-  /** 是否还有更多数据 */
+  /** Whether the backend still has more data. */
   hasMore: Ref<boolean>
-  /** 下一页游标 */
+  /** Cursor for the next paginated request. */
   nextCursor: Ref<number | string | null>
-  /** 初始加载 */
+  /** Reset cursor and fetch the first page. */
   loadInitial: () => Promise<void>
-  /** 加载更多 */
+  /** Fetch the next page and append it to the stream. */
   loadMore: () => Promise<void>
-  /** 重置并重新加载（筛选条件变化时调用） */
+  /** Clear current items and reload from page one. */
   refresh: () => Promise<void>
-  /** 追加新条目（SSE 实时推送用） */
+  /** Insert a newer item at the top of the stream. */
   prepend: (item: T) => void
 }
 
@@ -38,24 +38,28 @@ export function useLogStream<T extends LogStreamItem = LogStreamItem>(
   const hasMore = ref(true)
   const nextCursor = ref<number | string | null>(null)
 
-  /** 构建请求参数 */
+  /** Build request params from pagination and current filters. */
   const buildParams = () => {
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       page_size: pageSize,
     }
+
     if (nextCursor.value) {
       params.cursor = nextCursor.value
     }
+
     if (searchForm?.value) {
       Object.assign(params, searchForm.value)
     }
+
     return params
   }
 
-  /** 初始加载 */
+  /** Fetch the first page. */
   const loadInitial = async () => {
     loading.value = true
     nextCursor.value = null
+
     try {
       const params = buildParams()
       const res = await api.listCursor(params)
@@ -67,11 +71,12 @@ export function useLogStream<T extends LogStreamItem = LogStreamItem>(
     }
   }
 
-  /** 加载更多 */
+  /** Fetch the next page. */
   const loadMore = async () => {
     if (loading.value || !hasMore.value) return
-    
+
     loading.value = true
+
     try {
       const params = buildParams()
       const res = await api.listCursor(params)
@@ -83,7 +88,7 @@ export function useLogStream<T extends LogStreamItem = LogStreamItem>(
     }
   }
 
-  /** 重置并重新加载 */
+  /** Reload from scratch after filters change. */
   const refresh = async () => {
     list.value = []
     hasMore.value = true
@@ -91,12 +96,12 @@ export function useLogStream<T extends LogStreamItem = LogStreamItem>(
     await loadInitial()
   }
 
-  /** 追加新条目到头部（SSE 实时推送） */
+  /** Prepend a newly pushed record, for example from SSE. */
   const prepend = (item: T) => {
     list.value.unshift(item)
   }
 
-  // 立即加载
+  // Support components that want setup-time loading.
   if (immediate) {
     loadInitial()
   }
@@ -109,6 +114,6 @@ export function useLogStream<T extends LogStreamItem = LogStreamItem>(
     loadInitial,
     loadMore,
     refresh,
-    prepend
+    prepend,
   }
 }

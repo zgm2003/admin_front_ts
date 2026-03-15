@@ -323,6 +323,32 @@ export default {
       is_success: 'Success',
       created_at: 'Created At',
       params: 'Parameters'
+    },
+    page: {
+      eyebrow: 'Change Trace',
+      description: 'Review admin operations as a time-ordered audit stream so action, operator, result, and payload visibility stay in one scan line.',
+      total: 'Loaded Records',
+      totalHintMore: 'More history is available below',
+      totalHintDone: 'The current result set is fully loaded',
+      success: 'Successful Actions',
+      successHint: 'Success rate in view: {rate}%',
+      failed: 'Failed Actions',
+      failedHintClear: 'No failed operations in the current view',
+      failedHintRisk: '{count} failed operations need review',
+      payload: 'Payloads',
+      filters: 'Active Filters',
+      filtersHintNone: 'No extra filters applied',
+      filtersHintActive: 'The stream is narrowed to a target range',
+      timeline: 'Operation Timeline',
+      timelineHint: 'Grouped by date. Expand a row to inspect request and response payloads.',
+      loadedTag: '{count} records loaded',
+      filterTag: '{count} filters active',
+      empty: 'No operation logs match the current filters'
+    },
+    entry: {
+      keys: '{count} fields',
+      items: '{count} items',
+      payloadNone: 'No request or response payload'
     }
   },
   usersLoginLog: {
@@ -337,6 +363,26 @@ export default {
       is_success: 'Success',
       reason: 'Reason',
       created_at: 'Created At'
+    },
+    page: {
+      eyebrow: 'Access Trace',
+      description: 'Scan login activity as a time-ordered stream so failed attempts, suspicious devices, and filtered paths are easier to spot.',
+      total: 'Loaded Records',
+      totalHintMore: 'More history is available below',
+      totalHintDone: 'The current result set is fully loaded',
+      success: 'Successful Logins',
+      successHint: 'Success rate in view: {rate}%',
+      failed: 'Failed Logins',
+      failedHintClear: 'No failed attempts in the current view',
+      failedHintRisk: '{count} failed attempts need review',
+      filters: 'Active Filters',
+      filtersHintNone: 'No extra filters applied',
+      filtersHintActive: 'The stream is narrowed to a target range',
+      timeline: 'Login Timeline',
+      timelineHint: 'Grouped by date. Scroll to the bottom to continue loading older records.',
+      loadedTag: '{count} records loaded',
+      filterTag: '{count} filters active',
+      empty: 'No login activity matches the current filters'
     }
   },
   user: {
