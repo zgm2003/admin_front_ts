@@ -1,130 +1,243 @@
 <script setup lang="ts">
-import { ref, watch, computed, reactive, nextTick } from 'vue' // ✅ Add reactive, nextTick
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
-import { useI18n } from 'vue-i18n'
-import { useResizeObserver } from '@vueuse/core'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
+import { useResizeObserver } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import { RemoteSelect } from '@/components/RemoteSelect'
-
-interface Field {
-  key: string
-  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date' | 'slot' | 'remote-select'
-  label?: string
-  placeholder?: string
-  width?: number | string
-  options?: any[]
-  cascaderProps?: Record<string, any>
-  fetchMethod?: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
-  labelField?: string | ((item: any) => string)
-  valueField?: string
-  keywordField?: string
-  [key: string]: any
-}
+import type { RemoteSelectSearchField, SearchField, SearchFormModel } from '@/components/Search/types'
+import { useIsMobile } from '@/hooks/useResponsive'
 
 const { locale, t } = useI18n()
-const props = withDefaults(defineProps<{ modelValue: Record<string, any>, fields: Field[], inline?: boolean, collapseCount?: number, size?: 'large' | 'default' | 'small' }>(), { inline: true, collapseCount: 1 })
-const emit = defineEmits(['update:modelValue', 'query', 'reset'])
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: SearchFormModel
+    fields: SearchField[]
+    inline?: boolean
+    collapseCount?: number
+    size?: 'large' | 'default' | 'small'
+  }>(),
+  {
+    inline: true,
+    collapseCount: 1,
+  }
+)
+
+const emit = defineEmits<{
+  'update:modelValue': [value: SearchFormModel]
+  query: [value: SearchFormModel]
+  reset: [value: SearchFormModel]
+}>()
 
 const formRef = ref<FormInstance>()
-// ✅ Change to reactive to keep object reference stable
-const form = reactive<Record<string, any>>({ ...(props.modelValue || {}) })
+const form = reactive<Record<string, any>>({ ...props.modelValue })
+const isMobile = useIsMobile()
 
-// ✅ Use Object.assign to update values without breaking reference or el-form initial value tracking
-watch(() => props.modelValue, (v) => {
-  Object.assign(form, v || {})
-}, { deep: true })
+watch(
+  () => props.modelValue,
+  (value) => {
+    Object.assign(form, value || {})
+  },
+  { deep: true }
+)
 
-const resetText = computed(() => locale.value === 'en-US' ? 'Reset' : '重置')
+const resetText = computed(() => (locale.value === 'en-US' ? 'Reset' : '重置'))
 
-const onQuery = () => { emit('update:modelValue', { ...form }); emit('query', { ...form }) }
+const onQuery = () => {
+  const value = { ...form } as SearchFormModel
+  emit('update:modelValue', value)
+  emit('query', value)
+}
 
-// ✅ Async reset with nextTick to ensure emitted value is the reset state
 const onReset = async () => {
-  if (!formRef.value) return
+  if (!formRef.value) {
+    return
+  }
+
   formRef.value.resetFields()
   await nextTick()
-  emit('update:modelValue', { ...form })
-  emit('reset', { ...form })
+
+  const value = { ...form } as SearchFormModel
+  emit('update:modelValue', value)
+  emit('reset', value)
 }
 
-const isMobile = useIsMobile()
-const collapsed = ref<boolean>(false)
+const collapsed = ref(false)
 const userOverride = ref(false)
-const autoInitialized = ref(false)
 const wrapRef = ref<HTMLElement | null>(null)
 const wrapped = ref(false)
+
 const detectWrapped = () => {
-  const el = wrapRef.value as HTMLElement | null
-  if (!el) return
-  const items = Array.from(el.querySelectorAll('.el-form-item')) as HTMLElement[]
+  const element = wrapRef.value
+  if (!element) {
+    return
+  }
+
+  const items = Array.from(element.querySelectorAll('.el-form-item')) as HTMLElement[]
   const firstItem = items[0]
-  if (!firstItem) return
+  if (!firstItem) {
+    return
+  }
+
   const firstTop = firstItem.offsetTop
-  const hasWrap = items.some(it => it.offsetTop > firstTop)
+  const hasWrap = items.some((item) => item.offsetTop > firstTop)
   wrapped.value = hasWrap
+
   if (!userOverride.value && hasWrap && !collapsed.value) {
     collapsed.value = true
-    autoInitialized.value = true
   }
 }
-useResizeObserver(wrapRef, () => { detectWrapped() })
+
+useResizeObserver(wrapRef, detectWrapped)
+
 const minCount = computed(() => Math.max(1, Number(props.collapseCount || 1)))
-const visibleFields = computed(() => collapsed.value ? props.fields.slice(0, minCount.value) : props.fields)
+const visibleFields = computed(() => (collapsed.value ? props.fields.slice(0, minCount.value) : props.fields))
 const showToggle = computed(() => wrapped.value || collapsed.value)
-const toggleCollapsed = () => { if (showToggle.value) { userOverride.value = true; collapsed.value = !collapsed.value } }
-// 提取透传属性，排除自定义字段
-const getFieldBindings = (f: Field) => {
-  const { key, type, label, placeholder, width, options, cascaderProps, fetchMethod, labelField, valueField, keywordField, ...rest } = f
+
+const toggleCollapsed = () => {
+  if (!showToggle.value) {
+    return
+  }
+
+  userOverride.value = true
+  collapsed.value = !collapsed.value
+}
+
+const isRemoteSelectField = (field: SearchField): field is RemoteSelectSearchField =>
+  field.type === 'remote-select'
+
+const getFieldBindings = (field: SearchField): Record<string, unknown> => {
+  const {
+    key,
+    type,
+    label,
+    placeholder,
+    width,
+    options,
+    cascaderProps,
+    fetchMethod,
+    labelField,
+    valueField,
+    keywordField,
+    ...rest
+  } = field
+
   return rest
+}
+
+const resolveWidth = (width: SearchField['width'], fallback: number) => {
+  if (isMobile.value) {
+    return '100%'
+  }
+
+  return typeof width === 'string' ? width : `${width ?? fallback}px`
 }
 </script>
 
 <template>
   <div ref="wrapRef">
-  <!-- ✅ :model="form" now binds to the reactive object directly -->
-  <el-form ref="formRef" :inline="isMobile ? false : props.inline" :model="form" :size="props.size" @submit.prevent="onQuery">
-    <el-form-item v-for="f in visibleFields" :key="f.key" :label="isMobile ? undefined : f.label" :prop="f.key">
-      <template v-if="f.type==='input'">
-        <el-input v-model="form[f.key]" :placeholder="f.placeholder" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
-      </template>
-      <template v-else-if="f.type==='select-v2'">
-        <el-select-v2 v-model="form[f.key]" :options="f.options ?? []" filterable clearable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
-      </template>
-      <template v-else-if="f.type==='cascader'">
-        <el-cascader v-model="form[f.key]" :options="f.options" clearable filterable :placeholder="f.placeholder" :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" :props="f.cascaderProps" v-bind="getFieldBindings(f)" />
-      </template>
-      <template v-else-if="f.type==='date-range'">
-        <el-date-picker v-model="form[f.key]" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 300)+'px' }" v-bind="getFieldBindings(f)" />
-      </template>
-      <template v-else-if="f.type==='date'">
-        <el-date-picker v-model="form[f.key]" type="date" :placeholder="f.placeholder" value-format="YYYY-MM-DD" clearable :style="{ width: isMobile ? '100%' : (f.width ?? 150)+'px' }" v-bind="getFieldBindings(f)" />
-      </template>
-      <template v-else-if="f.type==='remote-select'">
-        <RemoteSelect
-          v-model="form[f.key]"
-          :fetch-method="f.fetchMethod!"
-          :label-field="f.labelField || 'label'"
-          :value-field="f.valueField || 'value'"
-          :keyword-field="f.keywordField || 'keyword'"
-          :placeholder="f.placeholder"
-          :width="isMobile ? '100%' : (f.width ?? 200) + 'px'"
-          v-bind="getFieldBindings(f)"
-        />
-      </template>
-      <template v-else-if="f.type==='slot'">
-        <slot :name="f.key" :form="form" :field="f" />
-      </template>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" native-type="submit">{{ t('common.actions.query') }}</el-button>
-      <el-button @click="onReset">{{ resetText }}</el-button>
-      <el-button v-if="showToggle" text @click="toggleCollapsed">
-        <el-icon style="margin-right:4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
-        {{ collapsed ? '展开' : '收起' }}
-      </el-button>
-    </el-form-item>
-  </el-form>
+    <el-form
+      ref="formRef"
+      :inline="isMobile ? false : props.inline"
+      :model="form"
+      :size="props.size"
+      @submit.prevent="onQuery"
+    >
+      <el-form-item
+        v-for="field in visibleFields"
+        :key="field.key"
+        :label="isMobile ? undefined : field.label"
+        :prop="field.key"
+      >
+        <template v-if="field.type === 'input'">
+          <el-input
+            v-model="form[field.key]"
+            :placeholder="field.placeholder"
+            clearable
+            :style="{ width: resolveWidth(field.width, 150) }"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="field.type === 'select-v2'">
+          <el-select-v2
+            v-model="form[field.key]"
+            :options="(field.options ?? []) as any[]"
+            filterable
+            clearable
+            :placeholder="field.placeholder"
+            :style="{ width: resolveWidth(field.width, 150) }"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="field.type === 'cascader'">
+          <el-cascader
+            v-model="form[field.key]"
+            :options="(field.options ?? []) as any[]"
+            :props="field.cascaderProps"
+            clearable
+            filterable
+            :placeholder="field.placeholder"
+            :style="{ width: resolveWidth(field.width, 150) }"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="field.type === 'date-range'">
+          <el-date-picker
+            v-model="form[field.key]"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            clearable
+            :style="{ width: resolveWidth(field.width, 300) }"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="field.type === 'date'">
+          <el-date-picker
+            v-model="form[field.key]"
+            type="date"
+            :placeholder="field.placeholder"
+            value-format="YYYY-MM-DD"
+            clearable
+            :style="{ width: resolveWidth(field.width, 150) }"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="isRemoteSelectField(field)">
+          <RemoteSelect
+            v-model="form[field.key]"
+            :fetch-method="field.fetchMethod"
+            :label-field="field.labelField || 'label'"
+            :value-field="field.valueField || 'value'"
+            :keyword-field="field.keywordField || 'keyword'"
+            :placeholder="field.placeholder"
+            :width="resolveWidth(field.width, 200)"
+            v-bind="getFieldBindings(field)"
+          />
+        </template>
+
+        <template v-else-if="field.type === 'slot'">
+          <slot :name="field.key" :form="form" :field="field" />
+        </template>
+      </el-form-item>
+
+      <el-form-item>
+        <el-button type="primary" native-type="submit">{{ t('common.actions.query') }}</el-button>
+        <el-button @click="onReset">{{ resetText }}</el-button>
+        <el-button v-if="showToggle" text @click="toggleCollapsed">
+          <el-icon style="margin-right: 4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
+          {{ collapsed ? '展开' : '收起' }}
+        </el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 

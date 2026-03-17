@@ -1,39 +1,53 @@
-import {ref, unref} from 'vue'
-import {ElNotification, ElMessageBox} from 'element-plus'
+import { ref, type MaybeRef, unref } from 'vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import i18n from '@/i18n'
+import type { Id, Identifiable, PaginatedResponse, RequestPayload } from '@/types/common'
 
 const t = i18n.global.t
 
-interface PageState {
+export interface PageState {
   current_page: number
   page_size: number
   total: number
+  total_page?: number
 }
 
-// API 模块标准结构
-interface ApiModule {
-  list: (params: any) => Promise<{ list: any[]; page: PageState }>
-  del?: (params: any) => Promise<any>
-  status?: (params: any) => Promise<any>
+type PaginationParams = Pick<PageState, 'current_page' | 'page_size'>
+type ListRequest<P extends RequestPayload> = PaginationParams & Partial<Omit<P, keyof PaginationParams>>
+
+interface ApiModule<
+  T extends Identifiable,
+  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+> {
+  list(params: ListRequest<P>): Promise<PaginatedResponse<T>>
+  del?(params: { id: Id | Id[] }): Promise<unknown>
+  status?(params: { id: Id; status: number }): Promise<unknown>
 }
 
-interface UseTableOptions {
-  // API 模块（包含 list、del 等方法）
-  api: ApiModule
-  // 搜索表单（响应式对象，支持 ref 或 reactive）
-  searchForm?: any
-  // 是否立即请求（默认 false）
+interface UseTableOptions<
+  T extends Identifiable,
+  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+> {
+  api: ApiModule<T, P>
+  searchForm?: MaybeRef<Partial<Omit<P, keyof PaginationParams>>>
   immediate?: boolean
-  // 分页初始值
   initPage?: Partial<PageState>
-  // 数据处理回调
-  dataCallback?: (data: any) => any
-  // 删除后回调
+  dataCallback?: (data: PaginatedResponse<T>) => PaginatedResponse<T>
   afterDel?: () => void
 }
 
-export function useTable<T = any>(options: UseTableOptions) {
-  const { api, searchForm = {}, immediate = false, initPage = {}, dataCallback, afterDel } = options
+export function useTable<
+  T extends Identifiable = Identifiable,
+  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+>(options: UseTableOptions<T, P>) {
+  const {
+    api,
+    searchForm = {},
+    immediate = false,
+    initPage = {},
+    dataCallback,
+    afterDel,
+  } = options
 
   const loading = ref(false)
   const data = ref<T[]>([])
@@ -41,129 +55,124 @@ export function useTable<T = any>(options: UseTableOptions) {
     current_page: 1,
     page_size: 20,
     total: 0,
-    ...initPage
+    ...initPage,
   })
 
-  // 选中的 ID 列表
-  const selectedIds = ref<any[]>([])
-  const onSelectionChange = (selection: any[]) => {
-    selectedIds.value = selection.map((item: any) => item.id)
+  const selectedIds = ref<Array<T['id']>>([])
+
+  const onSelectionChange = (selection: T[]) => {
+    selectedIds.value = selection.map((item) => item.id)
   }
 
-  // 获取列表
   const getList = () => {
     loading.value = true
-    const params = {
-      ...unref(searchForm),
-      page_size: page.value.page_size,
-      current_page: page.value.current_page
-    }
 
-    return api.list(params)
-      .then((res: { list: T[]; page: PageState }) => {
-        // 允许外部处理数据
-        if (dataCallback) {
-          res = dataCallback(res)
-        }
-        // 严格标准结构：{ list, page }
-        data.value = res.list
-        page.value = res.page
-        return res
+    const params = {
+      ...(unref(searchForm) ?? {}),
+      page_size: page.value.page_size,
+      current_page: page.value.current_page,
+    } as ListRequest<P>
+
+    return api
+      .list(params)
+      .then((response) => {
+        const result = dataCallback ? dataCallback(response) : response
+        data.value = result.list
+        page.value = result.page
+        return result
       })
       .finally(() => {
         loading.value = false
       })
   }
 
-  // 搜索（重置页码）
   const onSearch = () => {
     page.value.current_page = 1
-    getList()
+    void getList()
   }
 
-  // 分页变化
-  const onPageChange = (p: PageState) => {
-    page.value = p
-    getList()
+  const onPageChange = (nextPage: PageState) => {
+    page.value = nextPage
+    void getList()
   }
 
-  // 刷新
   const refresh = () => {
-    getList()
+    void getList()
   }
 
-  // 单个删除
-  const confirmDel = async (row: any) => {
+  const confirmDel = async (row: T) => {
     if (!api.del) {
       console.warn('useTable: api.del not provided')
       return
     }
+
     try {
-      await ElMessageBox.confirm(
-        t('common.confirmDelete'),
-        t('common.confirmTitle'),
-        { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
-      )
+      await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
     } catch {
       return
     }
+
     await api.del({ id: row.id })
     ElNotification.success({ message: t('common.success.operation') })
-    getList()
+    void getList()
     afterDel?.()
   }
 
-  // 批量删除
   const batchDel = async () => {
     if (!api.del) {
       console.warn('useTable: api.del not provided')
       return
     }
+
     if (!selectedIds.value.length) {
       ElNotification.error({ message: t('common.selectAtLeastOne') })
       return
     }
+
     try {
-      await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') }
-      )
+      await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
     } catch {
       return
     }
 
     await api.del({ id: selectedIds.value })
-
     ElNotification.success({ message: t('common.success.operation') })
     selectedIds.value = []
-    getList()
+    void getList()
     afterDel?.()
   }
 
-  // 状态切换
-  const toggleStatus = async (row: any, newStatus: number) => {
+  const toggleStatus = async (row: T, newStatus: number) => {
     if (!api.status) {
       console.warn('useTable: api.status not provided')
       return
     }
+
     try {
-      await ElMessageBox.confirm(
-        t('common.confirmStatusChange'),
-        t('common.confirmTitle'),
-        { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') }
-      )
+      await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.confirm'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
     } catch {
       return
     }
+
     await api.status({ id: row.id, status: newStatus })
     ElNotification.success({ message: t('common.success.operation') })
-    getList()
+    void getList()
   }
 
-  // 立即执行
   if (immediate) {
-    getList()
+    void getList()
   }
 
   return {
@@ -178,6 +187,6 @@ export function useTable<T = any>(options: UseTableOptions) {
     refresh,
     confirmDel,
     batchDel,
-    toggleStatus
+    toggleStatus,
   }
 }

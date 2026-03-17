@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const emit = defineEmits<{
   select: [emoji: string]
@@ -51,6 +51,9 @@ const emojiCategories = [
   }
 ]
 
+const defaultCategory = emojiCategories[0]!
+const activeCategory = computed(() => emojiCategories[activeTab.value] ?? defaultCategory)
+
 function handleSelect(emoji: string) {
   emit('select', emoji)
 }
@@ -74,7 +77,7 @@ function handleSelect(emoji: string) {
     <!-- emoji 列表 -->
     <div class="emoji-list">
       <div
-        v-for="emoji in emojiCategories[activeTab].emojis"
+        v-for="emoji in activeCategory.emojis"
         :key="emoji"
         class="emoji-item"
         @click="handleSelect(emoji)"

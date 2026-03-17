@@ -6,6 +6,12 @@ import {LogStream, useLogStream} from '@/components/LogStream'
 import type {LogStreamItem, LogStreamApi, CursorPaginateResponse} from '@/components/LogStream'
 import AuditStreamLayoutDemo from './components/AuditStreamLayoutDemo.vue'
 
+interface DemoLogItem extends LogStreamItem {
+  user_name: string
+  action: string
+  is_success: number
+}
+
 const Editor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
 const MarkdownRenderer = defineAsyncComponent(() => import('@/components/MarkdownRenderer').then(m => m.MarkdownRenderer))
 
@@ -136,15 +142,17 @@ const dIconProps = [
 ]
 
 // LogStream 演示
-const mockLogApi: LogStreamApi = {
-  listCursor: async (params): Promise<CursorPaginateResponse<LogStreamItem>> => {
+const mockLogApi: LogStreamApi<DemoLogItem, {cursor?: number; page_size: number}> = {
+  listCursor: async (params: {cursor?: number; page_size: number}): Promise<CursorPaginateResponse<DemoLogItem>> => {
     await new Promise(r => setTimeout(r, 500))
     const cursor = params.cursor || 0
-    const list: LogStreamItem[] = Array.from({length: params.page_size}, (_, i) => ({
+    const userNames = ['张三', '李四', '王五'] as const
+    const actions = ['登录系统', '修改资料', '删除记录', '新增用户'] as const
+    const list: DemoLogItem[] = Array.from({length: params.page_size}, (_, i) => ({
       id: cursor + i + 1,
       created_at: new Date(Date.now() - (cursor + i) * 3600000).toISOString(),
-      user_name: ['张三', '李四', '王五'][i % 3],
-      action: ['登录系统', '修改资料', '删除记录', '新增用户'][i % 4],
+      user_name: userNames[i % userNames.length] ?? userNames[0],
+      action: actions[i % actions.length] ?? actions[0],
       is_success: i % 5 !== 0 ? 1 : 0
     }))
     return {
@@ -155,7 +163,7 @@ const mockLogApi: LogStreamApi = {
   }
 }
 
-const {list: logList, loading: logLoading, hasMore: logHasMore, loadMore: logLoadMore, refresh: logRefresh} = useLogStream({
+const {list: logList, loading: logLoading, hasMore: logHasMore, loadMore: logLoadMore, refresh: logRefresh} = useLogStream<DemoLogItem, {cursor?: number; page_size: number}>({
   api: mockLogApi,
   pageSize: 5,
   immediate: true

@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { computed, ref, useSlots, watch } from 'vue'
+<script setup lang="ts" generic="T extends LogStreamItem = LogStreamItem">
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LogStream } from '@/components/LogStream'
 import type { LogStreamItem } from '@/components/LogStream'
@@ -22,7 +22,7 @@ const props = defineProps<{
   filterActive?: boolean
   timelineTitle: string
   timelineHint: string
-  list: LogStreamItem[]
+  list: T[]
   loading?: boolean
   hasMore?: boolean
   emptyText?: string
@@ -34,7 +34,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const slots = useSlots()
+const slots = defineSlots<{
+  'header-tags'?: () => unknown
+  'filter-meta'?: () => unknown
+  search?: () => unknown
+  'toolbar-right'?: () => unknown
+  default?: (props: { item: T }) => unknown
+}>()
 const statsExpanded = ref(false)
 
 const hasHeaderTags = computed(() => Boolean(slots['header-tags']))

@@ -33,6 +33,11 @@ interface ChatState {
   _wsCleanups: (() => void)[]
 }
 
+interface GroupUpdateData {
+  conversation_id: number
+  action?: 'kicked' | 'member_added' | 'member_removed' | 'info_updated'
+}
+
 // 输入状态自动清除定时器
 const typingTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -173,7 +178,7 @@ export const useChatStore = defineStore('chat', {
       await this.loadMessages(id)
     },
 
-    async sendMessage(conversationId: number, type: MessageType, content: string, metaJson?: Record<string, any>) {
+    async sendMessage(conversationId: number, type: MessageType, content: string, metaJson?: Record<string, unknown>) {
       this.sending = true
       try {
         const data = await ChatRoomApi.sendMessage({
@@ -321,7 +326,7 @@ export const useChatStore = defineStore('chat', {
       msg.meta_json = { recalled: true }
     },
 
-    _handleGroupUpdate(data: { conversation_id: number; action?: string; [key: string]: any }) {
+    _handleGroupUpdate(data: GroupUpdateData) {
       const conversationId = data.conversation_id
       
       // 群信息更新，刷新会话列表 + 通知群信息面板刷新

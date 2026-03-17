@@ -15,10 +15,10 @@ const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
-const iconModule = shallowRef<Record<string, any> | null>(null)
+const iconModule = shallowRef<Record<string, any>>({})
 let iconModulePromise: Promise<void> | null = null
 const loadIconModule = () => {
-  if (iconModule.value) return Promise.resolve()
+  if (Object.keys(iconModule.value).length) return Promise.resolve()
   if (!iconModulePromise) {
     iconModulePromise = import('@element-plus/icons-vue').then((mod) => {
       iconModule.value = mod as Record<string, any>
@@ -71,7 +71,7 @@ const entries = computed(() => {
       return {
         id: entry.id,
         permissionId: entry.permission_id,
-        label: t(menu.i18n_key) || menu.label,
+        label: menu.i18n_key ? t(menu.i18n_key) : menu.label,
         icon: menu.icon || 'Document',
         path: menu.path,
         color: entryColors[index % 4],

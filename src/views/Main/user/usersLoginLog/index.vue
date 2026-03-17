@@ -1,60 +1,33 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { ElTag, ElText } from 'element-plus'
-import { UsersLoginLogApi } from '@/api/user/usersLoginLog'
-import { UsersListApi } from '@/api/user/users'
+import { useI18n } from 'vue-i18n'
 import { AuditStreamLayout, useAuditStreamMetrics } from '@/components/AuditStreamLayout'
 import { useLogStream, type LogStreamItem } from '@/components/LogStream'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import { UsersLoginLogApi } from '@/api/user/usersLoginLog'
+import { UsersListApi } from '@/api/user/users'
 import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
+import type { DictOption } from '@/types/common'
+import type { UserListItem, UserLoginLogInitResponse, UserLoginLogItem, UserLoginType } from '@/types/user'
 import UsersLoginLogEntry from './components/UsersLoginLogEntry.vue'
 
-interface DictOption {
-  label: string
-  value: number | string
-}
-
-interface UserLookupOption {
-  id: number | string
-  username?: string
-  email?: string
-}
-
-interface UsersLoginLogInitResponse {
-  dict: {
-    platformArr: DictOption[]
-    login_type_arr: DictOption[]
-  }
-}
-
-interface UsersLoginLogStreamItem extends LogStreamItem {
-  ip?: string
-  is_success?: number
-  login_account?: string
-  login_type?: string
-  login_type_name?: string
-  platform?: string
-  platform_name?: string
-  reason?: string
-  ua?: string
-  user_name?: string
-}
+type UsersLoginLogStreamItem = UserLoginLogItem & LogStreamItem
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
-const platformArr = ref<DictOption[]>([])
-const loginTypeArr = ref<DictOption[]>([])
+const platformArr = ref<DictOption<string>[]>([])
+const loginTypeArr = ref<DictOption<UserLoginType>[]>([])
 const searchForm = ref({
   user_id: '',
   login_account: '',
-  login_type: '',
+  login_type: '' as UserLoginType | '',
   ip: '',
   platform: '',
-  is_success: '',
+  is_success: '' as number | '',
   date: [] as string[],
 })
 
@@ -65,11 +38,13 @@ const { list, loading, hasMore, loadInitial, loadMore, refresh } = useLogStream<
 })
 
 UsersLoginLogApi.init()
-  .then((data: UsersLoginLogInitResponse) => {
+  .then((data: UserLoginLogInitResponse) => {
     platformArr.value = data.dict.platformArr
     loginTypeArr.value = data.dict.login_type_arr
   })
-  .catch(() => {})
+  .catch(() => {
+    // request interceptor handles notification
+  })
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -77,7 +52,7 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'remote-select',
     label: t('usersLoginLog.filter.userName'),
     fetchMethod: UsersListApi.list,
-    labelField: (item: UserLookupOption) => `${item.username} (${item.email})`,
+    labelField: (item: UserListItem) => `${item.username} (${item.email})`,
     valueField: 'id',
     placeholder: t('usersLoginLog.filter.userName'),
     width: isMobile.value ? 200 : 220,

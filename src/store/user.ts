@@ -1,36 +1,52 @@
 import { defineStore } from 'pinia'
 import { UsersApi } from '@/api/user/users'
 import { HOME_MENU_ITEM } from './menu'
+import type { DynamicRouteItem, PermissionMenuItem, QuickEntryItem } from '@/types/user'
+
+interface UserState {
+  user_id: number | ''
+  avatar: string
+  username: string
+  role_name: string
+  permissions: PermissionMenuItem[]
+  router: DynamicRouteItem[]
+  buttonCodes: string[]
+  quickEntry: QuickEntryItem[]
+  _permissionMapCache: Map<string, PermissionMenuItem> | null
+}
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
+  state: (): UserState => ({
     user_id: '',
     avatar: '',
     username: '',
     role_name: '',
-    permissions: [] as any[],
-    router: [] as any[],
-    buttonCodes: [] as string[],
-    quickEntry: [] as { id: number; permission_id: number }[],
-    _permissionMapCache: null as Map<string, any> | null,
+    permissions: [],
+    router: [],
+    buttonCodes: [],
+    quickEntry: [],
+    _permissionMapCache: null,
   }),
   getters: {
-    permissionMap: (state) => {
-      if (state._permissionMapCache) return state._permissionMapCache
-      
-      const map = new Map<string, any>()
-      const traverse = (items: any[]) => {
-        items.forEach(item => {
+    permissionMap: (state): Map<string, PermissionMenuItem> => {
+      if (state._permissionMapCache) {
+        return state._permissionMapCache
+      }
+
+      const map = new Map<string, PermissionMenuItem>()
+      const traverse = (items: PermissionMenuItem[]) => {
+        items.forEach((item) => {
           map.set(String(item.index), item)
-          if (item.children && item.children.length > 0) {
+          if (item.children?.length) {
             traverse(item.children)
           }
         })
       }
+
       traverse(state.permissions)
       state._permissionMapCache = map
       return map
-    }
+    },
   },
   actions: {
     async fetchUserInfo() {
@@ -40,20 +56,19 @@ export const useUserStore = defineStore('user', {
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'
         this.role_name = data.role_name || ''
-        data.permissions.unshift(HOME_MENU_ITEM)
-        this.permissions = data.permissions
-        this.router = data.router
+        this.permissions = [HOME_MENU_ITEM, ...(data.permissions || [])]
+        this.router = data.router || []
         this.buttonCodes = data.buttonCodes || []
         this.quickEntry = data.quick_entry || []
         this._permissionMapCache = null
-      } catch (e) {
+      } catch (error) {
         this.user_id = ''
         this.permissions = []
         this.router = []
         this.buttonCodes = []
         this.quickEntry = []
         this._permissionMapCache = null
-        throw e
+        throw error
       }
     },
     can(code: string) {

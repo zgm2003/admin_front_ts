@@ -17,7 +17,12 @@
       @change="handleChange"
       @clear="reset"
     >
-      <el-option v-for="item in options" :key="item[valueField]" :label="getLabel(item)" :value="item[valueField]" />
+      <el-option
+        v-for="item in options"
+        :key="String(getValue(item))"
+        :label="getLabel(item)"
+        :value="getValue(item)"
+      />
       <el-option v-if="statusText" disabled value="__status__" class="load-status">
         <span>{{ statusText }}</span>
       </el-option>
@@ -29,24 +34,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RemoteListFetchMethod, RequestPayload } from '@/types/common'
 
 defineOptions({ inheritAttrs: false })
 
 const { t } = useI18n()
 
+type RemoteSelectValue = string | number
+type SelectableValue = RemoteSelectValue | RemoteSelectValue[]
+type OptionItem = object
+type LabelResolver<Item extends object = OptionItem> = {
+  bivarianceHack(item: Item): string
+}['bivarianceHack']
+
 interface Props {
-  modelValue?: string | number | (string | number)[]
-  fetchMethod: (params: Record<string, any>) => Promise<any>
-  labelField?: string | ((item: any) => string)
+  modelValue?: SelectableValue
+  fetchMethod: RemoteListFetchMethod<OptionItem>
+  labelField?: string | LabelResolver
   valueField?: string
   keywordField?: string
   pageField?: string
   pageSizeField?: string
   pageSize?: number
   loadOnOpen?: boolean
-  extraParams?: Record<string, any>
+  extraParams?: RequestPayload
   debounce?: number
   placeholder?: string
   clearable?: boolean
@@ -66,115 +79,144 @@ const props = withDefaults(defineProps<Props>(), {
   debounce: 300,
   placeholder: '',
   clearable: true,
-  width: '200px'
+  width: '200px',
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: any]
-  change: [value: any, item: any]
+  'update:modelValue': [value: SelectableValue | undefined]
+  change: [value: SelectableValue | undefined, item: OptionItem | undefined]
 }>()
 
-const selectRef = ref()
-const containerRef = ref<HTMLElement>()
-const options = ref<any[]>([])
-const selected = ref(props.modelValue)
+const selectRef = ref<unknown>(null)
+const containerRef = ref<HTMLElement | null>(null)
+const options = ref<OptionItem[]>([])
+const selected = ref<SelectableValue | undefined>(props.modelValue)
 const loading = ref(false)
 const loadingMore = ref(false)
 const loaded = ref(false)
 const page = ref(1)
 const total = ref(0)
-const lastFetchCount = ref(0) // 最后一次请求返回的数量
+const lastFetchCount = ref(0)
+
 let keyword = ''
 let scrollWrapper: HTMLElement | null = null
 
-// 判断是否还有更多数据
 const hasMore = computed(() => {
   if (total.value > 0) {
-    // 有 total 时，用 total 判断
     return options.value.length < total.value
   }
-  // 没有 total 时，用最后一次返回数量判断
+
   return lastFetchCount.value === props.pageSize
 })
+
 const statusText = computed(() => {
-  if (!options.value.length) return ''
-  if (loadingMore.value) return t('common.loading')
-  if (hasMore.value) return t('common.scrollLoadMore')
+  if (!options.value.length) {
+    return ''
+  }
+  if (loadingMore.value) {
+    return t('common.loading')
+  }
+  if (hasMore.value) {
+    return t('common.scrollLoadMore')
+  }
   return t('common.noMore')
 })
 
-// 获取 label（支持字符串或函数）
-const getLabel = (item: any) => {
+const getLabel = (item: OptionItem) => {
   if (typeof props.labelField === 'function') {
     return props.labelField(item)
   }
-  return item[props.labelField]
+
+  const value = (item as Record<string, unknown>)[props.labelField]
+  return typeof value === 'string' || typeof value === 'number' ? String(value) : ''
 }
 
-// 搜索
+const getValue = (item: OptionItem): RemoteSelectValue => {
+  const value = (item as Record<string, unknown>)[props.valueField]
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value
+  }
+
+  return String(value ?? '')
+}
+
 const handleSearch = (query: string) => {
   keyword = query
   page.value = 1
-  fetchData(false)
+  void fetchData(false)
 }
 
-// 获取数据
 const fetchData = async (append = false) => {
-  append ? (loadingMore.value = true) : (loading.value = true)
+  if (append) {
+    loadingMore.value = true
+  } else {
+    loading.value = true
+  }
+
   try {
-    const res = await props.fetchMethod({
+    const response = await props.fetchMethod({
       [props.keywordField]: keyword,
       [props.pageField]: page.value,
       [props.pageSizeField]: props.pageSize,
-      ...props.extraParams
+      ...props.extraParams,
     })
-    // 统一解析：list 直接取，total 从 page.total 取
-    const list = res?.list || []
+
+    const list = response.list ?? []
     lastFetchCount.value = list.length
     options.value = append ? [...options.value, ...list] : list
-    total.value = res?.page?.total || res?.total || 0
+    total.value = response.page?.total ?? response.total ?? 0
     loaded.value = true
   } catch {
-    if (!append) options.value = []
+    if (!append) {
+      options.value = []
+    }
     lastFetchCount.value = 0
   } finally {
-    loading.value = loadingMore.value = false
+    loading.value = false
+    loadingMore.value = false
   }
 }
 
-// 加载更多
 const loadMore = () => {
-  if (loading.value || loadingMore.value || !hasMore.value) return
-  page.value++
-  fetchData(true)
+  if (loading.value || loadingMore.value || !hasMore.value) {
+    return
+  }
+
+  page.value += 1
+  void fetchData(true)
 }
 
-// 下拉框展开/关闭
+const onScroll = (event: Event) => {
+  const element = event.target as HTMLElement
+  if (element.scrollHeight - element.scrollTop - element.clientHeight < 50) {
+    loadMore()
+  }
+}
+
 const handleVisibleChange = (visible: boolean) => {
-  if (visible) {
-    if (props.loadOnOpen && !loaded.value) fetchData(false)
-    nextTick(() => setTimeout(() => {
-      scrollWrapper = containerRef.value?.querySelector('.el-select-dropdown__wrap') as HTMLElement
-      scrollWrapper?.addEventListener('scroll', onScroll)
-    }, 50))
-  } else {
+  if (!visible) {
     scrollWrapper?.removeEventListener('scroll', onScroll)
     scrollWrapper = null
+    return
   }
+
+  if (props.loadOnOpen && !loaded.value) {
+    void fetchData(false)
+  }
+
+  nextTick(() => {
+    window.setTimeout(() => {
+      scrollWrapper = containerRef.value?.querySelector('.el-select-dropdown__wrap') as HTMLElement | null
+      scrollWrapper?.addEventListener('scroll', onScroll)
+    }, 50)
+  })
 }
 
-const onScroll = (e: Event) => {
-  const el = e.target as HTMLElement
-  if (el.scrollHeight - el.scrollTop - el.clientHeight < 50) loadMore()
+const handleChange = (value: SelectableValue | undefined) => {
+  emit('update:modelValue', value)
+  emit('change', value, options.value.find((item) => getValue(item) === value))
 }
 
-// 值变化
-const handleChange = (val: any) => {
-  emit('update:modelValue', val)
-  emit('change', val, options.value.find(o => o[props.valueField] === val))
-}
-
-// 重置
 const reset = () => {
   options.value = []
   loaded.value = false
@@ -184,14 +226,47 @@ const reset = () => {
   keyword = ''
 }
 
-watch(() => props.modelValue, val => selected.value = val, { immediate: true })
-onUnmounted(() => scrollWrapper?.removeEventListener('scroll', onScroll))
+watch(
+  () => props.modelValue,
+  (value) => {
+    selected.value = value
+  },
+  { immediate: true }
+)
 
-defineExpose({ refresh: () => { page.value = 1; fetchData(false) }, reset, loadMore, selectRef })
+onUnmounted(() => {
+  scrollWrapper?.removeEventListener('scroll', onScroll)
+})
+
+defineExpose({
+  refresh: () => {
+    page.value = 1
+    return fetchData(false)
+  },
+  reset,
+  loadMore,
+  selectRef,
+})
 </script>
 
 <style scoped>
-.remote-select-container { display: inline-block; position: relative; }
-.empty-text { padding: 10px 0; text-align: center; color: #909399; font-size: 14px; }
-.load-status { display: flex; justify-content: center; color: #909399; font-size: 12px; cursor: default; }
+.remote-select-container {
+  display: inline-block;
+  position: relative;
+}
+
+.empty-text {
+  padding: 10px 0;
+  text-align: center;
+  color: #909399;
+  font-size: 14px;
+}
+
+.load-status {
+  display: flex;
+  justify-content: center;
+  color: #909399;
+  font-size: 12px;
+  cursor: default;
+}
 </style>

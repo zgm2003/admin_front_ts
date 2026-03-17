@@ -187,7 +187,7 @@ const handleDownloadWithProgress = async () => {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
-      onCompleted: (savePath) => {
+      onCompleted: (_savePath) => {
         ElMessage.success(`下载完成`)
         setTimeout(() => {
           currentDownload.value = null

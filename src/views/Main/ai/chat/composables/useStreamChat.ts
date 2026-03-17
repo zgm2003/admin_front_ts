@@ -11,6 +11,10 @@ import type { ChatSession } from './useChatSessionManager'
 const FLUSH_INTERVAL = 50
 const SCROLL_THROTTLE = 100
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
 export interface StreamChatOptionsV2 extends StreamChatOptions {
   getActiveAgentId: () => number | null
   getSession: (agentId: number) => ChatSession | undefined
@@ -250,7 +254,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     if (sending.value) return
 
     const agentId = selectedAgentId.value
-    if (!currentConversationId.value && !agentId) {
+    if (!agentId) {
       ElNotification.warning({ message: t('aiChat.noAgentTip') })
       return
     }
@@ -284,10 +288,10 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     await nextTick()
     scrollToBottom()
 
-    addAiPlaceholder(agentId!)
+    addAiPlaceholder(agentId)
 
     try {
-      const callbacks = createCallbacks(agentId!, requestConversationId, (conversationId) => {
+      const callbacks = createCallbacks(agentId, requestConversationId, (conversationId) => {
         if (!currentConversationId.value) {
           currentConversationId.value = conversationId
           const newConv = {
@@ -314,8 +318,8 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         attachments: attachments?.length ? attachments : undefined,
         ...getRuntimeParams?.()
       }, callbacks)
-    } catch (error: any) {
-      clearAgentTimer(agentId!)
+    } catch (error) {
+      clearAgentTimer(agentId)
       if (session) {
         session.deltaBuffer = ''
         session.isStreaming = false
@@ -325,11 +329,11 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         const lastMsg = session.messages[session.messages.length - 1]
         if (lastMsg && lastMsg.role === AiRoleEnum.ASSISTANT && lastMsg.isStreaming) session.messages.pop()
       }
-      if (isActiveAgent(agentId!)) {
+      if (isActiveAgent(agentId)) {
         isStreaming.value = false
         streamingContent.value = ''
         currentRunId.value = null
-        ElNotification.error({ message: error.message || t('aiChat.sendFailed') })
+        ElNotification.error({ message: getErrorMessage(error, t('aiChat.sendFailed')) })
         messages.value.pop()
       }
     } finally {
@@ -388,7 +392,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         conversation_id: currentConversationId.value!,
         ...getRuntimeParams?.()
       }, callbacks)
-    } catch (error: any) {
+    } catch (error) {
       clearAgentTimer(agentId)
       if (session) {
         session.deltaBuffer = ''
@@ -403,7 +407,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         isStreaming.value = false
         streamingContent.value = ''
         currentRunId.value = null
-        ElNotification.error({ message: error.message || t('aiChat.regenerateFailed') })
+        ElNotification.error({ message: getErrorMessage(error, t('aiChat.regenerateFailed')) })
         messages.value.pop()
       }
     } finally {
@@ -440,8 +444,8 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       currentRunId.value = null
       const lastMsg = messages.value[messages.value.length - 1]
       if (lastMsg && lastMsg.isStreaming) lastMsg.isStreaming = false
-    } catch (error: any) {
-      ElNotification.error({ message: error.message || t('aiChat.stopFailed') })
+    } catch (error) {
+      ElNotification.error({ message: getErrorMessage(error, t('aiChat.stopFailed')) })
     }
   }
 
@@ -454,23 +458,23 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     // 1. 后端：更新消息内容 + 删除后续消息
     try {
       await AiMessageApi.editContent({ id: msg.id, content: newContent })
-    } catch (error: any) {
-      ElNotification.error({ message: error.message || t('aiChat.editFailed') })
+    } catch (error) {
+      ElNotification.error({ message: getErrorMessage(error, t('aiChat.editFailed')) })
       return
     }
 
     // 2. 前端：更新消息内容 + 移除后续消息
     const msgIndex = messages.value.findIndex(m => m.id === msg.id)
-    if (msgIndex < 0) return
+    if (msgIndex < 0 || msgIndex >= messages.value.length) return
 
-    messages.value[msgIndex].content = newContent
+    messages.value[msgIndex]!.content = newContent
     messages.value.splice(msgIndex + 1)
 
     const session = getSession(agentId)
     if (session) {
       const sIdx = session.messages.findIndex(m => m.id === msg.id)
-      if (sIdx >= 0) {
-        session.messages[sIdx].content = newContent
+      if (sIdx >= 0 && sIdx < session.messages.length) {
+        session.messages[sIdx]!.content = newContent
         session.messages.splice(sIdx + 1)
       }
     }
@@ -500,7 +504,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         conversation_id: currentConversationId.value!,
         ...getRuntimeParams?.()
       }, callbacks)
-    } catch (error: any) {
+    } catch (error) {
       clearAgentTimer(agentId)
       if (session) {
         session.deltaBuffer = ''
@@ -515,7 +519,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         isStreaming.value = false
         streamingContent.value = ''
         currentRunId.value = null
-        ElNotification.error({ message: error.message || t('aiChat.editFailed') })
+        ElNotification.error({ message: getErrorMessage(error, t('aiChat.editFailed')) })
         messages.value.pop()
       }
     } finally {

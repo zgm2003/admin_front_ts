@@ -98,7 +98,7 @@ const handleDownloadWithProgress = async () => {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
-      onCompleted: (savePath) => {
+      onCompleted: (_savePath) => {
         ElMessage.success('下载完成')
         setTimeout(() => {
           currentDownload.value = null
@@ -124,8 +124,7 @@ const handleDownloadWithProgress = async () => {
 const handleBatchDownload = async () => {
   ElMessage.info('开始批量下载 3 个文件')
   
-  for (let i = 0; i < 3; i++) {
-    const file = presetFiles[i]
+  for (const file of presetFiles.slice(0, 3)) {
     try {
       await downloadFile(file.url, file.filename)
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -216,7 +215,7 @@ await downloadFile('https://example.com/file.pdf', 'report.pdf')`
     console.log(\`进度: \${progress.progress}%\`)
     console.log(\`速度: \${progress.speed} bytes/s\`)
   },
-  onCompleted: (savePath) => {
+  onCompleted: (_savePath) => {
     console.log('下载完成:', savePath)
   },
   onFailed: (error) => {
@@ -409,7 +408,7 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
     console.log(`进度: ${progress.progress}%`)
     console.log(`速度: ${formatSpeed(progress.speed)}`)
   },
-  onCompleted: (savePath) => {
+  onCompleted: (_savePath) => {
     ElMessage.success('下载完成')
   },
   onFailed: (error) => {
@@ -501,7 +500,7 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             <el-table-column prop="name" label="属性名" width="150" />
             <el-table-column prop="type" label="类型" width="300" />
             <el-table-column prop="required" label="必填" width="80">
-              <template #default="{ row }">
+              <template #default>
                 <el-tag type="info" size="small">否</el-tag>
               </template>
             </el-table-column>

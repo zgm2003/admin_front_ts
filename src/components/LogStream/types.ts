@@ -1,18 +1,23 @@
-/** 日志条目基础接口 */
+import type { CursorPaginatedResponse, RequestPayload } from '@/types/common'
+
 export interface LogStreamItem {
   id: number | string
   created_at: string
-  [key: string]: any
 }
 
-/** 游标分页响应 */
-export interface CursorPaginateResponse<T = any> {
-  list: T[]
-  next_cursor: number | string | null
-  has_more: boolean
+type CursorPaginationParams = {
+  cursor?: number | string
+  page_size: number
 }
 
-/** API 方法类型（泛型支持） */
-export interface LogStreamApi<T = LogStreamItem> {
-  listCursor: (params: any) => Promise<CursorPaginateResponse<T>>
+type CursorRequest<P extends RequestPayload> =
+  CursorPaginationParams & Partial<Omit<P, keyof CursorPaginationParams>>
+
+export interface LogStreamApi<
+  T extends LogStreamItem = LogStreamItem,
+  P extends CursorPaginationParams & RequestPayload = CursorPaginationParams & RequestPayload,
+> {
+  listCursor(params: CursorRequest<P>): Promise<CursorPaginatedResponse<T>>
 }
+
+export type CursorPaginateResponse<T = LogStreamItem> = CursorPaginatedResponse<T>

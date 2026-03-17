@@ -1,16 +1,64 @@
-export type SearchField = {
+import type { RemoteListFetchMethod } from '@/types/common'
+
+type SearchLabelResolver<Item extends object = object> = {
+  bivarianceHack(item: Item): string
+}['bivarianceHack']
+
+export type SearchFormModel = Record<string, unknown>
+
+interface SearchFieldBase {
   key: string
-  type: 'input' | 'select-v2' | 'cascader' | 'date-range' | 'date' | 'slot' | 'remote-select'
   label?: string
   placeholder?: string
-  width?: number
-  options?: any[]
-  cascaderProps?: Record<string, any> // cascader 的 :props 配置
-  // remote-select 专用配置
-  fetchMethod?: (params: Record<string, any>) => Promise<{ list: any[]; total: number }>
-  labelField?: string | ((item: any) => string)
-  valueField?: string
-  keywordField?: string
-  [key: string]: any // 其他属性透传给对应组件
+  width?: number | string
+  [key: string]: unknown
 }
 
+interface InputSearchField extends SearchFieldBase {
+  type: 'input'
+}
+
+interface SelectSearchField<Option = unknown> extends SearchFieldBase {
+  type: 'select-v2'
+  options?: Option[]
+}
+
+interface CascaderSearchField<Option = unknown> extends SearchFieldBase {
+  type: 'cascader'
+  options?: Option[]
+  cascaderProps?: Record<string, unknown>
+}
+
+interface DateRangeSearchField extends SearchFieldBase {
+  type: 'date-range'
+}
+
+interface DateSearchField extends SearchFieldBase {
+  type: 'date'
+}
+
+interface SlotSearchField extends SearchFieldBase {
+  type: 'slot'
+}
+
+export interface RemoteSelectSearchField<
+  Item extends object = object,
+> extends SearchFieldBase {
+  type: 'remote-select'
+  fetchMethod: RemoteListFetchMethod<Item>
+  labelField?: string | SearchLabelResolver<Item>
+  valueField?: string
+  keywordField?: string
+}
+
+export type SearchField<
+  Option = unknown,
+  Item extends object = object,
+> =
+  | InputSearchField
+  | SelectSearchField<Option>
+  | CascaderSearchField<Option>
+  | DateRangeSearchField
+  | DateSearchField
+  | SlotSearchField
+  | RemoteSelectSearchField<Item>

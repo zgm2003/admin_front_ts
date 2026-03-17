@@ -330,6 +330,7 @@ import Cookies from 'js-cookie'
 import { SendCode } from '@/components/SendCode'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { isTauri as isTauriEnv } from '@/store/tauri'
+import type { LoginConfigResponse, UserLoginParams, UserLoginSession, UserLoginType } from '@/types/user'
 import {
   Message,
   Lock,
@@ -349,7 +350,7 @@ import {
   CloseBold
 } from '@element-plus/icons-vue'
 
-type LoginTypeItem = { label: string; value: string }
+type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeRef = InstanceType<typeof SendCode>
 
 const router = useRouter()
@@ -368,7 +369,7 @@ async function tauriClose() {
 }
 
 // 登录方式配置
-const typeConfig: Record<string, { label: string; icon: Component; placeholder: string }> = {
+const typeConfig: Record<UserLoginType, { label: string; icon: Component; placeholder: string }> = {
   password: { label: '账号', icon: Message, placeholder: '请输入账号' },
   email: { label: '邮箱', icon: Message, placeholder: '请输入邮箱' },
   phone: { label: '手机号', icon: Iphone, placeholder: '请输入手机号' }
@@ -392,10 +393,10 @@ const loginForm = reactive({
 })
 
 // 账号类型：email | phone | password（旧页面的含义：password = 账号+密码登录；email/phone = 验证码登录）
-const activeAccountType = ref<string>('password')
+const activeAccountType = ref<UserLoginType>('password')
 
 // 当前登录参数里的 login_type
-const loginType = computed(() => activeAccountType.value)
+const loginType = computed<UserLoginType>(() => activeAccountType.value)
 const isPasswordLogin = computed(() => activeAccountType.value === 'password')
 
 // 表单验证规则（对齐旧页面逻辑：账号=A 动态）
@@ -429,7 +430,7 @@ const resetLoginForm = () => {
   formRef.value?.clearValidate()
 }
 
-const resolveActiveType = (types: LoginTypeItem[]) => {
+const resolveActiveType = (types: LoginTypeItem[]): UserLoginType => {
   if (!types.length)
     return 'password'
   const firstValue = types[0]?.value
@@ -607,19 +608,19 @@ const submitForm = async () => {
   isSubmitting.value = true
   try {
     const account = loginForm.login_account.trim()
-    const param: Record<string, any> = {
-      login_type: loginType.value,
-      remember: loginForm.remember,
-      login_account: account
-    }
+    const params: UserLoginParams = loginType.value === 'password'
+      ? {
+          login_type: 'password',
+          login_account: account,
+          password: loginForm.password
+        }
+      : {
+          login_type: loginType.value,
+          login_account: account,
+          code: loginForm.code
+        }
 
-    if (loginType.value === 'password') {
-      param.password = loginForm.password
-    } else {
-      param.code = loginForm.code
-    }
-
-    const data: any = await UsersApi.login(param)
+    const data = await UsersApi.login(params)
 
     rememberPwd()
     await handleLoginSuccess(data)
@@ -631,7 +632,7 @@ const submitForm = async () => {
 }
 
 // 登录成功处理（复用你项目现有实现：Cookie + 动态路由）
-const handleLoginSuccess = async (data: any) => {
+const handleLoginSuccess = async (data: UserLoginSession) => {
   isLoginSuccess.value = true
   ElNotification.success('登录成功')
   clearAllCookies()
@@ -683,14 +684,14 @@ const getLoginFormCache = () => {
 }
 
 // Tab切换处理
-const handleTabChange = (method: string) => {
+const handleTabChange = (method: UserLoginType) => {
   activeAccountType.value = method
   resetLoginForm()
 }
 
 onMounted(() => {
-  UsersApi.getLoginConfig().then((res: any) => {
-    loginTypes.value = res?.login_type_arr || res?.data?.login_type_arr || []
+  UsersApi.getLoginConfig().then((res: LoginConfigResponse) => {
+    loginTypes.value = res.login_type_arr || []
   })
   getLoginFormCache()
 })

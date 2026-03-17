@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { ElNotification } from 'element-plus'
 import { UsersApi } from '@/api/user/users'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import type { UserScene } from '@/types/user'
 
 const props = withDefaults(defineProps<{
   /** 发送目标账号（邮箱/手机号） */
   account: string
   /** 验证码场景 */
-  scene: 'login' | 'bind_phone' | 'bind_email' | 'change_password'
+  scene: UserScene
   /** 输入框占位符 */
   placeholder?: string
   /** 是否禁用发送按钮（额外条件） */
@@ -41,6 +42,7 @@ const isMobile = useIsMobile()
 // 倒计时
 const timer = ref(0)
 const loading = ref(false)
+let intervalId: ReturnType<typeof setInterval> | null = null
 
 // 是否禁用发送按钮
 const isSendDisabled = computed(() => {
@@ -50,7 +52,7 @@ const isSendDisabled = computed(() => {
 // 发送验证码
 const sendCode = async () => {
   if (isSendDisabled.value) return
-  
+
   loading.value = true
   try {
     await UsersApi.sendCode({ account: props.account, scene: props.scene })
@@ -64,21 +66,28 @@ const sendCode = async () => {
 
 // 开始倒计时
 const startCountdown = () => {
+  if (intervalId) clearInterval(intervalId)
   timer.value = props.countdown
-  const interval = setInterval(() => {
+  intervalId = setInterval(() => {
     if (timer.value > 0) {
       timer.value--
     } else {
-      clearInterval(interval)
+      clearInterval(intervalId!)
+      intervalId = null
     }
   }, 1000)
 }
 
 // 重置倒计时（供外部调用）
 const reset = () => {
+  if (intervalId) { clearInterval(intervalId); intervalId = null }
   timer.value = 0
   modelValue.value = ''
 }
+
+onUnmounted(() => {
+  if (intervalId) clearInterval(intervalId)
+})
 
 // 是否使用移动端布局
 const useMobileLayout = computed(() => props.mobile || isMobile.value)

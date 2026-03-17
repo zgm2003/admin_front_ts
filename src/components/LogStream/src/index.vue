@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { computed, useSlots } from 'vue'
+<script setup lang="ts" generic="T extends LogStreamItem = LogStreamItem">
+import { computed } from 'vue'
 import {
   ElBacktop,
   ElButton,
@@ -62,7 +62,7 @@ const formatLogTime = (value: string) => {
 }
 
 const props = withDefaults(defineProps<{
-  list: LogStreamItem[]
+  list: T[]
   loading?: boolean
   hasMore?: boolean
   showDateDivider?: boolean
@@ -85,7 +85,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const slots = useSlots()
+const slots = defineSlots<{
+  'toolbar-left'?: () => unknown
+  'toolbar-right'?: () => unknown
+  'header-extra'?: (props: { item: T }) => unknown
+  default?: (props: { item: T }) => unknown
+}>()
 
 const hasToolbar = computed(() => Boolean(slots['toolbar-left'] || slots['toolbar-right']))
 const resolveDateDivider = (date: string) =>
@@ -98,7 +103,7 @@ const groupedList = computed(() => {
     return [{ date: null, items: props.list }]
   }
 
-  const groups: { date: string | null; items: LogStreamItem[] }[] = []
+  const groups: Array<{ date: string | null; items: T[] }> = []
   let currentDate: string | null = null
 
   for (const item of props.list) {

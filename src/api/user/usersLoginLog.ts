@@ -1,7 +1,14 @@
 import request from '@/utils/request'
+import type { UserLoginLogCursorParams, UserLoginLogInitResponse, UserLoginLogItem, UserLoginLogListParams, UserLoginLogListResponse } from '@/types/user'
+import type { CursorPaginatedResponse, RequestPayload } from '@/types/common'
 
 export const UsersLoginLogApi = {
-  init: (params?: any) => request.post('/api/admin/UsersLoginLog/init', params),
-  list: (params: any) => request.post('/api/admin/UsersLoginLog/list', params),
-  listCursor: (params: any) => request.post('/api/admin/UsersLoginLog/listCursor', params),
+  init: (params?: RequestPayload) =>
+    request.post<UserLoginLogInitResponse>('/api/admin/UsersLoginLog/init', params),
+
+  list: (params: UserLoginLogListParams) =>
+    request.post<UserLoginLogListResponse>('/api/admin/UsersLoginLog/list', params),
+
+  listCursor: (params: UserLoginLogCursorParams) =>
+    request.post<CursorPaginatedResponse<UserLoginLogItem>>('/api/admin/UsersLoginLog/listCursor', params),
 }
