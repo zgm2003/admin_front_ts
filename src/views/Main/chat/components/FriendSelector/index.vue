@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useChatStore } from '@/store/chat'
 import { ContactStatus } from '@/api/chat'
 
@@ -13,7 +14,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   multiple: false,
-  placeholder: '请选择好友',
   excludeIds: () => [],
   disabled: false,
 })
@@ -23,6 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const chatStore = useChatStore()
+const { t } = useI18n()
 
 // 已确认的好友列表（排除指定的用户）
 const availableFriends = computed(() => {
@@ -44,6 +45,8 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const resolvedPlaceholder = computed(() => props.placeholder || t('chat.selectFriendsPlaceholder'))
+
 // 监听组件显示，自动加载联系人列表
 watch(() => props.modelValue, () => {
   if (chatStore.contacts.length === 0) {
@@ -55,7 +58,7 @@ watch(() => props.modelValue, () => {
 <template>
   <el-select
     v-model="localValue"
-    :placeholder="placeholder"
+    :placeholder="resolvedPlaceholder"
     :multiple="multiple"
     :disabled="disabled"
     filterable
@@ -73,7 +76,7 @@ watch(() => props.modelValue, () => {
         </el-avatar>
         <span>{{ contact.username }}</span>
         <el-tag v-if="isUserOnline(contact.contact_user_id)" type="success" size="small">
-          在线
+          {{ t('chat.online') }}
         </el-tag>
       </div>
     </el-option>

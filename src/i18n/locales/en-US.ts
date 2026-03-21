@@ -5,8 +5,12 @@ export default {
       account: 'Account',
       accountPlaceholder: 'Email/Username/Phone',
       email: 'Email',
+      emailPlaceholder: 'Enter email',
+      phone: 'Phone',
+      phonePlaceholder: 'Enter phone number',
       password: 'Password',
       passwordPlaceholder: 'Enter password',
+      codePlaceholder: 'Enter verification code',
       remember: 'Remember me',
       submit: 'Sign In',
       toRegister: 'Register',
@@ -28,13 +32,18 @@ export default {
       title: 'Change Password',
       oldPassword: 'Current Password',
       newPassword: 'New Password',
+      newPasswordPlaceholder: 'Enter new password',
       confirmPassword: 'Confirm New Password',
+      confirmPasswordPlaceholder: 'Enter the new password again',
       submit: 'Change Password'
     },
     forget: {
       title: 'Forgot Password',
+      account: 'Email / Phone',
+      accountPlaceholder: 'Enter email or phone number',
       email: 'Email',
       code: 'Verification Code',
+      codePlaceholder: '6-digit verification code',
       newPassword: 'New Password',
       submit: 'Change Password',
       toEdit: 'I remember old password'
@@ -128,6 +137,69 @@ export default {
       leaveEmpty: 'Leave empty to keep unchanged'
     },
     setting: 'Setting'
+  },
+  loginPage: {
+    form: {
+      welcomeDesc: 'Sign in to the ZhiLan admin workspace and continue managing efficiently',
+      agreePrefix: 'I have read and agree to the',
+      serviceTerms: 'Terms of Service',
+      and: 'and',
+      privacyPolicy: 'Privacy Policy',
+      loggingIn: 'Signing in...'
+    },
+    brand: {
+      logoAlt: 'ZhiLan system logo',
+      name: 'ZhiLan System',
+      tag: 'ZhiLan Admin System',
+      titleLine1: 'Technology Leads',
+      titleHighlight: 'Empowering Enterprise Management',
+      description: 'Combining advanced technology and intelligent analytics to deliver efficient, secure, and scalable enterprise solutions.',
+      features: {
+        secureTitle: 'Secure and Reliable',
+        secureDesc: 'Enterprise-grade data encryption aligned with international security standards',
+        stableTitle: 'Efficient and Stable',
+        stableDesc: 'Runs reliably 24/7 to keep your business continuous',
+        smartTitle: 'Intelligent Analysis',
+        smartDesc: 'Data-driven analysis that supports smarter decisions'
+      },
+      stats: {
+        trustedUsersValue: '500K+',
+        trustedUsers: 'Trusted Users',
+        satisfactionValue: '98.5%',
+        satisfaction: 'Satisfaction Rate',
+        enterpriseCustomersValue: '2,000+',
+        enterpriseCustomers: 'Enterprise Clients'
+      }
+    },
+    forgot: {
+      steps: {
+        verify: 'Verify Identity',
+        reset: 'Reset Password'
+      },
+      next: 'Next',
+      submit: 'Submit Reset',
+      submitting: 'Resetting...'
+    },
+    loading: {
+      preparing: 'Preparing your workspace...'
+    }
+  },
+  iconSelect: {
+    title: 'Select Icon',
+    searchPlaceholder: 'Search icon names...',
+    typePlaceholder: 'Icon type',
+    selected: 'Currently selected:',
+    clearSelection: 'Clear',
+    empty: 'No matching icons found',
+    total: '{count} icons total',
+    types: {
+      all: 'All Icons',
+      element: 'Element Plus',
+      iconify: 'Iconify'
+    },
+    badges: {
+      element: 'Element'
+    }
   },
   home: {
     quickEntry: 'Quick Entry',
@@ -1087,8 +1159,10 @@ export default {
     bytes: 'bytes',
     form: {
       version: 'Version',
+      versionPlaceholder: 'e.g. 1.0.0',
       platform: 'Platform',
       fileUrl: 'File URL',
+      fileTip: 'Supports .zip/.msi/.exe/.dmg/.AppImage',
       signature: 'Signature',
       notes: 'Release Notes',
       notesPlaceholder: 'What\'s new in this release...',

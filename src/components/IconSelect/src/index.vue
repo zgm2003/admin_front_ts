@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef, type Component } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
 import { DIcon } from '@/components/DIcon'
 
+const { t } = useI18n()
 const iconBoxShow = ref(false)
 const selectedIcon = ref('')
 const searchTerm = ref('')
@@ -135,11 +137,11 @@ const filteredIconifyIcons = computed(() => {
 })
 
 // 图标类型选项
-const iconTypeOptions = [
-  { label: '全部图标', value: 'all' },
-  { label: 'Element Plus', value: 'element' },
-  { label: 'Iconify', value: 'iconify' },
-]
+const iconTypeOptions = computed(() => [
+  { label: t('iconSelect.types.all'), value: 'all' },
+  { label: t('iconSelect.types.element'), value: 'element' },
+  { label: t('iconSelect.types.iconify'), value: 'iconify' },
+])
 
 // 获取图标显示名称
 const getIconDisplayName = (icon: string) => {
@@ -159,17 +161,17 @@ const getIconCategoryColor = (icon: string) => {
 </script>
 
 <template>
-  <el-dialog v-model="iconBoxShow" title="选择图标" width="70%" :close-on-click-modal="false">
+  <el-dialog v-model="iconBoxShow" :title="t('iconSelect.title')" width="70%" :close-on-click-modal="false">
     <!-- 搜索和筛选 -->
     <div class="icon-select-header">
       <el-input 
         v-model="searchTerm" 
-        placeholder="搜索图标名称..." 
+        :placeholder="t('iconSelect.searchPlaceholder')"
         clearable 
         class="search-input"
         prefix-icon="Search"
       />
-      <el-select v-model="iconType" placeholder="图标类型" style="width: 160px;">
+      <el-select v-model="iconType" :placeholder="t('iconSelect.typePlaceholder')" style="width: 160px;">
         <el-option 
           v-for="opt in iconTypeOptions" 
           :key="opt.value" 
@@ -181,12 +183,12 @@ const getIconCategoryColor = (icon: string) => {
 
     <!-- 当前选中 -->
     <div v-if="selectedIcon" class="selected-preview">
-      <span class="preview-label">当前选中：</span>
+      <span class="preview-label">{{ t('iconSelect.selected') }}</span>
       <div class="preview-icon">
         <DIcon :icon="selectedIcon" :size="32" />
       </div>
       <span class="preview-name">{{ selectedIcon }}</span>
-      <el-button size="small" @click="clearSelection">清除</el-button>
+      <el-button size="small" @click="clearSelection">{{ t('iconSelect.clearSelection') }}</el-button>
     </div>
 
     <!-- 图标网格 -->
@@ -199,15 +201,15 @@ const getIconCategoryColor = (icon: string) => {
           class="icon-item"
           :class="{ 'is-selected': selectedIcon === name }"
           @click="handleSelectIcon(name as any)"
-        >
-          <div class="icon-wrapper">
-            <el-icon :size="28">
-              <component :is="IconComponent" />
-            </el-icon>
+          >
+            <div class="icon-wrapper">
+              <el-icon :size="28">
+                <component :is="IconComponent" />
+              </el-icon>
+            </div>
+            <div class="icon-name">{{ name }}</div>
+            <div class="icon-badge" style="background: #409EFF;">{{ t('iconSelect.badges.element') }}</div>
           </div>
-          <div class="icon-name">{{ name }}</div>
-          <div class="icon-badge" style="background: #409EFF;">Element</div>
-        </div>
 
         <!-- Iconify 图标 -->
         <div 
@@ -230,7 +232,7 @@ const getIconCategoryColor = (icon: string) => {
       <!-- 无结果提示 -->
       <el-empty 
         v-if="filteredElementIcons.length === 0 && filteredIconifyIcons.length === 0" 
-        description="未找到匹配的图标"
+        :description="t('iconSelect.empty')"
         :image-size="100"
       />
     </el-scrollbar>
@@ -240,13 +242,13 @@ const getIconCategoryColor = (icon: string) => {
       <div class="dialog-footer">
         <div class="footer-info">
           <el-text type="info" size="small">
-            共 {{ filteredElementIcons.length + filteredIconifyIcons.length }} 个图标
+            {{ t('iconSelect.total', { count: filteredElementIcons.length + filteredIconifyIcons.length }) }}
           </el-text>
         </div>
         <div class="footer-actions">
-          <el-button @click="iconBoxShow = false">取消</el-button>
+          <el-button @click="iconBoxShow = false">{{ t('common.actions.cancel') }}</el-button>
           <el-button type="primary" @click="confirmSelection" :disabled="!selectedIcon">
-            确定
+            {{ t('common.actions.confirm') }}
           </el-button>
         </div>
       </div>

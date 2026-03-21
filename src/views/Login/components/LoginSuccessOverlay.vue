@@ -6,12 +6,16 @@
           <div class="double-bounce1"></div>
           <div class="double-bounce2"></div>
         </div>
-        <div class="loading-text">正在为您准备工作台...</div>
+        <div class="loading-text">{{ t('loginPage.loading.preparing') }}</div>
       </div>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps<{ visible: boolean }>()
 </script>

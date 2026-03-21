@@ -5,8 +5,12 @@ export default {
       account: '账号',
       accountPlaceholder: '请输入邮箱/用户名/手机号',
       email: '邮箱',
+      emailPlaceholder: '请输入邮箱',
+      phone: '手机号',
+      phonePlaceholder: '请输入手机号',
       password: '密码',
       passwordPlaceholder: '请输入密码',
+      codePlaceholder: '请输入验证码',
       remember: '记住我',
       submit: '登录',
       toRegister: '注册',
@@ -28,13 +32,18 @@ export default {
       title: '修改密码',
       oldPassword: '原始密码',
       newPassword: '新密码',
+      newPasswordPlaceholder: '请输入新密码',
       confirmPassword: '确认新密码',
+      confirmPasswordPlaceholder: '请再次输入新密码',
       submit: '修改密码'
     },
     forget: {
       title: '忘记密码',
+      account: '邮箱 / 手机号',
+      accountPlaceholder: '请输入邮箱或手机号',
       email: '邮箱',
       code: '验证码',
+      codePlaceholder: '6位验证码',
       newPassword: '新密码',
       submit: '修改密码',
       toEdit: '记得原来密码'
@@ -154,6 +163,69 @@ export default {
       leaveEmpty: '留空不修改'
     },
     setting: '设置'
+  },
+  loginPage: {
+    form: {
+      welcomeDesc: '登录智澜系统后台，继续高效管理',
+      agreePrefix: '我已阅读并同意',
+      serviceTerms: '服务条款',
+      and: '和',
+      privacyPolicy: '隐私政策',
+      loggingIn: '登录中...'
+    },
+    brand: {
+      logoAlt: '智澜系统 Logo',
+      name: '智澜系统',
+      tag: 'ZhiLan Admin System',
+      titleLine1: '科技引领',
+      titleHighlight: '赋能企业管理',
+      description: '集先进技术与智能分析于一体，提供高效、安全、可扩展的企业级解决方案。',
+      features: {
+        secureTitle: '安全可靠',
+        secureDesc: '企业级数据加密，符合国际安全标准',
+        stableTitle: '高效稳定',
+        stableDesc: '7×24小时稳定运行，确保业务连续性',
+        smartTitle: '智能分析',
+        smartDesc: '基于大数据分析，提供智能化决策支持'
+      },
+      stats: {
+        trustedUsersValue: '50万+',
+        trustedUsers: '信赖用户',
+        satisfactionValue: '98.5%',
+        satisfaction: '满意评价',
+        enterpriseCustomersValue: '2,000+',
+        enterpriseCustomers: '企业客户'
+      }
+    },
+    forgot: {
+      steps: {
+        verify: '身份验证',
+        reset: '重置密码'
+      },
+      next: '下一步',
+      submit: '提交重置',
+      submitting: '重置中...'
+    },
+    loading: {
+      preparing: '正在为您准备工作台...'
+    }
+  },
+  iconSelect: {
+    title: '选择图标',
+    searchPlaceholder: '搜索图标名称...',
+    typePlaceholder: '图标类型',
+    selected: '当前选中：',
+    clearSelection: '清除',
+    empty: '未找到匹配的图标',
+    total: '共 {count} 个图标',
+    types: {
+      all: '全部图标',
+      element: 'Element Plus',
+      iconify: 'Iconify'
+    },
+    badges: {
+      element: 'Element'
+    }
   },
   home: {
     quickEntry: '快捷入口',
@@ -1102,8 +1174,10 @@ export default {
     bytes: '字节',
     form: {
       version: '版本号',
+      versionPlaceholder: '如 1.0.0',
       platform: '平台',
       fileUrl: '文件地址',
+      fileTip: '支持 .zip/.msi/.exe/.dmg/.AppImage',
       signature: '签名',
       notes: '更新说明',
       notesPlaceholder: '本次更新内容...',

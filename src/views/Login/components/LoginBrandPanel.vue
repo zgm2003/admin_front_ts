@@ -4,22 +4,22 @@
       <div class="brand-header animate-fade-in-down">
         <div class="logo-box">
           <div class="logo-icon">
-            <img src="/logo.png" alt="Logo" />
+            <img src="/logo.png" :alt="t('loginPage.brand.logoAlt')" />
           </div>
         </div>
         <div class="brand-info">
-          <h2 class="brand-name">智澜系统</h2>
-          <span class="brand-tag">ZhiLan Admin System</span>
+          <h2 class="brand-name">{{ t('loginPage.brand.name') }}</h2>
+          <span class="brand-tag">{{ t('loginPage.brand.tag') }}</span>
         </div>
       </div>
 
       <div class="main-text animate-fade-in-up">
         <h1 class="main-title">
-          科技引领<br />
-          <span class="highlight">赋能企业管理</span>
+          {{ t('loginPage.brand.titleLine1') }}<br />
+          <span class="highlight">{{ t('loginPage.brand.titleHighlight') }}</span>
         </h1>
         <p class="sub-title">
-          集先进技术与智能分析于一体，提供高效、安全、可扩展的企业级解决方案。
+          {{ t('loginPage.brand.description') }}
         </p>
       </div>
 
@@ -51,17 +51,42 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CircleCheckFilled, Service, StarFilled } from '@element-plus/icons-vue'
 
-const features = [
-  { icon: CircleCheckFilled, title: '安全可靠', desc: '企业级数据加密，符合国际安全标准' },
-  { icon: Service, title: '高效稳定', desc: '7×24小时稳定运行，确保业务连续性' },
-  { icon: StarFilled, title: '智能分析', desc: '基于大数据分析，提供智能化决策支持' },
-]
+const { t } = useI18n()
 
-const stats = [
-  { value: '50万+', label: '信赖用户' },
-  { value: '98.5%', label: '满意评价' },
-  { value: '2,000+', label: '企业客户' },
-]
+const features = computed(() => [
+  {
+    icon: CircleCheckFilled,
+    title: t('loginPage.brand.features.secureTitle'),
+    desc: t('loginPage.brand.features.secureDesc'),
+  },
+  {
+    icon: Service,
+    title: t('loginPage.brand.features.stableTitle'),
+    desc: t('loginPage.brand.features.stableDesc'),
+  },
+  {
+    icon: StarFilled,
+    title: t('loginPage.brand.features.smartTitle'),
+    desc: t('loginPage.brand.features.smartDesc'),
+  },
+])
+
+const stats = computed(() => [
+  {
+    value: t('loginPage.brand.stats.trustedUsersValue'),
+    label: t('loginPage.brand.stats.trustedUsers'),
+  },
+  {
+    value: t('loginPage.brand.stats.satisfactionValue'),
+    label: t('loginPage.brand.stats.satisfaction'),
+  },
+  {
+    value: t('loginPage.brand.stats.enterpriseCustomersValue'),
+    label: t('loginPage.brand.stats.enterpriseCustomers'),
+  },
+])
 </script>

@@ -187,7 +187,7 @@ onMounted(() => init())
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('tauriVersion.addVersion') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
-        <el-input v-model="form.version" placeholder="1.0.0" />
+        <el-input v-model="form.version" :placeholder="t('tauriVersion.form.versionPlaceholder')" />
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.platform')" prop="platform" required>
         <el-select v-model="form.platform" style="width: 100%" :disabled="dialogMode === 'edit'">
@@ -195,7 +195,13 @@ onMounted(() => init())
         </el-select>
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.fileUrl')" prop="file_url" required>
-        <UpFile v-model="form.file_url" folder-name="releases" accept=".zip,.msi,.exe,.dmg,.AppImage" tip="支持 .zip/.msi/.exe/.dmg/.AppImage" @success="onUploadSuccess" />
+        <UpFile
+          v-model="form.file_url"
+          folder-name="releases"
+          accept=".zip,.msi,.exe,.dmg,.AppImage"
+          :tip="t('tauriVersion.form.fileTip')"
+          @success="onUploadSuccess"
+        />
       </el-form-item>
       <el-form-item :label="t('tauriVersion.form.signature')" prop="signature" required>
         <SignatureInput v-model="form.signature" />
@@ -214,7 +220,7 @@ onMounted(() => init())
   </el-dialog>
 
   <!-- update.json 弹窗 -->
-  <el-dialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" title="update.json">
+  <el-dialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" :title="t('tauriVersion.viewUpdateJson')">
     <el-input v-model="updateJsonContent" type="textarea" :rows="16" readonly />
     <template #footer>
       <el-button type="primary" @click="copy(updateJsonContent)">{{ t('common.actions.copy') }}</el-button>

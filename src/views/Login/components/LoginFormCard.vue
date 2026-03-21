@@ -1,8 +1,8 @@
 <template>
   <div :class="['form-card', 'animate-fade-in-right', { 'shake-animation': isShaking }]">
     <div class="header-text">
-      <h1 class="welcome-title">欢迎回来</h1>
-      <p class="welcome-desc">登录智澜系统后台，继续高效管理</p>
+      <h1 class="welcome-title">{{ t('common.welcomeBack') }}</h1>
+      <p class="welcome-desc">{{ t('loginPage.form.welcomeDesc') }}</p>
     </div>
 
     <div class="method-tabs">
@@ -45,12 +45,12 @@
 
             <div class="input-group">
               <template v-if="activeType === 'password'">
-                <label class="input-label">密码</label>
+                <label class="input-label">{{ t('auth.login.password') }}</label>
                 <el-form-item prop="password">
                   <el-input
                     v-model="loginForm.password"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="请输入密码"
+                    :placeholder="t('auth.login.passwordPlaceholder')"
                     class="custom-input"
                   >
                     <template #prefix><el-icon><Lock /></el-icon></template>
@@ -64,7 +64,7 @@
                 </el-form-item>
               </template>
               <template v-else>
-                <label class="input-label">验证码</label>
+                <label class="input-label">{{ t('auth.register.code') }}</label>
                 <el-form-item prop="code">
                   <SendCode
                     ref="sendCode"
@@ -74,7 +74,7 @@
                     scene="login"
                     size="large"
                     :mobile="isMobile"
-                    placeholder="请输入验证码"
+                    :placeholder="t('auth.login.codePlaceholder')"
                   />
                 </el-form-item>
               </template>
@@ -85,7 +85,7 @@
         <div class="form-options">
           <el-checkbox
             v-model="loginForm.remember"
-            label="记住我"
+            :label="t('auth.login.remember')"
             :class="{ 'is-invisible': !isPasswordLogin }"
           />
           <span
@@ -93,16 +93,16 @@
             :class="{ 'is-invisible': !isPasswordLogin }"
             @click="$emit('forgotPassword')"
           >
-            忘记密码
+            {{ t('auth.login.toForget') }}
           </span>
         </div>
 
         <div class="terms-checkbox">
           <el-checkbox :model-value="agreePolicy" @update:model-value="emit('update:agreePolicy', Boolean($event))">
-            我已阅读并同意
-            <span class="term-btn" @click.prevent.stop="$emit('openService')">服务条款</span>
-            和
-            <span class="term-btn" @click.prevent.stop="$emit('openPolicy')">隐私政策</span>
+            {{ t('loginPage.form.agreePrefix') }}
+            <span class="term-btn" @click.prevent.stop="$emit('openService')">{{ t('loginPage.form.serviceTerms') }}</span>
+            {{ t('loginPage.form.and') }}
+            <span class="term-btn" @click.prevent.stop="$emit('openPolicy')">{{ t('loginPage.form.privacyPolicy') }}</span>
           </el-checkbox>
         </div>
       </div>
@@ -113,7 +113,7 @@
         class="submit-btn"
         :loading="isSubmitting"
       >
-        {{ isSubmitting ? '登录中...' : '登录' }}
+        {{ isSubmitting ? t('loginPage.form.loggingIn') : t('auth.login.submit') }}
       </el-button>
     </el-form>
   </div>
@@ -122,6 +122,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, type Component, useTemplateRef, watchPostEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { SendCode } from '@/components/SendCode'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { Message, Lock, View, Hide, Iphone } from '@element-plus/icons-vue'
@@ -145,6 +146,7 @@ const props = defineProps<{
 }>()
 
 const isMobile = useIsMobile()
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'submit'): void
@@ -159,13 +161,25 @@ const emit = defineEmits<{
 const elFormRef = useTemplateRef<FormInstance>('elForm')
 const sendCodeRef = useTemplateRef<SendCodeInstance>('sendCode')
 
-const typeConfig: Record<UserLoginType, { label: string; icon: Component; placeholder: string }> = {
-  password: { label: '账号', icon: Message, placeholder: '请输入账号' },
-  email: { label: '邮箱', icon: Message, placeholder: '请输入邮箱' },
-  phone: { label: '手机号', icon: Iphone, placeholder: '请输入手机号' },
-}
+const typeConfig = computed<Record<UserLoginType, { label: string; icon: Component; placeholder: string }>>(() => ({
+  password: {
+    label: t('auth.login.account'),
+    icon: Message,
+    placeholder: t('auth.login.accountPlaceholder'),
+  },
+  email: {
+    label: t('auth.login.email'),
+    icon: Message,
+    placeholder: t('auth.login.emailPlaceholder'),
+  },
+  phone: {
+    label: t('auth.login.phone'),
+    icon: Iphone,
+    placeholder: t('auth.login.phonePlaceholder'),
+  },
+}))
 
-const activeTypeConfig = computed(() => typeConfig[props.activeType] ?? typeConfig.password)
+const activeTypeConfig = computed(() => typeConfig.value[props.activeType] ?? typeConfig.value.password)
 
 watchPostEffect(() => {
   props.registerForm?.(elFormRef.value)
