@@ -18,7 +18,7 @@
             @click="onThemeChange(false)"
           >
             <el-icon :size="20"><Sunny /></el-icon>
-            <span>浅色</span>
+            <span>{{ t('header.lightMode') }}</span>
           </div>
           <div 
             class="theme-option" 
@@ -26,7 +26,7 @@
             @click="onThemeChange(true)"
           >
             <el-icon :size="20"><Moon /></el-icon>
-            <span>深色</span>
+            <span>{{ t('header.darkMode') }}</span>
           </div>
         </div>
       </div>
@@ -96,10 +96,10 @@
       
       <!-- 桌面应用设置（仅 Tauri 环境） -->
       <div v-if="tauriStore.isTauriEnv" class="setting-section">
-        <div class="section-title">桌面应用</div>
+        <div class="section-title">{{ t('header.desktopApp') }}</div>
         <div class="setting-list">
           <div class="setting-item">
-            <span>关闭时</span>
+            <span>{{ t('header.onClose') }}</span>
             <el-select-v2 v-model="closeActionValue" :options="closeActionOptions" style="width: 140px" size="small" @change="onCloseActionChange" />
           </div>
         </div>
@@ -109,17 +109,17 @@
       <div class="setting-actions">
         <el-button @click="clear" class="action-btn">
           <el-icon><Delete /></el-icon>
-          清除缓存
+          {{ t('header.clearCache') }}
         </el-button>
         <el-button type="primary" @click="resetTheme" class="action-btn">
           <el-icon><RefreshRight /></el-icon>
-          重置配置
+          {{ t('header.resetConfig') }}
         </el-button>
       </div>
       
       <!-- 版本信息 -->
       <div v-if="tauriStore.version" class="version-section">
-        <span>当前版本：v{{ tauriStore.version }}</span>
+        <span>{{ t('header.currentVersion', { version: tauriStore.version }) }}</span>
       </div>
     </div>
   </el-drawer>
@@ -153,29 +153,28 @@ watch(show, (visible) => {
   }
 })
 
-// 企业简约风配色
-const themeColors = ref([
-  { label: '默认蓝', value: '#409EFF' },
-  { label: '科技蓝', value: '#3B82F6' },
-  { label: '专业灰', value: '#475569' },
-  { label: '商务绿', value: '#059669' },
-  { label: '稳重青', value: '#0891B2' },
-  { label: '优雅紫', value: '#7C3AED' },
-  { label: '活力橙', value: '#EA580C' },
+const themeColors = computed(() => [
+  { label: t('header.color.defaultBlue'), value: '#409EFF' },
+  { label: t('header.color.techBlue'), value: '#3B82F6' },
+  { label: t('header.color.proGray'), value: '#475569' },
+  { label: t('header.color.bizGreen'), value: '#059669' },
+  { label: t('header.color.steadyCyan'), value: '#0891B2' },
+  { label: t('header.color.elegantPurple'), value: '#7C3AED' },
+  { label: t('header.color.vibrantOrange'), value: '#EA580C' },
 ])
 
-const transitionOptions = [
-  { label: '淡入淡出', value: 'fade' },
-  { label: '左滑', value: 'slide-left' },
-  { label: '右滑', value: 'slide-right' },
-  { label: '缩放', value: 'el-zoom-in-center' },
-]
+const transitionOptions = computed(() => [
+  { label: t('header.transitionOption.fade'), value: 'fade' },
+  { label: t('header.transitionOption.slideLeft'), value: 'slide-left' },
+  { label: t('header.transitionOption.slideRight'), value: 'slide-right' },
+  { label: t('header.transitionOption.zoom'), value: 'el-zoom-in-center' },
+])
 
-const closeActionOptions = [
-  { label: '每次询问', value: 'ask' },
-  { label: '最小化到托盘', value: 'minimize' },
-  { label: '直接退出', value: 'exit' },
-]
+const closeActionOptions = computed(() => [
+  { label: t('header.closeAction.ask'), value: 'ask' },
+  { label: t('header.closeAction.minimize'), value: 'minimize' },
+  { label: t('header.closeAction.exit'), value: 'exit' },
+])
 
 function onThemeChange(dark: boolean) {
   isDark.value = dark
@@ -215,11 +214,15 @@ function onCloseActionChange(val: string) {
 
 function clear() {
   clearLocalStorageExcept()
-
-  ElNotification.success({ title: '提示', message: 'UI缓存已清除，正在刷新页面...' })
-  setTimeout(() => {
-    location.reload()
-  }, 800)
+  menuStore.resetUiState()
+  toggleDarkMode(false)
+  localStorage.setItem('theme', 'light')
+  isDark.value = false
+  document.documentElement.style.setProperty('--el-color-primary', '#409EFF')
+  customColor.value = '#409EFF'
+  show.value = false
+  ElNotification.success({ title: t('header.tip'), message: t('header.cacheClearedMsg') })
+  window.setTimeout(() => window.location.reload(), 300)
 }
 
 function resetTheme() {
@@ -228,7 +231,7 @@ function resetTheme() {
   menuStore.applyDefaultSystemColor(false)
   tauriStore.clearCloseAction()
   closeActionValue.value = 'ask'
-  ElNotification.success({ title: '提示', message: '配置已重置' })
+  ElNotification.success({ title: t('header.tip'), message: t('header.configResetMsg') })
 }
 </script>
 

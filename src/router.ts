@@ -82,6 +82,14 @@ export async function setupDynamicRoutes() {
     }
 }
 
+export async function refreshCurrentRoute() {
+    await setupDynamicRoutes()
+
+    if (router.currentRoute.value.name !== 'login') {
+        useMenuStore().refreshCurrentPage()
+    }
+}
+
 router.beforeEach((to, _from, next) => {
     const token = Cookies.get('access_token')
     const refreshToken = Cookies.get('refresh_token')

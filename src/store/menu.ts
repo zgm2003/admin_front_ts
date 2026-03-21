@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { Pinia } from 'pinia'
 import type { PermissionMenuItem } from '@/types/user'
 
 const LIGHT_SYSTEM_DEFAULT = '#409EFF'
@@ -29,6 +30,13 @@ export const HOME_MENU_ITEM: MenuItem = {
   i18n_key: 'menu.home',
 }
 
+/** Keys that are persisted as simple strings via $subscribe */
+const PERSISTED_KEYS = [
+  'selectedMenu', 'systemColor', 'breadcrumb', 'hamburger',
+  'tabtag', 'uniqueOpen', 'footer', 'pageTransition',
+  'transitionName', 'layoutMode',
+] as const
+
 export const useMenuStore = defineStore('menu', {
   state: () => ({
     collapse: false,
@@ -45,6 +53,7 @@ export const useMenuStore = defineStore('menu', {
     transitionName: localStorage.getItem('transitionName') || 'fade',
     layoutMode: (localStorage.getItem('layoutMode') as 'single' | 'double') || 'single',
     contentFullscreen: false,
+    refreshKey: 0,
   }),
   actions: {
     mobile() {
@@ -74,69 +83,86 @@ export const useMenuStore = defineStore('menu', {
         } else {
           this.tabList[index] = { ...this.tabList[index], ...value }
         }
-        localStorage.setItem('tabList', JSON.stringify(this.tabList))
       }
     },
     closeTag(value: Pick<MenuItem, 'index'>) {
       const index = this.tabList.findIndex((item) => item.index === value.index)
       if (index !== -1) {
         this.tabList.splice(index, 1)
-        localStorage.setItem('tabList', JSON.stringify(this.tabList))
       }
     },
     clearTabList() {
       this.tabList = [HOME_MENU_ITEM]
-      localStorage.setItem('tabList', JSON.stringify(this.tabList))
     },
     applyDefaultSystemColor(isDark: boolean) {
-      const fallback = isDark ? DARK_SYSTEM_DEFAULT : LIGHT_SYSTEM_DEFAULT
-      this.systemColor = fallback
-      localStorage.setItem('systemColor', fallback)
+      this.systemColor = isDark ? DARK_SYSTEM_DEFAULT : LIGHT_SYSTEM_DEFAULT
     },
     changeSystemColor(value: string) {
       this.systemColor = value
-      localStorage.setItem('systemColor', value)
     },
     changeBreadcrumb(value: boolean) {
       this.breadcrumb = value
-      localStorage.setItem('breadcrumb', String(value))
     },
     changeHamburger(value: boolean) {
       this.hamburger = value
-      localStorage.setItem('hamburger', String(value))
     },
     changeTabtag(value: boolean) {
       this.tabtag = value
-      localStorage.setItem('tabtag', String(value))
     },
     changeUniqueOpen(value: boolean) {
       this.uniqueOpen = value
-      localStorage.setItem('uniqueOpen', String(value))
     },
     changeFooter(value: boolean) {
       this.footer = value
-      localStorage.setItem('footer', String(value))
     },
     changePageTransition(value: boolean) {
       this.pageTransition = value
-      localStorage.setItem('pageTransition', String(value))
     },
     changeTransitionName(value: string) {
       this.transitionName = value
-      localStorage.setItem('transitionName', value)
     },
     changeLayoutMode(value: 'single' | 'double') {
       this.layoutMode = value
-      localStorage.setItem('layoutMode', value)
     },
     toggleContentFullscreen() {
       this.contentFullscreen = !this.contentFullscreen
     },
+    refreshCurrentPage() {
+      this.refreshKey++
+    },
+    resetUiState() {
+      this.selectedMenu = '0'
+      this.tabList = [HOME_MENU_ITEM]
+      this.collapse = false
+      this.drawer = false
+      this.breadcrumb = true
+      this.hamburger = true
+      this.uniqueOpen = true
+      this.tabtag = true
+      this.footer = true
+      this.pageTransition = true
+      this.transitionName = 'fade'
+      this.systemColor = LIGHT_SYSTEM_DEFAULT
+      this.layoutMode = 'single'
+      this.contentFullscreen = false
+    },
     reset() {
       this.selectedMenu = '0'
       this.tabList = [HOME_MENU_ITEM]
-      localStorage.removeItem('selectedMenu')
-      localStorage.removeItem('tabList')
     },
   },
 })
+
+/**
+ * Setup auto-persistence for menu store.
+ * Call once after `app.use(pinia)`.
+ */
+export function setupMenuStorePersistence(pinia: Pinia) {
+  const store = useMenuStore(pinia)
+  store.$subscribe((_mutation, state) => {
+    for (const key of PERSISTED_KEYS) {
+      localStorage.setItem(key, String(state[key]))
+    }
+    localStorage.setItem('tabList', JSON.stringify(state.tabList))
+  })
+}

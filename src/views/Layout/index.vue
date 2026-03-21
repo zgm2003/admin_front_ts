@@ -63,13 +63,13 @@ watch(isMobile, (val) => {
             :name="menuStore.transitionName"
             mode="out-in"
           >
-            <div :key="route.fullPath" class="layout-view" :class="{ 'page-card': !isPlainPage }">
+            <div :key="route.fullPath + '::' + menuStore.refreshKey" class="layout-view" :class="{ 'page-card': !isPlainPage }">
               <component :is="Component" />
             </div>
           </transition>
 
           <div v-else class="layout-view" :class="{ 'page-card': !isPlainPage }">
-            <component :is="Component" />
+            <component :is="Component" :key="route.fullPath + '::' + menuStore.refreshKey" />
           </div>
         </router-view>
       </el-main>
@@ -139,7 +139,7 @@ watch(isMobile, (val) => {
 .page-card {
   height: 100%;
   padding: 16px;
-  overflow: auto;
+  overflow: visible;
   background: var(--shell-panel-strong);
   border: 1px solid var(--shell-line);
   border-radius: 12px;

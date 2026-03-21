@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { refreshCurrentRoute } from '@/router'
 import { useRoute, useRouter } from 'vue-router'
 import { useMenuStore } from '@/store/menu'
 import { useI18n } from 'vue-i18n'
@@ -82,10 +83,10 @@ const handleScroll = (e: WheelEvent) => {
   scrollPaneRef.value?.setScrollLeft(wrapRef.scrollLeft + delta / 4)
 }
 
-const handleCommand = (command: string) => {
+const handleCommand = async (command: string) => {
   switch (command) {
     case 'refresh':
-      router.go(0)
+      await refreshCurrentRoute()
       break
     case 'fullscreen':
       menuStore.toggleContentFullscreen()
@@ -120,11 +121,15 @@ onClickOutside(contextMenuRef, () => {
   if (visible.value) closeMenu()
 })
 
-const handleContextRefresh = () => {
+const handleContextRefresh = async () => {
   if (!selectedTag.value) return
   closeMenu()
-  if (selectedTag.value.path === route.path) router.go(0)
-  else router.push(selectedTag.value.path).then(() => router.go(0))
+  if (selectedTag.value.path === route.path) {
+    await refreshCurrentRoute()
+  } else {
+    await router.push(selectedTag.value.path)
+    await refreshCurrentRoute()
+  }
 }
 
 const handleContextClose = () => {
