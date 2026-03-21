@@ -127,7 +127,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useMenuStore } from '@/store/menu.ts'
+import { useUserStore } from '@/store/user'
 import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -140,7 +142,9 @@ const emit = defineEmits(['update:modelValue'])
 const show = computed({ get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v) })
 
 const menuStore = useMenuStore()
+const userStore = useUserStore()
 const tauriStore = useTauriStore()
+const route = useRoute()
 const { t } = useI18n()
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 const customColor = ref(menuStore.systemColor)
@@ -212,17 +216,31 @@ function onCloseActionChange(val: string) {
   }
 }
 
+function syncCurrentRouteUiState() {
+  const menuId = typeof route.meta.menuId === 'string' ? route.meta.menuId : ''
+  menuStore.selectedMenu = menuId
+
+  if (!menuId) return
+
+  const currentMenu = userStore.permissionMap.get(menuId)
+  if (currentMenu) {
+    menuStore.selectMenu(currentMenu)
+  }
+}
+
 function clear() {
   clearLocalStorageExcept()
   menuStore.resetUiState()
+  syncCurrentRouteUiState()
   toggleDarkMode(false)
-  localStorage.setItem('theme', 'light')
+  tauriStore.clearCloseAction()
   isDark.value = false
-  document.documentElement.style.setProperty('--el-color-primary', '#409EFF')
-  customColor.value = '#409EFF'
+  closeActionValue.value = 'ask'
+  document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
+  customColor.value = menuStore.systemColor
   show.value = false
+  menuStore.refreshCurrentPage()
   ElNotification.success({ title: t('header.tip'), message: t('header.cacheClearedMsg') })
-  window.setTimeout(() => window.location.reload(), 300)
 }
 
 function resetTheme() {
