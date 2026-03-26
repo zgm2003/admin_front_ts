@@ -115,81 +115,53 @@ onMounted(() => {
     }
   }
 
-  .log-list {
-    .log-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      background: #fafafa;
-      margin-bottom: 10px;
-      transition: all 0.2s;
+  .log-list .log-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #fafafa;
+    margin-bottom: 10px;
 
-      &:hover {
-        background: #f0f2f5;
-      }
+    &:hover {
+      background: #f0f2f5;
+    }
 
-      .log-main {
+    .log-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .log-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .meta-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
+        gap: 4px;
+        color: #909399;
+        font-size: 13px;
 
-        .account {
-          font-weight: 500;
-          color: #303133;
-        }
-      }
-
-      .log-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          color: #909399;
-          font-size: 13px;
-
-          .el-icon {
-            font-size: 14px;
-          }
-
-          &.time {
-            color: #606266;
-          }
+        &.time {
+          color: #606266;
         }
       }
     }
   }
 
-  .card-list {
-    .log-card {
-      margin-bottom: 12px;
+  .card-list .log-card {
+    margin-bottom: 12px;
 
-      .card-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        border-bottom: 1px solid #f0f0f0;
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
 
-        &:last-child {
-          border-bottom: none;
-        }
-
-        .label {
-          color: #909399;
-          font-size: 13px;
-        }
-
-        .value {
-          color: #303133;
-          font-size: 13px;
-
-          &.time {
-            color: #606266;
-          }
-        }
+      &:last-child {
+        border-bottom: none;
       }
     }
   }

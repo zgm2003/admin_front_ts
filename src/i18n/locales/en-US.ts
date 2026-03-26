@@ -405,7 +405,8 @@ export default {
       detailAddress: 'Detail Address',
       bio: 'Bio',
       bioPlaceholder: 'Enter content',
-      saveBasic: 'Save Basic Info'
+      saveBasic: 'Save Basic Info',
+      resetBasic: 'Reset',
     },
     security: {
       phone: 'Phone',

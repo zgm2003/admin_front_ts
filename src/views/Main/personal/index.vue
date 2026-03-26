@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
 import { UsersApi } from '@/api/user/users.ts'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import type { DictOption } from '@/types/common'
 import type { UserPersonalInfo } from '@/types/user'
@@ -13,9 +12,9 @@ import LoginLog from './components/LoginLog/index.vue'
 import OperationLog from './components/OperationLog/index.vue'
 import Security from './components/Security/index.vue'
 import UserInfo from './components/UserInfo/index.vue'
+import './personal.scss'
 
 const { t } = useI18n()
-const isMobile = useIsMobile()
 const route = useRoute()
 const userStore = useUserStore()
 
@@ -62,14 +61,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="personal-page" :style="{ padding: isMobile ? '10px' : '20px' }">
-    <el-row :gutter="isMobile ? 10 : 20" justify="center">
-      <el-col :lg="6" :md="8" :sm="24">
+  <div class="personal-page">
+    <div class="personal-container">
+      <!-- 外部用户：只显示左侧（用户信息卡片），全宽 -->
+      <div v-if="userinfo.is_self !== CommonEnum.YES" class="module-full">
         <UserInfo :userinfo="userinfo" :sex-arr="sexArr" :loading="loading" />
-      </el-col>
+      </div>
 
-      <el-col :lg="18" :md="16" :sm="24" v-if="userinfo.is_self === CommonEnum.YES">
-        <el-card shadow="never">
+      <!-- 内部用户：只显示右侧（Tab 模块），全宽 -->
+      <div v-else class="module-full">
+        <el-card shadow="never" class="personal-card">
           <el-tabs v-model="activeTab">
             <el-tab-pane :label="t('personal.tabs.basic')" name="basic" lazy>
               <BaseInfo :userinfo="userinfo" :address-tree="addressTree" :sex-arr="sexArr" @refresh="initPersonal" />
@@ -85,13 +86,7 @@ onMounted(() => {
             </el-tab-pane>
           </el-tabs>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.personal-page {
-  padding: 20px;
-}
-</style>

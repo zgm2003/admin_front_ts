@@ -431,7 +431,8 @@ export default {
       detailAddress: '详细地址',
       bio: '个人简介',
       bioPlaceholder: '请输入内容',
-      saveBasic: '保存基本资料'
+      saveBasic: '保存基本资料',
+      resetBasic: '重置',
     },
     security: {
       phone: '手机号',

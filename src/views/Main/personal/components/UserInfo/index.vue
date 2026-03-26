@@ -84,18 +84,20 @@ const sexLabel = computed(() => {
 <style scoped lang="scss">
 .user-info-card {
   .card-header {
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
   }
 
   .content {
     .avatar-section {
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 28px;
 
       .avatar {
-        border: 3px solid #f0f0f0;
+        border: 3px solid var(--el-border-color-lighter);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       }
     }
 
@@ -103,19 +105,23 @@ const sexLabel = computed(() => {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 0;
+      padding: 10px 0;
+      transition: background-color 0.2s;
 
       .label {
-        color: #606266;
-        min-width: 70px;
+        color: var(--el-text-color-secondary);
+        min-width: 80px;
         flex-shrink: 0;
+        font-size: 14px;
       }
 
       .value {
-        color: #303133;
+        color: var(--el-text-color-primary);
         text-align: right;
         flex: 1;
         word-break: break-all;
+        font-size: 14px;
+        font-weight: 500;
       }
     }
 
@@ -129,8 +135,13 @@ const sexLabel = computed(() => {
 
       .value {
         text-align: left;
-        color: #909399;
+        color: var(--el-text-color-secondary);
         line-height: 1.6;
+        background: var(--el-fill-color-light);
+        padding: 12px 16px;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
       }
     }
   }

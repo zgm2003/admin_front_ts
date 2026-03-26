@@ -84,94 +84,66 @@ onMounted(() => {
 .operation-log-section {
   .section-header {
     margin-bottom: 16px;
-    
+
     .title {
       font-size: 16px;
       font-weight: 500;
       margin-right: 10px;
     }
-    
+
     .desc {
       color: #909399;
       font-size: 13px;
     }
   }
 
-  .log-list {
-    .log-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      background: #fafafa;
-      margin-bottom: 10px;
-      transition: all 0.2s;
-      
-      &:hover {
-        background: #f0f2f5;
-      }
-      
-      .log-main {
+  .log-list .log-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #fafafa;
+    margin-bottom: 10px;
+
+    &:hover {
+      background: #f0f2f5;
+    }
+
+    .log-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .log-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      .meta-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        
-        .action {
-          font-weight: 500;
-          color: #303133;
-        }
-      }
-      
-      .log-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        
-        .meta-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          color: #909399;
-          font-size: 13px;
-          
-          .el-icon {
-            font-size: 14px;
-          }
-          
-          &.time {
-            color: #606266;
-          }
+        gap: 4px;
+        color: #909399;
+        font-size: 13px;
+
+        &.time {
+          color: #606266;
         }
       }
     }
   }
-  
-  .card-list {
-    .log-card {
-      margin-bottom: 12px;
-      
-      .card-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        border-bottom: 1px solid #f0f0f0;
-        
-        &:last-child {
-          border-bottom: none;
-        }
-        
-        .label {
-          color: #909399;
-          font-size: 13px;
-        }
-        
-        .value {
-          color: #303133;
-          font-size: 13px;
-          
-          &.time {
-            color: #606266;
-          }
-        }
+
+  .card-list .log-card {
+    margin-bottom: 12px;
+
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
       }
     }
   }
