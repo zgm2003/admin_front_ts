@@ -6,6 +6,7 @@ import { useLoginForm } from './composables/useLoginForm'
 import { useForgotPassword } from './composables/useForgotPassword'
 import LoginBackground from './components/LoginBackground.vue'
 import LoginBrandPanel from './components/LoginBrandPanel.vue'
+import LoginMobileBrand from './components/LoginMobileBrand.vue'
 import LoginFormCard from './components/LoginFormCard.vue'
 import ForgotPasswordDialog from './components/ForgotPasswordDialog.vue'
 import LoginSuccessOverlay from './components/LoginSuccessOverlay.vue'
@@ -56,7 +57,10 @@ async function tauriClose() {
 </script>
 
 <template>
-  <div class="login-page login-container" :class="{ 'is-mobile': isMobile }">
+  <div
+    class="login-page login-container"
+    :class="{ 'is-mobile': isMobile, 'is-tauri-mobile': isMobile && isTauriEnv() }"
+  >
     <!-- Tauri 无边框模式：顶部拖拽条 -->
     <div v-if="isTauriEnv()" class="tauri-drag-bar">
       <div class="tauri-drag-controls">
@@ -72,8 +76,9 @@ async function tauriClose() {
       <!-- 左侧品牌区（桌面端） -->
       <LoginBrandPanel v-if="!isMobile" />
 
-      <!-- 右侧登录表单 -->
-      <div class="form-section">
+      <!-- 右侧登录表单（移动端：品牌 + 表单合一面板） -->
+      <div class="form-section" :class="{ 'login-mobile-sheet': isMobile }">
+        <LoginMobileBrand v-if="isMobile" />
         <LoginFormCard
           :login-types="loginTypes"
           :active-type="activeAccountType"

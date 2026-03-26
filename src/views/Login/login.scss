@@ -16,10 +16,11 @@
     height: auto;
     min-height: 100vh;
     min-height: 100dvh;
+    min-height: 100svh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 16px 0;
-    align-items: flex-start;
+    padding: 0;
+    align-items: stretch;
   }
 }
 
@@ -120,10 +121,114 @@
 
 .login-page.is-mobile .content-wrapper {
   flex-direction: column;
-  justify-content: flex-start;
-  gap: 16px;
-  padding: 12px;
-  min-height: auto;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0;
+  box-sizing: border-box;
+  width: 100%;
+  /* 占满一屏可视高度，面板垂直居中，避免底部大块空背景 */
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom, 0px));
+}
+
+/* ==================== 移动端：品牌 + 表单合一面板 ==================== */
+.login-page.is-mobile .form-section.login-mobile-sheet {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 12px 36px -16px rgba(15, 23, 42, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.login-page.is-tauri-mobile .form-section.login-mobile-sheet {
+  padding-top: calc(36px + env(safe-area-inset-top, 0px));
+}
+
+.login-page .login-mobile-sheet .mobile-brand-bar {
+  padding: 8px 14px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+.login-page .mobile-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: var(--el-color-primary);
+    color: var(--el-color-primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.2);
+    flex-shrink: 0;
+
+    .logo-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: var(--el-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img { width: 14px; height: 14px; filter: brightness(0) invert(1); }
+    }
+  }
+
+  .brand-info {
+    min-width: 0;
+    text-align: left;
+    flex: 1;
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--el-text-color-primary, #0f172a);
+  }
+
+  .brand-tagline {
+    margin: 1px 0 0;
+    padding: 0;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--el-text-color-secondary, #64748b);
+    font-weight: 500;
+  }
+
+  .tagline-dot {
+    margin: 0 4px;
+    color: var(--el-border-color, #94a3b8);
+    font-weight: 400;
+  }
+
+  .tagline-part:not(.tagline-accent) {
+    color: var(--el-text-color-regular, #475569);
+    font-weight: 600;
+  }
+
+  .tagline-part.tagline-accent {
+    color: var(--el-color-primary);
+    font-weight: 700;
+  }
 }
 
 /* ==================== 左侧品牌区 ==================== */
@@ -284,6 +389,15 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
+.login-page.is-mobile .login-mobile-sheet .form-card {
+  padding: 10px 14px 12px;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+
 .login-page .header-text {
   margin-bottom: 32px;
   @media (max-height: 800px) { margin-bottom: 24px; }
@@ -302,6 +416,16 @@
   margin-bottom: 20px;
   .welcome-title { font-size: 24px; margin-bottom: 8px; }
   .welcome-desc { font-size: 13px; }
+}
+
+.login-page.is-mobile .login-mobile-sheet .header-text {
+  margin-bottom: 10px;
+  .welcome-title {
+    font-size: 20px;
+    margin-bottom: 3px;
+    letter-spacing: -0.03em;
+  }
+  .welcome-desc { font-size: 12px; line-height: 1.4; }
 }
 
 .login-page .method-tabs {
@@ -342,12 +466,25 @@
   .tab-btn { font-size: 13px; padding: 10px 0; border-radius: 8px; min-height: 40px; }
 }
 
+.login-page.is-mobile .login-mobile-sheet .method-tabs {
+  margin-bottom: 10px;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 10px;
+  .tab-btn { font-size: 12px; padding: 7px 2px; min-height: 34px; border-radius: 7px; }
+}
+
 .login-page .form-content-area { display: flex; flex-direction: column; }
 
 .login-page .method-container {
   position: relative;
   height: 176px;
   margin-bottom: 20px;
+}
+
+.login-page.is-mobile .login-mobile-sheet .method-container {
+  margin-bottom: 10px;
+  min-height: 124px !important;
 }
 
 .login-page .method-content {
@@ -386,6 +523,24 @@
     margin-bottom: 8px;
     transition: color 0.3s;
   }
+}
+
+.login-page.is-mobile .login-mobile-sheet .input-group {
+  margin-bottom: 10px;
+  .input-label { margin-bottom: 4px; font-size: 12px; }
+}
+
+.login-page.is-mobile .login-mobile-sheet .form-options { margin-bottom: 10px; }
+
+.login-page.is-mobile .login-mobile-sheet .terms-checkbox {
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+
+.login-page.is-mobile .login-mobile-sheet .submit-btn {
+  height: 46px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
 }
 
 /* ==================== 通用输入框样式（合并去重） ==================== */
@@ -633,30 +788,36 @@
   .global-bg .floating-icons { display: none; }
   .global-bg .deco-blob { opacity: 0.3; }
 
-  .method-container { height: auto !important; min-height: 160px; position: relative; margin-bottom: 16px; }
+  .method-container { height: auto !important; min-height: 132px; position: relative; margin-bottom: 12px; }
   .method-content { position: relative !important; display: none; &.is-active { display: block; } }
 
-  .input-group { margin-bottom: 16px; .input-label { font-size: 13px; margin-bottom: 6px; } }
-  .form-options { margin-bottom: 24px; height: auto; min-height: 24px; }
-  .terms-checkbox { margin-top: 16px; font-size: 12px; .el-checkbox__label { font-size: 12px; line-height: 1.4; } }
+  .input-group { margin-bottom: 12px; .input-label { font-size: 13px; margin-bottom: 5px; } }
+  .form-options { margin-bottom: 12px; height: auto; min-height: 24px; }
+  .terms-checkbox { margin-top: 8px; margin-bottom: 12px; font-size: 12px; .el-checkbox__label { font-size: 12px; line-height: 1.4; } }
 
   .custom-input {
-    .el-input__wrapper { border-radius: 12px !important; padding: 8px 12px !important; height: 44px; }
+    .el-input__wrapper { border-radius: 12px !important; padding: 8px 12px !important; height: 42px; }
     .el-input__inner { font-size: 16px; }
   }
 
-  .login-send-code .el-input__wrapper { border-radius: 12px !important; height: 44px; }
+  .login-send-code .el-input__wrapper { border-radius: 12px !important; height: 42px; }
   .login-send-code .el-input__inner { font-size: 16px; }
-  .login-send-code .el-button { height: 44px !important; border-radius: 12px !important; font-size: 13px; padding: 0 12px; }
+  .login-send-code .el-button { height: 42px !important; border-radius: 12px !important; font-size: 13px; padding: 0 12px; }
 }
 
-/* 安全区域适配 */
+/* 安全区由 .content-wrapper 的 padding 承担，避免与容器底部重复叠加 */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .login-container.is-mobile { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .login-container.is-mobile { padding-bottom: 0; }
 }
 
 /* 横屏适配 */
 @media (max-height: 500px) and (orientation: landscape) {
+  .login-page.is-mobile .content-wrapper {
+    min-height: auto;
+    justify-content: flex-start;
+    padding-top: 8px;
+  }
+
   .login-container.is-mobile {
     .form-card { padding: 20px 16px; }
     .header-text { margin-bottom: 16px; .welcome-title { font-size: 20px; } }
@@ -671,6 +832,9 @@
     .form-card { padding: 20px 16px; border-radius: 20px; }
     .header-text { .welcome-title { font-size: 22px; } .welcome-desc { font-size: 12px; } }
     .method-tabs .tab-btn { font-size: 12px; padding: 8px 0; }
-    .submit-btn { height: 46px !important; }
+    .submit-btn { height: 44px !important; }
   }
+
+  .login-page.is-mobile .login-mobile-sheet .form-card { padding: 8px 12px 10px; }
+  .login-page.is-mobile .login-mobile-sheet .method-container { min-height: 118px !important; }
 }
