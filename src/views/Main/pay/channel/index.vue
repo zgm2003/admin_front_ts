@@ -27,11 +27,6 @@ const init = async () => {
   statusArr.value = data.dict.common_status_arr
 }
 
-onMounted(async () => {
-  await init()
-  await getList()
-})
-
 // ==================== 搜索 ====================
 const searchForm = ref({
   name: '',
@@ -72,12 +67,11 @@ const columns = computed(() => [
   {
     key: 'app_private_key_hint',
     label: t('pay_channel.table.app_private_key_hint'),
-    width: 140,
     formatter: (row: any) => row.app_private_key_hint || '—',
   },
-  { key: 'status_name', label: t('pay_channel.table.status'), width: 100 },
+  { key: 'status_name', label: t('pay_channel.table.status') },
   { key: 'created_at', label: t('pay_channel.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 280 },
+  { key: 'actions', label: t('common.actions.action'), width: 220 },
 ])
 
 // ==================== 弹窗 ====================

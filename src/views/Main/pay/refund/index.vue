@@ -55,12 +55,11 @@ const {
 })
 
 const columns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'refund_no', label: t('pay_refund.table.refund_no'), width: 220 },
   { key: 'order_no', label: t('pay_refund.table.order_no'), width: 220 },
-  { key: 'channel_text', label: t('pay_refund.table.channel'), width: 100 },
+  { key: 'channel_text', label: t('pay_refund.table.channel') },
   { key: 'refund_amount', label: t('pay_refund.table.refund_amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'status_text', label: t('pay_refund.table.status'), width: 110 },
+  { key: 'status_text', label: t('pay_refund.table.status') },
   { key: 'reason', label: t('pay_refund.table.reason') },
   { key: 'refunded_at', label: t('pay_refund.table.refunded_at'), width: 180 },
   { key: 'created_at', label: t('pay_refund.table.created_at'), width: 180 },

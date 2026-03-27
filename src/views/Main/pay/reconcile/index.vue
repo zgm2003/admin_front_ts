@@ -56,16 +56,15 @@ const {
 })
 
 const columns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'reconcile_date', label: t('pay_reconcile.table.reconcile_date'), width: 120 },
-  { key: 'channel_text', label: t('pay_reconcile.table.channel'), width: 100 },
-  { key: 'bill_type_text', label: t('pay_reconcile.table.bill_type'), width: 80 },
-  { key: 'status_text', label: t('pay_reconcile.table.status'), width: 110 },
-  { key: 'platform_count', label: t('pay_reconcile.table.platform_count'), width: 130 },
+  { key: 'channel_text', label: t('pay_reconcile.table.channel') },
+  { key: 'bill_type_text', label: t('pay_reconcile.table.bill_type') },
+  { key: 'status_text', label: t('pay_reconcile.table.status') },
+  { key: 'platform_count', label: t('pay_reconcile.table.platform_count') },
   { key: 'platform_amount', label: t('pay_reconcile.table.platform_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'local_count', label: t('pay_reconcile.table.local_count'), width: 120 },
+  { key: 'local_count', label: t('pay_reconcile.table.local_count') },
   { key: 'local_amount', label: t('pay_reconcile.table.local_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'diff_count', label: t('pay_reconcile.table.diff_count'), width: 100 },
+  { key: 'diff_count', label: t('pay_reconcile.table.diff_count') },
   { key: 'diff_amount', label: t('pay_reconcile.table.diff_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'started_at', label: t('pay_reconcile.table.started_at'), width: 180 },
   { key: 'finished_at', label: t('pay_reconcile.table.finished_at'), width: 180 },

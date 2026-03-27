@@ -29,19 +29,23 @@ const init = async () => {
 
 // ==================== 状态统计 ====================
 const statusCounts = ref<Record<number, { label: string; count: number }>>({})
-const activeStatusTab = ref<number | ''>('')
+const activeStatusTab = ref('all')
 
 const loadStatusCount = async () => {
   const res = await OrderApi.statusCount()
   statusCounts.value = res.counts
 }
 
-const statusTabs = computed(() =>
-  payStatusArr.value.map((s) => ({
-    ...s,
-    count: statusCounts.value[s.value]?.count ?? 0,
-  }))
-)
+const statusTabs = computed(() => [
+  {
+    label: t('pay_order.tabs.all'),
+    value: 'all',
+  },
+  ...payStatusArr.value.map((item) => ({
+    label: `${item.label} (${statusCounts.value[item.value]?.count ?? 0})`,
+    value: String(item.value),
+  })),
+])
 
 // ==================== 搜索 ====================
 const searchForm = ref({
@@ -73,22 +77,22 @@ const {
 })
 
 const columns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'order_no', label: t('pay_order.table.order_no'), width: 220 },
-  { key: 'order_type_text', label: t('pay_order.table.order_type'), width: 100 },
+  { key: 'order_type_text', label: t('pay_order.table.order_type') },
   { key: 'title', label: t('pay_order.table.title') },
   { key: 'pay_amount', label: t('pay_order.table.pay_amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'pay_status_text', label: t('pay_order.table.pay_status'), width: 110 },
-  { key: 'biz_status_text', label: t('pay_order.table.biz_status'), width: 110 },
-  { key: 'refund_status_text', label: t('pay_order.table.refund_status'), width: 110 },
+  { key: 'pay_status_text', label: t('pay_order.table.pay_status') },
+  { key: 'biz_status_text', label: t('pay_order.table.biz_status') },
+  { key: 'refund_status_text', label: t('pay_order.table.refund_status') },
   { key: 'pay_time', label: t('pay_order.table.pay_time'), width: 180 },
   { key: 'created_at', label: t('pay_order.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 260 },
+  { key: 'actions', label: t('common.actions.action'), width: 220 },
 ])
 
-const onTabClick = (status: number | '') => {
-  activeStatusTab.value = status
-  searchForm.value.pay_status = status
+const onTabChange = (status: string | number) => {
+  const nextStatus = String(status)
+  activeStatusTab.value = nextStatus
+  searchForm.value.pay_status = nextStatus === 'all' ? '' : Number(nextStatus)
   void onSearch()
 }
 
@@ -180,27 +184,14 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <!-- 状态 Tab -->
-    <div class="status-tabs">
-      <el-tag
-        :type="activeStatusTab === '' ? 'primary' : 'info'"
-        class="status-tab"
-        @click="onTabClick('')"
-        style="cursor:pointer"
-      >
-        全部
-      </el-tag>
-      <el-tag
+    <el-tabs v-model="activeStatusTab" :stretch="isMobile" class="status-tabs" @tab-change="onTabChange">
+      <el-tab-pane
         v-for="tab in statusTabs"
         :key="tab.value"
-        :type="activeStatusTab === tab.value ? 'primary' : 'info'"
-        class="status-tab"
-        @click="onTabClick(tab.value)"
-        style="cursor:pointer"
-      >
-        {{ tab.label }} ({{ tab.count }})
-      </el-tag>
-    </div>
+        :label="tab.label"
+        :name="tab.value"
+      />
+    </el-tabs>
 
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
     <div class="table">
@@ -318,14 +309,7 @@ onMounted(() => {
   height: 100%;
 }
 .status-tabs {
-  padding: 8px 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  border-bottom: 1px solid var(--el-border-color);
-}
-.status-tab {
-  font-size: 13px;
+  margin-bottom: 12px;
 }
 .table {
   flex: 1 1 auto;

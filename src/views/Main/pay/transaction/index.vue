@@ -53,15 +53,14 @@ const {
 })
 
 const columns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'transaction_no', label: t('pay_transaction.table.transaction_no'), width: 220 },
   { key: 'order_no', label: t('pay_transaction.table.order_no'), width: 220 },
-  { key: 'attempt_no', label: t('pay_transaction.table.attempt_no'), width: 80 },
-  { key: 'channel_text', label: t('pay_transaction.table.channel'), width: 100 },
-  { key: 'pay_method', label: t('pay_transaction.table.pay_method'), width: 100 },
+  { key: 'attempt_no', label: t('pay_transaction.table.attempt_no') },
+  { key: 'channel_text', label: t('pay_transaction.table.channel') },
+  { key: 'pay_method', label: t('pay_transaction.table.pay_method') },
   { key: 'amount', label: t('pay_transaction.table.amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'trade_no', label: t('pay_transaction.table.trade_no'), width: 200 },
-  { key: 'status_text', label: t('pay_transaction.table.status'), width: 110 },
+  { key: 'status_text', label: t('pay_transaction.table.status') },
   { key: 'paid_at', label: t('pay_transaction.table.paid_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 100 },
 ])

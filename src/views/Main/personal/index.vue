@@ -10,6 +10,7 @@ import type { UserPersonalInfo } from '@/types/user'
 import BaseInfo from './components/BaseInfo/index.vue'
 import LoginLog from './components/LoginLog/index.vue'
 import OperationLog from './components/OperationLog/index.vue'
+import Recharge from './components/Recharge/index.vue'
 import Security from './components/Security/index.vue'
 import UserInfo from './components/UserInfo/index.vue'
 import './personal.scss'
@@ -77,6 +78,9 @@ onMounted(() => {
             </el-tab-pane>
             <el-tab-pane :label="t('personal.tabs.security')" name="security" lazy>
               <Security :userinfo="userinfo" :verify-type-arr="verifyTypeArr" @refresh="initPersonal" />
+            </el-tab-pane>
+            <el-tab-pane :label="t('personal.tabs.recharge')" name="recharge" lazy>
+              <Recharge :user-id="userId" />
             </el-tab-pane>
             <el-tab-pane :label="t('personal.tabs.loginLog')" name="loginLog" lazy>
               <LoginLog :user-id="userId" />

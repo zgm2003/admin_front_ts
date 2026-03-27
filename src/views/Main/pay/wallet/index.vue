@@ -50,27 +50,25 @@ const {
 })
 
 const columns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'user_id', label: t('pay_wallet.table.user_id'), width: 120 },
-  { key: 'balance', label: t('pay_wallet.table.balance'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'frozen', label: t('pay_wallet.table.frozen'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'available', label: t('pay_wallet.table.available'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_consume', label: t('pay_wallet.table.total_consume'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_refund', label: t('pay_wallet.table.total_refund'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'balance', label: t('pay_wallet.table.balance'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'frozen', label: t('pay_wallet.table.frozen'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'available', label: t('pay_wallet.table.available'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'total_refund', label: t('pay_wallet.table.total_refund'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'created_at', label: t('pay_wallet.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 100 },
+  { key: 'actions', label: t('common.actions.action'), width: 140 },
 ])
 
 // ==================== 钱包流水 ====================
 const txColumns = computed(() => [
-  { key: 'id', label: 'ID', width: 80 },
   { key: 'biz_action_no', label: t('pay_wallet.txn.table.biz_action_no'), width: 220 },
   { key: 'type_text', label: t('pay_wallet.txn.table.type'), width: 120 },
-  { key: 'available_delta', label: t('pay_wallet.txn.table.available_delta'), width: 130, formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
-  { key: 'frozen_delta', label: t('pay_wallet.txn.table.frozen_delta'), width: 130, formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
-  { key: 'balance_before', label: t('pay_wallet.txn.table.balance_before'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'balance_after', label: t('pay_wallet.txn.table.balance_after'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'available_delta', label: t('pay_wallet.txn.table.available_delta'), formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
+  { key: 'frozen_delta', label: t('pay_wallet.txn.table.frozen_delta'), formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
+  { key: 'balance_before', label: t('pay_wallet.txn.table.balance_before'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'balance_after', label: t('pay_wallet.txn.table.balance_after'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'order_no', label: t('pay_wallet.txn.table.order_no'), width: 200 },
   { key: 'title', label: t('pay_wallet.txn.table.title') },
   { key: 'created_at', label: t('pay_wallet.txn.table.created_at'), width: 180 },
