@@ -219,6 +219,7 @@ export default {
     devTools: 'Dev Tools',
     // Standalone pages
     personal: 'Personal',
+    wallet: 'Wallet',
     notification: 'Notifications',
     test: 'Test',
     // User module
@@ -456,7 +457,7 @@ export default {
     },
     recharge: {
       summaryTitle: 'Wallet Overview',
-      summaryDesc: 'Review the current account balance, frozen funds, and cumulative fund movements directly from the profile page.',
+      summaryDesc: 'Review the current account balance, frozen funds, and cumulative fund movements in one place, and complete recharge and payment checks here.',
       currentBalance: 'Current Balance',
       available: 'Available',
       frozen: 'Frozen',

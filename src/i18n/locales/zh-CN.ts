@@ -245,6 +245,7 @@ export default {
     devTools: '开发工具',
     // 独立页面
     personal: '个人资料',
+    wallet: '钱包',
     notification: '通知中心',
     test: '测试页',
     // 用户模块
@@ -482,7 +483,7 @@ export default {
     },
     recharge: {
       summaryTitle: '钱包概览',
-      summaryDesc: '在个人资料页直接查看当前账号的余额、冻结资金和累计资金流向。',
+      summaryDesc: '统一查看当前账号的余额、冻结资金和累计资金流向，并在这里完成充值与结果确认。',
       currentBalance: '当前余额',
       available: '可用余额',
       frozen: '冻结金额',

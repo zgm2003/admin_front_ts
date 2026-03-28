@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
-import { Setting, ArrowRight, Document, Plus } from '@element-plus/icons-vue'
+import { Setting, ArrowRight, Document, Plus, Coin } from '@element-plus/icons-vue'
 
 const Draggable = defineAsyncComponent(() => import('vuedraggable'))
 
@@ -40,6 +40,18 @@ const addSelectVisible = ref(false)
 const selectedPermissionId = ref<string>('')
 const entryColors = ['#409EFF', '#059669', '#D97706', '#DC2626']
 
+interface QuickEntryCardItem {
+  id: number
+  permissionId: number
+  label: string
+  icon: string
+  path: string
+  color: string
+  bg: string
+}
+
+const getEntryColor = (index: number) => entryColors[index % entryColors.length] ?? '#409EFF'
+
 // 从 permissions 中提取 type=2 的菜单（可选项）
 const menuOptions = computed(() => {
   const result: any[] = []
@@ -63,7 +75,7 @@ const menuOptions = computed(() => {
 })
 
 // 快捷入口（根据 quickEntry 与 permissions 做交集）
-const entries = computed(() => {
+const entries = computed<QuickEntryCardItem[]>(() => {
   return userStore.quickEntry
     .map((entry, index) => {
       const menu = userStore.permissionMap.get(String(entry.permission_id))
@@ -74,11 +86,25 @@ const entries = computed(() => {
         label: menu.i18n_key ? t(menu.i18n_key) : menu.label,
         icon: menu.icon || 'Document',
         path: menu.path,
-        color: entryColors[index % 4],
-        bg: entryColors[index % 4] + '15',
+        color: getEntryColor(index),
+        bg: getEntryColor(index) + '15',
       }
     })
     .filter((item): item is NonNullable<typeof item> => item !== null)
+})
+
+const walletMenu = computed(() => {
+  return Array.from(userStore.permissionMap.values()).find(
+    item => item?.path === '/wallet' || item?.i18n_key === 'menu.wallet',
+  ) || null
+})
+const walletPath = computed(() => walletMenu.value?.path || '')
+const walletLabel = computed(() => {
+  if (!walletMenu.value) {
+    return ''
+  }
+
+  return walletMenu.value.i18n_key ? t(walletMenu.value.i18n_key) : walletMenu.value.label
 })
 
 // 切换编辑模式
@@ -130,6 +156,11 @@ const getIconComponent = (iconName: string) => {
 
 const goTo = (path: string) => router.push(path)
 const goToPersonal = () => router.push({ path: '/personal', query: { user_id: userStore.user_id } })
+const goToWallet = () => {
+  if (walletPath.value) {
+    return router.push(walletPath.value)
+  }
+}
 
 onMounted(() => {
   scheduleIdle(() => {
@@ -149,10 +180,16 @@ onMounted(() => {
           <p class="welcome-subtitle">{{ new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
         </div>
       </div>
-      <el-button type="primary" size="large" @click="goToPersonal">
-        <el-icon><Setting /></el-icon>
-        <span>{{ t('menu.personal') }}</span>
-      </el-button>
+      <div class="welcome-actions">
+        <el-button plain size="large" @click="goToPersonal">
+          <el-icon><Setting /></el-icon>
+          <span>{{ t('menu.personal') }}</span>
+        </el-button>
+        <el-button v-if="walletPath" type="primary" size="large" @click="goToWallet">
+          <el-icon><Coin /></el-icon>
+          <span>{{ walletLabel }}</span>
+        </el-button>
+      </div>
     </div>
 
     <!-- 快捷入口 -->
@@ -208,7 +245,7 @@ onMounted(() => {
       <div v-else-if="entries.length" class="quick-grid">
         <div 
           v-for="entry in entries" 
-          :key="entry.path" 
+          :key="entry.id" 
           class="quick-card"
           @click="goTo(entry.path)"
         >
@@ -290,18 +327,47 @@ onMounted(() => {
   }
 }
 
-.welcome-banner .el-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+.welcome-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .el-button {
+    min-width: 132px;
+    backdrop-filter: blur(10px);
+  }
+
+  .el-button--default {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.24);
+      border-color: rgba(255, 255, 255, 0.42);
+      color: #fff;
+    }
+  }
+
+  .el-button--primary {
+    background: #fff;
+    border-color: #fff;
+    color: #1d4ed8;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(255, 255, 255, 0.92);
+      color: #1e40af;
+    }
   }
 
   @media (max-width: 768px) {
     width: 100%;
+    flex-direction: column;
+
+    .el-button {
+      width: 100%;
+    }
   }
 }
 
