@@ -9,8 +9,9 @@ export const OrderApi = {
   remark: (params: any) => request.post('/api/admin/PayOrder/remark', params),
   recharge: (params: any) => request.post('/api/admin/pay/recharge', params),
   createPay: (params: any) => request.post('/api/admin/pay/createPay', params),
+  cancelOrder: (params: any) => request.post('/api/admin/pay/cancelOrder', params),
   queryResult: (params: any) => request.post('/api/admin/pay/queryResult', params),
   orderDetail: (params: any) => request.post('/api/admin/pay/orderDetail', params),
-  walletInfo: (params: any) => request.post('/api/admin/pay/walletInfo', params),
+  walletInfo: (params?: any) => request.post('/api/admin/pay/walletInfo', params),
   walletBills: (params: any) => request.post('/api/admin/pay/walletBills', params),
 }

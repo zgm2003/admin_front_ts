@@ -81,12 +81,12 @@ const columns = computed(() => [
   { key: 'order_type_text', label: t('pay_order.table.order_type') },
   { key: 'title', label: t('pay_order.table.title') },
   { key: 'pay_amount', label: t('pay_order.table.pay_amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'pay_status_text', label: t('pay_order.table.pay_status') },
-  { key: 'biz_status_text', label: t('pay_order.table.biz_status') },
-  { key: 'refund_status_text', label: t('pay_order.table.refund_status') },
+  { key: 'pay_status_text', label: t('pay_order.table.pay_status') ,width: 150 },
+  { key: 'biz_status_text', label: t('pay_order.table.biz_status') ,width: 150 },
+  { key: 'refund_status_text', label: t('pay_order.table.refund_status') ,width: 150 },
   { key: 'pay_time', label: t('pay_order.table.pay_time'), width: 180 },
   { key: 'created_at', label: t('pay_order.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 220 },
+  { key: 'actions', label: t('common.actions.action'), width: 280 },
 ])
 
 const onTabChange = (status: string | number) => {

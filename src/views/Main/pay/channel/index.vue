@@ -71,7 +71,7 @@ const columns = computed(() => [
   },
   { key: 'status_name', label: t('pay_channel.table.status') },
   { key: 'created_at', label: t('pay_channel.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 220 },
+  { key: 'actions', label: t('common.actions.action'), width: 250 },
 ])
 
 // ==================== 弹窗 ====================

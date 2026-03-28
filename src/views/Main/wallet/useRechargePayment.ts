@@ -1,6 +1,6 @@
 import { computed, onBeforeUnmount, ref, shallowRef, watch, type ComputedRef } from 'vue'
 import QRCode from 'qrcode'
-import { ElNotification } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import { BizStatus, CommonEnum, PayChannel, PayStatus } from '@/enums'
 import { PayChannelApi } from '@/api/pay/channel'
 import { OrderApi } from '@/api/pay/order'
@@ -176,6 +176,7 @@ export function useRechargePayment(userId: ComputedRef<number>) {
   const initLoading = shallowRef(false)
   const submitting = shallowRef(false)
   const statusChecking = shallowRef(false)
+  const cancelingOrder = shallowRef(false)
   const paymentDialogVisible = shallowRef(false)
   const popupBlocked = shallowRef(false)
 
@@ -229,6 +230,14 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
     const payStatus = currentOrder.value.payStatus
     return payStatus !== PayStatus.PAID && payStatus !== PayStatus.CLOSED && payStatus !== PayStatus.EXCEPTION
+  })
+
+  const canCancelOrder = computed(() => {
+    if (!currentOrder.value) {
+      return false
+    }
+
+    return currentOrder.value.payStatus === PayStatus.PENDING || currentOrder.value.payStatus === PayStatus.PAYING
   })
 
   let pollTimer: number | null = null
@@ -345,7 +354,7 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
     summaryLoading.value = true
     try {
-      const data = await OrderApi.walletInfo({ user_id: userId.value })
+      const data = await OrderApi.walletInfo()
       if (Number(data.wallet_exists ?? CommonEnum.YES) !== CommonEnum.YES) {
         wallet.value = null
         return
@@ -377,7 +386,6 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     historyLoading.value = true
     try {
       const data = await OrderApi.walletBills({
-        user_id: userId.value,
         page: transactionPage.value.current_page,
         page_size: transactionPage.value.page_size,
       })
@@ -432,7 +440,6 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     statusChecking.value = true
     try {
       const data = await OrderApi.queryResult({
-        user_id: userId.value,
         order_no: currentOrder.value.orderNo,
       })
 
@@ -453,6 +460,50 @@ export function useRechargePayment(userId: ComputedRef<number>) {
       }
     } finally {
       statusChecking.value = false
+    }
+  }
+
+  const cancelOrder = async () => {
+    if (!currentOrder.value || !userId.value || !canCancelOrder.value || cancelingOrder.value) {
+      return
+    }
+
+    try {
+      await ElMessageBox.confirm(
+        t('personal.recharge.cancelOrderConfirm'),
+        t('common.confirmTitle'),
+        {
+          type: 'warning',
+          confirmButtonText: t('common.actions.confirm'),
+          cancelButtonText: t('common.actions.cancel'),
+        },
+      )
+    } catch {
+      return
+    }
+
+    cancelingOrder.value = true
+
+    try {
+      await OrderApi.cancelOrder({
+        order_no: currentOrder.value.orderNo,
+      })
+
+      stopPolling()
+      paymentDialogVisible.value = false
+      popupBlocked.value = false
+      paymentView.value = null
+      externalPayment.value = null
+
+      currentOrder.value = {
+        ...currentOrder.value,
+        payStatus: PayStatus.CLOSED,
+        payStatusText: payStatusLabelMap.value.get(String(PayStatus.CLOSED)) ?? currentOrder.value.payStatusText,
+      }
+
+      ElNotification.success({ message: t('personal.recharge.cancelOrderSuccess') })
+    } finally {
+      cancelingOrder.value = false
     }
   }
 
@@ -618,12 +669,11 @@ export function useRechargePayment(userId: ComputedRef<number>) {
   }
 
   const requestPayment = async (orderNo: string, payMethod: string, targetWindow?: Window | null) => {
-    const createPayRes = await OrderApi.createPay({
-      user_id: userId.value,
-      order_no: orderNo,
-      pay_method: payMethod,
-      quit_url: typeof window !== 'undefined' ? window.location.href : '',
-    })
+      const createPayRes = await OrderApi.createPay({
+        order_no: orderNo,
+        pay_method: payMethod,
+        quit_url: typeof window !== 'undefined' ? window.location.href : '',
+      })
 
     updateCurrentOrderForPaying(payMethod, createPayRes.transaction_no ?? null)
     await handlePayPresentation((createPayRes.pay_data ?? {}) as Record<string, unknown>, targetWindow)
@@ -661,7 +711,6 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
     try {
       const rechargeRes = await OrderApi.recharge({
-        user_id: userId.value,
         amount: Math.round(amount * 100),
         pay_method: selectedPayMethod.value,
         channel_id: selectedChannelId.value,
@@ -779,8 +828,11 @@ export function useRechargePayment(userId: ComputedRef<number>) {
   return {
     availableChannelOptions,
     availablePayMethodOptions,
+    canCancelOrder,
     canRecharge,
     canResumePayment,
+    cancelOrder,
+    cancelingOrder,
     copyPaymentContent,
     currentOrder,
     handlePageChange,

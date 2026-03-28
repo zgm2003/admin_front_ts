@@ -58,7 +58,7 @@ const columns = computed(() => [
   { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'total_refund', label: t('pay_wallet.table.total_refund'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'created_at', label: t('pay_wallet.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 140 },
+  { key: 'actions', label: t('common.actions.action'), width: 200 },
 ])
 
 // ==================== 钱包流水 ====================

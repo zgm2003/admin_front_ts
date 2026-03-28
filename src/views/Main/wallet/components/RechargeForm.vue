@@ -11,7 +11,9 @@ const props = defineProps<{
   payMethod: string
   submitting: boolean
   statusChecking: boolean
+  cancelingOrder: boolean
   canRecharge: boolean
+  canCancelOrder: boolean
   canResumePayment: boolean
   popupBlocked: boolean
   presetAmounts: RechargePresetOption[]
@@ -26,6 +28,7 @@ const emit = defineEmits<{
   'update:pay-method': [value: string]
   'select-preset': [value: number]
   submit: []
+  'cancel-order': []
   'refresh-status': []
   'resume-pay': []
 }>()
@@ -179,6 +182,9 @@ const onChannelChange = (value: number | undefined) => {
           </el-button>
           <el-button v-if="canResumePayment" type="primary" plain @click="emit('resume-pay')">
             {{ popupBlocked ? t('personal.recharge.openPayPage') : t('personal.recharge.continuePay') }}
+          </el-button>
+          <el-button v-if="canCancelOrder" type="danger" plain :loading="cancelingOrder" @click="emit('cancel-order')">
+            {{ t('personal.recharge.cancelOrder') }}
           </el-button>
         </div>
       </div>
