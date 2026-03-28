@@ -35,7 +35,9 @@ const {
   popupBlocked,
   presetAmounts,
   rechargeOrders,
+  recentRechargeOrders,
   rechargeAmount,
+  recentOrdersLoading,
   refreshOrderStatus,
   resumePayment,
   selectRechargeOrder,
@@ -49,8 +51,6 @@ const {
   transactions,
   wallet,
 } = useRechargePayment()
-
-const recentRechargeOrders = computed(() => rechargeOrders.value.slice(0, 5))
 
 const paymentRawText = computed(() => {
   if (!paymentView.value) {
@@ -146,7 +146,7 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
               <RechargeCurrentOrder
                 :current-order="currentOrder"
                 :recent-orders="recentRechargeOrders"
-                :recent-orders-loading="orderLoading"
+                :recent-orders-loading="recentOrdersLoading"
                 :popup-blocked="popupBlocked"
                 :status-checking="statusChecking"
                 :canceling-order="cancelingOrder"

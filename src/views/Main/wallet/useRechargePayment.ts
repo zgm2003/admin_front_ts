@@ -582,10 +582,10 @@ export function useRechargePayment() {
     }
   }
 
-  const handleOrderPageChange = (page: number) => {
+  const handleOrderPageChange = (page: WalletTransactionPage) => {
     orderPage.value = {
       ...orderPage.value,
-      current_page: page,
+      ...page,
     }
     void loadRechargeOrders()
   }
