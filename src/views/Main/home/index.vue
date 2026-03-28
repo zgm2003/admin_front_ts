@@ -332,6 +332,10 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
 
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+
   .el-button {
     min-width: 132px;
     backdrop-filter: blur(10px);
