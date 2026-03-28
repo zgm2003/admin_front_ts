@@ -13,7 +13,7 @@ import { useRechargePayment } from './useRechargePayment'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const activeTab = shallowRef<'recharge' | 'orders' | 'history'>('recharge')
+const activeTab = shallowRef<'overview' | 'recharge' | 'orders' | 'history'>('overview')
 
 const {
   availableChannelOptions,
@@ -118,9 +118,13 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
   <div class="wallet-page">
     <div class="wallet-page__body">
       <div class="wallet-page__content">
-        <RechargeSummary :wallet="wallet" :loading="summaryLoading" />
-
         <el-tabs v-model="activeTab" :stretch="isMobile" class="wallet-tabs">
+          <el-tab-pane :label="t('personal.recharge.summaryTitle')" name="overview">
+            <div class="wallet-pane">
+              <RechargeSummary :wallet="wallet" :loading="summaryLoading" />
+            </div>
+          </el-tab-pane>
+
           <el-tab-pane :label="t('personal.recharge.tabsRecharge')" name="recharge">
             <div class="wallet-pane wallet-pane--recharge">
               <RechargeForm
@@ -142,6 +146,7 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
               <RechargeCurrentOrder
                 :current-order="currentOrder"
                 :recent-orders="recentRechargeOrders"
+                :recent-orders-loading="orderLoading"
                 :popup-blocked="popupBlocked"
                 :status-checking="statusChecking"
                 :canceling-order="cancelingOrder"
@@ -152,6 +157,7 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
                 @cancel-order="cancelOrder"
                 @view-order="selectRechargeOrder"
                 @continue-pay="handleContinuePay"
+                @cancel-order-row="handleCancelOrder"
               />
             </div>
           </el-tab-pane>

@@ -273,6 +273,7 @@ export default {
     filter: { name: 'Channel Name' },
     table: {
       name: 'Channel Name', channel: 'Payment Channel', mch_id: 'Merchant ID', app_id: 'App ID',
+      supported_methods: 'Payment Methods',
       is_sandbox: 'Sandbox', app_private_key_hint: 'Key Label',
       status: 'Status', remark: 'Remark', created_at: 'Created At',
     },
@@ -285,10 +286,10 @@ export default {
     form: {
       name: 'Channel Name', namePlaceholder: 'e.g. Alipay Main Channel',
       channel: 'Payment Channel',
+      supported_methods: 'Payment Methods', supported_methodsPlaceholder: 'Select the payment methods enabled for this channel',
       mch_id: 'Merchant ID', mch_idPlaceholder: 'WeChat mch_id / Alipay partner_id',
       app_id: 'App ID', app_idPlaceholder: 'WeChat appid / Alipay app_id',
       notify_url: 'Async Notify URL', notify_urlPlaceholder: 'Auto-filled with platform callback URL',
-      return_url: 'Sync Return URL', return_urlPlaceholder: 'Page to redirect after payment',
       app_private_key: 'App Private Key', appPrivateKeyPlaceholder: 'RSA2 private key (PKCS8)',
       appPrivateKey_hint: 'Key Label', appPrivateKeyHintPlaceholder: 'e.g. Alipay App Key',
       public_cert_path: 'Public Cert Path', certPathPlaceholder: '/data/cert/appCertPublicKey_xxx.crt',

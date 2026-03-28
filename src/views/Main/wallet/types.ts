@@ -66,6 +66,7 @@ export interface RechargeOrderListItem {
   channel_id?: number | null
   channel_name?: string
   pay_method?: string
+  pay_method_text?: string
   transaction_no?: string | null
   transaction_status?: number | null
   order_type?: number

@@ -299,6 +299,7 @@ export default {
     filter: { name: '渠道名称' },
     table: {
       name: '渠道名称', channel: '支付渠道', mch_id: '商户号', app_id: '应用ID',
+      supported_methods: '支付方式',
       is_sandbox: '沙箱', app_private_key_hint: '私钥提示',
       status: '状态', remark: '备注', created_at: '创建时间',
     },
@@ -311,10 +312,10 @@ export default {
     form: {
       name: '渠道名称', namePlaceholder: '如：支付宝主通道',
       channel: '支付渠道',
+      supported_methods: '支付方式', supported_methodsPlaceholder: '请选择该渠道允许发起的支付方式',
       mch_id: '商户号', mch_idPlaceholder: '微信商户号 / 支付宝合作者身份ID',
       app_id: '应用ID', app_idPlaceholder: '微信应用ID / 支付宝应用APPID',
       notify_url: '异步回调地址', notify_urlPlaceholder: '第三方回调通知地址，自动填充',
-      return_url: '同步返回地址', return_urlPlaceholder: '用户支付完成后跳转页面',
       app_private_key: '应用私钥', appPrivateKeyPlaceholder: 'RSA2 私钥（PKCS8）',
       appPrivateKey_hint: '私钥提示', appPrivateKeyHintPlaceholder: '如：支付宝应用私钥',
       public_cert_path: '公钥证书路径', certPathPlaceholder: '/data/cert/appCertPublicKey_xxx.crt',

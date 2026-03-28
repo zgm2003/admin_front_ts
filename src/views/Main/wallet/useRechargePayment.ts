@@ -147,18 +147,6 @@ const looksLikeHtml = (value: string) => /<(form|html|body|script)\b|<!doctype/i
 const looksLikeUrl = (value: string) => /^(https?:\/\/|alipays?:\/\/|weixin:\/\/|wxp:\/\/)/i.test(value)
 const isWindowPayMethod = (payMethod: string) => WINDOW_PAY_METHODS.includes(payMethod)
 
-const getSupportedMethods = (channelType: number | null, isMobile: boolean): string[] => {
-  if (channelType === PayChannel.ALIPAY) {
-    return isMobile ? ['h5', 'scan'] : ['web', 'scan']
-  }
-
-  if (channelType === PayChannel.WECHAT) {
-    return isMobile ? ['h5', 'scan'] : ['scan']
-  }
-
-  return isMobile ? ['h5', 'scan', 'web'] : ['web', 'scan', 'h5']
-}
-
 interface ExternalPaymentAction {
   type: 'html' | 'link'
   content: string
@@ -170,6 +158,7 @@ interface PayChannelRecord {
   channel: number
   channel_name?: string
   is_sandbox?: number
+  supported_methods?: string[]
 }
 
 export function useRechargePayment() {
@@ -190,11 +179,13 @@ export function useRechargePayment() {
   const paymentDialogVisible = shallowRef(false)
   const popupBlocked = shallowRef(false)
   const orderLoading = shallowRef(false)
+  const recentOrdersLoading = shallowRef(false)
 
   const wallet = ref<WalletSummaryItem | null>(null)
   const transactions = ref<WalletTransactionItem[]>([])
   const transactionPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
   const rechargeOrders = ref<RechargeOrderListItem[]>([])
+  const recentRechargeOrders = ref<RechargeOrderListItem[]>([])
   const orderPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
 
   const channelRecords = ref<PayChannelRecord[]>([])
@@ -222,7 +213,7 @@ export function useRechargePayment() {
 
   const availableChannelOptions = computed(() => channelOptions.value)
   const availablePayMethodOptions = computed(() => {
-    const supported = new Set(getSupportedMethods(selectedChannelRecord.value?.channel ?? null, Boolean(isMobile.value)))
+    const supported = new Set(selectedChannelRecord.value?.supported_methods ?? [])
     const filtered = payMethodOptions.value.filter((item) => supported.has(String(item.value)))
     return filtered.length > 0 ? filtered : payMethodOptions.value
   })
@@ -238,7 +229,7 @@ export function useRechargePayment() {
       channelId,
       channelText,
       payMethod,
-      payMethodText: payMethodLabelMap.value.get(payMethod) ?? payMethod,
+      payMethodText: row.pay_method_text || payMethodLabelMap.value.get(payMethod) || payMethod,
       payStatus: row.pay_status,
       payStatusText: row.pay_status_text,
       bizStatus: row.biz_status,
@@ -429,6 +420,11 @@ export function useRechargePayment() {
                 channel,
                 channel_name: typeof record.channel_name === 'string' ? record.channel_name.trim() : '',
                 is_sandbox: Number(record.is_sandbox ?? CommonEnum.NO),
+                supported_methods: Array.isArray((record as { supported_methods?: unknown }).supported_methods)
+                  ? ((record as { supported_methods?: unknown[] }).supported_methods ?? [])
+                      .map((method) => String(method ?? ''))
+                      .filter((method) => method !== '')
+                  : [],
               }
             })
             .filter((item: PayChannelRecord | null): item is PayChannelRecord => item !== null)
@@ -511,13 +507,13 @@ export function useRechargePayment() {
     }
   }
 
-  const restoreCurrentOrderFromList = () => {
-    if (!userId.value) {
+  const syncCurrentOrderFromRows = (rows: RechargeOrderListItem[]) => {
+    if (!userId.value || rows.length === 0) {
       return
     }
 
     if (currentOrder.value?.orderNo) {
-      const matched = rechargeOrders.value.find((item) => item.order_no === currentOrder.value?.orderNo)
+      const matched = rows.find((item) => item.order_no === currentOrder.value?.orderNo)
       if (matched) {
         mergeCurrentOrder(mapOrderRowToState(matched))
 
@@ -531,7 +527,7 @@ export function useRechargePayment() {
       return
     }
 
-    const candidate = rechargeOrders.value.find((item) => isOngoingPayStatus(item.pay_status))
+    const candidate = rows.find((item) => isOngoingPayStatus(item.pay_status))
     if (!candidate) {
       return
     }
@@ -560,9 +556,29 @@ export function useRechargePayment() {
         ...data.page,
       }
 
-      restoreCurrentOrderFromList()
+      syncCurrentOrderFromRows(rechargeOrders.value)
     } finally {
       orderLoading.value = false
+    }
+  }
+
+  const loadRecentRechargeOrders = async () => {
+    if (!userId.value) {
+      recentRechargeOrders.value = []
+      return
+    }
+
+    recentOrdersLoading.value = true
+    try {
+      const data = await OrderApi.myOrders({
+        page: DEFAULT_PAGE.current_page,
+        page_size: DEFAULT_PAGE.page_size,
+      })
+
+      recentRechargeOrders.value = Array.isArray(data.list) ? (data.list as RechargeOrderListItem[]) : []
+      syncCurrentOrderFromRows(recentRechargeOrders.value)
+    } finally {
+      recentOrdersLoading.value = false
     }
   }
 
@@ -575,7 +591,7 @@ export function useRechargePayment() {
   }
 
   const reloadData = async () => {
-    await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
+    await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders(), loadRecentRechargeOrders()])
   }
 
   const selectRechargeOrder = (order: RechargeOrderListItem) => {
@@ -655,7 +671,7 @@ export function useRechargePayment() {
 
       if (data.pay_status === PayStatus.CLOSED || data.pay_status === PayStatus.EXCEPTION) {
         stopPolling()
-        await loadRechargeOrders()
+        await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
       }
     } finally {
       statusChecking.value = false
@@ -703,7 +719,7 @@ export function useRechargePayment() {
         pay_status: PayStatus.CLOSED,
         pay_status_text: payStatusLabelMap.value.get(String(PayStatus.CLOSED)) ?? currentOrder.value.payStatusText,
       })
-      await loadRechargeOrders()
+      await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
 
       ElNotification.success({ message: t('personal.recharge.cancelOrderSuccess') })
     } finally {
@@ -951,11 +967,11 @@ export function useRechargePayment() {
         ...orderPage.value,
         current_page: DEFAULT_PAGE.current_page,
       }
-      await loadRechargeOrders()
+      await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
 
       await requestPayment(rechargeRes.order_no, selectedPayMethod.value, preopenedWindow)
     } catch {
-      void loadRechargeOrders()
+      void Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
       if (preopenedWindow && !preopenedWindow.closed) {
         preopenedWindow.close()
       }
@@ -1032,6 +1048,7 @@ export function useRechargePayment() {
         wallet.value = null
         transactions.value = []
         rechargeOrders.value = []
+        recentRechargeOrders.value = []
         transactionPage.value = { ...DEFAULT_PAGE }
         orderPage.value = { ...DEFAULT_PAGE }
         return
@@ -1045,7 +1062,7 @@ export function useRechargePayment() {
           return
         }
 
-        await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
+        await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders(), loadRecentRechargeOrders()])
       })()
     },
     { immediate: true },
@@ -1088,6 +1105,8 @@ export function useRechargePayment() {
     rechargeOrders,
     orderPage,
     orderLoading,
+    recentRechargeOrders,
+    recentOrdersLoading,
     handleOrderPageChange,
     selectRechargeOrder,
     wallet,

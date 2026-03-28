@@ -20,11 +20,15 @@ const isMobile = useIsMobile()
 // ==================== 下拉字典 ====================
 const channelArr = ref<{ label: string; value: number }[]>([])
 const statusArr = ref<{ label: string; value: number }[]>([])
+const payMethodArr = ref<{ label: string; value: string }[]>([])
+const channelMethodMap = ref<Record<number, { label: string; value: string }[]>>({})
 
 const init = async () => {
   const data = await PayChannelApi.init()
   channelArr.value = data.dict.channel_arr
   statusArr.value = data.dict.common_status_arr
+  payMethodArr.value = data.dict.pay_method_arr
+  channelMethodMap.value = data.dict.channel_method_arr ?? {}
 }
 
 // ==================== 搜索 ====================
@@ -61,6 +65,7 @@ const {
 const columns = computed(() => [
   { key: 'name', label: t('pay_channel.table.name') },
   { key: 'channel_name', label: t('pay_channel.table.channel') },
+  { key: 'supported_methods_text', label: t('pay_channel.table.supported_methods'), minWidth: 220 },
   { key: 'mch_id', label: t('pay_channel.table.mch_id') },
   { key: 'app_id', label: t('pay_channel.table.app_id') },
   { key: 'is_sandbox_text', label: t('pay_channel.table.is_sandbox'), width: 100 },
@@ -91,10 +96,10 @@ const getDefaultForm = () => ({
   id: 0,
   name: '',
   channel: 1 as number,
+  supported_methods: [] as string[],
   mch_id: '',
   app_id: '',
   notify_url: '',
-  return_url: '',
   app_private_key: '',
   app_private_key_hint: '',
   public_cert_path: '',
@@ -111,8 +116,20 @@ const form = ref(getDefaultForm())
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('pay_channel.table.name') + t('common.required'), trigger: 'blur' }],
   channel: [{ required: true, message: t('pay_channel.table.channel') + t('common.required'), trigger: 'change' }],
+  supported_methods: [{ required: true, message: t('pay_channel.form.supported_methods') + t('common.required'), trigger: 'change' }],
   mch_id: [{ required: true, message: t('pay_channel.table.mch_id') + t('common.required'), trigger: 'blur' }],
 }))
+
+const availablePayMethodOptions = computed(() => {
+  return channelMethodMap.value[form.value.channel] ?? payMethodArr.value
+})
+
+const syncSupportedMethods = (channel: number, selected: string[] = []) => {
+  const options = channelMethodMap.value[channel] ?? payMethodArr.value
+  const allowedSet = new Set(options.map((item) => item.value))
+  const normalized = selected.filter((method) => allowedSet.has(method))
+  form.value.supported_methods = normalized.length > 0 ? normalized : options.map((item) => item.value)
+}
 
 // 切换渠道时自动填充回调地址
 const onChannelChange = () => {
@@ -122,11 +139,13 @@ const onChannelChange = () => {
   } else if (form.value.channel === 2) {
     form.value.notify_url = domain + '/api/pay/notify/alipay'
   }
+  syncSupportedMethods(form.value.channel, form.value.supported_methods)
 }
 
 const add = () => {
   dialogMode.value = 'add'
   form.value = getDefaultForm()
+  syncSupportedMethods(form.value.channel)
   sectionBasic.value = true
   sectionCert.value = false
   sectionCallback.value = false
@@ -141,10 +160,10 @@ const edit = (row: any) => {
     id: row.id,
     name: row.name,
     channel: row.channel,
+    supported_methods: Array.isArray(row.supported_methods) ? row.supported_methods : [],
     mch_id: row.mch_id,
     app_id: row.app_id ?? '',
     notify_url: row.notify_url ?? '',
-    return_url: row.return_url ?? '',
     app_private_key: '',
     app_private_key_hint: row.app_private_key_hint ?? '',
     public_cert_path: row.public_cert_path ?? '',
@@ -155,6 +174,7 @@ const edit = (row: any) => {
     status: row.status,
     remark: row.remark ?? '',
   }
+  syncSupportedMethods(form.value.channel, form.value.supported_methods)
   sectionBasic.value = true
   sectionCert.value = false
   sectionCallback.value = false
@@ -280,18 +300,33 @@ onMounted(() => {
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item :label="t('pay_channel.form.app_id')">
-                <el-input v-model="form.app_id" clearable style="width:100%"
-                  :placeholder="t('pay_channel.form.app_idPlaceholder')" />
+              <el-form-item :label="t('pay_channel.form.supported_methods')" prop="supported_methods">
+                <el-select-v2
+                  v-model="form.supported_methods"
+                  :options="availablePayMethodOptions"
+                  multiple
+                  collapse-tags
+                  clearable
+                  style="width:100%"
+                  :placeholder="t('pay_channel.form.supported_methodsPlaceholder')"
+                />
               </el-form-item>
             </el-col>
           </el-row>
           <el-row :gutter="16">
             <el-col :span="12">
+              <el-form-item :label="t('pay_channel.form.app_id')">
+                <el-input v-model="form.app_id" clearable style="width:100%"
+                  :placeholder="t('pay_channel.form.app_idPlaceholder')" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.sort')">
                 <el-input-number v-model="form.sort" :min="0" :max="9999" controls-position="right" style="width:100%" />
               </el-form-item>
             </el-col>
+          </el-row>
+          <el-row :gutter="16">
             <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.is_sandbox')">
                 <el-radio-group v-model="form.is_sandbox">
@@ -392,14 +427,6 @@ onMounted(() => {
               <el-form-item :label="t('pay_channel.form.notify_url')">
                 <el-input v-model="form.notify_url" clearable style="width:100%"
                   :placeholder="t('pay_channel.form.notify_urlPlaceholder')" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="16">
-            <el-col :span="24">
-              <el-form-item :label="t('pay_channel.form.return_url')">
-                <el-input v-model="form.return_url" clearable style="width:100%"
-                  :placeholder="t('pay_channel.form.return_urlPlaceholder')" />
               </el-form-item>
             </el-col>
           </el-row>

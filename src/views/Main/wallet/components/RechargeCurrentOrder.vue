@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatFen, PayStatus } from '@/enums'
+import { BizStatus, formatFen, PayStatus, RefundStatus } from '@/enums'
+import { AppTable } from '@/components/Table'
 import { useI18n } from 'vue-i18n'
 import type { RechargeOrderListItem, RechargeOrderState } from '../types'
 
 const props = defineProps<{
   currentOrder: RechargeOrderState | null
   recentOrders: RechargeOrderListItem[]
+  recentOrdersLoading: boolean
   popupBlocked: boolean
   statusChecking: boolean
   cancelingOrder: boolean
@@ -18,13 +20,27 @@ const emit = defineEmits<{
   'refresh-status': []
   'resume-pay': []
   'cancel-order': []
+  'cancel-order-row': [order: RechargeOrderListItem]
   'view-order': [order: RechargeOrderListItem]
   'continue-pay': [order: RechargeOrderListItem]
 }>()
 
 const { t } = useI18n()
 
-const hasRecentOrders = computed(() => props.recentOrders.length > 0)
+const recentOrderColumns = computed(() => [
+  { key: 'order_no', label: t('pay_order.table.order_no'), minWidth: 190 },
+  { key: 'title', label: t('pay_order.table.title'), minWidth: 220 },
+  { key: 'transaction_no', label: t('personal.recharge.transactionNo'), minWidth: 190 },
+  { key: 'pay_amount', label: t('pay_order.table.pay_amount'), minWidth: 120 },
+  { key: 'channel_name', label: t('pay_order.table.channel'), minWidth: 140 },
+  { key: 'pay_method_text', label: t('pay_order.table.pay_method'), minWidth: 120 },
+  { key: 'pay_status_text', label: t('pay_order.table.pay_status'), minWidth: 120 },
+  { key: 'biz_status_text', label: t('pay_order.table.biz_status'), minWidth: 120 },
+  { key: 'refund_status_text', label: t('pay_order.table.refund_status'), minWidth: 120 },
+  { key: 'expire_time', label: t('pay_order.table.expire_time'), minWidth: 170 },
+  { key: 'created_at', label: t('pay_order.table.created_at'), minWidth: 170 },
+  { key: 'actions', label: t('common.actions.action'), minWidth: 210, fixed: 'right', overflowTooltip: false },
+])
 
 const payStatusType = (status: number) => {
   if (status === PayStatus.PAID) return 'success'
@@ -33,8 +49,35 @@ const payStatusType = (status: number) => {
   return 'warning'
 }
 
+const bizStatusType = (status: number) => {
+  if (status === BizStatus.SUCCESS) return 'success'
+  if (status === BizStatus.FAILED) return 'danger'
+  if (status === BizStatus.MANUAL) return 'warning'
+  if (status === BizStatus.EXECUTING) return 'primary'
+  return 'info'
+}
+
+const refundStatusType = (status: number) => {
+  if (status === RefundStatus.FULL) return 'success'
+  if (status === RefundStatus.PARTIAL) return 'warning'
+  if (status === RefundStatus.EXCEPTION) return 'danger'
+  return 'info'
+}
+
 const isOngoingOrder = (status: number) =>
   status === PayStatus.PENDING || status === PayStatus.PAYING
+
+const recentTableRowClassName = ({ row }: { row: RechargeOrderListItem }) =>
+  props.currentOrder?.orderNo === row.order_no ? 'is-active-order' : ''
+
+const isCancelingRow = (row: RechargeOrderListItem) =>
+  props.cancelingOrder && props.currentOrder?.orderNo === row.order_no
+
+const recentTableProps = computed(() => ({
+  size: 'small',
+  rowClassName: recentTableRowClassName,
+  emptyText: t('personal.recharge.recentOrdersEmpty'),
+}))
 </script>
 
 <template>
@@ -124,45 +167,65 @@ const isOngoingOrder = (status: number) =>
         <div class="recent-section__desc">{{ t('personal.recharge.recentOrdersDesc') }}</div>
       </div>
 
-      <div v-if="hasRecentOrders" class="recent-list">
-        <div
-          v-for="order in recentOrders"
-          :key="order.order_no"
-          class="recent-item"
-          :class="{ 'is-active': currentOrder?.orderNo === order.order_no }"
+      <div class="recent-table-wrap">
+        <AppTable
+          :columns="recentOrderColumns"
+          :data="recentOrders"
+          :loading="recentOrdersLoading"
+          row-key="order_no"
+          class="recent-table"
+          :show-refresh="false"
+          :show-column-setting="false"
+          :fixed-footer="false"
+          :table-props="recentTableProps"
         >
-          <div class="recent-item__top">
-            <span class="recent-item__order-no">{{ order.order_no }}</span>
-            <el-tag :type="payStatusType(order.pay_status)" size="small" effect="light">
-              {{ order.pay_status_text }}
+          <template #cell-title="{ row }">{{ row.title || '-' }}</template>
+          <template #cell-transaction_no="{ row }">{{ row.transaction_no || '-' }}</template>
+          <template #cell-pay_amount="{ row }">¥{{ formatFen(row.pay_amount) }}</template>
+          <template #cell-channel_name="{ row }">{{ row.channel_name || '-' }}</template>
+          <template #cell-pay_method_text="{ row }">{{ row.pay_method_text || row.pay_method || '-' }}</template>
+          <template #cell-pay_status_text="{ row }">
+            <el-tag :type="payStatusType(row.pay_status)" size="small" effect="light">
+              {{ row.pay_status_text }}
             </el-tag>
-          </div>
-
-          <div class="recent-item__meta">
-            <span>¥{{ formatFen(order.pay_amount) }}</span>
-            <span>{{ order.created_at }}</span>
-          </div>
-
-          <div class="recent-item__bottom">
-            <span class="recent-item__summary">{{ order.channel_name || '-' }} / {{ order.pay_method || '-' }}</span>
-            <div class="recent-item__actions">
-              <el-button type="primary" text @click="emit('view-order', order)">
+          </template>
+          <template #cell-biz_status_text="{ row }">
+            <el-tag :type="bizStatusType(row.biz_status)" size="small" effect="light">
+              {{ row.biz_status_text }}
+            </el-tag>
+          </template>
+          <template #cell-refund_status_text="{ row }">
+            <el-tag :type="refundStatusType(row.refund_status)" size="small" effect="light">
+              {{ row.refund_status_text }}
+            </el-tag>
+          </template>
+          <template #cell-expire_time="{ row }">{{ row.expire_time || '-' }}</template>
+          <template #cell-actions="{ row }">
+            <div class="recent-table__actions">
+              <el-button type="primary" text @click="emit('view-order', row)">
                 {{ t('personal.recharge.viewOrder') }}
               </el-button>
               <el-button
-                v-if="isOngoingOrder(order.pay_status)"
+                v-if="isOngoingOrder(row.pay_status)"
                 type="primary"
                 text
-                @click="emit('continue-pay', order)"
+                @click="emit('continue-pay', row)"
               >
                 {{ t('personal.recharge.continuePay') }}
               </el-button>
+              <el-button
+                v-if="isOngoingOrder(row.pay_status)"
+                type="danger"
+                text
+                :loading="isCancelingRow(row)"
+                @click="emit('cancel-order-row', row)"
+              >
+                {{ t('personal.recharge.cancelOrder') }}
+              </el-button>
             </div>
-          </div>
-        </div>
+          </template>
+        </AppTable>
       </div>
-
-      <el-empty v-else :description="t('personal.recharge.recentOrdersEmpty')" :image-size="60" />
     </div>
   </el-card>
 </template>
@@ -263,63 +326,28 @@ const isOngoingOrder = (status: number) =>
   margin-top: 18px;
 }
 
-.recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.recent-table :deep(.table-toolbar) {
+  display: none;
 }
 
-.recent-item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  background: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+.recent-table-wrap {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.recent-item.is-active {
-  border-color: rgba(64, 158, 255, 0.45);
-  box-shadow: 0 10px 30px rgba(64, 158, 255, 0.08);
+.recent-table {
+  min-width: 1640px;
 }
 
-.recent-item__top,
-.recent-item__bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.recent-item__order-no {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  word-break: break-all;
-}
-
-.recent-item__meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.recent-item__summary {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  word-break: break-all;
-}
-
-.recent-item__actions {
+.recent-table__actions {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+:deep(.recent-table .el-table__body tr.is-active-order > td) {
+  background: rgba(64, 158, 255, 0.08);
 }
 
 @media (max-width: 768px) {
@@ -331,10 +359,7 @@ const isOngoingOrder = (status: number) =>
     padding: 14px;
   }
 
-  .current-order__header,
-  .recent-item__top,
-  .recent-item__bottom,
-  .recent-item__meta {
+  .current-order__header {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -344,12 +369,16 @@ const isOngoingOrder = (status: number) =>
   }
 
   .order-actions,
-  .recent-item__actions {
+  .recent-table__actions {
     width: 100%;
   }
 
+  .recent-table {
+    min-width: 1380px;
+  }
+
   .order-actions .el-button,
-  .recent-item__actions .el-button {
+  .recent-table__actions .el-button {
     flex: 1 1 auto;
     margin-left: 0;
   }
