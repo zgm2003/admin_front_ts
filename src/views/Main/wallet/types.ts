@@ -49,6 +49,28 @@ export interface RechargeOrderState {
   transactionStatus?: number | null
 }
 
+export interface RechargeOrderListItem {
+  id: number
+  order_no: string
+  title: string
+  pay_amount: number
+  pay_status: number
+  pay_status_text: string
+  biz_status: number
+  biz_status_text: string
+  refund_status: number
+  refund_status_text: string
+  pay_time?: string | null
+  expire_time?: string | null
+  created_at: string
+  channel_id?: number | null
+  channel_name?: string
+  pay_method?: string
+  transaction_no?: string | null
+  transaction_status?: number | null
+  order_type?: number
+}
+
 export interface RechargePaymentView {
   mode: 'qrcode' | 'external' | 'text'
   content: string

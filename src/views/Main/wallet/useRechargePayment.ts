@@ -1,14 +1,16 @@
-import { computed, onBeforeUnmount, ref, shallowRef, watch, type ComputedRef } from 'vue'
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import QRCode from 'qrcode'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { BizStatus, CommonEnum, PayChannel, PayStatus } from '@/enums'
 import { PayChannelApi } from '@/api/pay/channel'
 import { OrderApi } from '@/api/pay/order'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
 import type {
   RechargeOrderState,
+  RechargeOrderListItem,
   RechargePaymentView,
   RechargePresetOption,
   WalletSummaryItem,
@@ -18,7 +20,7 @@ import type {
 
 const DEFAULT_PAGE: WalletTransactionPage = {
   current_page: 1,
-  page_size: 8,
+  page_size: 10,
   total: 0,
   total_page: 0,
 }
@@ -27,6 +29,9 @@ const PAY_CHANNEL_FETCH_SIZE = 50
 const POLL_INTERVAL = 3000
 const MAX_POLL_COUNT = 60
 const WINDOW_PAY_METHODS = ['web', 'h5']
+
+const isOngoingPayStatus = (status?: number | null) =>
+  status === PayStatus.PENDING || status === PayStatus.PAYING
 
 const normalizeNumberOptions = (source: unknown): DictOption<number>[] => {
   if (Array.isArray(source)) {
@@ -167,9 +172,14 @@ interface PayChannelRecord {
   is_sandbox?: number
 }
 
-export function useRechargePayment(userId: ComputedRef<number>) {
+export function useRechargePayment() {
   const { t } = useI18n()
   const isMobile = useIsMobile()
+  const userStore = useUserStore()
+  const userId = computed(() => {
+    const value = Number(userStore.user_id)
+    return Number.isFinite(value) && value > 0 ? value : 0
+  })
 
   const summaryLoading = shallowRef(false)
   const historyLoading = shallowRef(false)
@@ -179,10 +189,13 @@ export function useRechargePayment(userId: ComputedRef<number>) {
   const cancelingOrder = shallowRef(false)
   const paymentDialogVisible = shallowRef(false)
   const popupBlocked = shallowRef(false)
+  const orderLoading = shallowRef(false)
 
   const wallet = ref<WalletSummaryItem | null>(null)
   const transactions = ref<WalletTransactionItem[]>([])
   const transactionPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
+  const rechargeOrders = ref<RechargeOrderListItem[]>([])
+  const orderPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
 
   const channelRecords = ref<PayChannelRecord[]>([])
   const channelOptions = ref<DictOption<number>[]>([])
@@ -214,6 +227,58 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     return filtered.length > 0 ? filtered : payMethodOptions.value
   })
 
+  const mapOrderRowToState = (row: RechargeOrderListItem): RechargeOrderState => {
+    const payMethod = row.pay_method ?? ''
+    const channelId = Number(row.channel_id ?? 0)
+    const channelName = ((row as RechargeOrderListItem & { channel_name?: string | null }).channel_name ?? '').trim()
+    const channelText = channelName || (channelId ? channelLabelMap.value.get(String(channelId)) ?? '' : '')
+    return {
+      orderNo: row.order_no,
+      payAmount: Number(row.pay_amount ?? 0),
+      channelId,
+      channelText,
+      payMethod,
+      payMethodText: payMethodLabelMap.value.get(payMethod) ?? payMethod,
+      payStatus: row.pay_status,
+      payStatusText: row.pay_status_text,
+      bizStatus: row.biz_status,
+      bizStatusText: row.biz_status_text,
+      expireTime: row.expire_time ?? undefined,
+      payTime: row.pay_time ?? null,
+      transactionNo: row.transaction_no ?? null,
+      transactionStatus: row.transaction_status ?? null,
+    }
+  }
+
+  const mergeCurrentOrder = (nextOrder: RechargeOrderState) => {
+    if (!currentOrder.value || currentOrder.value.orderNo !== nextOrder.orderNo) {
+      currentOrder.value = nextOrder
+      return
+    }
+
+    const current = currentOrder.value
+    currentOrder.value = {
+      ...current,
+      ...nextOrder,
+      channelId: nextOrder.channelId > 0 ? nextOrder.channelId : current.channelId,
+      channelText: nextOrder.channelText || current.channelText,
+      payMethod: nextOrder.payMethod || current.payMethod,
+      payMethodText: nextOrder.payMethodText || current.payMethodText,
+      payStatusText: nextOrder.payStatusText || current.payStatusText,
+      bizStatusText: nextOrder.bizStatusText || current.bizStatusText,
+      expireTime: nextOrder.expireTime || current.expireTime,
+      payTime: nextOrder.payTime ?? current.payTime,
+      transactionNo: nextOrder.transactionNo ?? current.transactionNo,
+      transactionStatus: nextOrder.transactionStatus ?? current.transactionStatus,
+    }
+  }
+
+  const updateRechargeOrderRow = (orderNo: string, patch: Partial<RechargeOrderListItem>) => {
+    rechargeOrders.value = rechargeOrders.value.map((item) =>
+      item.order_no === orderNo ? { ...item, ...patch } : item,
+    )
+  }
+
   const canRecharge = computed(() =>
     userId.value > 0 &&
     rechargeAmount.value !== null &&
@@ -239,6 +304,52 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
     return currentOrder.value.payStatus === PayStatus.PENDING || currentOrder.value.payStatus === PayStatus.PAYING
   })
+
+  const ensureRechargeCreationAllowed = async () => {
+    const ongoingCurrentOrder = currentOrder.value
+    if (ongoingCurrentOrder && isOngoingPayStatus(ongoingCurrentOrder.payStatus)) {
+      try {
+        await ElMessageBox.confirm(
+          t('personal.recharge.unfinishedOrderConfirm', { orderNo: ongoingCurrentOrder.orderNo }),
+          t('common.confirmTitle'),
+          {
+            type: 'warning',
+            confirmButtonText: t('personal.recharge.continuePay'),
+            cancelButtonText: t('common.actions.cancel'),
+          },
+        )
+      } catch {
+        return false
+      }
+
+      await resumePayment()
+      return false
+    }
+
+    const ongoingOrder = rechargeOrders.value.find((item) => isOngoingPayStatus(item.pay_status))
+    if (!ongoingOrder) {
+      return true
+    }
+
+    selectRechargeOrder(ongoingOrder)
+
+    try {
+      await ElMessageBox.confirm(
+        t('personal.recharge.unfinishedOrderConfirm', { orderNo: ongoingOrder.order_no }),
+        t('common.confirmTitle'),
+        {
+          type: 'warning',
+          confirmButtonText: t('personal.recharge.continuePay'),
+          cancelButtonText: t('common.actions.cancel'),
+        },
+      )
+    } catch {
+      return false
+    }
+
+    await resumePayment()
+    return false
+  }
 
   let pollTimer: number | null = null
   let pollCount = 0
@@ -400,8 +511,84 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     }
   }
 
+  const restoreCurrentOrderFromList = () => {
+    if (!userId.value) {
+      return
+    }
+
+    if (currentOrder.value?.orderNo) {
+      const matched = rechargeOrders.value.find((item) => item.order_no === currentOrder.value?.orderNo)
+      if (matched) {
+        mergeCurrentOrder(mapOrderRowToState(matched))
+
+        if (isOngoingPayStatus(matched.pay_status)) {
+          schedulePolling()
+        } else {
+          stopPolling()
+        }
+      }
+
+      return
+    }
+
+    const candidate = rechargeOrders.value.find((item) => isOngoingPayStatus(item.pay_status))
+    if (!candidate) {
+      return
+    }
+
+    currentOrder.value = mapOrderRowToState(candidate)
+    schedulePolling()
+  }
+
+  const loadRechargeOrders = async () => {
+    if (!userId.value) {
+      rechargeOrders.value = []
+      orderPage.value = { ...DEFAULT_PAGE }
+      return
+    }
+
+    orderLoading.value = true
+    try {
+      const data = await OrderApi.myOrders({
+        page: orderPage.value.current_page,
+        page_size: orderPage.value.page_size,
+      })
+
+      rechargeOrders.value = Array.isArray(data.list) ? (data.list as RechargeOrderListItem[]) : []
+      orderPage.value = {
+        ...orderPage.value,
+        ...data.page,
+      }
+
+      restoreCurrentOrderFromList()
+    } finally {
+      orderLoading.value = false
+    }
+  }
+
+  const handleOrderPageChange = (page: number) => {
+    orderPage.value = {
+      ...orderPage.value,
+      current_page: page,
+    }
+    void loadRechargeOrders()
+  }
+
   const reloadData = async () => {
-    await Promise.all([loadWallet(), loadTransactions()])
+    await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
+  }
+
+  const selectRechargeOrder = (order: RechargeOrderListItem) => {
+    resetPaymentPresentation()
+    popupBlocked.value = false
+    mergeCurrentOrder(mapOrderRowToState(order))
+
+    if (isOngoingPayStatus(order.pay_status)) {
+      schedulePolling()
+      return
+    }
+
+    stopPolling()
   }
 
   const updateOrderStatus = (payload: {
@@ -444,6 +631,17 @@ export function useRechargePayment(userId: ComputedRef<number>) {
       })
 
       updateOrderStatus(data)
+      updateRechargeOrderRow(currentOrder.value.orderNo, {
+        pay_status: Number(data.pay_status ?? currentOrder.value.payStatus),
+        pay_status_text:
+          payStatusLabelMap.value.get(String(data.pay_status ?? currentOrder.value.payStatus)) ??
+          currentOrder.value.payStatusText,
+        biz_status: Number(data.biz_status ?? currentOrder.value.bizStatus),
+        biz_status_text:
+          bizStatusLabelMap.value.get(String(data.biz_status ?? currentOrder.value.bizStatus)) ??
+          currentOrder.value.bizStatusText,
+        pay_time: data.pay_time ?? currentOrder.value.payTime,
+      })
 
       if (data.pay_status === PayStatus.PAID) {
         stopPolling()
@@ -457,6 +655,7 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
       if (data.pay_status === PayStatus.CLOSED || data.pay_status === PayStatus.EXCEPTION) {
         stopPolling()
+        await loadRechargeOrders()
       }
     } finally {
       statusChecking.value = false
@@ -500,6 +699,11 @@ export function useRechargePayment(userId: ComputedRef<number>) {
         payStatus: PayStatus.CLOSED,
         payStatusText: payStatusLabelMap.value.get(String(PayStatus.CLOSED)) ?? currentOrder.value.payStatusText,
       }
+      updateRechargeOrderRow(currentOrder.value.orderNo, {
+        pay_status: PayStatus.CLOSED,
+        pay_status_text: payStatusLabelMap.value.get(String(PayStatus.CLOSED)) ?? currentOrder.value.payStatusText,
+      })
+      await loadRechargeOrders()
 
       ElNotification.success({ message: t('personal.recharge.cancelOrderSuccess') })
     } finally {
@@ -666,16 +870,21 @@ export function useRechargePayment(userId: ComputedRef<number>) {
       payStatusText: payStatusLabelMap.value.get(String(PayStatus.PAYING)) ?? currentOrder.value.payStatusText,
       transactionNo: transactionNo ?? currentOrder.value.transactionNo ?? null,
     }
+    updateRechargeOrderRow(currentOrder.value.orderNo, {
+      pay_method: payMethod,
+      pay_status: PayStatus.PAYING,
+      pay_status_text: payStatusLabelMap.value.get(String(PayStatus.PAYING)) ?? currentOrder.value.payStatusText,
+    })
   }
 
   const requestPayment = async (orderNo: string, payMethod: string, targetWindow?: Window | null) => {
-      const createPayRes = await OrderApi.createPay({
-        order_no: orderNo,
-        pay_method: payMethod,
-        quit_url: typeof window !== 'undefined' ? window.location.href : '',
-      })
+    const createPayRes = await OrderApi.createPay({
+      order_no: orderNo,
+      pay_method: payMethod,
+    })
 
-    updateCurrentOrderForPaying(payMethod, createPayRes.transaction_no ?? null)
+    const resolvedPayMethod = String(createPayRes.pay_method ?? payMethod ?? '')
+    updateCurrentOrderForPaying(resolvedPayMethod, createPayRes.transaction_no ?? null)
     await handlePayPresentation((createPayRes.pay_data ?? {}) as Record<string, unknown>, targetWindow)
     void refreshOrderStatus(true)
     schedulePolling()
@@ -699,6 +908,11 @@ export function useRechargePayment(userId: ComputedRef<number>) {
 
     if (selectedPayMethod.value === '') {
       ElNotification.warning({ message: t('personal.recharge.payMethodRequired') })
+      return
+    }
+
+    const canCreateRecharge = await ensureRechargeCreationAllowed()
+    if (!canCreateRecharge) {
       return
     }
 
@@ -733,9 +947,15 @@ export function useRechargePayment(userId: ComputedRef<number>) {
         transactionNo: null,
         transactionStatus: null,
       }
+      orderPage.value = {
+        ...orderPage.value,
+        current_page: DEFAULT_PAGE.current_page,
+      }
+      await loadRechargeOrders()
 
       await requestPayment(rechargeRes.order_no, selectedPayMethod.value, preopenedWindow)
     } catch {
+      void loadRechargeOrders()
       if (preopenedWindow && !preopenedWindow.closed) {
         preopenedWindow.close()
       }
@@ -811,12 +1031,22 @@ export function useRechargePayment(userId: ComputedRef<number>) {
       if (!value) {
         wallet.value = null
         transactions.value = []
+        rechargeOrders.value = []
         transactionPage.value = { ...DEFAULT_PAGE }
+        orderPage.value = { ...DEFAULT_PAGE }
         return
       }
 
       transactionPage.value = { ...DEFAULT_PAGE }
-      void Promise.all([loadInit(), loadWallet(), loadTransactions()])
+      orderPage.value = { ...DEFAULT_PAGE }
+      void (async () => {
+        await loadInit()
+        if (userId.value !== value) {
+          return
+        }
+
+        await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
+      })()
     },
     { immediate: true },
   )
@@ -839,6 +1069,7 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     historyLoading,
     initLoading,
     loadTransactions,
+    loadRechargeOrders,
     paymentDialogVisible,
     paymentView,
     popupBlocked,
@@ -854,6 +1085,11 @@ export function useRechargePayment(userId: ComputedRef<number>) {
     summaryLoading,
     transactionPage,
     transactions,
+    rechargeOrders,
+    orderPage,
+    orderLoading,
+    handleOrderPageChange,
+    selectRechargeOrder,
     wallet,
   }
 }

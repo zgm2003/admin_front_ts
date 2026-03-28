@@ -1,22 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useUserStore } from '@/store/user'
 import { formatFen } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
+import RechargeCurrentOrder from './components/RechargeCurrentOrder.vue'
 import RechargeForm from './components/RechargeForm.vue'
 import RechargeHistory from './components/RechargeHistory.vue'
+import RechargeOrderList from './components/RechargeOrderList.vue'
 import RechargeSummary from './components/RechargeSummary.vue'
+import type { RechargeOrderListItem } from './types'
 import { useRechargePayment } from './useRechargePayment'
 
-const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
-
-const userId = computed(() => {
-  const value = Number(userStore.user_id)
-  return Number.isFinite(value) && value > 0 ? value : 0
-})
+const activeTab = shallowRef<'recharge' | 'orders' | 'history'>('recharge')
 
 const {
   availableChannelOptions,
@@ -29,14 +26,19 @@ const {
   copyPaymentContent,
   currentOrder,
   handlePageChange,
+  handleOrderPageChange,
   historyLoading,
+  orderLoading,
+  orderPage,
   paymentDialogVisible,
   paymentView,
   popupBlocked,
   presetAmounts,
+  rechargeOrders,
   rechargeAmount,
   refreshOrderStatus,
   resumePayment,
+  selectRechargeOrder,
   selectedChannelId,
   selectedPayMethod,
   statusChecking,
@@ -46,7 +48,9 @@ const {
   transactionPage,
   transactions,
   wallet,
-} = useRechargePayment(userId)
+} = useRechargePayment()
+
+const recentRechargeOrders = computed(() => rechargeOrders.value.slice(0, 5))
 
 const paymentRawText = computed(() => {
   if (!paymentView.value) {
@@ -93,47 +97,91 @@ const paymentSummaryItems = computed(() => {
     },
   ]
 })
+
+const handleViewOrder = (order: RechargeOrderListItem) => {
+  selectRechargeOrder(order)
+  activeTab.value = 'recharge'
+}
+
+const handleContinuePay = async (order: RechargeOrderListItem) => {
+  selectRechargeOrder(order)
+  await resumePayment()
+}
+
+const handleCancelOrder = async (order: RechargeOrderListItem) => {
+  selectRechargeOrder(order)
+  await cancelOrder()
+}
 </script>
 
 <template>
   <div class="wallet-page">
     <div class="wallet-page__body">
-      <div class="recharge-panel">
+      <div class="wallet-page__content">
         <RechargeSummary :wallet="wallet" :loading="summaryLoading" />
 
-        <div class="recharge-grid">
-          <RechargeForm
-            :amount="rechargeAmount"
-            :channel-id="selectedChannelId"
-            :pay-method="selectedPayMethod"
-            :submitting="submitting"
-            :status-checking="statusChecking"
-            :canceling-order="cancelingOrder"
-            :can-recharge="canRecharge"
-            :can-cancel-order="canCancelOrder"
-            :can-resume-payment="canResumePayment"
-            :popup-blocked="popupBlocked"
-            :preset-amounts="presetAmounts"
-            :channel-options="availableChannelOptions"
-            :pay-method-options="availablePayMethodOptions"
-            :current-order="currentOrder"
-            @update:amount="rechargeAmount = $event"
-            @update:channel-id="selectedChannelId = $event"
-            @update:pay-method="selectedPayMethod = $event"
-            @select-preset="rechargeAmount = $event"
-            @submit="submitRecharge"
-            @cancel-order="cancelOrder"
-            @refresh-status="refreshOrderStatus(true)"
-            @resume-pay="resumePayment"
-          />
+        <el-tabs v-model="activeTab" :stretch="isMobile" class="wallet-tabs">
+          <el-tab-pane :label="t('personal.recharge.tabsRecharge')" name="recharge">
+            <div class="wallet-pane wallet-pane--recharge">
+              <RechargeForm
+                :amount="rechargeAmount"
+                :channel-id="selectedChannelId"
+                :pay-method="selectedPayMethod"
+                :submitting="submitting"
+                :can-recharge="canRecharge"
+                :preset-amounts="presetAmounts"
+                :channel-options="availableChannelOptions"
+                :pay-method-options="availablePayMethodOptions"
+                @update:amount="rechargeAmount = $event"
+                @update:channel-id="selectedChannelId = $event"
+                @update:pay-method="selectedPayMethod = $event"
+                @select-preset="rechargeAmount = $event"
+                @submit="submitRecharge"
+              />
 
-          <RechargeHistory
-            :transactions="transactions"
-            :loading="historyLoading"
-            :page="transactionPage"
-            @page-change="handlePageChange"
-          />
-        </div>
+              <RechargeCurrentOrder
+                :current-order="currentOrder"
+                :recent-orders="recentRechargeOrders"
+                :popup-blocked="popupBlocked"
+                :status-checking="statusChecking"
+                :canceling-order="cancelingOrder"
+                :can-cancel-order="canCancelOrder"
+                :can-resume-payment="canResumePayment"
+                @refresh-status="refreshOrderStatus(true)"
+                @resume-pay="resumePayment"
+                @cancel-order="cancelOrder"
+                @view-order="selectRechargeOrder"
+                @continue-pay="handleContinuePay"
+              />
+            </div>
+          </el-tab-pane>
+
+          <el-tab-pane :label="t('personal.recharge.tabsOrders')" name="orders">
+            <div class="wallet-pane">
+              <RechargeOrderList
+                :orders="rechargeOrders"
+                :loading="orderLoading"
+                :page="orderPage"
+                :current-order-no="currentOrder?.orderNo"
+                @page-change="handleOrderPageChange"
+                @view-order="handleViewOrder"
+                @continue-pay="handleContinuePay"
+                @cancel-order="handleCancelOrder"
+              />
+            </div>
+          </el-tab-pane>
+
+          <el-tab-pane :label="t('personal.recharge.tabsHistory')" name="history">
+            <div class="wallet-pane">
+              <RechargeHistory
+                :transactions="transactions"
+                :loading="historyLoading"
+                :page="transactionPage"
+                @page-change="handlePageChange"
+              />
+            </div>
+          </el-tab-pane>
+        </el-tabs>
       </div>
     </div>
   </div>
@@ -218,15 +266,28 @@ const paymentSummaryItems = computed(() => {
   overflow: auto;
 }
 
-.recharge-panel {
+.wallet-page__content {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.recharge-grid {
+.wallet-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.wallet-tabs :deep(.el-tabs__content) {
+  overflow: visible;
+}
+
+.wallet-pane {
+  min-height: 0;
+}
+
+.wallet-pane--recharge {
   display: grid;
-  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -344,7 +405,7 @@ const paymentSummaryItems = computed(() => {
 }
 
 @media (max-width: 1120px) {
-  .recharge-grid {
+  .wallet-pane--recharge {
     grid-template-columns: 1fr;
   }
 }

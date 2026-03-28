@@ -1,25 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatFen, PayStatus } from '@/enums'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
-import type { RechargeOrderState, RechargePresetOption } from '../types'
+import type { RechargePresetOption } from '../types'
 
 const props = defineProps<{
   amount: number | null
   channelId: number | null
   payMethod: string
   submitting: boolean
-  statusChecking: boolean
-  cancelingOrder: boolean
   canRecharge: boolean
-  canCancelOrder: boolean
-  canResumePayment: boolean
-  popupBlocked: boolean
   presetAmounts: RechargePresetOption[]
   channelOptions: DictOption<number>[]
   payMethodOptions: DictOption<string>[]
-  currentOrder: RechargeOrderState | null
 }>()
 
 const emit = defineEmits<{
@@ -28,21 +21,11 @@ const emit = defineEmits<{
   'update:pay-method': [value: string]
   'select-preset': [value: number]
   submit: []
-  'cancel-order': []
-  'refresh-status': []
-  'resume-pay': []
 }>()
 
 const { t } = useI18n()
 
 const configMissing = computed(() => props.channelOptions.length === 0 || props.payMethodOptions.length === 0)
-
-const payStatusType = (status: number) => {
-  if (status === PayStatus.PAID) return 'success'
-  if (status === PayStatus.CLOSED) return 'info'
-  if (status === PayStatus.EXCEPTION) return 'danger'
-  return 'warning'
-}
 
 const presetLabel = (item: RechargePresetOption) => item.label ?? `¥${item.amount}`
 
@@ -123,71 +106,6 @@ const onChannelChange = (value: number | undefined) => {
           />
         </el-form-item>
       </el-form>
-
-      <div v-if="currentOrder" class="order-card">
-        <div class="order-card__header">
-          <span class="order-card__title">{{ t('personal.recharge.orderInfoTitle') }}</span>
-          <el-tag :type="payStatusType(currentOrder.payStatus)" effect="light">
-            {{ currentOrder.payStatusText }}
-          </el-tag>
-        </div>
-
-        <div class="order-grid">
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.orderNo') }}</span>
-            <span class="order-item__value">{{ currentOrder.orderNo }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.payAmount') }}</span>
-            <span class="order-item__value">¥{{ formatFen(currentOrder.payAmount) }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.channel') }}</span>
-            <span class="order-item__value">{{ currentOrder.channelText }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.payMethod') }}</span>
-            <span class="order-item__value">{{ currentOrder.payMethodText }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.bizStatus') }}</span>
-            <span class="order-item__value">{{ currentOrder.bizStatusText }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.expireTime') }}</span>
-            <span class="order-item__value">{{ currentOrder.expireTime || '-' }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.transactionNo') }}</span>
-            <span class="order-item__value">{{ currentOrder.transactionNo || '-' }}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-item__label">{{ t('personal.recharge.payTime') }}</span>
-            <span class="order-item__value">{{ currentOrder.payTime || '-' }}</span>
-          </div>
-        </div>
-
-        <el-alert
-          v-if="popupBlocked"
-          :title="t('personal.recharge.popupBlocked')"
-          type="warning"
-          :closable="false"
-          show-icon
-          class="state-alert"
-        />
-
-        <div class="order-actions">
-          <el-button plain :loading="statusChecking" @click="emit('refresh-status')">
-            {{ t('personal.recharge.checkResult') }}
-          </el-button>
-          <el-button v-if="canResumePayment" type="primary" plain @click="emit('resume-pay')">
-            {{ popupBlocked ? t('personal.recharge.openPayPage') : t('personal.recharge.continuePay') }}
-          </el-button>
-          <el-button v-if="canCancelOrder" type="danger" plain :loading="cancelingOrder" @click="emit('cancel-order')">
-            {{ t('personal.recharge.cancelOrder') }}
-          </el-button>
-        </div>
-      </div>
 
       <div class="form-footer">
         <el-button
@@ -278,59 +196,6 @@ const onChannelChange = (value: number | undefined) => {
   width: 100%;
 }
 
-.order-card {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(255, 255, 255, 0.98) 100%);
-}
-
-.order-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.order-card__title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-}
-
-.order-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
-}
-
-.order-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.order-item__label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.order-item__value {
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--el-text-color-primary);
-  word-break: break-all;
-}
-
-.order-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 .form-footer {
   display: flex;
   justify-content: flex-start;
@@ -347,23 +212,13 @@ const onChannelChange = (value: number | undefined) => {
   }
 
   .preset-list,
-  .field-grid,
-  .order-grid {
+  .field-grid {
     grid-template-columns: 1fr;
   }
 
   .preset-button {
     height: 38px;
     border-radius: 12px;
-  }
-
-  .order-card {
-    padding: 14px;
-  }
-
-  .order-card__header {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .submit-button {

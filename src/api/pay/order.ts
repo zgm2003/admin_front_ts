@@ -10,6 +10,7 @@ export const OrderApi = {
   recharge: (params: any) => request.post('/api/admin/pay/recharge', params),
   createPay: (params: any) => request.post('/api/admin/pay/createPay', params),
   cancelOrder: (params: any) => request.post('/api/admin/pay/cancelOrder', params),
+  myOrders: (params: any) => request.post('/api/admin/pay/myOrders', params),
   queryResult: (params: any) => request.post('/api/admin/pay/queryResult', params),
   orderDetail: (params: any) => request.post('/api/admin/pay/orderDetail', params),
   walletInfo: (params?: any) => request.post('/api/admin/pay/walletInfo', params),
