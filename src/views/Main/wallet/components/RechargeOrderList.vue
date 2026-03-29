@@ -9,7 +9,6 @@ const props = defineProps<{
   orders: RechargeOrderListItem[]
   loading: boolean
   page: WalletTransactionPage
-  currentOrderNo?: string
 }>()
 
 const emit = defineEmits<{
@@ -21,19 +20,19 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const columns = computed(() => [
-  { key: 'order_no', label: t('pay_order.table.order_no'), width: 220 },
+  { key: 'order_no', label: t('pay_order.table.order_no') },
   { key: 'title', label: t('pay_order.table.title') },
-  { key: 'transaction_no', label: t('personal.recharge.transactionNo'), width: 220 },
+  { key: 'transaction_no', label: t('personal.recharge.transactionNo') },
   { key: 'pay_amount', label: t('pay_order.table.pay_amount'), width: 120 },
   { key: 'channel_name', label: t('pay_order.table.channel') },
-  { key: 'pay_method_text', label: t('pay_order.table.pay_method'), width: 120 },
+  { key: 'pay_method_text', label: t('pay_order.table.pay_method') },
   { key: 'pay_status_text', label: t('pay_order.table.pay_status'), width: 120 },
   { key: 'biz_status_text', label: t('pay_order.table.biz_status'), width: 120 },
   { key: 'refund_status_text', label: t('pay_order.table.refund_status'), width: 120 },
-  { key: 'expire_time', label: t('pay_order.table.expire_time'), width: 180 },
-  { key: 'pay_time', label: t('pay_order.table.pay_time'), width: 180 },
-  { key: 'created_at', label: t('pay_order.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 220, fixed: 'right', overflowTooltip: false },
+  { key: 'expire_time', label: t('pay_order.table.expire_time') },
+  { key: 'pay_time', label: t('pay_order.table.pay_time') },
+  { key: 'created_at', label: t('pay_order.table.created_at') },
+  { key: 'actions', label: t('common.actions.action'), width: 220, overflowTooltip: false },
 ])
 
 const isOngoingOrder = (row: RechargeOrderListItem) =>
@@ -60,15 +59,6 @@ const refundStatusType = (status: number) => {
   if (status === RefundStatus.EXCEPTION) return 'danger'
   return 'info'
 }
-
-const tableRowClassName = ({ row }: { row: RechargeOrderListItem }) =>
-  row.order_no === props.currentOrderNo ? 'is-current-order' : ''
-
-const tableProps = computed(() => ({
-  size: 'small',
-  rowClassName: tableRowClassName,
-  emptyText: t('personal.recharge.ordersEmpty'),
-}))
 </script>
 
 <template>
@@ -80,59 +70,59 @@ const tableProps = computed(() => ({
       </div>
     </template>
 
-    <AppTable
-      :columns="columns"
-      :data="orders"
-      :loading="loading"
-      :pagination="page"
-      row-key="order_no"
-      class="order-table"
-      :show-refresh="false"
-      :show-column-setting="false"
-      :fixed-footer="false"
-      :table-props="tableProps"
-      @update:pagination="emit('page-change', $event)"
-    >
-      <template #cell-title="{ row }">{{ row.title || '-' }}</template>
-      <template #cell-transaction_no="{ row }">{{ row.transaction_no || '-' }}</template>
-      <template #cell-pay_amount="{ row }">¥{{ formatFen(row.pay_amount) }}</template>
-      <template #cell-channel_name="{ row }">{{ row.channel_name || '-' }}</template>
-      <template #cell-pay_method_text="{ row }">{{ row.pay_method_text || row.pay_method || '-' }}</template>
-      <template #cell-pay_status_text="{ row }">
-        <el-tag :type="payStatusType(row.pay_status)" size="small">{{ row.pay_status_text }}</el-tag>
-      </template>
-      <template #cell-biz_status_text="{ row }">
-        <el-tag :type="bizStatusType(row.biz_status)" size="small">{{ row.biz_status_text }}</el-tag>
-      </template>
-      <template #cell-refund_status_text="{ row }">
-        <el-tag :type="refundStatusType(row.refund_status)" size="small">{{ row.refund_status_text }}</el-tag>
-      </template>
-      <template #cell-expire_time="{ row }">{{ row.expire_time || '-' }}</template>
-      <template #cell-pay_time="{ row }">{{ row.pay_time || '-' }}</template>
-      <template #cell-actions="{ row }">
-        <div class="order-actions">
-          <el-button type="primary" text @click="emit('view-order', row)">
-            {{ t('personal.recharge.viewOrder') }}
-          </el-button>
-          <el-button
-            type="primary"
-            text
-            :disabled="!isOngoingOrder(row)"
-            @click="emit('continue-pay', row)"
-          >
-            {{ t('personal.recharge.continuePay') }}
-          </el-button>
-          <el-button
-            type="danger"
-            text
-            :disabled="!isOngoingOrder(row)"
-            @click="emit('cancel-order', row)"
-          >
-            {{ t('personal.recharge.cancelOrder') }}
-          </el-button>
-        </div>
-      </template>
-    </AppTable>
+    <div class="table">
+      <AppTable
+        :columns="columns"
+        :data="orders"
+        :loading="loading"
+        :pagination="page"
+        row-key="order_no"
+        :show-refresh="false"
+        :show-column-setting="false"
+        :fixed-footer="false"
+        @update:pagination="emit('page-change', $event)"
+      >
+        <template #cell-title="{ row }">{{ row.title || '-' }}</template>
+        <template #cell-transaction_no="{ row }">{{ row.transaction_no || '-' }}</template>
+        <template #cell-pay_amount="{ row }">¥{{ formatFen(row.pay_amount) }}</template>
+        <template #cell-channel_name="{ row }">{{ row.channel_name || '-' }}</template>
+        <template #cell-pay_method_text="{ row }">{{ row.pay_method_text || row.pay_method || '-' }}</template>
+        <template #cell-pay_status_text="{ row }">
+          <el-tag :type="payStatusType(row.pay_status)" size="small">{{ row.pay_status_text }}</el-tag>
+        </template>
+        <template #cell-biz_status_text="{ row }">
+          <el-tag :type="bizStatusType(row.biz_status)" size="small">{{ row.biz_status_text }}</el-tag>
+        </template>
+        <template #cell-refund_status_text="{ row }">
+          <el-tag :type="refundStatusType(row.refund_status)" size="small">{{ row.refund_status_text }}</el-tag>
+        </template>
+        <template #cell-expire_time="{ row }">{{ row.expire_time || '-' }}</template>
+        <template #cell-pay_time="{ row }">{{ row.pay_time || '-' }}</template>
+        <template #cell-actions="{ row }">
+          <div class="order-actions">
+            <el-button type="primary" text @click="emit('view-order', row)">
+              {{ t('personal.recharge.viewOrder') }}
+            </el-button>
+            <el-button
+              type="success"
+              text
+              :disabled="!isOngoingOrder(row)"
+              @click="emit('continue-pay', row)"
+            >
+              {{ t('personal.recharge.continuePay') }}
+            </el-button>
+            <el-button
+              type="danger"
+              text
+              :disabled="!isOngoingOrder(row)"
+              @click="emit('cancel-order', row)"
+            >
+              {{ t('personal.recharge.cancelOrder') }}
+            </el-button>
+          </div>
+        </template>
+      </AppTable>
+    </div>
   </el-card>
 </template>
 
@@ -159,8 +149,10 @@ const tableProps = computed(() => ({
   color: var(--el-text-color-secondary);
 }
 
-.order-table :deep(.table-toolbar) {
-  display: none;
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 .order-actions {
@@ -168,10 +160,6 @@ const tableProps = computed(() => ({
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 8px;
-}
-
-:deep(.el-table__body tr.is-current-order > td) {
-  background: rgba(64, 158, 255, 0.08);
 }
 
 @media (max-width: 768px) {

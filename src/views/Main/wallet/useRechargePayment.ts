@@ -146,6 +146,7 @@ const pickString = (source: Record<string, unknown>, keys: string[]): string => 
 const looksLikeHtml = (value: string) => /<(form|html|body|script)\b|<!doctype/i.test(value)
 const looksLikeUrl = (value: string) => /^(https?:\/\/|alipays?:\/\/|weixin:\/\/|wxp:\/\/)/i.test(value)
 const isWindowPayMethod = (payMethod: string) => WINDOW_PAY_METHODS.includes(payMethod)
+const WECHAT_H5_HOST = 'wx.tenpay.com'
 
 interface ExternalPaymentAction {
   type: 'html' | 'link'
@@ -159,6 +160,52 @@ interface PayChannelRecord {
   channel_name?: string
   is_sandbox?: number
   supported_methods?: string[]
+}
+
+const resolvePaymentReturnUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.location.href
+}
+
+const appendWechatRedirectUrl = (url: string, returnUrl: string): string => {
+  if (!url || !returnUrl) {
+    return url
+  }
+
+  try {
+    const parsedUrl = new URL(url)
+    if (!parsedUrl.hostname.includes(WECHAT_H5_HOST) || parsedUrl.searchParams.has('redirect_url')) {
+      return url
+    }
+
+    parsedUrl.searchParams.set('redirect_url', returnUrl)
+    return parsedUrl.toString()
+  } catch {
+    return url
+  }
+}
+
+const withPaymentReturnUrl = (payData: Record<string, unknown>, returnUrl: string): Record<string, unknown> => {
+  if (!returnUrl) {
+    return payData
+  }
+
+  const nextPayData: Record<string, unknown> = { ...payData }
+  const urlFields = ['h5_url', 'h5Url', 'mweb_url', 'mwebUrl', 'url', 'link', 'pay_link', 'payUrl', 'content']
+
+  for (const field of urlFields) {
+    const fieldValue = nextPayData[field]
+    if (typeof fieldValue !== 'string' || !looksLikeUrl(fieldValue)) {
+      continue
+    }
+
+    nextPayData[field] = appendWechatRedirectUrl(fieldValue, returnUrl)
+  }
+
+  return nextPayData
 }
 
 export function useRechargePayment() {
@@ -853,8 +900,13 @@ export function useRechargePayment() {
     } satisfies RechargePaymentView
   }
 
-  const handlePayPresentation = async (payData: Record<string, unknown>, targetWindow?: Window | null) => {
-    const view = await buildPaymentView(payData)
+  const handlePayPresentation = async (
+    payData: Record<string, unknown>,
+    targetWindow?: Window | null,
+    returnUrl = '',
+  ) => {
+    const normalizedPayData = withPaymentReturnUrl(payData, returnUrl)
+    const view = await buildPaymentView(normalizedPayData)
     paymentView.value = view
     externalPayment.value = view.mode === 'external' ? { type: view.externalType!, content: view.content } : null
 
@@ -894,14 +946,16 @@ export function useRechargePayment() {
   }
 
   const requestPayment = async (orderNo: string, payMethod: string, targetWindow?: Window | null) => {
+    const returnUrl = resolvePaymentReturnUrl()
     const createPayRes = await OrderApi.createPay({
       order_no: orderNo,
       pay_method: payMethod,
+      return_url: returnUrl,
     })
 
     const resolvedPayMethod = String(createPayRes.pay_method ?? payMethod ?? '')
     updateCurrentOrderForPaying(resolvedPayMethod, createPayRes.transaction_no ?? null)
-    await handlePayPresentation((createPayRes.pay_data ?? {}) as Record<string, unknown>, targetWindow)
+    await handlePayPresentation((createPayRes.pay_data ?? {}) as Record<string, unknown>, targetWindow, returnUrl)
     void refreshOrderStatus(true)
     schedulePolling()
   }

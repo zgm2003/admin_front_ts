@@ -168,7 +168,6 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
                 :orders="rechargeOrders"
                 :loading="orderLoading"
                 :page="orderPage"
-                :current-order-no="currentOrder?.orderNo"
                 @page-change="handleOrderPageChange"
                 @view-order="handleViewOrder"
                 @continue-pay="handleContinuePay"
