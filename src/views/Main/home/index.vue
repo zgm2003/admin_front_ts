@@ -93,20 +93,6 @@ const entries = computed<QuickEntryCardItem[]>(() => {
     .filter((item): item is NonNullable<typeof item> => item !== null)
 })
 
-const walletMenu = computed(() => {
-  return Array.from(userStore.permissionMap.values()).find(
-    item => item?.path === '/wallet' || item?.i18n_key === 'menu.wallet',
-  ) || null
-})
-const walletPath = computed(() => walletMenu.value?.path || '')
-const walletLabel = computed(() => {
-  if (!walletMenu.value) {
-    return ''
-  }
-
-  return walletMenu.value.i18n_key ? t(walletMenu.value.i18n_key) : walletMenu.value.label
-})
-
 // 切换编辑模式
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
@@ -156,11 +142,7 @@ const getIconComponent = (iconName: string) => {
 
 const goTo = (path: string) => router.push(path)
 const goToPersonal = () => router.push({ path: '/personal', query: { user_id: userStore.user_id } })
-const goToWallet = () => {
-  if (walletPath.value) {
-    return router.push(walletPath.value)
-  }
-}
+const goToWallet = () => router.push('/wallet')
 
 onMounted(() => {
   scheduleIdle(() => {
@@ -185,9 +167,9 @@ onMounted(() => {
           <el-icon><Setting /></el-icon>
           <span>{{ t('menu.personal') }}</span>
         </el-button>
-        <el-button v-if="walletPath" type="primary" size="large" @click="goToWallet">
+        <el-button plain size="large" @click="goToWallet">
           <el-icon><Coin /></el-icon>
-          <span>{{ walletLabel }}</span>
+          <span>{{ t('menu.wallet') }}</span>
         </el-button>
       </div>
     </div>
@@ -350,18 +332,6 @@ onMounted(() => {
       background: rgba(255, 255, 255, 0.24);
       border-color: rgba(255, 255, 255, 0.42);
       color: #fff;
-    }
-  }
-
-  .el-button--primary {
-    background: #fff;
-    border-color: #fff;
-    color: #1d4ed8;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.92);
-      border-color: rgba(255, 255, 255, 0.92);
-      color: #1e40af;
     }
   }
 
