@@ -7,8 +7,10 @@ import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { PayTransactionApi } from '@/api/pay/transaction'
+import { UsersListApi } from '@/api/user/users'
 import { TxnStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
+import type { UserListItem } from '@/types/user'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -27,13 +29,33 @@ const init = async () => {
 const searchForm = ref({
   order_no: '',
   transaction_no: '',
+  user_id: '' as number | '',
   channel: '' as number | '',
   status: '' as number | '',
 })
 
+const formatUserLabel = (item: UserListItem) => `${item.username} (${item.email})`
+const formatUserDisplay = (row: { user_id?: number; user_name?: string; user_email?: string }) => {
+  if (row.user_name) {
+    return row.user_email ? `${row.user_name} (${row.user_email})` : row.user_name
+  }
+
+  return row.user_id ? `#${row.user_id}` : '--'
+}
+
 const searchFields = computed<SearchField[]>(() => [
   { key: 'order_no', type: 'input', label: t('pay_transaction.table.order_no'), placeholder: t('pay_transaction.filter.order_no'), width: 180 },
   { key: 'transaction_no', type: 'input', label: t('pay_transaction.table.transaction_no'), placeholder: t('pay_transaction.filter.transaction_no'), width: 180 },
+  {
+    key: 'user_id',
+    type: 'remote-select',
+    label: t('pay_transaction.filter.user'),
+    fetchMethod: UsersListApi.list,
+    labelField: formatUserLabel,
+    valueField: 'id',
+    placeholder: t('pay_transaction.filter.user'),
+    width: isMobile.value ? 220 : 260,
+  },
   { key: 'channel', type: 'select-v2', label: t('pay_transaction.table.channel'), options: channelArr.value, width: 130 },
   { key: 'status', type: 'select-v2', label: t('pay_transaction.table.status'), options: txnStatusArr.value, width: 130 },
 ])
@@ -55,6 +77,7 @@ const {
 const columns = computed(() => [
   { key: 'transaction_no', label: t('pay_transaction.table.transaction_no'), width: 220 },
   { key: 'order_no', label: t('pay_transaction.table.order_no'), width: 220 },
+  { key: 'user_name', label: t('pay_transaction.table.user_name'), width: 240 },
   { key: 'attempt_no', label: t('pay_transaction.table.attempt_no') },
   { key: 'channel_text', label: t('pay_transaction.table.channel') },
   { key: 'pay_method', label: t('pay_transaction.table.pay_method') },
@@ -104,6 +127,9 @@ onMounted(() => {
         @refresh="refresh"
         @update:pagination="onPageChange"
       >
+        <template #cell-user_name="{ row }">
+          <span>{{ formatUserDisplay(row) }}</span>
+        </template>
         <template #cell-status_text="{ row }">
           <el-tag :type="statusType(row.status)">{{ row.status_text }}</el-tag>
         </template>
@@ -121,6 +147,7 @@ onMounted(() => {
       <el-descriptions-item :label="t('pay_transaction.table.transaction_no')">{{ detailData.transaction.transaction_no }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_transaction.table.attempt_no')">{{ detailData.transaction.attempt_no }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_transaction.table.order_no')">{{ detailData.transaction.order_no }}</el-descriptions-item>
+      <el-descriptions-item :label="t('pay_transaction.table.user_name')">{{ detailData.order ? formatUserDisplay(detailData.order) : '--' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_transaction.table.channel')">{{ detailData.channel?.name ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_transaction.table.pay_method')">{{ detailData.transaction.pay_method ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_transaction.table.amount')">¥{{ formatFen(detailData.transaction.amount) }}</el-descriptions-item>

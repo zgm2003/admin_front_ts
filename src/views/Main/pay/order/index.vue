@@ -8,10 +8,12 @@ import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { OrderApi } from '@/api/pay/order'
-import { PayStatus, BizStatus, RefundStatus } from '@/enums'
+import { UsersListApi } from '@/api/user/users'
+import { PayStatus, BizStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import type { UserListItem } from '@/types/user'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -55,9 +57,27 @@ const searchForm = ref({
   pay_status: '' as number | '',
 })
 
+const formatUserLabel = (item: UserListItem) => `${item.username} (${item.email})`
+const formatUserDisplay = (row: { user_id?: number; user_name?: string; user_email?: string }) => {
+  if (row.user_name) {
+    return row.user_email ? `${row.user_name} (${row.user_email})` : row.user_name
+  }
+
+  return row.user_id ? `#${row.user_id}` : '--'
+}
+
 const searchFields = computed<SearchField[]>(() => [
   { key: 'order_no', type: 'input', label: t('pay_order.table.order_no'), placeholder: t('pay_order.filter.order_no'), width: 180 },
-  { key: 'user_id', type: 'input', label: t('pay_order.table.user_id'), placeholder: t('pay_order.filter.user_id'), width: 120 },
+  {
+    key: 'user_id',
+    type: 'remote-select',
+    label: t('pay_order.filter.user'),
+    fetchMethod: UsersListApi.list,
+    labelField: formatUserLabel,
+    valueField: 'id',
+    placeholder: t('pay_order.filter.user'),
+    width: isMobile.value ? 220 : 260,
+  },
   { key: 'order_type', type: 'select-v2', label: t('pay_order.table.order_type'), options: orderTypeArr.value, width: 130 },
   { key: 'pay_status', type: 'select-v2', label: t('pay_order.table.pay_status'), options: payStatusArr.value, width: 130 },
 ])
@@ -78,15 +98,16 @@ const {
 
 const columns = computed(() => [
   { key: 'order_no', label: t('pay_order.table.order_no'), width: 220 },
+  { key: 'user_name', label: t('pay_order.table.user_name'), width: 240 },
+  { key: 'user_id', label: t('pay_order.table.user_id'), width: 110 },
   { key: 'order_type_text', label: t('pay_order.table.order_type') },
   { key: 'title', label: t('pay_order.table.title') },
   { key: 'pay_amount', label: t('pay_order.table.pay_amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'pay_status_text', label: t('pay_order.table.pay_status') ,width: 150 },
   { key: 'biz_status_text', label: t('pay_order.table.biz_status') ,width: 150 },
-  { key: 'refund_status_text', label: t('pay_order.table.refund_status') ,width: 150 },
   { key: 'pay_time', label: t('pay_order.table.pay_time'), width: 180 },
   { key: 'created_at', label: t('pay_order.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 280 },
+  { key: 'actions', label: t('common.actions.action'), width: 220 },
 ])
 
 const onTabChange = (status: string | number) => {
@@ -167,13 +188,6 @@ const bizStatusType = (val: number) => {
   if (val === BizStatus.EXECUTING) return 'primary'
   return 'info'
 }
-const refundStatusType = (val: number) => {
-  if (val === RefundStatus.FULL) return 'success'
-  if (val === RefundStatus.NONE) return 'info'
-  if (val === RefundStatus.EXCEPTION) return 'danger'
-  if (val === RefundStatus.ING) return 'warning'
-  return 'info'
-}
 
 onMounted(() => {
   void init()
@@ -205,14 +219,14 @@ onMounted(() => {
         @refresh="refresh"
         @update:pagination="onPageChange"
       >
+        <template #cell-user_name="{ row }">
+          <span>{{ formatUserDisplay(row) }}</span>
+        </template>
         <template #cell-pay_status_text="{ row }">
           <el-tag :type="payStatusType(row.pay_status)">{{ row.pay_status_text }}</el-tag>
         </template>
         <template #cell-biz_status_text="{ row }">
           <el-tag :type="bizStatusType(row.biz_status)">{{ row.biz_status_text }}</el-tag>
-        </template>
-        <template #cell-refund_status_text="{ row }">
-          <el-tag :type="refundStatusType(row.refund_status)">{{ row.refund_status_text }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="showDetail(row)">{{ t('common.actions.detail') }}</el-button>
@@ -238,17 +252,15 @@ onMounted(() => {
     <template v-if="detailData">
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="t('pay_order.table.order_no')">{{ detailData.order.order_no }}</el-descriptions-item>
+        <el-descriptions-item :label="t('pay_order.table.user_name')">{{ formatUserDisplay(detailData.order) }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.order_type')">{{ detailData.order.order_type_text }}</el-descriptions-item>
+        <el-descriptions-item :label="t('pay_order.table.user_id')">{{ detailData.order.user_id }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_amount')">¥{{ formatFen(detailData.order.pay_amount) }}</el-descriptions-item>
-        <el-descriptions-item :label="t('pay_order.table.refunded_amount')">¥{{ formatFen(detailData.order.refunded_amount) }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_status')">
           <el-tag :type="payStatusType(detailData.order.pay_status)">{{ detailData.order.pay_status_text }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.biz_status')">
           <el-tag :type="bizStatusType(detailData.order.biz_status)">{{ detailData.order.biz_status_text }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('pay_order.table.refund_status')">
-          <el-tag :type="refundStatusType(detailData.order.refund_status)">{{ detailData.order.refund_status_text }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.channel')">{{ detailData.order.channel?.name ?? '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_method')">{{ detailData.order.pay_method ?? '-' }}</el-descriptions-item>

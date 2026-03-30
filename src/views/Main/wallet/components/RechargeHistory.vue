@@ -22,11 +22,11 @@ const showPagination = computed(() => props.page.total > props.page.page_size)
 const paginationLayout = computed(() => (isMobile.value ? 'prev, pager, next' : 'total, prev, pager, next'))
 
 const typeTag = (type: number) => {
-  if (type === WalletType.RECHARGE || type === WalletType.REFUND || type === WalletType.UNFREEZE) {
+  if (type === WalletType.RECHARGE) {
     return 'success'
   }
 
-  if (type === WalletType.CONSUME || type === WalletType.FREEZE) {
+  if (type === WalletType.CONSUME) {
     return 'warning'
   }
 

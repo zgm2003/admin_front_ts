@@ -27,15 +27,6 @@ export const BizStatus = {
   MANUAL: 6,     // 人工处理
 } as const
 
-/** 订单退款状态 */
-export const RefundStatus = {
-  NONE: 1,       // 无退款
-  ING: 2,        // 退款中
-  PARTIAL: 3,    // 部分退款
-  FULL: 4,       // 全额退款
-  EXCEPTION: 5,  // 退款异常
-} as const
-
 /** 支付流水状态 */
 export const TxnStatus = {
   CREATED: 1,    // 已创建
@@ -43,16 +34,6 @@ export const TxnStatus = {
   SUCCESS: 3,    // 支付成功
   FAILED: 4,     // 支付失败
   CLOSED: 5,     // 已关闭
-} as const
-
-/** 退款记录状态 */
-export const RefundRecordStatus = {
-  CREATED: 1,    // 已创建
-  ING: 2,        // 退款中
-  SUCCESS: 3,    // 退款成功
-  FAILED: 4,     // 退款失败
-  CLOSED: 5,     // 已关闭
-  MANUAL: 6,     // 人工处理
 } as const
 
 /** 履约状态 */
@@ -68,10 +49,7 @@ export const FulfillStatus = {
 export const WalletType = {
   RECHARGE: 1,   // 充值入账
   CONSUME: 2,    // 消费扣款
-  REFUND: 3,     // 退款完成
-  ADJUST: 4,     // 系统调账
-  FREEZE: 5,     // 冻结
-  UNFREEZE: 6,    // 解冻
+  ADJUST: 3,     // 系统调账
 } as const
 
 /** 订单类型 */

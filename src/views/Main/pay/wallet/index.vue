@@ -5,14 +5,17 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useTable } from '@/hooks/useTable'
 import type { PageState } from '@/hooks/useTable'
+import { RemoteSelect } from '@/components/RemoteSelect'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { UserWalletApi } from '@/api/pay/wallet'
+import { UsersListApi } from '@/api/user/users'
 import { WalletType } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import type { UserListItem } from '@/types/user'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -31,8 +34,26 @@ const searchForm = ref({
   user_id: '' as number | '',
 })
 
+const formatUserLabel = (item: UserListItem) => `${item.username} (${item.email})`
+const formatUserDisplay = (row: { user_id?: number; user_name?: string; user_email?: string }) => {
+  if (row.user_name) {
+    return row.user_email ? `${row.user_name} (${row.user_email})` : row.user_name
+  }
+
+  return row.user_id ? `#${row.user_id}` : '--'
+}
+
 const searchFields = computed<SearchField[]>(() => [
-  { key: 'user_id', type: 'input', label: t('pay_wallet.table.user_id'), placeholder: t('pay_wallet.filter.user_id'), width: 150 },
+  {
+    key: 'user_id',
+    type: 'remote-select',
+    label: t('pay_wallet.filter.user'),
+    fetchMethod: UsersListApi.list,
+    labelField: formatUserLabel,
+    valueField: 'id',
+    placeholder: t('pay_wallet.filter.user'),
+    width: isMobile.value ? 220 : 260,
+  },
 ])
 
 // ==================== 表格 ====================
@@ -50,19 +71,20 @@ const {
 })
 
 const columns = computed(() => [
+  { key: 'user_name', label: t('pay_wallet.table.user_name'), width: 240 },
   { key: 'user_id', label: t('pay_wallet.table.user_id'), width: 120 },
   { key: 'balance', label: t('pay_wallet.table.balance'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'frozen', label: t('pay_wallet.table.frozen'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'available', label: t('pay_wallet.table.available'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_refund', label: t('pay_wallet.table.total_refund'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'created_at', label: t('pay_wallet.table.created_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 200 },
 ])
 
 // ==================== 钱包流水 ====================
 const txColumns = computed(() => [
+  { key: 'user_name', label: t('pay_wallet.table.user_name'), width: 220 },
   { key: 'biz_action_no', label: t('pay_wallet.txn.table.biz_action_no'), width: 220 },
   { key: 'type_text', label: t('pay_wallet.txn.table.type'), width: 120 },
   { key: 'available_delta', label: t('pay_wallet.txn.table.available_delta'), formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
@@ -79,7 +101,16 @@ const txSearchForm = ref({
   type: '' as number | '',
 })
 const txSearchFields = computed<SearchField[]>(() => [
-  { key: 'user_id', type: 'input', label: t('pay_wallet.table.user_id'), placeholder: t('pay_wallet.filter.user_id'), width: 150 },
+  {
+    key: 'user_id',
+    type: 'remote-select',
+    label: t('pay_wallet.filter.user'),
+    fetchMethod: UsersListApi.list,
+    labelField: formatUserLabel,
+    valueField: 'id',
+    placeholder: t('pay_wallet.filter.user'),
+    width: isMobile.value ? 220 : 260,
+  },
   { key: 'type', type: 'select-v2', label: t('pay_wallet.txn.table.type'), options: walletTypeArr.value, width: 130 },
 ])
 
@@ -108,15 +139,15 @@ const openTransactions = async (row: any) => {
 // ==================== 调账 ====================
 const adjustFormRef = ref<FormInstance | null>(null)
 const adjustVisible = ref(false)
-const adjustForm = ref({ user_id: 0 as number, delta: 0 as number, reason: '' })
+const adjustForm = ref({ user_id: '' as number | '', delta: 0 as number, reason: '' })
 
 const adjustRules = computed<FormRules>(() => ({
-  user_id: [{ required: true, message: t('pay_wallet.form.user_id') + t('common.required'), trigger: 'blur' }],
+  user_id: [{ required: true, message: t('pay_wallet.form.user_id') + t('common.required'), trigger: 'change' }],
   delta: [{ required: true, message: t('pay_wallet.form.delta') + t('common.required'), trigger: 'blur' }],
 }))
 
 const openAdjust = (row?: any) => {
-  adjustForm.value = { user_id: row ? row.user_id : 0, delta: 0, reason: '' }
+  adjustForm.value = { user_id: row ? row.user_id : '', delta: 0, reason: '' }
   adjustVisible.value = true
   nextTick(() => { void adjustFormRef.value?.clearValidate() })
 }
@@ -124,7 +155,7 @@ const openAdjust = (row?: any) => {
 const confirmAdjust = async () => {
   try { await adjustFormRef.value?.validate() } catch { return }
   UserWalletApi.adjust({
-    user_id: adjustForm.value.user_id,
+    user_id: Number(adjustForm.value.user_id),
     delta: Math.round(adjustForm.value.delta * 100),
     reason: adjustForm.value.reason,
   }).then(() => {
@@ -136,8 +167,8 @@ const confirmAdjust = async () => {
 
 // ==================== 状态标签颜色 ====================
 const walletTypeTag = (val: number) => {
-  if (val === WalletType.RECHARGE || val === WalletType.REFUND || val === WalletType.UNFREEZE) return 'success'
-  if (val === WalletType.CONSUME || val === WalletType.FREEZE) return 'warning'
+  if (val === WalletType.RECHARGE) return 'success'
+  if (val === WalletType.CONSUME) return 'warning'
   if (val === WalletType.ADJUST) return 'info'
   return undefined
 }
@@ -169,6 +200,9 @@ onMounted(() => {
         @refresh="refresh"
         @update:pagination="onPageChange"
       >
+        <template #cell-user_name="{ row }">
+          <span>{{ formatUserDisplay(row) }}</span>
+        </template>
         <template #toolbar-left>
           <el-button v-if="userStore.can('pay_wallet_adjust')" type="warning" @click="openAdjust()">
             {{ t('pay_wallet.actions.adjust') }}
@@ -189,6 +223,9 @@ onMounted(() => {
     <Search v-model="txSearchForm" :fields="txSearchFields" @query="txOnSearch" @reset="txOnSearch" />
     <el-table :data="txData" :loading="txLoading" size="small" style="margin-top:12px" :max-height="480">
       <el-table-column v-for="col in txColumns" :key="col.key" :prop="col.key" :label="col.label" :width="col.width">
+        <template v-if="col.key === 'user_name'" #default="{ row }">
+          <span>{{ formatUserDisplay(row) }}</span>
+        </template>
         <template v-if="col.key === 'available_delta'" #default="{ row }">
           <span :style="{ color: row.available_delta >= 0 ? '#67c23a' : '#f56c6c' }">
             {{ row.available_delta >= 0 ? '+' : '' }}¥{{ formatFen(Math.abs(row.available_delta)) }}
@@ -222,11 +259,18 @@ onMounted(() => {
   <el-dialog v-model="adjustVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_wallet.actions.adjust')">
     <el-form :model="adjustForm" :rules="adjustRules" ref="adjustFormRef" label-width="auto">
       <el-form-item :label="t('pay_wallet.form.user_id')" prop="user_id" required>
-        <el-input-number v-model="adjustForm.user_id" :min="1" style="width:100%" />
+        <RemoteSelect
+          v-model="adjustForm.user_id"
+          :fetch-method="UsersListApi.list"
+          :label-field="formatUserLabel"
+          value-field="id"
+          :placeholder="t('pay_wallet.form.userPlaceholder')"
+          width="100%"
+        />
       </el-form-item>
       <el-form-item :label="t('pay_wallet.form.delta')" prop="delta" required>
         <el-input-number v-model="adjustForm.delta" :precision="2" :step="1" style="width:100%" />
-        <div style="color:#909399;font-size:12px;margin-top:4px">输入元，正数为增加，负数为扣除</div>
+        <div style="color:#909399;font-size:12px;margin-top:4px">{{ t('pay_wallet.form.deltaHint') }}</div>
       </el-form-item>
       <el-form-item :label="t('pay_wallet.form.reason')">
         <el-input v-model="adjustForm.reason" type="textarea" :rows="3" clearable style="width:100%" />

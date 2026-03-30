@@ -6,7 +6,6 @@ export interface WalletSummaryItem {
   available: number
   total_recharge: number
   total_consume: number
-  total_refund: number
   created_at?: string
 }
 
@@ -58,8 +57,6 @@ export interface RechargeOrderListItem {
   pay_status_text: string
   biz_status: number
   biz_status_text: string
-  refund_status: number
-  refund_status_text: string
   pay_time?: string | null
   expire_time?: string | null
   created_at: string

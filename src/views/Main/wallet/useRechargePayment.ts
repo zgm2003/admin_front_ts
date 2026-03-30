@@ -4,7 +4,6 @@ import { ElMessageBox, ElNotification } from 'element-plus'
 import { BizStatus, CommonEnum, PayChannel, PayStatus } from '@/enums'
 import { PayChannelApi } from '@/api/pay/channel'
 import { OrderApi } from '@/api/pay/order'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
@@ -210,7 +209,6 @@ const withPaymentReturnUrl = (payData: Record<string, unknown>, returnUrl: strin
 
 export function useRechargePayment() {
   const { t } = useI18n()
-  const isMobile = useIsMobile()
   const userStore = useUserStore()
   const userId = computed(() => {
     const value = Number(userStore.user_id)
@@ -313,6 +311,9 @@ export function useRechargePayment() {
 
   const updateRechargeOrderRow = (orderNo: string, patch: Partial<RechargeOrderListItem>) => {
     rechargeOrders.value = rechargeOrders.value.map((item) =>
+      item.order_no === orderNo ? { ...item, ...patch } : item,
+    )
+    recentRechargeOrders.value = recentRechargeOrders.value.map((item) =>
       item.order_no === orderNo ? { ...item, ...patch } : item,
     )
   }
@@ -522,7 +523,6 @@ export function useRechargePayment() {
         available: Math.max(balance - frozen, 0),
         total_recharge: Number(data.total_recharge ?? 0),
         total_consume: Number(data.total_consume ?? 0),
-        total_refund: Number(data.total_refund ?? 0),
         created_at: typeof data.created_at === 'string' ? data.created_at : undefined,
       }
     } finally {
@@ -694,15 +694,13 @@ export function useRechargePayment() {
       })
 
       updateOrderStatus(data)
+      const nextPayStatus = Number(data.pay_status ?? currentOrder.value.payStatus)
+      const nextBizStatus = Number(data.biz_status ?? currentOrder.value.bizStatus)
       updateRechargeOrderRow(currentOrder.value.orderNo, {
-        pay_status: Number(data.pay_status ?? currentOrder.value.payStatus),
-        pay_status_text:
-          payStatusLabelMap.value.get(String(data.pay_status ?? currentOrder.value.payStatus)) ??
-          currentOrder.value.payStatusText,
-        biz_status: Number(data.biz_status ?? currentOrder.value.bizStatus),
-        biz_status_text:
-          bizStatusLabelMap.value.get(String(data.biz_status ?? currentOrder.value.bizStatus)) ??
-          currentOrder.value.bizStatusText,
+        pay_status: nextPayStatus,
+        pay_status_text: payStatusLabelMap.value.get(String(nextPayStatus)) ?? currentOrder.value.payStatusText,
+        biz_status: nextBizStatus,
+        biz_status_text: bizStatusLabelMap.value.get(String(nextBizStatus)) ?? currentOrder.value.bizStatusText,
         pay_time: data.pay_time ?? currentOrder.value.payTime,
       })
 
@@ -1083,7 +1081,7 @@ export function useRechargePayment() {
   }
 
   watch(
-    [selectedChannelId, isMobile],
+    selectedChannelId,
     () => {
       syncSelections()
     },

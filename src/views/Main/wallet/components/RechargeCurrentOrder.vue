@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BizStatus, formatFen, PayStatus, RefundStatus } from '@/enums'
+import { BizStatus, formatFen, PayStatus } from '@/enums'
 import { AppTable } from '@/components/Table'
 import { useI18n } from 'vue-i18n'
 import type { RechargeOrderListItem, RechargeOrderState } from '../types'
@@ -36,10 +36,9 @@ const recentOrderColumns = computed(() => [
   { key: 'pay_method_text', label: t('pay_order.table.pay_method') },
   { key: 'pay_status_text', label: t('pay_order.table.pay_status'), width: 120 },
   { key: 'biz_status_text', label: t('pay_order.table.biz_status'), width: 120 },
-  { key: 'refund_status_text', label: t('pay_order.table.refund_status'), width: 120 },
   { key: 'expire_time', label: t('pay_order.table.expire_time') },
   { key: 'created_at', label: t('pay_order.table.created_at') },
-  { key: 'actions', label: t('common.actions.action'), width: 220, overflowTooltip: false },
+  { key: 'actions', label: t('common.actions.action'), width: 240, overflowTooltip: false },
 ])
 
 const payStatusType = (status: number) => {
@@ -54,13 +53,6 @@ const bizStatusType = (status: number) => {
   if (status === BizStatus.FAILED) return 'danger'
   if (status === BizStatus.MANUAL) return 'warning'
   if (status === BizStatus.EXECUTING) return 'primary'
-  return 'info'
-}
-
-const refundStatusType = (status: number) => {
-  if (status === RefundStatus.FULL) return 'success'
-  if (status === RefundStatus.PARTIAL) return 'warning'
-  if (status === RefundStatus.EXCEPTION) return 'danger'
   return 'info'
 }
 
@@ -181,11 +173,6 @@ const isCancelingRow = (row: RechargeOrderListItem) =>
           <template #cell-biz_status_text="{ row }">
             <el-tag :type="bizStatusType(row.biz_status)" size="small" effect="light">
               {{ row.biz_status_text }}
-            </el-tag>
-          </template>
-          <template #cell-refund_status_text="{ row }">
-            <el-tag :type="refundStatusType(row.refund_status)" size="small" effect="light">
-              {{ row.refund_status_text }}
             </el-tag>
           </template>
           <template #cell-expire_time="{ row }">{{ row.expire_time || '-' }}</template>

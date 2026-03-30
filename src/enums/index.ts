@@ -9,7 +9,7 @@ export const CommonEnum = {
 } as const
 
 // PayEnum - 支付相关枚举（从 PayEnum.ts 重新导出）
-export { PayChannel, PayStatus, BizStatus, RefundStatus, TxnStatus, RefundRecordStatus, FulfillStatus, WalletType, OrderType, ReconcileStatus, formatFen } from './PayEnum'
+export { PayChannel, PayStatus, BizStatus, TxnStatus, FulfillStatus, WalletType, OrderType, ReconcileStatus, formatFen } from './PayEnum'
 
 // PermissionEnum
 export const PermissionTypeEnum = {

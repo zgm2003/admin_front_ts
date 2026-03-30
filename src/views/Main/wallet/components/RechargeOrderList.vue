@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BizStatus, PayStatus, RefundStatus, formatFen } from '@/enums'
+import { PayStatus, formatFen } from '@/enums'
 import { AppTable } from '@/components/Table'
 import { useI18n } from 'vue-i18n'
 import type { RechargeOrderListItem, WalletTransactionPage } from '../types'
@@ -27,12 +27,10 @@ const columns = computed(() => [
   { key: 'channel_name', label: t('pay_order.table.channel') },
   { key: 'pay_method_text', label: t('pay_order.table.pay_method') },
   { key: 'pay_status_text', label: t('pay_order.table.pay_status'), width: 120 },
-  { key: 'biz_status_text', label: t('pay_order.table.biz_status'), width: 120 },
-  { key: 'refund_status_text', label: t('pay_order.table.refund_status'), width: 120 },
   { key: 'expire_time', label: t('pay_order.table.expire_time') },
   { key: 'pay_time', label: t('pay_order.table.pay_time') },
   { key: 'created_at', label: t('pay_order.table.created_at') },
-  { key: 'actions', label: t('common.actions.action'), width: 220, overflowTooltip: false },
+  { key: 'actions', label: t('common.actions.action'), width: 240, overflowTooltip: false },
 ])
 
 const isOngoingOrder = (row: RechargeOrderListItem) =>
@@ -43,21 +41,6 @@ const payStatusType = (status: number) => {
   if (status === PayStatus.CLOSED) return 'info'
   if (status === PayStatus.EXCEPTION) return 'danger'
   return 'warning'
-}
-
-const bizStatusType = (status: number) => {
-  if (status === BizStatus.SUCCESS) return 'success'
-  if (status === BizStatus.FAILED) return 'danger'
-  if (status === BizStatus.MANUAL) return 'warning'
-  if (status === BizStatus.EXECUTING) return 'primary'
-  return 'info'
-}
-
-const refundStatusType = (status: number) => {
-  if (status === RefundStatus.FULL) return 'success'
-  if (status === RefundStatus.PARTIAL) return 'warning'
-  if (status === RefundStatus.EXCEPTION) return 'danger'
-  return 'info'
 }
 </script>
 
@@ -89,12 +72,6 @@ const refundStatusType = (status: number) => {
         <template #cell-pay_method_text="{ row }">{{ row.pay_method_text || row.pay_method || '-' }}</template>
         <template #cell-pay_status_text="{ row }">
           <el-tag :type="payStatusType(row.pay_status)" size="small">{{ row.pay_status_text }}</el-tag>
-        </template>
-        <template #cell-biz_status_text="{ row }">
-          <el-tag :type="bizStatusType(row.biz_status)" size="small">{{ row.biz_status_text }}</el-tag>
-        </template>
-        <template #cell-refund_status_text="{ row }">
-          <el-tag :type="refundStatusType(row.refund_status)" size="small">{{ row.refund_status_text }}</el-tag>
         </template>
         <template #cell-expire_time="{ row }">{{ row.expire_time || '-' }}</template>
         <template #cell-pay_time="{ row }">{{ row.pay_time || '-' }}</template>
