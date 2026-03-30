@@ -24,9 +24,22 @@ const props = defineProps({
 const { t } = useI18n()
 const emit = defineEmits(['refresh','selection-change','update:pagination','column-change'])
 const selectedColumnKeys = ref([] as any[])
-watch(() => props.columns, (cols: any[]) => { selectedColumnKeys.value = cols.filter((c: any) => !c.hidden).map((c: any) => c.key) }, { immediate: true })
+const getColumnKey = (col: any) => String(col.key ?? col.prop ?? '')
+const getCellValue = (row: any, col: any) => row?.[col.prop ?? col.key]
+const getColumnBindings = (col: any) => {
+  const { key, prop, label, hidden, overflowTooltip, formatter, ...rest } = col
+  return { align: 'center', prop: prop ?? key, ...rest }
+}
+const formatCellValue = (row: any, col: any, index: number) => {
+  const value = getCellValue(row, col)
+  if (typeof col.formatter === 'function') {
+    return col.formatter(row, { property: col.prop ?? col.key }, value, index)
+  }
+  return value
+}
+watch(() => props.columns, (cols: any[]) => { selectedColumnKeys.value = cols.filter((c: any) => !c.hidden).map((c: any) => getColumnKey(c)).filter(Boolean) }, { immediate: true })
 watch(() => selectedColumnKeys.value, (keys: any[]) => { emit('column-change', keys) })
-const visibleColumns = computed(() => (props.columns as any[]).filter((c: any) => selectedColumnKeys.value.includes(c.key)))
+const visibleColumns = computed(() => (props.columns as any[]).filter((c: any) => selectedColumnKeys.value.includes(getColumnKey(c))))
 const page = ref(props.pagination ? { ...(props.pagination as any) } : null)
 watch(() => props.pagination, (p: any) => { page.value = p ? { ...p } : null }, { immediate: true, deep: true })
 const onSizeChange = (size: number) => { if (!page.value) return; (page.value as any).page_size = size; (page.value as any).current_page = 1; emit('update:pagination', { ...(page.value as any) }) }
@@ -37,11 +50,6 @@ const isMobile = useIsMobile()
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
-// 提取 column 透传属性，排除自定义处理的字段
-const getColumnBindings = (col: any) => {
-  const { key, label, hidden, overflowTooltip, ...rest } = col
-  return { align: 'center', ...rest }
-}
 </script>
 <template>
   <div class="table-wrapper" :class="{ 'fixed-footer': props.fixedFooter }">
@@ -62,8 +70,12 @@ const getColumnBindings = (col: any) => {
     <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
       <ElTableColumn v-if="props.selectable" type="selection" width="48" />
       <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
-      <ElTableColumn v-for="col in visibleColumns" :key="col.key" :prop="col.key" :label="col.label" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)" v-bind="getColumnBindings(col)">
-        <template #default="{ row }"><slot :name="'cell-'+col.key" :row="row" :col="col">{{ (row as any)[col.key] }}</slot></template>
+      <ElTableColumn v-for="col in visibleColumns" :key="getColumnKey(col)" :label="col.label" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)" v-bind="getColumnBindings(col)">
+        <template #default="{ row, $index }">
+          <slot :name="'cell-'+getColumnKey(col)" :row="row" :col="col" :value="getCellValue(row, col)" :index="$index">
+            {{ formatCellValue(row, col, $index) }}
+          </slot>
+        </template>
       </ElTableColumn>
     </ElTable>
     <div class="table-footer" v-if="page"><ElPagination v-model:current-page="(page as any).current_page" v-model:page-size="(page as any).page_size" :layout="paginationLayout" :small="isMobile" :pager-count="isMobile ? 5 : 7" :page-sizes="pageSizes" :total="(page as any).total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>

@@ -6,7 +6,8 @@ import { Setting } from '@element-plus/icons-vue'
 const props = defineProps<{ columns: any[]; modelValue: any[] }>()
 const emit = defineEmits(['update:modelValue'])
 
-const options = computed(() => (props.columns || []).map((c: any) => ({ label: c.label, value: c.key })))
+const resolveColumnKey = (column: any) => String(column.key ?? column.prop ?? '')
+const options = computed(() => (props.columns || []).map((c: any) => ({ label: c.label, value: resolveColumnKey(c) })))
 const value = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
 </script>
 

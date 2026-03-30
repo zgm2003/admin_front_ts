@@ -83,7 +83,7 @@ const columns = computed(() => [
   { key: 'pay_method', label: t('pay_transaction.table.pay_method') },
   { key: 'amount', label: t('pay_transaction.table.amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'trade_no', label: t('pay_transaction.table.trade_no'), width: 200 },
-  { key: 'status_text', label: t('pay_transaction.table.status') },
+  { key: 'status_text', label: t('pay_transaction.table.status'), width: 140 },
   { key: 'paid_at', label: t('pay_transaction.table.paid_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 100 },
 ])

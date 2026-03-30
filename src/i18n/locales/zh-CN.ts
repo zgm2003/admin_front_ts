@@ -369,6 +369,11 @@ export default {
         frozen_delta: '冻结变动', balance_before: '变动前余额', balance_after: '变动后余额',
         order_no: '关联订单', title: '说明', created_at: '时间',
       },
+      bizAction: {
+        recharge: '充值',
+        consume: '消费',
+        adjust: '调账',
+      },
     },
   },
   pay_reconcile: {

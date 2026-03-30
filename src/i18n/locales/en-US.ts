@@ -343,6 +343,11 @@ export default {
         frozen_delta: 'Frozen Change', balance_before: 'Balance Before', balance_after: 'Balance After',
         order_no: 'Order No', title: 'Description', created_at: 'Time',
       },
+      bizAction: {
+        recharge: 'Recharge',
+        consume: 'Consume',
+        adjust: 'Adjust',
+      },
     },
   },
   pay_reconcile: {
