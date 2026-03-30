@@ -83,6 +83,47 @@ const sexLabel = computed(() => {
 
 <style scoped lang="scss">
 .user-info-card {
+  position: relative;
+  z-index: 1;
+
+  @media (min-width: 769px) {
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 16px;
+    background: var(--el-bg-color);
+    backdrop-filter: blur(8px);
+
+    :deep(.el-card__header) {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--el-border-color-extra-light);
+    }
+
+    :deep(.el-card__body) {
+      padding: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+
+    :deep(.el-card) {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    :deep(.el-card__header) {
+      padding: 8px 0 4px !important;
+      border-bottom: none !important;
+      background: transparent !important;
+    }
+
+    :deep(.el-card__body) {
+      padding: 0 !important;
+    }
+  }
+
   .card-header {
     font-size: 16px;
     font-weight: 600;
@@ -107,6 +148,10 @@ const sexLabel = computed(() => {
       align-items: center;
       padding: 10px 0;
       transition: background-color 0.2s;
+
+      @media (max-width: 768px) {
+        padding: 6px 0;
+      }
 
       .label {
         color: var(--el-text-color-secondary);
@@ -142,6 +187,10 @@ const sexLabel = computed(() => {
         border-radius: 8px;
         width: 100%;
         box-sizing: border-box;
+
+        @media (max-width: 768px) {
+          padding: 8px 10px;
+        }
       }
     }
   }

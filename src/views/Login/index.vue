@@ -122,4 +122,110 @@ async function tauriClose() {
   </div>
 </template>
 
-<style lang="scss" src="./login.scss" />
+<style scoped lang="scss">
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--el-bg-color-page);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.login-container.is-mobile {
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
+.tauri-drag-bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 9998;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  -webkit-app-region: drag;
+}
+
+.tauri-drag-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 80px;
+}
+
+.login-container.is-mobile .content-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom, 0px));
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+}
+
+.form-section {
+  width: 100%;
+  max-width: 480px;
+  flex-shrink: 0;
+}
+
+.login-container.is-mobile .form-section {
+  max-width: 100%;
+}
+
+.form-section.login-mobile-sheet {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 12px 36px -16px rgba(15, 23, 42, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.login-container.is-tauri-mobile .form-section.login-mobile-sheet {
+  padding-top: calc(36px + env(safe-area-inset-top, 0px));
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-container.is-mobile .content-wrapper {
+    min-height: auto;
+    padding-top: 8px;
+    justify-content: flex-start;
+  }
+}
+</style>

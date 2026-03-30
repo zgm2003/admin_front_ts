@@ -12,7 +12,6 @@ import LoginLog from './components/LoginLog/index.vue'
 import OperationLog from './components/OperationLog/index.vue'
 import Security from './components/Security/index.vue'
 import UserInfo from './components/UserInfo/index.vue'
-import './personal.scss'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -90,3 +89,172 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+@media (min-width: 769px) {
+  .el-main.layout-content .layout-view.page-card:has(.personal-page) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+</style>
+
+<style scoped lang="scss">
+.personal-page {
+  min-height: calc(100vh - 120px);
+  padding: 24px;
+  background: var(--el-bg-color-page);
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 16% 84%, rgba(64, 158, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 85% 20%, rgba(103, 194, 58, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 30% at 50% 50%, rgba(230, 162, 60, 0.04) 0%, transparent 50%);
+  }
+}
+
+.personal-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.module-full {
+  width: 100%;
+}
+
+.personal-card {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1200px) {
+  .personal-container {
+    max-width: 1100px;
+  }
+}
+
+@media (min-width: 769px) {
+  .personal-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 8px 0 16px;
+    overflow-y: auto;
+    background: transparent;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .personal-card {
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 16px;
+    background: var(--el-bg-color);
+    backdrop-filter: blur(8px);
+
+    :deep(.el-card__header) {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--el-border-color-extra-light);
+      color: var(--el-text-color-primary);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    :deep(.el-card__body) {
+      padding: 24px;
+    }
+
+    :deep(.el-tabs__header) {
+      margin-bottom: 20px;
+    }
+
+    :deep(.el-tabs__nav-wrap::after) {
+      height: 1px;
+      background: var(--el-border-color-light);
+    }
+
+    :deep(.el-tabs__item) {
+      color: var(--el-text-color-secondary);
+      font-size: 15px;
+      font-weight: 500;
+
+      &:hover {
+        color: var(--el-color-primary);
+      }
+
+      &.is-active {
+        color: var(--el-color-primary);
+        font-weight: 600;
+      }
+    }
+
+    :deep(.el-tabs__active-bar) {
+      height: 2px;
+      border-radius: 2px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .personal-page {
+    min-height: 0;
+    flex-shrink: 0;
+    padding: 0 2px 10px;
+    background: transparent;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .personal-card {
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--el-border-color-extra-light);
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+
+    :deep(.el-card) {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    :deep(.el-card__header) {
+      padding: 8px 0 10px !important;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none;
+    }
+
+    :deep(.el-card__body) {
+      padding: 0 !important;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    :deep(.el-tabs__header) {
+      margin-bottom: 8px;
+    }
+
+    :deep(.el-tabs__item) {
+      padding: 0 12px;
+      font-size: 14px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .personal-page {
+    padding: 0 0 8px;
+  }
+}
+</style>
