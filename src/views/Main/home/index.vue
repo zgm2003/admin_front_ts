@@ -1,44 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent, shallowRef } from 'vue'
+import { computed, defineAsyncComponent, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
-import { useIsMobile } from '@/hooks/useResponsive'
-import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { ElMessage } from 'element-plus'
-import { Setting, ArrowRight, Document, Plus, Coin } from '@element-plus/icons-vue'
+import { ArrowRight, Coin, Plus, Setting } from '@element-plus/icons-vue'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { DIcon } from '@/components/DIcon'
+import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
+import { useUserStore } from '@/store/user'
+import { HOME_MENU_ITEM } from '@/store/menu'
+import type { PermissionMenuItem } from '@/types/user'
 
 const Draggable = defineAsyncComponent(() => import('vuedraggable'))
 
-const router = useRouter()
-const userStore = useUserStore()
-const { t } = useI18n()
-const isMobile = useIsMobile()
-
-const iconModule = shallowRef<Record<string, any>>({})
-let iconModulePromise: Promise<void> | null = null
-const loadIconModule = () => {
-  if (Object.keys(iconModule.value).length) return Promise.resolve()
-  if (!iconModulePromise) {
-    iconModulePromise = import('@element-plus/icons-vue').then((mod) => {
-      iconModule.value = mod as Record<string, any>
-    })
-  }
-  return iconModulePromise
-}
-const scheduleIdle = (cb: () => void) => {
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(cb)
-  } else {
-    setTimeout(cb, 16)
-  }
-}
-
-// 快捷入口设置
-const isEditMode = ref(false)
-const addSelectVisible = ref(false)
-const selectedPermissionId = ref<string>('')
-const entryColors = ['#409EFF', '#059669', '#D97706', '#DC2626']
+const QUICK_ENTRY_DRAG_ANIMATION = 320
+const QUICK_ENTRY_DRAG_EASING = 'cubic-bezier(0.2, 0.78, 0.24, 1)'
+const QUICK_ENTRY_SWAP_THRESHOLD = 0.72
+const QUICK_ENTRY_INVERTED_SWAP_THRESHOLD = 0.86
 
 interface QuickEntryCardItem {
   id: number
@@ -47,126 +25,212 @@ interface QuickEntryCardItem {
   icon: string
   path: string
   color: string
-  bg: string
+  background: string
 }
+
+interface MenuOption {
+  value: string
+  label: string
+}
+
+const entryColors = ['#409EFF', '#059669', '#D97706', '#DC2626']
+
+const router = useRouter()
+const userStore = useUserStore()
+const isMobile = useIsMobile()
+const { t, te, locale } = useI18n()
+
+const isEditMode = shallowRef(false)
+const addSelectVisible = shallowRef(false)
+const selectedPermissionId = shallowRef('')
+const isQuickEntryDragging = shallowRef(false)
 
 const getEntryColor = (index: number) => entryColors[index % entryColors.length] ?? '#409EFF'
 
-// 从 permissions 中提取 type=2 的菜单（可选项）
-const menuOptions = computed(() => {
-  const result: any[] = []
-  const existingIds = new Set(userStore.quickEntry.map(e => e.permission_id))
-  const traverse = (items: any[], parentLabel?: string) => {
-    items.forEach(item => {
-      // 只选有 path 的菜单，且未添加过
-      if (item.path && !existingIds.has(Number(item.index))) {
-        result.push({
+const resolveMenuLabel = (item: PermissionMenuItem) => {
+  if (item.i18n_key && te(item.i18n_key)) {
+    return t(item.i18n_key)
+  }
+
+  return item.label
+}
+
+const menuOptions = computed<MenuOption[]>(() => {
+  const options: MenuOption[] = []
+  const existingIds = new Set(userStore.quickEntry.map((item) => item.permission_id))
+  const homePermissionId = Number(HOME_MENU_ITEM.index)
+
+  const traverse = (items: PermissionMenuItem[], parentLabels: string[] = []) => {
+    items.forEach((item) => {
+      const currentLabel = resolveMenuLabel(item)
+      const permissionId = Number(item.index)
+
+      if (
+        item.path &&
+        Number.isFinite(permissionId) &&
+        permissionId !== homePermissionId &&
+        item.show_menu !== 0 &&
+        item.show_menu !== false &&
+        !existingIds.has(permissionId)
+      ) {
+        const labelTrail = parentLabels.length ? [...parentLabels, currentLabel] : [currentLabel]
+        options.push({
           value: item.index,
-          label: parentLabel ? `${parentLabel} / ${item.label}` : item.label,
+          label: labelTrail.join(' / '),
         })
       }
+
       if (item.children?.length) {
-        traverse(item.children, item.label)
+        traverse(item.children, item.path ? parentLabels : [...parentLabels, currentLabel])
       }
     })
   }
+
   traverse(userStore.permissions)
-  return result
+
+  return options
 })
 
-// 快捷入口（根据 quickEntry 与 permissions 做交集）
 const entries = computed<QuickEntryCardItem[]>(() => {
   return userStore.quickEntry
     .map((entry, index) => {
       const menu = userStore.permissionMap.get(String(entry.permission_id))
-      if (!menu || !menu.path) return null
+      if (!menu?.path) {
+        return null
+      }
+
+      const color = getEntryColor(index)
+
       return {
         id: entry.id,
         permissionId: entry.permission_id,
-        label: menu.i18n_key ? t(menu.i18n_key) : menu.label,
+        label: resolveMenuLabel(menu),
         icon: menu.icon || 'Document',
         path: menu.path,
-        color: getEntryColor(index),
-        bg: getEntryColor(index) + '15',
+        color,
+        background: `${color}15`,
       }
     })
-    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .filter((item): item is QuickEntryCardItem => item !== null)
 })
 
-// 切换编辑模式
+const dateLabel = computed(() => {
+  const localeName = locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'
+
+  return new Intl.DateTimeFormat(localeName, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date())
+})
+
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value
+
+  if (!isEditMode.value) {
+    addSelectVisible.value = false
+  }
 }
 
-// 新增快捷入口
-const handleAdd = async () => {
-  if (!selectedPermissionId.value) return
+const onDragStart = () => {
+  isQuickEntryDragging.value = true
+}
+
+const onDragEnd = async () => {
+  isQuickEntryDragging.value = false
+
+  const items = userStore.quickEntry.map((item, index) => ({
+    id: item.id,
+    sort: index + 1,
+  }))
+
   try {
-    const res = await UsersQuickEntryApi.add({ permission_id: Number(selectedPermissionId.value) })
-    userStore.quickEntry.push({ id: res.id, permission_id: Number(selectedPermissionId.value) })
+    await UsersQuickEntryApi.sort({ items })
+  } catch (error) {
+    const message =
+      error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : t('common.fail')
+    ElMessage.error(message)
+  }
+}
+
+const handleAdd = async () => {
+  if (!selectedPermissionId.value) {
+    return
+  }
+
+  try {
+    const response = await UsersQuickEntryApi.add({
+      permission_id: Number(selectedPermissionId.value),
+    })
+
+    userStore.quickEntry.push({
+      id: response.id,
+      permission_id: Number(selectedPermissionId.value),
+    })
+
     selectedPermissionId.value = ''
     addSelectVisible.value = false
     ElMessage.success(t('common.success'))
-  } catch (e: any) {
-    ElMessage.error(e.message || t('common.fail'))
+  } catch (error) {
+    const message =
+      error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : t('common.fail')
+    ElMessage.error(message)
   }
 }
 
-// 删除快捷入口
-const handleDelete = async (entry: typeof entries.value[0]) => {
+const handleDelete = async (entryId: number) => {
   try {
-    await UsersQuickEntryApi.del({ id: entry.id })
-    const idx = userStore.quickEntry.findIndex(e => e.id === entry.id)
-    if (idx > -1) userStore.quickEntry.splice(idx, 1)
+    await UsersQuickEntryApi.del({ id: entryId })
+    userStore.quickEntry = userStore.quickEntry.filter((item) => item.id !== entryId)
     ElMessage.success(t('common.success'))
-  } catch (e: any) {
-    ElMessage.error(e.message || t('common.fail'))
+  } catch (error) {
+    const message =
+      error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : t('common.fail')
+    ElMessage.error(message)
   }
 }
 
-// 拖拽排序结束
-const onDragEnd = async () => {
-  const items = userStore.quickEntry.map((e, idx) => ({ id: e.id, sort: idx + 1 }))
-  try {
-    await UsersQuickEntryApi.sort({ items })
-  } catch (e: any) {
-    ElMessage.error(e.message || t('common.fail'))
-  }
+const goTo = (path: string) => {
+  router.push(path)
 }
 
-// 动态获取图标组件（支持所有 Element Plus 图标）
-const getIconComponent = (iconName: string) => {
-  const mod = iconModule.value as any
-  return (mod && mod[iconName]) || Document
-}
-
-const goTo = (path: string) => router.push(path)
-const goToPersonal = () => router.push({ path: '/personal', query: { user_id: userStore.user_id } })
-const goToWallet = () => router.push('/wallet')
-
-onMounted(() => {
-  scheduleIdle(() => {
-    loadIconModule().catch(() => {})
+const goToPersonal = () => {
+  router.push({
+    path: '/personal',
+    query: { user_id: userStore.user_id },
   })
-})
+}
+
+const goToWallet = () => {
+  router.push('/wallet')
+}
 </script>
 
 <template>
   <div class="home-page">
-    <!-- 欢迎横幅 -->
     <div class="welcome-banner">
       <div class="welcome-content">
         <el-avatar :src="userStore.avatar" :size="64" class="welcome-avatar" />
+
         <div class="welcome-text">
-          <h2 class="welcome-title">{{ t('common.welcomeBack') }}，{{ userStore.username }}</h2>
-          <p class="welcome-subtitle">{{ new Date().toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
+          <h2 class="welcome-title">{{ t('common.welcomeBack') }} {{ userStore.username }}</h2>
+          <p class="welcome-subtitle">{{ dateLabel }}</p>
         </div>
       </div>
+
       <div class="welcome-actions">
         <el-button plain size="large" @click="goToPersonal">
           <el-icon><Setting /></el-icon>
           <span>{{ t('menu.personal') }}</span>
         </el-button>
+
         <el-button plain size="large" @click="goToWallet">
           <el-icon><Coin /></el-icon>
           <span>{{ t('menu.wallet') }}</span>
@@ -174,81 +238,130 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 快捷入口 -->
     <div class="section-card">
       <div class="section-header">
         <h3 class="section-title">{{ t('home.quickEntry') }}</h3>
+
         <el-button :type="isEditMode ? 'default' : 'primary'" @click="toggleEditMode">
           <el-icon><Setting /></el-icon>
           <span>{{ t('common.setting') }}</span>
         </el-button>
       </div>
-          
-      <!-- 编辑模式 -->
-      <Draggable 
-        v-if="isEditMode" 
-        v-model="userStore.quickEntry" 
+
+      <Draggable
+        v-if="isEditMode"
+        v-model="userStore.quickEntry"
         item-key="id"
-        class="quick-grid"
-        :animation="300"
+        :class="['quick-grid', { 'quick-grid--sorting': isQuickEntryDragging }]"
+        :animation="QUICK_ENTRY_DRAG_ANIMATION"
+        :swap-threshold="QUICK_ENTRY_SWAP_THRESHOLD"
+        :invert-swap="true"
+        :inverted-swap-threshold="QUICK_ENTRY_INVERTED_SWAP_THRESHOLD"
+        :easing="QUICK_ENTRY_DRAG_EASING"
+        :force-fallback="true"
+        :fallback-on-body="true"
+        :fallback-tolerance="3"
         ghost-class="drag-ghost"
         chosen-class="drag-chosen"
         drag-class="drag-active"
+        fallback-class="drag-fallback"
+        @start="onDragStart"
         @end="onDragEnd"
       >
         <template #item="{ element, index }">
           <div v-if="userStore.permissionMap.get(String(element.permission_id))" class="quick-card edit-mode">
-            <div class="quick-icon" :style="{ backgroundColor: entryColors[index % 4] + '15', color: entryColors[index % 4] }">
-              <el-icon :size="24"><component :is="getIconComponent(userStore.permissionMap.get(String(element.permission_id))?.icon || 'Document')" /></el-icon>
-            </div>
-            <div class="quick-content">
-              <span class="quick-label">{{ t(userStore.permissionMap.get(String(element.permission_id))?.i18n_key || '') || userStore.permissionMap.get(String(element.permission_id))?.label }}</span>
-              <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete({ id: element.id } as any)">
-                <template #reference>
-                  <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
-                </template>
-              </el-popconfirm>
+            <div class="quick-card-inner">
+              <div
+                class="quick-icon"
+                :style="{
+                  backgroundColor: `${getEntryColor(index)}15`,
+                  color: getEntryColor(index),
+                }"
+              >
+                <DIcon
+                  :icon="userStore.permissionMap.get(String(element.permission_id))?.icon || 'Document'"
+                  :size="24"
+                />
+              </div>
+
+              <div class="quick-content">
+                <span class="quick-label">
+                  {{
+                    resolveMenuLabel(
+                      userStore.permissionMap.get(String(element.permission_id)) as PermissionMenuItem
+                    )
+                  }}
+                </span>
+
+                <el-popconfirm :title="t('common.confirmDelete')" @confirm="handleDelete(element.id)">
+                  <template #reference>
+                    <el-button type="danger" text>{{ t('common.actions.del') }}</el-button>
+                  </template>
+                </el-popconfirm>
+              </div>
             </div>
           </div>
         </template>
+
         <template #footer>
           <div class="quick-card add-card" @click="addSelectVisible = true">
-            <div class="quick-icon" style="background-color: rgba(64, 158, 255, 0.1); color: #409EFF;">
-              <el-icon :size="24"><Plus /></el-icon>
-            </div>
-            <div class="quick-content">
-              <span class="quick-label">{{ t('common.actions.add') }}</span>
+            <div class="quick-card-inner">
+              <div class="quick-icon quick-icon--add">
+                <el-icon :size="24"><Plus /></el-icon>
+              </div>
+
+              <div class="quick-content">
+                <span class="quick-label">{{ t('common.actions.add') }}</span>
+              </div>
             </div>
           </div>
         </template>
       </Draggable>
-      
-      <!-- 正常模式 -->
+
       <div v-else-if="entries.length" class="quick-grid">
-        <div 
-          v-for="entry in entries" 
-          :key="entry.id" 
+        <div
+          v-for="entry in entries"
+          :key="entry.id"
           class="quick-card"
           @click="goTo(entry.path)"
         >
-          <div class="quick-icon" :style="{ backgroundColor: entry.bg, color: entry.color }">
-            <el-icon :size="24"><component :is="getIconComponent(entry.icon)" /></el-icon>
-          </div>
-          <div class="quick-content">
-            <span class="quick-label">{{ entry.label }}</span>
-            <el-icon class="quick-arrow"><ArrowRight /></el-icon>
+          <div class="quick-card-inner">
+            <div
+              class="quick-icon"
+              :style="{ backgroundColor: entry.background, color: entry.color }"
+            >
+              <DIcon :icon="entry.icon" :size="24" />
+            </div>
+
+            <div class="quick-content">
+              <span class="quick-label">{{ entry.label }}</span>
+              <el-icon class="quick-arrow"><ArrowRight /></el-icon>
+            </div>
           </div>
         </div>
       </div>
+
       <el-empty v-else :description="t('home.noQuickEntry')" :image-size="80" />
     </div>
 
-    <!-- 新增选择弹窗 -->
-    <el-dialog v-model="addSelectVisible" :title="t('home.addQuickEntry')" :width="isMobile ? '90%' : '400px'">
-      <el-select-v2 v-model="selectedPermissionId" :placeholder="t('common.pleaseSelect')" filterable :options="menuOptions" style="width: 100%" />
+    <el-dialog
+      v-model="addSelectVisible"
+      :title="t('home.addQuickEntry')"
+      :width="isMobile ? '90%' : '400px'"
+    >
+      <el-select-v2
+        v-model="selectedPermissionId"
+        :placeholder="t('common.pleaseSelect')"
+        filterable
+        :options="menuOptions"
+        style="width: 100%"
+      />
+
       <template #footer>
         <el-button @click="addSelectVisible = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" :disabled="!selectedPermissionId" @click="handleAdd">{{ t('common.actions.confirm') }}</el-button>
+        <el-button type="primary" :disabled="!selectedPermissionId" @click="handleAdd">
+          {{ t('common.actions.confirm') }}
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -256,17 +369,18 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .home-page {
+  --quick-entry-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   display: flex;
   flex-direction: column;
   gap: 24px;
   padding: 4px;
 }
 
-// 欢迎横幅
 .welcome-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   padding: 32px;
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   border-radius: 16px;
@@ -275,7 +389,7 @@ onMounted(() => {
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 20px;
+    align-items: stretch;
     padding: 24px;
   }
 }
@@ -291,22 +405,20 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.welcome-text {
-  .welcome-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 8px;
-    
-    @media (max-width: 768px) {
-      font-size: 20px;
-    }
-  }
+.welcome-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 600;
 
-  .welcome-subtitle {
-    font-size: 14px;
-    opacity: 0.9;
-    margin: 0;
+  @media (max-width: 768px) {
+    font-size: 20px;
   }
+}
+
+.welcome-subtitle {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.92;
 }
 
 .welcome-actions {
@@ -345,68 +457,75 @@ onMounted(() => {
   }
 }
 
-// 区块卡片
 .section-card {
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
   padding: 24px;
-  height: 100%;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   margin-bottom: 20px;
-
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--el-text-color-primary);
-  }
 }
 
-// 快捷入口
+.section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 
-  @media (max-width: 1200px) { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 768px) { 
-    grid-template-columns: 1fr; 
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
   }
 }
 
 .quick-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  position: relative;
   padding: 20px;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  
+  overflow: visible;
+  will-change: transform, box-shadow, opacity;
+  transition:
+    transform 300ms var(--quick-entry-soft),
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+
   &:hover {
     border-color: var(--el-color-primary-light-5);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-    
-    .quick-arrow { 
-      opacity: 1; 
-      transform: translateX(0); 
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    transform: translateY(-4px);
+
+    .quick-arrow {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 
   &.edit-mode {
     cursor: grab;
+
     &:active {
       cursor: grabbing;
     }
+
     &:hover {
       transform: none;
       box-shadow: none;
@@ -415,24 +534,53 @@ onMounted(() => {
 
   &.add-card {
     border-style: dashed;
-    cursor: pointer;
   }
 }
 
-// 拖拽样式
+.quick-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  transform-origin: center;
+  will-change: transform;
+  transition:
+    transform 240ms var(--quick-entry-soft),
+    opacity 180ms ease;
+}
+
+.quick-grid--sorting .quick-card.add-card {
+  opacity: 0.92;
+}
+
 .drag-ghost {
-  opacity: 0.5;
-  background: var(--el-color-primary-light-9) !important;
-  border: 2px dashed var(--el-color-primary) !important;
+  background: rgba(64, 158, 255, 0.04) !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 0 0 1px rgba(64, 158, 255, 0.08);
 }
 
-.drag-chosen {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  transform: scale(1.02);
+.drag-ghost .quick-card-inner {
+  opacity: 0;
 }
 
-.drag-active {
-  opacity: 0.9;
+.drag-chosen,
+.drag-active,
+.drag-fallback {
+  z-index: 4;
+  border-color: rgba(64, 158, 255, 0.32);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(245, 248, 255, 0.96));
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.14), 0 10px 20px rgba(37, 99, 235, 0.14);
+  cursor: grabbing !important;
+}
+
+.drag-chosen .quick-card-inner,
+.drag-active .quick-card-inner,
+.drag-fallback .quick-card-inner {
+  transform: scale(1.04) rotate(-1.5deg);
+}
+
+.drag-fallback {
+  opacity: 0.98;
 }
 
 .quick-icon {
@@ -445,23 +593,35 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.quick-icon--add {
+  background-color: rgba(64, 158, 255, 0.1);
+  color: #409eff;
+}
+
 .quick-content {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
 
-  .quick-label {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--el-text-color-primary);
-  }
+.quick-label {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+}
 
-  .quick-arrow {
-    color: var(--el-text-color-secondary);
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: all 0.3s;
-  }
+.quick-arrow {
+  flex-shrink: 0;
+  color: var(--el-text-color-secondary);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    transform 180ms var(--quick-entry-soft),
+    opacity 160ms ease;
 }
 </style>
