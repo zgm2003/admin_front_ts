@@ -174,15 +174,15 @@ onMounted(() => {
       <el-descriptions-item :label="t('pay_reconcile.table.started_at')">{{ detailData.task.started_at ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.finished_at')">{{ detailData.task.finished_at ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.platform_file')">
-        <el-button v-if="detailData.task.platform_file" link type="primary" @click="triggerDownload('platform')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <el-button v-if="detailData.task.platform_file_url" link type="primary" @click="triggerDownload('platform')">{{ t('pay_reconcile.actions.download') }}</el-button>
         <span v-else>-</span>
       </el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.local_file')">
-        <el-button v-if="detailData.task.local_file" link type="primary" @click="triggerDownload('local')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <el-button v-if="detailData.task.local_file_url" link type="primary" @click="triggerDownload('local')">{{ t('pay_reconcile.actions.download') }}</el-button>
         <span v-else>-</span>
       </el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.diff_file')">
-        <el-button v-if="detailData.task.diff_file" link type="primary" @click="triggerDownload('diff')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <el-button v-if="detailData.task.diff_file_url" link type="primary" @click="triggerDownload('diff')">{{ t('pay_reconcile.actions.download') }}</el-button>
         <span v-else>-</span>
       </el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.error_msg')" :span="2">{{ detailData.task.error_msg ?? '-' }}</el-descriptions-item>
