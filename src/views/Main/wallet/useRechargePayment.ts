@@ -131,17 +131,6 @@ const normalizePresetOptions = (source: unknown): RechargePresetOption[] => {
   return []
 }
 
-const pickString = (source: Record<string, unknown>, keys: string[]): string => {
-  for (const key of keys) {
-    const value = source[key]
-    if (typeof value === 'string' && value.trim() !== '') {
-      return value.trim()
-    }
-  }
-
-  return ''
-}
-
 const looksLikeHtml = (value: string) => /<(form|html|body|script)\b|<!doctype/i.test(value)
 const looksLikeUrl = (value: string) => /^(https?:\/\/|alipays?:\/\/|weixin:\/\/|wxp:\/\/)/i.test(value)
 const isWindowPayMethod = (payMethod: string) => WINDOW_PAY_METHODS.includes(payMethod)
@@ -520,7 +509,6 @@ export function useRechargePayment() {
       wallet.value = {
         balance,
         frozen,
-        available: Math.max(balance - frozen, 0),
         total_recharge: Number(data.total_recharge ?? 0),
         total_consume: Number(data.total_consume ?? 0),
         created_at: typeof data.created_at === 'string' ? data.created_at : undefined,
@@ -834,67 +822,35 @@ export function useRechargePayment() {
   }
 
   const buildPaymentView = async (payData: Record<string, unknown>) => {
-    const qrContent = pickString(payData, [
-      'qr_code',
-      'qrCode',
-      'code_url',
-      'codeUrl',
-      'qr_code_url',
-      'qrCodeUrl',
-      'pay_url',
-      'payUrl',
-    ])
+    const mode = String(payData.mode ?? '')
+    const content = String(payData.content ?? '')
+    const meta = typeof payData.meta === 'object' && payData.meta !== null
+      ? (payData.meta as Record<string, unknown>)
+      : {}
 
-    if (qrContent !== '') {
+    if (mode === 'qrcode' && content !== '') {
       return {
         mode: 'qrcode',
-        content: qrContent,
-        qrDataUrl: await QRCode.toDataURL(qrContent, { width: 240, margin: 1 }),
-        raw: payData,
-      } satisfies RechargePaymentView
-    }
-
-    const content = pickString(payData, ['content', 'body', 'pay_body'])
-    if (content !== '') {
-      if (looksLikeHtml(content)) {
-        return {
-          mode: 'external',
-          content,
-          externalType: 'html',
-          raw: payData,
-        } satisfies RechargePaymentView
-      }
-
-      if (looksLikeUrl(content)) {
-        return {
-          mode: 'external',
-          content,
-          externalType: 'link',
-          raw: payData,
-        } satisfies RechargePaymentView
-      }
-
-      return {
-        mode: 'text',
         content,
-        raw: payData,
+        qrDataUrl: await QRCode.toDataURL(content, { width: 240, margin: 1 }),
+        raw: meta.raw && typeof meta.raw === 'object' ? (meta.raw as Record<string, unknown>) : payData,
       } satisfies RechargePaymentView
     }
 
-    const link = pickString(payData, ['url', 'pay_link', 'link', 'h5_url', 'h5Url', 'mweb_url', 'mwebUrl'])
-    if (link !== '') {
+    if (mode === 'external' && content !== '') {
+      const externalType = String(meta.external_type ?? (looksLikeHtml(content) ? 'html' : 'link'))
       return {
         mode: 'external',
-        content: link,
-        externalType: 'link',
-        raw: payData,
+        content,
+        externalType: externalType === 'html' ? 'html' : 'link',
+        raw: meta.raw && typeof meta.raw === 'object' ? (meta.raw as Record<string, unknown>) : payData,
       } satisfies RechargePaymentView
     }
 
     return {
       mode: 'text',
-      content: JSON.stringify(payData, null, 2),
-      raw: payData,
+      content: content || JSON.stringify(payData, null, 2),
+      raw: meta.raw && typeof meta.raw === 'object' ? (meta.raw as Record<string, unknown>) : payData,
     } satisfies RechargePaymentView
   }
 

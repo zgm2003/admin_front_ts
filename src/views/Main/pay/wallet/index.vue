@@ -62,7 +62,6 @@ const columns = computed(() => [
   { key: 'user_name', label: t('pay_wallet.table.user_name'), width: 240 },
   { key: 'balance', label: t('pay_wallet.table.balance'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'frozen', label: t('pay_wallet.table.frozen'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'available', label: t('pay_wallet.table.available'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
   { key: 'created_at', label: t('pay_wallet.table.created_at'), width: 180 },

@@ -266,6 +266,7 @@ export default {
     pay_order: 'Order Management',
     pay_transaction: 'Transactions',
     pay_wallet: 'Wallet',
+    pay_notify: 'Notify Audit',
     pay_reconcile: 'Reconciliation',
   },
   pay_channel: {
@@ -331,7 +332,7 @@ export default {
   pay_wallet: {
     filter: { user_id: 'User ID', user: 'User' },
     table: {
-      user_name: 'User', user_id: 'User ID', balance: 'Balance', frozen: 'Frozen', available: 'Available',
+      user_name: 'User', user_id: 'User ID', balance: 'Available Balance', frozen: 'Frozen', available: 'Available',
       total_recharge: 'Total Recharge', total_consume: 'Total Consume',
       created_at: 'Created At',
     },
@@ -340,7 +341,7 @@ export default {
     txn: {
       title: 'Wallet Transactions', table: {
         biz_action_no: 'Biz No', type: 'Type', available_delta: 'Available Change',
-        frozen_delta: 'Frozen Change', balance_before: 'Balance Before', balance_after: 'Balance After',
+        frozen_delta: 'Frozen Change', balance_before: 'Available Before', balance_after: 'Available After',
         order_no: 'Order No', title: 'Description', created_at: 'Time',
       },
       bizAction: {
@@ -348,6 +349,17 @@ export default {
         consume: 'Consume',
         adjust: 'Adjust',
       },
+    },
+  },
+  pay_notify: {
+    table: {
+      channel: 'Channel', notify_type: 'Notify Type', transaction_no: 'Transaction No', trade_no: 'Trade No',
+      process_status: 'Process Status', process_msg: 'Process Message', ip: 'IP', created_at: 'Created At', updated_at: 'Updated At',
+    },
+    detail: {
+      title: 'Notify Detail',
+      headers: 'Headers',
+      raw_data: 'Raw Data',
     },
   },
   pay_reconcile: {
@@ -360,7 +372,7 @@ export default {
       platform_file: 'Platform File', local_file: 'Local File', diff_file: 'Diff File',
       error_msg: 'Error', created_at: 'Created At',
     },
-    actions: { retry: 'Retry' },
+    actions: { retry: 'Retry', download: 'Download' },
     detail: { title: 'Reconcile Detail' },
   },
   personal: {

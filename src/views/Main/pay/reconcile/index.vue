@@ -11,6 +11,7 @@ import { PayReconcileApi } from '@/api/pay/reconcile'
 import { ReconcileStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import { ElNotification } from 'element-plus'
+import { getCommonHeaders } from '@/utils/request'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -98,6 +99,43 @@ const handleRetry = async (row: any) => {
   })
 }
 
+const triggerDownload = async (type: 'platform' | 'local' | 'diff') => {
+  if (!detailData.value?.task?.id) {
+    return
+  }
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_SOME_KEY}/api/admin/PayReconcile/download`, {
+      method: 'POST',
+      headers: getCommonHeaders(),
+      body: JSON.stringify({ id: detailData.value.task.id, type }),
+    })
+
+    const contentType = response.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      const payload = await response.json()
+      throw new Error(payload?.msg || '下载失败')
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const blob = await response.blob()
+    const disposition = response.headers.get('content-disposition') || ''
+    const filenameMatch = disposition.match(/filename=\"?([^\";]+)\"?/)
+    const filename = decodeURIComponent(filenameMatch?.[1] || `${type}.dat`)
+    const url = window.URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = filename
+    anchor.click()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    ElNotification.error({ message: error instanceof Error ? error.message : '下载失败' })
+  }
+}
+
 onMounted(() => {
   void init()
   void getList()
@@ -159,9 +197,18 @@ onMounted(() => {
       <el-descriptions-item :label="t('pay_reconcile.table.diff_amount')">¥{{ formatFen(detailData.task.diff_amount) }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.started_at')">{{ detailData.task.started_at ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.finished_at')">{{ detailData.task.finished_at ?? '-' }}</el-descriptions-item>
-      <el-descriptions-item :label="t('pay_reconcile.table.platform_file')">{{ detailData.task.platform_file ?? '-' }}</el-descriptions-item>
-      <el-descriptions-item :label="t('pay_reconcile.table.local_file')">{{ detailData.task.local_file ?? '-' }}</el-descriptions-item>
-      <el-descriptions-item :label="t('pay_reconcile.table.diff_file')">{{ detailData.task.diff_file ?? '-' }}</el-descriptions-item>
+      <el-descriptions-item :label="t('pay_reconcile.table.platform_file')">
+        <el-button v-if="detailData.task.platform_file" link type="primary" @click="triggerDownload('platform')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <span v-else>-</span>
+      </el-descriptions-item>
+      <el-descriptions-item :label="t('pay_reconcile.table.local_file')">
+        <el-button v-if="detailData.task.local_file" link type="primary" @click="triggerDownload('local')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <span v-else>-</span>
+      </el-descriptions-item>
+      <el-descriptions-item :label="t('pay_reconcile.table.diff_file')">
+        <el-button v-if="detailData.task.diff_file" link type="primary" @click="triggerDownload('diff')">{{ t('pay_reconcile.actions.download') }}</el-button>
+        <span v-else>-</span>
+      </el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.error_msg')" :span="2">{{ detailData.task.error_msg ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.created_at')">{{ detailData.task.created_at }}</el-descriptions-item>
     </el-descriptions>

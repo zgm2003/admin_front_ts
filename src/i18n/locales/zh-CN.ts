@@ -292,6 +292,7 @@ export default {
     pay_order: '统一订单管理',
     pay_transaction: '支付流水',
     pay_wallet: '钱包管理',
+    pay_notify: '回调审计',
     pay_reconcile: '对账管理',
   },
   pay_channel: {
@@ -357,7 +358,7 @@ export default {
   pay_wallet: {
     filter: { user_id: '用户ID', user: '用户' },
     table: {
-      user_name: '用户', user_id: '用户ID', balance: '余额', frozen: '冻结金额', available: '可用余额',
+      user_name: '用户', user_id: '用户ID', balance: '可用余额', frozen: '冻结金额', available: '可用余额',
       total_recharge: '累计充值', total_consume: '累计消费',
       created_at: '创建时间',
     },
@@ -366,7 +367,7 @@ export default {
     txn: {
       title: '钱包流水', table: {
         biz_action_no: '业务流水号', type: '类型', available_delta: '可用变动',
-        frozen_delta: '冻结变动', balance_before: '变动前余额', balance_after: '变动后余额',
+        frozen_delta: '冻结变动', balance_before: '变动前可用余额', balance_after: '变动后可用余额',
         order_no: '关联订单', title: '说明', created_at: '时间',
       },
       bizAction: {
@@ -374,6 +375,17 @@ export default {
         consume: '消费',
         adjust: '调账',
       },
+    },
+  },
+  pay_notify: {
+    table: {
+      channel: '支付渠道', notify_type: '通知类型', transaction_no: '系统流水号', trade_no: '第三方交易号',
+      process_status: '处理状态', process_msg: '处理结果', ip: '来源IP', created_at: '创建时间', updated_at: '更新时间',
+    },
+    detail: {
+      title: '回调详情',
+      headers: '请求头',
+      raw_data: '原始回调',
     },
   },
   pay_reconcile: {
@@ -386,7 +398,7 @@ export default {
       platform_file: '平台文件', local_file: '本地文件', diff_file: '差异文件',
       error_msg: '错误信息', created_at: '创建时间',
     },
-    actions: { retry: '重试' },
+    actions: { retry: '重试', download: '下载' },
     detail: { title: '对账详情' },
   },
   personal: {

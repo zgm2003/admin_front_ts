@@ -18,7 +18,6 @@ const stats = computed(() => {
 
   return [
     { key: 'balance', label: t('personal.recharge.currentBalance'), value: props.wallet.balance, tone: 'primary' },
-    { key: 'available', label: t('personal.recharge.available'), value: props.wallet.available, tone: 'success' },
     { key: 'frozen', label: t('personal.recharge.frozen'), value: props.wallet.frozen, tone: 'warning' },
     { key: 'total_recharge', label: t('personal.recharge.totalRecharge'), value: props.wallet.total_recharge, tone: 'primary' },
     { key: 'total_consume', label: t('personal.recharge.totalConsume'), value: props.wallet.total_consume, tone: 'danger' },

@@ -3,7 +3,6 @@ import type { PageInfo } from '@/types/common'
 export interface WalletSummaryItem {
   balance: number
   frozen: number
-  available: number
   total_recharge: number
   total_consume: number
   created_at?: string
