@@ -7,11 +7,11 @@ import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import { downloadFile } from '@/components/DownloadManager'
 import { PayReconcileApi } from '@/api/pay/reconcile'
 import { ReconcileStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import { ElNotification } from 'element-plus'
-import { getCommonHeaders } from '@/utils/request'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -105,32 +105,8 @@ const triggerDownload = async (type: 'platform' | 'local' | 'diff') => {
   }
 
   try {
-    const response = await fetch(`${import.meta.env.VITE_SOME_KEY}/api/admin/PayReconcile/download`, {
-      method: 'POST',
-      headers: getCommonHeaders(),
-      body: JSON.stringify({ id: detailData.value.task.id, type }),
-    })
-
-    const contentType = response.headers.get('content-type') || ''
-    if (contentType.includes('application/json')) {
-      const payload = await response.json()
-      throw new Error(payload?.msg || '下载失败')
-    }
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const blob = await response.blob()
-    const disposition = response.headers.get('content-disposition') || ''
-    const filenameMatch = disposition.match(/filename=\"?([^\";]+)\"?/)
-    const filename = decodeURIComponent(filenameMatch?.[1] || `${type}.dat`)
-    const url = window.URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = filename
-    anchor.click()
-    window.URL.revokeObjectURL(url)
+    const res = await PayReconcileApi.download({ id: detailData.value.task.id, type })
+    await downloadFile(res.url, res.filename)
   } catch (error) {
     ElNotification.error({ message: error instanceof Error ? error.message : '下载失败' })
   }

@@ -5,4 +5,5 @@ export const PayReconcileApi = {
   list: (params: any) => request.post('/api/admin/PayReconcile/list', params),
   detail: (params: any) => request.post('/api/admin/PayReconcile/detail', params),
   retry: (params: any) => request.post('/api/admin/PayReconcile/retry', params),
+  download: (params: { id: number; type: 'platform' | 'local' | 'diff' }) => request.post('/api/admin/PayReconcile/download', params),
 }
