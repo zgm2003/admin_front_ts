@@ -70,39 +70,33 @@ export default defineConfig({
     ],
   },
   build: {
-    // 分包策略
-    rollupOptions: {
+    // Rolldown 分包策略
+    rolldownOptions: {
       // ali-oss 为可选依赖，未安装时不打包
       external: ['ali-oss'],
       output: {
-        manualChunks: (id) => {
-          // Vue 核心库
-          if (id.includes('node_modules/vue') || 
-              id.includes('node_modules/vue-router') || 
-              id.includes('node_modules/pinia') ||
-              id.includes('node_modules/vue-i18n')) {
-            return 'vue-vendor'
-          }
-          // 编辑器（按需加载）
-          if (id.includes('@wangeditor')) {
-            return 'editor'
-          }
-          // 云存储 SDK（按需加载）
-          if (id.includes('cos-js-sdk')) {
-            return 'cos-js-sdk-v5'
-          }
-          // Iconify
-          if (id.includes('@iconify')) {
-            return 'iconify'
-          }
-          // 注意：@element-plus/icons-vue 不再强制合并为单个 chunk
-          // 各页面按需 import 的图标会被 tree-shake，只打包实际使用的
-          // home 页面的动态全量 import() 会生成独立的异步 chunk，不影响其他页面
-        }
-      }
+        codeSplitting: {
+          groups: [
+            {
+              test: /node_modules\/(?:vue|vue-router|pinia|vue-i18n)\//,
+              name: 'vue-vendor',
+            },
+            {
+              test: /@wangeditor\//,
+              name: 'editor',
+            },
+            {
+              test: /cos-js-sdk/,
+              name: 'cos-js-sdk-v5',
+            },
+            {
+              test: /@iconify\//,
+              name: 'iconify',
+            },
+          ],
+        },
+      },
     },
-    // 压缩配置
-    minify: 'esbuild',
     // chunk 大小警告阈值
     chunkSizeWarningLimit: 1000,
     // CSS 代码分割

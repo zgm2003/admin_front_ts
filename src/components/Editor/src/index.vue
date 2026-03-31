@@ -5,15 +5,29 @@ import {ElMessage} from 'element-plus'
 import {getUploadToken, uploadFileToCloud} from '@/utils/cosUpload'
 
 let editorRegisterPromise: Promise<void> | null = null
+type PrismWindow = Window & {
+  Prism?: {
+    languages?: Record<string, unknown>
+  }
+}
+
+const ensurePrismMarkupTemplatingRegistered = async () => {
+  if (typeof window === 'undefined') return
+  const prismWindow = window as PrismWindow
+  if (prismWindow.Prism?.languages?.['markup-templating']) return
+  // wangEditor 内置的 Prism 缺少 markup-templating，会让 php 等模板类高亮偶发报错
+  await import('prismjs/components/prism-markup-templating.js')
+}
+
 const ensureEditorRegistered = () => {
   if (editorRegisterPromise) return editorRegisterPromise
-  editorRegisterPromise = Promise.all([
-    import('@wangeditor/editor'),
-    import('@wangeditor/plugin-md'),
-  ]).then(([editorModule, markdownModule]) => {
+  editorRegisterPromise = (async () => {
+    const editorModule = await import('@wangeditor/editor')
+    await ensurePrismMarkupTemplatingRegistered()
+    const markdownModule = await import('@wangeditor/plugin-md')
     const Boot = (editorModule as any).Boot
     Boot.registerModule(markdownModule.default || markdownModule)
-  })
+  })()
   return editorRegisterPromise
 }
 

@@ -5,3 +5,4 @@ declare module '@wangeditor/editor-for-vue' {
   export const Editor: DefineComponent<any, any, any>
   export const Toolbar: DefineComponent<any, any, any>
 }
+declare module 'prismjs/components/prism-markup-templating.js'
