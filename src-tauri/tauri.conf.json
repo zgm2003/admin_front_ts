@@ -11,7 +11,7 @@
   },
   "plugins": {
     "updater": {
-      "endpoints": ["https://zgm2003.cn/update.json"],
+      "endpoints": ["https://cos.zgm2003.cn/tauri_updater/{{target}}-{{arch}}.json"],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDBCQkQxMTJDRDIwQTBEOUYKUldTZkRRclNMQkc5Q3grSGFhSFpwOEk2M3BxZDNtNUJNTXl6bVFxeVM1THBRenFMY1F5ZE1IREEK"
     }
   },
