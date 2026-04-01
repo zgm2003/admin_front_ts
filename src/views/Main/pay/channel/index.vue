@@ -21,14 +21,12 @@ const isMobile = useIsMobile()
 const channelArr = ref<{ label: string; value: number }[]>([])
 const statusArr = ref<{ label: string; value: number }[]>([])
 const payMethodArr = ref<{ label: string; value: string }[]>([])
-const channelMethodMap = ref<Record<number, { label: string; value: string }[]>>({})
 
 const init = async () => {
   const data = await PayChannelApi.init()
   channelArr.value = data.dict.channel_arr
   statusArr.value = data.dict.common_status_arr
   payMethodArr.value = data.dict.pay_method_arr
-  channelMethodMap.value = data.dict.channel_method_arr ?? {}
 }
 
 // ==================== 搜索 ====================
@@ -120,15 +118,12 @@ const rules = computed<FormRules>(() => ({
   mch_id: [{ required: true, message: t('pay_channel.table.mch_id') + t('common.required'), trigger: 'blur' }],
 }))
 
-const availablePayMethodOptions = computed(() => {
-  return channelMethodMap.value[form.value.channel] ?? payMethodArr.value
-})
+const availablePayMethodOptions = computed(() => payMethodArr.value)
 
-const syncSupportedMethods = (channel: number, selected: string[] = []) => {
-  const options = channelMethodMap.value[channel] ?? payMethodArr.value
+const syncSupportedMethods = (selected: string[] = []) => {
+  const options = payMethodArr.value
   const allowedSet = new Set(options.map((item) => item.value))
-  const normalized = selected.filter((method) => allowedSet.has(method))
-  form.value.supported_methods = normalized.length > 0 ? normalized : options.map((item) => item.value)
+  form.value.supported_methods = selected.filter((method) => allowedSet.has(method))
 }
 
 // 切换渠道时自动填充回调地址
@@ -139,13 +134,12 @@ const onChannelChange = () => {
   } else if (form.value.channel === 2) {
     form.value.notify_url = domain + '/api/pay/notify/alipay'
   }
-  syncSupportedMethods(form.value.channel, form.value.supported_methods)
+  form.value.supported_methods = []
 }
 
 const add = () => {
   dialogMode.value = 'add'
   form.value = getDefaultForm()
-  syncSupportedMethods(form.value.channel)
   sectionBasic.value = true
   sectionCert.value = false
   sectionCallback.value = false
@@ -174,7 +168,7 @@ const edit = (row: any) => {
     status: row.status,
     remark: row.remark ?? '',
   }
-  syncSupportedMethods(form.value.channel, form.value.supported_methods)
+  syncSupportedMethods(form.value.supported_methods)
   sectionBasic.value = true
   sectionCert.value = false
   sectionCallback.value = false
@@ -283,6 +277,8 @@ onMounted(() => {
             <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.name')" prop="name">
                 <el-input v-model="form.name" clearable style="width:100%"
+                  :maxlength="50"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.namePlaceholder')" />
               </el-form-item>
             </el-col>
@@ -296,6 +292,8 @@ onMounted(() => {
             <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.mch_id')" prop="mch_id">
                 <el-input v-model="form.mch_id" clearable style="width:100%"
+                  :maxlength="64"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.mch_idPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -317,6 +315,8 @@ onMounted(() => {
             <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.app_id')">
                 <el-input v-model="form.app_id" clearable style="width:100%"
+                  :maxlength="64"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.app_idPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -348,6 +348,8 @@ onMounted(() => {
           </el-row>
           <el-form-item :label="t('pay_channel.form.remark')">
             <el-input v-model="form.remark" type="textarea" :rows="2" clearable style="width:100%"
+              :maxlength="255"
+              show-word-limit
               :placeholder="t('pay_channel.form.remarkPlaceholder')" />
           </el-form-item>
         </div>
@@ -364,10 +366,12 @@ onMounted(() => {
 
           <!-- 商户私钥 -->
               <el-form-item :label="t('pay_channel.form.app_private_key')">
-                <el-input
+              <el-input
                   v-model="form.app_private_key"
               type="textarea"
               :rows="3"
+              :maxlength="20000"
+              show-word-limit
               clearable
               style="width:100%"
               :placeholder="t('pay_channel.form.appPrivateKeyPlaceholder')" />
@@ -381,6 +385,8 @@ onMounted(() => {
             <el-col :span="12">
               <el-form-item :label="t('pay_channel.form.appPrivateKey_hint')" prop="app_private_key_hint">
                 <el-input v-model="form.app_private_key_hint" clearable style="width:100%"
+                  :maxlength="20"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.appPrivateKeyHintPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -391,6 +397,8 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item :label="t('pay_channel.form.public_cert_path')" prop="public_cert_path">
                 <el-input v-model="form.public_cert_path" clearable style="width:100%"
+                  :maxlength="512"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.certPathPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -399,6 +407,8 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item :label="t('pay_channel.form.platform_cert_path')" prop="platform_cert_path">
                 <el-input v-model="form.platform_cert_path" clearable style="width:100%"
+                  :maxlength="512"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.certPathPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -407,6 +417,8 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item :label="t('pay_channel.form.root_cert_path')" prop="root_cert_path">
                 <el-input v-model="form.root_cert_path" clearable style="width:100%"
+                  :maxlength="512"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.certPathPlaceholder')" />
               </el-form-item>
             </el-col>
@@ -426,6 +438,8 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item :label="t('pay_channel.form.notify_url')">
                 <el-input v-model="form.notify_url" clearable style="width:100%"
+                  :maxlength="512"
+                  show-word-limit
                   :placeholder="t('pay_channel.form.notify_urlPlaceholder')" />
               </el-form-item>
             </el-col>
