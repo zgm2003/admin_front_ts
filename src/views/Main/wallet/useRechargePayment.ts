@@ -952,7 +952,6 @@ export function useRechargePayment() {
         amount: Math.round(amount * 100),
         pay_method: selectedPayMethod.value,
         channel_id: selectedChannelId.value,
-        channel: selectedChannelRecord.value?.channel ?? 0,
       })
 
       currentOrder.value = {

@@ -27,7 +27,6 @@ export interface RechargeCreateParams {
   amount: number
   pay_method: string
   channel_id: number
-  channel?: number
 }
 
 export interface CreatePayParams {
