@@ -13,7 +13,7 @@ import { ElNotification, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { downloadFile } from '@/components/DownloadManager'
 import { UpFile } from '@/components/UpFile'
-import { SignatureInput } from '@/components/SignatureInput'
+import SignatureInput from './components/SignatureInput.vue'
 import { CommonEnum } from '@/enums'
 
 const { t } = useI18n()

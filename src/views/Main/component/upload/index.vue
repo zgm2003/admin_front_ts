@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import { UpMedia } from '@/components/UpMedia'
-import { UpMediaList } from '@/components/UpMediaList'
+import UpMediaList from './components/UpMediaList.vue'
 import { UpFile } from '@/components/UpFile'
 
 const activeTab = ref('UpMedia')

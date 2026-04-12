@@ -128,7 +128,7 @@ import {
 import { ElMessage } from 'element-plus'
 import { downloadFile, downloadManager, type DownloadProgress } from '@/components/DownloadManager'
 
-const RichEditor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
+const RichEditor = defineAsyncComponent(() => import('@/views/Main/component/display/components/Editor.vue'))
 const DownloadManager = defineAsyncComponent(() => import('@/components/DownloadManager').then(m => m.DownloadManager))
 
 const isDark = ref(false)

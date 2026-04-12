@@ -1,51 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { PayChannelApi } from '@/api/pay/channel'
+import type { PayChannelListItem } from '@/api/pay/channel'
 import { CommonEnum } from '@/enums'
 import { ArrowDown, Lock, Key, Bell } from '@element-plus/icons-vue'
-import { ElNotification } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import { usePayChannelPage } from './composables/usePayChannelPage'
 
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
-
-// ==================== 下拉字典 ====================
-const channelArr = ref<{ label: string; value: number }[]>([])
-const statusArr = ref<{ label: string; value: number }[]>([])
-const payMethodArr = ref<{ label: string; value: string }[]>([])
-
-const init = async () => {
-  const data = await PayChannelApi.init()
-  channelArr.value = data.dict.channel_arr
-  statusArr.value = data.dict.common_status_arr
-  payMethodArr.value = data.dict.pay_method_arr
-}
-
-// ==================== 搜索 ====================
-const searchForm = ref({
-  name: '',
-  channel: '' as number | '',
-  status: '' as number | '',
-})
-
-const searchFields = computed<SearchField[]>(() => [
-  { key: 'name', type: 'input', label: t('pay_channel.table.name'), placeholder: t('pay_channel.filter.name'), width: 150 },
-  { key: 'channel', type: 'select-v2', label: t('pay_channel.table.channel'), options: channelArr.value, width: 150 },
-  { key: 'status', type: 'select-v2', label: t('pay_channel.table.status'), options: statusArr.value, width: 120 },
-])
-
-// ==================== 表格 ====================
 const {
-  loading: listLoading,
-  data: listData,
+  channelArr,
+  statusArr,
+  searchForm,
+  listLoading,
+  listData,
   page,
   onSearch,
   onPageChange,
@@ -55,10 +29,27 @@ const {
   confirmDel,
   batchDel,
   toggleStatus,
-} = useTable({
-  api: PayChannelApi,
-  searchForm,
-})
+  dialogVisible,
+  dialogMode,
+  formRef,
+  form,
+  rules,
+  sectionBasic,
+  sectionCert,
+  sectionCallback,
+  availablePayMethodOptions,
+  init,
+  onChannelChange,
+  openAddDialog,
+  openEditDialog,
+  confirmSubmit,
+} = usePayChannelPage({ t })
+
+const searchFields = computed<SearchField[]>(() => [
+  { key: 'name', type: 'input', label: t('pay_channel.table.name'), placeholder: t('pay_channel.filter.name'), width: 150 },
+  { key: 'channel', type: 'select-v2', label: t('pay_channel.table.channel'), options: channelArr.value, width: 150 },
+  { key: 'status', type: 'select-v2', label: t('pay_channel.table.status'), options: statusArr.value, width: 120 },
+])
 
 const columns = computed(() => [
   { key: 'name', label: t('pay_channel.table.name') },
@@ -70,125 +61,14 @@ const columns = computed(() => [
   {
     key: 'app_private_key_hint',
     label: t('pay_channel.table.app_private_key_hint'),
-    formatter: (row: any) => row.app_private_key_hint || '—',
+    formatter: (row: PayChannelListItem) => row.app_private_key_hint || '—',
   },
   { key: 'status_name', label: t('pay_channel.table.status') },
   { key: 'created_at', label: t('pay_channel.table.created_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 250 },
 ])
 
-// ==================== 弹窗 ====================
-const dialogVisible = ref(false)
-const dialogMode = ref<'add' | 'edit'>('add')
-const formRef = ref<FormInstance | null>(null)
-
-// 三区块折叠状态
-const sectionBasic = ref(true)
-const sectionCert = ref(false)
-const sectionCallback = ref(false)
-
-// 私钥显示切换
-const showSecretCert = ref(false)
-
-const getDefaultForm = () => ({
-  id: 0,
-  name: '',
-  channel: 1 as number,
-  supported_methods: [] as string[],
-  mch_id: '',
-  app_id: '',
-  notify_url: '',
-  app_private_key: '',
-  app_private_key_hint: '',
-  public_cert_path: '',
-  platform_cert_path: '',
-  root_cert_path: '',
-  sort: 0,
-  is_sandbox: CommonEnum.NO,
-  status: CommonEnum.YES,
-  remark: '',
-})
-
-const form = ref(getDefaultForm())
-
-const rules = computed<FormRules>(() => ({
-  name: [{ required: true, message: t('pay_channel.table.name') + t('common.required'), trigger: 'blur' }],
-  channel: [{ required: true, message: t('pay_channel.table.channel') + t('common.required'), trigger: 'change' }],
-  supported_methods: [{ required: true, message: t('pay_channel.form.supported_methods') + t('common.required'), trigger: 'change' }],
-  mch_id: [{ required: true, message: t('pay_channel.table.mch_id') + t('common.required'), trigger: 'blur' }],
-}))
-
-const availablePayMethodOptions = computed(() => payMethodArr.value)
-
-const syncSupportedMethods = (selected: string[] = []) => {
-  const options = payMethodArr.value
-  const allowedSet = new Set(options.map((item) => item.value))
-  form.value.supported_methods = selected.filter((method) => allowedSet.has(method))
-}
-
-// 切换渠道时自动填充回调地址
-const onChannelChange = () => {
-  const domain = 'https://www.zgm2003.cn'
-  if (form.value.channel === 1) {
-    form.value.notify_url = domain + '/api/pay/notify/wechat'
-  } else if (form.value.channel === 2) {
-    form.value.notify_url = domain + '/api/pay/notify/alipay'
-  }
-  form.value.supported_methods = []
-}
-
-const add = () => {
-  dialogMode.value = 'add'
-  form.value = getDefaultForm()
-  sectionBasic.value = true
-  sectionCert.value = false
-  sectionCallback.value = false
-  showSecretCert.value = false
-  dialogVisible.value = true
-  nextTick(() => { void formRef.value?.clearValidate() })
-}
-
-const edit = (row: any) => {
-  dialogMode.value = 'edit'
-  form.value = {
-    id: row.id,
-    name: row.name,
-    channel: row.channel,
-    supported_methods: Array.isArray(row.supported_methods) ? row.supported_methods : [],
-    mch_id: row.mch_id,
-    app_id: row.app_id ?? '',
-    notify_url: row.notify_url ?? '',
-    app_private_key: '',
-    app_private_key_hint: row.app_private_key_hint ?? '',
-    public_cert_path: row.public_cert_path ?? '',
-    platform_cert_path: row.platform_cert_path ?? '',
-    root_cert_path: row.root_cert_path ?? '',
-    sort: row.sort ?? 0,
-    is_sandbox: row.is_sandbox,
-    status: row.status,
-    remark: row.remark ?? '',
-  }
-  syncSupportedMethods(form.value.supported_methods)
-  sectionBasic.value = true
-  sectionCert.value = false
-  sectionCallback.value = false
-  showSecretCert.value = false
-  dialogVisible.value = true
-  nextTick(() => { void formRef.value?.clearValidate() })
-}
-
-const confirmSubmit = async () => {
-  try { await formRef.value?.validate() } catch { return }
-  const payload: Record<string, unknown> = { ...form.value }
-  if (!payload.app_private_key) delete payload.app_private_key
-  if (!payload.app_private_key_hint) delete payload.app_private_key_hint
-  const api = dialogMode.value === 'add' ? PayChannelApi.add : PayChannelApi.edit
-  api(payload).then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    dialogVisible.value = false
-    void getList()
-  })
-}
+void formRef.value
 
 onMounted(() => {
   void init()
@@ -213,7 +93,7 @@ onMounted(() => {
         @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button v-if="userStore.can('pay_channel_add')" type="success" @click="add">
+          <el-button v-if="userStore.can('pay_channel_add')" type="success" @click="openAddDialog">
             {{ t('common.actions.add') }}
           </el-button>
           <el-dropdown>
@@ -233,7 +113,7 @@ onMounted(() => {
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text v-if="userStore.can('pay_channel_edit')" @click="edit(row)">
+          <el-button type="primary" text v-if="userStore.can('pay_channel_edit')" @click="openEditDialog(row)">
             {{ t('common.actions.edit') }}
           </el-button>
           <el-button type="danger" text v-if="userStore.can('pay_channel_del')" @click="confirmDel(row)">

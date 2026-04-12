@@ -12,7 +12,7 @@ interface DemoLogItem extends LogStreamItem {
   is_success: number
 }
 
-const Editor = defineAsyncComponent(() => import('@/components/Editor').then(m => m.Editor))
+const Editor = defineAsyncComponent(() => import('./components/Editor.vue'))
 const MarkdownRenderer = defineAsyncComponent(() => import('@/components/MarkdownRenderer').then(m => m.MarkdownRenderer))
 
 const activeTab = ref('Table')

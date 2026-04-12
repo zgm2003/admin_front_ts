@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import { ParticleBackground } from '@/components/ParticleBackground'
+import ParticleBackground from './components/ParticleBackground.vue'
 
 const showParticle = ref(false)
 const activeTab = ref('ParticleBackground')

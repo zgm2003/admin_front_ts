@@ -430,7 +430,7 @@ export function useRechargePayment() {
       const [initData, channelData] = await Promise.all([
         OrderApi.init(),
         PayChannelApi.list({
-          page: 1,
+          current_page: 1,
           page_size: PAY_CHANNEL_FETCH_SIZE,
           status: CommonEnum.YES,
         }),
