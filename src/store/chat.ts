@@ -226,34 +226,34 @@ export const useChatStore = defineStore('chat', {
     handleWsMessage(message: WsMessage) {
       switch (message.type) {
         case 'chat_message':
-          this._handleChatMessage(message.data)
+          this._handleChatMessage(message.data as { conversation_id: number; message: MessageItem })
           break
         case 'chat_typing':
-          this._handleChatTyping(message.data)
+          this._handleChatTyping(message.data as { conversation_id: number; user_id: number })
           break
         case 'chat_read':
-          this._handleChatRead(message.data)
+          this._handleChatRead(message.data as { conversation_id: number; user_id: number })
           break
         case 'chat_online':
-          this._handleChatOnline(message.data)
+          this._handleChatOnline(message.data as { user_id: number; is_online: boolean })
           break
         case 'chat_message_recall':
-          this._handleMessageRecall(message.data)
+          this._handleMessageRecall(message.data as { conversation_id: number; message_id: number })
           break
         case 'chat_group_update':
-          this._handleGroupUpdate(message.data)
+          this._handleGroupUpdate(message.data as unknown as GroupUpdateData)
           break
         case 'chat_contact_request':
-          this._handleContactRequest(message.data)
+          this._handleContactRequest(message.data as { from_user_id: number })
           break
         case 'chat_contact_rejected':
-          this._handleContactRejected(message.data)
+          this._handleContactRejected(message.data as { rejected_by: number })
           break
         case 'chat_contact_confirmed':
-          this._handleContactConfirmed(message.data)
+          this._handleContactConfirmed(message.data as { confirmed_by: number })
           break
         case 'chat_contact_deleted':
-          this._handleContactDeleted(message.data)
+          this._handleContactDeleted(message.data as { deleted_by: number; conversation_id: number | null })
           break
       }
     },

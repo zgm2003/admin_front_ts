@@ -2,10 +2,15 @@
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { TauriVersionApi } from '@/api/system/tauriVersion'
+import {
+  TauriVersionApi,
+  type TauriVersionForm,
+  type TauriVersionInitResponse,
+  type TauriVersionItem,
+} from '@/api/system/tauriVersion'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useCopy } from '@/hooks/useCopy'
@@ -26,15 +31,15 @@ const platformOptions = ref<{ label: string; value: string }[]>([])
 // 平台映射表，O(1) 查找替代 find 遍历
 const platformMap = computed(() => new Map(platformOptions.value.map(p => [p.value, p.label])))
 const init = () => {
-  TauriVersionApi.init().then((res: any) => {
-    const arr = res?.dict?.tauri_platform_arr || []
-    platformOptions.value = arr.map((item: any) => ({ value: item.value, label: item.label }))
+  TauriVersionApi.init().then((res: TauriVersionInitResponse) => {
+    const arr = res.dict.tauri_platform_arr
+    platformOptions.value = arr.map((item) => ({ value: item.value, label: item.label }))
   })
 }
 
 // 主列表
 const searchForm = ref({ platform: '' })
-const { loading, data, page, onPageChange, onSearch, refresh, getList, confirmDel } = useTable({
+const { loading, data, page, onPageChange, onSearch, refresh, getList, confirmDel } = useCrudTable({
   api: TauriVersionApi,
   searchForm,
   immediate: true
@@ -59,8 +64,8 @@ const columns = computed(() => [
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
-const defaultForm = () => ({ id: 0, version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: CommonEnum.NO })
-const form = ref<any>(defaultForm())
+const defaultForm = (): TauriVersionForm & { id?: number } => ({ id: 0, version: '', notes: '', file_url: '', signature: '', platform: 'windows-x86_64', file_size: 0, force_update: CommonEnum.NO })
+const form = ref<TauriVersionForm & { id?: number }>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
   version: [{ required: true, message: t('tauriVersion.form.version') + t('common.required'), trigger: 'blur' }],
@@ -76,7 +81,7 @@ const add = () => {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+const edit = (row: TauriVersionItem) => {
   dialogMode.value = 'edit'
   form.value = { ...row }
   dialogVisible.value = true
@@ -95,7 +100,7 @@ const confirmSubmit = async () => {
 }
 
 // 设为最新
-const handleSetLatest = (row: any) => {
+const handleSetLatest = (row: TauriVersionItem) => {
   ElMessageBox.confirm(t('tauriVersion.setLatestConfirm', { version: row.version }), t('common.confirmTitle'), {
     confirmButtonText: t('common.actions.confirm'),
     cancelButtonText: t('common.actions.cancel'),
@@ -109,7 +114,7 @@ const handleSetLatest = (row: any) => {
 }
 
 // 切换强制更新状态
-const toggleForceUpdate = async (row: any) => {
+const toggleForceUpdate = async (row: TauriVersionItem) => {
   const isForce = row.force_update === CommonEnum.YES
   const confirmMsg = isForce 
     ? t('tauriVersion.cancelForceConfirm', { version: row.version })
@@ -136,7 +141,7 @@ const toggleForceUpdate = async (row: any) => {
 const jsonDialogVisible = ref(false)
 const updateJsonContent = ref('')
 const showUpdateJson = () => {
-  TauriVersionApi.updateJson({ platform: searchForm.value.platform || 'windows-x86_64' }).then((res: any) => {
+  TauriVersionApi.updateJson({ platform: searchForm.value.platform || 'windows-x86_64' }).then((res) => {
     updateJsonContent.value = JSON.stringify(res, null, 2)
     jsonDialogVisible.value = true
   })

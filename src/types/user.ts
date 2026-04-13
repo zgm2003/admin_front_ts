@@ -25,7 +25,7 @@ export interface PermissionMenuItem {
 export interface DynamicRouteItem {
   name: string
   path: string
-  component: string
+  view_key: string
   meta?: {
     menuId?: string
     [key: string]: unknown

@@ -2,11 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { PayNotifyLogApi } from '@/api/pay/notify'
+import {
+  PayNotifyLogApi,
+  type PayNotifyLogDetailResponse,
+  type PayNotifyLogItem,
+} from '@/api/pay/notify'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -36,7 +40,7 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'process_status', type: 'select-v2', label: t('pay_notify.table.process_status'), options: processStatusArr.value, width: 160 },
 ])
 
-const { loading, data, page, getList, onSearch, onPageChange, refresh } = useTable({
+const { loading, data, page, getList, onPageChange, refresh, onSearch } = useCrudTable({
   api: PayNotifyLogApi,
   searchForm,
 })
@@ -54,9 +58,9 @@ const columns = computed(() => [
 ])
 
 const detailVisible = ref(false)
-const detailData = ref<any>(null)
+const detailData = ref<PayNotifyLogDetailResponse | null>(null)
 
-const showDetail = async (row: any) => {
+const showDetail = async (row: PayNotifyLogItem) => {
   detailData.value = await PayNotifyLogApi.detail({ id: row.id })
   detailVisible.value = true
 }

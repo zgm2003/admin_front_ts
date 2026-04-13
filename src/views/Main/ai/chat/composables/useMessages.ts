@@ -7,6 +7,13 @@ import type { Message } from './types'
 
 const PAGE_SIZE = 50
 
+interface ScrollRefApi {
+  wrapRef?: HTMLElement
+  setScrollTop: (value: number) => void
+}
+
+export type { ScrollRefApi }
+
 export function useMessages() {
   const {t} = useI18n()
   const {copy: copyText} = useCopy()
@@ -16,7 +23,7 @@ export function useMessages() {
   const loadingMore = ref(false)
   const page = ref(1)
   const hasMore = ref(true)
-  const scrollRef = ref<any>(null)
+  const scrollRef = ref<ScrollRefApi | null>(null)
 
   // 滚动到底部
   const scrollToBottom = () => {
@@ -41,7 +48,7 @@ export function useMessages() {
         page_size: PAGE_SIZE,
         current_page: 1
       })
-      const list = res.list || []
+      const list = res.list
       messages.value = list.reverse()
       hasMore.value = list.length >= PAGE_SIZE
       nextTick(() => scrollToBottom())
@@ -66,7 +73,7 @@ export function useMessages() {
         page_size: PAGE_SIZE,
         current_page: nextPage
       })
-      const list = res.list || []
+      const list = res.list
 
       if (list.length > 0) {
         messages.value = [...list.reverse(), ...messages.value]

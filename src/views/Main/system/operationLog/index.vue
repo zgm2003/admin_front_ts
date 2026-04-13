@@ -22,8 +22,8 @@ interface UserLookupOption {
 interface OperationLogStreamItem extends LogStreamItem {
   action?: string
   is_success?: number
-  request_data?: string
-  response_data?: string
+  request_data?: string | null
+  response_data?: string | null
   user_email?: string
   user_name?: string
 }

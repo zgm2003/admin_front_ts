@@ -6,10 +6,15 @@ import {ElNotification} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
-import {UploadDriverApi} from '@/api/system/uploadConfig'
+import {
+  UploadDriverApi,
+  type UploadDriverForm,
+  type UploadDriverInitResponse,
+  type UploadDriverItem,
+} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import {ArrowDown} from "@element-plus/icons-vue";
 
 const {t} = useI18n()
@@ -29,12 +34,14 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel
-} = useTable({
+} = useCrudTable({
   api: UploadDriverApi,
   searchForm
 })
 
-const dict = ref({upload_driver_arr: []} as any)
+const dict = ref<UploadDriverInitResponse['dict']>({
+  upload_driver_arr: [],
+})
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -43,7 +50,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('upload.driver.filter.driver'),
     placeholder: t('upload.driver.filter.driver'),
     width: 200,
-    options: dict.value.upload_driver_arr || []
+    options: dict.value.upload_driver_arr
   },
 ])
 
@@ -60,8 +67,8 @@ const columns = computed(() => [
 
 const init = () => {
   UploadDriverApi.init()
-      .then((data: any) => {
-        dict.value = data.dict || {}
+      .then((data) => {
+        dict.value = data.dict
       })
       .catch(() => {
       })
@@ -71,7 +78,17 @@ const init = () => {
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
-const form = ref({
+type UploadDriverFormState = UploadDriverForm & {
+  id: number | string
+  secret_id: string
+  secret_key: string
+  role_arn: string
+  appid: string
+  endpoint: string
+  bucket_domain: string
+}
+
+const form = ref<UploadDriverFormState>({
   id: '',
   driver: '',
   secret_id: '',
@@ -144,7 +161,7 @@ const add = () => {
   })
 }
 
-const edit = (row: any) => {
+const edit = (row: UploadDriverItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
@@ -153,10 +170,10 @@ const edit = (row: any) => {
     secret_key: '', // 编辑时留空，后端不返回明文
     bucket: row.bucket,
     region: row.region,
-    role_arn: row.role_arn,
-    appid: row.appid,
-    endpoint: row.endpoint,
-    bucket_domain: row.bucket_domain
+    role_arn: row.role_arn ?? '',
+    appid: row.appid ?? '',
+    endpoint: row.endpoint ?? '',
+    bucket_domain: row.bucket_domain ?? ''
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -172,7 +189,7 @@ const confirmSubmit = async () => {
   }
 
   const api = dialogMode.value === 'add' ? UploadDriverApi.add : UploadDriverApi.edit
-  api(form.value).then(() => {
+  api(form.value as UploadDriverForm).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList()

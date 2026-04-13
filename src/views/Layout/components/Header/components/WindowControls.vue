@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { isTauri, useTauriStore } from '@/store/tauri'
+import { useTauriStore } from '@/store/tauri'
+import {
+  isCurrentAppWindowMaximized,
+  isTauri,
+  listenWindowResize,
+  minimizeAppWindow,
+  toggleMaximizeAppWindow,
+} from '@/platform/tauri'
 import { SemiSelect, FullScreen, CopyDocument, Close } from '@element-plus/icons-vue'
 
 const tauriStore = useTauriStore()
@@ -8,18 +15,15 @@ const isMaximized = ref(false)
 let unlisten: (() => void) | null = null
 
 async function updateMaxState() {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  isMaximized.value = await getCurrentWindow().isMaximized()
+  isMaximized.value = await isCurrentAppWindowMaximized()
 }
 
 async function minimize() {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  await getCurrentWindow().minimize()
+  await minimizeAppWindow()
 }
 
 async function toggleMaximize() {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  await getCurrentWindow().toggleMaximize()
+  await toggleMaximizeAppWindow()
 }
 
 async function handleClose() {
@@ -33,8 +37,7 @@ async function handleClose() {
 onMounted(async () => {
   if (!isTauri()) return
   await updateMaxState()
-  const { listen } = await import('@tauri-apps/api/event')
-  unlisten = await listen('tauri://resize', updateMaxState) as unknown as () => void
+  unlisten = await listenWindowResize(updateMaxState)
 })
 
 onUnmounted(() => {

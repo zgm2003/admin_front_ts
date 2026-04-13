@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AiToolApi } from '@/api/ai/tools'
+import {
+  AiToolApi,
+  type AiToolInitResponse,
+  type AiToolItem,
+  type AiToolMutationParams,
+} from '@/api/ai/tools'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { Search } from '@/components/Search'
@@ -9,14 +14,20 @@ import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
 import { JsonEditor } from '@/components/JsonEditor'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ ai_executor_type_arr: [], common_status_arr: [] } as any)
+const dict = ref<AiToolInitResponse['dict']>({
+  ai_executor_type_arr: [],
+  common_status_arr: [],
+})
 
-const searchForm = ref({ name: '', status: '' } as any)
+const searchForm = ref({
+  name: '',
+  status: '' as number | '',
+})
 
 const {
   loading: listLoading,
@@ -28,23 +39,42 @@ const {
   getList,
   confirmDel,
   toggleStatus
-} = useTable({
+} = useCrudTable({
   api: AiToolApi,
   searchForm
 })
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const defaultForm = () => ({
+
+interface ToolExecutorConfig {
+  url?: string
+  sql?: string
+  [key: string]: unknown
+}
+
+interface ToolForm {
+  id?: number
+  name: string
+  code: string
+  description: string
+  schema_json: string
+  executor_type: number
+  executor_config: ToolExecutorConfig
+  status: number
+}
+
+const defaultForm = (): ToolForm => ({
   name: '',
   code: '',
   description: '',
   schema_json: '',
   executor_type: 1,
-  executor_config: {} as any,
-  status: 1
+  executor_config: {},
+  status: 1,
 })
-const form = ref<any>(defaultForm())
+
+const form = ref<ToolForm>(defaultForm())
 const formRef = ref<FormInstance | null>(null)
 const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 
@@ -82,8 +112,8 @@ const onExecutorTypeChange = () => {
 }
 
 const init = () => {
-  AiToolApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  AiToolApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
@@ -116,7 +146,7 @@ const add = () => {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+const edit = (row: AiToolItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
@@ -125,7 +155,7 @@ const edit = (row: any) => {
     description: row.description || '',
     schema_json: row.schema_json ? JSON.stringify(row.schema_json, null, 2) : '',
     executor_type: row.executor_type,
-    executor_config: row.executor_config || {},
+    executor_config: (row.executor_config ?? {}) as ToolExecutorConfig,
     status: row.status
   }
   dialogVisible.value = true
@@ -152,7 +182,7 @@ const confirmSubmit = async () => {
     }
   }
 
-  const payload: any = {
+  const payload: AiToolMutationParams = {
     name: v.name,
     code: v.code,
     description: v.description || null,

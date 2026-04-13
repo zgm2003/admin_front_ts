@@ -7,14 +7,17 @@ import {useRoute} from 'vue-router'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
-import {useTable} from '@/hooks/useTable'
-import {ExportTaskApi} from '@/api/system/exportTask'
+import { useCrudTable } from '@/hooks/useCrudTable'
+import {
+  ExportTaskApi,
+  type ExportTaskStatusItem,
+} from '@/api/system/exportTask'
 import {downloadFile} from '@/components/DownloadManager'
 
 const {t} = useI18n()
 const route = useRoute()
-const statusArr = ref<any[]>([])
-const searchForm = ref({status: '', title: '', file_name: ''})
+const statusArr = ref<ExportTaskStatusItem[]>([])
+const searchForm = ref({status: '' as number | '', title: '', file_name: ''})
 
 const parseStatusQuery = (raw: unknown): number | null => {
   if (raw === undefined || raw === null) return null
@@ -25,34 +28,31 @@ const parseStatusQuery = (raw: unknown): number | null => {
   return null
 }
 
-const applyStatusFromQuery = (options: any[]) => {
+const applyStatusFromQuery = (options: ExportTaskStatusItem[]) => {
   const target = parseStatusQuery(route.query.status)
   if (!target) return false
   const hit = options.find(item => Number(item.value) === target)
   if (!hit) return false
-  searchForm.value.status = hit.value as any
+  searchForm.value.status = hit.value
   return true
 }
 
-const loadStatusCount = () => {
-  ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name}).then((data: any) => {
-    statusArr.value = data
-    if (!applyStatusFromQuery(data)) {
-      searchForm.value.status = data[0]?.value ?? ''
-    }
-    getList()
-  }).catch(() => {})
+const loadStatusCount = async () => {
+  const data = await ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name})
+  statusArr.value = data
+  if (!applyStatusFromQuery(data)) {
+    searchForm.value.status = data[0]?.value ?? ''
+  }
+  await getList()
 }
 
-const refreshStatusCount = () => {
-  ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name}).then((data: any) => {
-    statusArr.value = data
-  }).catch(() => {})
+const refreshStatusCount = async () => {
+  statusArr.value = await ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name})
 }
 
-const handleSearch = () => {
-  getList()
-  refreshStatusCount()
+const handleSearch = async () => {
+  await getList()
+  await refreshStatusCount()
 }
 
 const {
@@ -66,7 +66,7 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel
-} = useTable({
+} = useCrudTable({
   api: ExportTaskApi,
   searchForm,
   afterDel: refreshStatusCount
@@ -89,23 +89,23 @@ const columns = [
   {key: 'actions', label: t('common.actions.action'), width: 180}
 ]
 
-const handleChangeStatus = () => {
-  getList()
-  refreshStatusCount()
+const handleChangeStatus = async () => {
+  await getList()
+  await refreshStatusCount()
 }
 
 const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info' => {
-  return {1: 'warning', 2: 'success', 3: 'danger'}[status] as any || 'info'
+  return ({1: 'warning', 2: 'success', 3: 'danger'} as const)[status as 1 | 2 | 3] || 'info'
 }
 
 onMounted(() => {
-  loadStatusCount()
+  void loadStatusCount()
 })
 
 watch(() => route.query.status, () => {
   if (statusArr.value.length === 0) return
   if (applyStatusFromQuery(statusArr.value)) {
-    getList()
+    void getList()
   }
 })
 </script>

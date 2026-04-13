@@ -41,7 +41,7 @@ const emit = defineEmits<{
             <el-icon v-if="tc.status === 'calling'" class="tool-spin"><Loading /></el-icon>
             <el-icon v-else color="var(--el-color-success)"><CircleCheck /></el-icon>
             <span class="tool-name">{{ toolDisplayName(tc.tool_name) }}</span>
-            <span class="tool-params" v-if="Object.keys(tc.tool_inputs || {}).length">
+            <span class="tool-params" v-if="Object.keys(tc.tool_inputs).length">
               ({{ Object.entries(tc.tool_inputs).map(([k, v]) => `${k}=${v}`).join(', ') }})
             </span>
             <el-icon class="tool-arrow">

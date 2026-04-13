@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
 
 /** 通知项 */
 export interface NotificationItem {

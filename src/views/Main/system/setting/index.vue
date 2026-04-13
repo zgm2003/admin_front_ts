@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {SystemSettingApi} from '@/api/system/setting'
+import {
+  SystemSettingApi,
+  type SystemSettingAddParams,
+  type SystemSettingEditParams,
+  type SystemSettingInitResponse,
+  type SystemSettingItem,
+} from '@/api/system/setting'
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
@@ -9,7 +15,7 @@ import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useCopy} from '@/hooks/useCopy'
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import { JsonEditor } from '@/components/JsonEditor'
@@ -18,9 +24,14 @@ const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
 const userStore = useUserStore()
-const dict = ref({ system_setting_value_type_arr: [] } as any)
+const dict = ref<SystemSettingInitResponse['dict']>({
+  system_setting_value_type_arr: [],
+})
 
-const searchForm = ref({key: '', status: ''} as any)
+const searchForm = ref({
+  key: '',
+  status: '' as number | '',
+})
 
 const {
   loading: listLoading,
@@ -34,14 +45,14 @@ const {
   confirmDel,
   batchDel,
   toggleStatus
-} = useTable({
+} = useCrudTable({
   api: SystemSettingApi,
   searchForm
 })
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({ key: '', value: '', type: 1, remark: '' } as any)
+const form = ref<{ id?: number; key: string; value: string; type: number; remark: string }>({ key: '', value: '', type: 1, remark: '' })
 const formRef = ref<FormInstance | null>(null)
 const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 
@@ -69,8 +80,8 @@ const validateJson = (): boolean => {
 }
 
 const init = () => {
-  SystemSettingApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  SystemSettingApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
@@ -99,7 +110,7 @@ const add = () => {
     formRef.value?.clearValidate()
   })
 }
-const edit = (row: any) => {
+const edit = (row: SystemSettingItem) => {
   dialogMode.value = 'edit'
   form.value = { id: row.id, key: row.setting_key, value: row.setting_value, type: row.value_type, remark: row.remark }
   dialogVisible.value = true
@@ -116,18 +127,19 @@ const confirmSubmit = async () => {
   }
   if (!validateJson()) return
   
-  const api = dialogMode.value === 'add' ? SystemSettingApi.add : SystemSettingApi.edit
   const v = form.value
-  const payload = dialogMode.value === 'edit' ? { id: form.value.id, value: v.value, type: v.type, remark: v.remark } : { key: v.key, value: v.value, type: v.type, remark: v.remark }
-  
-  api(payload).then(() => {
+  const request = dialogMode.value === 'edit'
+    ? SystemSettingApi.edit({ id: Number(form.value.id), value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingEditParams)
+    : SystemSettingApi.add({ key: v.key, value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingAddParams)
+
+  request.then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList()
   })
 }
 
-onMounted(() => { init(); getList() })
+onMounted(() => { init(); void getList() })
 </script>
 
 <template>

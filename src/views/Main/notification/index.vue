@@ -8,7 +8,7 @@ import { CommonEnum, NotificationLevelEnum, NotificationTypeColorMap } from '@/e
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { DIcon } from '@/components/DIcon'
 
 const { t } = useI18n()
@@ -41,7 +41,7 @@ const {
   selectedIds,
   confirmDel,
   batchDel
-} = useTable<NotificationItem>({ api: NotificationApi, searchForm })
+} = useCrudTable<NotificationItem>({ api: NotificationApi, searchForm })
 
 const isUnread = (row: NotificationItem) => row.is_read === CommonEnum.NO
 

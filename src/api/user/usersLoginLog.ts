@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
 import type { UserLoginLogCursorParams, UserLoginLogInitResponse, UserLoginLogItem, UserLoginLogListParams, UserLoginLogListResponse } from '@/types/user'
 import type { CursorPaginatedResponse, RequestPayload } from '@/types/common'
 

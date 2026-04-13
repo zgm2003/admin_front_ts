@@ -1,125 +1,124 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
-import {useIsMobile} from '@/hooks/useResponsive'
-import {PermissionApi} from '@/api/permission/permission'
-import IconSelect from './components/IconSelect.vue'
-import {Search} from '@/components/Search'
-import {ElNotification, ElMessageBox} from 'element-plus'
-import {useUserStore} from '@/store/user'
-import {useI18n} from 'vue-i18n'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import type { FormInstance, FormRules, TableInstance } from 'element-plus'
+import { ArrowDown, ArrowUp, Setting } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
-import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
-import {ArrowDown, ArrowUp, Setting} from "@element-plus/icons-vue"
+import {
+  PermissionApi,
+  type PermissionInitResponse,
+  type PermissionListItem,
+  type PermissionListParams,
+  type PermissionMutationPayload,
+  type PermissionTreeNode,
+} from '@/api/permission/permission'
+import { Search } from '@/components/Search'
 import { DIcon } from '@/components/DIcon'
+import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { useUserStore } from '@/store/user'
+import IconSelect from './components/IconSelect.vue'
 
 const userStore = useUserStore()
-const {t} = useI18n()
+const { t } = useI18n()
 
-const permissionTree = ref<any[]>([])
-const permissionTypeArr = ref<{ value: number | string; label: string }[]>([])
-const platformOptions = ref<{ value: number; label: string }[]>([])
-
-// 按平台过滤权限树（用于父级菜单选择）
-const filterTreeByPlatform = (tree: any[], platform: string): any[] => {
-  return tree
-    .filter(node => node.platform === platform)
-    .map(node => ({
-      ...node,
-      children: node.children ? filterTreeByPlatform(node.children, platform) : []
-    }))
-}
-const filteredPermissionTree = computed(() => {
-  return filterTreeByPlatform(permissionTree.value, activePlatform.value)
-})
-const init = () => {
-  PermissionApi.init().then((data: any) => {
-    permissionTree.value = data.dict.permission_tree;
-    permissionTypeArr.value = data.dict.permission_type_arr
-    platformOptions.value = data.dict.permission_platform_arr || []
-  }).catch(() => {
-  })
-}
-const dialogVisible = ref(false)
-const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref<{
-  id: string
+interface PermissionForm {
+  id: number | ''
   name: string
-  parent_id: string
+  parent_id: number | ''
   icon: string
   path: string
   component: string
-  type: number | string
+  type: number
   code: string
   i18n_key: string
   sort: number
   show_menu: number
   platform: string
-}>({
+}
+
+interface IconSelectExposed {
+  show: () => void
+}
+
+const permissionTree = ref<PermissionInitResponse['dict']['permission_tree']>([])
+const permissionTypeArr = ref<PermissionInitResponse['dict']['permission_type_arr']>([])
+const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])
+const activePlatform = ref<string>(PlatformEnum.ADMIN)
+
+const createDefaultForm = (platform: string): PermissionForm => ({
   id: '',
   name: '',
   parent_id: '',
   icon: '',
   path: '',
   component: '',
-  type: '',
+  type: PermissionTypeEnum.DIR,
   code: '',
   i18n_key: '',
   sort: 1,
-  show_menu: 1,
-  platform: PlatformEnum.ADMIN
+  show_menu: CommonEnum.YES,
+  platform,
 })
+
+// 按平台过滤权限树（用于父级菜单选择）
+const filterTreeByPlatform = (tree: PermissionTreeNode[], platform: string): PermissionTreeNode[] => {
+  return tree
+    .filter((node) => node.platform === platform)
+    .map((node) => ({
+      ...node,
+      children: node.children ? filterTreeByPlatform(node.children, platform) : [],
+    }))
+}
+
+const filteredPermissionTree = computed(() => filterTreeByPlatform(permissionTree.value, activePlatform.value))
+
+const init = () => {
+  PermissionApi.init().then((data) => {
+    permissionTree.value = data.dict.permission_tree
+    permissionTypeArr.value = data.dict.permission_type_arr
+    platformOptions.value = data.dict.permission_platform_arr
+  }).catch(() => {
+  })
+}
+
+const dialogVisible = ref(false)
+const dialogMode = ref<'add' | 'edit'>('add')
+const form = ref<PermissionForm>(createDefaultForm(activePlatform.value))
+
 const add = () => {
   dialogMode.value = 'add'
-  form.value = {
-    id: '',
-    name: '',
-    parent_id: '',
-    icon: '',
-    path: '',
-    component: '',
-    type: PermissionTypeEnum.DIR,
-    code: '',
-    i18n_key: '',
-    sort: 1,
-    show_menu: 1,
-    platform: activePlatform.value
-  }
+  form.value = createDefaultForm(activePlatform.value)
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
   })
 }
-const addChild = (current: any) => {
+
+const addChild = (current: PermissionListItem) => {
   dialogMode.value = 'add'
-  const nextType = Math.min(3, Number(current.type || 1) + 1)
+  const nextType = Math.min(PermissionTypeEnum.BUTTON, current.type + 1)
   form.value = {
-    id: '',
-    name: '',
+    ...createDefaultForm(activePlatform.value),
     parent_id: current.id,
-    icon: '',
-    path: '',
-    component: '',
     type: nextType,
-    code: '',
-    i18n_key: '',
-    sort: 1,
-    show_menu: 1,
-    platform: activePlatform.value
   }
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
   })
 }
+
 const listLoading = ref(false)
-const listData = ref([])
-const activePlatform = ref<string>(PlatformEnum.ADMIN)
+const listData = ref<PermissionListItem[]>([])
 const filteredTypeArr = computed(() => permissionTypeArr.value)
-const searchForm = ref({name: ''})
+const searchForm = ref<Pick<PermissionListParams, 'name'>>({ name: '' })
+
 const getList = () => {
-  listLoading.value = true;
-  const param = { ...searchForm.value, platform: activePlatform.value };
-  PermissionApi.list(param).then((data: any) => {
+  listLoading.value = true
+  const param: PermissionListParams = { ...searchForm.value, platform: activePlatform.value }
+  PermissionApi.list(param).then((data) => {
     listData.value = data
   }).finally(() => {
     listLoading.value = false
@@ -129,23 +128,26 @@ const getList = () => {
 const onSearch = () => {
   getList()
 }
-const tableRef = ref()
+
+const tableRef = ref<TableInstance | null>(null)
 const isExpanded = ref(false)
+
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
-  const rows = listData.value
-  const expandRows = (data: any[]) => {
-    data.forEach((row: any) => {
+  const expandRows = (rows: PermissionListItem[]) => {
+    rows.forEach((row) => {
       tableRef.value?.toggleRowExpansion(row, isExpanded.value)
       if (row.children?.length) expandRows(row.children)
     })
   }
-  expandRows(rows)
+  expandRows(listData.value)
 }
-const handleRowClick = (row: any) => {
-  (tableRef.value as any).toggleRowSelection(row)
+
+const handleRowClick = (row: PermissionListItem) => {
+  tableRef.value?.toggleRowSelection(row)
 }
-const edit = (current: any) => {
+
+const edit = (current: PermissionListItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: current.id,
@@ -159,32 +161,34 @@ const edit = (current: any) => {
     i18n_key: current.i18n_key,
     sort: current.sort,
     show_menu: current.show_menu,
-    platform: current.platform ?? activePlatform.value
+    platform: activePlatform.value,
   }
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
   })
 }
-const formRef = ref<any>(null)
+
+const formRef = ref<FormInstance | null>(null)
 const isMenuType = computed(() => form.value.type === PermissionTypeEnum.DIR || form.value.type === PermissionTypeEnum.PAGE)
-const rules = computed(() => ({
-  type: [{required: true, message: t('permission.form.rule.type'), trigger: 'change'}],
-  name: [{required: true, message: t('permission.form.rule.name'), trigger: 'blur'}],
+const rules = computed<FormRules>(() => ({
+  type: [{ required: true, message: t('permission.form.rule.type'), trigger: 'change' }],
+  name: [{ required: true, message: t('permission.form.rule.name'), trigger: 'blur' }],
   i18n_key: isMenuType.value ? [{
     required: true,
     message: t('permission.form.rule.i18n_key'),
-    trigger: 'blur'
+    trigger: 'blur',
   }] : [],
   show_menu: isMenuType.value ? [{
     required: true,
     message: t('permission.form.rule.show_menu'),
-    trigger: 'change'
+    trigger: 'change',
   }] : [],
-  code: (form.value.type === PermissionTypeEnum.BUTTON) ? [{required: true, message: t('permission.form.rule.code'), trigger: 'blur'}] : [],
-  path: (form.value.type === PermissionTypeEnum.PAGE) ? [{required: true, message: t('permission.form.rule.path'), trigger: 'blur'}] : [],
-  component: (form.value.type === PermissionTypeEnum.PAGE) ? [{required: true, message: t('permission.form.rule.component'), trigger: 'blur'}] : [],
+  code: form.value.type === PermissionTypeEnum.BUTTON ? [{ required: true, message: t('permission.form.rule.code'), trigger: 'blur' }] : [],
+  path: form.value.type === PermissionTypeEnum.PAGE ? [{ required: true, message: t('permission.form.rule.path'), trigger: 'blur' }] : [],
+  component: form.value.type === PermissionTypeEnum.PAGE ? [{ required: true, message: t('permission.form.rule.component'), trigger: 'blur' }] : [],
 }))
+
 const confirmSubmit = async () => {
   try {
     await formRef.value?.validate()
@@ -192,70 +196,94 @@ const confirmSubmit = async () => {
     return
   }
 
-  const payload = form.value
+  const payload: PermissionMutationPayload = {
+    name: form.value.name,
+    parent_id: form.value.parent_id,
+    icon: form.value.icon,
+    path: form.value.path,
+    component: form.value.component,
+    type: form.value.type,
+    code: form.value.code,
+    i18n_key: form.value.i18n_key,
+    sort: form.value.sort,
+    show_menu: form.value.show_menu,
+    platform: form.value.platform,
+  }
+  if (dialogMode.value === 'edit') {
+    payload.id = Number(form.value.id)
+  }
+
   const api = dialogMode.value === 'add' ? PermissionApi.add : PermissionApi.edit
   api(payload).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
+    ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
-    getList();
+    getList()
     init()
   }).catch(() => {
   })
 }
-const selectedIds = ref([] as any[])
-const handleSelectionChange = (selection: any[]) => {
-  selectedIds.value = selection.map((item: any) => item.id)
+
+const selectedIds = ref<Array<PermissionListItem['id']>>([])
+const handleSelectionChange = (selection: PermissionListItem[]) => {
+  selectedIds.value = selection.map((item) => item.id)
 }
+
 const batchDel = async () => {
-  if (!selectedIds.value || selectedIds.value.length === 0) {
-    ElNotification.error({message: t('common.selectAtLeastOne')});
+  if (selectedIds.value.length === 0) {
+    ElNotification.error({ message: t('common.selectAtLeastOne') })
     return
   }
   try {
     await ElMessageBox.confirm(
-        t('common.confirmBatchDelete'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel')}
+      t('common.confirmBatchDelete'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') },
     )
   } catch {
     return
   }
-  const param = {id: selectedIds.value}
+  const param = { id: selectedIds.value }
   PermissionApi.del(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
+    ElNotification.success({ message: t('common.success.operation') })
     getList()
   }).catch(() => {
   })
 }
-const iconSelectRef = ref<any>(null)
+
+const iconSelectRef = ref<IconSelectExposed | null>(null)
 const openIconSelect = () => {
-  iconSelectRef.value.show()
+  iconSelectRef.value?.show()
 }
+
 const confirmIcon = (iconName: string) => {
   form.value.icon = iconName
 }
-const changeStatus = async (row: any) => {
-  if (!row || !row.id) return
+
+const toggleStatusValue = (status: number) => (status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES)
+
+const changeStatus = async (row: PermissionListItem) => {
   try {
     await ElMessageBox.confirm(
-        t('common.confirmStatusChange'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
+      t('common.confirmStatusChange'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') },
     )
   } catch {
-    row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
+    row.status = toggleStatusValue(row.status)
     return
   }
-  PermissionApi.status({id: row.id, status: row.status}).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
+  PermissionApi.status({ id: row.id, status: row.status }).then(() => {
+    ElNotification.success({ message: t('common.success.operation') })
     // 权限列表通常不需要全量刷新，避免树折叠
   }).catch(() => {
-    row.status = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES // revert
+    row.status = toggleStatusValue(row.status)
   })
 }
+
 const searchFields = computed<SearchField[]>(() => [
-  {key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150}
+  { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 },
 ])
+
 const isMobile = useIsMobile()
 onMounted(() => {
   init()

@@ -4,7 +4,7 @@
  */
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ElMessage, ElNotification } from 'element-plus'
-import { isTauri } from '@/store/tauri'
+import { isTauri } from '@/platform/tauri'
 import i18n from '@/i18n'
 
 const t = i18n.global.t

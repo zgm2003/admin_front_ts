@@ -13,20 +13,16 @@ import {
   Close,
   Search
 } from '@element-plus/icons-vue'
+import type { Conversation } from '../../composables/types'
 
 const { t } = useI18n()
-const scrollbarRef = ref<any>(null)
+interface ScrollWrapRef {
+  wrapRef?: HTMLElement
+}
+
+const scrollbarRef = ref<ScrollWrapRef | null>(null)
 const searchInput = ref('')
 let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-interface Conversation {
-  id: number
-  title: string
-  agent_id?: number
-  agent_name?: string
-  last_message_at: string
-  status?: number
-}
 
 const props = defineProps<{
   visible: boolean

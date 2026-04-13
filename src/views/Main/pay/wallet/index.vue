@@ -3,16 +3,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { UserWalletApi } from '@/api/pay/wallet'
+import { UserWalletApi, type UserWalletListItem } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { formatFen } from '@/enums/PayEnum'
 import WalletTransactionDialog from './components/WalletTransactionDialog.vue'
 import WalletAdjustDialog from './components/WalletAdjustDialog.vue'
 import { formatWalletUserDisplay, formatWalletUserLabel } from './helpers'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -50,27 +50,27 @@ const {
   data: listData,
   page,
   getList,
-  onSearch,
   onPageChange,
   refresh,
-} = useTable({
+  onSearch,
+} = useCrudTable({
   api: UserWalletApi,
   searchForm,
 })
 
 const columns = computed(() => [
   { key: 'user_name', label: t('pay_wallet.table.user_name'), width: 240 },
-  { key: 'balance', label: t('pay_wallet.table.balance'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'frozen', label: t('pay_wallet.table.frozen'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'balance', label: t('pay_wallet.table.balance'), formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
+  { key: 'frozen', label: t('pay_wallet.table.frozen'), formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
+  { key: 'total_recharge', label: t('pay_wallet.table.total_recharge'), formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
+  { key: 'total_consume', label: t('pay_wallet.table.total_consume'), formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'created_at', label: t('pay_wallet.table.created_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 200 },
 ])
 
 const txDialogVisible = ref(false)
 const activeTransactionUserId = ref<number | ''>('')
-const openTransactions = (row: any) => {
+const openTransactions = (row: UserWalletListItem) => {
   activeTransactionUserId.value = row.user_id
   txDialogVisible.value = true
 }
@@ -79,7 +79,7 @@ const openTransactions = (row: any) => {
 const adjustVisible = ref(false)
 const activeAdjustUserId = ref<number | ''>('')
 
-const openAdjust = (row?: any) => {
+const openAdjust = (row?: Pick<UserWalletListItem, 'user_id'>) => {
   activeAdjustUserId.value = row ? row.user_id : ''
   adjustVisible.value = true
 }

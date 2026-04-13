@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
-import type { Attachment as AttachmentType } from '@/api/ai/chat'
+import type { AiAgentModalities } from '@/api/ai/agents'
+import type { AiMessageMeta } from '@/api/ai/messages'
 
 // 从 API 层重新导出，统一类型来源
 export type { StreamCallbacks, Attachment } from '@/api/ai/chat'
@@ -8,7 +9,7 @@ export type { StreamCallbacks, Attachment } from '@/api/ai/chat'
 export interface ToolCallRecord {
   call_id: string
   tool_name: string
-  tool_inputs: Record<string, any>
+  tool_inputs: Record<string, unknown>
   tool_result?: string
   status: 'calling' | 'done'
   _expanded?: boolean
@@ -22,8 +23,11 @@ export interface Conversation {
   agent_name?: string
   agent_avatar?: string
   last_message_at: string
+  created_at: string
+  updated_at?: string
   status?: number
-  modalities?: any
+  status_name?: string
+  modalities?: AiAgentModalities | null
 }
 
 // 消息类型
@@ -34,20 +38,16 @@ export interface Message {
   created_at: string
   isStreaming?: boolean
   tool_calls?: ToolCallRecord[]
-  meta_json?: {
-    attachments?: AttachmentType[]
-    feedback?: number
-    [key: string]: any
-  }
+  meta_json?: AiMessageMeta
 }
 
 // 智能体类型
 export interface Agent {
   id: number
   name: string
-  avatar?: string
+  avatar?: string | null
   description?: string
-  modalities?: any
+  modalities?: AiAgentModalities | null
 }
 
 // 流式聊天选项

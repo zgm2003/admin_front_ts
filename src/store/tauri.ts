@@ -1,26 +1,12 @@
 import { defineStore } from 'pinia'
-
-/** 是否在 Tauri 环境 */
-export const isTauri = () => !!(window as any).__TAURI__
-
-/** 是否应该使用原生通知（窗口不可见时） */
-export async function shouldUseNative(): Promise<boolean> {
-  if (!isTauri()) return false
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    const win = getCurrentWindow()
-    const [minimized, focused, visible] = await Promise.all([win.isMinimized(), win.isFocused(), win.isVisible()])
-    return minimized || !focused || !visible
-  } catch {
-    return false
-  }
-}
-
-/** 获取平台 */
-const getPlatform = (): string => {
-  const ua = navigator.userAgent.toLowerCase()
-  return ua.includes('mac') ? 'darwin-x86_64' : 'windows-x86_64'
-}
+import {
+  exitAppProcess,
+  getTauriAppVersion,
+  hideAppWindow,
+  isTauri,
+  listenWindowCloseRequested,
+  resolveDesktopPlatform,
+} from '@/platform/tauri'
 
 const CLOSE_ACTION_KEY = 'tauri_close_action'
 export type CloseAction = 'minimize' | 'exit'
@@ -46,9 +32,8 @@ export const useTauriStore = defineStore('tauri', {
     async init() {
       if (!isTauri()) return
 
-      const { getVersion } = await import('@tauri-apps/api/app')
-      this.version = await getVersion()
-      this.platform = getPlatform()
+      this.version = await getTauriAppVersion()
+      this.platform = resolveDesktopPlatform()
 
       // 初始化窗口关闭事件监听
       await this.setupCloseHandler()
@@ -63,12 +48,10 @@ export const useTauriStore = defineStore('tauri', {
       localStorage.removeItem(CLOSE_ACTION_KEY)
     },
     async hideWindow() {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window')
-      await getCurrentWindow().hide()
+      await hideAppWindow()
     },
     async exitApp() {
-      const { exit } = await import('@tauri-apps/plugin-process')
-      await exit(0)
+      await exitAppProcess(0)
     },
     async handleMinimize() {
       this.showCloseDialog = false
@@ -84,9 +67,7 @@ export const useTauriStore = defineStore('tauri', {
       if (!isTauri() || this._closeHandlerReady) return
       this._closeHandlerReady = true
 
-      const { listen } = await import('@tauri-apps/api/event')
-
-      await listen('window-close-requested', async () => {
+      await listenWindowCloseRequested(async () => {
         const saved = this.closeAction
 
         if (saved === 'minimize') {

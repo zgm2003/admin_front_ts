@@ -69,12 +69,12 @@ export function useAgents() {
         status: 1,
         name: keyword || undefined
       })
-      agents.value = res.list || []
+      agents.value = res.list
       
       // 初始加载时，尝试恢复选择或选中第一个
       if (!keyword && agents.value.length > 0) {
         if (!restoreSelection() && !selectedAgentId.value) {
-          selectedAgentId.value = agents.value[0]?.id ?? null
+          selectedAgentId.value = agents.value[0]!.id
           persistSelection(selectedAgentId.value)
         }
       }

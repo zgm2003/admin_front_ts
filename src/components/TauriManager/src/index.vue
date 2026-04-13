@@ -5,7 +5,12 @@ import { ElMessageBox, ElNotification } from 'element-plus'
 import { Loading, CircleClose } from '@element-plus/icons-vue'
 import { useTauriStore } from '@/store/tauri'
 import { TauriVersionApi } from '@/api/system/tauriVersion'
-import type { DownloadEvent, Update } from '@tauri-apps/plugin-updater'
+import {
+  checkForAppUpdate,
+  relaunchAppProcess,
+  type DownloadEvent,
+  type Update,
+} from '@/platform/tauri'
 
 const { t } = useI18n()
 const tauriStore = useTauriStore()
@@ -68,9 +73,7 @@ const doDownloadAndInstall = async (update: Update, isForce: boolean) => {
     await update.download(handleDownloadEvent)
     updateStatus.value = 'installing'
     await update.install()
-
-    const { relaunch } = await import('@tauri-apps/plugin-process')
-    await relaunch()
+    await relaunchAppProcess()
   } catch (error: any) {
     console.error('Update failed:', error)
     updateStatus.value = 'failed'
@@ -93,8 +96,7 @@ const retryUpdate = async () => {
   updateStatus.value = 'downloading'
 
   try {
-    const { check } = await import('@tauri-apps/plugin-updater')
-    const update = await check()
+    const update = await checkForAppUpdate()
     if (update) {
       await doDownloadAndInstall(update, false)
     }
@@ -134,8 +136,7 @@ const showForceUpdateDialog = async () => {
       type: 'warning'
     })
 
-    const { check } = await import('@tauri-apps/plugin-updater')
-    const update = await check()
+    const update = await checkForAppUpdate()
     if (update) {
       updateInfo.value = { version: update.version, body: update.body }
       await doDownloadAndInstall(update, true)
@@ -152,8 +153,7 @@ const showForceUpdateDialog = async () => {
 // 普通更新
 const checkUpdate = async () => {
   try {
-    const { check } = await import('@tauri-apps/plugin-updater')
-    const update = await check()
+    const update = await checkForAppUpdate()
     if (!update) return
 
     updateInfo.value = { version: update.version, body: update.body }

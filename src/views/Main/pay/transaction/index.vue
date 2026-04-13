@@ -2,15 +2,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { PayTransactionApi } from '@/api/pay/transaction'
+import {
+  PayTransactionApi,
+  type PayTransactionDetailResponse,
+  type PayTransactionItem,
+} from '@/api/pay/transaction'
 import { UsersListApi } from '@/api/user/users'
 import { TxnStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import type { UserListItem } from '@/types/user'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -66,10 +70,10 @@ const {
   data: listData,
   page,
   getList,
-  onSearch,
   onPageChange,
   refresh,
-} = useTable({
+  onSearch,
+} = useCrudTable({
   api: PayTransactionApi,
   searchForm,
 })
@@ -81,7 +85,7 @@ const columns = computed(() => [
   { key: 'attempt_no', label: t('pay_transaction.table.attempt_no') },
   { key: 'channel_text', label: t('pay_transaction.table.channel') },
   { key: 'pay_method', label: t('pay_transaction.table.pay_method') },
-  { key: 'amount', label: t('pay_transaction.table.amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'amount', label: t('pay_transaction.table.amount'), width: 120, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'trade_no', label: t('pay_transaction.table.trade_no'), width: 200 },
   { key: 'status_text', label: t('pay_transaction.table.status'), width: 140 },
   { key: 'paid_at', label: t('pay_transaction.table.paid_at'), width: 180 },
@@ -90,9 +94,9 @@ const columns = computed(() => [
 
 // ==================== 详情 ====================
 const detailVisible = ref(false)
-const detailData = ref<any>(null)
+const detailData = ref<PayTransactionDetailResponse | null>(null)
 
-const showDetail = async (row: any) => {
+const showDetail = async (row: PayTransactionItem) => {
   const res = await PayTransactionApi.detail({ id: row.id })
   detailData.value = res
   detailVisible.value = true

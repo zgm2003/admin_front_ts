@@ -3,8 +3,13 @@ import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
-import { useTable } from '@/hooks/useTable'
-import { CronTaskApi } from '@/api/system/cronTask'
+import { useCrudTable } from '@/hooks/useCrudTable'
+import {
+  CronTaskApi,
+  type CronPresetItem,
+  type CronTaskForm,
+  type CronTaskItem,
+} from '@/api/system/cronTask'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -16,16 +21,16 @@ const userStore = useUserStore()
 const isMobile = useIsMobile()
 
 // 初始化数据
-const cronPresets = ref<any[]>([])
+const cronPresets = ref<CronPresetItem[]>([])
 const init = () => {
-  CronTaskApi.init().then((res: any) => {
-    cronPresets.value = res?.dict?.cron_preset_arr || []
+  CronTaskApi.init().then((res) => {
+    cronPresets.value = res.dict.cron_preset_arr
   })
 }
 
 // 主列表
 const searchForm = ref({ title: '' })
-const { loading, data, page, onPageChange, refresh, toggleStatus, confirmDel, getList, onSearch } = useTable({
+const { loading, data, page, onPageChange, refresh, toggleStatus, confirmDel, getList, onSearch } = useCrudTable({
   api: CronTaskApi,
   searchForm,
   immediate: true
@@ -50,7 +55,7 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
 const defaultForm = () => ({ name: '', title: '', description: '', cron: '', cron_readable: '', handler: '', status: CommonEnum.YES })
-const form = ref<any>(defaultForm())
+const form = ref<CronTaskForm>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('cronTask.form.name') + t('common.required'), trigger: 'blur' }],
@@ -61,7 +66,7 @@ const rules = computed<FormRules>(() => ({
 
 const onPresetChange = (val: string) => {
   if (!val) return
-  const preset = cronPresets.value.find((p: any) => p.value === val)
+  const preset = cronPresets.value.find((p) => p.value === val)
   if (preset) {
     form.value.cron = preset.value
     form.value.cron_readable = preset.label
@@ -75,9 +80,9 @@ const openAdd = () => {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const openEdit = (row: any) => {
+const openEdit = (row: CronTaskItem) => {
   dialogMode.value = 'edit'
-  form.value = { id: row.id, name: row.name, title: row.title, description: row.description || '', cron: row.cron, cron_readable: row.cron_readable || '', handler: row.handler, status: row.status }
+  form.value = { id: row.id, name: row.name, title: row.title, description: row.description, cron: row.cron, cron_readable: row.cron_readable, handler: row.handler, status: row.status }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
@@ -95,12 +100,20 @@ const confirmSubmit = async () => {
 
 // 日志弹窗
 const logVisible = ref(false)
-const logSearchForm = ref<any>({ task_id: 0, date: [] })
+const logSearchForm = ref<{ task_id: number; date: string[] }>({ task_id: 0, date: [] })
 const logTaskTitle = ref('')
 
 const logSearchFields = [
   { key: 'date', type: 'date-range' as const, label: t('cronTask.log.startTime'), width: 240 }
 ]
+
+const cronTaskLogTableApi = {
+  list: (params: { current_page: number; page_size: number; task_id?: number; date?: string[] }) =>
+    CronTaskApi.logs({
+      ...params,
+      task_id: Number(params.task_id ?? 0),
+    }),
+}
 
 const {
   loading: logLoading,
@@ -108,9 +121,9 @@ const {
   page: logPage,
   onPageChange: onLogPageChange,
   refresh: refreshLogs,
-  onSearch: onLogSearch
-} = useTable({
-  api: { list: CronTaskApi.logs },
+  onSearch: onLogSearch,
+} = useCrudTable({
+  api: cronTaskLogTableApi,
   searchForm: logSearchForm,
   immediate: false
 })
@@ -217,7 +230,7 @@ onMounted(() => init())
     <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange" :tableProps="{ height: 400 }" :fixedFooter="false">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>
       <template #cell-status="{ row }">
-        <el-tag :type="(LOG_STATUS_TYPE as any)[row.status] || 'info'" size="small">{{ row.status_name }}</el-tag>
+        <el-tag :type="LOG_STATUS_TYPE[row.status as keyof typeof LOG_STATUS_TYPE] || 'info'" size="small">{{ row.status_name }}</el-tag>
       </template>
     </AppTable>
     <template #footer>

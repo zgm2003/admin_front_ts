@@ -6,29 +6,22 @@ import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DIcon} from '@/components/DIcon'
 import { CommonEnum, AiRoleEnum } from '@/enums'
 import ToolCallStatus from '../ToolCallStatus.vue'
+import type { Attachment, Message } from '../../composables/types'
 
 const {t} = useI18n()
 
-// 附件类型
-interface Attachment {
-  type: 'image'
-  url: string
-  name: string
-  size: number
-}
-
 const props = defineProps<{
-  messages: any[]
+  messages: Message[]
   loading: boolean
   sending?: boolean
 }>()
 
 const emit = defineEmits<{
-  copy: [msg: any]
-  delete: [msg: any]
-  regenerate: [msg: any]
-  edit: [msg: any, newContent: string]
-  feedback: [msg: any, feedback: number | null]
+  copy: [msg: Message]
+  delete: [msg: Message]
+  regenerate: [msg: Message]
+  edit: [msg: Message, newContent: string]
+  feedback: [msg: Message, feedback: number | null]
 }>()
 
 // 编辑状态
@@ -36,11 +29,11 @@ const editingMsgId = ref<number | null>(null)
 const editContent = ref('')
 
 // 是否可编辑（仅用户消息 + 非流式中 + 有真实 id）
-const canEdit = (msg: any) => {
+const canEdit = (msg: Message) => {
   return msg.role === AiRoleEnum.USER && !msg.isStreaming && msg.id > 0 && !props.sending
 }
 
-const startEdit = (msg: any) => {
+const startEdit = (msg: Message) => {
   editingMsgId.value = msg.id
   editContent.value = msg.content
 }
@@ -50,7 +43,7 @@ const cancelEdit = () => {
   editContent.value = ''
 }
 
-const confirmEdit = (msg: any) => {
+const confirmEdit = (msg: Message) => {
   const trimmed = editContent.value.trim()
   if (!trimmed || trimmed === msg.content) {
     cancelEdit()
@@ -69,7 +62,7 @@ const previewIndex = ref(0)
 const imageLoadingStates = ref<Map<string, string>>(new Map())
 
 // 从消息中提取附件
-const getAttachments = (msg: any): Attachment[] => {
+const getAttachments = (msg: Message): Attachment[] => {
   return msg.meta_json?.attachments || []
 }
 
@@ -89,7 +82,7 @@ const handleImageError = (url: string) => {
 }
 
 // 点击图片预览
-const handleImageClick = (msg: any, index: number) => {
+const handleImageClick = (msg: Message, index: number) => {
   const attachments = getAttachments(msg)
   previewImages.value = attachments.map(a => a.url)
   previewIndex.value = index
@@ -102,11 +95,12 @@ const closePreview = () => {
 }
 
 // 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
-const showRegenerate = (msg: any, index: number) => {
+const showRegenerate = (msg: Message, index: number) => {
   if (msg.role === AiRoleEnum.USER) return false
   if (msg.isStreaming) return false
   for (let i = props.messages.length - 1; i >= 0; i--) {
-    if (props.messages[i].role !== AiRoleEnum.USER) {
+    const candidate = props.messages[i]
+    if (candidate && candidate.role !== AiRoleEnum.USER) {
       return i === index
     }
   }
@@ -114,12 +108,12 @@ const showRegenerate = (msg: any, index: number) => {
 }
 
 // 获取消息的反馈状态
-const getFeedback = (msg: any): number | null => {
+const getFeedback = (msg: Message): number | null => {
   return msg.meta_json?.feedback ?? null
 }
 
 // 点击反馈按钮
-const handleFeedback = (msg: any, feedback: number) => {
+const handleFeedback = (msg: Message, feedback: number) => {
   const current = getFeedback(msg)
   emit('feedback', msg, current === feedback ? null : feedback)
 }

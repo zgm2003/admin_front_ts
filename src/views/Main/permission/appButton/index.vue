@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { PermissionApi } from '@/api/permission/permission'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/user'
@@ -11,32 +10,56 @@ import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PlatformEnum, PermissionTypeEnum } from '@/enums'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
+import type { PaginatedResponse } from '@/types/common'
+import {
+  PermissionApi,
+  type AppButtonItem,
+  type AppButtonListParams,
+  type AppButtonMutationPayload,
+  type PermissionInitResponse,
+} from '@/api/permission/permission'
 
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
+interface AppButtonForm {
+  id?: number
+  name: string
+  code: string
+  sort: number
+  platform: string
+}
+
+interface AppButtonTableParams extends AppButtonListParams {
+  current_page: number
+  page_size: number
+}
+
 // 平台切换
-const platformOptions = ref<{ value: string; label: string }[]>([])
+const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])
 const activePlatform = ref<string>(PlatformEnum.APP)
 
-const searchForm = ref({ name: '', code: '', platform: activePlatform.value })
+const searchForm = ref<AppButtonListParams>({ name: '', code: '', platform: activePlatform.value })
 
 // 初始化
-const init = () => {
-  PermissionApi.init().then((data: any) => {
-    platformOptions.value = (data.dict.permission_platform_arr || []).filter(
-      (item: any) => item.value !== PlatformEnum.ADMIN
-    )
-  }).catch(() => {})
+const init = async () => {
+  const data = await PermissionApi.init()
+  platformOptions.value = data.dict.permission_platform_arr.filter(
+    (item) => item.value !== PlatformEnum.ADMIN,
+  )
 }
 
 // 适配 useTable 的 API
 const AppButtonApi = {
-  list: (params: any) => PermissionApi.appButtonList(params).then((data: any) => ({ list: data, page: { current_page: 1, page_size: 999, total: data.length } })),
+  list: (params: AppButtonTableParams): Promise<PaginatedResponse<AppButtonItem>> =>
+    PermissionApi.appButtonList(params).then((data) => ({
+      list: data,
+      page: { current_page: 1, page_size: 999, total: data.length },
+    })),
   del: PermissionApi.appButtonDel,
-  status: PermissionApi.appButtonStatus
+  status: PermissionApi.appButtonStatus,
 }
 
 const {
@@ -48,9 +71,9 @@ const {
   confirmDel,
   batchDel,
   toggleStatus
-} = useTable({
+} = useCrudTable<AppButtonItem, AppButtonTableParams>({
   api: AppButtonApi,
-  searchForm
+  searchForm,
 })
 
 const onPlatformChange = () => {
@@ -70,7 +93,7 @@ const columns = computed(() => [
 // 弹窗
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({ id: '', name: '', code: '', sort: 1, platform: '' })
+const form = ref<AppButtonForm>({ name: '', code: '', sort: 1, platform: '' })
 const formRef = ref<FormInstance | null>(null)
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('permission.form.rule.name'), trigger: 'blur' }],
@@ -79,12 +102,12 @@ const rules = computed<FormRules>(() => ({
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = { id: '', name: '', code: '', sort: 1, platform: activePlatform.value }
+  form.value = { name: '', code: '', sort: 1, platform: activePlatform.value }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+const edit = (row: AppButtonItem) => {
   dialogMode.value = 'edit'
   form.value = { id: row.id, name: row.name, code: row.code, sort: row.sort, platform: row.platform }
   dialogVisible.value = true
@@ -96,7 +119,18 @@ const confirmSubmit = async () => {
     await formRef.value?.validate()
   } catch { return }
 
-  const payload = { ...form.value, type: PermissionTypeEnum.BUTTON }
+  const basePayload: AppButtonMutationPayload = {
+    name: form.value.name,
+    code: form.value.code,
+    sort: form.value.sort,
+    platform: form.value.platform,
+    type: PermissionTypeEnum.BUTTON,
+  }
+
+  const payload = dialogMode.value === 'edit'
+    ? { ...basePayload, id: Number(form.value.id) }
+    : basePayload
+
   const api = dialogMode.value === 'add' ? PermissionApi.appButtonAdd : PermissionApi.appButtonEdit
   api(payload).then(() => {
     ElNotification.success({ message: t('common.success.operation') })
@@ -111,8 +145,8 @@ const searchFields = computed<SearchField[]>(() => [
 ])
 
 onMounted(() => {
-  init()
-  getList()
+  void init()
+  void getList()
 })
 </script>
 

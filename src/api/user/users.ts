@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
 import type { RequestPayload } from '@/types/common'
 import type {
   LoginConfigResponse,

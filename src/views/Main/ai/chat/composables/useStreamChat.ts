@@ -111,10 +111,12 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       if (isActiveAgent(requestAgentId)) {
         onNewConversation?.(conversationId)
       } else if (session && !session.conversationId) {
+        const now = new Date().toISOString()
         session.conversationId = conversationId
         session.conversations.unshift({
           id: conversationId, title: '', agent_id: requestAgentId,
-          last_message_at: new Date().toISOString()
+          last_message_at: now,
+          created_at: now,
         })
       }
     },
@@ -293,13 +295,15 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     try {
       const callbacks = createCallbacks(agentId, requestConversationId, (conversationId) => {
         if (!currentConversationId.value) {
+          const now = new Date().toISOString()
           currentConversationId.value = conversationId
           const newConv = {
             id: conversationId,
             title: '',
             agent_id: selectedAgentId.value ?? undefined,
             agent_name: selectedAgent.value?.name || '',
-            last_message_at: new Date().toISOString()
+            last_message_at: now,
+            created_at: now,
           }
           conversations.value.unshift(newConv)
           if (session) {

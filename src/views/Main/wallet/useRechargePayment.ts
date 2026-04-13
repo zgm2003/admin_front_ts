@@ -528,7 +528,7 @@ export function useRechargePayment() {
     historyLoading.value = true
     try {
       const data = await OrderApi.walletBills({
-        page: transactionPage.value.current_page,
+        current_page: transactionPage.value.current_page,
         page_size: transactionPage.value.page_size,
       })
 
@@ -581,7 +581,7 @@ export function useRechargePayment() {
     orderLoading.value = true
     try {
       const data = await OrderApi.myOrders({
-        page: orderPage.value.current_page,
+        current_page: orderPage.value.current_page,
         page_size: orderPage.value.page_size,
       })
 
@@ -606,7 +606,7 @@ export function useRechargePayment() {
     recentOrdersLoading.value = true
     try {
       const data = await OrderApi.myOrders({
-        page: DEFAULT_PAGE.current_page,
+        current_page: DEFAULT_PAGE.current_page,
         page_size: DEFAULT_PAGE.page_size,
       })
 

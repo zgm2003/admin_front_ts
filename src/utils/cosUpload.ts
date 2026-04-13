@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
 
 // 动态导入 SDK，只在实际上传时才加载
 const loadCOS = () => import('cos-js-sdk-v5').then(m => m.default)

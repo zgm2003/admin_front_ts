@@ -1,8 +1,38 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
+import type { CursorPaginatedResponse, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+
+export interface OperationLogItem {
+  id: Id
+  user_name: string
+  user_email: string
+  action: string
+  request_data: string | null
+  response_data: string | null
+  is_success: number
+  created_at: string
+}
+
+export interface OperationLogListParams extends RequestPayload {
+  current_page?: number
+  page_size?: number
+  user_id?: Id | ''
+  action?: string
+  date?: string[]
+}
+
+export interface OperationLogCursorParams extends RequestPayload {
+  cursor?: number | string
+  page_size: number
+  user_id?: Id | ''
+  action?: string
+  date?: string[]
+}
 
 export const OperationLogApi = {
-  init: (params?: any) => request.post('/api/admin/OperationLog/init', params),
-  list: (params: any) => request.post('/api/admin/OperationLog/list', params),
-  listCursor: (params: any) => request.post('/api/admin/OperationLog/listCursor', params),
-  del: (params: any) => request.post('/api/admin/OperationLog/del', params)
+  init: (params?: RequestPayload) => request.post<void>('/api/admin/OperationLog/init', params),
+  list: (params: OperationLogListParams) =>
+    request.post<PaginatedResponse<OperationLogItem>>('/api/admin/OperationLog/list', params),
+  listCursor: (params: OperationLogCursorParams) =>
+    request.post<CursorPaginatedResponse<OperationLogItem>>('/api/admin/OperationLog/listCursor', params),
+  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/OperationLog/del', params)
 }

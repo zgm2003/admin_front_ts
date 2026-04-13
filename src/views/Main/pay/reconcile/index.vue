@@ -3,15 +3,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { downloadFile } from '@/components/DownloadManager'
-import { PayReconcileApi } from '@/api/pay/reconcile'
+import {
+  PayReconcileApi,
+  type PayReconcileDetailResponse,
+  type PayReconcileTaskItem,
+} from '@/api/pay/reconcile'
 import { ReconcileStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import { ElNotification } from 'element-plus'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -48,10 +52,10 @@ const {
   data: listData,
   page,
   getList,
-  onSearch,
   onPageChange,
   refresh,
-} = useTable({
+  onSearch,
+} = useCrudTable({
   api: PayReconcileApi,
   searchForm,
 })
@@ -62,11 +66,11 @@ const columns = computed(() => [
   { key: 'bill_type_text', label: t('pay_reconcile.table.bill_type') },
   { key: 'status_text', label: t('pay_reconcile.table.status') },
   { key: 'platform_count', label: t('pay_reconcile.table.platform_count') },
-  { key: 'platform_amount', label: t('pay_reconcile.table.platform_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'platform_amount', label: t('pay_reconcile.table.platform_amount'), width: 130, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'local_count', label: t('pay_reconcile.table.local_count') },
-  { key: 'local_amount', label: t('pay_reconcile.table.local_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'local_amount', label: t('pay_reconcile.table.local_amount'), width: 130, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'diff_count', label: t('pay_reconcile.table.diff_count') },
-  { key: 'diff_amount', label: t('pay_reconcile.table.diff_amount'), width: 130, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'diff_amount', label: t('pay_reconcile.table.diff_amount'), width: 130, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'started_at', label: t('pay_reconcile.table.started_at'), width: 180 },
   { key: 'finished_at', label: t('pay_reconcile.table.finished_at'), width: 180 },
   { key: 'actions', label: t('common.actions.action'), width: 100 },
@@ -83,16 +87,16 @@ const statusType = (val: number) => {
 
 // ==================== 详情 ====================
 const detailVisible = ref(false)
-const detailData = ref<any>(null)
+const detailData = ref<PayReconcileDetailResponse | null>(null)
 
-const showDetail = async (row: any) => {
+const showDetail = async (row: PayReconcileTaskItem) => {
   const res = await PayReconcileApi.detail({ id: row.id })
   detailData.value = res
   detailVisible.value = true
 }
 
 // ==================== 重试 ====================
-const handleRetry = async (row: any) => {
+const handleRetry = async (row: Pick<PayReconcileTaskItem, 'id'>) => {
   PayReconcileApi.retry({ id: row.id }).then(() => {
     ElNotification.success({ message: t('common.success.operation') })
     void getList()

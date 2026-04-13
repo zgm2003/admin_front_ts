@@ -1,60 +1,97 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { GoodsApi } from '@/api/ai/goods'
+import {
+  GoodsApi,
+  type GoodsInitResponse,
+  type GoodsItem,
+  type GoodsListParams,
+  type GoodsMetaRecord,
+  type GoodsMutationParams,
+  type GoodsStatusCountItem,
+} from '@/api/ai/goods'
 import { ElNotification } from 'element-plus'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
+import {
+  getGoodsStatusTagType,
+  goodsMetaToText,
+  goodsTextToMeta,
+} from './composables/helpers'
+
+interface GoodsSearchForm extends GoodsListParams {
+  title: string
+  platform: number | ''
+  status: number | ''
+}
+
+interface GoodsWorkbenchForm {
+  id: number
+  title: string
+  main_img: string
+  link: string
+  platform_name: string
+  tips: string
+  point: string
+  script_text: string
+  ocr: string
+  model_origin: string
+  image_list: string[]
+  image_list_success: string[]
+  status: number
+  status_name: string
+  meta: GoodsMetaRecord
+  srt_url: string
+}
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ goods_platform_arr: [], goods_status_arr: [], goods_agent_list: [], goods_voice_arr: [], goods_emotion_arr: [] } as any)
-
-// ==================== 搜索 & 状态Tab ====================
-const searchForm = ref({ title: '', platform: '', status: '' } as any)
-const statusArr = ref<any[]>([])
-
-const loadStatusCount = () => {
-  GoodsApi.statusCount({ title: searchForm.value.title, platform: searchForm.value.platform }).then((data: any) => {
-    statusArr.value = data
-    if (!searchForm.value.status && data.length) {
-      searchForm.value.status = data[0].value
-    }
-    getList()
-  })
-}
-
-const refreshStatusCount = () => {
-  GoodsApi.statusCount({ title: searchForm.value.title, platform: searchForm.value.platform }).then((data: any) => {
-    statusArr.value = data
-  })
-}
-
-const handleSearch = () => {
-  page.value.current_page = 1
-  getList()
-  refreshStatusCount()
-}
-
-const {
-  loading: listLoading, data: listData, page,
-  onPageChange, refresh, getList, onSelectionChange, confirmDel, batchDel
-} = useTable({
-  api: GoodsApi,
-  searchForm,
-  afterDel: refreshStatusCount
+const dict = ref<GoodsInitResponse['dict']>({
+  goods_platform_arr: [],
+  goods_status_arr: [],
+  goods_agent_list: [],
+  goods_voice_arr: [],
+  goods_emotion_arr: [],
 })
 
-// ==================== 搜索字段 & 列定义 ====================
+const searchForm = ref<GoodsSearchForm>({
+  title: '',
+  platform: '',
+  status: '',
+})
+const statusArr = ref<GoodsStatusCountItem[]>([])
+
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  onPageChange,
+  refresh,
+  getList,
+  onSelectionChange,
+  confirmDel,
+  batchDel,
+} = useCrudTable<GoodsItem>({
+  api: GoodsApi,
+  searchForm,
+  afterDel: () => {
+    void refreshStatusCount()
+  },
+})
+
 const searchFields = computed<SearchField[]>(() => [
   { key: 'title', type: 'input', label: t('goods.filter.title'), placeholder: t('goods.filter.title'), width: 180 },
   {
-    key: 'platform', type: 'select-v2', label: t('goods.filter.platform'),
-    placeholder: t('goods.filter.platform'), width: 140, options: dict.value.goods_platform_arr
-  }
+    key: 'platform',
+    type: 'select-v2',
+    label: t('goods.filter.platform'),
+    placeholder: t('goods.filter.platform'),
+    width: 140,
+    options: dict.value.goods_platform_arr,
+  },
 ])
 
 const columns = computed(() => [
@@ -65,22 +102,111 @@ const columns = computed(() => [
   { key: 'audio_url', label: t('goods.table.audio_url'), width: 280, overflowTooltip: false },
   { key: 'srt_url', label: 'SRT', width: 130 },
   { key: 'created_at', label: t('common.createdAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 200 }
+  { key: 'actions', label: t('common.actions.action'), width: 200 },
 ])
 
-// ==================== 弹窗状态 ====================
-const dialogVisible = ref(false)
-const form = ref({} as any)
-
-const detailVisible = ref(false)
-const detailData = ref({} as any)
-
-// ==================== Init ====================
-const init = () => {
-  GoodsApi.init().then((data: any) => { dict.value = data.dict || {} })
+function createEmptyGoodsItem(): GoodsItem {
+  return {
+    id: 0,
+    title: '',
+    main_img: '',
+    platform: 0,
+    platform_name: '',
+    link: '',
+    tips: '',
+    ocr: '',
+    point: '',
+    script_text: '',
+    model_origin: '',
+    status: 0,
+    status_name: '',
+    status_msg: '',
+    image_list: [],
+    image_list_success: [],
+    audio_url: '',
+    srt_url: '',
+    meta: {},
+    created_at: '',
+    updated_at: '',
+  }
 }
 
-// ==================== 选品平台 ====================
+function createEmptyGoodsWorkbenchForm(): GoodsWorkbenchForm {
+  return {
+    id: 0,
+    title: '',
+    main_img: '',
+    link: '',
+    platform_name: '',
+    tips: '',
+    point: '',
+    script_text: '',
+    ocr: '',
+    model_origin: '',
+    image_list: [],
+    image_list_success: [],
+    status: 0,
+    status_name: '',
+    meta: {},
+    srt_url: '',
+  }
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.map((item) => String(item))
+}
+
+function createGoodsWorkbenchForm(row: GoodsItem): GoodsWorkbenchForm {
+  const imageList = normalizeStringArray(row.image_list)
+  const selectedImages = normalizeStringArray(row.image_list_success)
+
+  return {
+    id: row.id,
+    title: row.title,
+    main_img: row.main_img ?? '',
+    link: row.link ?? '',
+    platform_name: row.platform_name,
+    tips: row.tips ?? '',
+    point: row.point ?? '',
+    script_text: row.script_text ?? '',
+    ocr: row.ocr ?? '',
+    model_origin: row.model_origin ?? '',
+    image_list: imageList,
+    image_list_success: selectedImages.length ? selectedImages : imageList,
+    status: row.status,
+    status_name: row.status_name,
+    meta: row.meta ?? {},
+    srt_url: row.srt_url ?? '',
+  }
+}
+
+function formatGoodsMeta(meta: GoodsMetaRecord | null | undefined) {
+  return goodsMetaToText(meta, t)
+}
+
+function hasGoodsMeta(meta: GoodsMetaRecord | null | undefined) {
+  if (!meta) {
+    return false
+  }
+
+  return Object.values(meta).some((value) => value && String(value).trim())
+}
+
+const dialogVisible = ref(false)
+const form = ref<GoodsWorkbenchForm>(createEmptyGoodsWorkbenchForm())
+
+const detailVisible = ref(false)
+const detailData = ref<GoodsItem>(createEmptyGoodsItem())
+
+async function init() {
+  const data = await GoodsApi.init()
+  dict.value = data.dict
+}
+
 const platformVisible = ref(false)
 const platforms = [
   { name: '淘宝', img: 'taobao.webp', url: 'https://www.taobao.com' },
@@ -91,158 +217,170 @@ const platforms = [
   { name: '拼多多', img: 'pinduoduo.png', url: 'https://mobile.yangkeduo.com' },
 ]
 const platformImgs = import.meta.glob('@/assets/img/platform/*', { eager: true, import: 'default' }) as Record<string, string>
-const getPlatformImg = (filename: string) => {
-  const key = Object.keys(platformImgs).find(k => k.endsWith('/' + filename))
+
+function getPlatformImg(filename: string) {
+  const key = Object.keys(platformImgs).find((path) => path.endsWith(`/${filename}`))
   return key ? platformImgs[key] : ''
 }
-const openPlatform = (url: string) => window.open(url, '_blank')
 
-// ==================== CRUD ====================
-
-const edit = (row: any) => {
-  form.value = {
-    id: row.id, title: row.title, main_img: row.main_img,
-    link: row.link, platform_name: row.platform_name || '',
-    tips: row.tips || '', point: row.point || '', script_text: row.script_text || '',
-    ocr: row.ocr || '', model_origin: row.model_origin || '',
-    image_list: row.image_list || [], image_list_success: row.image_list_success || row.image_list || [],
-    status: row.status, status_name: row.status_name || '',
-    meta: row.meta || {},
-    srt_url: row.srt_url || '',
-  }
-  // 编辑弹窗内的智能体选择
-  editAgentId.value = dict.value.goods_agent_list?.[0]?.value ?? ''
-  editOcrLoading.value = false
-  editGenLoading.value = false
-  editTtsLoading.value = false
-  editVoice.value = dict.value.goods_voice_arr?.[0]?.value ?? 'zh-CN-XiaoxiaoNeural'
-  editEmotion.value = 'default'
-  editMetaText.value = metaToText(form.value.meta)
-  dialogVisible.value = true
+function openPlatform(url: string) {
+  window.open(url, '_blank')
 }
 
-// 编辑弹窗内的操作状态
+async function loadStatusCount(syncList = false) {
+  const data = await GoodsApi.statusCount({
+    title: searchForm.value.title,
+    platform: searchForm.value.platform,
+  })
+  const firstStatus = data[0]
+
+  statusArr.value = data
+
+  if (!searchForm.value.status && firstStatus) {
+    searchForm.value.status = firstStatus.value
+  }
+
+  if (syncList) {
+    await getList()
+  }
+}
+
+async function refreshStatusCount() {
+  await loadStatusCount(false)
+}
+
+async function handleSearch() {
+  page.value.current_page = 1
+  await getList()
+  await refreshStatusCount()
+}
+
 const editAgentId = ref<number | ''>('')
 const editOcrLoading = ref(false)
 const editGenLoading = ref(false)
 const editTtsLoading = ref(false)
 const editVoice = ref('zh-CN-XiaoxiaoNeural')
 const editEmotion = ref('default')
+const editMetaText = ref('')
 
-const toggleEditImage = (img: string) => {
+function edit(row: GoodsItem) {
+  form.value = createGoodsWorkbenchForm(row)
+  editAgentId.value = dict.value.goods_agent_list[0]?.value ?? ''
+  editOcrLoading.value = false
+  editGenLoading.value = false
+  editTtsLoading.value = false
+  editVoice.value = dict.value.goods_voice_arr[0]?.value ?? 'zh-CN-XiaoxiaoNeural'
+  editEmotion.value = dict.value.goods_emotion_arr[0]?.value ?? 'default'
+  editMetaText.value = formatGoodsMeta(form.value.meta)
+  dialogVisible.value = true
+}
+
+function toggleEditImage(img: string) {
   const list = form.value.image_list_success
-  const idx = list.indexOf(img)
-  idx > -1 ? list.splice(idx, 1) : list.push(img)
+  const index = list.indexOf(img)
+
+  if (index > -1) {
+    list.splice(index, 1)
+    return
+  }
+
+  list.push(img)
 }
 
-/** 关闭编辑弹窗并刷新列表 */
-const closeAndRefresh = () => {
+async function closeAndRefresh() {
   dialogVisible.value = false
-  getList()
-  refreshStatusCount()
+  await getList()
+  await refreshStatusCount()
 }
 
-const doEditOcr = async () => {
-  if (!form.value.image_list_success?.length) return ElNotification.warning({ message: t('goods.ocr.selectImages') })
+async function doEditOcr() {
+  if (!form.value.image_list_success.length) {
+    ElNotification.warning({ message: t('goods.ocr.selectImages') })
+    return
+  }
+
   editOcrLoading.value = true
+
   try {
     await GoodsApi.ocr({ id: form.value.id, image_list_success: form.value.image_list_success })
     ElNotification.success({ message: t('goods.ocr.submitted') })
-    closeAndRefresh()
-  } finally { editOcrLoading.value = false }
+    await closeAndRefresh()
+  } finally {
+    editOcrLoading.value = false
+  }
 }
 
-const doEditGenerate = async () => {
-  if (!editAgentId.value) return ElNotification.warning({ message: t('goods.generate.selectAgent') })
+async function doEditGenerate() {
+  if (!editAgentId.value) {
+    ElNotification.warning({ message: t('goods.generate.selectAgent') })
+    return
+  }
+
   editGenLoading.value = true
+
   try {
     await GoodsApi.generate({ id: form.value.id, agent_id: editAgentId.value, tips: form.value.tips })
     ElNotification.success({ message: t('goods.generate.submitted') })
-    closeAndRefresh()
-  } finally { editGenLoading.value = false }
+    await closeAndRefresh()
+  } finally {
+    editGenLoading.value = false
+  }
 }
 
-const doEditTts = async () => {
-  if (!form.value.script_text) return ElNotification.warning({ message: t('goods.tts.noScript') })
+async function doEditTts() {
+  if (!form.value.script_text) {
+    ElNotification.warning({ message: t('goods.tts.noScript') })
+    return
+  }
+
   editTtsLoading.value = true
+
   try {
-    await GoodsApi.tts({ id: form.value.id, voice: editVoice.value, emotion: editEmotion.value, script_text: form.value.script_text })
+    await GoodsApi.tts({
+      id: form.value.id,
+      voice: editVoice.value,
+      emotion: editEmotion.value,
+      script_text: form.value.script_text,
+    })
     ElNotification.success({ message: t('goods.tts.submitted') })
-    closeAndRefresh()
-  } finally { editTtsLoading.value = false }
+    await closeAndRefresh()
+  } finally {
+    editTtsLoading.value = false
+  }
 }
 
-const confirmSubmit = async () => {
-  form.value.meta = textToMeta(editMetaText.value)
-  await GoodsApi.edit(form.value)
+async function confirmSubmit() {
+  const payload: GoodsMutationParams = {
+    id: form.value.id,
+    title: form.value.title,
+    link: form.value.link || null,
+    tips: form.value.tips || null,
+    point: form.value.point || null,
+    script_text: form.value.script_text || null,
+    image_list_success: form.value.image_list_success,
+    meta: goodsTextToMeta(editMetaText.value, t),
+  }
+
+  await GoodsApi.edit(payload)
   ElNotification.success({ message: t('common.success.operation') })
-  closeAndRefresh()
+  await closeAndRefresh()
 }
 
-// ==================== 详情 ====================
-const showDetail = (row: any) => {
+function showDetail(row: GoodsItem) {
   detailData.value = row
   detailVisible.value = true
 }
 
-// ==================== 工具 ====================
-const metaLabels: Record<string, string> = {
-  price: 'goods.meta.price', originalPrice: 'goods.meta.originalPrice', sales: 'goods.meta.sales',
-  brand: 'goods.meta.brand', shop: 'goods.meta.shop', specs: 'goods.meta.specs',
-  description: 'goods.meta.description', reviews: 'goods.meta.reviews',
-}
-
-/** 将 meta 对象格式化为可读文本（key: value 每行一个） */
-const metaToText = (meta: any): string => {
-  if (!meta || typeof meta !== 'object') return ''
-  return Object.entries(meta)
-    .filter(([, v]) => v && String(v).trim())
-    .map(([k, v]) => {
-      const label = metaLabels[k] ? t(metaLabels[k]) : k
-      const val = Array.isArray(v) ? v.join('、') : String(v)
-      return `${label}: ${val}`
-    })
-    .join('\n')
-}
-
-/** 将文本解析回 meta 对象 */
-const textToMeta = (text: string): Record<string, string> => {
-  const result: Record<string, string> = {}
-  const labelToKey: Record<string, string> = {}
-  for (const [k, v] of Object.entries(metaLabels)) {
-    labelToKey[t(v)] = k
-    labelToKey[k] = k // 也支持直接用英文 key
-  }
-  for (const line of text.split('\n')) {
-    const idx = line.indexOf(':')
-    if (idx < 1) continue
-    const rawLabel = line.slice(0, idx).trim()
-    const val = line.slice(idx + 1).trim()
-    const key = labelToKey[rawLabel] || rawLabel
-    if (val) result[key] = val
-  }
-  return result
-}
-
-const editMetaText = ref('')
-
-const downloadSrt = (url: string) => {
-  const a = document.createElement('a')
-  a.href = url
-  a.download = url.split('/').pop() || 'subtitle.srt'
-  a.click()
-}
-
-const statusType = (status: number): 'info' | 'warning' | 'success' | 'danger' | 'primary' => {
-  const map: Record<number, 'info' | 'warning' | 'success' | 'danger' | 'primary'> = {
-    1: 'info', 2: 'warning', 3: 'primary', 4: 'warning', 5: 'primary', 6: 'warning', 7: 'success', 8: 'danger'
-  }
-  return map[status] || 'info'
+function downloadSrt(url: string) {
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = url.split('/').pop() || 'subtitle.srt'
+  anchor.click()
 }
 
 onMounted(() => {
-  init()
-  loadStatusCount()
+  void init()
+  void loadStatusCount(true)
 })
 </script>
 
@@ -282,7 +420,7 @@ onMounted(() => {
         </template>
 
         <template #cell-status="{ row }">
-          <el-tag :type="statusType(row.status)" size="small">{{ row.status_name }}</el-tag>
+          <el-tag :type="getGoodsStatusTagType(row.status)" size="small">{{ row.status_name }}</el-tag>
           <el-tooltip v-if="row.status_msg" :content="row.status_msg" placement="top">
             <el-icon color="var(--el-color-danger)" style="margin-left:4px;cursor:help;vertical-align:middle">
               <svg viewBox="0 0 1024 1024" width="14" height="14"><circle cx="512" cy="512" r="460" fill="none" stroke="currentColor" stroke-width="60"/><text x="512" y="580" text-anchor="middle" font-size="500" fill="currentColor">!</text></svg>
@@ -314,7 +452,7 @@ onMounted(() => {
     <template #header>
       <div class="wb-header">
         <span>{{ t('goods.editTitle') }}</span>
-        <el-tag :type="statusType(form.status)" size="small" style="margin-left:8px">{{ form.status_name }}</el-tag>
+        <el-tag :type="getGoodsStatusTagType(form.status)" size="small" style="margin-left:8px">{{ form.status_name }}</el-tag>
       </div>
     </template>
 
@@ -441,7 +579,7 @@ onMounted(() => {
         <el-descriptions-item :label="t('goods.table.title')">{{ detailData.title || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('goods.table.platform')">{{ detailData.platform_name || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('goods.table.status')">
-          <el-tag :type="statusType(detailData.status)" size="small">{{ detailData.status_name }}</el-tag>
+          <el-tag :type="getGoodsStatusTagType(detailData.status)" size="small">{{ detailData.status_name }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="t('common.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
         <el-descriptions-item :label="t('goods.form.link')" :span="2">
@@ -480,9 +618,9 @@ onMounted(() => {
             :preview-src-list="detailData.image_list" :initial-index="Number(i)" preview-teleported lazy />
         </div>
       </template>
-      <template v-if="detailData.meta && Object.keys(detailData.meta).some(k => detailData.meta[k])">
+      <template v-if="hasGoodsMeta(detailData.meta)">
         <div class="detail-section-title">{{ t('goods.meta.title') }}</div>
-        <div class="detail-text-block">{{ metaToText(detailData.meta) }}</div>
+        <div class="detail-text-block">{{ formatGoodsMeta(detailData.meta) }}</div>
       </template>
     </div>
   </el-dialog>

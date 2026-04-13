@@ -54,7 +54,7 @@ export default defineConfig({
     open: !process.env.TAURI_ENV_DEBUG,
     // 预热常用文件
     warmup: {
-      clientFiles: ['./src/main.ts', './src/router.ts', './src/App.vue'],
+      clientFiles: ['./src/main.ts', './src/router/index.ts', './src/App.vue'],
     },
   },
   optimizeDeps: {

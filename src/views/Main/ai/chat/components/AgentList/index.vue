@@ -1,15 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { Loading, Avatar } from '@element-plus/icons-vue'
+import type { Agent } from '../../composables/types'
 
 const { t } = useI18n()
-
-interface Agent {
-  id: number
-  name: string
-  avatar?: string
-  modalities?: any
-}
 
 const props = defineProps<{
   agents: Agent[]
@@ -62,7 +56,7 @@ const handleSelect = (agent: Agent) => {
         >
           <el-avatar
             :size="36"
-            :src="agent.avatar"
+            :src="agent.avatar ?? undefined"
             class="agent-avatar"
           >
             {{ agent.name?.charAt(0) || '?' }}

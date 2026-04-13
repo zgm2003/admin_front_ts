@@ -8,7 +8,7 @@ import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
 import { UpMedia } from '@/components/UpMedia'
 import { UsersListApi } from '@/api/user/users'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
@@ -61,7 +61,7 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel,
-} = useTable<UserListItem>({
+} = useCrudTable<UserListItem>({
   api: UsersListApi,
   searchForm,
 })

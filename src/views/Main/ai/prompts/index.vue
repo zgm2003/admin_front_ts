@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AiPromptApi } from '@/api/ai/prompts'
+import {
+  AiPromptApi,
+  type AiPromptDetailResponse,
+  type AiPromptItem,
+  type AiPromptMutationParams,
+} from '@/api/ai/prompts'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useCopy } from '@/hooks/useCopy'
 import { useUserStore } from '@/store/user'
@@ -16,7 +21,7 @@ const isMobile = useIsMobile()
 const { copy } = useCopy()
 
 // 列表
-const list = ref<any[]>([])
+const list = ref<AiPromptItem[]>([])
 const keyword = ref('')
 
 const filteredList = computed(() => {
@@ -24,31 +29,31 @@ const filteredList = computed(() => {
   const k = keyword.value.toLowerCase()
   return list.value.filter(item => 
     item.title.toLowerCase().includes(k) || 
-    item.category?.toLowerCase().includes(k) ||
-    item.tags?.some((tag: string) => tag.toLowerCase().includes(k))
+    (item.category ?? '').toLowerCase().includes(k) ||
+    item.tags.some((tag: string) => tag.toLowerCase().includes(k))
   )
 })
 
 const getList = async () => {
   const res = await AiPromptApi.list()
-  list.value = res.list || []
+  list.value = res.list
 }
 
 // 使用提示词
-const handleUse = async (item: any) => {
+const handleUse = async (item: AiPromptItem) => {
   await AiPromptApi.use({ id: item.id })
   copy(item.content)
   item.use_count++
 }
 
 // 收藏切换
-const handleToggleFavorite = async (item: any) => {
+const handleToggleFavorite = async (item: AiPromptItem) => {
   const res = await AiPromptApi.toggleFavorite({ id: item.id })
   item.is_favorite = res.is_favorite
 }
 
 // 删除
-const handleDel = async (item: any) => {
+const handleDel = async (item: AiPromptItem) => {
   await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), { type: 'warning', confirmButtonText: t('common.actions.del'), cancelButtonText: t('common.actions.cancel') })
   await AiPromptApi.del({ id: item.id })
   ElMessage.success(t('common.success.delete'))
@@ -59,7 +64,7 @@ const handleDel = async (item: any) => {
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance>()
-const form = ref({ id: 0, title: '', content: '', category: '', tags: [] as string[] })
+const form = ref<AiPromptMutationParams & { id: number }>({ id: 0, title: '', content: '', category: '', tags: [] as string[] })
 
 const openAdd = () => {
   dialogMode.value = 'add'
@@ -68,9 +73,9 @@ const openAdd = () => {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const openEdit = (item: any) => {
+const openEdit = (item: AiPromptDetailResponse) => {
   dialogMode.value = 'edit'
-  form.value = { id: item.id, title: item.title, content: item.content, category: item.category || '', tags: item.tags || [] }
+  form.value = { id: item.id, title: item.title, content: item.content, category: item.category ?? '', tags: item.tags }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }

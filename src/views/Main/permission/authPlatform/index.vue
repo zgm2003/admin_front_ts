@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AuthPlatformApi } from '@/api/permission/authPlatform'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import {
+  AuthPlatformApi,
+  type AuthPlatformAddPayload,
+  type AuthPlatformEditPayload,
+  type AuthPlatformInitResponse,
+  type AuthPlatformItem,
+  type AuthPlatformListParams,
+} from '@/api/permission/authPlatform'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 
@@ -16,17 +23,16 @@ const { t } = useI18n()
 const isMobile = useIsMobile()
 const userStore = useUserStore()
 
-interface DictState {
-  common_status_arr: { label: string; value: number }[]
-  auth_platform_login_type_arr: { label: string; value: string }[]
+interface AuthPlatformForm extends AuthPlatformAddPayload {
+  id?: number
 }
 
-const dict = ref<DictState>({
+const dict = ref<AuthPlatformInitResponse['dict']>({
   common_status_arr: [],
-  auth_platform_login_type_arr: []
+  auth_platform_login_type_arr: [],
 })
 
-const searchForm = ref({ name: '', status: '' })
+const searchForm = ref<Pick<AuthPlatformListParams, 'name' | 'status'>>({ name: '', status: '' })
 
 const {
   loading: listLoading,
@@ -40,28 +46,13 @@ const {
   confirmDel,
   batchDel,
   toggleStatus
-} = useTable({ api: AuthPlatformApi, searchForm })
+} = useCrudTable<AuthPlatformItem, AuthPlatformListParams>({ api: AuthPlatformApi, searchForm })
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
 
-interface PlatformForm {
-  id?: number
-  code: string
-  name: string
-  login_types: string[]
-  access_ttl: number
-  refresh_ttl: number
-  bind_platform: number
-  bind_device: number
-  bind_ip: number
-  single_session: number
-  max_sessions: number
-  allow_register: number
-}
-
-const defaultForm = (): PlatformForm => ({
+const defaultForm = (): AuthPlatformForm => ({
   code: '',
   name: '',
   login_types: ['password'],
@@ -75,7 +66,7 @@ const defaultForm = (): PlatformForm => ({
   allow_register: CommonEnum.NO,
 })
 
-const form = ref<PlatformForm>(defaultForm())
+const form = ref<AuthPlatformForm>(defaultForm())
 
 const rules = computed<FormRules>(() => ({
   code: [{ required: true, message: t('authPlatform.form.code') + t('common.required'), trigger: 'blur' }],
@@ -122,8 +113,8 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  AuthPlatformApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  AuthPlatformApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
@@ -134,13 +125,13 @@ const add = () => {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+const edit = (row: AuthPlatformItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
     code: row.code,
     name: row.name,
-    login_types: row.login_types || [],
+    login_types: row.login_types,
     access_ttl: row.access_ttl,
     refresh_ttl: row.refresh_ttl,
     bind_platform: row.bind_platform,
@@ -158,17 +149,54 @@ const confirmSubmit = async () => {
   if (!formRef.value) return
   try { await formRef.value.validate() } catch { return }
 
-  const api = dialogMode.value === 'add' ? AuthPlatformApi.add : AuthPlatformApi.edit
-  await api(form.value)
+  if (dialogMode.value === 'add') {
+    const addPayload: AuthPlatformAddPayload = {
+      code: form.value.code,
+      name: form.value.name,
+      login_types: form.value.login_types,
+      access_ttl: form.value.access_ttl,
+      refresh_ttl: form.value.refresh_ttl,
+      bind_platform: form.value.bind_platform,
+      bind_device: form.value.bind_device,
+      bind_ip: form.value.bind_ip,
+      single_session: form.value.single_session,
+      max_sessions: form.value.max_sessions,
+      allow_register: form.value.allow_register,
+    }
+    await AuthPlatformApi.add(addPayload)
+  } else {
+    const editPayload: AuthPlatformEditPayload = {
+      id: Number(form.value.id),
+      name: form.value.name,
+      login_types: form.value.login_types,
+      access_ttl: form.value.access_ttl,
+      refresh_ttl: form.value.refresh_ttl,
+      bind_platform: form.value.bind_platform,
+      bind_device: form.value.bind_device,
+      bind_ip: form.value.bind_ip,
+      single_session: form.value.single_session,
+      max_sessions: form.value.max_sessions,
+      allow_register: form.value.allow_register,
+    }
+    await AuthPlatformApi.edit(editPayload)
+  }
+
   ElNotification.success({ message: t('common.success.operation') })
   dialogVisible.value = false
   getList()
 }
 
 // 登录方式 tag 映射（从 dict 动态取 label）
+const loginTypeLabelMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const item of dict.value.auth_platform_login_type_arr) {
+    map.set(item.value, item.label)
+  }
+  return map
+})
+
 const getLoginTypeLabel = (val: string): string => {
-  const item = dict.value.auth_platform_login_type_arr.find(i => i.value === val)
-  return item?.label || val
+  return loginTypeLabelMap.value.get(val) ?? ''
 }
 
 onMounted(() => { init(); getList() })
@@ -196,7 +224,7 @@ onMounted(() => { init(); getList() })
         </template>
 
         <template #cell-login_types="{ row }">
-          <el-tag v-for="lt in (row.login_types || [])" :key="lt" size="small" style="margin-right:4px">
+          <el-tag v-for="lt in row.login_types" :key="lt" size="small" style="margin-right:4px">
             {{ getLoginTypeLabel(lt) }}
           </el-tag>
         </template>

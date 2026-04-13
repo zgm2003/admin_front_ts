@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { SystemLogApi } from '@/api/system/log'
+import {
+  SystemLogApi,
+  type SystemLogFileItem,
+  type SystemLogInitResponse,
+} from '@/api/system/log'
 import { ElNotification } from 'element-plus'
 import { Refresh, Document, Search } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -9,7 +13,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
-const files = ref<any[]>([])
+const files = ref<SystemLogFileItem[]>([])
 const filesLoading = ref(false)
 const selectedFile = ref('')
 
@@ -20,20 +24,25 @@ const level = ref('')
 const tail = ref(500)
 const logContainerRef = ref<HTMLElement | null>(null)
 const autoScroll = ref(true)
-const dict = ref({ log_level_arr: [], log_tail_arr: [] } as any)
+const dict = ref<SystemLogInitResponse['dict']>({
+  log_level_arr: [],
+  log_tail_arr: [],
+})
 const showSidebar = ref(true)
 
 const loadFiles = async () => {
   filesLoading.value = true
   try {
-    const res: any = await SystemLogApi.files()
-    files.value = res.list || []
+    const res = await SystemLogApi.files()
+    files.value = res.list
     if (files.value.length && !selectedFile.value) {
-      selectedFile.value = files.value[0].name
+      const firstFile = files.value[0]
+      if (!firstFile) return
+      selectedFile.value = firstFile.name
       await loadContent()
     }
-  } catch (e: any) {
-    ElNotification.error({ message: e.message || t('systemLog.error.loadFiles') })
+  } catch (e: unknown) {
+    ElNotification.error({ message: e instanceof Error ? e.message : t('systemLog.error.loadFiles') })
   } finally {
     filesLoading.value = false
   }
@@ -43,21 +52,21 @@ const loadContent = async () => {
   if (!selectedFile.value) return
   contentLoading.value = true
   try {
-    const res: any = await SystemLogApi.content({
+    const res = await SystemLogApi.content({
       filename: selectedFile.value,
       keyword: keyword.value,
       level: level.value,
       tail: tail.value,
     })
-    lines.value = res.lines || []
+    lines.value = res.lines
     if (autoScroll.value) {
       nextTick(() => {
         const el = logContainerRef.value
         if (el) el.scrollTop = el.scrollHeight
       })
     }
-  } catch (e: any) {
-    ElNotification.error({ message: e.message || t('systemLog.error.loadContent') })
+  } catch (e: unknown) {
+    ElNotification.error({ message: e instanceof Error ? e.message : t('systemLog.error.loadContent') })
   } finally {
     contentLoading.value = false
   }
@@ -97,10 +106,10 @@ const highlightLine = (line: string): string => {
 }
 
 onMounted(() => {
-  SystemLogApi.init().then((res: any) => {
-    dict.value = res.dict || {}
+  SystemLogApi.init().then((res) => {
+    dict.value = res.dict
   })
-  loadFiles()
+  void loadFiles()
 })
 </script>
 

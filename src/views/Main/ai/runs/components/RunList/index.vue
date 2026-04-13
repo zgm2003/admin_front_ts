@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {AiRunApi} from '@/api/ai/runs'
+import {
+  AiRunApi,
+  type AiRunDetailResponse,
+  type AiRunInitResponse,
+  type AiRunItem,
+  type AiRunStepItem,
+} from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
 import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
@@ -11,39 +17,48 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useCopy} from '@/hooks/useCopy'
-import {useTable} from '@/hooks/useTable'
 import { CommonEnum } from '@/enums'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
-const dict = ref({run_status_arr: []} as any)
+const dict = ref<AiRunInitResponse['dict']>({
+  run_status_arr: [],
+  agentArr: [],
+})
 
-const searchForm = ref({run_status: '', user_id: '', request_id: '', dateRange: [] as string[], agent_id: ''} as any)
+const searchForm = ref({
+  run_status: '' as number | '',
+  user_id: '' as number | '',
+  request_id: '',
+  dateRange: [] as string[],
+  agent_id: '' as number | '',
+})
 
 // useTable 会 unref 并展开 searchForm，需要转换 dateRange → date_start/date_end
 const apiSearchForm = computed(() => {
   const {dateRange, ...rest} = searchForm.value
-  const [date_start, date_end] = dateRange || []
-  return {...rest, date_start: date_start || '', date_end: date_end || ''}
+  const [date_start, date_end] = dateRange
+  return {...rest, date_start: date_start ?? '', date_end: date_end ?? ''}
 })
 
 const {
   loading: listLoading,
   data: listData,
   page,
-  onSearch,
   onPageChange,
   refresh,
-  getList
-} = useTable({
+  getList,
+  onSearch,
+} = useCrudTable({
   api: AiRunApi,
   searchForm: apiSearchForm
 })
 
 const init = () => {
-  AiRunApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  AiRunApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
@@ -62,7 +77,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('aiRuns.filter.agent'),
     placeholder: t('aiRuns.filter.agent'),
     width: 160,
-    options: dict.value.agentArr || [],
+    options: dict.value.agentArr,
     clearable: true
   },
   {
@@ -120,20 +135,42 @@ const getStatusType = (status: number) => {
 
 // 详情弹窗
 const detailVisible = ref(false)
-const detailData = ref<any>(null)
+const detailData = ref<AiRunDetailResponse | null>(null)
 const detailLoading = ref(false)
 
-const showDetail = async (row: any) => {
+const showDetail = async (row: AiRunItem) => {
   detailLoading.value = true
   detailVisible.value = true
   try {
     const data = await AiRunApi.detail({id: row.id})
     detailData.value = data
-  } catch (e: any) {
-    ElNotification.error({message: e.message || t('aiRuns.detail.fetchFailed')})
+  } catch (e: unknown) {
+    ElNotification.error({message: e instanceof Error ? e.message : t('aiRuns.detail.fetchFailed')})
   } finally {
     detailLoading.value = false
   }
+}
+
+const getAttachmentPreviewUrls = (detail: AiRunDetailResponse) =>
+  detail.user_message?.meta_json?.attachments?.map((attachment) => attachment.url) ?? []
+
+interface StepTokenPayload {
+  prompt_tokens?: number | null
+  completion_tokens?: number | null
+  total_tokens?: number | null
+}
+
+const getStepTokenPayload = (step: AiRunStepItem): StepTokenPayload | null => {
+  if (!step.payload_json || typeof step.payload_json !== 'object') {
+    return null
+  }
+
+  const payload = step.payload_json as StepTokenPayload
+  if (payload.prompt_tokens == null && payload.completion_tokens == null && payload.total_tokens == null) {
+    return null
+  }
+
+  return payload
 }
 
 onMounted(() => {
@@ -236,7 +273,7 @@ onMounted(() => {
                     v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
                     :key="idx"
                     :src="attachment.url"
-                    :preview-src-list="detailData.user_message.meta_json.attachments.map((a: any) => a.url)"
+                    :preview-src-list="getAttachmentPreviewUrls(detailData)"
                     :initial-index="Number(idx)"
                     fit="cover"
                     class="attachment-thumb"
@@ -305,10 +342,10 @@ onMounted(() => {
                       <el-tag v-if="step.agent_name" type="info" size="small" effect="plain">{{ step.agent_name }}</el-tag>
                       <el-tag v-if="step.model_snapshot" type="warning" size="small" effect="plain">{{ step.model_snapshot }}</el-tag>
                     </div>
-                    <div v-if="step.payload_json?.prompt_tokens != null || step.payload_json?.completion_tokens != null || step.payload_json?.total_tokens != null" class="step-tokens">
-                      <span v-if="step.payload_json.prompt_tokens != null">Prompt: {{ step.payload_json.prompt_tokens?.toLocaleString() }}</span>
-                      <span v-if="step.payload_json.completion_tokens != null">Completion: {{ step.payload_json.completion_tokens?.toLocaleString() }}</span>
-                      <span v-if="step.payload_json.total_tokens != null">Total: {{ step.payload_json.total_tokens?.toLocaleString() }}</span>
+                    <div v-if="getStepTokenPayload(step)" class="step-tokens">
+                      <span v-if="getStepTokenPayload(step)?.prompt_tokens != null">Prompt: {{ getStepTokenPayload(step)?.prompt_tokens?.toLocaleString() }}</span>
+                      <span v-if="getStepTokenPayload(step)?.completion_tokens != null">Completion: {{ getStepTokenPayload(step)?.completion_tokens?.toLocaleString() }}</span>
+                      <span v-if="getStepTokenPayload(step)?.total_tokens != null">Total: {{ getStepTokenPayload(step)?.total_tokens?.toLocaleString() }}</span>
                     </div>
                     <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
                     <div v-if="step.payload_json" class="step-payload">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useIsMobile } from '@/hooks/useResponsive'
-import { isTauri as isTauriEnv } from '@/store/tauri'
+import { closeAppWindow, isTauri as isTauriEnv, minimizeAppWindow } from '@/platform/tauri'
 import { SemiSelect, CloseBold } from '@element-plus/icons-vue'
 import { useLoginForm } from './composables/useLoginForm'
 import { useForgotPassword } from './composables/useForgotPassword'
@@ -47,12 +47,10 @@ const {
 
 // Tauri 窗口操作
 async function tauriMinimize() {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  await getCurrentWindow().minimize()
+  await minimizeAppWindow()
 }
 async function tauriClose() {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window')
-  await getCurrentWindow().close()
+  await closeAppWindow()
 }
 </script>
 

@@ -6,10 +6,15 @@ import {ElNotification} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
-import {UploadSettingApi} from '@/api/system/uploadConfig'
+import {
+  UploadSettingApi,
+  type UploadSettingForm,
+  type UploadSettingInitResponse,
+  type UploadSettingItem,
+} from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { ArrowDown } from '@element-plus/icons-vue'
 
@@ -30,11 +35,15 @@ const {
   confirmDel,
   batchDel,
   toggleStatus
-} = useTable({
+} = useCrudTable({
   api: UploadSettingApi,
   searchForm
 })
-const dict = ref({upload_driver_list: [], upload_rule_list: [], common_status_arr: []} as any)
+const dict = ref<UploadSettingInitResponse['dict']>({
+  upload_driver_list: [],
+  upload_rule_list: [],
+  common_status_arr: [],
+})
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -43,7 +52,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('upload.setting.table.driver'),
     placeholder: t('upload.setting.table.driver'),
     width: 200,
-    options: dict.value.upload_driver_list || []
+    options: dict.value.upload_driver_list
   },
   {
     key: 'rule_id',
@@ -51,7 +60,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('upload.setting.table.rule'),
     placeholder: t('upload.setting.table.rule'),
     width: 200,
-    options: dict.value.upload_rule_list || []
+    options: dict.value.upload_rule_list
   },
   {
     key: 'remark',
@@ -66,7 +75,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('upload.setting.filter.status'),
     placeholder: t('upload.setting.filter.status'),
     width: 200,
-    options: dict.value.common_status_arr || []
+    options: dict.value.common_status_arr
   },
 ])
 
@@ -81,15 +90,22 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  UploadSettingApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  UploadSettingApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
-const form = ref({
+type UploadSettingFormState = UploadSettingForm & {
+  id: number | string
+  driver_id: number | string
+  rule_id: number | string
+  remark: string
+}
+
+const form = ref<UploadSettingFormState>({
   id: '',
   driver_id: '',
   rule_id: '',
@@ -122,14 +138,14 @@ const add = () => {
   })
 }
 
-const edit = (row: any) => {
+const edit = (row: UploadSettingItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
     driver_id: row.driver_id,
     rule_id: row.rule_id,
     status: row.status,
-    remark: row.remark
+    remark: row.remark ?? ''
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -145,7 +161,7 @@ const confirmSubmit = async () => {
   }
 
   const api = dialogMode.value === 'add' ? UploadSettingApi.add : UploadSettingApi.edit
-  api(form.value).then(() => {
+  api(form.value as UploadSettingForm).then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList()

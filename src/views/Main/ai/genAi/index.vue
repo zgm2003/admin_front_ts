@@ -51,7 +51,7 @@ const loadConversations = async () => {
   loadingConversations.value = true
   try {
     const res = await GenAiApi.conversations({ page_size: 50 })
-    conversationList.value = (res as any)?.list || []
+    conversationList.value = res.list
   } catch {
     conversationList.value = []
   } finally {
@@ -67,31 +67,31 @@ const switchConversation = async (conv: ConversationItem) => {
 
   try {
     const res = await GenAiApi.messages({ conversation_id: conv.id })
-    const list = (res as any)?.list || []
+    const list = res.list
     for (const m of list) {
-      const metaType = m.meta?.type as string | undefined
+      const metaType = typeof m.meta?.type === 'string' ? m.meta.type : undefined
       // 审查/测试消息合并到前一个 assistant 消息上
       if (metaType === 'review' || metaType === 'test') {
         const prev = messages.value.length > 0 ? messages.value[messages.value.length - 1] : null
         if (prev && prev.role === 'assistant') {
           if (metaType === 'review') {
-            prev.reviewContent = m.content || ''
+            prev.reviewContent = m.content
           } else {
-            prev.testContent = m.content || ''
+            prev.testContent = m.content
           }
         } else {
           // 孤立的 review/test 消息（前一个 assistant 不在窗口内），作为独立 assistant 消息保留
           messages.value.push({
             role: 'assistant',
             content: '',
-            ...(metaType === 'review' ? { reviewContent: m.content || '' } : { testContent: m.content || '' }),
+            ...(metaType === 'review' ? { reviewContent: m.content } : { testContent: m.content }),
           })
         }
         continue
       }
       messages.value.push({
         role: m.role as 'user' | 'assistant',
-        content: m.content || '',
+        content: m.content,
       })
     }
     scrollToBottom()
@@ -188,7 +188,7 @@ const handleSend = async () => {
 
   const callbacks: GenAiStreamCallbacks = {
     onPhase: (p, msg) => {
-      phase.value = p as any
+      phase.value = p
       phaseMsg.value = msg
     },
     onContent: (delta) => {
@@ -255,7 +255,7 @@ const handleSend = async () => {
       phase.value = 'done'
       aiMsg.isStreaming = false
       sending.value = false
-      if (data.conversation_id) conversationId.value = data.conversation_id
+      conversationId.value = data.conversation_id
       scrollToBottom()
       loadConversations()
     },
@@ -274,19 +274,19 @@ const handleSend = async () => {
   try {
     await GenAiApi.stream({
       content,
-      conversation_id: conversationId.value || undefined,
-      allow_overwrite: allowOverwrite.value || undefined,
-      enable_review: enableReview.value || undefined,
-      enable_test: enableTest.value || undefined,
+      conversation_id: conversationId.value ?? undefined,
+      allow_overwrite: allowOverwrite.value,
+      enable_review: enableReview.value,
+      enable_test: enableTest.value,
     }, callbacks)
-  } catch (error: any) {
+  } catch (error: unknown) {
     phase.value = 'idle'
     aiMsg.isStreaming = false
     sending.value = false
     if (!aiMsg.content && !aiMsg.tool_calls?.length) {
       messages.value.pop()
     }
-    ElNotification.error({ message: error.message || t('aiCodeGen.notify.requestFail') })
+    ElNotification.error({ message: error instanceof Error ? error.message : t('aiCodeGen.notify.requestFail') })
   }
 }
 

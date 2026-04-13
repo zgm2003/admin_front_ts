@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification, ElMessageBox } from 'element-plus'
-import { AiConversationApi } from '@/api/ai/conversations'
+import { AiConversationApi, type AiConversationListParams } from '@/api/ai/conversations'
 import { isToday } from '@/utils/date'
 import type { Conversation } from './types'
 
@@ -33,11 +33,11 @@ export function useConversations() {
 
   // 构建请求参数
   const buildListParams = (pageNum: number) => {
-    const params: Record<string, any> = {
+    const params: AiConversationListParams = {
       page_size: PAGE_SIZE,
       current_page: pageNum,
       status: showArchived.value ? 2 : 1,
-      agent_id: currentAgentId.value || undefined,
+      agent_id: currentAgentId.value ?? undefined,
     }
     if (searchKeyword.value.trim()) {
       params.title = searchKeyword.value.trim()
@@ -58,7 +58,7 @@ export function useConversations() {
     
     try {
       const res = await AiConversationApi.list(buildListParams(1))
-      const list = res.list || []
+      const list = res.list
       conversations.value = list
       hasMore.value = list.length >= PAGE_SIZE
       loaded.value = true
@@ -76,7 +76,7 @@ export function useConversations() {
 
     try {
       const res = await AiConversationApi.list(buildListParams(nextPage))
-      const list = res.list || []
+      const list = res.list
 
       if (list.length > 0) {
         conversations.value = [...conversations.value, ...list]

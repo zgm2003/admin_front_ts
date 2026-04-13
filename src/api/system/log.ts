@@ -1,7 +1,39 @@
-import request from '@/utils/request'
+import request from '@/lib/http'
+import type { DictOption, RequestPayload } from '@/types/common'
+
+export interface SystemLogInitResponse {
+  dict: {
+    log_level_arr: DictOption<string>[]
+    log_tail_arr: DictOption<number>[]
+  }
+}
+
+export interface SystemLogFileItem {
+  name: string
+  size: number
+  size_human: string
+  mtime: string
+}
+
+export interface SystemLogFilesResponse {
+  list: SystemLogFileItem[]
+}
+
+export interface SystemLogContentParams extends RequestPayload {
+  filename: string
+  keyword?: string
+  level?: string
+  tail?: number
+}
+
+export interface SystemLogContentResponse {
+  lines: string[]
+  total: number
+  filename: string
+}
 
 export const SystemLogApi = {
-  init: (params?: any) => request.post('/api/admin/SystemLog/init', params),
-  files: (params?: any) => request.post('/api/admin/SystemLog/files', params),
-  content: (params?: any) => request.post('/api/admin/SystemLog/content', params),
+  init: (params?: RequestPayload) => request.post<SystemLogInitResponse>('/api/admin/SystemLog/init', params),
+  files: (params?: RequestPayload) => request.post<SystemLogFilesResponse>('/api/admin/SystemLog/files', params),
+  content: (params: SystemLogContentParams) => request.post<SystemLogContentResponse>('/api/admin/SystemLog/content', params),
 }

@@ -1,7 +1,7 @@
 export interface ToolCall {
   call_id: string
   tool_name: string
-  tool_inputs: Record<string, any>
+  tool_inputs: Record<string, unknown>
   tool_result?: string
   status: 'calling' | 'done'
   collapsed: boolean

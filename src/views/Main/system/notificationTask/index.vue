@@ -8,42 +8,46 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {RemoteSelect} from '@/components/RemoteSelect'
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import {useCopy} from '@/hooks/useCopy'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {NotificationTaskApi} from '@/api/system/notificationTask'
+import {
+  NotificationTaskApi,
+  type NotificationTaskAddParams,
+  type NotificationTaskInitResponse,
+  type NotificationTaskItem,
+  type NotificationTaskStatusItem,
+} from '@/api/system/notificationTask'
 import {UsersListApi} from '@/api/user/users'
 import {RoleApi} from '@/api/permission/role'
+import type { UserListItem } from '@/types/user'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
-const statusArr = ref<any[]>([])
-const searchForm = ref({status: '', title: ''})
+const statusArr = ref<NotificationTaskStatusItem[]>([])
+const searchForm = ref({status: '' as number | '', title: ''})
 
 // 字典数据
-const typeArr = ref<any[]>([])
-const levelArr = ref<any[]>([])
-const targetTypeArr = ref<any[]>([])
-const platformArr = ref<any[]>([])
+const typeArr = ref<NotificationTaskInitResponse['dict']['notification_type_arr']>([])
+const levelArr = ref<NotificationTaskInitResponse['dict']['notification_level_arr']>([])
+const targetTypeArr = ref<NotificationTaskInitResponse['dict']['notification_target_type_arr']>([])
+const platformArr = ref<NotificationTaskInitResponse['dict']['platformArr']>([])
 
-const loadStatusCount = () => {
-  NotificationTaskApi.statusCount({title: searchForm.value.title}).then((data: any) => {
-    statusArr.value = data
-    searchForm.value.status = data[0].value
-    getList()
-  }).catch(() => {})
+const loadStatusCount = async () => {
+  const data = await NotificationTaskApi.statusCount({title: searchForm.value.title})
+  statusArr.value = data
+  searchForm.value.status = data[0]?.value ?? ''
+  await getList()
 }
 
-const refreshStatusCount = () => {
-  NotificationTaskApi.statusCount({title: searchForm.value.title}).then((data: any) => {
-    statusArr.value = data
-  }).catch(() => {})
+const refreshStatusCount = async () => {
+  statusArr.value = await NotificationTaskApi.statusCount({title: searchForm.value.title})
 }
 
-const handleSearch = () => {
-  getList()
-  refreshStatusCount()
+const handleSearch = async () => {
+  await getList()
+  await refreshStatusCount()
 }
 
 const {
@@ -54,7 +58,7 @@ const {
   refresh,
   getList,
   confirmDel
-} = useTable({
+} = useCrudTable({
   api: NotificationTaskApi,
   searchForm,
   afterDel: refreshStatusCount
@@ -79,24 +83,24 @@ const columns = [
   {key: 'actions', label: t('common.actions.action'), width: 180}
 ]
 
-const handleChangeStatus = () => {
-  getList()
-  refreshStatusCount()
+const handleChangeStatus = async () => {
+  await getList()
+  await refreshStatusCount()
 }
 
 const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info' | 'primary' => {
-  return {1: 'warning', 2: 'primary', 3: 'success', 4: 'danger'}[status] as any || 'info'
+  return ({1: 'warning', 2: 'primary', 3: 'success', 4: 'danger'} as const)[status as 1 | 2 | 3 | 4] || 'info'
 }
 
 const getTypeColor = (type: number): 'success' | 'warning' | 'danger' | 'info' | 'primary' => {
-  return {1: 'info', 2: 'success', 3: 'warning', 4: 'danger'}[type] as any || 'info'
+  return ({1: 'info', 2: 'success', 3: 'warning', 4: 'danger'} as const)[type as 1 | 2 | 3 | 4] || 'info'
 }
 
 // 弹窗
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance | null>(null)
 const submitLoading = ref(false)
-const form = ref({
+const form = ref<NotificationTaskAddParams>({
   title: '',
   content: '',
   type: 1,
@@ -132,7 +136,7 @@ const handleSubmit = async () => {
 }
 
 // 取消任务
-const handleCancel = (row: any) => {
+const handleCancel = (row: Pick<NotificationTaskItem, 'id'>) => {
   ElMessageBox.confirm(t('notificationTask.cancelConfirm'), t('common.confirmTitle'), {
     type: 'warning',
     confirmButtonText: t('common.actions.confirm'),
@@ -141,20 +145,20 @@ const handleCancel = (row: any) => {
     .then(() => {
       NotificationTaskApi.cancel({id: row.id}).then(() => {
         ElMessage.success(t('common.success.operation'))
-        loadStatusCount()
+        void loadStatusCount()
       })
     })
     .catch(() => {})
 }
 
 onMounted(() => {
-  NotificationTaskApi.init().then((data: any) => {
+  NotificationTaskApi.init().then((data) => {
     typeArr.value = data.dict.notification_type_arr
     levelArr.value = data.dict.notification_level_arr
     targetTypeArr.value = data.dict.notification_target_type_arr
     platformArr.value = data.dict.platformArr
   })
-  loadStatusCount()
+  void loadStatusCount()
 })
 </script>
 
@@ -259,7 +263,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item v-if="form.target_type === 2" :label="t('notificationTask.selectUsers')">
           <RemoteSelect v-model="form.target_ids" multiple :fetch-method="UsersListApi.list"
-                        :label-field="(item: any) => item.username" value-field="id"
+                        :label-field="(item: UserListItem) => item.username" value-field="id"
                         :placeholder="t('notificationTask.searchUsers')" width="100%" />
         </el-form-item>
         <el-form-item v-if="form.target_type === 3" :label="t('notificationTask.selectRoles')">

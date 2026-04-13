@@ -47,18 +47,75 @@ export function findEmptyRouteWrappers(projectRoot = process.cwd()) {
     .map((filePath) => path.relative(projectRoot, filePath).replaceAll('\\', '/'))
 }
 
+function findFilesContaining(projectRoot, predicate, matcher) {
+  const files = collectFiles(projectRoot, predicate)
+
+  return files
+    .filter((filePath) => matcher(readFileSync(filePath, 'utf8'), filePath))
+    .map((filePath) => path.relative(projectRoot, filePath).replaceAll('\\', '/'))
+}
+
+export function findInvalidTableHookImports(projectRoot = process.cwd()) {
+  const srcRoot = path.join(projectRoot, 'src')
+  const candidates = findFilesContaining(
+    srcRoot,
+    (filePath) => filePath.endsWith('.ts') || filePath.endsWith('.vue'),
+    (code) =>
+      /from\s+['"]@\/hooks\/useTable['"]/.test(code)
+      || /import\s*\{\s*useTable\s*\}\s*from\s*['"]@\/hooks\/useCrudTable['"]/.test(code)
+  )
+
+  return candidates
+}
+
+export function findDirectUseTableInViews(projectRoot = process.cwd(), filesOverride) {
+  const files = filesOverride ?? collectFiles(
+    path.join(projectRoot, 'src', 'views'),
+    (filePath) => filePath.endsWith('.ts') || filePath.endsWith('.vue'),
+  ).map((filePath) => ({
+    filePath,
+    code: readFileSync(filePath, 'utf8'),
+  }))
+
+  return files
+    .filter(({ code }) =>
+      /from\s+['"]@\/components\/Table['"]/.test(code)
+      && /\buseTable\s*\(/.test(code),
+    )
+    .map(({ filePath }) => path.relative(projectRoot, filePath).replaceAll('\\', '/'))
+}
+
 export function runQualityChecks(projectRoot = process.cwd()) {
   const wrappers = findEmptyRouteWrappers(projectRoot)
+  const invalidTableHookImports = findInvalidTableHookImports(projectRoot)
+  const directUseTableInViews = findDirectUseTableInViews(projectRoot)
 
-  if (wrappers.length === 0) {
+  if (wrappers.length === 0 && invalidTableHookImports.length === 0 && directUseTableInViews.length === 0) {
     console.log('[quality-checks] ok')
     return 0
   }
 
-  console.error('[quality-checks] empty route wrappers detected:')
-  wrappers.forEach((filePath) => {
-    console.error(` - ${filePath}`)
-  })
+  if (wrappers.length > 0) {
+    console.error('[quality-checks] empty route wrappers detected:')
+    wrappers.forEach((filePath) => {
+      console.error(` - ${filePath}`)
+    })
+  }
+
+  if (invalidTableHookImports.length > 0) {
+    console.error('[quality-checks] invalid table hook imports detected:')
+    invalidTableHookImports.forEach((filePath) => {
+      console.error(` - ${filePath}`)
+    })
+  }
+
+  if (directUseTableInViews.length > 0) {
+    console.error('[quality-checks] direct useTable-in-view usages detected:')
+    directUseTableInViews.forEach((filePath) => {
+      console.error(` - ${filePath}`)
+    })
+  }
+
   return 1
 }
 

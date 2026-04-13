@@ -18,6 +18,8 @@ import {
   useChatSessionManager
 } from './composables'
 import type { Agent, Conversation } from './composables/types'
+import type { Message } from './composables/types'
+import type { ScrollRefApi } from './composables/useMessages'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -101,8 +103,12 @@ const currentConversation = computed(() => {
 })
 
 const currentModalities = computed(() => {
-  return getAgentModalities(selectedAgentId.value)
+  return getAgentModalities(selectedAgentId.value) ?? undefined
 })
+
+const setMessageScrollRef = (el: unknown) => {
+  messageScrollRef.value = el as ScrollRefApi | null
+}
 
 // ========== 挂起当前 agent 状态到 session ==========
 const suspendCurrentAgent = () => {
@@ -264,25 +270,25 @@ const handleToggleArchived = (archived: boolean) => {
 // ========== 消息处理 ==========
 const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
 
-const handleSendMessage = async (content: string, attachments?: any[]) => {
+const handleSendMessage = async (content: string, attachments?: Array<{ type: 'image'; url: string; name: string; size: number }>) => {
   messageInputRef.value?.clear()
   await sendMessage(content, attachments)
 }
 
-const handleDeleteMessage = async (msg: any) => {
+const handleDeleteMessage = async (msg: Message) => {
   const deleted = await removeMessage(msg)
   if (deleted) await loadMessages()
 }
 
-const handleFeedbackMessage = async (msg: any, feedback: number | null) => {
+const handleFeedbackMessage = async (msg: Message, feedback: number | null) => {
   await feedbackMessage(msg, feedback)
 }
 
-const handleRegenerateMessage = async (msg: any) => {
+const handleRegenerateMessage = async (msg: Message) => {
   await regenerateMessage(msg)
 }
 
-const handleEditMessage = async (msg: any, newContent: string) => {
+const handleEditMessage = async (msg: Message, newContent: string) => {
   await editAndResendMessage(msg, newContent)
 }
 
@@ -370,7 +376,7 @@ watch(currentConversationId, async (newId, oldId) => {
       </div>
 
       <!-- 消息滚动区 -->
-      <el-scrollbar :ref="(el: any) => { if (el) messageScrollRef = el }" class="message-area" @scroll="handleScroll">
+      <el-scrollbar :ref="setMessageScrollRef" class="message-area" @scroll="handleScroll">
         <!-- 切换智能体加载中 -->
         <div v-if="switchingAgent" class="welcome-area">
           <div class="welcome-content">
@@ -381,7 +387,7 @@ watch(currentConversationId, async (newId, oldId) => {
         <!-- 欢迎界面（选中智能体但无会话时） -->
         <div v-else-if="selectedAgentId && !currentConversationId && messages.length === 0" class="welcome-area">
           <div class="welcome-content">
-            <el-avatar :size="64" :src="selectedAgent?.avatar" class="welcome-avatar">
+            <el-avatar :size="64" :src="selectedAgent?.avatar ?? undefined" class="welcome-avatar">
               {{ selectedAgent?.name?.charAt(0) || '?' }}
             </el-avatar>
             <h1 class="welcome-title">{{ selectedAgent?.name }}</h1>

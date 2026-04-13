@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, shallowRef} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {AiRunApi} from '@/api/ai/runs'
+import {
+  AiRunApi,
+  type AiRunInitResponse,
+  type AiRunStatsByAgentItem,
+  type AiRunStatsByDateItem,
+  type AiRunStatsByUserItem,
+  type AiRunStatsListResponse,
+  type AiRunStatsMetricItem,
+  type AiRunStatsSummaryResponse,
+} from '@/api/ai/runs'
+import type { RequestPayload } from '@/types/common'
 import {UsersListApi} from '@/api/user/users'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -9,27 +19,45 @@ import type {SearchField} from '@/components/Search/types'
 const {t} = useI18n()
 
 // 字典数据
-const dict = ref<any>({})
+const dict = ref<AiRunInitResponse['dict']>({
+  run_status_arr: [],
+  agentArr: [],
+})
 const loadDict = async () => {
   try {
     const res = await AiRunApi.init()
-    dict.value = res.dict || {}
+    dict.value = res.dict
   } catch { /* ignore */ }
 }
 
 // 筛选表单 — dateRange 是数组 [start, end]，Search 组件 date-range 类型绑定到单个 key
+interface RunStatsSearchForm {
+  dateRange: string[]
+  agent_id: number | ''
+  user_id: number | ''
+}
+
 const searchForm = ref({
   dateRange: [] as string[],
-  agent_id: '',
-  user_id: ''
-})
+  agent_id: '' as number | '',
+  user_id: '' as number | '',
+} satisfies RunStatsSearchForm)
+
+interface RunStatsQueryParams extends RequestPayload {
+  date_start: string
+  date_end: string
+  agent_id: number | ''
+  user_id: number | ''
+  current_page?: number
+  page_size?: number
+}
 
 // 将 dateRange 数组拆分为后端需要的 date_start / date_end
-const buildParams = (extra: Record<string, any> = {}) => {
-  const [date_start, date_end] = searchForm.value.dateRange || []
+const buildParams = (extra: Partial<RunStatsQueryParams> = {}): RunStatsQueryParams => {
+  const [date_start, date_end] = searchForm.value.dateRange
   return {
-    date_start: date_start || '',
-    date_end: date_end || '',
+    date_start: date_start ?? '',
+    date_end: date_end ?? '',
     agent_id: searchForm.value.agent_id,
     user_id: searchForm.value.user_id,
     ...extra
@@ -47,7 +75,7 @@ const searchFields = computed<SearchField[]>(() => [
     key: 'agent_id',
     type: 'select-v2',
     label: t('aiRuns.stats.agent'),
-    options: dict.value.agentArr || [],
+    options: dict.value.agentArr,
     clearable: true
   },
   {
@@ -63,7 +91,7 @@ const searchFields = computed<SearchField[]>(() => [
 ])
 
 // ==================== 概览 ====================
-const summaryData = ref<any>(null)
+const summaryData = ref<AiRunStatsSummaryResponse | null>(null)
 const summaryLoading = ref(false)
 
 const loadSummary = async () => {
@@ -75,17 +103,24 @@ const loadSummary = async () => {
 }
 
 // ==================== 通用分页加载器 ====================
-interface PagedState {
-  data: any[]
+interface PagedState<T> {
+  data: T[]
   loading: boolean
   hasMore: boolean
   page: number
 }
 
-const createPagedLoader = (apiFn: (params: any) => Promise<any>) => {
-  const state = ref<PagedState>({ data: [], loading: false, hasMore: false, page: 1 })
+function createPagedLoader<T extends AiRunStatsMetricItem>(
+  apiFn: (params: RunStatsQueryParams) => Promise<AiRunStatsListResponse<T>>
+) {
+  const state = shallowRef<PagedState<T>>({
+    data: [],
+    loading: false,
+    hasMore: false,
+    page: 1,
+  })
 
-  const load = async (reset = false) => {
+  const load = async (reset = false): Promise<void> => {
     if (reset) {
       state.value.page = 1
       state.value.data = []
@@ -102,24 +137,24 @@ const createPagedLoader = (apiFn: (params: any) => Promise<any>) => {
     state.value.loading = false
   }
 
-  const loadMore = () => {
+  const loadMore = (): void => {
     state.value.page++
-    load()
+    void load()
   }
 
   return { state, load, loadMore }
 }
 
-const dateLoader = createPagedLoader(AiRunApi.statsByDate)
-const agentLoader = createPagedLoader(AiRunApi.statsByAgent)
-const userLoader = createPagedLoader(AiRunApi.statsByUser)
+const dateLoader = createPagedLoader<AiRunStatsByDateItem>(AiRunApi.statsByDate)
+const agentLoader = createPagedLoader<AiRunStatsByAgentItem>(AiRunApi.statsByAgent)
+const userLoader = createPagedLoader<AiRunStatsByUserItem>(AiRunApi.statsByUser)
 
 // 统一搜索
 const onSearch = () => {
-  loadSummary()
-  dateLoader.load(true)
-  agentLoader.load(true)
-  userLoader.load(true)
+  void loadSummary()
+  void dateLoader.load(true)
+  void agentLoader.load(true)
+  void userLoader.load(true)
 }
 
 // 格式化数字
@@ -132,27 +167,38 @@ const formatNumber = (num: number) => {
 
 // 概览卡片配置
 const summaryCards = computed(() => {
-  const s = summaryData.value?.summary
-  if (!s) return []
+  if (!summaryData.value) return []
+  const s = summaryData.value.summary
   return [
-    { value: formatNumber(s.total_runs || 0), label: t('aiRuns.stats.totalRuns'), color: '' },
-    { value: `${s.success_rate ?? 0}%`, label: t('aiRuns.stats.successRate'), color: 'var(--el-color-success)' },
-    { value: formatNumber(s.fail_runs || 0), label: t('aiRuns.stats.failRuns'), color: 'var(--el-color-danger)' },
-    { value: formatNumber(s.total_tokens || 0), label: t('aiRuns.stats.totalTokens'), color: '' },
-    { value: formatNumber(s.total_prompt_tokens || 0), label: t('aiRuns.stats.promptTokens'), color: '' },
-    { value: formatNumber(s.total_completion_tokens || 0), label: t('aiRuns.stats.completionTokens'), color: '' },
-    { value: `${s.avg_latency_ms || 0}ms`, label: t('aiRuns.stats.avgLatency'), color: '' },
+    { value: formatNumber(s.total_runs), label: t('aiRuns.stats.totalRuns'), color: '' },
+    { value: `${s.success_rate}%`, label: t('aiRuns.stats.successRate'), color: 'var(--el-color-success)' },
+    { value: formatNumber(s.fail_runs), label: t('aiRuns.stats.failRuns'), color: 'var(--el-color-danger)' },
+    { value: formatNumber(s.total_tokens), label: t('aiRuns.stats.totalTokens'), color: '' },
+    { value: formatNumber(s.total_prompt_tokens), label: t('aiRuns.stats.promptTokens'), color: '' },
+    { value: formatNumber(s.total_completion_tokens), label: t('aiRuns.stats.completionTokens'), color: '' },
+    { value: `${s.avg_latency_ms}ms`, label: t('aiRuns.stats.avgLatency'), color: '' },
   ]
 })
 
+const hasSummaryData = computed(() => {
+  return summaryData.value !== null && summaryData.value.summary.total_runs > 0
+})
+
 // 统计表格列定义（三个表共用）
+type StatsFormatter = (_row: unknown, _column: unknown, value: number) => string
+
+const formatMetricColumn: StatsFormatter = (_row, _column, value) => formatNumber(value)
+const formatLatencyColumn: StatsFormatter = (_row, _column, value) => {
+  return value ? `${Math.round(value)}ms` : '-'
+}
+
 const statsColumns = (nameKey: string, nameLabel: string) => [
   { prop: nameKey, label: nameLabel },
   { prop: 'total_runs', label: t('aiRuns.stats.runs') },
-  { prop: 'total_tokens', label: t('aiRuns.stats.tokens'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
-  { prop: 'total_prompt_tokens', label: t('aiRuns.stats.input'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
-  { prop: 'total_completion_tokens', label: t('aiRuns.stats.output'), formatter: (_r: any, _c: any, v: number) => formatNumber(v) },
-  { prop: 'avg_latency_ms', label: t('aiRuns.stats.latency'), formatter: (_r: any, _c: any, v: number) => v ? Math.round(v) + 'ms' : '-' },
+  { prop: 'total_tokens', label: t('aiRuns.stats.tokens'), formatter: formatMetricColumn },
+  { prop: 'total_prompt_tokens', label: t('aiRuns.stats.input'), formatter: formatMetricColumn },
+  { prop: 'total_completion_tokens', label: t('aiRuns.stats.output'), formatter: formatMetricColumn },
+  { prop: 'avg_latency_ms', label: t('aiRuns.stats.latency'), formatter: formatLatencyColumn },
 ]
 
 onMounted(async () => {
@@ -222,7 +268,7 @@ onMounted(async () => {
     </div>
 
     <!-- 空状态 -->
-    <el-empty v-if="!summaryLoading && !summaryData?.summary?.total_runs" :description="t('aiRuns.stats.noData')"/>
+    <el-empty v-if="!summaryLoading && !hasSummaryData" :description="t('aiRuns.stats.noData')"/>
   </div>
 </template>
 

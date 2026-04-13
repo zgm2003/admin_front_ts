@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import enUs from 'element-plus/dist/locale/en.mjs'
 import { TauriManager } from '@/components/TauriManager'
-import { isTauri } from '@/store/tauri'
+import { isTauri } from '@/platform/tauri'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 const { locale } = useI18n()

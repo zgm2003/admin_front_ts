@@ -3,9 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { AppTable } from '@/components/Table'
+import { AppTable, useTable } from '@/components/Table'
 import { UserSessionApi, UsersListApi } from '@/api/user/users'
-import { useTable } from '@/hooks/useTable'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
@@ -62,15 +61,20 @@ const {
   data: listData,
   page,
   selectedIds,
-  onSearch,
   onPageChange,
   refresh,
   getList,
   onSelectionChange,
+  resetPage,
 } = useTable<UserSessionItem>({
   api: { list: UserSessionApi.list },
   searchForm,
 })
+
+const onSearch = () => {
+  resetPage()
+  void getList()
+}
 
 const getStatusType = (status: UserSessionItem['status']) => {
   if (status === 'active') return 'success'

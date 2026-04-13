@@ -1,199 +1,50 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
-import type { SearchField } from '@/components/Search/types'
-import { OrderApi } from '@/api/pay/order'
-import { UsersListApi } from '@/api/user/users'
-import { PayStatus, BizStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
-import { ElNotification } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import type { UserListItem } from '@/types/user'
+import { usePayOrderPage } from './composables/usePayOrderPage'
 
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
-
-// ==================== 下拉字典 ====================
-const orderTypeArr = ref<{ label: string; value: number }[]>([])
-const payStatusArr = ref<{ label: string; value: number }[]>([])
-
-const init = async () => {
-  const data = await OrderApi.init()
-  orderTypeArr.value = data.dict.order_type_arr
-  payStatusArr.value = data.dict.pay_status_arr
-}
-
-// ==================== 状态统计 ====================
-const statusCounts = ref<Record<number, { label: string; count: number }>>({})
-const activeStatusTab = ref('all')
-
-const loadStatusCount = async () => {
-  const res = await OrderApi.statusCount()
-  statusCounts.value = res.counts
-}
-
-const statusTabs = computed(() => [
-  {
-    label: t('pay_order.tabs.all'),
-    value: 'all',
-  },
-  ...payStatusArr.value.map((item) => ({
-    label: `${item.label} (${statusCounts.value[item.value]?.count ?? 0})`,
-    value: String(item.value),
-  })),
-])
-
-// ==================== 搜索 ====================
-const searchForm = ref({
-  order_no: '',
-  user_id: '' as number | '',
-  order_type: '' as number | '',
-  pay_status: '' as number | '',
-})
-
-const formatUserLabel = (item: UserListItem) => `${item.username} (${item.email})`
-const formatUserDisplay = (row: { user_id?: number; user_name?: string; user_email?: string }) => {
-  if (row.user_name) {
-    return row.user_email ? `${row.user_name} (${row.user_email})` : row.user_name
-  }
-
-  return row.user_id ? `#${row.user_id}` : '--'
-}
-
-const searchFields = computed<SearchField[]>(() => [
-  { key: 'order_no', type: 'input', label: t('pay_order.table.order_no'), placeholder: t('pay_order.filter.order_no'), width: 180 },
-  {
-    key: 'user_id',
-    type: 'remote-select',
-    label: t('pay_order.filter.user'),
-    fetchMethod: UsersListApi.list,
-    labelField: formatUserLabel,
-    valueField: 'id',
-    placeholder: t('pay_order.filter.user'),
-    width: isMobile.value ? 220 : 260,
-  },
-  { key: 'order_type', type: 'select-v2', label: t('pay_order.table.order_type'), options: orderTypeArr.value, width: 130 },
-  { key: 'pay_status', type: 'select-v2', label: t('pay_order.table.pay_status'), options: payStatusArr.value, width: 130 },
-])
-
-// ==================== 表格 ====================
 const {
-  loading: listLoading,
-  data: listData,
-  page,
-  onSearch,
+  activeStatusTab,
+  closeForm,
+  closeFormRef,
+  closeRules,
+  closeVisible,
+  columns,
+  confirmClose,
+  confirmRemark,
+  detailData,
+  detailVisible,
+  formatOrderUserDisplay,
+  getBizStatusTagType,
+  getPayStatusTagType,
+  isCloseDisabled,
+  listData,
+  listLoading,
   onPageChange,
+  onSearch,
+  onTabChange,
+  openClose,
+  openRemark,
+  page,
   refresh,
-  getList,
-} = useTable({
-  api: OrderApi,
+  remarkForm,
+  remarkFormRef,
+  remarkVisible,
+  searchFields,
   searchForm,
-})
+  showDetail,
+  statusTabs,
+} = usePayOrderPage({ isMobile, t })
 
-const columns = computed(() => [
-  { key: 'order_no', label: t('pay_order.table.order_no'), width: 220 },
-  { key: 'user_name', label: t('pay_order.table.user_name'), width: 240 },
-  { key: 'user_id', label: t('pay_order.table.user_id'), width: 110 },
-  { key: 'order_type_text', label: t('pay_order.table.order_type') },
-  { key: 'title', label: t('pay_order.table.title') },
-  { key: 'pay_amount', label: t('pay_order.table.pay_amount'), width: 120, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'pay_status_text', label: t('pay_order.table.pay_status') ,width: 150 },
-  { key: 'biz_status_text', label: t('pay_order.table.biz_status') ,width: 150 },
-  { key: 'pay_time', label: t('pay_order.table.pay_time'), width: 180 },
-  { key: 'created_at', label: t('pay_order.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 220 },
-])
-
-const onTabChange = (status: string | number) => {
-  const nextStatus = String(status)
-  activeStatusTab.value = nextStatus
-  searchForm.value.pay_status = nextStatus === 'all' ? '' : Number(nextStatus)
-  void onSearch()
-}
-
-// ==================== 详情 ====================
-const detailVisible = ref(false)
-const detailData = ref<any>(null)
-
-const showDetail = async (row: any) => {
-  const res = await OrderApi.detail({ id: row.id })
-  detailData.value = res
-  detailVisible.value = true
-}
-
-// ==================== 关闭订单 ====================
-const closeFormRef = ref<FormInstance | null>(null)
-const closeVisible = ref(false)
-const closeForm = ref({ id: 0, reason: '' })
-const closeRules = computed<FormRules>(() => ({
-  reason: [
-    { required: true, message: t('pay_order.table.close_reason') + t('common.required'), trigger: 'blur' },
-    { max: 100, message: t('pay_order.table.close_reason') + '，最大长度100', trigger: 'blur' },
-  ],
-}))
-
-const openClose = (row: any) => {
-  closeForm.value = { id: row.id, reason: '' }
-  closeVisible.value = true
-  nextTick(() => { void closeFormRef.value?.clearValidate() })
-}
-
-const confirmClose = async () => {
-  try { await closeFormRef.value?.validate() } catch { return }
-  OrderApi.close({ id: closeForm.value.id, reason: closeForm.value.reason }).then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    closeVisible.value = false
-    void loadStatusCount()
-    void getList()
-  })
-}
-
-// ==================== 备注 ====================
-const remarkFormRef = ref<FormInstance | null>(null)
-const remarkVisible = ref(false)
-const remarkForm = ref({ id: 0, admin_remark: '' })
-
-const openRemark = (row: any) => {
-  remarkForm.value = { id: row.id, admin_remark: row.admin_remark ?? '' }
-  remarkVisible.value = true
-  nextTick(() => { void remarkFormRef.value?.clearValidate() })
-}
-
-const confirmRemark = async () => {
-  try { await remarkFormRef.value?.validate() } catch { return }
-  OrderApi.remark({ id: remarkForm.value.id, remark: remarkForm.value.admin_remark }).then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    remarkVisible.value = false
-    void getList()
-  })
-}
-
-// ==================== 状态标签颜色 ====================
-const payStatusType = (val: number) => {
-  if (val === PayStatus.PAID) return 'success'
-  if (val === PayStatus.CLOSED) return 'info'
-  if (val === PayStatus.EXCEPTION) return 'danger'
-  return 'warning'
-}
-const bizStatusType = (val: number) => {
-  if (val === BizStatus.SUCCESS) return 'success'
-  if (val === BizStatus.FAILED) return 'danger'
-  if (val === BizStatus.MANUAL) return 'warning'
-  if (val === BizStatus.EXECUTING) return 'primary'
-  return 'info'
-}
-
-onMounted(() => {
-  void init()
-  void loadStatusCount()
-  void getList()
-})
+void closeFormRef.value
+void remarkFormRef.value
 </script>
 
 <template>
@@ -220,13 +71,13 @@ onMounted(() => {
         @update:pagination="onPageChange"
       >
         <template #cell-user_name="{ row }">
-          <span>{{ formatUserDisplay(row) }}</span>
+          <span>{{ formatOrderUserDisplay(row) }}</span>
         </template>
         <template #cell-pay_status_text="{ row }">
-          <el-tag :type="payStatusType(row.pay_status)">{{ row.pay_status_text }}</el-tag>
+          <el-tag :type="getPayStatusTagType(row.pay_status)">{{ row.pay_status_text }}</el-tag>
         </template>
         <template #cell-biz_status_text="{ row }">
-          <el-tag :type="bizStatusType(row.biz_status)">{{ row.biz_status_text }}</el-tag>
+          <el-tag :type="getBizStatusTagType(row.biz_status)">{{ row.biz_status_text }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="showDetail(row)">{{ t('common.actions.detail') }}</el-button>
@@ -235,7 +86,7 @@ onMounted(() => {
             text
             v-if="userStore.can('pay_order_edit')"
             @click="openClose(row)"
-            :disabled="row.pay_status !== PayStatus.PENDING && row.pay_status !== PayStatus.PAYING"
+            :disabled="isCloseDisabled(row)"
           >
             {{ t('pay_order.actions.close') }}
           </el-button>
@@ -252,15 +103,15 @@ onMounted(() => {
     <template v-if="detailData">
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="t('pay_order.table.order_no')">{{ detailData.order.order_no }}</el-descriptions-item>
-        <el-descriptions-item :label="t('pay_order.table.user_name')">{{ formatUserDisplay(detailData.order) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('pay_order.table.user_name')">{{ formatOrderUserDisplay(detailData.order) }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.order_type')">{{ detailData.order.order_type_text }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.user_id')">{{ detailData.order.user_id }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_amount')">¥{{ formatFen(detailData.order.pay_amount) }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_status')">
-          <el-tag :type="payStatusType(detailData.order.pay_status)">{{ detailData.order.pay_status_text }}</el-tag>
+          <el-tag :type="getPayStatusTagType(detailData.order.pay_status)">{{ detailData.order.pay_status_text }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.biz_status')">
-          <el-tag :type="bizStatusType(detailData.order.biz_status)">{{ detailData.order.biz_status_text }}</el-tag>
+          <el-tag :type="getBizStatusTagType(detailData.order.biz_status)">{{ detailData.order.biz_status_text }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.channel')">{{ detailData.order.channel?.name ?? '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('pay_order.table.pay_method')">{{ detailData.order.pay_method ?? '-' }}</el-descriptions-item>

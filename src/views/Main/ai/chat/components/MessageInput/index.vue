@@ -35,6 +35,45 @@ interface PendingAttachment {
   error?: string
 }
 
+interface SpeechRecognitionAlternativeLike {
+  transcript: string
+}
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean
+  [index: number]: SpeechRecognitionAlternativeLike
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number
+  results: ArrayLike<SpeechRecognitionResultLike>
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string
+}
+
+interface SpeechRecognitionLike {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  onstart: (() => void) | null
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionLike
+}
+
+interface WindowWithSpeechRecognition extends Window {
+  SpeechRecognition?: SpeechRecognitionConstructor
+  webkitSpeechRecognition?: SpeechRecognitionConstructor
+}
+
 const props = defineProps<{
   sending: boolean
   disabled?: boolean
@@ -98,7 +137,7 @@ const adjustHeight = () => {
 // ==================== 语音转文字（Web Speech API） ====================
 
 const isRecording = ref(false)
-let recognition: any = null
+let recognition: SpeechRecognitionLike | null = null
 
 function toggleVoiceInput() {
   if (isRecording.value) {
@@ -109,7 +148,8 @@ function toggleVoiceInput() {
 }
 
 function startVoiceInput() {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+  const win = window as WindowWithSpeechRecognition
+  const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition
   if (!SpeechRecognition) {
     ElNotification.error({ message: t('aiChat.voiceNotSupported') })
     return
@@ -125,11 +165,13 @@ function startVoiceInput() {
       isRecording.value = true
     }
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       let finalTranscript = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript
+        const result = event.results[i]
+        const alternative = result?.[0]
+        if (result?.isFinal && alternative) {
+          finalTranscript += alternative.transcript
         }
       }
       if (finalTranscript) {
@@ -138,7 +180,7 @@ function startVoiceInput() {
       }
     }
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
       if (event.error === 'no-speech') {
         ElNotification.warning({ message: t('aiChat.voiceNoSpeech') })
       } else if (event.error === 'not-allowed') {
@@ -154,8 +196,8 @@ function startVoiceInput() {
     }
 
     recognition.start()
-  } catch (err: any) {
-    ElNotification.error({ message: err.message || t('aiChat.voiceError') })
+  } catch (err: unknown) {
+    ElNotification.error({ message: err instanceof Error ? err.message : t('aiChat.voiceError') })
     isRecording.value = false
   }
 }
@@ -202,9 +244,9 @@ const uploadFile = async (pending: PendingAttachment) => {
 
   try {
     validateFile(pending.file, config, 'image')
-  } catch (error: any) {
+  } catch (error: unknown) {
     item.status = 'error'
-    item.error = error.message
+    item.error = error instanceof Error ? error.message : t('aiChat.uploadFailed')
     ElNotification.error({ message: item.error })
     return
   }

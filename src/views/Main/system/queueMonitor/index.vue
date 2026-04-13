@@ -5,22 +5,26 @@ import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {AppTable} from '@/components/Table'
 import {useCopy} from '@/hooks/useCopy'
-import {QueueMonitorApi} from '@/api/system/queueMonitor'
+import {
+  QueueMonitorApi,
+  type QueueFailedItem,
+  type QueueMonitorItem,
+} from '@/api/system/queueMonitor'
 
 const {t} = useI18n()
 const {copy} = useCopy()
 
 // 队列列表
 const listLoading = ref(false)
-const listData = ref<any[]>([])
+const listData = ref<QueueMonitorItem[]>([])
 const autoRefresh = ref(false)
-let refreshTimer: any = null
+let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 // 失败任务弹窗
 const failedVisible = ref(false)
 const failedQueue = ref('')
 const failedLoading = ref(false)
-const failedData = ref<any[]>([])
+const failedData = ref<QueueFailedItem[]>([])
 const failedPage = ref({page_size: 10, current_page: 1, total: 0})
 
 // 表格列配置
@@ -45,7 +49,7 @@ const failedColumns = [
 const getList = async () => {
   listLoading.value = true
   try {
-    listData.value = await QueueMonitorApi.list() || []
+    listData.value = await QueueMonitorApi.list()
   } finally {
     listLoading.value = false
   }
@@ -55,20 +59,22 @@ const getList = async () => {
 const toggleAutoRefresh = () => {
   autoRefresh.value = !autoRefresh.value
   if (autoRefresh.value) {
-    refreshTimer = setInterval(getList, 5000)
+    refreshTimer = setInterval(() => {
+      void getList()
+    }, 5000)
     ElMessage.success(t('queueMonitor.autoRefreshOn'))
   } else {
-    clearInterval(refreshTimer)
+    if (refreshTimer) clearInterval(refreshTimer)
     ElMessage.info(t('queueMonitor.autoRefreshOff'))
   }
 }
 
 // 查看失败任务
-const handleViewFailed = (row: any) => {
+const handleViewFailed = (row: QueueMonitorItem) => {
   failedQueue.value = row.name
   failedPage.value.current_page = 1
   failedVisible.value = true
-  getFailedList()
+  void getFailedList()
 }
 
 // 加载失败任务列表
@@ -80,51 +86,53 @@ const getFailedList = async () => {
       page_size: failedPage.value.page_size,
       current_page: failedPage.value.current_page
     })
-    failedData.value = res.list || []
-    failedPage.value.total = res.page?.total || 0
+    failedData.value = res.list
+    failedPage.value.total = res.page.total
   } finally {
     failedLoading.value = false
   }
 }
 
 // 重试任务
-const handleRetry = async (row: any) => {
+const handleRetry = async (row: QueueFailedItem) => {
   await ElMessageBox.confirm(t('queueMonitor.retryConfirm'), t('common.confirmTitle'))
   await QueueMonitorApi.retry({queue: failedQueue.value, index: row.index})
   ElMessage.success(t('common.success.operation'))
-  getFailedList()
-  getList()
+  void getFailedList()
+  void getList()
 }
 
 // 清空等待队列
-const handleClear = async (row: any) => {
+const handleClear = async (row: QueueMonitorItem) => {
   if (row.waiting === 0) return ElMessage.warning(t('queueMonitor.noWaitingTasks'))
   await ElMessageBox.confirm(t('queueMonitor.clearConfirm', {count: row.waiting}), t('common.confirmTitle'), {type: 'warning'})
   await QueueMonitorApi.clear({queue: row.name})
   ElMessage.success(t('common.success.operation'))
-  getList()
+  void getList()
 }
 
 // 清空失败队列
-const handleClearFailed = async (row: any) => {
+const handleClearFailed = async (row: QueueMonitorItem) => {
   if (row.failed === 0) return ElMessage.warning(t('queueMonitor.noFailedTasks'))
   await ElMessageBox.confirm(t('queueMonitor.clearFailedConfirm', {count: row.failed}), t('common.confirmTitle'), {type: 'warning'})
   await QueueMonitorApi.clearFailed({queue: row.name})
   ElMessage.success(t('common.success.operation'))
-  getList()
+  void getList()
 }
 
 // 分页变化
-const onFailedPageChange = (p: any) => {
+const onFailedPageChange = (p: { page_size: number; current_page: number; total: number }) => {
   failedPage.value = p
-  getFailedList()
+  void getFailedList()
 }
 
 // 状态标签类型
 const getStatusType = (count: number) => count === 0 ? 'info' : count > 10 ? 'danger' : 'warning'
 
-onMounted(() => getList())
-onUnmounted(() => refreshTimer && clearInterval(refreshTimer))
+onMounted(() => { void getList() })
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 </script>
 
 <template>

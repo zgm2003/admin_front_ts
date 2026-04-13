@@ -8,7 +8,7 @@ import {
   type PayChannelListParams,
   type PayChannelMutationPayload,
 } from '@/api/pay/channel'
-import { useTable } from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import type { DictOption } from '@/types/common'
 import type {
@@ -91,7 +91,7 @@ export function usePayChannelPage(params: {
     confirmDel,
     batchDel,
     toggleStatus,
-  } = useTable<PayChannelListItem, PayChannelListParams>({
+  } = useCrudTable<PayChannelListItem, PayChannelListParams>({
     api: PayChannelApi,
     searchForm,
   })

@@ -1,30 +1,46 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
-import {useIsMobile} from '@/hooks/useResponsive'
-import {RoleApi} from '@/api/permission/role'
-import {ElNotification, ElMessageBox} from 'element-plus'
-import type {FormInstance, FormRules} from 'element-plus'
-import {useUserStore} from '@/store/user'
-import {useI18n} from 'vue-i18n'
-import {AppTable} from '@/components/Table'
-import {Search} from '@/components/Search'
-import type { SearchField } from '@/components/Search/types'
-import {useTable} from '@/hooks/useTable'
-import { CommonEnum } from '@/enums'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
+import type { SearchField } from '@/components/Search/types'
+import {
+  RoleApi,
+  type RoleEditPayload,
+  type RoleInitResponse,
+  type RoleListItem,
+  type RoleListParams,
+} from '@/api/permission/role'
+import { Search } from '@/components/Search'
+import { AppTable } from '@/components/Table'
+import { useCrudTable } from '@/hooks/useCrudTable'
+import { CommonEnum } from '@/enums'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
-const {t} = useI18n()
-const PermissionTree = ref([])
+const { t } = useI18n()
+
+interface RoleForm {
+  id: number | ''
+  name: string
+  permission_id: number[]
+}
+
+type RolePermissionTreeNode = RoleInitResponse['dict']['permission_tree'][number]
+
+const permissionTree = ref<RoleInitResponse['dict']['permission_tree']>([])
 const init = () => {
-  RoleApi.init().then((data: any) => {
-    PermissionTree.value = data.dict.permission_tree
+  RoleApi.init().then((data) => {
+    permissionTree.value = data.dict.permission_tree
   }).catch(() => {
   })
 }
+
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({id: '', name: '', permission_id: ''})
+const form = ref<RoleForm>({ id: '', name: '', permission_id: [] })
 const formRef = ref<FormInstance | null>(null)
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('role.table.name') + t('common.required'), trigger: 'blur' }]
@@ -32,14 +48,14 @@ const rules = computed<FormRules>(() => ({
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = {id: '', name: '', permission_id: ''}
+  form.value = { id: '', name: '', permission_id: [] }
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
   })
 }
 
-const searchForm = ref({name: '', path: '', permission: ''})
+const searchForm = ref<Pick<RoleListParams, 'name'>>({ name: '' })
 
 const {
   loading: listLoading,
@@ -53,22 +69,23 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel
-} = useTable({
+} = useCrudTable<RoleListItem, RoleListParams>({
   api: RoleApi,
   searchForm,
-  initPage: { page_size: 50 }
+  initPage: { page_size: 50 },
 })
 
 const columns = [
-  {key: 'name', label: t('role.table.name')},
-  {key: 'is_default', label: t('role.table.is_default'), width: 120},
-  {key: 'created_at', label: t('role.table.created_at')},
-  {key: 'updated_at', label: t('role.table.updated_at')},
-  {key: 'actions', label: t('common.actions.action'), width: 300}
+  { key: 'name', label: t('role.table.name') },
+  { key: 'is_default', label: t('role.table.is_default'), width: 120 },
+  { key: 'created_at', label: t('role.table.created_at') },
+  { key: 'updated_at', label: t('role.table.updated_at') },
+  { key: 'actions', label: t('common.actions.action'), width: 300 },
 ]
-const edit = (current: any) => {
+
+const edit = (current: RoleListItem) => {
   dialogMode.value = 'edit'
-  form.value = {id: current.id, name: current.name, permission_id: current.permission_id}
+  form.value = { id: current.id, name: current.name, permission_id: current.permission_id }
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
@@ -81,42 +98,49 @@ const confirmSubmit = async () => {
   } catch {
     return
   }
-  
-  const api = dialogMode.value === 'add' ? RoleApi.add : RoleApi.edit
-  api(form.value).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    dialogVisible.value = false;
+
+  const addPayload = { name: form.value.name, permission_id: form.value.permission_id }
+  const editPayload: RoleEditPayload = { id: Number(form.value.id), name: form.value.name, permission_id: form.value.permission_id }
+  const request = dialogMode.value === 'add'
+    ? RoleApi.add(addPayload)
+    : RoleApi.edit(editPayload)
+
+  request.then(() => {
+    ElNotification.success({ message: t('common.success.operation') })
+    dialogVisible.value = false
     getList()
   })
 }
-const handleDefaultSwitch = async (current: any) => {
+
+const handleDefaultSwitch = async (current: Pick<RoleListItem, 'id'>) => {
   try {
     await ElMessageBox.confirm(
-        t('role.confirmSetDefault'),
-        t('common.confirmTitle'),
-        {type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel')}
+      t('role.confirmSetDefault'),
+      t('common.confirmTitle'),
+      { type: 'warning', confirmButtonText: t('common.actions.confirm'), cancelButtonText: t('common.actions.cancel') },
     )
   } catch {
     return
   }
-  const param = {id: current.id}
+  const param = { id: current.id }
   RoleApi.default(param).then(() => {
-    ElNotification.success({message: t('common.success.operation')});
-    getList();
+    ElNotification.success({ message: t('common.success.operation') })
+    getList()
   }).catch(() => {
   })
 }
-const props = {multiple: true, emitPath: false, checkStrictly: true}
+
+const cascaderProps = { multiple: true, emitPath: false, checkStrictly: true } as const
 
 // 获取权限树所有叶子节点ID
-const getLeafIds = (nodes: any[]): any[] => {
-  const ids: any[] = []
-  const traverse = (items: any[]) => {
+const getLeafIds = (nodes: RolePermissionTreeNode[]): number[] => {
+  const ids: number[] = []
+  const traverse = (items: RolePermissionTreeNode[]) => {
     for (const item of items) {
       if (item.children?.length) {
         traverse(item.children)
       } else {
-        ids.push(item.value)
+        ids.push(item.value as number)
       }
     }
   }
@@ -126,12 +150,11 @@ const getLeafIds = (nodes: any[]): any[] => {
 
 // 全选权限
 const selectAllPermissions = () => {
-  const allIds = getLeafIds(PermissionTree.value)
-  form.value.permission_id = allIds as any
+  form.value.permission_id = getLeafIds(permissionTree.value)
 }
 
 const searchFields = computed<SearchField[]>(() => [
-  {key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150}
+  { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 },
 ])
 const isMobile = useIsMobile()
 onMounted(() => {
@@ -191,8 +214,8 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('role.form.permission')">
           <div style="display: flex; gap: 8px; width: 100%">
-            <el-cascader :options="PermissionTree" :props="props" v-model="form.permission_id" clearable
-                         filterable placeholder="请选择权限" collapse-tags
+            <el-cascader :options="permissionTree" :props="cascaderProps" v-model="form.permission_id" clearable
+                         filterable :placeholder="t('role.form.permission')" collapse-tags
                          style="flex: 1"/>
             <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
           </div>

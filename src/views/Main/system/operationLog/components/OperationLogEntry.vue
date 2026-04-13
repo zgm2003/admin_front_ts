@@ -21,8 +21,8 @@ interface OperationLogItem {
   action?: string
   created_at?: string
   is_success?: number
-  request_data?: string
-  response_data?: string
+  request_data?: string | null
+  response_data?: string | null
   user_email?: string
   user_name?: string
 }
@@ -54,7 +54,7 @@ const userEmailLabel = computed(() => props.item.user_email || '--')
 
 const { createdAtParts } = useAuditTimestamp(() => props.item.created_at)
 
-const formatJson = (raw?: string) => {
+const formatJson = (raw?: string | null) => {
   try {
     return raw ? JSON.stringify(JSON.parse(raw), null, 2) : ''
   } catch {
@@ -62,7 +62,7 @@ const formatJson = (raw?: string) => {
   }
 }
 
-const summarizePayload = (raw?: string) => {
+const summarizePayload = (raw?: string | null) => {
   if (!raw) return t('operationLog.entry.payloadNone')
 
   try {

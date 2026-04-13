@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useTable } from '@/hooks/useTable'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -10,6 +9,7 @@ import { UserWalletApi } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { WalletType, formatFen } from '@/enums'
 import { formatWalletBizActionDisplay, formatWalletUserDisplay, formatWalletUserLabel } from '../helpers'
+import { useCrudTable } from '@/hooks/useCrudTable'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
@@ -65,10 +65,10 @@ const {
   loading,
   data,
   page,
-  onSearch,
   onPageChange,
   refresh,
-} = useTable({
+  onSearch,
+} = useCrudTable({
   api: walletTransactionTableApi,
   searchForm: txSearchForm,
 })

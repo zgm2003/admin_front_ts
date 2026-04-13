@@ -12,12 +12,17 @@ import {
   FolderChecked
 } from '@element-plus/icons-vue'
 import { groupByTimeRange } from '@/utils/date'
+import type { Conversation } from '../../composables/types'
 
 const { t } = useI18n()
-const scrollbarRef = ref<any>(null)
+interface ScrollWrapRef {
+  wrapRef?: HTMLElement
+}
+
+const scrollbarRef = ref<ScrollWrapRef | null>(null)
 
 const props = defineProps<{
-  conversations: any[]
+  conversations: Conversation[]
   loading: boolean
   loadingMore?: boolean
   hasMore?: boolean
@@ -26,11 +31,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  select: [conv: any]
+  select: [conv: Conversation]
   create: []
-  rename: [conv: any]
-  delete: [conv: any]
-  archive: [conv: any]
+  rename: [conv: Conversation]
+  delete: [conv: Conversation]
+  archive: [conv: Conversation]
   loadMore: []
   toggleArchived: [showArchived: boolean]
 }>()

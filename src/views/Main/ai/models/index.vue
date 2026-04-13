@@ -1,21 +1,34 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {AiModelApi} from '@/api/ai/models'
+import {
+  AiModelApi,
+  type AiModelInitResponse,
+  type AiModelItem,
+  type AiModelMutationParams,
+} from '@/api/ai/models'
+import type { AiAgentModalities } from '@/api/ai/agents'
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ai_driver_arr: [], common_status_arr: []} as any)
+const dict = ref<AiModelInitResponse['dict']>({
+  ai_driver_arr: [],
+  common_status_arr: [],
+})
 
-const searchForm = ref({name: '', driver: '', status: ''} as any)
+const searchForm = ref({
+  name: '',
+  driver: '' as string | '',
+  status: '' as number | '',
+})
 
 const {
   loading: listLoading,
@@ -28,13 +41,41 @@ const {
   onSelectionChange,
   confirmDel,
   toggleStatus
-} = useTable({
+} = useCrudTable({
   api: AiModelApi,
   searchForm
 })
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
+type ModelModalitiesForm = Required<AiAgentModalities>
+interface ModelForm extends AiModelMutationParams {
+  id?: number
+  api_key: string
+  modalities: ModelModalitiesForm
+}
+
+function createDefaultModalities(): ModelModalitiesForm {
+  return {
+    image: false,
+    audio: false,
+    video: false,
+    file: false,
+  }
+}
+
+function createDefaultModelForm(): ModelForm {
+  return {
+    name: '',
+    driver: '',
+    model_code: '',
+    endpoint: '',
+    api_key: '',
+    status: 1,
+    modalities: createDefaultModalities(),
+  }
+}
+
 const form = ref({
   name: '',
   driver: '',
@@ -48,7 +89,7 @@ const form = ref({
     video: false,
     file: false
   }
-} as any)
+} as ModelForm)
 const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => ({
@@ -58,8 +99,8 @@ const rules = computed<FormRules>(() => ({
 }))
 
 const init = () => {
-  AiModelApi.init().then((data: any) => {
-    dict.value = data.dict || {}
+  AiModelApi.init().then((data) => {
+    dict.value = data.dict
   })
 }
 
@@ -97,25 +138,12 @@ const columns = computed(() => [
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = {
-    name: '',
-    driver: '',
-    model_code: '',
-    endpoint: '',
-    api_key: '',
-    status: 1,
-    modalities: {
-      image: false,
-      audio: false,
-      video: false,
-      file: false
-    }
-  }
+  form.value = createDefaultModelForm()
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+const edit = (row: AiModelItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
@@ -125,12 +153,10 @@ const edit = (row: any) => {
     endpoint: row.endpoint || '',
     api_key: '',
     status: row.status,
-    modalities: row.modalities || {
-      image: false,
-      audio: false,
-      video: false,
-      file: false
-    }
+    modalities: {
+      ...createDefaultModalities(),
+      ...(row.modalities ?? {}),
+    },
   }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
@@ -145,7 +171,7 @@ const confirmSubmit = async () => {
   }
   const api = dialogMode.value === 'add' ? AiModelApi.add : AiModelApi.edit
   const v = form.value
-  const payload: any = {
+  const payload: AiModelMutationParams = {
     name: v.name,
     driver: v.driver,
     model_code: v.model_code,

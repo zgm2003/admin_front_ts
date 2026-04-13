@@ -8,7 +8,7 @@ import { NotificationApi, type NotificationItem } from '@/api/system/notificatio
 import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { onWsMessage } from '@/hooks/useWebSocket'
-import { shouldUseNative } from '@/store/tauri'
+import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
 import { formatTimeAgo } from '@/utils/date'
 
 const PAGE_SIZE = 5
@@ -19,6 +19,15 @@ const visible = ref(false)
 const loading = ref(false)
 const unreadCount = ref(0)
 const list = ref<NotificationItem[]>([])
+
+interface NotificationWsPayload {
+  [key: string]: unknown
+  title?: string
+  content?: string
+  link?: string
+  level?: string
+  notification_type?: 'success' | 'warning' | 'info' | 'error'
+}
 
 const isUnread = (item: NotificationItem) => item.is_read === CommonEnum.NO
 
@@ -72,14 +81,25 @@ onMounted(async () => {
   const res = await NotificationApi.unreadCount().catch(() => null) as { count: number } | null
   unreadCount.value = res?.count || 0
 
-  unsubscribe = onWsMessage('notification', async ({ data = {} }) => {
+  unsubscribe = onWsMessage<NotificationWsPayload>('notification', async ({ data }) => {
     unreadCount.value++
     if (data.level === 'urgent') {
+      const title = typeof data.title === 'string' ? data.title : t('notification.title')
+      const content = typeof data.content === 'string' ? data.content : ''
+      const link = typeof data.link === 'string' ? data.link : undefined
       if (await shouldUseNative()) {
-        const { invoke } = await import('@tauri-apps/api/core')
-        invoke('send_notification', { title: data.title || t('notification.title'), body: data.content || '' })
+        await sendNativeNotification(title, content)
       }
-      const n = ElNotification({ title: data.title || t('notification.title'), message: data.content, type: data.notification_type || 'info', duration: 5000, onClick: () => { n.close(); navigateTo(data.link) } })
+      const n = ElNotification({
+        title,
+        message: content,
+        type: data.notification_type || 'info',
+        duration: 5000,
+        onClick: () => {
+          n.close()
+          navigateTo(link)
+        },
+      })
     }
   })
 })

@@ -1,25 +1,45 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {AiAgentApi} from '@/api/ai/agents'
-import {AiToolApi} from '@/api/ai/tools'
-import {ElNotification} from 'element-plus'
-import type {FormInstance, FormRules} from 'element-plus'
-import {Search} from '@/components/Search'
-import type {SearchField} from '@/components/Search/types'
-import {AppTable} from '@/components/Table'
-import {useIsMobile} from '@/hooks/useResponsive'
-import {useTable} from '@/hooks/useTable'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  AiAgentApi,
+  type AiAgentInitResponse,
+  type AiAgentItem,
+  type AiAgentListParams,
+} from '@/api/ai/agents'
+import { AiToolApi, type AgentToolOption } from '@/api/ai/tools'
+import { ElNotification } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
+import { Search } from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
+import { AppTable } from '@/components/Table'
+import { useIsMobile } from '@/hooks/useResponsive'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { UpMedia } from '@/components/UpMedia'
 import { CommonEnum } from '@/enums'
+import {
+  createDefaultAgentForm,
+  getAgentSceneTagType,
+  toAgentMutationPayload,
+  type AgentFormState,
+} from './composables/helpers'
 
-const {t} = useI18n()
+const { t } = useI18n()
 const isMobile = useIsMobile()
-const dict = ref({ai_mode_arr: [], ai_scene_arr: [], common_status_arr: [], model_list: []} as any)
-const toolOptions = ref<any[]>([])
-const boundToolIds = ref<number[]>([])
+const dict = ref<AiAgentInitResponse['dict']>({
+  ai_mode_arr: [],
+  ai_scene_arr: [],
+  common_status_arr: [],
+  model_list: [],
+})
+const toolOptions = ref<AgentToolOption[]>([])
 
-const searchForm = ref({name: '', model_id: '', mode: '', status: ''} as any)
+const searchForm = ref<AiAgentListParams>({
+  name: '',
+  model_id: '',
+  mode: '',
+  status: '',
+})
 
 const {
   loading: listLoading,
@@ -30,48 +50,35 @@ const {
   refresh,
   getList,
   confirmDel,
-  toggleStatus
-} = useTable({
+  toggleStatus,
+} = useCrudTable<AiAgentItem>({
   api: AiAgentApi,
-  searchForm
+  searchForm,
 })
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref({
-  name: '',
-  model_id: '',
-  avatar: '',
-  system_prompt: '',
-  mode: 'chat',
-  scene: 'chat',
-  status: 1,
-  tool_ids: [] as number[]
-} as any)
+const form = ref<AgentFormState>(createDefaultAgentForm())
 const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => ({
-  name: [{required: true, message: t('aiAgents.form.name') + t('common.required'), trigger: 'blur'}],
-  model_id: [{required: true, message: t('aiAgents.form.model_id') + t('common.required'), trigger: 'blur'}]
+  name: [{ required: true, message: t('aiAgents.form.name') + t('common.required'), trigger: 'blur' }],
+  model_id: [{ required: true, message: t('aiAgents.form.model_id') + t('common.required'), trigger: 'change' }],
 }))
 
-const init = () => {
-  AiAgentApi.init().then((data: any) => {
-    dict.value = data.dict || {}
-  })
+async function init() {
+  const data = await AiAgentApi.init()
+  dict.value = data.dict
 }
 
-const loadToolOptions = (agentId?: number) => {
-  const params: any = {}
-  if (agentId) params.agent_id = agentId
-  AiToolApi.getAgentTools(params).then((data: any) => {
-    toolOptions.value = data.all_tools || []
-    boundToolIds.value = data.bound_tool_ids || []
-  })
+async function loadToolOptions(agentId?: number) {
+  const data = await AiToolApi.getAgentTools(agentId ? { agent_id: agentId } : {})
+  toolOptions.value = data.all_tools
+  return data.bound_tool_ids
 }
 
 const searchFields = computed<SearchField[]>(() => [
-  {key: 'name', type: 'input', label: t('aiAgents.filter.name'), placeholder: t('aiAgents.filter.name'), width: 160},
+  { key: 'name', type: 'input', label: t('aiAgents.filter.name'), placeholder: t('aiAgents.filter.name'), width: 160 },
   {
     key: 'model_id',
     type: 'select-v2',
@@ -87,7 +94,7 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('aiAgents.filter.mode'),
     placeholder: t('aiAgents.filter.mode'),
     width: 120,
-    options: dict.value.ai_mode_arr
+    options: dict.value.ai_mode_arr,
   },
   {
     key: 'status',
@@ -95,92 +102,82 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('aiAgents.filter.status'),
     placeholder: t('aiAgents.filter.status'),
     width: 120,
-    options: dict.value.common_status_arr
-  }
+    options: dict.value.common_status_arr,
+  },
 ])
 
 const columns = computed(() => [
-  {key: 'name', label: t('aiAgents.table.name'), width: 140},
-  {key: 'model_name', label: t('aiAgents.table.model_name')},
-  {key: 'mode', label: t('aiAgents.table.mode')},
-  {key: 'scene', label: t('aiAgents.table.scene'), width: 150},
-  {key: 'system_prompt', label: t('aiAgents.table.system_prompt'),width: 500, overflowTooltip: true},
-  {key: 'status', label: t('aiAgents.table.status')},
-  {key: 'created_at', label: t('aiAgents.table.created_at'), width: 160},
-  {key: 'actions', label: t('common.actions.action'), width: 250}
+  { key: 'name', label: t('aiAgents.table.name'), width: 140 },
+  { key: 'model_name', label: t('aiAgents.table.model_name') },
+  { key: 'mode', label: t('aiAgents.table.mode') },
+  { key: 'scene', label: t('aiAgents.table.scene'), width: 150 },
+  { key: 'system_prompt', label: t('aiAgents.table.system_prompt'), width: 500, overflowTooltip: true },
+  { key: 'status', label: t('aiAgents.table.status') },
+  { key: 'created_at', label: t('aiAgents.table.created_at'), width: 160 },
+  { key: 'actions', label: t('common.actions.action'), width: 250 },
 ])
 
-const add = () => {
+function add() {
   dialogMode.value = 'add'
-  form.value = {
-    name: '',
-    model_id: '',
-    avatar: '',
-    system_prompt: '',
-    mode: 'chat',
-    scene: '',
-    status: 1,
-    tool_ids: []
-  }
+  form.value = createDefaultAgentForm()
   toolOptions.value = []
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const edit = (row: any) => {
+async function edit(row: AiAgentItem) {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
     name: row.name,
     model_id: row.model_id,
-    avatar: row.avatar || '',
-    system_prompt: row.system_prompt || '',
+    avatar: row.avatar ?? '',
+    system_prompt: row.system_prompt ?? '',
     mode: row.mode,
-    scene: row.scene || '',
+    scene: row.scene ?? '',
     status: row.status,
-    tool_ids: []
+    tool_ids: [],
   }
+
   if (row.mode === 'tool') {
-    AiToolApi.getAgentTools({ agent_id: row.id }).then((data: any) => {
-      toolOptions.value = data.all_tools || []
-      form.value.tool_ids = data.bound_tool_ids || []
-    })
+    form.value.tool_ids = await loadToolOptions(row.id)
+  } else {
+    toolOptions.value = []
   }
+
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
 }
 
-const confirmSubmit = async () => {
+async function handleModeChange(mode: string) {
+  if (mode !== 'tool') {
+    toolOptions.value = []
+    form.value.tool_ids = []
+    return
+  }
+
+  form.value.tool_ids = await loadToolOptions(typeof form.value.id === 'number' ? form.value.id : undefined)
+}
+
+async function confirmSubmit() {
   if (!formRef.value) return
+
   try {
     await formRef.value.validate()
   } catch {
     return
   }
-  const api = dialogMode.value === 'add' ? AiAgentApi.add : AiAgentApi.edit
-  const v = form.value
-  const payload: any = {
-    name: v.name,
-    model_id: v.model_id,
-    avatar: v.avatar || null,
-    system_prompt: v.system_prompt || null,
-    mode: v.mode,
-    scene: v.scene || null,
-    status: v.status
-  }
-  if (v.mode === 'tool') payload.tool_ids = v.tool_ids || []
-  if (dialogMode.value === 'edit') payload.id = v.id
 
-  api(payload).then(() => {
-    ElNotification.success({message: t('common.success.operation')})
-    dialogVisible.value = false
-    getList()
-  })
+  const api = dialogMode.value === 'add' ? AiAgentApi.add : AiAgentApi.edit
+  await api(toAgentMutationPayload(form.value))
+  ElNotification.success({ message: t('common.success.operation') })
+  dialogVisible.value = false
+  await getList()
 }
 
 onMounted(() => {
-  init()
-  getList()
+  void init()
+  void getList()
 })
 </script>
 
@@ -215,7 +212,7 @@ onMounted(() => {
           <el-tag size="small">{{ row.mode_name }}</el-tag>
         </template>
         <template #cell-scene="{row}">
-          <el-tag v-if="row.scene" size="small" :type="row.scene === 'goods_script' ? 'warning' : row.scene?.startsWith('code_gen') ? 'primary' : 'info'">{{ row.scene_name }}</el-tag>
+          <el-tag v-if="row.scene" size="small" :type="getAgentSceneTagType(row.scene)">{{ row.scene_name }}</el-tag>
         </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
@@ -250,7 +247,7 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiAgents.form.mode')" prop="mode">
-            <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%" @change="(val: string) => { if (val === 'tool') loadToolOptions(form.id) }"/>
+            <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%" @change="handleModeChange"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

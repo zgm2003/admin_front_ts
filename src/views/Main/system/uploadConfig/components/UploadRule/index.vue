@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {UploadRuleApi} from '@/api/system/uploadConfig'
+import {
+  UploadRuleApi,
+  type UploadRuleForm,
+  type UploadRuleInitResponse,
+  type UploadRuleItem,
+} from '@/api/system/uploadConfig'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -9,13 +14,16 @@ import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {useUserStore} from "@/store/user.ts";
-import {useTable} from '@/hooks/useTable'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { ArrowDown } from '@element-plus/icons-vue'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const userStore = useUserStore()
-const dict = ref({upload_image_ext_arr: [], upload_file_ext_arr: []} as any)
+const dict = ref<UploadRuleInitResponse['dict']>({
+  upload_image_ext_arr: [],
+  upload_file_ext_arr: [],
+})
 
 const searchForm = ref({title: ''})
 
@@ -30,7 +38,7 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel
-} = useTable({
+} = useCrudTable({
   api: UploadRuleApi,
   searchForm
 })
@@ -38,7 +46,11 @@ const {
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
-const form = ref({
+type UploadRuleFormState = UploadRuleForm & {
+  id: number | string
+}
+
+const form = ref<UploadRuleFormState>({
   id: '',
   title: '',
   max_size_mb: 5,
@@ -64,8 +76,8 @@ const rules = computed<FormRules>(() => ({
 
 const init = () => {
   UploadRuleApi.init()
-      .then((data: any) => {
-        dict.value = data.dict || {}
+      .then((data) => {
+        dict.value = data.dict
       })
       .catch(() => {
       })
@@ -103,14 +115,14 @@ const add = () => {
   })
 }
 
-const edit = (row: any) => {
+const edit = (row: UploadRuleItem) => {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
     title: row.title,
     max_size_mb: row.max_size_mb,
-    image_exts: row.image_exts || [],
-    file_exts: row.file_exts || []
+    image_exts: row.image_exts,
+    file_exts: row.file_exts
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -126,7 +138,7 @@ const confirmSubmit = async () => {
   }
   
   const api = dialogMode.value === 'add' ? UploadRuleApi.add : UploadRuleApi.edit
-  api(form.value).then(() => {
+  api(form.value as UploadRuleForm).then(() => {
     ElNotification.success({message: t('common.success.operation')});
     dialogVisible.value = false;
     getList()
@@ -173,12 +185,12 @@ onMounted(() => {
         </template>
         <template #cell-image_exts="{ row }">
           <div :style="tagWrapStyle">
-            <el-tag v-for="it in (row.image_exts || [])" :key="it" type="success">{{ it }}</el-tag>
+            <el-tag v-for="it in row.image_exts" :key="it" type="success">{{ it }}</el-tag>
           </div>
         </template>
         <template #cell-file_exts="{ row }">
           <div :style="tagWrapStyle">
-            <el-tag v-for="it in (row.file_exts || [])" :key="it" type="warning">{{ it }}</el-tag>
+            <el-tag v-for="it in row.file_exts" :key="it" type="warning">{{ it }}</el-tag>
           </div>
         </template>
         <template #cell-actions="{ row }">

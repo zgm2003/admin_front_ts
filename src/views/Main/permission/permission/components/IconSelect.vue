@@ -200,7 +200,7 @@ const getIconCategoryColor = (icon: string) => {
           :key="name" 
           class="icon-item"
           :class="{ 'is-selected': selectedIcon === name }"
-          @click="handleSelectIcon(name as any)"
+          @click="handleSelectIcon(name)"
           >
             <div class="icon-wrapper">
               <el-icon :size="28">
