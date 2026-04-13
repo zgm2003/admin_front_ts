@@ -28,6 +28,8 @@ describe('search dialog layout', () => {
     )
 
     expect(source).not.toContain(':fullscreen=')
+    expect(source).toContain('<AppDialog')
+    expect(source).toContain('body-padding="0"')
     expect(source).toContain('dialogLayout.bodyHeight')
     expect(source).toContain('dialogLayout.resultHeight')
   })

@@ -59,7 +59,10 @@ const resolvedDraggable = computed(() => resolveAppDialogDraggable({
   isMobile: isMobile.value,
   draggable: props.draggable,
 }))
-const resolvedBodyPadding = computed(() => resolveAppDialogBodyPadding(props.bodyPadding))
+const resolvedBodyPadding = computed(() => resolveAppDialogBodyPadding({
+  isMobile: isMobile.value,
+  bodyPadding: props.bodyPadding,
+}))
 const bodyStyle = computed(() => ({
   padding: resolvedBodyPadding.value,
 }))

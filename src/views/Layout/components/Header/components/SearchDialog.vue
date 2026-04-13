@@ -1,10 +1,11 @@
 <template>
-  <el-dialog
+  <AppDialog
       v-model="show"
       :width="dialogLayout.width"
       :top="dialogLayout.top"
       class="search-dialog"
       :show-close="false"
+      body-padding="0"
       destroy-on-close
       append-to-body
   >
@@ -58,7 +59,7 @@
         </div>
       </el-scrollbar>
     </div>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
@@ -68,6 +69,7 @@ import {useUserStore} from '@/store/user'
 import {Top, Bottom, Right, Close, Search} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
+import { AppDialog } from '@/components/AppDialog'
 import {resolveMenuLabel} from '@/utils/menuI18n'
 import {DIcon} from '@/components/DIcon'
 import { resolveSearchDialogLayout } from './search-dialog'
