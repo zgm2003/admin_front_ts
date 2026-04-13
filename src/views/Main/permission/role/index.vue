@@ -5,6 +5,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import type { SearchField } from '@/components/Search/types'
+import { AppDialog } from '@/components/AppDialog'
 import {
   RoleApi,
   type RoleEditPayload,
@@ -205,7 +206,7 @@ onMounted(() => {
       </AppTable>
     </div>
   </div>
-  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'">
+  <AppDialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'">
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
@@ -226,7 +227,7 @@ onMounted(() => {
         t('common.actions.cancel')
       }}</el-button><el-button
         type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
-  </el-dialog>
+  </AppDialog>
 </template>
 <style scoped>
 .box {

@@ -3,6 +3,7 @@ import {ref, onMounted, onUnmounted} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
+import { AppDialog } from '@/components/AppDialog'
 import {AppTable} from '@/components/Table'
 import {useCopy} from '@/hooks/useCopy'
 import {
@@ -166,7 +167,7 @@ onUnmounted(() => {
       </template>
     </AppTable>
 
-    <el-dialog v-model="failedVisible" :title="t('queueMonitor.failedListTitle')" width="800px">
+    <AppDialog v-model="failedVisible" :title="t('queueMonitor.failedListTitle')" width="800px">
       <AppTable :columns="failedColumns" :data="failedData" :loading="failedLoading" :pagination="failedPage"
                 :show-refresh="false" :show-column-setting="false" :fixed-footer="false" @update:pagination="onFailedPageChange">
         <template #cell-error="{row}">
@@ -185,7 +186,7 @@ onUnmounted(() => {
           <el-button size="small" type="primary" :icon="RefreshRight" @click="handleRetry(row)">{{ t('queueMonitor.retry') }}</el-button>
         </template>
       </AppTable>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

@@ -1,15 +1,14 @@
 <template>
   <el-dialog
       v-model="show"
-      :width="isMobile ? '100vw' : '700px'"
-      :top="isMobile ? '0' : '10vh'"
-      :fullscreen="isMobile"
+      :width="dialogLayout.width"
+      :top="dialogLayout.top"
       class="search-dialog"
       :show-close="false"
       destroy-on-close
       append-to-body
   >
-    <div class="search-container">
+    <div class="search-container" :style="{ height: dialogLayout.bodyHeight }">
       <el-button v-if="isMobile" class="close-btn" circle @click="show = false">
         <el-icon>
           <Close/>
@@ -40,7 +39,7 @@
         <div class="hint-item"><kbd>Enter</kbd> {{ t('search.enter') }}</div>
         <div class="hint-item"><kbd>Esc</kbd> {{ t('search.esc') }}</div>
       </div>
-      <el-scrollbar :height="isMobile ? '55vh' : '400px'" class="result-scroll">
+      <el-scrollbar :height="dialogLayout.resultHeight" class="result-scroll">
         <el-empty v-if="filtered.length===0" :description="t('search.empty')"/>
         <div v-for="(it, index) in filtered" :key="it.path" :class="['result-item', { active: index === activeIndex }]"
              @click="go(it)" @mouseenter="activeIndex = index">
@@ -71,6 +70,7 @@ import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {resolveMenuLabel} from '@/utils/menuI18n'
 import {DIcon} from '@/components/DIcon'
+import { resolveSearchDialogLayout } from './search-dialog'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue'])
@@ -81,6 +81,7 @@ const keyword = ref('')
 const activeIndex = ref(0)
 const isMobile = useIsMobile()
 const {t} = useI18n()
+const dialogLayout = computed(() => resolveSearchDialogLayout(isMobile.value))
 
 type Item = { label: string; path: string; icon?: any; i18n_key?: string; name?: string }
 const list = computed<Item[]>(() => {
@@ -168,10 +169,12 @@ onBeforeUnmount(() => {
 }
 
 .search-container {
+  position: relative;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow: hidden;
 }
 
 .close-btn {

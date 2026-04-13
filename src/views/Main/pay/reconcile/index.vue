@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -158,7 +159,7 @@ onMounted(() => {
   </div>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :width="isMobile ? '94vw' : '800px'">
+  <AppDialog v-model="detailVisible" :width="isMobile ? '94vw' : '800px'">
     <template #header>{{ t('pay_reconcile.detail.title') }}</template>
     <el-descriptions v-if="detailData" :column="2" border>
       <el-descriptions-item :label="t('pay_reconcile.table.reconcile_date')">{{ detailData.task.reconcile_date }}</el-descriptions-item>
@@ -192,7 +193,7 @@ onMounted(() => {
       <el-descriptions-item :label="t('pay_reconcile.table.error_msg')" :span="2">{{ detailData.task.error_msg ?? '-' }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_reconcile.table.created_at')">{{ detailData.task.created_at }}</el-descriptions-item>
     </el-descriptions>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

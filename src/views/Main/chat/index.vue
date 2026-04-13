@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChatLineRound, Plus, User, ChatDotRound, ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
 import type { ConversationItem, ContactItem } from '@/api/chat'
@@ -175,7 +176,7 @@ function openCreateGroupDialog() {
     </div>
 
     <!-- 创建群聊对话框 -->
-    <el-dialog v-model="showGroupDialog" :title="t('chat.createGroup')" :width="isMobile ? '90%' : '500px'">
+    <AppDialog v-model="showGroupDialog" :title="t('chat.createGroup')" :width="isMobile ? '90%' : '500px'">
       <el-form label-width="80px">
         <el-form-item :label="t('chat.groupName')">
           <el-input v-model="groupForm.name" :placeholder="t('chat.groupNamePlaceholder')" maxlength="50" />
@@ -198,7 +199,7 @@ function openCreateGroupDialog() {
           {{ t('common.actions.confirm') }}
         </el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

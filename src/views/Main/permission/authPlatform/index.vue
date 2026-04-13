@@ -13,6 +13,7 @@ import {
 } from '@/api/permission/authPlatform'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useCrudTable } from '@/hooks/useCrudTable'
@@ -259,7 +260,7 @@ onMounted(() => { init(); getList() })
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '720px'" destroy-on-close>
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '720px'" destroy-on-close>
     <template #header>{{ dialogMode === 'add' ? t('authPlatform.addTitle') : t('authPlatform.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <!-- 基本信息 -->
@@ -340,7 +341,7 @@ onMounted(() => { init(); getList() })
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

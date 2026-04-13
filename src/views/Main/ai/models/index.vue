@@ -12,6 +12,7 @@ import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
+import { AppDialog } from '@/components/AppDialog'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import { useCrudTable } from '@/hooks/useCrudTable'
@@ -243,7 +244,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'">
     <template #header>{{ dialogMode === 'add' ? t('aiModels.addTitle') : t('aiModels.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
@@ -297,7 +298,7 @@ onMounted(() => {
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

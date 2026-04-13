@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import { useCrudTable } from '@/hooks/useCrudTable'
@@ -186,7 +187,7 @@ onMounted(() => init())
   </div>
 
   <!-- 新增/编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'" draggable>
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'" draggable>
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
       <el-form-item :label="t('cronTask.form.name')" prop="name" required>
@@ -222,10 +223,10 @@ onMounted(() => init())
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 日志弹窗 -->
-  <el-dialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'" top="10vh">
+  <AppDialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'" top="10vh">
     <Search v-model="logSearchForm" :fields="logSearchFields" @query="onLogSearch" @reset="onLogSearch" />
     <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange" :tableProps="{ height: 400 }" :fixedFooter="false">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>
@@ -236,7 +237,7 @@ onMounted(() => init())
     <template #footer>
       <el-button @click="logVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

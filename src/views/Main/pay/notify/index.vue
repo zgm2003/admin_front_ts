@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -92,7 +93,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="detailVisible" :width="isMobile ? '94vw' : '860px'" :title="t('pay_notify.detail.title')">
+  <AppDialog v-model="detailVisible" :width="isMobile ? '94vw' : '860px'" :title="t('pay_notify.detail.title')">
     <el-descriptions v-if="detailData" :column="2" border>
       <el-descriptions-item :label="t('pay_notify.table.channel')">{{ detailData.log.channel_text }}</el-descriptions-item>
       <el-descriptions-item :label="t('pay_notify.table.notify_type')">{{ detailData.log.notify_type_text }}</el-descriptions-item>
@@ -110,7 +111,7 @@ onMounted(() => {
         <el-input type="textarea" :rows="8" :model-value="JSON.stringify(detailData.log.raw_data ?? {}, null, 2)" readonly />
       </el-descriptions-item>
     </el-descriptions>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

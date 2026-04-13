@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { ElIcon } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { uploadFileToCloud, getUploadToken, validateFile } from '@/utils/cosUpload'
 import { useIsMobile } from '@/hooks/useResponsive'
 
@@ -70,10 +71,10 @@ const handlePreview = (file: any) => {
     >
       <el-icon><Plus /></el-icon>
     </el-upload>
-    <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
+    <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
       <el-image v-if="type === 'image'" :src="dialogUrl" fit="contain" style="max-height: 70vh; width: 100%"/>
       <video v-else :src="dialogUrl" controls style="max-width: 100%; max-height: 70vh"/>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

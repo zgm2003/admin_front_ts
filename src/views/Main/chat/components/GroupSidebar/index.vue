@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Close, Switch, Star, MoreFilled } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { useChatStore } from '@/store/chat'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -276,7 +277,7 @@ async function handleMemberAction(command: string, member: ParticipantItem) {
     </div>
 
     <!-- 编辑群设置对话框 -->
-    <el-dialog v-model="showEditDialog" title="编辑群设置" :width="isMobile ? '90%' : '400px'" append-to-body>
+    <AppDialog v-model="showEditDialog" title="编辑群设置" :width="isMobile ? '90%' : '400px'" append-to-body>
       <el-form label-width="70px">
         <el-form-item label="群名称">
           <el-input v-model="editForm.name" maxlength="50" placeholder="请输入群名称" />
@@ -289,10 +290,10 @@ async function handleMemberAction(command: string, member: ParticipantItem) {
         <el-button @click="showEditDialog = false">取消</el-button>
         <el-button type="primary" @click="handleSaveEdit">保存</el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
 
     <!-- 邀请成员对话框 -->
-    <el-dialog v-model="showInviteDialog" title="邀请好友" :width="isMobile ? '90%' : '450px'" append-to-body>
+    <AppDialog v-model="showInviteDialog" title="邀请好友" :width="isMobile ? '90%' : '450px'" append-to-body>
       <FriendSelector
         v-model="inviteUserIds"
         multiple
@@ -303,7 +304,7 @@ async function handleMemberAction(command: string, member: ParticipantItem) {
         <el-button @click="showInviteDialog = false">取消</el-button>
         <el-button type="primary" :disabled="inviteUserIds.length === 0" @click="handleInvite">邀请</el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </el-drawer>
 </template>
 

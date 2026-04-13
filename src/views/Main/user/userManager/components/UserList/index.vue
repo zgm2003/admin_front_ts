@@ -5,6 +5,7 @@ import { ElNotification } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { UpMedia } from '@/components/UpMedia'
 import { UsersListApi } from '@/api/user/users'
@@ -278,7 +279,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" :title="t('common.actions.edit')">
+  <AppDialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" :title="t('common.actions.edit')">
     <div class="add-box">
       <el-form label-width="auto" :model="editForm" inline>
         <el-form-item :label="t('user.table.username')"><el-input v-model="editForm.username" :placeholder="t('user.table.username')" clearable style="width: 200px" /></el-form-item>
@@ -314,9 +315,9 @@ onMounted(() => {
         <el-button type="primary" @click="confirmEdit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 
-  <el-dialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" :title="t('common.actions.batchEdit')">
+  <AppDialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" :title="t('common.actions.batchEdit')">
     <div class="add-box">
       <el-form label-width="80">
         <el-form-item :label="t('user.batchEdit.field')" required><el-select-v2 v-model="batchEditForm.field" :options="batchFieldOptions" /></el-form-item>
@@ -331,7 +332,7 @@ onMounted(() => {
         <el-button type="primary" @click="confirmBatchEdit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

@@ -14,6 +14,7 @@ import {
   type PermissionTreeNode,
 } from '@/api/permission/permission'
 import { Search } from '@/components/Search'
+import { AppDialog } from '@/components/AppDialog'
 import { DIcon } from '@/components/DIcon'
 import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -350,7 +351,7 @@ onMounted(() => {
       </el-table>
     </div>
   </div>
-  <el-dialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'"
+  <AppDialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '800px'"
              :title="dialogMode==='add' ? t('common.actions.add') : t('common.actions.edit')" draggable destroy-on-close>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
@@ -410,7 +411,7 @@ onMounted(() => {
     </div>
     <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">{{ t('common.actions.cancel') }}</el-button><el-button
         type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
-  </el-dialog>
+  </AppDialog>
   <icon-select @select-icon="confirmIcon" ref="iconSelectRef"/>
 </template>
 <style scoped>

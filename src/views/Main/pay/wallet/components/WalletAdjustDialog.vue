@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { AppDialog } from '@/components/AppDialog'
 import { RemoteSelect } from '@/components/RemoteSelect'
 import { UserWalletApi } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
@@ -85,7 +86,7 @@ watch(
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_wallet.actions.adjust')">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_wallet.actions.adjust')">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="auto">
       <el-form-item :label="t('pay_wallet.form.user_id')" prop="user_id" required>
         <RemoteSelect
@@ -111,7 +112,7 @@ watch(
         <el-button type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

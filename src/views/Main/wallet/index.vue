@@ -2,6 +2,7 @@
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatFen } from '@/enums'
+import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import RechargeCurrentOrder from './components/RechargeCurrentOrder.vue'
 import RechargeForm from './components/RechargeForm.vue'
@@ -191,7 +192,7 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
     </div>
   </div>
 
-  <el-dialog
+  <AppDialog
     v-model="paymentDialogVisible"
     :width="isMobile ? '94vw' : '520px'"
     :title="t('personal.recharge.paymentDialogTitle')"
@@ -254,7 +255,7 @@ const handleCancelOrder = async (order: RechargeOrderListItem) => {
         </el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped lang="scss">

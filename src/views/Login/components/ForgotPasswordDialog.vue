@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { Message, Lock } from '@element-plus/icons-vue'
+import { useIsMobile } from '@/hooks/useResponsive'
 
 const { t } = useI18n()
+const isMobile = useIsMobile()
 
 defineProps<{
   visible: boolean
@@ -26,7 +28,7 @@ const emit = defineEmits<{
   <el-dialog
     :model-value="visible"
     :title="t('auth.forget.title')"
-    width="440px"
+    :width="isMobile ? '94vw' : '440px'"
     append-to-body
     destroy-on-close
     class="login-forgot-dialog"

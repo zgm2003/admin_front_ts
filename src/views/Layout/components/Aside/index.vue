@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <el-dialog v-model="logoutVisible" :title="t('header.logoutTitle')" width="400" align-center>
+  <AppDialog v-model="logoutVisible" :title="t('header.logoutTitle')" width="400" align-center>
     <div class="logout-content">
       <el-icon class="logout-icon" :size="48"><Warning /></el-icon>
       <p>{{ t('header.logoutText') }}</p>
@@ -48,12 +48,13 @@
       <el-button @click="logoutVisible = false">{{ t('header.cancel') }}</el-button>
       <el-button type="primary" @click="confirmLogout">{{ t('header.ok') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { AppDialog } from '@/components/AppDialog'
 import { useMenuStore } from '@/store/menu'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'

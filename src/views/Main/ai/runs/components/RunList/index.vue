@@ -11,6 +11,7 @@ import {
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
 import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import {DIcon} from '@/components/DIcon'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -19,6 +20,7 @@ import {useIsMobile} from '@/hooks/useResponsive'
 import {useCopy} from '@/hooks/useCopy'
 import { CommonEnum } from '@/enums'
 import { useCrudTable } from '@/hooks/useCrudTable'
+import { resolveAiRunsDetailDialogLayout } from './detail-dialog'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
@@ -137,6 +139,7 @@ const getStatusType = (status: number) => {
 const detailVisible = ref(false)
 const detailData = ref<AiRunDetailResponse | null>(null)
 const detailLoading = ref(false)
+const detailDialogLayout = computed(() => resolveAiRunsDetailDialogLayout(isMobile.value))
 
 const showDetail = async (row: AiRunItem) => {
   detailLoading.value = true
@@ -221,8 +224,14 @@ onMounted(() => {
   </div>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :title="t('aiRuns.detail.title')" top="10vh" :width="isMobile ? '100%' : '800px'" :fullscreen="isMobile">
-      <div v-loading="detailLoading">
+  <AppDialog
+      v-model="detailVisible"
+      :title="t('aiRuns.detail.title')"
+      :top="detailDialogLayout.top"
+      :width="detailDialogLayout.width"
+      :height="detailDialogLayout.height"
+  >
+      <div v-loading="detailLoading" class="run-detail">
       <template v-if="detailData">
         <el-descriptions :column="isMobile ? 1 : 2" border>
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
@@ -360,7 +369,7 @@ onMounted(() => {
     <template #footer>
       <el-button @click="detailVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>
@@ -385,6 +394,10 @@ onMounted(() => {
 .request-id-cell .el-text {
   flex: 1;
   min-width: 0;
+}
+
+.run-detail {
+  width: 100%;
 }
 
 .message-box {

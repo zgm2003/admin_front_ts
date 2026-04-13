@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 import AgentList from './components/AgentList/index.vue'
@@ -468,13 +469,13 @@ watch(currentConversationId, async (newId, oldId) => {
   </div>
 
   <!-- 重命名弹窗 -->
-  <el-dialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" class="rename-dialog">
+  <AppDialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" mobile-width="94vw" body-padding="24px" class="rename-dialog">
     <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')" maxlength="50" show-word-limit />
     <template #footer>
       <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmRename">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 

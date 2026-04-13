@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { Loading, CircleClose } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { useTauriStore } from '@/store/tauri'
 import { TauriVersionApi } from '@/api/system/tauriVersion'
 import {
@@ -195,7 +196,7 @@ onMounted(async () => {
 
 <template>
   <!-- 更新进度弹窗 -->
-  <el-dialog
+  <AppDialog
     v-model="showUpdateDialog"
     :title="updateInfo ? `更新到 v${updateInfo.version}` : '应用更新'"
     width="460px"
@@ -247,10 +248,10 @@ onMounted(async () => {
       <el-button @click="showUpdateDialog = false">关闭</el-button>
       <el-button type="primary" @click="retryUpdate">重试</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 关闭行为询问弹窗 -->
-  <el-dialog
+  <AppDialog
     v-model="tauriStore.showCloseDialog"
     title="关闭窗口"
     width="400px"
@@ -266,7 +267,7 @@ onMounted(async () => {
       <el-button @click="tauriStore.handleExit()">退出应用</el-button>
       <el-button type="primary" @click="tauriStore.handleMinimize()">最小化到托盘</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

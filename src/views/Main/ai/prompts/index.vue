@@ -10,8 +10,9 @@ import {
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useCopy } from '@/hooks/useCopy'
 import { useUserStore } from '@/store/user'
+import { AppDialog } from '@/components/AppDialog'
 import { CommonEnum } from '@/enums'
-import { ElCard, ElButton, ElInput, ElDialog, ElForm, ElFormItem, ElMessage, ElMessageBox, ElSpace, ElText, ElEmpty, ElScrollbar, ElInputTag } from 'element-plus'
+import { ElCard, ElButton, ElInput, ElForm, ElFormItem, ElMessage, ElMessageBox, ElSpace, ElText, ElEmpty, ElScrollbar, ElInputTag } from 'element-plus'
 import { Plus, Star, StarFilled, Edit, Delete, DocumentCopy, Search } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 
@@ -124,7 +125,7 @@ onMounted(getList)
     </ElScrollbar>
   </div>
 
-  <ElDialog v-model="dialogVisible" :title="dialogMode === 'add' ? t('aiPrompts.addTitle') : t('aiPrompts.editTitle')" :width="isMobile ? '94vw' : '600px'">
+  <AppDialog v-model="dialogVisible" :title="dialogMode === 'add' ? t('aiPrompts.addTitle') : t('aiPrompts.editTitle')" :width="isMobile ? '94vw' : '600px'">
     <ElForm ref="formRef" :model="form" label-width="70px">
       <ElFormItem :label="t('aiPrompts.form.title')" prop="title" :rules="[{ required: true, message: t('aiPrompts.form.title') + t('common.required') }]">
         <ElInput v-model="form.title" :placeholder="t('aiPrompts.form.titlePlaceholder')" />
@@ -143,7 +144,7 @@ onMounted(getList)
       <ElButton @click="dialogVisible = false">{{ t('common.actions.cancel') }}</ElButton>
       <ElButton type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</ElButton>
     </template>
-  </ElDialog>
+  </AppDialog>
 </template>
 
 <style scoped lang="scss">

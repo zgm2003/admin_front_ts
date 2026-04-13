@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -136,7 +137,7 @@ watch(
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '1280px'" :title="t('pay_wallet.txn.title')">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '1280px'" :title="t('pay_wallet.txn.title')">
     <Search
       v-model="txSearchForm"
       :fields="txSearchFields"
@@ -181,7 +182,7 @@ watch(
         </template>
       </AppTable>
     </div>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

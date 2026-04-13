@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { Search } from '@/components/Search'
+import { AppDialog } from '@/components/AppDialog'
 import type { SearchField } from '@/components/Search/types'
 import {
   TauriVersionApi,
@@ -188,7 +189,7 @@ onMounted(() => init())
   </div>
 
   <!-- 新增/编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile" destroy-on-close>
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile" destroy-on-close>
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('tauriVersion.addVersion') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
@@ -222,16 +223,16 @@ onMounted(() => init())
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- update.json 弹窗 -->
-  <el-dialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" :title="t('tauriVersion.viewUpdateJson')">
+  <AppDialog v-model="jsonDialogVisible" :width="isMobile ? '94vw' : '700px'" :title="t('tauriVersion.viewUpdateJson')">
     <el-input v-model="updateJsonContent" type="textarea" :rows="16" readonly />
     <template #footer>
       <el-button type="primary" @click="copy(updateJsonContent)">{{ t('common.actions.copy') }}</el-button>
       <el-button @click="jsonDialogVisible = false">{{ t('common.actions.close') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

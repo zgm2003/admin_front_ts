@@ -11,6 +11,7 @@ import {
   type GoodsStatusCountItem,
 } from '@/api/ai/goods'
 import { ElNotification } from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
@@ -21,6 +22,10 @@ import {
   goodsMetaToText,
   goodsTextToMeta,
 } from './composables/helpers'
+import {
+  resolveGoodsDetailDialogLayout,
+  resolveGoodsWorkbenchDialogLayout,
+} from './dialog-layout'
 
 interface GoodsSearchForm extends GoodsListParams {
   title: string
@@ -198,9 +203,11 @@ function hasGoodsMeta(meta: GoodsMetaRecord | null | undefined) {
 
 const dialogVisible = ref(false)
 const form = ref<GoodsWorkbenchForm>(createEmptyGoodsWorkbenchForm())
+const workbenchDialogLayout = computed(() => resolveGoodsWorkbenchDialogLayout(isMobile.value))
 
 const detailVisible = ref(false)
 const detailData = ref<GoodsItem>(createEmptyGoodsItem())
+const detailDialogLayout = computed(() => resolveGoodsDetailDialogLayout(isMobile.value))
 
 async function init() {
   const data = await GoodsApi.init()
@@ -448,7 +455,15 @@ onMounted(() => {
   </div>
 
   <!-- 编辑工作台弹窗 -->
-  <el-dialog v-model="dialogVisible" fullscreen destroy-on-close class="workbench-dialog">
+  <AppDialog
+    v-model="dialogVisible"
+    :width="workbenchDialogLayout.width"
+    :top="workbenchDialogLayout.top"
+    :height="workbenchDialogLayout.height"
+    body-padding="0"
+    destroy-on-close
+    class="workbench-dialog"
+  >
     <template #header>
       <div class="wb-header">
         <span>{{ t('goods.editTitle') }}</span>
@@ -570,10 +585,18 @@ onMounted(() => {
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :fullscreen="isMobile" width="750px" :title="t('goods.detailTitle')" destroy-on-close class="detail-dialog">
+  <AppDialog
+    v-model="detailVisible"
+    :width="detailDialogLayout.width"
+    :top="detailDialogLayout.top"
+    :height="detailDialogLayout.height"
+    :title="t('goods.detailTitle')"
+    destroy-on-close
+    class="detail-dialog"
+  >
     <div class="detail-body">
       <el-descriptions :column="isMobile ? 1 : 2" border label-width="80px">
         <el-descriptions-item :label="t('goods.table.title')">{{ detailData.title || '-' }}</el-descriptions-item>
@@ -623,7 +646,7 @@ onMounted(() => {
         <div class="detail-text-block">{{ formatGoodsMeta(detailData.meta) }}</div>
       </template>
     </div>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 选品平台弹窗 -->
   <el-dialog v-model="platformVisible" :width="isMobile ? '94vw' : '480px'" :title="t('goods.platform.title')" destroy-on-close>
@@ -642,7 +665,7 @@ onMounted(() => {
 .table { flex: 1 1 auto; min-height: 0; overflow: auto }
 
 /* 详情弹窗 */
-.detail-body { max-height: 65vh; overflow-y: auto }
+.detail-body { width: 100% }
 .detail-section-title {
   font-weight: 600; font-size: 14px; margin: 16px 0 8px; padding-left: 8px;
   border-left: 3px solid var(--el-color-primary);
@@ -667,7 +690,7 @@ onMounted(() => {
 
 /* 工作台 */
 .wb-header { display: flex; align-items: center; font-size: 15px; font-weight: 600 }
-.wb-body { height: calc(100vh - 130px); overflow-y: auto; padding: 20px; background: var(--el-bg-color-page) }
+.wb-body { padding: 20px; background: var(--el-bg-color-page) }
 .wb-images {
   margin-bottom: 20px; padding: 16px; background: var(--el-bg-color);
   border-radius: 8px; border: 1px solid var(--el-border-color-lighter);
@@ -708,29 +731,15 @@ onMounted(() => {
 
 /* 移动端 */
 @media (max-width: 768px) {
-  .detail-body { max-height: none }
   .image-grid :deep(.el-image) { width: 60px !important; height: 60px !important }
   .platform-grid { grid-template-columns: repeat(3, 1fr); gap: 10px }
   .platform-card { padding: 14px 8px }
   .platform-img { width: 36px; height: 36px }
   .platform-name { font-size: 12px }
-  .wb-body { padding: 12px; height: calc(100vh - 110px) }
+  .wb-body { padding: 12px }
   .wb-images { padding: 12px }
   .wb-image-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px }
   .wb-columns { flex-direction: column; gap: 12px }
   .wb-col { min-width: 0 }
-}
-</style>
-
-<style>
-/* 工作台弹窗：body 无 padding 让 wb-body 自控 */
-.workbench-dialog .el-dialog__body { padding: 0; overflow: hidden }
-/* 移动端强制全屏（穿透 teleport） */
-@media (max-width: 768px) {
-  .workbench-dialog.el-dialog {
-    --el-dialog-margin-top: 0 !important;
-    margin: 0 !important; width: 100vw !important; max-width: 100vw !important;
-    height: 100vh !important; border-radius: 0 !important;
-  }
 }
 </style>

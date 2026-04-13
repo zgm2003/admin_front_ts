@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { ElNotification } from 'element-plus'
 import { Iphone, Lock, Message } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { SendCode } from '@/components/SendCode'
 import { UsersApi } from '@/api/user/users.ts'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -233,7 +234,7 @@ const savePassword = async () => {
       </el-button>
     </div>
 
-    <el-dialog
+    <AppDialog
       v-model="passwordDialogVisible"
       :title="userinfo.has_password ? t('personal.security.changePassword') : t('personal.security.setPassword')"
       width="90%"
@@ -295,7 +296,7 @@ const savePassword = async () => {
         <el-button @click="passwordDialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
         <el-button type="primary" @click="savePassword" :loading="passwordLoading">{{ t('common.actions.confirm') }}</el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

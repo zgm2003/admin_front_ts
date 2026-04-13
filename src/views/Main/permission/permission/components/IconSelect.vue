@@ -2,6 +2,7 @@
 import { ref, computed, shallowRef, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
+import { AppDialog } from '@/components/AppDialog'
 import { DIcon } from '@/components/DIcon'
 
 const { t } = useI18n()
@@ -161,7 +162,7 @@ const getIconCategoryColor = (icon: string) => {
 </script>
 
 <template>
-  <el-dialog v-model="iconBoxShow" :title="t('iconSelect.title')" width="70%" :close-on-click-modal="false">
+  <AppDialog v-model="iconBoxShow" :title="t('iconSelect.title')" width="70%" :close-on-click-modal="false">
     <!-- 搜索和筛选 -->
     <div class="icon-select-header">
       <el-input 
@@ -253,7 +254,7 @@ const getIconCategoryColor = (icon: string) => {
         </div>
       </div>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 <style scoped>
 .icon-select-header {

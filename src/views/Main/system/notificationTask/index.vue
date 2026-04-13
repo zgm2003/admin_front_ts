@@ -3,6 +3,7 @@ import {ref, computed, onMounted, nextTick} from 'vue'
 import {ElMessage, ElMessageBox, ElNotification} from 'element-plus'
 import {DocumentCopy} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
+import { AppDialog } from '@/components/AppDialog'
 import type {FormInstance} from 'element-plus'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
@@ -226,7 +227,7 @@ onMounted(() => {
     </AppTable>
     
     <!-- 发布弹窗 -->
-    <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
+    <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
       <template #header>{{ t('notificationTask.publish') }}</template>
       <el-form :model="form" ref="formRef" label-width="100px">
         <el-form-item :label="t('notificationTask.title')" prop="title" :rules="[{required: true, message: t('notificationTask.title') + t('common.required')}]">
@@ -280,7 +281,7 @@ onMounted(() => {
         <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">{{ t('common.actions.confirm') }}</el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

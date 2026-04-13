@@ -3,6 +3,7 @@ import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -234,7 +235,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
     <template #header>{{
         dialogMode === 'add' ? t('upload.setting.addTitle') : t('upload.setting.editTitle')
       }}
@@ -274,7 +275,7 @@ onMounted(() => {
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

@@ -11,6 +11,7 @@ import {
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
+import { AppDialog } from '@/components/AppDialog'
 import type { SearchField } from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
@@ -184,7 +185,7 @@ onMounted(() => { init(); void getList() })
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
     <template #header>{{ dialogMode === 'add' ? '新增配置' : '编辑配置' }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
@@ -217,7 +218,7 @@ onMounted(() => { init(); void getList() })
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

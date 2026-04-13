@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Plus, Check } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useChatStore } from '@/store/chat'
@@ -115,10 +116,11 @@ const dialogVisible = computed({
 </script>
 
 <template>
-  <el-dialog
+  <AppDialog
     v-model="dialogVisible"
     title="添加联系人"
     :width="isMobile ? '95%' : '800px'"
+    body-padding="16px 20px"
     append-to-body
     class="add-contact-dialog"
   >
@@ -217,7 +219,7 @@ const dialogVisible = computed({
       class="pagination"
       @current-change="handlePageChange"
     />
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

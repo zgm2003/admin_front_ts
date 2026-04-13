@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import { formatFen } from '@/enums/PayEnum'
@@ -99,7 +100,7 @@ void remarkFormRef.value
   </div>
 
   <!-- 详情弹窗 -->
-  <el-dialog v-model="detailVisible" :width="isMobile ? '94vw' : '860px'" :title="t('pay_order.detail.title')">
+  <AppDialog v-model="detailVisible" :width="isMobile ? '94vw' : '860px'" :title="t('pay_order.detail.title')">
     <template v-if="detailData">
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="t('pay_order.table.order_no')">{{ detailData.order.order_no }}</el-descriptions-item>
@@ -132,10 +133,10 @@ void remarkFormRef.value
         <el-table-column prop="amount" :label="t('pay_order.detail.item_amount')" width="140" :formatter="(_r:any,_c:any,v:number) => `¥${formatFen(v)}`" />
       </el-table>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 关闭订单弹窗 -->
-  <el-dialog v-model="closeVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_order.actions.close')">
+  <AppDialog v-model="closeVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_order.actions.close')">
     <el-form :model="closeForm" :rules="closeRules" ref="closeFormRef" label-width="auto">
       <el-form-item :label="t('pay_order.table.close_reason')" prop="reason" required>
         <el-input v-model="closeForm.reason" type="textarea" :rows="3" clearable style="width:100%" />
@@ -147,10 +148,10 @@ void remarkFormRef.value
         <el-button type="primary" @click="confirmClose">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 
   <!-- 备注弹窗 -->
-  <el-dialog v-model="remarkVisible" :width="isMobile ? '94vw' : '540px'" :title="t('pay_order.actions.remark')">
+  <AppDialog v-model="remarkVisible" :width="isMobile ? '94vw' : '540px'" :title="t('pay_order.actions.remark')">
     <el-form :model="remarkForm" ref="remarkFormRef" label-width="auto">
       <el-form-item :label="t('pay_order.table.admin_remark')">
         <el-input v-model="remarkForm.admin_remark" type="textarea" :rows="4" clearable style="width:100%" maxlength="500" show-word-limit />
@@ -162,7 +163,7 @@ void remarkFormRef.value
         <el-button type="primary" @click="confirmRemark">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

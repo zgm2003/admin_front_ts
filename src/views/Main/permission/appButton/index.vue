@@ -7,6 +7,7 @@ import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
+import { AppDialog } from '@/components/AppDialog'
 import type { SearchField } from '@/components/Search/types'
 import { CommonEnum, PlatformEnum, PermissionTypeEnum } from '@/enums'
 import { ArrowDown } from '@element-plus/icons-vue'
@@ -198,7 +199,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" class="dialog-box" :width="isMobile ? '94vw' : '500px'"
+  <AppDialog v-model="dialogVisible" class="dialog-box" :width="isMobile ? '94vw' : '500px'"
              :title="dialogMode === 'add' ? t('common.actions.add') : t('common.actions.edit')" draggable destroy-on-close>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
       <el-form-item :label="t('permission.form.name')" prop="name" required>
@@ -218,7 +219,7 @@ onMounted(() => {
       <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

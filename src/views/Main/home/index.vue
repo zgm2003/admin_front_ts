@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus'
 import { ArrowRight, Coin, Plus, Setting } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { DIcon } from '@/components/DIcon'
+import { AppDialog } from '@/components/AppDialog'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { useUserStore } from '@/store/user'
 import { HOME_MENU_ITEM } from '@/store/menu'
@@ -344,7 +345,7 @@ const goToWallet = () => {
       <el-empty v-else :description="t('home.noQuickEntry')" :image-size="80" />
     </div>
 
-    <el-dialog
+    <AppDialog
       v-model="addSelectVisible"
       :title="t('home.addQuickEntry')"
       :width="isMobile ? '90%' : '400px'"
@@ -363,7 +364,7 @@ const goToWallet = () => {
           {{ t('common.actions.confirm') }}
         </el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

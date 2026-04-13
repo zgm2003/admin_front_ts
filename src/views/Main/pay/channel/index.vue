@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -133,7 +134,7 @@ onMounted(() => {
   </div>
 
   <!-- ==================== 新增/编辑弹窗 ==================== -->
-  <el-dialog
+  <AppDialog
     v-model="dialogVisible"
     :width="isMobile ? '94vw' : '820px'"
     :close-on-click-modal="false"
@@ -335,7 +336,7 @@ onMounted(() => {
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

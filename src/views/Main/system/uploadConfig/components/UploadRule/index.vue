@@ -10,6 +10,7 @@ import {
 import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -201,7 +202,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <el-dialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
     <template #header>{{ dialogMode === 'add' ? t('upload.rule.addTitle') : t('upload.rule.editTitle') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
       <el-row :gutter="12">
@@ -233,7 +234,7 @@ onMounted(() => {
         <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>
