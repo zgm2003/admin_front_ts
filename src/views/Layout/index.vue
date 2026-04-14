@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { NotificationRuntime } from '@/components/NotificationRuntime'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import Aside from '@/views/Layout/components/Aside/index.vue'
@@ -24,6 +25,8 @@ watch(isMobile, (val) => {
 
 <template>
   <el-container class="layout-container">
+    <NotificationRuntime />
+
     <el-drawer
       v-if="isMobile"
       v-model="menuStore.drawer"
@@ -134,6 +137,7 @@ watch(isMobile, (val) => {
 
 .layout-view {
   min-height: 100%;
+  height: 100%;
 }
 
 .page-card {
@@ -212,6 +216,10 @@ watch(isMobile, (val) => {
 }
 
 @media (max-width: 768px) {
+  .layout-view {
+    height: auto;
+  }
+
   .layout-aside {
     width: auto;
     flex-basis: auto;

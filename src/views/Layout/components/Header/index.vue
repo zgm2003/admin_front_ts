@@ -22,8 +22,6 @@
     </div>
 
     <div class="header-right">
-      <NotificationCenter />
-
       <el-badge v-if="isTauri()" :value="downloadCount" :hidden="downloadCount === 0" :max="99">
         <el-button text :title="t('header.downloads')" @click="showDownloadManager = true">
           <DIcon icon="Download" :size="18" />
@@ -72,7 +70,6 @@ import { isTauri } from '@/platform/tauri'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/utils/theme'
 import { resolveMenuLabel } from '@/utils/menuI18n'
-import NotificationCenter from './components/NotificationCenter.vue'
 import SearchDialog from './components/SearchDialog.vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import WindowControls from './components/WindowControls.vue'

@@ -1,7 +1,7 @@
 import request from '@/lib/http'
+import type { QuickEntryItem } from '@/types/user'
 
 export const UsersQuickEntryApi = {
-  add: (params: { permission_id: number }) => request.post<{ id: number }>('/api/admin/UsersQuickEntry/add', params),
-  del: (params: { id: number }) => request.post<void>('/api/admin/UsersQuickEntry/del', params),
-  sort: (params: { items: { id: number; sort: number }[] }) => request.post<void>('/api/admin/UsersQuickEntry/sort', params),
+  save: (params: { permission_ids: number[] }) =>
+    request.post<{ quick_entry: QuickEntryItem[] }>('/api/admin/UsersQuickEntry/save', params),
 }
