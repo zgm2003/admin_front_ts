@@ -1,7 +1,6 @@
 import type { DictOption, Id, PaginatedResponse } from './common'
 
 export type UserScene =
-  | 'register'
   | 'login'
   | 'forget'
   | 'bind_phone'

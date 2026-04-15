@@ -26,14 +26,6 @@ import type {
   UserBatchEditParams,
 } from '@/types/user'
 
-export interface UserRegisterParams {
-  username: string
-  email: string
-  password: string
-  respassword: string
-  code: string
-}
-
 export interface UserLegacyPasswordEditParams {
   password: string
   newpassword: string
@@ -41,9 +33,6 @@ export interface UserLegacyPasswordEditParams {
 }
 
 export const UsersApi = {
-  register: (params: UserRegisterParams) =>
-    request.post<void>('/api/Users/register', params),
-
   init: (params?: RequestPayload) =>
     request.post<UserInitResponse>('/api/Users/init', params),
 

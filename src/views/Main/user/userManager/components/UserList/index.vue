@@ -259,11 +259,11 @@ onMounted(() => {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item v-if="userStore.can('user_userManager_del')" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-                <el-dropdown-item v-if="userStore.can('user_userManager_edit')" @click="batchEdit">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+                <el-dropdown-item v-if="userStore.can('user_userManager_batchEdit')" @click="batchEdit">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
+          <el-button v-if="userStore.can('user_userManager_export')" type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
         </template>
         <template #cell-username="{ row }">
           <el-link type="primary" @click="goToPersonal(row)">{{ row.username }}</el-link>
