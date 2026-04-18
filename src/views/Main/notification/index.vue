@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { NotificationApi, type NotificationItem, type NotificationInitResponse } from '@/api/system/notification'
+import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { CommonEnum, NotificationLevelEnum, NotificationTypeColorMap } from '@/enums'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
@@ -83,7 +84,7 @@ const handleBatchRead = async () => {
 
 const handleDetail = (link?: string) => {
   if (!link) return
-  router.push(link)
+  router.push(normalizeNotificationLink(link))
 }
 
 onMounted(() => {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { onWsMessage } from '@/lib/realtime'
+import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
 
 interface NotificationWsPayload {
@@ -23,12 +24,14 @@ function navigateTo(link?: string) {
     return
   }
 
-  if (link.startsWith('http')) {
-    window.open(link, '_blank')
+  const normalizedLink = normalizeNotificationLink(link)
+
+  if (normalizedLink.startsWith('http')) {
+    window.open(normalizedLink, '_blank')
     return
   }
 
-  void router.push(link)
+  void router.push(normalizedLink)
 }
 
 let unsubscribe: (() => void) | null = null
