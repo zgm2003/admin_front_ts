@@ -19,6 +19,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
+import { createAuthPlatformDefaultForm } from './helpers'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -53,19 +54,7 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
 
-const defaultForm = (): AuthPlatformForm => ({
-  code: '',
-  name: '',
-  login_types: ['password'],
-  access_ttl: 14400,
-  refresh_ttl: 1209600,
-  bind_platform: CommonEnum.YES,
-  bind_device: CommonEnum.NO,
-  bind_ip: CommonEnum.NO,
-  single_session: CommonEnum.NO,
-  max_sessions: 5,
-  allow_register: CommonEnum.NO,
-})
+const defaultForm = (): AuthPlatformForm => createAuthPlatformDefaultForm()
 
 const form = ref<AuthPlatformForm>(defaultForm())
 
@@ -303,6 +292,7 @@ onMounted(() => { init(); getList() })
 
       <!-- 安全策略 -->
       <el-divider content-position="left">{{ t('authPlatform.form.section_security') }}</el-divider>
+      <el-alert :title="t('authPlatform.form.policy_notice')" type="warning" :closable="false" show-icon style="margin-bottom: 16px;" />
       <el-row :gutter="16">
         <el-col :md="12" :span="24">
           <el-form-item :label="t('authPlatform.form.bind_platform')">

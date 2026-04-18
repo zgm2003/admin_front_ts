@@ -1602,6 +1602,7 @@ export default {
       max_sessions: 'Max Sessions',
       max_sessions_help: '0 means unlimited',
       allow_register: 'Allow Register',
+      policy_notice: 'These settings directly affect login, session eviction, and registration. New platforms start from a stricter baseline; relax them only when the business case is clear.',
       section_basic: 'Basic Info',
       section_token: 'Token Policy',
       section_security: 'Security Policy'

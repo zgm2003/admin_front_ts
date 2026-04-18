@@ -1629,6 +1629,7 @@ export default {
       max_sessions: '最大会话数',
       max_sessions_help: '0 表示不限制',
       allow_register: '允许注册',
+      policy_notice: '该页面配置会直接影响登录、会话互踢和注册入口；新平台默认采用更严格的基线策略，请按真实业务场景再放宽。',
       section_basic: '基本信息',
       section_token: 'Token 策略',
       section_security: '安全策略'
