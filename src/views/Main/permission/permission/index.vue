@@ -23,6 +23,7 @@ import IconSelect from './components/IconSelect.vue'
 
 const userStore = useUserStore()
 const { t } = useI18n()
+const PERMISSION_PAGE_PLATFORM = PlatformEnum.ADMIN
 
 interface PermissionForm {
   id: number | ''
@@ -45,8 +46,6 @@ interface IconSelectExposed {
 
 const permissionTree = ref<PermissionInitResponse['dict']['permission_tree']>([])
 const permissionTypeArr = ref<PermissionInitResponse['dict']['permission_type_arr']>([])
-const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])
-const activePlatform = ref<string>(PlatformEnum.ADMIN)
 
 const createDefaultForm = (platform: string): PermissionForm => ({
   id: '',
@@ -73,24 +72,23 @@ const filterTreeByPlatform = (tree: PermissionTreeNode[], platform: string): Per
     }))
 }
 
-const filteredPermissionTree = computed(() => filterTreeByPlatform(permissionTree.value, activePlatform.value))
+const filteredPermissionTree = computed(() => filterTreeByPlatform(permissionTree.value, PERMISSION_PAGE_PLATFORM))
 
 const init = () => {
   PermissionApi.init().then((data) => {
     permissionTree.value = data.dict.permission_tree
     permissionTypeArr.value = data.dict.permission_type_arr
-    platformOptions.value = data.dict.permission_platform_arr
   }).catch(() => {
   })
 }
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref<PermissionForm>(createDefaultForm(activePlatform.value))
+const form = ref<PermissionForm>(createDefaultForm(PERMISSION_PAGE_PLATFORM))
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = createDefaultForm(activePlatform.value)
+  form.value = createDefaultForm(PERMISSION_PAGE_PLATFORM)
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
@@ -101,7 +99,7 @@ const addChild = (current: PermissionListItem) => {
   dialogMode.value = 'add'
   const nextType = Math.min(PermissionTypeEnum.BUTTON, current.type + 1)
   form.value = {
-    ...createDefaultForm(activePlatform.value),
+    ...createDefaultForm(PERMISSION_PAGE_PLATFORM),
     parent_id: current.id,
     type: nextType,
   }
@@ -118,7 +116,7 @@ const searchForm = ref<Pick<PermissionListParams, 'name'>>({ name: '' })
 
 const getList = () => {
   listLoading.value = true
-  const param: PermissionListParams = { ...searchForm.value, platform: activePlatform.value }
+  const param: PermissionListParams = { ...searchForm.value, platform: PERMISSION_PAGE_PLATFORM }
   PermissionApi.list(param).then((data) => {
     listData.value = data
   }).finally(() => {
@@ -162,7 +160,7 @@ const edit = (current: PermissionListItem) => {
     i18n_key: current.i18n_key,
     sort: current.sort,
     show_menu: current.show_menu,
-    platform: activePlatform.value,
+    platform: PERMISSION_PAGE_PLATFORM,
   }
   dialogVisible.value = true
   nextTick(() => {
