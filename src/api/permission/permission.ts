@@ -1,12 +1,13 @@
 import request from '@/lib/http'
 import type { DictOption, Id, RequestPayload } from '@/types/common'
 
-export interface PermissionTreeNode {
+export interface PermissionTreeNode extends Record<string, unknown> {
   id: number
   label: string
   value: number
   parent_id: number
   platform: string
+  disabled?: boolean
   children?: PermissionTreeNode[]
 }
 

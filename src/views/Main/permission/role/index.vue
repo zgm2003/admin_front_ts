@@ -19,6 +19,7 @@ import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
+import { buildLeafSelectablePermissionTree, collectLeafPermissionIds } from './helpers'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -29,9 +30,8 @@ interface RoleForm {
   permission_id: number[]
 }
 
-type RolePermissionTreeNode = RoleInitResponse['dict']['permission_tree'][number]
-
 const permissionTree = ref<RoleInitResponse['dict']['permission_tree']>([])
+const selectablePermissionTree = computed(() => buildLeafSelectablePermissionTree(permissionTree.value))
 const init = () => {
   RoleApi.init().then((data) => {
     permissionTree.value = data.dict.permission_tree
@@ -133,25 +133,9 @@ const handleDefaultSwitch = async (current: Pick<RoleListItem, 'id'>) => {
 
 const cascaderProps = { multiple: true, emitPath: false, checkStrictly: true } as const
 
-// 获取权限树所有叶子节点ID
-const getLeafIds = (nodes: RolePermissionTreeNode[]): number[] => {
-  const ids: number[] = []
-  const traverse = (items: RolePermissionTreeNode[]) => {
-    for (const item of items) {
-      if (item.children?.length) {
-        traverse(item.children)
-      } else {
-        ids.push(item.value as number)
-      }
-    }
-  }
-  traverse(nodes)
-  return ids
-}
-
 // 全选权限
 const selectAllPermissions = () => {
-  form.value.permission_id = getLeafIds(permissionTree.value)
+  form.value.permission_id = collectLeafPermissionIds(permissionTree.value)
 }
 
 const searchFields = computed<SearchField[]>(() => [
@@ -215,7 +199,7 @@ onMounted(() => {
         </el-form-item>
         <el-form-item :label="t('role.form.permission')">
           <div style="display: flex; gap: 8px; width: 100%">
-            <el-cascader :options="permissionTree" :props="cascaderProps" v-model="form.permission_id" clearable
+            <el-cascader :options="selectablePermissionTree" :props="cascaderProps" v-model="form.permission_id" clearable
                          filterable :placeholder="t('role.form.permission')" collapse-tags
                          style="flex: 1"/>
             <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
