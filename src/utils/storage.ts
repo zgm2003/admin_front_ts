@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie'
-import { DEVICE_KEY } from './device'
+
+const DEVICE_KEY = 'device_id'
 
 /**
  * 清除所有 Cookie（用于登出）

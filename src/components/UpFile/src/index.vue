@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { UploadFilled, Loading, Document } from '@element-plus/icons-vue'
-import { getUploadToken, uploadFileToCloud, type UploadConfig } from '@/utils/cosUpload'
+import { getUploadToken, uploadFileToCloud, type UploadConfig } from '@/lib/upload'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 const props = withDefaults(defineProps<{

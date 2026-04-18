@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue'
 import { ElIcon } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
-import { uploadFileToCloud, getUploadToken, validateFile } from '@/utils/cosUpload'
+import { uploadFileToCloud, getUploadToken, validateFile } from '@/lib/upload'
 import { useIsMobile } from '@/hooks/useResponsive'
 
 const isMobile = useIsMobile()

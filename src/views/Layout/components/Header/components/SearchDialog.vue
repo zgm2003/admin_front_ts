@@ -70,7 +70,7 @@ import {Top, Bottom, Right, Close, Search} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
-import {resolveMenuLabel} from '@/utils/menuI18n'
+import {resolveMenuLabel} from '@/views/Layout/utils/menuLabel'
 import {DIcon} from '@/components/DIcon'
 import { resolveSearchDialogLayout } from './search-dialog'
 

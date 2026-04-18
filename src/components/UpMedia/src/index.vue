@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Plus, CircleCloseFilled } from '@element-plus/icons-vue'
-import { getUploadToken, uploadFileToCloud, validateFile } from '@/utils/cosUpload'
+import { getUploadToken, uploadFileToCloud, validateFile } from '@/lib/upload'
 
 const { t } = useI18n()
 

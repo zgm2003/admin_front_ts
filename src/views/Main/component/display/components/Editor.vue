@@ -2,7 +2,7 @@
 import {onBeforeUnmount, onMounted, computed, nextTick, ref, watch, shallowRef} from 'vue'
 import {Editor, Toolbar} from '@wangeditor/editor-for-vue'
 import {ElMessage} from 'element-plus'
-import {getUploadToken, uploadFileToCloud} from '@/utils/cosUpload'
+import {getUploadToken, uploadFileToCloud} from '@/lib/upload'
 
 let editorRegisterPromise: Promise<void> | null = null
 type PrismWindow = Window & {

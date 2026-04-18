@@ -7,6 +7,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 const host = process.env.TAURI_DEV_HOST
+const fallbackHost = '127.0.0.1'
 const isAnalyze = process.env.ANALYZE === 'true'
 
 // https://vite.dev/config/
@@ -40,7 +41,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    host: host || false,
+    host: host || fallbackHost,
     hmr: host
       ? {
           protocol: 'ws',

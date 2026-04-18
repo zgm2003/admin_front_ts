@@ -133,7 +133,7 @@ import { useUserStore } from '@/store/user'
 import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { toggleDarkMode } from '@/utils/theme'
+import { toggleDarkMode } from '@/hooks/useTheme'
 import { clearLocalStorageExcept } from '@/utils/storage.ts'
 import { Setting, Sunny, Moon, Check, Delete, RefreshRight } from '@element-plus/icons-vue'
 

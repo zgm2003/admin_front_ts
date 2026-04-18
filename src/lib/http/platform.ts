@@ -1,4 +1,4 @@
-import { getDeviceId } from '@/utils/device'
+import { getDeviceId } from './device'
 
 export function generateTraceId(): string {
   const timestamp = Date.now().toString(36)

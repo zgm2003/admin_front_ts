@@ -7,7 +7,7 @@ import { OrderApi } from '@/api/pay/order'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { UsersApi } from '@/api/user/users'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
-import { onWsMessage } from '@/hooks/useWebSocket'
+import { onWsMessage } from '@/lib/realtime'
 import { useUserStore } from '@/store/user'
 import {
   buildAddressLabel,

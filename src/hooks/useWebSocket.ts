@@ -7,8 +7,6 @@ import {
   sendSharedWebSocket,
 } from '@/lib/realtime/websocket-client'
 import {
-  offWsMessage,
-  onWsMessage,
   type WsMessage,
 } from '@/lib/realtime/message-bus'
 
@@ -81,8 +79,5 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     bindUser: bindSharedWebSocketUser,
   }
 }
-
-export { onWsMessage, offWsMessage }
-export type { WsMessage }
 
 export default useWebSocket

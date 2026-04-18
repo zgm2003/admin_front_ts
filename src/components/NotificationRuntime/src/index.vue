@@ -3,7 +3,7 @@ import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { onWsMessage } from '@/hooks/useWebSocket'
+import { onWsMessage } from '@/lib/realtime'
 import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
 
 interface NotificationWsPayload {

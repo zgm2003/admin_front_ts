@@ -6,7 +6,7 @@ import { DIcon } from '@/components/DIcon'
 import { ChatRoomApi, MessageType, ConversationType } from '@/api/chat'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/utils/cosUpload'
+import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/lib/upload'
 import { formatFileSize } from '@/utils/format'
 import { EmojiPicker } from '@/components/EmojiPicker'
 

@@ -6,7 +6,7 @@ import { clearAllCookies } from '@/utils/storage'
 import type { ApiEnvelope } from '@/types/common'
 import { createRequestError, type RequestError } from './envelope'
 import { getPlatform } from './platform'
-import { getDeviceId } from '@/utils/device'
+import { getDeviceId } from './device'
 import { setHeader } from './headers'
 
 export type RetryableRequestConfig = InternalAxiosRequestConfig<unknown> & {

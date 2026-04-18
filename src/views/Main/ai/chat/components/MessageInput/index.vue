@@ -6,7 +6,7 @@ import { Picture, Close, Loading, ChatLineSquare, Microphone, Setting, RefreshRi
 import { DIcon } from '@/components/DIcon'
 import { EmojiPicker } from '@/components/EmojiPicker'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } from '@/utils/cosUpload'
+import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } from '@/lib/upload'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()

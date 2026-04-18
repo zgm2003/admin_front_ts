@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { ChatRoomApi, type ConversationItem, type MessageItem, type ContactItem, MessageType } from '@/api/chat'
 import { useUserStore } from '@/store/user'
-import { onWsMessage, type WsMessage } from '@/hooks/useWebSocket'
+import { onWsMessage, type WsMessage } from '@/lib/realtime'
 
 interface ChatState {
   /** 会话列表 */

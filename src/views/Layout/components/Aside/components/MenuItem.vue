@@ -19,7 +19,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMenuStore } from '@/store/menu'
 import { useI18n } from 'vue-i18n'
-import { resolveMenuLabel } from '@/utils/menuI18n'
+import { resolveMenuLabel } from '@/views/Layout/utils/menuLabel'
 import { DIcon } from '@/components/DIcon'
 
 interface MenuNode {

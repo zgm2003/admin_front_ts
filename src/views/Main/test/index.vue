@@ -117,7 +117,7 @@
 </template>
 <script setup lang="ts">
 import {ref, onMounted, defineAsyncComponent} from 'vue'
-import {toggleDarkMode as _toggleDarkMode} from '@/utils/theme'
+import {toggleDarkMode as _toggleDarkMode} from '@/hooks/useTheme'
 import {
   Document,
   Picture,

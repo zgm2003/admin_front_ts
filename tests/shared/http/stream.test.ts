@@ -24,7 +24,7 @@ function createReader(chunks: string[]) {
   }
 }
 
-vi.mock('@/utils/device', () => ({
+vi.mock('@/lib/http/device', () => ({
   getDeviceId: () => 'test-device-id',
 }))
 
