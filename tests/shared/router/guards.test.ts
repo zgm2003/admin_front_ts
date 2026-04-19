@@ -20,10 +20,12 @@ describe('router guards', () => {
     expect(shouldRedirectToLogin({ routeName: 'login', accessToken: '', refreshToken: '' })).toBe(false)
   })
 
-  it('restores the last visited path only when the current route is root', () => {
+  it('restores the last visited path when the current route is root or login', () => {
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/pay/channel' })).toBe('/pay/channel')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/login' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '' })).toBe('/home')
+    expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '/user/userManager' })).toBe('/user/userManager')
+    expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/pay/channel', lastVisitedPath: '/home' })).toBeNull()
   })
 })

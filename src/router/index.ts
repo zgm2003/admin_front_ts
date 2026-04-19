@@ -53,14 +53,18 @@ export async function setupDynamicRoutes() {
 
     const current = router.currentRoute.value
     const last = localStorage.getItem('lastVisitedPath')
-    if (current && current.path === '/') {
-        const restoreTarget = resolveRouteRestoreTarget({
+    const restoreTarget = current
+        ? resolveRouteRestoreTarget({
             currentPath: current.path,
             lastVisitedPath: last,
         })
-        await router.replace(restoreTarget || '/home').catch(() => {})
+        : null
+
+    if (restoreTarget) {
+        await router.replace(restoreTarget).catch(() => {})
         return
     }
+
     const target = resolveCurrentRouteTarget(router, current)
     if (target) {
         await router.replace(target).catch(() => {})

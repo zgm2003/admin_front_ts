@@ -28,7 +28,8 @@ const removeLoading = () => {
 
 // 先挂载应用，再初始化动态路由
 app.mount('#app')
-setupDynamicRoutes()
+router.isReady()
+  .then(() => setupDynamicRoutes())
   .catch(() => router.replace('/login'))
   .finally(removeLoading)
 

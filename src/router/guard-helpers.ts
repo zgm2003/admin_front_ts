@@ -22,7 +22,7 @@ export function resolveRouteRestoreTarget(params: {
   lastVisitedPath?: string | null
 }) {
   const { currentPath, lastVisitedPath } = params
-  if (currentPath !== '/') {
+  if (currentPath !== '/' && currentPath !== '/login') {
     return null
   }
 
