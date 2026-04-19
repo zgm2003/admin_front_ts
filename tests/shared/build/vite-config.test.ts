@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const { default: viteConfig } = await import('../../../vite.config.ts')
@@ -13,5 +13,11 @@ describe('vite config', () => {
     for (const file of clientFiles) {
       expect(existsSync(resolve(process.cwd(), file))).toBe(true)
     }
+  })
+
+  it('does not hardcode a modulepreload entry for src/main.ts in index.html', () => {
+    const source = readFileSync(resolve(process.cwd(), 'index.html'), 'utf-8')
+
+    expect(source).not.toContain('<link rel="modulepreload" href="/src/main.ts" />')
   })
 })
