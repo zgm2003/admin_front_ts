@@ -122,23 +122,44 @@ function createPagedLoader<T extends AiRunStatsMetricItem>(
 
   const load = async (reset = false): Promise<void> => {
     if (reset) {
-      state.value.page = 1
-      state.value.data = []
+      state.value = {
+        ...state.value,
+        page: 1,
+        data: [],
+        hasMore: false,
+      }
     }
-    state.value.loading = true
+
+    state.value = {
+      ...state.value,
+      loading: true,
+    }
+
     try {
       const res = await apiFn(buildParams({
         current_page: state.value.page,
         page_size: 10
       }))
-      state.value.data = reset ? res.list : [...state.value.data, ...res.list]
-      state.value.hasMore = res.has_more
-    } catch { /* ignore */ }
-    state.value.loading = false
+      state.value = {
+        ...state.value,
+        data: reset ? res.list : [...state.value.data, ...res.list],
+        hasMore: res.has_more,
+      }
+    } catch {
+      // request interceptor handles notification
+    } finally {
+      state.value = {
+        ...state.value,
+        loading: false,
+      }
+    }
   }
 
   const loadMore = (): void => {
-    state.value.page++
+    state.value = {
+      ...state.value,
+      page: state.value.page + 1,
+    }
     void load()
   }
 
