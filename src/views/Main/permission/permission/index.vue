@@ -23,7 +23,6 @@ import IconSelect from './components/IconSelect.vue'
 
 const userStore = useUserStore()
 const { t } = useI18n()
-const PERMISSION_PAGE_PLATFORM = PlatformEnum.ADMIN
 
 interface PermissionForm {
   id: number | ''
@@ -46,6 +45,8 @@ interface IconSelectExposed {
 
 const permissionTree = ref<PermissionInitResponse['dict']['permission_tree']>([])
 const permissionTypeArr = ref<PermissionInitResponse['dict']['permission_type_arr']>([])
+const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])
+const activePlatform = ref<string>(PlatformEnum.ADMIN)
 
 const createDefaultForm = (platform: string): PermissionForm => ({
   id: '',
@@ -72,23 +73,27 @@ const filterTreeByPlatform = (tree: PermissionTreeNode[], platform: string): Per
     }))
 }
 
-const filteredPermissionTree = computed(() => filterTreeByPlatform(permissionTree.value, PERMISSION_PAGE_PLATFORM))
+const filteredPermissionTree = computed(() => filterTreeByPlatform(permissionTree.value, activePlatform.value))
 
 const init = () => {
   PermissionApi.init().then((data) => {
     permissionTree.value = data.dict.permission_tree
     permissionTypeArr.value = data.dict.permission_type_arr
+    platformOptions.value = data.dict.permission_platform_arr
+    if (!platformOptions.value.some((item) => item.value === activePlatform.value)) {
+      activePlatform.value = platformOptions.value[0]?.value ?? PlatformEnum.ADMIN
+    }
   }).catch(() => {
   })
 }
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref<PermissionForm>(createDefaultForm(PERMISSION_PAGE_PLATFORM))
+const form = ref<PermissionForm>(createDefaultForm(activePlatform.value))
 
 const add = () => {
   dialogMode.value = 'add'
-  form.value = createDefaultForm(PERMISSION_PAGE_PLATFORM)
+  form.value = createDefaultForm(activePlatform.value)
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
@@ -99,7 +104,7 @@ const addChild = (current: PermissionListItem) => {
   dialogMode.value = 'add'
   const nextType = Math.min(PermissionTypeEnum.BUTTON, current.type + 1)
   form.value = {
-    ...createDefaultForm(PERMISSION_PAGE_PLATFORM),
+    ...createDefaultForm(activePlatform.value),
     parent_id: current.id,
     type: nextType,
   }
@@ -116,7 +121,7 @@ const searchForm = ref<Pick<PermissionListParams, 'name'>>({ name: '' })
 
 const getList = () => {
   listLoading.value = true
-  const param: PermissionListParams = { ...searchForm.value, platform: PERMISSION_PAGE_PLATFORM }
+  const param: PermissionListParams = { ...searchForm.value, platform: activePlatform.value }
   PermissionApi.list(param).then((data) => {
     listData.value = data
   }).finally(() => {
@@ -130,6 +135,13 @@ const onSearch = () => {
 
 const tableRef = ref<TableInstance | null>(null)
 const isExpanded = ref(false)
+const selectedIds = ref<Array<PermissionListItem['id']>>([])
+
+const onPlatformChange = () => {
+  selectedIds.value = []
+  isExpanded.value = false
+  getList()
+}
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
@@ -160,7 +172,7 @@ const edit = (current: PermissionListItem) => {
     i18n_key: current.i18n_key,
     sort: current.sort,
     show_menu: current.show_menu,
-    platform: PERMISSION_PAGE_PLATFORM,
+    platform: activePlatform.value,
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -222,7 +234,6 @@ const confirmSubmit = async () => {
   })
 }
 
-const selectedIds = ref<Array<PermissionListItem['id']>>([])
 const handleSelectionChange = (selection: PermissionListItem[]) => {
   selectedIds.value = selection.map((item) => item.id)
 }
@@ -292,6 +303,18 @@ onMounted(() => {
 
 <template>
   <div class="box">
+    <el-tabs
+      v-model="activePlatform"
+      style="margin-bottom: 10px;"
+      @tab-change="onPlatformChange"
+    >
+      <el-tab-pane
+        v-for="item in platformOptions"
+        :key="item.value"
+        :label="item.label"
+        :name="item.value"
+      />
+    </el-tabs>
     <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <el-button v-if="userStore.can('permission_permission_add')" type="success" @click="add">{{
@@ -307,9 +330,9 @@ onMounted(() => {
       </el-button>
     </div>
     <div class="table">
-      <el-table :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
+      <el-table class="permission-table" :data="listData" style="width:100%" v-loading="listLoading" @selection-change="handleSelectionChange"
                 ref="tableRef" @row-click="handleRowClick" row-key="id" border>
-        <el-table-column type="selection" width="55"/>
+        <el-table-column type="selection" width="55" align="center" header-align="center"/>
         <el-table-column prop="id" width="150" :label="t('permission.table.id')"/>
         <el-table-column prop="name" :label="t('permission.table.name')" align="center"/>
         <el-table-column :label="t('permission.table.icon')" align="center" width="80">
@@ -424,6 +447,12 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto
+}
+
+:deep(.permission-table .el-table-column--selection .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-help-text {
