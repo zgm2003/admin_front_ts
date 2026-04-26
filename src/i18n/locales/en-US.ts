@@ -736,6 +736,9 @@ export default {
     },
     batchEdit: {
       field: 'Field'
+    },
+    warning: {
+      fillComplete: 'Please fill in all required fields'
     }
   },
   userSession: {
@@ -919,11 +922,9 @@ export default {
       model_code: 'Model Code',
       endpoint: 'Endpoint',
       api_key_hint: 'API Key',
-      default_params: 'Default Params',
       modalities: 'Modalities',
       status: 'Status',
-      created_at: 'Created At',
-      updated_at: 'Updated At'
+      created_at: 'Created At'
     },
     form: {
       name: 'Model Name',
@@ -931,7 +932,6 @@ export default {
       model_code: 'Model Code',
       endpoint: 'Endpoint',
       api_key: 'API Key',
-      default_params: 'Default Params',
       status: 'Status',
       modalities: 'Modalities',
       modalitiesHint: 'Select supported input types for this model',
@@ -942,8 +942,7 @@ export default {
       modelCodePlaceholder: 'e.g. gpt-4o / qwen-turbo',
       endpointPlaceholder: 'Optional, uses driver default',
       apiKeyPlaceholder: 'Enter API Key',
-      apiKeyEditPlaceholder: 'Leave empty to keep unchanged',
-      invalidJson: 'Default params must be valid JSON'
+      apiKeyEditPlaceholder: 'Leave empty to keep unchanged'
     },
     addTitle: 'Add AI Model',
     editTitle: 'Edit AI Model'

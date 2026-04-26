@@ -68,7 +68,7 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
       </div>
     </div>
     <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="$emit('selection-change', $event)" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
-      <ElTableColumn v-if="props.selectable" type="selection" width="48" />
+      <ElTableColumn v-if="props.selectable" type="selection" width="48" align="center" header-align="center" />
       <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
       <ElTableColumn v-for="col in visibleColumns" :key="getColumnKey(col)" :label="col.label" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)" v-bind="getColumnBindings(col)">
         <template #default="{ row, $index }">
@@ -88,4 +88,5 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
 .toolbar-left,.toolbar-right{display:flex;align-items:center}
 .flex-table{flex:1;overflow:hidden}
 .table-footer{display:flex;justify-content:flex-end;margin-top:8px;flex-shrink:0}
+:deep(.el-table-column--selection .cell){display:flex;align-items:center;justify-content:center}
 </style>

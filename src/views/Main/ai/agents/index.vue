@@ -205,7 +205,7 @@ onMounted(() => {
             <el-text>{{ row.model_name }}</el-text>
           </p>
           <p>
-            <el-tag v-if="row.model_deleted" type="danger" size="small" style="margin-left:4px">{{ t('aiAgents.table.deleted') }}</el-tag>
+            <el-tag v-if="row.model_deleted" type="danger" size="small" style="margin-left:4px">{{ t('aiAgents.deleted') }}</el-tag>
           </p>
 
         </template>
