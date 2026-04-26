@@ -40,6 +40,27 @@ describe('role permission matrix', () => {
     }])
   })
 
+  it('keeps root-level non-admin buttons assignable', () => {
+    const appRootButton = [{
+      id: 10,
+      value: 10,
+      label: '扫码提交',
+      parent_id: 0,
+      platform: PlatformEnum.APP,
+      type: PermissionTypeEnum.BUTTON,
+      code: 'scan_submit',
+    }]
+
+    expect(buildRolePermissionMatrix(appRootButton, PlatformEnum.APP)).toEqual([{
+      pageId: 10,
+      pageLabel: '扫码提交',
+      platform: PlatformEnum.APP,
+      actions: [
+        { id: 10, code: 'scan_submit', label: '扫码提交' },
+      ],
+    }])
+  })
+
   it('toggles action ids without duplicates', () => {
     expect(toggleMatrixAction([3], 4, true)).toEqual([3, 4])
     expect(toggleMatrixAction([3, 4], 4, true)).toEqual([3, 4])

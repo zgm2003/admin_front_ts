@@ -17,10 +17,19 @@ export interface RoleMatrixRow {
 export function buildRolePermissionMatrix(nodes: PermissionTreeNode[], platform: string): RoleMatrixRow[] {
   const rows: RoleMatrixRow[] = []
 
-  const walk = (items: PermissionTreeNode[]) => {
+  const walk = (items: PermissionTreeNode[], parentType = 0) => {
     for (const item of items) {
       if (item.platform !== platform) {
         continue
+      }
+
+      if (item.type === PermissionTypeEnum.BUTTON && parentType !== PermissionTypeEnum.PAGE) {
+        rows.push({
+          pageId: item.value,
+          pageLabel: item.label,
+          platform: item.platform,
+          actions: [{ id: item.value, code: String(item.code ?? ''), label: item.label }],
+        })
       }
 
       if (item.type === PermissionTypeEnum.PAGE) {
@@ -35,7 +44,7 @@ export function buildRolePermissionMatrix(nodes: PermissionTreeNode[], platform:
       }
 
       if (item.children?.length) {
-        walk(item.children)
+        walk(item.children, item.type)
       }
     }
   }

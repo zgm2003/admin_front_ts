@@ -8,6 +8,7 @@ import type { SearchField } from '@/components/Search/types'
 import { AppDialog } from '@/components/AppDialog'
 import {
   RoleApi,
+  type RoleAddPayload,
   type RoleEditPayload,
   type RoleInitResponse,
   type RoleListItem,
@@ -16,10 +17,12 @@ import {
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useCrudTable } from '@/hooks/useCrudTable'
-import { CommonEnum } from '@/enums'
+import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import { buildLeafSelectablePermissionTree, collectLeafPermissionIds } from './helpers'
+import RolePermissionMatrix from './components/RolePermissionMatrix.vue'
+import RolePermissionDiffDialog from './components/RolePermissionDiffDialog.vue'
+import { buildRolePermissionMatrix, diffPermissionIds } from './role-matrix'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -31,12 +34,37 @@ interface RoleForm {
 }
 
 const permissionTree = ref<RoleInitResponse['dict']['permission_tree']>([])
-const selectablePermissionTree = computed(() => buildLeafSelectablePermissionTree(permissionTree.value))
-const init = () => {
-  RoleApi.init().then((data) => {
-    permissionTree.value = data.dict.permission_tree
-  }).catch(() => {
-  })
+const platformOptions = ref<RoleInitResponse['dict']['permission_platform_arr']>([])
+const activePlatform = ref<string>(PlatformEnum.ADMIN)
+const originalPermissionIds = ref<number[]>([])
+
+const matrixRows = computed(() => buildRolePermissionMatrix(permissionTree.value, activePlatform.value))
+const currentPlatformActionIds = computed(() => matrixRows.value.flatMap((row) => row.actions.map((action) => action.id)))
+const permissionLabelMap = computed(() => {
+  const map = new Map<number, string>()
+  const walk = (nodes: RoleInitResponse['dict']['permission_tree']) => {
+    for (const node of nodes) {
+      if (node.type === PermissionTypeEnum.BUTTON) {
+        map.set(node.value, node.label)
+      }
+      if (node.children?.length) {
+        walk(node.children)
+      }
+    }
+  }
+
+  walk(permissionTree.value)
+
+  return map
+})
+
+const init = async () => {
+  const data = await RoleApi.init()
+  permissionTree.value = data.dict.permission_tree
+  platformOptions.value = data.dict.permission_platform_arr
+  if (!platformOptions.value.some((item) => item.value === activePlatform.value)) {
+    activePlatform.value = platformOptions.value[0]?.value ?? PlatformEnum.ADMIN
+  }
 }
 
 const dialogVisible = ref(false)
@@ -50,6 +78,7 @@ const rules = computed<FormRules>(() => ({
 const add = () => {
   dialogMode.value = 'add'
   form.value = { id: '', name: '', permission_id: [] }
+  originalPermissionIds.value = []
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
@@ -86,31 +115,53 @@ const columns = [
 
 const edit = (current: RoleListItem) => {
   dialogMode.value = 'edit'
-  form.value = { id: current.id, name: current.name, permission_id: current.permission_id }
+  const permissionIds = [...current.permission_id].sort((a, b) => a - b)
+  form.value = { id: current.id, name: current.name, permission_id: permissionIds }
+  originalPermissionIds.value = permissionIds
   dialogVisible.value = true
   nextTick(() => {
     formRef.value?.clearValidate()
   })
 }
+
+const diffDialogVisible = ref(false)
+const permissionDiff = ref<{ added: number[]; removed: number[] }>({ added: [], removed: [] })
+const addedPermissionLabels = computed(() => permissionDiff.value.added.map((id) => permissionLabelMap.value.get(id) ?? `#${id}`))
+const removedPermissionLabels = computed(() => permissionDiff.value.removed.map((id) => permissionLabelMap.value.get(id) ?? `#${id}`))
+const diffAddedTitle = computed(() => `${t('common.actions.add')}${t('role.form.permission')}`)
+const diffRemovedTitle = computed(() => `${t('common.actions.del')}${t('role.form.permission')}`)
+
+const submitRole = async () => {
+  const addPayload: RoleAddPayload = { name: form.value.name, permission_id: form.value.permission_id }
+  const editPayload: RoleEditPayload = { id: Number(form.value.id), name: form.value.name, permission_id: form.value.permission_id }
+
+  if (dialogMode.value === 'add') {
+    await RoleApi.add(addPayload)
+  } else {
+    await RoleApi.edit(editPayload)
+  }
+
+  ElNotification.success({ message: t('common.success.operation') })
+  diffDialogVisible.value = false
+  dialogVisible.value = false
+  void getList()
+}
+
 const confirmSubmit = async () => {
   if (!formRef.value) return
   try {
-    await formRef.value?.validate()
+    await formRef.value.validate()
   } catch {
     return
   }
 
-  const addPayload = { name: form.value.name, permission_id: form.value.permission_id }
-  const editPayload: RoleEditPayload = { id: Number(form.value.id), name: form.value.name, permission_id: form.value.permission_id }
-  const request = dialogMode.value === 'add'
-    ? RoleApi.add(addPayload)
-    : RoleApi.edit(editPayload)
+  permissionDiff.value = diffPermissionIds(originalPermissionIds.value, form.value.permission_id)
+  if (permissionDiff.value.added.length === 0 && permissionDiff.value.removed.length === 0) {
+    await submitRole()
+    return
+  }
 
-  request.then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    dialogVisible.value = false
-    getList()
-  })
+  diffDialogVisible.value = true
 }
 
 const handleDefaultSwitch = async (current: Pick<RoleListItem, 'id'>) => {
@@ -123,19 +174,17 @@ const handleDefaultSwitch = async (current: Pick<RoleListItem, 'id'>) => {
   } catch {
     return
   }
-  const param = { id: current.id }
-  RoleApi.default(param).then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    getList()
-  }).catch(() => {
-  })
+
+  await RoleApi.default({ id: current.id })
+  ElNotification.success({ message: t('common.success.operation') })
+  void getList()
 }
 
-const cascaderProps = { multiple: true, emitPath: false, checkStrictly: true } as const
-
-// 全选权限
 const selectAllPermissions = () => {
-  form.value.permission_id = collectLeafPermissionIds(permissionTree.value)
+  form.value.permission_id = Array.from(new Set([
+    ...form.value.permission_id,
+    ...currentPlatformActionIds.value,
+  ])).sort((a, b) => a - b)
 }
 
 const searchFields = computed<SearchField[]>(() => [
@@ -143,8 +192,8 @@ const searchFields = computed<SearchField[]>(() => [
 ])
 const isMobile = useIsMobile()
 onMounted(() => {
-  init()
-  getList()
+  void init()
+  void getList()
 })
 </script>
 
@@ -198,11 +247,25 @@ onMounted(() => {
           <el-input v-model="form.name" clearable style="width:100%"/>
         </el-form-item>
         <el-form-item :label="t('role.form.permission')">
-          <div style="display: flex; gap: 8px; width: 100%">
-            <el-cascader :options="selectablePermissionTree" :props="cascaderProps" v-model="form.permission_id" clearable
-                         filterable :placeholder="t('role.form.permission')" collapse-tags
-                         style="flex: 1"/>
-            <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
+          <div class="role-permission-editor">
+            <div class="role-permission-editor__toolbar">
+              <el-tabs v-model="activePlatform" class="role-permission-editor__tabs">
+                <el-tab-pane
+                  v-for="item in platformOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :name="item.value"
+                />
+              </el-tabs>
+              <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
+            </div>
+            <RolePermissionMatrix
+              v-model="form.permission_id"
+              :rows="matrixRows"
+              :empty-text="t('common.noData')"
+              :page-label="t('permission.table.name')"
+              :action-label="t('role.form.permission')"
+            />
           </div>
         </el-form-item>
       </el-form>
@@ -212,6 +275,18 @@ onMounted(() => {
       }}</el-button><el-button
         type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
   </AppDialog>
+  <RolePermissionDiffDialog
+    v-model="diffDialogVisible"
+    :title="t('common.confirmTitle')"
+    :added-title="diffAddedTitle"
+    :removed-title="diffRemovedTitle"
+    :added-labels="addedPermissionLabels"
+    :removed-labels="removedPermissionLabels"
+    :empty-text="t('common.noData')"
+    :cancel-text="t('common.actions.cancel')"
+    :confirm-text="t('common.actions.confirm')"
+    @confirm="submitRole"
+  />
 </template>
 <style scoped>
 .box {
@@ -224,6 +299,23 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto
+}
+
+.role-permission-editor {
+  width: 100%;
+}
+
+.role-permission-editor__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.role-permission-editor__tabs {
+  flex: 1;
+  min-width: 0;
 }
 
 .fenye {

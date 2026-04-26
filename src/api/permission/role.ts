@@ -1,10 +1,11 @@
 import request from '@/lib/http'
-import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 import type { PermissionTreeNode } from './permission'
 
 export interface RoleInitResponse {
   dict: {
     permission_tree: PermissionTreeNode[]
+    permission_platform_arr: DictOption<string>[]
   }
 }
 
