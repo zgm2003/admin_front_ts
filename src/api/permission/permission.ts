@@ -7,6 +7,8 @@ export interface PermissionTreeNode extends Record<string, unknown> {
   value: number
   parent_id: number
   platform: string
+  type: number
+  code?: string
   disabled?: boolean
   children?: PermissionTreeNode[]
 }
