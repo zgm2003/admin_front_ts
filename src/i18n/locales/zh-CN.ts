@@ -774,6 +774,7 @@ export default {
     filter: { name: '名称' },
     table: { id: 'ID', name: '名称', is_default: '默认角色', created_at: '创建时间', updated_at: '更新时间' },
     form: { permission: '权限' },
+    permissionGroup: { rootPages: '未分组页面', rootButtons: '根级按钮' },
     confirmSetDefault: '确定设置为默认角色吗？',
     actions: { setDefault: '设为默认' }
   },

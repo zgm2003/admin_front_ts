@@ -774,6 +774,7 @@ export default {
     filter: {name: 'Name'},
     table: {id: 'ID', name: 'Name', is_default: 'Default Role', created_at: 'Created At', updated_at: 'Updated At'},
     form: { permission: 'Permissions' },
+    permissionGroup: { rootPages: 'Ungrouped Pages', rootButtons: 'Root Buttons' },
     confirmSetDefault: 'Set as default role?',
     actions: { setDefault: 'Set Default' }
   },

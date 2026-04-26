@@ -15,46 +15,101 @@ export interface RoleMatrixRow {
   actions: RoleMatrixAction[]
 }
 
-export function buildRolePermissionMatrix(nodes: PermissionTreeNode[], platform: string): RoleMatrixRow[] {
-  const rows: RoleMatrixRow[] = []
+export interface RoleMatrixGroup {
+  groupId: number | string
+  groupLabel: string
+  platform: string
+  rows: RoleMatrixRow[]
+}
 
-  const walk = (items: PermissionTreeNode[], parentType = 0) => {
+interface RoleMatrixBuildOptions {
+  rootPagesLabel?: string
+  rootButtonsLabel?: string
+}
+
+const ROOT_PAGES_GROUP_ID = '__root_pages__'
+const ROOT_BUTTONS_GROUP_ID = '__root_buttons__'
+
+function createPageRow(item: PermissionTreeNode): RoleMatrixRow {
+  return {
+    pageId: item.value,
+    pageLabel: item.label,
+    pagePermissionId: item.value,
+    platform: item.platform,
+    actions: (item.children ?? [])
+      .filter((child) => child.type === PermissionTypeEnum.BUTTON)
+      .map((child) => ({ id: child.value, code: String(child.code ?? ''), label: child.label })),
+  }
+}
+
+function createStandaloneButtonRow(item: PermissionTreeNode): RoleMatrixRow {
+  return {
+    pageId: item.value,
+    pageLabel: item.label,
+    pagePermissionId: null,
+    platform: item.platform,
+    actions: [{ id: item.value, code: String(item.code ?? ''), label: item.label }],
+  }
+}
+
+export function buildRolePermissionMatrix(
+  nodes: PermissionTreeNode[],
+  platform: string,
+  options: RoleMatrixBuildOptions = {},
+): RoleMatrixGroup[] {
+  const groups: RoleMatrixGroup[] = []
+  const rootPagesLabel = options.rootPagesLabel ?? 'Ungrouped Pages'
+  const rootButtonsLabel = options.rootButtonsLabel ?? 'Root Buttons'
+
+  const ensureSyntheticGroup = (groupId: string, groupLabel: string): RoleMatrixGroup => {
+    const existing = groups.find((group) => group.groupId === groupId)
+    if (existing) {
+      return existing
+    }
+
+    const group = { groupId, groupLabel, platform, rows: [] }
+    groups.push(group)
+    return group
+  }
+
+  const walk = (items: PermissionTreeNode[], currentGroup: RoleMatrixGroup | null = null, parentType = 0) => {
     for (const item of items) {
       if (item.platform !== platform) {
         continue
       }
 
-      if (item.type === PermissionTypeEnum.BUTTON && parentType !== PermissionTypeEnum.PAGE) {
-        rows.push({
-          pageId: item.value,
-          pageLabel: item.label,
-          pagePermissionId: null,
+      if (item.type === PermissionTypeEnum.DIR) {
+        const group = currentGroup ?? {
+          groupId: item.value,
+          groupLabel: item.label,
           platform: item.platform,
-          actions: [{ id: item.value, code: String(item.code ?? ''), label: item.label }],
-        })
+          rows: [],
+        }
+        if (!currentGroup) {
+          groups.push(group)
+        }
+        if (item.children?.length) {
+          walk(item.children, group, item.type)
+        }
+        continue
       }
 
       if (item.type === PermissionTypeEnum.PAGE) {
-        rows.push({
-          pageId: item.value,
-          pageLabel: item.label,
-          pagePermissionId: item.value,
-          platform: item.platform,
-          actions: (item.children ?? [])
-            .filter((child) => child.type === PermissionTypeEnum.BUTTON)
-            .map((child) => ({ id: child.value, code: String(child.code ?? ''), label: child.label })),
-        })
+        const group = currentGroup ?? ensureSyntheticGroup(ROOT_PAGES_GROUP_ID, rootPagesLabel)
+        group.rows.push(createPageRow(item))
+        continue
       }
 
-      if (item.children?.length) {
-        walk(item.children, item.type)
+      if (item.type === PermissionTypeEnum.BUTTON && parentType !== PermissionTypeEnum.PAGE) {
+        const group = currentGroup ?? ensureSyntheticGroup(ROOT_BUTTONS_GROUP_ID, rootButtonsLabel)
+        group.rows.push(createStandaloneButtonRow(item))
       }
     }
   }
 
   walk(nodes)
 
-  return rows
+  return groups.filter((group) => group.rows.length > 0)
 }
 
 export function toggleMatrixAction(selectedIds: number[], permissionId: number, checked: boolean): number[] {
@@ -74,6 +129,25 @@ export function getRoleMatrixRowPermissionIds(row: RoleMatrixRow): number[] {
     ...(row.pagePermissionId ? [row.pagePermissionId] : []),
     ...row.actions.map((action) => action.id),
   ]
+}
+
+export function getRoleMatrixGroupPermissionIds(group: RoleMatrixGroup): number[] {
+  return group.rows.flatMap(getRoleMatrixRowPermissionIds)
+}
+
+export function toggleMatrixGroup(selectedIds: number[], group: RoleMatrixGroup, checked: boolean): number[] {
+  const set = new Set(selectedIds)
+  const permissionIds = getRoleMatrixGroupPermissionIds(group)
+
+  for (const permissionId of permissionIds) {
+    if (checked) {
+      set.add(permissionId)
+    } else {
+      set.delete(permissionId)
+    }
+  }
+
+  return Array.from(set).sort((a, b) => a - b)
 }
 
 export function toggleMatrixPage(selectedIds: number[], row: RoleMatrixRow, checked: boolean): number[] {

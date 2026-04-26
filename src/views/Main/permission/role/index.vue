@@ -22,7 +22,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import RolePermissionMatrix from './components/RolePermissionMatrix.vue'
 import RolePermissionDiffDialog from './components/RolePermissionDiffDialog.vue'
-import { buildRolePermissionMatrix, diffPermissionIds, getRoleMatrixRowPermissionIds } from './role-matrix'
+import { buildRolePermissionMatrix, diffPermissionIds, getRoleMatrixGroupPermissionIds } from './role-matrix'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -38,8 +38,11 @@ const platformOptions = ref<RoleInitResponse['dict']['permission_platform_arr']>
 const activePlatform = ref<string>(PlatformEnum.ADMIN)
 const originalPermissionIds = ref<number[]>([])
 
-const matrixRows = computed(() => buildRolePermissionMatrix(permissionTree.value, activePlatform.value))
-const currentPlatformPermissionIds = computed(() => matrixRows.value.flatMap(getRoleMatrixRowPermissionIds))
+const matrixGroups = computed(() => buildRolePermissionMatrix(permissionTree.value, activePlatform.value, {
+  rootPagesLabel: t('role.permissionGroup.rootPages'),
+  rootButtonsLabel: t('role.permissionGroup.rootButtons'),
+}))
+const currentPlatformPermissionIds = computed(() => matrixGroups.value.flatMap(getRoleMatrixGroupPermissionIds))
 const permissionLabelMap = computed(() => {
   const map = new Map<number, string>()
   const walk = (nodes: RoleInitResponse['dict']['permission_tree']) => {
@@ -261,11 +264,12 @@ onMounted(() => {
             </div>
             <RolePermissionMatrix
               v-model="form.permission_id"
-              :rows="matrixRows"
+              :groups="matrixGroups"
               :empty-text="t('common.noData')"
               :page-label="t('permission.table.name')"
               :action-label="t('role.form.permission')"
               :page-access-label="t('common.actions.view')"
+              :group-select-label="t('common.actions.selectAll')"
             />
           </div>
         </el-form-item>
