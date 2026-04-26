@@ -21,7 +21,10 @@ describe('role permission matrix UI contract', () => {
     const diff = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/role/components/RolePermissionDiffDialog.vue'), 'utf8')
 
     expect(matrix).toContain('defineModel<number[]>')
-    expect(matrix).toContain('toggleMatrixAction')
+    expect(matrix).toContain('toggleMatrixPage')
+    expect(matrix).toContain('toggleMatrixRowAction')
+    expect(matrix).toContain('pagePermissionId')
+    expect(matrix).toContain('pageAccessLabel')
     expect(diff).toContain('defineModel<boolean>')
     expect(diff).toContain('addedLabels')
     expect(diff).toContain('removedLabels')

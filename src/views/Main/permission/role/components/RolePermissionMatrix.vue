@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { RoleMatrixRow } from '../role-matrix'
-import { toggleMatrixAction } from '../role-matrix'
+import { toggleMatrixPage, toggleMatrixRowAction } from '../role-matrix'
 
 const selectedIds = defineModel<number[]>({ required: true })
 
@@ -10,14 +10,19 @@ const props = defineProps<{
   emptyText: string
   pageLabel: string
   actionLabel: string
+  pageAccessLabel: string
 }>()
 
 const hasRows = computed(() => props.rows.length > 0)
 
 const isChecked = (id: number): boolean => selectedIds.value.includes(id)
 
-const setChecked = (id: number, checked: boolean) => {
-  selectedIds.value = toggleMatrixAction(selectedIds.value, id, checked)
+const setPageChecked = (row: RoleMatrixRow, checked: boolean) => {
+  selectedIds.value = toggleMatrixPage(selectedIds.value, row, checked)
+}
+
+const setActionChecked = (row: RoleMatrixRow, id: number, checked: boolean) => {
+  selectedIds.value = toggleMatrixRowAction(selectedIds.value, row, id, checked)
 }
 </script>
 
@@ -29,10 +34,17 @@ const setChecked = (id: number, checked: boolean) => {
       <template #default="{ row }">
         <el-space wrap>
           <el-checkbox
+            v-if="row.pagePermissionId"
+            :model-value="isChecked(row.pagePermissionId)"
+            @update:model-value="(value) => setPageChecked(row, Boolean(value))"
+          >
+            {{ pageAccessLabel }}
+          </el-checkbox>
+          <el-checkbox
             v-for="action in row.actions"
             :key="action.id"
             :model-value="isChecked(action.id)"
-            @update:model-value="(value) => setChecked(action.id, Boolean(value))"
+            @update:model-value="(value) => setActionChecked(row, action.id, Boolean(value))"
           >
             {{ action.label }}
           </el-checkbox>

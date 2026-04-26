@@ -10,6 +10,7 @@ export interface RoleMatrixAction {
 export interface RoleMatrixRow {
   pageId: number
   pageLabel: string
+  pagePermissionId: number | null
   platform: string
   actions: RoleMatrixAction[]
 }
@@ -27,6 +28,7 @@ export function buildRolePermissionMatrix(nodes: PermissionTreeNode[], platform:
         rows.push({
           pageId: item.value,
           pageLabel: item.label,
+          pagePermissionId: null,
           platform: item.platform,
           actions: [{ id: item.value, code: String(item.code ?? ''), label: item.label }],
         })
@@ -36,6 +38,7 @@ export function buildRolePermissionMatrix(nodes: PermissionTreeNode[], platform:
         rows.push({
           pageId: item.value,
           pageLabel: item.label,
+          pagePermissionId: item.value,
           platform: item.platform,
           actions: (item.children ?? [])
             .filter((child) => child.type === PermissionTypeEnum.BUTTON)
@@ -58,6 +61,50 @@ export function toggleMatrixAction(selectedIds: number[], permissionId: number, 
   const set = new Set(selectedIds)
 
   if (checked) {
+    set.add(permissionId)
+  } else {
+    set.delete(permissionId)
+  }
+
+  return Array.from(set).sort((a, b) => a - b)
+}
+
+export function getRoleMatrixRowPermissionIds(row: RoleMatrixRow): number[] {
+  return [
+    ...(row.pagePermissionId ? [row.pagePermissionId] : []),
+    ...row.actions.map((action) => action.id),
+  ]
+}
+
+export function toggleMatrixPage(selectedIds: number[], row: RoleMatrixRow, checked: boolean): number[] {
+  if (!row.pagePermissionId) {
+    return selectedIds
+  }
+
+  const set = new Set(selectedIds)
+  if (checked) {
+    set.add(row.pagePermissionId)
+  } else {
+    for (const permissionId of getRoleMatrixRowPermissionIds(row)) {
+      set.delete(permissionId)
+    }
+  }
+
+  return Array.from(set).sort((a, b) => a - b)
+}
+
+export function toggleMatrixRowAction(
+  selectedIds: number[],
+  row: RoleMatrixRow,
+  permissionId: number,
+  checked: boolean,
+): number[] {
+  const set = new Set(selectedIds)
+
+  if (checked) {
+    if (row.pagePermissionId) {
+      set.add(row.pagePermissionId)
+    }
     set.add(permissionId)
   } else {
     set.delete(permissionId)

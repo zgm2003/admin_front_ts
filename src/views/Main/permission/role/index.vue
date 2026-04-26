@@ -22,7 +22,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import RolePermissionMatrix from './components/RolePermissionMatrix.vue'
 import RolePermissionDiffDialog from './components/RolePermissionDiffDialog.vue'
-import { buildRolePermissionMatrix, diffPermissionIds } from './role-matrix'
+import { buildRolePermissionMatrix, diffPermissionIds, getRoleMatrixRowPermissionIds } from './role-matrix'
 
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -39,12 +39,12 @@ const activePlatform = ref<string>(PlatformEnum.ADMIN)
 const originalPermissionIds = ref<number[]>([])
 
 const matrixRows = computed(() => buildRolePermissionMatrix(permissionTree.value, activePlatform.value))
-const currentPlatformActionIds = computed(() => matrixRows.value.flatMap((row) => row.actions.map((action) => action.id)))
+const currentPlatformPermissionIds = computed(() => matrixRows.value.flatMap(getRoleMatrixRowPermissionIds))
 const permissionLabelMap = computed(() => {
   const map = new Map<number, string>()
   const walk = (nodes: RoleInitResponse['dict']['permission_tree']) => {
     for (const node of nodes) {
-      if (node.type === PermissionTypeEnum.BUTTON) {
+      if (node.type === PermissionTypeEnum.PAGE || node.type === PermissionTypeEnum.BUTTON) {
         map.set(node.value, node.label)
       }
       if (node.children?.length) {
@@ -183,7 +183,7 @@ const handleDefaultSwitch = async (current: Pick<RoleListItem, 'id'>) => {
 const selectAllPermissions = () => {
   form.value.permission_id = Array.from(new Set([
     ...form.value.permission_id,
-    ...currentPlatformActionIds.value,
+    ...currentPlatformPermissionIds.value,
   ])).sort((a, b) => a - b)
 }
 
@@ -265,6 +265,7 @@ onMounted(() => {
               :empty-text="t('common.noData')"
               :page-label="t('permission.table.name')"
               :action-label="t('role.form.permission')"
+              :page-access-label="t('common.actions.view')"
             />
           </div>
         </el-form-item>
