@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import type { RoleMatrixGroup, RoleMatrixRow, RoleMatrixSelectionState } from '../role-matrix'
 import {
   getRoleMatrixGroupSelectionState,
@@ -24,6 +24,8 @@ const props = defineProps<{
   actionCountLabel: string
   emptyActionsText: string
   helperText: string
+  groupExpandLabel: string
+  groupCollapseLabel: string
 }>()
 
 interface GroupRuntimeState {
@@ -59,6 +61,7 @@ const emptyRowRuntimeState: RowRuntimeState = {
 
 const hasGroups = computed(() => props.groups.length > 0)
 const selectedIdSet = computed(() => new Set(selectedIds.value))
+const collapsedGroupIds = shallowRef(new Set<RoleMatrixGroup['groupId']>())
 
 const isChecked = (id: number): boolean => selectedIdSet.value.has(id)
 
@@ -145,6 +148,18 @@ const clearGroup = (group: RoleMatrixGroup) => {
 const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
   selectedIds.value = toggleMatrixGroup(selectedIds.value, group, checked)
 }
+
+const isGroupCollapsed = (group: RoleMatrixGroup): boolean => collapsedGroupIds.value.has(group.groupId)
+
+const toggleGroupCollapse = (group: RoleMatrixGroup) => {
+  const nextIds = new Set(collapsedGroupIds.value)
+  if (nextIds.has(group.groupId)) {
+    nextIds.delete(group.groupId)
+  } else {
+    nextIds.add(group.groupId)
+  }
+  collapsedGroupIds.value = nextIds
+}
 </script>
 
 <template>
@@ -178,6 +193,9 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
           </div>
         </div>
         <el-space>
+          <el-button size="small" text @click="toggleGroupCollapse(group)">
+            {{ isGroupCollapsed(group) ? groupExpandLabel : groupCollapseLabel }}
+          </el-button>
           <el-button size="small" text type="primary" @click="selectGroup(group)">
             {{ groupSelectLabel }}
           </el-button>
@@ -186,7 +204,7 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
           </el-button>
         </el-space>
       </div>
-      <el-table :data="group.rows" border row-key="pageId" class="role-permission-matrix__table">
+      <el-table v-if="!isGroupCollapsed(group)" :data="group.rows" border row-key="pageId" class="role-permission-matrix__table">
         <el-table-column :label="pageLabel" min-width="260">
           <template #default="{ row }">
             <div class="role-permission-matrix__page">
@@ -251,11 +269,9 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
   align-items: center;
   padding: 10px 12px;
   color: var(--el-text-color-secondary);
-  background:
-    linear-gradient(135deg, rgba(64, 158, 255, 0.10), rgba(103, 194, 58, 0.08)),
-    var(--el-fill-color-blank);
-  border: 1px solid rgba(64, 158, 255, 0.18);
-  border-radius: 10px;
+  background: var(--el-fill-color-lighter);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
 }
 
 .role-permission-matrix__helper-dot {
@@ -264,14 +280,12 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
   height: 8px;
   background: var(--el-color-primary);
   border-radius: 999px;
-  box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.12);
 }
 
 .role-permission-matrix__group {
   overflow: hidden;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
-  box-shadow: 0 10px 28px rgba(31, 45, 61, 0.05);
+  border-radius: 8px;
 }
 
 .role-permission-matrix__group-header {
@@ -280,9 +294,7 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 247, 250, 0.92)),
-    var(--el-fill-color-lighter);
+  background: var(--el-fill-color-lighter);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
@@ -305,9 +317,7 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
 }
 
 .role-permission-matrix__group-stat {
-  padding: 2px 8px;
-  background: var(--el-fill-color);
-  border-radius: 999px;
+  line-height: 18px;
 }
 
 .role-permission-matrix__table {
@@ -362,8 +372,6 @@ const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
 }
 
 .role-permission-matrix__view {
-  padding: 0 10px;
-  background: rgba(64, 158, 255, 0.08);
-  border-radius: 999px;
+  font-weight: 500;
 }
 </style>

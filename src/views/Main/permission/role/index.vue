@@ -289,6 +289,8 @@ onMounted(() => {
               :action-count-label="t('role.permissionMatrix.actions')"
               :empty-actions-text="t('role.permissionMatrix.emptyActions')"
               :helper-text="t('role.permissionMatrix.helper')"
+              :group-expand-label="t('common.actions.expand')"
+              :group-collapse-label="t('common.actions.collapse')"
             />
           </div>
         </el-form-item>
@@ -328,11 +330,9 @@ onMounted(() => {
 .role-permission-editor {
   width: 100%;
   padding: 12px;
-  background:
-    radial-gradient(circle at top left, rgba(64, 158, 255, 0.10), transparent 28%),
-    var(--el-fill-color-blank);
+  background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 14px;
+  border-radius: 8px;
 }
 
 .role-permission-editor__toolbar {
