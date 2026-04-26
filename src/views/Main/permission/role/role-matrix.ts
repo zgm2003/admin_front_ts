@@ -22,6 +22,13 @@ export interface RoleMatrixGroup {
   rows: RoleMatrixRow[]
 }
 
+export interface RoleMatrixSelectionState {
+  total: number
+  selected: number
+  checked: boolean
+  indeterminate: boolean
+}
+
 interface RoleMatrixBuildOptions {
   rootPagesLabel?: string
   rootButtonsLabel?: string
@@ -133,6 +140,37 @@ export function getRoleMatrixRowPermissionIds(row: RoleMatrixRow): number[] {
 
 export function getRoleMatrixGroupPermissionIds(group: RoleMatrixGroup): number[] {
   return group.rows.flatMap(getRoleMatrixRowPermissionIds)
+}
+
+export function getRoleMatrixSelectionState(
+  permissionIds: number[],
+  selectedIds: readonly number[] | ReadonlySet<number>,
+): RoleMatrixSelectionState {
+  const selectedSet = selectedIds instanceof Set ? selectedIds : new Set(selectedIds)
+  const selected = permissionIds.reduce((count, permissionId) => (
+    selectedSet.has(permissionId) ? count + 1 : count
+  ), 0)
+
+  return {
+    total: permissionIds.length,
+    selected,
+    checked: permissionIds.length > 0 && selected === permissionIds.length,
+    indeterminate: selected > 0 && selected < permissionIds.length,
+  }
+}
+
+export function getRoleMatrixRowSelectionState(
+  row: RoleMatrixRow,
+  selectedIds: readonly number[] | ReadonlySet<number>,
+): RoleMatrixSelectionState {
+  return getRoleMatrixSelectionState(getRoleMatrixRowPermissionIds(row), selectedIds)
+}
+
+export function getRoleMatrixGroupSelectionState(
+  group: RoleMatrixGroup,
+  selectedIds: readonly number[] | ReadonlySet<number>,
+): RoleMatrixSelectionState {
+  return getRoleMatrixSelectionState(getRoleMatrixGroupPermissionIds(group), selectedIds)
 }
 
 export function toggleMatrixGroup(selectedIds: number[], group: RoleMatrixGroup, checked: boolean): number[] {

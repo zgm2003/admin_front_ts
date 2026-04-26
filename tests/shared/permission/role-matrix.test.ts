@@ -4,6 +4,8 @@ import {
   buildRolePermissionMatrix,
   diffPermissionIds,
   getRoleMatrixGroupPermissionIds,
+  getRoleMatrixGroupSelectionState,
+  getRoleMatrixRowSelectionState,
   toggleMatrixPage,
   toggleMatrixAction,
   toggleMatrixGroup,
@@ -126,6 +128,23 @@ describe('role permission matrix', () => {
     expect(getRoleMatrixGroupPermissionIds(group)).toEqual([2, 3, 4])
     expect(toggleMatrixGroup([], group, true)).toEqual([2, 3, 4])
     expect(toggleMatrixGroup([1, 2, 3, 4], group, false)).toEqual([1])
+  })
+
+  it('reports row and group selection state for fast matrix rendering', () => {
+    const group = buildRolePermissionMatrix(tree, PlatformEnum.ADMIN)[0]
+
+    expect(getRoleMatrixRowSelectionState(userManagerRow, [2, 3])).toEqual({
+      total: 3,
+      selected: 2,
+      checked: false,
+      indeterminate: true,
+    })
+    expect(getRoleMatrixGroupSelectionState(group, new Set([2, 3, 4]))).toEqual({
+      total: 3,
+      selected: 3,
+      checked: true,
+      indeterminate: false,
+    })
   })
 
   it('diffs selected permission ids before save', () => {

@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { RoleMatrixGroup, RoleMatrixRow } from '../role-matrix'
-import { toggleMatrixGroup, toggleMatrixPage, toggleMatrixRowAction } from '../role-matrix'
+import type { RoleMatrixGroup, RoleMatrixRow, RoleMatrixSelectionState } from '../role-matrix'
+import {
+  getRoleMatrixGroupSelectionState,
+  getRoleMatrixRowSelectionState,
+  toggleMatrixGroup,
+  toggleMatrixPage,
+  toggleMatrixRowAction,
+} from '../role-matrix'
 
 const selectedIds = defineModel<number[]>({ required: true })
 
@@ -12,11 +18,113 @@ const props = defineProps<{
   actionLabel: string
   pageAccessLabel: string
   groupSelectLabel: string
+  groupClearLabel: string
+  selectedCountLabel: string
+  pageCountLabel: string
+  actionCountLabel: string
+  emptyActionsText: string
+  helperText: string
 }>()
 
-const hasGroups = computed(() => props.groups.length > 0)
+interface GroupRuntimeState {
+  selection: RoleMatrixSelectionState
+  pageTotal: number
+  pageSelected: number
+  actionTotal: number
+  actionSelected: number
+}
 
-const isChecked = (id: number): boolean => selectedIds.value.includes(id)
+interface RowRuntimeState {
+  selection: RoleMatrixSelectionState
+  actionSelected: number
+}
+
+const emptySelectionState: RoleMatrixSelectionState = {
+  total: 0,
+  selected: 0,
+  checked: false,
+  indeterminate: false,
+}
+const emptyGroupRuntimeState: GroupRuntimeState = {
+  selection: emptySelectionState,
+  pageTotal: 0,
+  pageSelected: 0,
+  actionTotal: 0,
+  actionSelected: 0,
+}
+const emptyRowRuntimeState: RowRuntimeState = {
+  selection: emptySelectionState,
+  actionSelected: 0,
+}
+
+const hasGroups = computed(() => props.groups.length > 0)
+const selectedIdSet = computed(() => new Set(selectedIds.value))
+
+const isChecked = (id: number): boolean => selectedIdSet.value.has(id)
+
+const rowKey = (row: RoleMatrixRow): string => `${row.platform}:${row.pageId}`
+
+const groupRuntimeStateMap = computed(() => {
+  const map = new Map<RoleMatrixGroup['groupId'], GroupRuntimeState>()
+  const selectedSet = selectedIdSet.value
+
+  for (const group of props.groups) {
+    let pageTotal = 0
+    let pageSelected = 0
+    let actionTotal = 0
+    let actionSelected = 0
+
+    for (const row of group.rows) {
+      if (row.pagePermissionId !== null) {
+        pageTotal += 1
+        if (selectedSet.has(row.pagePermissionId)) {
+          pageSelected += 1
+        }
+      }
+
+      actionTotal += row.actions.length
+      for (const action of row.actions) {
+        if (selectedSet.has(action.id)) {
+          actionSelected += 1
+        }
+      }
+    }
+
+    map.set(group.groupId, {
+      selection: getRoleMatrixGroupSelectionState(group, selectedSet),
+      pageTotal,
+      pageSelected,
+      actionTotal,
+      actionSelected,
+    })
+  }
+
+  return map
+})
+
+const rowRuntimeStateMap = computed(() => {
+  const map = new Map<string, RowRuntimeState>()
+  const selectedSet = selectedIdSet.value
+
+  for (const group of props.groups) {
+    for (const row of group.rows) {
+      map.set(rowKey(row), {
+        selection: getRoleMatrixRowSelectionState(row, selectedSet),
+        actionSelected: row.actions.filter((action) => selectedSet.has(action.id)).length,
+      })
+    }
+  }
+
+  return map
+})
+
+const groupRuntimeState = (group: RoleMatrixGroup): GroupRuntimeState => (
+  groupRuntimeStateMap.value.get(group.groupId) ?? emptyGroupRuntimeState
+)
+
+const rowRuntimeState = (row: RoleMatrixRow): RowRuntimeState => (
+  rowRuntimeStateMap.value.get(rowKey(row)) ?? emptyRowRuntimeState
+)
 
 const setPageChecked = (row: RoleMatrixRow, checked: boolean) => {
   selectedIds.value = toggleMatrixPage(selectedIds.value, row, checked)
@@ -29,25 +137,82 @@ const setActionChecked = (row: RoleMatrixRow, id: number, checked: boolean) => {
 const selectGroup = (group: RoleMatrixGroup) => {
   selectedIds.value = toggleMatrixGroup(selectedIds.value, group, true)
 }
+
+const clearGroup = (group: RoleMatrixGroup) => {
+  selectedIds.value = toggleMatrixGroup(selectedIds.value, group, false)
+}
+
+const setGroupChecked = (group: RoleMatrixGroup, checked: boolean) => {
+  selectedIds.value = toggleMatrixGroup(selectedIds.value, group, checked)
+}
 </script>
 
 <template>
   <el-empty v-if="!hasGroups" :description="emptyText" />
   <div v-else class="role-permission-matrix">
+    <div class="role-permission-matrix__helper">
+      <span class="role-permission-matrix__helper-dot"></span>
+      <span>{{ helperText }}</span>
+    </div>
     <section v-for="group in groups" :key="group.groupId" class="role-permission-matrix__group">
       <div class="role-permission-matrix__group-header">
-        <div class="role-permission-matrix__group-title">{{ group.groupLabel }}</div>
-        <el-button size="small" text type="primary" @click="selectGroup(group)">
-          {{ groupSelectLabel }}
-        </el-button>
+        <div class="role-permission-matrix__group-main">
+          <el-checkbox
+            class="role-permission-matrix__group-title"
+            :model-value="groupRuntimeState(group).selection.checked"
+            :indeterminate="groupRuntimeState(group).selection.indeterminate"
+            @update:model-value="(value) => setGroupChecked(group, Boolean(value))"
+          >
+            {{ group.groupLabel }}
+          </el-checkbox>
+          <div class="role-permission-matrix__group-meta">
+            <span class="role-permission-matrix__group-stat">
+              {{ selectedCountLabel }} {{ groupRuntimeState(group).selection.selected }}/{{ groupRuntimeState(group).selection.total }}
+            </span>
+            <span class="role-permission-matrix__group-stat">
+              {{ pageCountLabel }} {{ groupRuntimeState(group).pageSelected }}/{{ groupRuntimeState(group).pageTotal }}
+            </span>
+            <span class="role-permission-matrix__group-stat">
+              {{ actionCountLabel }} {{ groupRuntimeState(group).actionSelected }}/{{ groupRuntimeState(group).actionTotal }}
+            </span>
+          </div>
+        </div>
+        <el-space>
+          <el-button size="small" text type="primary" @click="selectGroup(group)">
+            {{ groupSelectLabel }}
+          </el-button>
+          <el-button size="small" text @click="clearGroup(group)">
+            {{ groupClearLabel }}
+          </el-button>
+        </el-space>
       </div>
-      <el-table :data="group.rows" border row-key="pageId" style="width: 100%">
-        <el-table-column prop="pageLabel" :label="pageLabel" min-width="220" />
+      <el-table :data="group.rows" border row-key="pageId" class="role-permission-matrix__table">
+        <el-table-column :label="pageLabel" min-width="260">
+          <template #default="{ row }">
+            <div class="role-permission-matrix__page">
+              <span
+                class="role-permission-matrix__page-status"
+                :class="{
+                  'is-complete': rowRuntimeState(row).selection.checked,
+                  'is-partial': rowRuntimeState(row).selection.indeterminate,
+                }"
+              ></span>
+              <div class="role-permission-matrix__page-copy">
+                <div class="role-permission-matrix__page-name">{{ row.pageLabel }}</div>
+                <div class="role-permission-matrix__page-meta">
+                  <span v-if="row.pagePermissionId">{{ pageAccessLabel }}</span>
+                  <span>{{ actionCountLabel }} {{ rowRuntimeState(row).actionSelected }}/{{ row.actions.length }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column :label="actionLabel" min-width="420">
           <template #default="{ row }">
-            <el-space wrap>
+            <el-space wrap class="role-permission-matrix__actions">
               <el-checkbox
                 v-if="row.pagePermissionId"
+                class="role-permission-matrix__view"
                 :model-value="isChecked(row.pagePermissionId)"
                 @update:model-value="(value) => setPageChecked(row, Boolean(value))"
               >
@@ -61,6 +226,9 @@ const selectGroup = (group: RoleMatrixGroup) => {
               >
                 {{ action.label }}
               </el-checkbox>
+              <el-tag v-if="row.actions.length === 0" size="small" type="info">
+                {{ emptyActionsText }}
+              </el-tag>
             </el-space>
           </template>
         </el-table-column>
@@ -77,23 +245,125 @@ const selectGroup = (group: RoleMatrixGroup) => {
   width: 100%;
 }
 
+.role-permission-matrix__helper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  color: var(--el-text-color-secondary);
+  background:
+    linear-gradient(135deg, rgba(64, 158, 255, 0.10), rgba(103, 194, 58, 0.08)),
+    var(--el-fill-color-blank);
+  border: 1px solid rgba(64, 158, 255, 0.18);
+  border-radius: 10px;
+}
+
+.role-permission-matrix__helper-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  background: var(--el-color-primary);
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.12);
+}
+
 .role-permission-matrix__group {
   overflow: hidden;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(31, 45, 61, 0.05);
 }
 
 .role-permission-matrix__group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--el-fill-color-lighter);
+  gap: 12px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 247, 250, 0.92)),
+    var(--el-fill-color-lighter);
   border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.role-permission-matrix__group-main {
+  min-width: 0;
 }
 
 .role-permission-matrix__group-title {
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+
+.role-permission-matrix__group-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.role-permission-matrix__group-stat {
+  padding: 2px 8px;
+  background: var(--el-fill-color);
+  border-radius: 999px;
+}
+
+.role-permission-matrix__table {
+  width: 100%;
+}
+
+.role-permission-matrix__page {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.role-permission-matrix__page-status {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  background: var(--el-border-color);
+  border-radius: 999px;
+}
+
+.role-permission-matrix__page-status.is-partial {
+  background: var(--el-color-warning);
+}
+
+.role-permission-matrix__page-status.is-complete {
+  background: var(--el-color-success);
+}
+
+.role-permission-matrix__page-copy {
+  min-width: 0;
+}
+
+.role-permission-matrix__page-name {
+  overflow: hidden;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-permission-matrix__page-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.role-permission-matrix__actions {
+  width: 100%;
+}
+
+.role-permission-matrix__view {
+  padding: 0 10px;
+  background: rgba(64, 158, 255, 0.08);
+  border-radius: 999px;
 }
 </style>

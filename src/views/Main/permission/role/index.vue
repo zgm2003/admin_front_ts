@@ -190,6 +190,11 @@ const selectAllPermissions = () => {
   ])).sort((a, b) => a - b)
 }
 
+const clearCurrentPlatformPermissions = () => {
+  const currentPlatformIdSet = new Set(currentPlatformPermissionIds.value)
+  form.value.permission_id = form.value.permission_id.filter((id) => !currentPlatformIdSet.has(id))
+}
+
 const searchFields = computed<SearchField[]>(() => [
   { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 },
 ])
@@ -242,7 +247,7 @@ onMounted(() => {
       </AppTable>
     </div>
   </div>
-  <AppDialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '900px'">
+  <AppDialog v-model="dialogVisible" class="add-box dialog-box" :width="isMobile ? '94vw' : '1040px'">
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
@@ -260,7 +265,10 @@ onMounted(() => {
                   :name="item.value"
                 />
               </el-tabs>
-              <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
+              <el-space>
+                <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
+                <el-button @click="clearCurrentPlatformPermissions">{{ t('role.permissionMatrix.clearPlatform') }}</el-button>
+              </el-space>
             </div>
             <RolePermissionMatrix
               v-model="form.permission_id"
@@ -270,6 +278,12 @@ onMounted(() => {
               :action-label="t('role.form.permission')"
               :page-access-label="t('common.actions.view')"
               :group-select-label="t('common.actions.selectAll')"
+              :group-clear-label="t('role.permissionMatrix.clearGroup')"
+              :selected-count-label="t('role.permissionMatrix.selected')"
+              :page-count-label="t('role.permissionMatrix.pages')"
+              :action-count-label="t('role.permissionMatrix.actions')"
+              :empty-actions-text="t('role.permissionMatrix.emptyActions')"
+              :helper-text="t('role.permissionMatrix.helper')"
             />
           </div>
         </el-form-item>
@@ -308,14 +322,22 @@ onMounted(() => {
 
 .role-permission-editor {
   width: 100%;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(64, 158, 255, 0.10), transparent 28%),
+    var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 14px;
 }
 
 .role-permission-editor__toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .role-permission-editor__tabs {

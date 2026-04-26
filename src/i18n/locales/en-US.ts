@@ -775,6 +775,15 @@ export default {
     table: {id: 'ID', name: 'Name', is_default: 'Default Role', created_at: 'Created At', updated_at: 'Updated At'},
     form: { permission: 'Permissions' },
     permissionGroup: { rootPages: 'Ungrouped Pages', rootButtons: 'Root Buttons' },
+    permissionMatrix: {
+      helper: 'Directories are display groups only; only page access and button actions are persisted. Selecting an action grants page access automatically.',
+      selected: 'Selected',
+      pages: 'Pages',
+      actions: 'Actions',
+      clearGroup: 'Clear Group',
+      clearPlatform: 'Clear Current Platform',
+      emptyActions: 'No actions; page access only'
+    },
     confirmSetDefault: 'Set as default role?',
     actions: { setDefault: 'Set Default' }
   },
