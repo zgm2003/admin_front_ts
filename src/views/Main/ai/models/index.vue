@@ -40,7 +40,9 @@ const {
   refresh,
   getList,
   onSelectionChange,
+  selectedIds,
   confirmDel,
+  batchDel,
   toggleStatus
 } = useCrudTable({
   api: AiModelApi,
@@ -214,6 +216,9 @@ onMounted(() => {
       >
         <template #toolbar-left>
           <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
+            {{ t('common.actions.batchDelete') }}
+          </el-button>
         </template>
         <template #cell-driver="{row}">
           <el-tag>{{ row.driver_name }}</el-tag>
