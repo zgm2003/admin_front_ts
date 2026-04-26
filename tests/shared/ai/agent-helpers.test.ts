@@ -22,7 +22,6 @@ describe('agent helpers', () => {
 
   it('maps scenes to stable tag types', () => {
     expect(getAgentSceneTagType('goods_script')).toBe('warning')
-    expect(getAgentSceneTagType('code_gen_backend')).toBe('primary')
     expect(getAgentSceneTagType('chat')).toBe('info')
     expect(getAgentSceneTagType('')).toBe('info')
   })

@@ -25,9 +25,8 @@ export function createDefaultAgentForm(): AgentFormState {
   }
 }
 
-export function getAgentSceneTagType(scene?: string | null): 'warning' | 'primary' | 'info' {
+export function getAgentSceneTagType(scene?: string | null): 'warning' | 'info' {
   if (scene === 'goods_script') return 'warning'
-  if (scene?.startsWith('code_gen')) return 'primary'
   return 'info'
 }
 

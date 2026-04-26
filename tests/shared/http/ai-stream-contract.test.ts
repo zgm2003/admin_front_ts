@@ -33,22 +33,4 @@ describe('AI stream contracts', () => {
     expect(onError).toHaveBeenCalledWith('SSE stream ended without a terminal event')
   })
 
-  it('GenAiApi treats missing terminal events as an error instead of completing silently', async () => {
-    const onDone = vi.fn()
-    const onError = vi.fn()
-
-    streamPost.mockImplementationOnce(async (_url, _params, callbacks) => {
-      callbacks.onComplete?.()
-    })
-
-    const { GenAiApi } = await import('../../../src/api/ai/genAi')
-
-    await GenAiApi.stream({ content: 'build me a page' }, {
-      onDone,
-      onError,
-    })
-
-    expect(onDone).not.toHaveBeenCalled()
-    expect(onError).toHaveBeenCalledWith('SSE stream ended without a terminal event')
-  })
 })
