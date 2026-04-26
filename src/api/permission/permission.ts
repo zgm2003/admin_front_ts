@@ -73,31 +73,6 @@ export interface PermissionStatusPayload extends RequestPayload {
   status: number
 }
 
-export interface AppButtonListParams extends RequestPayload {
-  platform: string
-  name?: string
-  code?: string
-}
-
-export interface AppButtonItem {
-  id: number
-  name: string
-  status: number
-  code: string
-  sort: number
-  platform: string
-  platform_name: string
-}
-
-export interface AppButtonMutationPayload extends RequestPayload {
-  id?: number
-  name: string
-  code: string
-  sort: number
-  platform: string
-  type: number
-}
-
 export const PermissionApi = {
   init: () => request.post<PermissionInitResponse>('/api/admin/Permission/init'),
   list: (params: PermissionListParams) => request.post<PermissionListItem[]>('/api/admin/Permission/list', params),
@@ -106,10 +81,4 @@ export const PermissionApi = {
   del: (params: PermissionDeletePayload) => request.post<void>('/api/admin/Permission/del', params),
   batchEdit: (params: PermissionBatchEditPayload) => request.post<void>('/api/admin/Permission/batchEdit', params),
   status: (params: PermissionStatusPayload) => request.post<void>('/api/admin/Permission/status', params),
-  // APP/H5/小程序 按钮权限
-  appButtonList: (params: AppButtonListParams) => request.post<AppButtonItem[]>('/api/admin/Permission/appButtonList', params),
-  appButtonAdd: (params: AppButtonMutationPayload) => request.post<void>('/api/admin/Permission/appButtonAdd', params),
-  appButtonEdit: (params: AppButtonMutationPayload) => request.post<void>('/api/admin/Permission/appButtonEdit', params),
-  appButtonStatus: (params: PermissionStatusPayload) => request.post<void>('/api/admin/Permission/appButtonStatus', params),
-  appButtonDel: (params: PermissionDeletePayload) => request.post<void>('/api/admin/Permission/appButtonDel', params),
 }
