@@ -12,6 +12,7 @@ describe('role permission matrix UI contract', () => {
     expect(source).toContain('getRoleMatrixGroupPermissionIds')
     expect(source).toContain('diffPermissionIds')
     expect(source).toContain(':height="isMobile ? \'72vh\' : \'min(72vh, 720px)\'"')
+    expect(source).toContain('top="5vh"')
     expect(source).toContain('permission_platform_arr')
     expect(source).toContain('<el-tabs')
     expect(source).not.toContain('<el-cascader')

@@ -252,6 +252,7 @@ onMounted(() => {
     class="add-box dialog-box"
     :width="isMobile ? '94vw' : '1040px'"
     :height="isMobile ? '72vh' : 'min(72vh, 720px)'"
+    top="5vh"
   >
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
     <div class="content-box">
