@@ -13,8 +13,8 @@ interface ChatState {
   messagesMap: Map<number, MessageItem[]>
   /** 消息 ID 集合，用于 O(1) 去重 */
   messageIdSets: Map<number, Set<number>>
-  /** 各会话游标，用于加载更多 */
-  cursorMap: Map<number, number | null>
+  /** 各会话当前已加载页码 */
+  messagePageMap: Map<number, number>
   /** 各会话是否还有更多消息 */
   hasMoreMap: Map<number, boolean>
   /** 联系人列表 */
@@ -47,7 +47,7 @@ export const useChatStore = defineStore('chat', {
     currentConversation: null,
     messagesMap: new Map(),
     messageIdSets: new Map(),
-    cursorMap: new Map(),
+    messagePageMap: new Map(),
     hasMoreMap: new Map(),
     contacts: [],
     typingUsers: new Map(),
@@ -133,7 +133,7 @@ export const useChatStore = defineStore('chat', {
       }
       this.messagesMap.delete(conversationId)
       this.messageIdSets.delete(conversationId)
-      this.cursorMap.delete(conversationId)
+      this.messagePageMap.delete(conversationId)
       this.hasMoreMap.delete(conversationId)
     },
 
@@ -149,26 +149,28 @@ export const useChatStore = defineStore('chat', {
       if (reload) {
         this.messagesMap.delete(conversationId)
         this.messageIdSets.delete(conversationId)
-        this.cursorMap.delete(conversationId)
+        this.messagePageMap.delete(conversationId)
         this.hasMoreMap.delete(conversationId)
       }
 
-      const cursor = this.cursorMap.get(conversationId)
+      const currentPage = this.messagePageMap.get(conversationId) ?? 0
+      const nextPage = currentPage + 1
       const data = await ChatRoomApi.messageList({
         conversation_id: conversationId,
-        cursor: cursor ?? undefined,
+        current_page: nextPage,
         page_size: pageSize,
       })
 
       const existing = this.messagesMap.get(conversationId) || []
+      const existingIds = this.messageIdSets.get(conversationId) ?? new Set(existing.map(m => m.id))
       // 历史消息插入到前面（消息按 id DESC 返回，需要反转）
-      const newMessages = (data.list || []).reverse()
+      const newMessages = data.list.reverse().filter(m => !existingIds.has(m.id))
       const merged = [...newMessages, ...existing]
       this.messagesMap.set(conversationId, merged)
       // 重建 ID 集合
       this.messageIdSets.set(conversationId, new Set(merged.map(m => m.id)))
-      this.cursorMap.set(conversationId, data.next_cursor)
-      this.hasMoreMap.set(conversationId, data.has_more)
+      this.messagePageMap.set(conversationId, data.page.current_page)
+      this.hasMoreMap.set(conversationId, data.page.current_page < (data.page.total_page ?? 0))
     },
 
     async loadMoreMessages() {
@@ -376,7 +378,7 @@ export const useChatStore = defineStore('chat', {
         }
         this.messagesMap.delete(data.conversation_id)
         this.messageIdSets.delete(data.conversation_id)
-        this.cursorMap.delete(data.conversation_id)
+        this.messagePageMap.delete(data.conversation_id)
         this.hasMoreMap.delete(data.conversation_id)
       }
     },

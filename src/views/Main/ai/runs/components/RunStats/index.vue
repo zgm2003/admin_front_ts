@@ -7,11 +7,11 @@ import {
   type AiRunStatsByAgentItem,
   type AiRunStatsByDateItem,
   type AiRunStatsByUserItem,
-  type AiRunStatsListResponse,
+  type AiRunStatsListParams,
   type AiRunStatsMetricItem,
   type AiRunStatsSummaryResponse,
 } from '@/api/ai/runs'
-import type { RequestPayload } from '@/types/common'
+import type { PaginatedResponse, RequestPayload } from '@/types/common'
 import {UsersListApi} from '@/api/user/users'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -111,7 +111,7 @@ interface PagedState<T> {
 }
 
 function createPagedLoader<T extends AiRunStatsMetricItem>(
-  apiFn: (params: RunStatsQueryParams) => Promise<AiRunStatsListResponse<T>>
+  apiFn: (params: AiRunStatsListParams) => Promise<PaginatedResponse<T>>
 ) {
   const state = shallowRef<PagedState<T>>({
     data: [],
@@ -136,14 +136,17 @@ function createPagedLoader<T extends AiRunStatsMetricItem>(
     }
 
     try {
-      const res = await apiFn(buildParams({
+      const params: AiRunStatsListParams = {
+        ...buildParams(),
         current_page: state.value.page,
-        page_size: 10
-      }))
+        page_size: 10,
+      }
+      const res = await apiFn(params)
       state.value = {
         ...state.value,
         data: reset ? res.list : [...state.value.data, ...res.list],
-        hasMore: res.has_more,
+        hasMore: res.page.current_page < (res.page.total_page ?? 0),
+        page: res.page.current_page,
       }
     } catch {
       // request interceptor handles notification

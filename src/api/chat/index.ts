@@ -1,4 +1,5 @@
 import request from '@/lib/http'
+import type { PaginatedResponse } from '@/types/common'
 
 // ============ Types ============
 
@@ -51,13 +52,6 @@ export interface MessageItem {
   sender?: { id: number; username: string; avatar: string }
 }
 
-/** 游标分页响应 */
-export interface CursorPageResponse<T> {
-  list: T[]
-  next_cursor: number | null
-  has_more: boolean
-}
-
 /** 参与者项 */
 export interface ParticipantItem {
   id: number
@@ -103,7 +97,7 @@ export const ChatRoomApi = {
 
   // 消息
   sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => request.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
-  messageList: (params: { conversation_id: number; cursor?: number; page_size?: number }) => request.post<CursorPageResponse<MessageItem>>(`${BASE}/messageList`, params),
+  messageList: (params: { conversation_id: number; current_page: number; page_size?: number }) => request.post<PaginatedResponse<MessageItem>>(`${BASE}/messageList`, params),
   markRead: (params: { conversation_id: number }) => request.post(`${BASE}/markRead`, params),
   recallMessage: (params: { message_id: number }) => request.post(`${BASE}/recallMessage`, params),
 

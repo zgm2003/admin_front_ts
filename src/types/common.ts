@@ -21,12 +21,6 @@ export interface PaginatedResponse<T> {
   page: PageInfo
 }
 
-export interface CursorPaginatedResponse<T> {
-  list: T[]
-  next_cursor: number | string | null
-  has_more: boolean
-}
-
 export interface RemoteListResponse<T> {
   list: T[]
   total?: number

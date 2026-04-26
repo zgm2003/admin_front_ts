@@ -126,10 +126,13 @@ export interface AiRunStatsByUserItem extends AiRunStatsMetricItem {
   username: string
 }
 
-export interface AiRunStatsListResponse<T> {
-  list: T[]
-  has_more: boolean
+export interface AiRunStatsListParams extends RequestPayload {
   current_page: number
+  page_size: number
+  date_start?: string
+  date_end?: string
+  agent_id?: number | ''
+  user_id?: number | ''
 }
 
 export const AiRunApi = {
@@ -137,7 +140,7 @@ export const AiRunApi = {
   list: (params: AiRunListParams) => request.post<PaginatedResponse<AiRunItem>>('/api/admin/AiRuns/list', params),
   detail: (params: { id: number }) => request.post<AiRunDetailResponse>('/api/admin/AiRuns/detail', params),
   stats: (params?: RequestPayload) => request.post<AiRunStatsSummaryResponse>('/api/admin/AiRuns/stats', params),
-  statsByDate: (params: RequestPayload) => request.post<AiRunStatsListResponse<AiRunStatsByDateItem>>('/api/admin/AiRuns/statsByDate', params),
-  statsByAgent: (params: RequestPayload) => request.post<AiRunStatsListResponse<AiRunStatsByAgentItem>>('/api/admin/AiRuns/statsByAgent', params),
-  statsByUser: (params: RequestPayload) => request.post<AiRunStatsListResponse<AiRunStatsByUserItem>>('/api/admin/AiRuns/statsByUser', params),
+  statsByDate: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByDateItem>>('/api/admin/AiRuns/statsByDate', params),
+  statsByAgent: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByAgentItem>>('/api/admin/AiRuns/statsByAgent', params),
+  statsByUser: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByUserItem>>('/api/admin/AiRuns/statsByUser', params),
 }

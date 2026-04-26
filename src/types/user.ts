@@ -287,10 +287,6 @@ export interface UserLoginLogListParams {
   date?: string[]
 }
 
-export interface UserLoginLogCursorParams extends Omit<UserLoginLogListParams, 'current_page'> {
-  cursor?: number | string
-}
-
 export interface UserLoginLogInitResponse {
   dict: {
     platformArr: DictOption<string>[]

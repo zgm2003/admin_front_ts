@@ -2,8 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElTag, ElText } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { AuditStreamLayout, useAuditStreamMetrics } from '@/components/AuditStreamLayout'
-import { useLogStream, type LogStreamItem } from '@/components/LogStream'
+import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { UsersLoginLogApi } from '@/api/user/usersLoginLog'
@@ -11,17 +10,15 @@ import { UsersListApi } from '@/api/user/users'
 import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import type { DictOption } from '@/types/common'
-import type { UserListItem, UserLoginLogInitResponse, UserLoginLogItem, UserLoginType } from '@/types/user'
-import UsersLoginLogEntry from './components/UsersLoginLogEntry.vue'
-
-type UsersLoginLogStreamItem = UserLoginLogItem & LogStreamItem
+import type { UserListItem, UserLoginLogInitResponse, UserLoginType } from '@/types/user'
+import { useUsersLoginLogTable, type UsersLoginLogSearchForm } from './composables/useUsersLoginLogTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
 const platformArr = ref<DictOption<string>[]>([])
 const loginTypeArr = ref<DictOption<UserLoginType>[]>([])
-const searchForm = ref({
+const searchForm = ref<UsersLoginLogSearchForm>({
   user_id: '',
   login_account: '',
   login_type: '' as UserLoginType | '',
@@ -31,20 +28,21 @@ const searchForm = ref({
   date: [] as string[],
 })
 
-const { list, loading, hasMore, loadInitial, loadMore, refresh } = useLogStream<UsersLoginLogStreamItem>({
-  api: UsersLoginLogApi,
-  searchForm,
-  pageSize: 20,
-})
+const {
+  loading,
+  data,
+  page,
+  onPageChange,
+  refresh,
+  getList,
+  onSearch,
+} = useUsersLoginLogTable(searchForm)
 
-UsersLoginLogApi.init()
-  .then((data: UserLoginLogInitResponse) => {
-    platformArr.value = data.dict.platformArr
-    loginTypeArr.value = data.dict.login_type_arr
-  })
-  .catch(() => {
-    // request interceptor handles notification
-  })
+const init = async () => {
+  const response: UserLoginLogInitResponse = await UsersLoginLogApi.init()
+  platformArr.value = response.dict.platformArr
+  loginTypeArr.value = response.dict.login_type_arr
+}
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -69,15 +67,15 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'select-v2',
     label: t('usersLoginLog.filter.loginType'),
     placeholder: t('usersLoginLog.filter.loginType'),
-    width: isMobile.value ? 140 : 150,
     options: loginTypeArr.value,
+    width: 140,
   },
   {
     key: 'ip',
     type: 'input',
     label: t('usersLoginLog.filter.ip'),
     placeholder: t('usersLoginLog.filter.ip'),
-    width: 140,
+    width: 150,
   },
   {
     key: 'platform',
@@ -92,132 +90,84 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'select-v2',
     label: t('usersLoginLog.filter.is_success'),
     options: [
-      { label: t('common.success.login'), value: CommonEnum.YES },
-      { label: t('common.fail.login'), value: CommonEnum.NO },
+      { value: CommonEnum.YES, label: t('common.success.login') },
+      { value: CommonEnum.NO, label: t('common.fail.login') },
     ],
     placeholder: t('usersLoginLog.filter.is_success'),
-    width: 120,
+    width: 140,
   },
   {
     key: 'date',
     type: 'date-range',
     label: t('usersLoginLog.filter.date'),
     placeholder: t('usersLoginLog.filter.date'),
-    width: isMobile.value ? 280 : 300,
-    props: { valueFormat: 'YYYY-MM-DD' },
+    width: isMobile.value ? 260 : 300,
   },
 ])
 
-const { activeFilterCount, successCount, failureCount, successRate } = useAuditStreamMetrics({
-  list,
-  searchForm,
-  isSuccess: (item) => item.is_success === CommonEnum.YES,
+const columns = computed(() => [
+  { key: 'user_name', label: t('usersLoginLog.table.user_name'), width: 140 },
+  { key: 'login_account', label: t('usersLoginLog.table.account'), minWidth: 180 },
+  { key: 'login_type_name', label: t('usersLoginLog.table.loginType'), width: 130 },
+  { key: 'platform_name', label: t('usersLoginLog.table.platform'), width: 130 },
+  { key: 'ip', label: t('usersLoginLog.table.ip'), width: 150 },
+  { key: 'is_success', label: t('usersLoginLog.table.is_success'), width: 110 },
+  { key: 'reason', label: t('usersLoginLog.table.reason'), minWidth: 180 },
+  { key: 'ua', label: t('usersLoginLog.table.ua'), minWidth: 260, overflowTooltip: true },
+  { key: 'created_at', label: t('usersLoginLog.table.created_at'), width: 180 },
+])
+
+onMounted(() => {
+  void init()
+  void getList()
 })
-
-const headerStats = computed(() => [
-  {
-    key: 'total',
-    tone: 'primary' as const,
-    label: t('usersLoginLog.page.total'),
-    value: list.value.length,
-  },
-  {
-    key: 'success',
-    tone: 'success' as const,
-    label: t('usersLoginLog.page.success'),
-    value: successCount.value,
-  },
-  {
-    key: 'failed',
-    tone: 'danger' as const,
-    label: t('usersLoginLog.page.failed'),
-    value: failureCount.value,
-  },
-  {
-    key: 'filters',
-    tone: 'warning' as const,
-    label: t('usersLoginLog.page.filters'),
-    value: activeFilterCount.value,
-  },
-])
-
-const streamStatusLabel = computed(() =>
-  failureCount.value
-    ? t('usersLoginLog.page.failedHintRisk', { count: failureCount.value })
-    : t('usersLoginLog.page.failedHintClear')
-)
-
-const loadStatusLabel = computed(() =>
-  hasMore.value
-    ? t('usersLoginLog.page.totalHintMore')
-    : t('usersLoginLog.page.totalHintDone')
-)
-
-const filterHint = computed(() =>
-  activeFilterCount.value
-    ? t('usersLoginLog.page.filtersHintActive')
-    : t('usersLoginLog.page.filtersHintNone')
-)
-
-onMounted(loadInitial)
 </script>
 
 <template>
-  <AuditStreamLayout
-    :title="t('menu.user_usersLoginLog')"
-    :eyebrow="t('usersLoginLog.page.eyebrow')"
-    :description="t('usersLoginLog.page.description')"
-    :stats="headerStats"
-    :filter-title="t('usersLoginLog.page.filters')"
-    :filter-hint="filterHint"
-    :filter-active="activeFilterCount > 0"
-    :timeline-title="t('usersLoginLog.page.timeline')"
-    :timeline-hint="t('usersLoginLog.page.timelineHint')"
-    :list="list"
-    :loading="loading"
-    :has-more="hasMore"
-    :empty-text="t('usersLoginLog.page.empty')"
-    @load-more="loadMore"
-  >
-    <template #header-tags>
-      <ElTag size="small" round effect="plain">
-        {{ t('usersLoginLog.page.loadedTag', { count: list.length }) }}
-      </ElTag>
-      <ElTag v-if="activeFilterCount" size="small" round effect="plain">
-        {{ t('usersLoginLog.page.filterTag', { count: activeFilterCount }) }}
-      </ElTag>
-    </template>
+  <div class="box">
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      :collapse-count="isMobile ? 2 : 6"
+      @query="onSearch"
+      @reset="onSearch"
+    />
 
-    <template #filter-meta>
-      <ElTag size="small" round effect="plain">
-        {{ t('usersLoginLog.page.successHint', { rate: successRate }) }}
-      </ElTag>
-    </template>
-
-    <template #search>
-      <Search
-        v-model="searchForm"
-        :fields="searchFields"
-        :collapse-count="isMobile ? 2 : 6"
-        @query="refresh"
-        @reset="refresh"
-      />
-    </template>
-
-    <template #toolbar-right>
-      <ElTag
-        size="small"
-        round
-        :type="failureCount ? 'danger' : 'success'"
-        :effect="failureCount ? 'light' : 'plain'"
+    <div class="table">
+      <AppTable
+        :columns="columns"
+        :data="data"
+        :loading="loading"
+        :pagination="page"
+        row-key="id"
+        :show-index="true"
+        @refresh="refresh"
+        @update:pagination="onPageChange"
       >
-        {{ streamStatusLabel }}
-      </ElTag>
-      <ElText type="info" size="small">{{ loadStatusLabel }}</ElText>
-    </template>
+        <template #cell-is_success="{ row }">
+          <ElTag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+            {{ row.is_success === CommonEnum.YES ? t('common.success.login') : t('common.fail.login') }}
+          </ElTag>
+        </template>
 
-    <template #default="{ item }">
-      <UsersLoginLogEntry :item="item" />
-    </template>
-  </AuditStreamLayout>
+        <template #cell-reason="{ row }">
+          <ElText truncated>{{ row.reason || '-' }}</ElText>
+        </template>
+      </AppTable>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+</style>
