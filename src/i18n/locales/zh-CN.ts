@@ -812,6 +812,7 @@ export default {
       },
       rule: {
         type: '请选择类型',
+        parent_id: '后台按钮必须挂在页面权限下',
         name: '请输入名称',
         i18n_key: '请输入 i18n_key',
         code: '请输入 code',
@@ -825,6 +826,12 @@ export default {
         i18n_key: '格式：menu.[parent]_[current]，如：menu.user_userManager'
       },
       codeHint: '命名规范：模块_操作，如 profile_edit、scan_submit'
+    },
+    health: {
+      title: '请修正后再分配给角色，避免前端路由或按钮权限失真',
+      pageMissingRoute: '{count} 个页面权限缺少路由或组件',
+      buttonMissingCode: '{count} 个按钮权限缺少 code',
+      adminButtonRoot: '{count} 个后台按钮权限仍挂在根节点'
     }
   },
   upload: {

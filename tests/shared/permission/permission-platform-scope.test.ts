@@ -2,18 +2,34 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+const featureRoot = 'e:/admin/admin_front_ts/src/views/Main/permission/permission'
+
+function readFeatureFile(path: string) {
+  return readFileSync(resolve(featureRoot, path), 'utf8')
+}
+
 describe('permission page platform scope', () => {
-  it('allows the permission tree page to switch platform instead of locking admin', () => {
-    const source = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/permission/index.vue'), 'utf8')
+  it('keeps platform state in the definition page composable', () => {
+    const source = readFeatureFile('composables/usePermissionDefinitionPage.ts')
 
     expect(source).toContain("const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])")
-    expect(source).toContain('const activePlatform = ref<string>(PlatformEnum.ADMIN)')
+    expect(source).toContain('const activePlatform = shallowRef<string>(PlatformEnum.ADMIN)')
     expect(source).toContain('platformOptions.value = data.dict.permission_platform_arr')
     expect(source).toContain('platform: activePlatform.value')
-    expect(source).toContain('<el-tabs')
-    expect(source).toContain('v-model="activePlatform"')
-    expect(source).toContain('@tab-change="onPlatformChange"')
+    expect(source).toContain('function switchPlatform(platform?: string)')
     expect(source).not.toContain('PERMISSION_PAGE_PLATFORM')
+  })
+
+  it('renders platform switching through a focused tabs component', () => {
+    const index = readFeatureFile('index.vue')
+    const tabs = readFeatureFile('components/PlatformTabs.vue')
+
+    expect(index).toContain('PlatformTabs')
+    expect(index).toContain('v-model="activePlatform"')
+    expect(index).toContain('@change="switchPlatform"')
+    expect(tabs).toContain('<el-tabs')
+    expect(tabs).toContain('v-model="model"')
+    expect(tabs).toContain('@tab-change="handleChange"')
   })
 
   it('removes legacy appButton permission APIs from the frontend contract', () => {

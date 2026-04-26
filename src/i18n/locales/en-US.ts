@@ -812,6 +812,7 @@ export default {
       },
       rule: {
         type: 'Please select type',
+        parent_id: 'Admin buttons must be attached to a page permission',
         name: 'Please enter name',
         i18n_key: 'Please enter i18n_key',
         code: 'Please enter code',
@@ -825,6 +826,12 @@ export default {
         i18n_key: 'Format: menu.{parent}_{current}, e.g., menu.user_userManager'
       },
       codeHint: 'Naming convention: module_action, e.g. profile_edit, scan_submit'
+    },
+    health: {
+      title: 'Fix these before assigning roles to avoid stale routes or button permissions',
+      pageMissingRoute: '{count} page permissions are missing route path or component',
+      buttonMissingCode: '{count} button permissions are missing code',
+      adminButtonRoot: '{count} admin button permissions are still attached to root'
     }
   },
   upload: {
