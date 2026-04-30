@@ -52,7 +52,6 @@ const selectOptions = computed(() => props.options.map((item) => ({
     width="920px"
     mobile-width="94vw"
     height="70vh"
-    top="10vh"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="manager-layout">

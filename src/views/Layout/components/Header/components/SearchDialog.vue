@@ -2,7 +2,6 @@
   <AppDialog
       v-model="show"
       :width="dialogLayout.width"
-      :top="dialogLayout.top"
       class="search-dialog"
       :show-close="false"
       body-padding="0"

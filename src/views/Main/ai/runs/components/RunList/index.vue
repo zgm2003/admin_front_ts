@@ -227,7 +227,6 @@ onMounted(() => {
   <AppDialog
       v-model="detailVisible"
       :title="t('aiRuns.detail.title')"
-      :top="detailDialogLayout.top"
       :width="detailDialogLayout.width"
       :height="detailDialogLayout.height"
   >

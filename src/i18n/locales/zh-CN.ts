@@ -288,6 +288,7 @@ export default {
     ai_runs: '运行监控',
     ai_prompts: '提示词',
     ai_goods: '电商口播',
+    ai_cine: 'AI短剧工厂',
     ai_tools: 'AI工具管理',
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
@@ -1466,6 +1467,37 @@ export default {
       voice: 'TTS音色', emotion: '情绪预设', submitted: 'TTS任务已提交'
     },
     srt: { download: '下载SRT字幕', noSrt: '暂无字幕文件' }
+  },
+  cine: {
+    filter: { title: '项目标题', titlePlaceholder: '搜索短剧项目' },
+    table: { title: '项目', duration: '时长/画幅', status: '状态' },
+    actions: {
+      createProject: '新建短剧', copy: '复制',
+      generateDraft: '生成草稿', regenerateDraft: '重新生成草稿',
+      generateStoryboard: '生成分镜', regenerateStoryboard: '重新生成分镜',
+      reviewDraft: '审查草稿', viewProgress: '查看进度', viewResult: '查看结果', viewFailure: '查看失败原因',
+      copyFailure: '复制失败原因',
+      copyImagePrompt: '复制分镜图片提示词', copyVideoPrompt: '复制视频提示词'
+    },
+    form: {
+      createTitle: '新建短剧', editTitle: '编辑短剧',
+      title: '项目标题', titlePlaceholder: '例如：雨夜短信 / 霸总反转开场',
+      sourceText: '原始素材', sourcePlaceholder: '粘贴小说片段、粗脚本、广告 brief 或口播稿。系统会先做导演拆解，不会直接生成视频。',
+      duration: '目标时长（秒）', aspectRatio: '画幅', agent: '导演智能体', agentPlaceholder: '选择 cine_project 场景智能体',
+      style: '风格与约束', stylePlaceholder: '例如：电影感悬疑、冷色调、克制表演、不要夸张恐怖、人物连续性优先',
+      noAgentTitle: '还没有 AI短剧工厂智能体', noAgentDesc: '请在智能体配置里创建 scene=cine_project、mode=tool 的智能体，推荐绑定 gpt-5.5，并绑定短剧分镜图片生成工具。'
+    },
+    detail: {
+      title: '短剧详情', deliverable: '草稿预览', deliverableHint: '先审查这份草稿，确认故事节奏、角色连续性和镜头拆解后，再生成分镜图片。',
+      shotlist: '分镜脚本', videoPrompts: '视频生成提示词', assets: '分镜图片', raw: '原始数据',
+      assetsHint: '生成每个分镜对应的静态图片，完成后可交给外部视频工具继续合成。',
+      performance: '表演', camera: '镜头', continuity: '连续性', segment: '片段', uploadImages: '上传图片'
+    },
+    messages: {
+      noAgent: '请先配置 AI短剧工厂 智能体', generateSubmitted: '草稿生成任务已提交',
+      storyboardSubmitted: '分镜生成任务已提交',
+      deleteConfirm: '确定删除这个短剧项目吗？', copied: '已复制'
+    }
   },
   tabTag: {
     refresh: '刷新当前',

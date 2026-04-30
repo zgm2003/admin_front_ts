@@ -288,6 +288,7 @@ export default {
     ai_runs: 'Run Monitor',
     ai_prompts: 'Prompts',
     ai_goods: 'E-commerce Script',
+    ai_cine: 'AI Cine Factory',
     ai_tools: 'AI Tools',
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
@@ -1466,6 +1467,37 @@ export default {
       voice: 'TTS Voice', emotion: 'Emotion Preset', submitted: 'TTS task submitted'
     },
     srt: { download: 'Download SRT Subtitle', noSrt: 'No subtitle file' }
+  },
+  cine: {
+    filter: { title: 'Project Title', titlePlaceholder: 'Search cine projects' },
+    table: { title: 'Project', duration: 'Duration/Aspect', status: 'Status' },
+    actions: {
+      createProject: 'New Cine', copy: 'Copy',
+      generateDraft: 'Generate Draft', regenerateDraft: 'Regenerate Draft',
+      generateStoryboard: 'Generate Storyboard', regenerateStoryboard: 'Regenerate Storyboard',
+      reviewDraft: 'Review Draft', viewProgress: 'View Progress', viewResult: 'View Result', viewFailure: 'View Failure',
+      copyFailure: 'Copy Failure Reason',
+      copyImagePrompt: 'Copy Storyboard Image Prompt', copyVideoPrompt: 'Copy Video Prompt'
+    },
+    form: {
+      createTitle: 'New Cine', editTitle: 'Edit Cine',
+      title: 'Project Title', titlePlaceholder: 'e.g. Rainy Night Message',
+      sourceText: 'Source Material', sourcePlaceholder: 'Paste a novel excerpt, rough script, ad brief, or voiceover draft. The system creates a reviewable draft first, not final video.',
+      duration: 'Duration (s)', aspectRatio: 'Aspect Ratio', agent: 'Director Agent', agentPlaceholder: 'Select a cine_project scene agent',
+      style: 'Style and Constraints', stylePlaceholder: 'e.g. cinematic suspense, cold palette, restrained acting, continuity first',
+      noAgentTitle: 'No Cine Factory agent yet', noAgentDesc: 'Create an agent with scene=cine_project and mode=tool. gpt-5.5 is recommended, with the storyboard image tool bound.'
+    },
+    detail: {
+      title: 'Cine Detail', deliverable: 'Draft Preview', deliverableHint: 'Review the story rhythm, continuity, and shot breakdown before generating storyboard images.',
+      shotlist: 'Storyboard Script', videoPrompts: 'Video Prompts', assets: 'Storyboard Images', raw: 'Raw Data',
+      assetsHint: 'Generate static images for each storyboard shot, then continue synthesis in an external video tool.',
+      performance: 'Performance', camera: 'Camera', continuity: 'Continuity', segment: 'Segment', uploadImages: 'Upload Images'
+    },
+    messages: {
+      noAgent: 'Please configure an AI Cine Factory agent first', generateSubmitted: 'Draft generation task submitted',
+      storyboardSubmitted: 'Storyboard generation task submitted',
+      deleteConfirm: 'Delete this cine project?', copied: 'Copied'
+    }
   },
   tabTag: {
     refresh: 'Refresh',

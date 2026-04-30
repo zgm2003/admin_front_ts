@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { AppDialog } from '@/components/AppDialog'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -25,10 +26,11 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <el-dialog
+  <AppDialog
     :model-value="visible"
     :title="t('auth.forget.title')"
     :width="isMobile ? '94vw' : '440px'"
+    body-padding="32px"
     append-to-body
     destroy-on-close
     class="login-forgot-dialog"
@@ -113,7 +115,7 @@ const emit = defineEmits<{
         </div>
       </div>
     </div>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped lang="scss">

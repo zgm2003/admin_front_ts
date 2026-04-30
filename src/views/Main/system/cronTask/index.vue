@@ -226,7 +226,7 @@ onMounted(() => init())
   </AppDialog>
 
   <!-- 日志弹窗 -->
-  <AppDialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'" top="10vh">
+  <AppDialog v-model="logVisible" :title="t('cronTask.logsTitle', { name: logTaskTitle })" :width="isMobile ? '94vw' : '1000px'">
     <Search v-model="logSearchForm" :fields="logSearchFields" @query="onLogSearch" @reset="onLogSearch" />
     <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange" :tableProps="{ height: 400 }" :fixedFooter="false">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>

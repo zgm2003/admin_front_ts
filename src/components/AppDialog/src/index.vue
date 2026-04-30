@@ -35,6 +35,7 @@ const props = withDefaults(defineProps<{
   appendToBody: true,
   destroyOnClose: true,
   showClose: true,
+  top: '5vh',
 })
 
 const emit = defineEmits<{

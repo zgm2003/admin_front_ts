@@ -458,7 +458,6 @@ onMounted(() => {
   <AppDialog
     v-model="dialogVisible"
     :width="workbenchDialogLayout.width"
-    :top="workbenchDialogLayout.top"
     :height="workbenchDialogLayout.height"
     body-padding="0"
     destroy-on-close
@@ -591,7 +590,6 @@ onMounted(() => {
   <AppDialog
     v-model="detailVisible"
     :width="detailDialogLayout.width"
-    :top="detailDialogLayout.top"
     :height="detailDialogLayout.height"
     :title="t('goods.detailTitle')"
     destroy-on-close
@@ -649,7 +647,7 @@ onMounted(() => {
   </AppDialog>
 
   <!-- 选品平台弹窗 -->
-  <el-dialog v-model="platformVisible" :width="isMobile ? '94vw' : '480px'" :title="t('goods.platform.title')" destroy-on-close>
+  <AppDialog v-model="platformVisible" :width="isMobile ? '94vw' : '480px'" :title="t('goods.platform.title')" destroy-on-close>
     <div class="platform-grid">
       <div v-for="p in platforms" :key="p.name" class="platform-card" @click="openPlatform(p.url)">
         <img :src="getPlatformImg(p.img)" :alt="p.name" class="platform-img" />
@@ -657,7 +655,7 @@ onMounted(() => {
       </div>
     </div>
     <p class="platform-hint">{{ t('goods.platform.hint') }}</p>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

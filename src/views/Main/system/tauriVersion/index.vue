@@ -189,7 +189,7 @@ onMounted(() => init())
   </div>
 
   <!-- 新增/编辑弹窗 -->
-  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" top="5vh" :draggable="!isMobile" destroy-on-close>
+  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '700px'" :draggable="!isMobile" destroy-on-close>
     <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('tauriVersion.addVersion') }}</template>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :label-position="isMobile ? 'top' : 'right'">
       <el-form-item :label="t('tauriVersion.form.version')" prop="version" required>
