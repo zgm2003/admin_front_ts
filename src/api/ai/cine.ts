@@ -100,5 +100,5 @@ export const CineApi = {
   edit: (params: CineMutationParams & { id: number }) => request.post<void>('/api/admin/Cine/edit', params),
   del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/Cine/del', params),
   generate: (params: CineGenerateParams) => request.post<{ msg: string }>('/api/admin/Cine/generate', params),
-  generateStoryboard: (params: CineGenerateStoryboardParams) => request.post<{ msg: string }>('/api/admin/Cine/generateStoryboard', params),
+  generateStoryboard: (params: CineGenerateStoryboardParams) => request.post<{ msg: string }>('/api/admin/Cine/generateKeyframes', params),
 }
