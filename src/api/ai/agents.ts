@@ -8,6 +8,16 @@ export interface AiAgentModalities {
   file?: boolean
 }
 
+export interface AiAgentCapabilities {
+  chat?: boolean
+  tools?: boolean
+  rag?: boolean
+  workflow?: boolean
+  image?: boolean
+  file?: boolean
+  memory?: boolean
+}
+
 export interface AiAgentListParams extends RequestPayload {
   current_page?: number
   page_size?: number
@@ -33,6 +43,11 @@ export interface AiAgentItem {
   mode_name: string
   scene?: string | null
   scene_name?: string | null
+  scene_codes: string[]
+  scene_names: string[]
+  capabilities: AiAgentCapabilities
+  runtime_config?: Record<string, unknown> | null
+  policy?: Record<string, unknown> | null
   status: number
   status_name: string
   created_at: string
@@ -42,6 +57,7 @@ export interface AiAgentItem {
 export interface AiAgentInitResponse {
   dict: {
     ai_mode_arr: DictOption<string>[]
+    ai_capability_arr: DictOption<string>[]
     ai_scene_arr: DictOption<string>[]
     common_status_arr: DictOption<number>[]
     model_list: DictOption<number>[]
@@ -56,6 +72,10 @@ export interface AiAgentMutationParams extends RequestPayload {
   system_prompt?: string | null
   mode?: string
   scene?: string | null
+  capabilities?: AiAgentCapabilities
+  scene_codes?: string[]
+  runtime_config?: Record<string, unknown> | null
+  policy?: Record<string, unknown> | null
   status?: number
   tool_ids?: number[]
 }

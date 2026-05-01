@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   AiAgentApi,
+  type AiAgentCapabilities,
   type AiAgentInitResponse,
   type AiAgentItem,
   type AiAgentListParams,
@@ -23,12 +24,16 @@ import {
   getAgentSceneTagType,
   toAgentMutationPayload,
   type AgentFormState,
+  type AgentCapabilityState,
 } from './composables/helpers'
+
+type CapabilityKey = keyof AgentCapabilityState
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 const dict = ref<AiAgentInitResponse['dict']>({
   ai_mode_arr: [],
+  ai_capability_arr: [],
   ai_scene_arr: [],
   common_status_arr: [],
   model_list: [],
@@ -110,7 +115,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'name', label: t('aiAgents.table.name'), width: 140 },
   { key: 'model_name', label: t('aiAgents.table.model_name') },
-  { key: 'mode', label: t('aiAgents.table.mode') },
+  { key: 'capabilities', label: t('aiAgents.table.capabilities'), width: 220 },
   { key: 'scene', label: t('aiAgents.table.scene'), width: 150 },
   { key: 'system_prompt', label: t('aiAgents.table.system_prompt'), width: 500, overflowTooltip: true },
   { key: 'status', label: t('aiAgents.table.status') },
@@ -128,19 +133,31 @@ function add() {
 
 async function edit(row: AiAgentItem) {
   dialogMode.value = 'edit'
+  const defaultForm = createDefaultAgentForm()
+  const capabilities: AgentCapabilityState = {
+    ...defaultForm.capabilities,
+    ...(row.capabilities || {}),
+    chat: true,
+  }
+  const sceneCodes = row.scene_codes?.length ? row.scene_codes : (row.scene ? [row.scene] : [])
+
   form.value = {
     id: row.id,
     name: row.name,
     model_id: row.model_id,
     avatar: row.avatar ?? '',
     system_prompt: row.system_prompt ?? '',
-    mode: row.mode,
-    scene: row.scene ?? '',
+    mode: row.mode || 'chat',
+    scene: row.scene ?? sceneCodes[0] ?? '',
+    scene_codes: sceneCodes,
+    capabilities,
+    runtime_config: row.runtime_config ?? null,
+    policy: row.policy ?? null,
     status: row.status,
     tool_ids: [],
   }
 
-  if (row.mode === 'tool') {
+  if (capabilities.tools) {
     form.value.tool_ids = await loadToolOptions(row.id)
   } else {
     toolOptions.value = []
@@ -150,14 +167,30 @@ async function edit(row: AiAgentItem) {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-async function handleModeChange(mode: string) {
-  if (mode !== 'tool') {
+function isCapabilityEnabled(key: string) {
+  return Boolean(form.value.capabilities[key as CapabilityKey])
+}
+
+async function toggleCapability(key: string, checked: boolean) {
+  if (key === 'chat') return
+
+  const capabilityKey = key as CapabilityKey
+  form.value.capabilities[capabilityKey] = checked
+
+  if (key !== 'tools') {
+    return
+  }
+
+  if (!checked) {
     toolOptions.value = []
     form.value.tool_ids = []
     return
   }
 
-  form.value.tool_ids = await loadToolOptions(typeof form.value.id === 'number' ? form.value.id : undefined)
+  const boundToolIds = await loadToolOptions(typeof form.value.id === 'number' ? form.value.id : undefined)
+  if (form.value.tool_ids.length === 0) {
+    form.value.tool_ids = boundToolIds
+  }
 }
 
 async function confirmSubmit() {
@@ -209,11 +242,28 @@ onMounted(() => {
           </p>
 
         </template>
-        <template #cell-mode="{row}">
-          <el-tag size="small">{{ row.mode_name }}</el-tag>
+        <template #cell-capabilities="{row}">
+          <div class="tag-list">
+            <el-tag
+              v-for="item in dict.ai_capability_arr.filter((capability) => row.capabilities?.[capability.value as keyof AiAgentCapabilities])"
+              :key="item.value"
+              size="small"
+            >
+              {{ item.label }}
+            </el-tag>
+          </div>
         </template>
         <template #cell-scene="{row}">
-          <el-tag v-if="row.scene" size="small" :type="getAgentSceneTagType(row.scene)">{{ row.scene_name }}</el-tag>
+          <div class="tag-list">
+            <el-tag
+              v-for="scene in (row.scene_codes?.length ? row.scene_codes : (row.scene ? [row.scene] : []))"
+              :key="scene"
+              size="small"
+              :type="getAgentSceneTagType(scene)"
+            >
+              {{ row.scene_names?.[row.scene_codes?.indexOf(scene) ?? -1] || row.scene_name || scene }}
+            </el-tag>
+          </div>
         </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
@@ -246,17 +296,26 @@ onMounted(() => {
             <el-select-v2 v-model="form.model_id" :options="dict.model_list" style="width:100%" filterable/>
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiAgents.form.mode')" prop="mode">
-            <el-select-v2 v-model="form.mode" :options="dict.ai_mode_arr" style="width:100%" @change="handleModeChange"/>
+        <el-col :span="24">
+          <el-form-item :label="t('aiAgents.capabilities')">
+            <div class="capability-grid">
+              <el-check-tag
+                v-for="item in dict.ai_capability_arr"
+                :key="item.value"
+                :checked="isCapabilityEnabled(item.value)"
+                @change="toggleCapability(item.value, $event)"
+              >
+                {{ item.label }}
+              </el-check-tag>
+            </div>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiAgents.form.scene')" prop="scene">
-            <el-select-v2 v-model="form.scene" :options="dict.ai_scene_arr" style="width:100%"/>
+            <el-select-v2 v-model="form.scene_codes" :options="dict.ai_scene_arr" multiple filterable style="width:100%"/>
           </el-form-item>
         </el-col>
-        <el-col :span="24" v-if="form.mode === 'tool'">
+        <el-col :span="24" v-if="form.capabilities.tools">
           <el-form-item :label="t('aiAgents.tools')">
             <el-select-v2 v-model="form.tool_ids" :options="toolOptions" multiple filterable :placeholder="t('aiAgents.selectTools')" style="width:100%"/>
           </el-form-item>
@@ -298,5 +357,12 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto
+}
+
+.capability-grid,
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 </style>

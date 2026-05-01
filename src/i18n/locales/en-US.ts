@@ -971,6 +971,7 @@ export default {
       name: 'Agent Name',
       model_name: 'Model',
       mode: 'Mode',
+      capabilities: 'Capabilities',
       avatar: 'Avatar',
       system_prompt: 'System Prompt',
       temperature: 'Temperature',
@@ -996,6 +997,7 @@ export default {
     addTitle: 'Add Agent',
     editTitle: 'Edit Agent',
     deleted: 'Deleted',
+    capabilities: 'Agent Capabilities',
     tools: 'Bind Tools',
     selectTools: 'Select tools'
   },

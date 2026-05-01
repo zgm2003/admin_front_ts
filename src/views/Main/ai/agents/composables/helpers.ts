@@ -1,4 +1,6 @@
-import type { AiAgentMutationParams } from '@/api/ai/agents'
+import type { AiAgentCapabilities, AiAgentMutationParams } from '@/api/ai/agents'
+
+export type AgentCapabilityState = Required<AiAgentCapabilities>
 
 export interface AgentFormState {
   id?: number
@@ -8,8 +10,24 @@ export interface AgentFormState {
   system_prompt: string
   mode: string
   scene: string
+  scene_codes: string[]
+  capabilities: AgentCapabilityState
+  runtime_config: Record<string, unknown> | null
+  policy: Record<string, unknown> | null
   status: number
   tool_ids: number[]
+}
+
+export function createDefaultCapabilities(): AgentCapabilityState {
+  return {
+    chat: true,
+    tools: false,
+    rag: false,
+    workflow: false,
+    image: false,
+    file: false,
+    memory: true,
+  }
 }
 
 export function createDefaultAgentForm(): AgentFormState {
@@ -20,6 +38,10 @@ export function createDefaultAgentForm(): AgentFormState {
     system_prompt: '',
     mode: 'chat',
     scene: '',
+    scene_codes: [],
+    capabilities: createDefaultCapabilities(),
+    runtime_config: null,
+    policy: null,
     status: 1,
     tool_ids: [],
   }
@@ -35,22 +57,24 @@ export function toAgentMutationPayload(form: AgentFormState): AiAgentMutationPar
     throw new TypeError('model_id is required')
   }
 
+  const firstScene = form.scene_codes[0] || form.scene || null
   const payload: AiAgentMutationParams = {
     name: form.name,
     model_id: form.model_id,
     avatar: form.avatar || null,
     system_prompt: form.system_prompt || null,
-    mode: form.mode,
-    scene: form.scene || null,
+    mode: form.mode || 'chat',
+    scene: firstScene,
+    scene_codes: form.scene_codes,
+    capabilities: form.capabilities,
+    runtime_config: form.runtime_config,
+    policy: form.policy,
     status: form.status,
+    tool_ids: form.tool_ids,
   }
 
   if (typeof form.id === 'number') {
     payload.id = form.id
-  }
-
-  if (form.mode === 'tool') {
-    payload.tool_ids = form.tool_ids
   }
 
   return payload

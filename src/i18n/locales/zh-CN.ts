@@ -971,6 +971,7 @@ export default {
       name: '智能体名称',
       model_name: '关联模型',
       mode: '模式',
+      capabilities: '能力',
       avatar: '头像',
       system_prompt: '系统提示词',
       temperature: '温度',
@@ -996,6 +997,7 @@ export default {
     addTitle: '新增智能体',
     editTitle: '编辑智能体',
     deleted: '已删除',
+    capabilities: '智能体能力',
     tools: '绑定工具',
     selectTools: '请选择工具'
   },
