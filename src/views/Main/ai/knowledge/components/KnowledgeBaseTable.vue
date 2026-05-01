@@ -129,6 +129,7 @@ const columns = computed(() => [
 <style scoped>
 .knowledge-list {
   display: flex;
+  height: 100%;
   min-height: 0;
   overflow: hidden;
   flex-direction: column;

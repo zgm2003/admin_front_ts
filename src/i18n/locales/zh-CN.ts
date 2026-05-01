@@ -1129,7 +1129,7 @@ export default {
       retrieval: '召回',
       status: '状态'
     },
-    tabs: { documents: '文档', chunks: '切片', retrieval: '召回测试' },
+    tabs: { bases: '知识库', documents: '文档', chunks: '切片', retrieval: '召回测试' },
     form: {
       name: '知识库名称',
       description: '描述',

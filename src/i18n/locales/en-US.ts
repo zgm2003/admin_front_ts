@@ -1129,7 +1129,7 @@ export default {
       retrieval: 'Retrieval',
       status: 'Status'
     },
-    tabs: { documents: 'Documents', chunks: 'Chunks', retrieval: 'Retrieval Test' },
+    tabs: { bases: 'Knowledge Bases', documents: 'Documents', chunks: 'Chunks', retrieval: 'Retrieval Test' },
     form: {
       name: 'Knowledge Base Name',
       description: 'Description',
