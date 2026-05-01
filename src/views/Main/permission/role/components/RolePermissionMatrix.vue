@@ -176,7 +176,7 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
             class="role-permission-matrix__group-title"
             :model-value="groupRuntimeState(group).selection.checked"
             :indeterminate="groupRuntimeState(group).selection.indeterminate"
-            @update:model-value="(value) => setGroupChecked(group, Boolean(value))"
+            @update:model-value="(value: unknown) => setGroupChecked(group, Boolean(value))"
           >
             {{ group.groupLabel }}
           </el-checkbox>
@@ -232,7 +232,7 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
                 v-if="row.pagePermissionId"
                 class="role-permission-matrix__view"
                 :model-value="isChecked(row.pagePermissionId)"
-                @update:model-value="(value) => setPageChecked(row, Boolean(value))"
+                @update:model-value="(value: unknown) => setPageChecked(row, Boolean(value))"
               >
                 {{ pageAccessLabel }}
               </el-checkbox>
@@ -240,7 +240,7 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
                 v-for="action in row.actions"
                 :key="action.id"
                 :model-value="isChecked(action.id)"
-                @update:model-value="(value) => setActionChecked(row, action.id, Boolean(value))"
+                @update:model-value="(value: unknown) => setActionChecked(row, action.id, Boolean(value))"
               >
                 {{ action.label }}
               </el-checkbox>
