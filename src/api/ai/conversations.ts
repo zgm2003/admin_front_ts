@@ -1,6 +1,5 @@
 import request from '@/lib/http'
 import type { PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiAgentModalities } from './agents'
 
 export interface AiConversationListParams extends RequestPayload {
   current_page?: number
@@ -28,7 +27,6 @@ export interface AiConversationDetailResponse {
   user_id: number
   agent_id: number
   agent_name: string
-  modalities: AiAgentModalities | null
   title: string
   last_message_at: string
   status: number

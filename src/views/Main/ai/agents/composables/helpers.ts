@@ -16,6 +16,7 @@ export interface AgentFormState {
   policy: Record<string, unknown> | null
   status: number
   tool_ids: number[]
+  knowledge_base_ids: number[]
 }
 
 export function createDefaultCapabilities(): AgentCapabilityState {
@@ -24,9 +25,6 @@ export function createDefaultCapabilities(): AgentCapabilityState {
     tools: false,
     rag: false,
     workflow: false,
-    image: false,
-    file: false,
-    memory: true,
   }
 }
 
@@ -44,6 +42,7 @@ export function createDefaultAgentForm(): AgentFormState {
     policy: null,
     status: 1,
     tool_ids: [],
+    knowledge_base_ids: [],
   }
 }
 
@@ -71,6 +70,7 @@ export function toAgentMutationPayload(form: AgentFormState): AiAgentMutationPar
     policy: form.policy,
     status: form.status,
     tool_ids: form.tool_ids,
+    knowledge_base_ids: form.capabilities.rag ? form.knowledge_base_ids : [],
   }
 
   if (typeof form.id === 'number') {

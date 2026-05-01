@@ -7,7 +7,6 @@ import {
   type AiModelItem,
   type AiModelMutationParams,
 } from '@/api/ai/models'
-import type { AiAgentModalities } from '@/api/ai/agents'
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
 import {Search} from '@/components/Search'
@@ -51,20 +50,9 @@ const {
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-type ModelModalitiesForm = Required<AiAgentModalities>
 interface ModelForm extends AiModelMutationParams {
   id?: number
   api_key: string
-  modalities: ModelModalitiesForm
-}
-
-function createDefaultModalities(): ModelModalitiesForm {
-  return {
-    image: false,
-    audio: false,
-    video: false,
-    file: false,
-  }
 }
 
 function createDefaultModelForm(): ModelForm {
@@ -75,7 +63,6 @@ function createDefaultModelForm(): ModelForm {
     endpoint: '',
     api_key: '',
     status: 1,
-    modalities: createDefaultModalities(),
   }
 }
 
@@ -86,12 +73,6 @@ const form = ref({
   endpoint: '',
   api_key: '',
   status: 1,
-  modalities: {
-    image: false,
-    audio: false,
-    video: false,
-    file: false
-  }
 } as ModelForm)
 const formRef = ref<FormInstance | null>(null)
 
@@ -133,7 +114,6 @@ const columns = computed(() => [
   {key: 'model_code', label: t('aiModels.table.model_code'), width: 180},
   {key: 'endpoint', label: t('aiModels.table.endpoint'), overflowTooltip: true},
   {key: 'api_key_hint', label: t('aiModels.table.api_key_hint'), width: 120},
-  {key: 'modalities', label: t('aiModels.table.modalities'), width: 150},
   {key: 'status', label: t('aiModels.table.status'), width: 100},
   {key: 'created_at', label: t('aiModels.table.created_at'), width: 160},
   {key: 'actions', label: t('common.actions.action'), width: 250}
@@ -156,10 +136,6 @@ const edit = (row: AiModelItem) => {
     endpoint: row.endpoint || '',
     api_key: '',
     status: row.status,
-    modalities: {
-      ...createDefaultModalities(),
-      ...(row.modalities ?? {}),
-    },
   }
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
@@ -180,7 +156,6 @@ const confirmSubmit = async () => {
     model_code: v.model_code,
     endpoint: v.endpoint || null,
     status: v.status,
-    modalities: v.modalities
   }
   if (v.api_key) payload.api_key = v.api_key
   if (dialogMode.value === 'edit') payload.id = v.id
@@ -223,15 +198,6 @@ onMounted(() => {
         <template #cell-driver="{row}">
           <el-tag>{{ row.driver_name }}</el-tag>
         </template>
-        <template #cell-modalities="{row}">
-          <div class="modalities-tags">
-            <el-tag v-if="row.modalities?.image" type="success" size="small">{{ t('aiModels.form.image') }}</el-tag>
-            <el-tag v-if="row.modalities?.audio" type="warning" size="small">{{ t('aiModels.form.audio') }}</el-tag>
-            <el-tag v-if="row.modalities?.video" type="info" size="small">{{ t('aiModels.form.video') }}</el-tag>
-            <el-tag v-if="row.modalities?.file" type="primary" size="small">{{ t('aiModels.form.file') }}</el-tag>
-            <span v-if="!row.modalities?.image && !row.modalities?.audio && !row.modalities?.video && !row.modalities?.file">-</span>
-          </div>
-        </template>
         <template #cell-status="{row}">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
         </template>
@@ -268,6 +234,11 @@ onMounted(() => {
             <el-input v-model="form.model_code" :placeholder="t('aiModels.form.modelCodePlaceholder')" clearable/>
           </el-form-item>
         </el-col>
+        <el-col :md="12" :span="24">
+          <el-form-item :label="t('aiModels.form.status')" prop="status">
+            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width:100%"/>
+          </el-form-item>
+        </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiModels.form.endpoint')" prop="endpoint">
             <el-input v-model="form.endpoint" :placeholder="t('aiModels.form.endpointPlaceholder')" clearable/>
@@ -277,22 +248,6 @@ onMounted(() => {
           <el-form-item :label="t('aiModels.form.api_key')" prop="api_key">
             <el-input v-model="form.api_key" type="password" show-password
                       :placeholder="dialogMode === 'edit' ? t('aiModels.form.apiKeyEditPlaceholder') : t('aiModels.form.apiKeyPlaceholder')" clearable/>
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiModels.form.status')" prop="status">
-            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width:100%"/>
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiModels.form.modalities')" prop="modalities">
-            <div class="modalities-checkboxes">
-              <el-checkbox v-model="form.modalities.image">{{ t('aiModels.form.image') }}</el-checkbox>
-              <el-checkbox v-model="form.modalities.audio">{{ t('aiModels.form.audio') }}</el-checkbox>
-              <el-checkbox v-model="form.modalities.video">{{ t('aiModels.form.video') }}</el-checkbox>
-              <el-checkbox v-model="form.modalities.file">{{ t('aiModels.form.file') }}</el-checkbox>
-            </div>
-            <div class="modalities-hint">{{ t('aiModels.form.modalitiesHint') }}</div>
           </el-form-item>
         </el-col>
       </el-row>
@@ -319,21 +274,4 @@ onMounted(() => {
   overflow: auto
 }
 
-.modalities-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.modalities-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.modalities-hint {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-top: 4px;
-}
 </style>

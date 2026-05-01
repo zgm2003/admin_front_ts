@@ -1,5 +1,4 @@
 import type { Ref } from 'vue'
-import type { AiAgentModalities } from '@/api/ai/agents'
 import type { AiMessageMeta } from '@/api/ai/messages'
 
 // 从 API 层重新导出，统一类型来源
@@ -27,7 +26,6 @@ export interface Conversation {
   updated_at?: string
   status?: number
   status_name?: string
-  modalities?: AiAgentModalities | null
 }
 
 // 消息类型
@@ -47,7 +45,6 @@ export interface Agent {
   name: string
   avatar?: string | null
   description?: string
-  modalities?: AiAgentModalities | null
 }
 
 // 流式聊天选项

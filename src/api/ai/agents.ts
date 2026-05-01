@@ -1,21 +1,11 @@
 import request from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
-export interface AiAgentModalities {
-  image?: boolean
-  audio?: boolean
-  video?: boolean
-  file?: boolean
-}
-
 export interface AiAgentCapabilities {
   chat?: boolean
   tools?: boolean
   rag?: boolean
   workflow?: boolean
-  image?: boolean
-  file?: boolean
-  memory?: boolean
 }
 
 export interface AiAgentListParams extends RequestPayload {
@@ -36,7 +26,6 @@ export interface AiAgentItem {
   driver: string
   driver_name: string
   model_code: string
-  modalities: AiAgentModalities | null
   avatar?: string | null
   system_prompt?: string | null
   mode: string
@@ -48,6 +37,8 @@ export interface AiAgentItem {
   capabilities: AiAgentCapabilities
   runtime_config?: Record<string, unknown> | null
   policy?: Record<string, unknown> | null
+  knowledge_base_ids: number[]
+  knowledge_base_names: string[]
   status: number
   status_name: string
   created_at: string
@@ -61,6 +52,7 @@ export interface AiAgentInitResponse {
     ai_scene_arr: DictOption<string>[]
     common_status_arr: DictOption<number>[]
     model_list: DictOption<number>[]
+    knowledge_base_list: DictOption<number>[]
   }
 }
 
@@ -78,6 +70,7 @@ export interface AiAgentMutationParams extends RequestPayload {
   policy?: Record<string, unknown> | null
   status?: number
   tool_ids?: number[]
+  knowledge_base_ids?: number[]
 }
 
 export const AiAgentApi = {

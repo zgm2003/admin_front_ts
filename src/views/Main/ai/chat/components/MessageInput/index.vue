@@ -11,14 +11,6 @@ import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } fr
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
-// Types
-interface Modalities {
-  image?: boolean
-  audio?: boolean
-  video?: boolean
-  file?: boolean
-}
-
 interface Attachment {
   type: 'image'
   url: string
@@ -77,7 +69,6 @@ interface WindowWithSpeechRecognition extends Window {
 const props = defineProps<{
   sending: boolean
   disabled?: boolean
-  modalities?: Modalities
   isStreaming?: boolean
   showHistoryBtn?: boolean
 }>()
@@ -120,7 +111,7 @@ const resetParams = () => {
 const MAX_IMAGES = 5
 const MAX_CONTENT_LENGTH = 30000
 
-const supportsImage = computed(() => props.modalities?.image === true)
+const supportsImage = computed(() => true)
 const isImageLimitReached = computed(() => pendingAttachments.value.length >= MAX_IMAGES)
 const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
 

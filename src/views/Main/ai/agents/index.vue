@@ -37,6 +37,7 @@ const dict = ref<AiAgentInitResponse['dict']>({
   ai_scene_arr: [],
   common_status_arr: [],
   model_list: [],
+  knowledge_base_list: [],
 })
 const toolOptions = ref<AgentToolOption[]>([])
 
@@ -66,6 +67,15 @@ const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 const form = ref<AgentFormState>(createDefaultAgentForm())
 const formRef = ref<FormInstance | null>(null)
+
+const selectedCapabilityKeys = computed<string[]>({
+  get: () => dict.value.ai_capability_arr
+    .map((item) => item.value)
+    .filter((value) => Boolean(form.value.capabilities[value as CapabilityKey])),
+  set: (keys) => {
+    void applySelectedCapabilities(keys)
+  },
+})
 
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiAgents.form.name') + t('common.required'), trigger: 'blur' }],
@@ -116,6 +126,7 @@ const columns = computed(() => [
   { key: 'name', label: t('aiAgents.table.name'), width: 140 },
   { key: 'model_name', label: t('aiAgents.table.model_name') },
   { key: 'capabilities', label: t('aiAgents.table.capabilities'), width: 220 },
+  { key: 'knowledge_base_names', label: t('aiAgents.table.knowledgeBases'), width: 200 },
   { key: 'scene', label: t('aiAgents.table.scene'), width: 150 },
   { key: 'system_prompt', label: t('aiAgents.table.system_prompt'), width: 500, overflowTooltip: true },
   { key: 'status', label: t('aiAgents.table.status') },
@@ -155,6 +166,7 @@ async function edit(row: AiAgentItem) {
     policy: row.policy ?? null,
     status: row.status,
     tool_ids: [],
+    knowledge_base_ids: row.knowledge_base_ids ?? [],
   }
 
   if (capabilities.tools) {
@@ -167,25 +179,25 @@ async function edit(row: AiAgentItem) {
   nextTick(() => formRef.value?.clearValidate())
 }
 
-function isCapabilityEnabled(key: string) {
-  return Boolean(form.value.capabilities[key as CapabilityKey])
-}
+async function applySelectedCapabilities(keys: string[]) {
+  const selectedKeys = new Set(keys)
+  const wasToolsEnabled = Boolean(form.value.capabilities.tools)
 
-async function toggleCapability(key: string, checked: boolean) {
-  if (key === 'chat') return
+  form.value.capabilities.chat = true
+  dict.value.ai_capability_arr.forEach((item) => {
+    form.value.capabilities[item.value as CapabilityKey] = selectedKeys.has(item.value)
+  })
 
-  const capabilityKey = key as CapabilityKey
-  form.value.capabilities[capabilityKey] = checked
-
-  if (key !== 'tools') {
-    return
-  }
-
-  if (!checked) {
+  if (!form.value.capabilities.tools) {
     toolOptions.value = []
     form.value.tool_ids = []
-    return
   }
+  if (!form.value.capabilities.rag) {
+    form.value.knowledge_base_ids = []
+  }
+  if (!form.value.capabilities.tools) return
+
+  if (wasToolsEnabled) return
 
   const boundToolIds = await loadToolOptions(typeof form.value.id === 'number' ? form.value.id : undefined)
   if (form.value.tool_ids.length === 0) {
@@ -253,6 +265,18 @@ onMounted(() => {
             </el-tag>
           </div>
         </template>
+        <template #cell-knowledge_base_names="{row}">
+          <div class="tag-list">
+            <el-tag
+              v-for="name in row.knowledge_base_names"
+              :key="name"
+              size="small"
+              type="success"
+            >
+              {{ name }}
+            </el-tag>
+          </div>
+        </template>
         <template #cell-scene="{row}">
           <div class="tag-list">
             <el-tag
@@ -298,16 +322,15 @@ onMounted(() => {
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('aiAgents.capabilities')">
-            <div class="capability-grid">
-              <el-check-tag
+            <el-checkbox-group v-model="selectedCapabilityKeys" class="capability-button-group">
+              <el-checkbox-button
                 v-for="item in dict.ai_capability_arr"
                 :key="item.value"
-                :checked="isCapabilityEnabled(item.value)"
-                @change="toggleCapability(item.value, $event)"
+                :value="item.value"
               >
                 {{ item.label }}
-              </el-check-tag>
-            </div>
+              </el-checkbox-button>
+            </el-checkbox-group>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
@@ -315,14 +338,26 @@ onMounted(() => {
             <el-select-v2 v-model="form.scene_codes" :options="dict.ai_scene_arr" multiple filterable style="width:100%"/>
           </el-form-item>
         </el-col>
+        <el-col :md="12" :span="24">
+          <el-form-item :label="t('aiAgents.form.status')" prop="status">
+            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width:100%"/>
+          </el-form-item>
+        </el-col>
         <el-col :span="24" v-if="form.capabilities.tools">
           <el-form-item :label="t('aiAgents.tools')">
             <el-select-v2 v-model="form.tool_ids" :options="toolOptions" multiple filterable :placeholder="t('aiAgents.selectTools')" style="width:100%"/>
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiAgents.form.status')" prop="status">
-            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width:100%"/>
+        <el-col :span="24" v-if="form.capabilities.rag">
+          <el-form-item :label="t('aiAgents.knowledgeBases')">
+            <el-select-v2
+              v-model="form.knowledge_base_ids"
+              :options="dict.knowledge_base_list"
+              multiple
+              filterable
+              :placeholder="t('aiAgents.selectKnowledgeBases')"
+              style="width:100%"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -359,10 +394,15 @@ onMounted(() => {
   overflow: auto
 }
 
-.capability-grid,
+.capability-button-group,
 .tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.capability-button-group :deep(.el-checkbox-button__inner) {
+  border-radius: 4px;
+  border-left: var(--el-border);
 }
 </style>

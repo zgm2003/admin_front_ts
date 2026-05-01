@@ -1,6 +1,5 @@
 import request from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiAgentModalities } from './agents'
 
 export interface AiModelInitResponse {
   dict: {
@@ -25,7 +24,6 @@ export interface AiModelItem {
   model_code: string
   endpoint?: string | null
   api_key_hint?: string | null
-  modalities?: AiAgentModalities | null
   status: number
   status_name: string
   created_at: string
@@ -39,7 +37,6 @@ export interface AiModelMutationParams extends RequestPayload {
   model_code: string
   endpoint?: string | null
   api_key?: string
-  modalities?: AiAgentModalities | null
   status?: number
 }
 

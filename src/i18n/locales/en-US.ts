@@ -284,6 +284,7 @@ export default {
     // AI module
     ai_models: 'Models',
     ai_agents: 'Agents',
+    ai_knowledge: 'Knowledge Base',
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
     ai_prompts: 'Prompts',
@@ -940,7 +941,6 @@ export default {
       model_code: 'Model Code',
       endpoint: 'Endpoint',
       api_key_hint: 'API Key',
-      modalities: 'Modalities',
       status: 'Status',
       created_at: 'Created At'
     },
@@ -951,12 +951,6 @@ export default {
       endpoint: 'Endpoint',
       api_key: 'API Key',
       status: 'Status',
-      modalities: 'Modalities',
-      modalitiesHint: 'Select supported input types for this model',
-      image: 'Image',
-      audio: 'Audio',
-      video: 'Video',
-      file: 'File',
       modelCodePlaceholder: 'e.g. gpt-4o / qwen-turbo',
       endpointPlaceholder: 'Optional, uses driver default',
       apiKeyPlaceholder: 'Enter API Key',
@@ -972,6 +966,7 @@ export default {
       model_name: 'Model',
       mode: 'Mode',
       capabilities: 'Capabilities',
+      knowledgeBases: 'Knowledge Bases',
       avatar: 'Avatar',
       system_prompt: 'System Prompt',
       temperature: 'Temperature',
@@ -999,7 +994,9 @@ export default {
     deleted: 'Deleted',
     capabilities: 'Agent Capabilities',
     tools: 'Bind Tools',
-    selectTools: 'Select tools'
+    selectTools: 'Select tools',
+    knowledgeBases: 'Bind Knowledge Bases',
+    selectKnowledgeBases: 'Select knowledge bases'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -1122,6 +1119,54 @@ export default {
     },
     addTitle: 'Add Tool',
     editTitle: 'Edit Tool'
+  },
+  aiKnowledge: {
+    filter: { name: 'Knowledge Base', visibility: 'Visibility', status: 'Status' },
+    table: {
+      name: 'Knowledge Base',
+      visibility: 'Visibility',
+      chunk: 'Chunk',
+      retrieval: 'Retrieval',
+      status: 'Status'
+    },
+    tabs: { documents: 'Documents', chunks: 'Chunks', retrieval: 'Retrieval Test' },
+    form: {
+      name: 'Knowledge Base Name',
+      description: 'Description',
+      visibility: 'Visibility',
+      chunkSize: 'Chunk Size',
+      chunkOverlap: 'Chunk Overlap',
+      topK: 'Top K',
+      scoreThreshold: 'Score Threshold',
+      status: 'Status',
+      chunkOverlapInvalid: 'Chunk overlap must be smaller than chunk size'
+    },
+    document: {
+      add: 'Add Document',
+      edit: 'Edit Document',
+      title: 'Document Title',
+      sourceType: 'Source Type',
+      content: 'Content',
+      chunkCount: 'Chunks',
+      indexStatus: 'Index',
+      status: 'Status',
+      viewChunks: 'View Chunks',
+      reindex: 'Reindex',
+      reindexSuccess: 'Index rebuilt'
+    },
+    chunk: {
+      no: 'No.',
+      content: 'Chunk Content',
+      tokens: 'Token Estimate',
+      showAll: 'Show All Chunks'
+    },
+    retrieval: {
+      placeholder: 'Enter a question to test recalled chunks from this knowledge base',
+      run: 'Run Retrieval Test',
+      queryRequired: 'Please enter a retrieval query'
+    },
+    addTitle: 'Add Knowledge Base',
+    editTitle: 'Edit Knowledge Base'
   },
   aiRuns: {
     filter: {

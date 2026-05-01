@@ -95,12 +95,6 @@ export function useAgents() {
     return agent?.avatar || ''
   }
 
-  // 获取智能体 modalities
-  const getAgentModalities = (agentId: number | null | undefined) => {
-    const agent = agents.value.find(a => a.id === agentId)
-    return agent?.modalities || null
-  }
-
   return {
     agents,
     selectedAgentId,
@@ -113,6 +107,5 @@ export function useAgents() {
     selectAgent,
     restoreSelection,
     getAgentAvatar,
-    getAgentModalities
   }
 }

@@ -71,7 +71,6 @@ const {
   selectedAgent,
   loadAgents,
   selectAgent,
-  getAgentModalities
 } = useAgents()
 
 // 包装 loadMessages 以便传入 conversationId
@@ -101,10 +100,6 @@ const {
 // ========== 计算属性 ==========
 const currentConversation = computed(() => {
   return conversations.value.find(c => c.id === currentConversationId.value)
-})
-
-const currentModalities = computed(() => {
-  return getAgentModalities(selectedAgentId.value) ?? undefined
 })
 
 const setMessageScrollRef = (el: unknown) => {
@@ -438,7 +433,6 @@ watch(currentConversationId, async (newId, oldId) => {
         ref="messageInputRef"
         :sending="sending"
         :disabled="!selectedAgentId"
-        :modalities="currentModalities"
         :is-streaming="isStreaming"
         :show-history-btn="true"
         @send="handleSendMessage"

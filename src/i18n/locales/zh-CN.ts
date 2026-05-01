@@ -284,6 +284,7 @@ export default {
     // AI助手模块
     ai_models: '模型配置',
     ai_agents: '智能体',
+    ai_knowledge: '知识库',
     ai_chat: '对话',
     ai_runs: '运行监控',
     ai_prompts: '提示词',
@@ -940,7 +941,6 @@ export default {
       model_code: '模型标识',
       endpoint: '接口地址',
       api_key_hint: 'API Key',
-      modalities: '多模态能力',
       status: '状态',
       created_at: '创建时间'
     },
@@ -951,12 +951,6 @@ export default {
       endpoint: '接口地址',
       api_key: 'API Key',
       status: '状态',
-      modalities: '多模态能力',
-      modalitiesHint: '选择该模型支持的输入类型',
-      image: '图片',
-      audio: '音频',
-      video: '视频',
-      file: '文件',
       modelCodePlaceholder: '如 gpt-4o / qwen-turbo',
       endpointPlaceholder: '可留空，使用驱动默认地址',
       apiKeyPlaceholder: '输入API Key',
@@ -972,6 +966,7 @@ export default {
       model_name: '关联模型',
       mode: '模式',
       capabilities: '能力',
+      knowledgeBases: '知识库',
       avatar: '头像',
       system_prompt: '系统提示词',
       temperature: '温度',
@@ -999,7 +994,9 @@ export default {
     deleted: '已删除',
     capabilities: '智能体能力',
     tools: '绑定工具',
-    selectTools: '请选择工具'
+    selectTools: '请选择工具',
+    knowledgeBases: '绑定知识库',
+    selectKnowledgeBases: '请选择知识库'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -1122,6 +1119,54 @@ export default {
     },
     addTitle: '新增工具',
     editTitle: '编辑工具'
+  },
+  aiKnowledge: {
+    filter: { name: '知识库名称', visibility: '可见性', status: '状态' },
+    table: {
+      name: '知识库',
+      visibility: '可见性',
+      chunk: '切片',
+      retrieval: '召回',
+      status: '状态'
+    },
+    tabs: { documents: '文档', chunks: '切片', retrieval: '召回测试' },
+    form: {
+      name: '知识库名称',
+      description: '描述',
+      visibility: '可见性',
+      chunkSize: '切片长度',
+      chunkOverlap: '切片重叠',
+      topK: '召回数量',
+      scoreThreshold: '分数阈值',
+      status: '状态',
+      chunkOverlapInvalid: '切片重叠必须小于切片长度'
+    },
+    document: {
+      add: '新增文档',
+      edit: '编辑文档',
+      title: '文档标题',
+      sourceType: '来源类型',
+      content: '文档内容',
+      chunkCount: '切片数',
+      indexStatus: '索引',
+      status: '状态',
+      viewChunks: '查看切片',
+      reindex: '重建索引',
+      reindexSuccess: '索引已重建'
+    },
+    chunk: {
+      no: '序号',
+      content: '切片内容',
+      tokens: 'Token估算',
+      showAll: '显示全部切片'
+    },
+    retrieval: {
+      placeholder: '输入问题，测试当前知识库能召回哪些切片',
+      run: '运行召回测试',
+      queryRequired: '请输入召回测试问题'
+    },
+    addTitle: '新增知识库',
+    editTitle: '编辑知识库'
   },
   aiRuns: {
     filter: {
