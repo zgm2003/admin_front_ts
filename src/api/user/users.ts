@@ -46,7 +46,7 @@ export const UsersApi = {
     request.post<UserLoginSession>('/api/Users/login', params),
 
   refresh: (params: { refresh_token: string }) =>
-    request.post<UserLoginSession>('/api/Users/refresh', params),
+    request.post<UserLoginSession>('/api/v1/auth/refresh', params),
 
   logout: (params?: { refresh_token?: string }) =>
     request.post<void>('/api/Users/logout', params),

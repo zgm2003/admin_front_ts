@@ -41,10 +41,13 @@ describe('users api auth contract', () => {
 
   it('uses the RESTful auth refresh endpoint', () => {
     const source = readAuthSessionSource()
+    const usersApiSource = readUsersApiSource()
 
     expect(source).toContain('`${baseURL}/api/v1/auth/refresh`')
     expect(source).toContain("originalRequest.url?.includes('/api/v1/auth/refresh')")
     expect(source).not.toContain('`${baseURL}/api/Users/refresh`')
     expect(source).not.toContain("originalRequest.url?.includes('/api/Users/refresh')")
+    expect(usersApiSource).toContain("request.post<UserLoginSession>('/api/v1/auth/refresh', params)")
+    expect(usersApiSource).not.toContain('/api/Users/refresh')
   })
 })
