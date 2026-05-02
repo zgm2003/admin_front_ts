@@ -2,8 +2,15 @@ import request from '@/lib/http'
 import type { PaginatedResponse, RequestPayload } from '@/types/common'
 import type { Attachment } from './chat'
 
+export type MessageBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; url: string; alt?: string; meta?: Record<string, unknown> }
+  | { type: 'tool'; name: string; status?: string; meta?: Record<string, unknown> }
+  | { type: 'error'; message: string; meta?: Record<string, unknown> }
+
 export interface AiMessageMeta {
   attachments?: Attachment[]
+  blocks?: MessageBlock[]
   feedback?: number
   [key: string]: unknown
 }

@@ -74,12 +74,16 @@ const {
 } = useAgents()
 
 // 包装 loadMessages 以便传入 conversationId
-const loadMessages = () => loadMessagesRaw(currentConversationId.value)
+const loadMessages = async () => {
+  await loadMessagesRaw(currentConversationId.value)
+}
 const handleScroll = (e: { scrollTop: number }) => handleScrollRaw(e, currentConversationId.value)
 
 const {
   sending,
   isStreaming,
+  currentRunId,
+  streamingContent,
   send: sendMessage,
   regenerate: regenerateMessage,
   editAndResend: editAndResendMessage,
@@ -106,6 +110,13 @@ const setMessageScrollRef = (el: unknown) => {
   messageScrollRef.value = el as ScrollRefApi | null
 }
 
+const resetStreamUiState = () => {
+  isStreaming.value = false
+  sending.value = false
+  streamingContent.value = ''
+  currentRunId.value = null
+}
+
 // ========== 挂起当前 agent 状态到 session ==========
 const suspendCurrentAgent = () => {
   const agentId = selectedAgentId.value
@@ -119,6 +130,8 @@ const suspendCurrentAgent = () => {
   session.conversationsLoaded = loaded.value
   session.isStreaming = isStreaming.value
   session.sending = sending.value
+  session.streamingContent = streamingContent.value
+  session.currentRunId = currentRunId.value
 }
 
 // ========== 从 session 恢复 agent 状态到 UI ==========
@@ -133,6 +146,8 @@ const resumeAgent = (agentId: number) => {
   // 恢复流式状态
   isStreaming.value = session.isStreaming
   sending.value = session.sending
+  streamingContent.value = session.streamingContent
+  currentRunId.value = session.currentRunId
 
   if (session.isStreaming) {
     nextTick(() => scrollToBottom())
@@ -168,6 +183,7 @@ const handleSelectAgent = async (agent: Agent) => {
   // 4. 没有缓存，正常加载
   currentConversationId.value = null
   messages.value = []
+  resetStreamUiState()
 
   try {
     await loadConversations({ agent_id: agent.id })
@@ -179,6 +195,10 @@ const handleSelectAgent = async (agent: Agent) => {
     const session = sessionManager.getOrCreate(agent.id)
     session.conversations = [...conversations.value]
     session.conversationsLoaded = true
+
+    if (session.sending || session.isStreaming || session.messages.length > 0 || session.conversationId) {
+      return
+    }
 
     const todayConv = findTodayConversation(conversations.value)
     if (todayConv) {
@@ -330,11 +350,19 @@ onMounted(async () => {
 watch(currentConversationId, async (newId, oldId) => {
   if (newId) {
     const isNewConversationFromSend = oldId === null && isStreaming.value
-    if (currentConversationId.value === newId && !isNewConversationFromSend) {
-      await loadMessages()
+    const agentId = selectedAgentId.value
+    if (currentConversationId.value === newId && agentId && !isNewConversationFromSend) {
+      const loadResult = await loadMessagesRaw(newId, {
+        shouldApply: () => {
+          if (currentConversationId.value !== newId || selectedAgentId.value !== agentId) {
+            return false
+          }
+          const session = sessionManager.getOrCreate(agentId)
+          return !session.sending && !session.isStreaming
+        },
+      })
       // 同步到 session
-      const agentId = selectedAgentId.value
-      if (agentId) {
+      if (loadResult.applied && selectedAgentId.value === agentId) {
         const session = sessionManager.getOrCreate(agentId)
         session.messages = [...messages.value]
       }

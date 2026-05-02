@@ -1,8 +1,11 @@
 import type { Ref } from 'vue'
-import type { AiMessageMeta } from '@/api/ai/messages'
+import type { AiMessageMeta, MessageBlock as ApiMessageBlock } from '@/api/ai/messages'
 
 // 从 API 层重新导出，统一类型来源
 export type { StreamCallbacks, Attachment } from '@/api/ai/chat'
+
+export type MessageBlock = ApiMessageBlock
+export type ImageMessageBlock = Extract<MessageBlock, { type: 'image' }>
 
 // 工具调用记录
 export interface ToolCallRecord {

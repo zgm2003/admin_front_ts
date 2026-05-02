@@ -4,7 +4,7 @@ import { ElNotification } from 'element-plus'
 import { AiChatApi } from '@/api/ai/chat'
 import { AiMessageApi } from '@/api/ai/messages'
 import { AiRoleEnum } from '@/enums'
-import type { StreamCallbacks, Attachment, StreamChatOptions, Message } from './types'
+import type { StreamCallbacks, Attachment, StreamChatOptions, Message, MessageBlock } from './types'
 import type { ChatSession } from './useChatSessionManager'
 
 // SSE 渲染节流配置
@@ -58,6 +58,99 @@ export function useStreamChat(options: StreamChatOptionsV2) {
   }
 
   const isActiveAgent = (agentId: number): boolean => getActiveAgentId() === agentId
+
+  const syncActiveUiState = (agentId: number) => {
+    if (!isActiveAgent(agentId)) return
+    const session = getSession(agentId)
+    if (!session) return
+
+    sending.value = session.sending
+    isStreaming.value = session.isStreaming
+    streamingContent.value = session.streamingContent
+    currentRunId.value = session.currentRunId
+  }
+
+  const beginAgentStream = (agentId: number, session: ChatSession) => {
+    session.sending = true
+    session.isStreaming = true
+    session.streamingContent = ''
+    session.currentRunId = null
+    session.deltaBuffer = ''
+    syncActiveUiState(agentId)
+  }
+
+  const finishAgentSending = (agentId: number, session: ChatSession) => {
+    session.sending = false
+    if (isActiveAgent(agentId)) {
+      sending.value = false
+    }
+  }
+
+  const assistantPlaceholder = (list: Message[]): Message | undefined => {
+    return [...list].reverse().find(m => m.role === AiRoleEnum.ASSISTANT && m.isStreaming)
+  }
+
+  const ensureBlocks = (msg: Message): MessageBlock[] => {
+    if (!msg.meta_json) msg.meta_json = {}
+    if (!Array.isArray(msg.meta_json.blocks)) {
+      msg.meta_json.blocks = msg.content ? [{ type: 'text', text: msg.content }] : []
+    }
+    return msg.meta_json.blocks
+  }
+
+  const appendBlockToMessage = (msg: Message | undefined, block: MessageBlock) => {
+    if (!msg) return
+    ensureBlocks(msg).push(block)
+    if (block.type === 'text' && !msg.content) {
+      msg.content = block.text
+    }
+  }
+
+  const replaceGeneratingText = (msg: Message | undefined) => {
+    if (!msg) return
+    const blocks = ensureBlocks(msg)
+    const generatingText = t('aiChat.imageGenerating')
+    const textBlock = blocks.find((block): block is Extract<MessageBlock, { type: 'text' }> => {
+      return block.type === 'text' && block.text === generatingText
+    })
+    if (textBlock) {
+      textBlock.text = t('aiChat.imageGenerated')
+    }
+    if (!msg.content || msg.content === generatingText) {
+      msg.content = t('aiChat.imageGenerated')
+    }
+  }
+
+  const updateImageBlocks = (
+    agentId: number,
+    updater: (msg: Message | undefined) => void
+  ) => {
+    const session = getSession(agentId)
+    if (!session) return
+
+    const sessionMsg = assistantPlaceholder(session.messages)
+    updater(sessionMsg)
+
+    if (isActiveAgent(agentId)) {
+      const uiMsg = assistantPlaceholder(messages.value)
+      if (uiMsg && uiMsg !== sessionMsg) {
+        updater(uiMsg)
+      }
+      messages.value = [...messages.value]
+      nextTick(() => scrollToBottom())
+    }
+  }
+
+  const appendImageBlock = (agentId: number, block: MessageBlock) => {
+    updateImageBlocks(agentId, msg => appendBlockToMessage(msg, block))
+  }
+
+  const finishImageBlock = (agentId: number, block: MessageBlock) => {
+    updateImageBlocks(agentId, msg => {
+      replaceGeneratingText(msg)
+      appendBlockToMessage(msg, block)
+    })
+  }
 
   const flushBuffer = (agentId: number) => {
     const session = getSession(agentId)
@@ -209,6 +302,12 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         messages.value = [...messages.value]
       }
     },
+    onImageGenerating: () => {
+      appendImageBlock(requestAgentId, { type: 'text', text: t('aiChat.imageGenerating') })
+    },
+    onImageDone: (data) => {
+      finishImageBlock(requestAgentId, data.block)
+    },
     onError: (msg) => {
       clearAgentTimer(requestAgentId)
       const session = getSession(requestAgentId)
@@ -253,28 +352,16 @@ export function useStreamChat(options: StreamChatOptionsV2) {
   }
 
   const send = async (content: string, attachments?: Attachment[]) => {
-    if (sending.value) return
-
     const agentId = selectedAgentId.value
     if (!agentId) {
       ElNotification.warning({ message: t('aiChat.noAgentTip') })
       return
     }
 
-    const session = agentId ? getSession(agentId) : undefined
+    const session = getSession(agentId)
+    if (!session || session.sending) return
 
-    sending.value = true
-    isStreaming.value = true
-    streamingContent.value = ''
-    currentRunId.value = null
-
-    if (session) {
-      session.sending = true
-      session.isStreaming = true
-      session.streamingContent = ''
-      session.currentRunId = null
-      session.deltaBuffer = ''
-    }
+    beginAgentStream(agentId, session)
 
     const requestConversationId = currentConversationId.value
 
@@ -317,8 +404,8 @@ export function useStreamChat(options: StreamChatOptionsV2) {
 
       await AiChatApi.stream({
         content,
-        conversation_id: currentConversationId.value || undefined,
-        agent_id: currentConversationId.value ? undefined : agentId ?? undefined,
+        conversation_id: requestConversationId || undefined,
+        agent_id: requestConversationId ? undefined : agentId,
         attachments: attachments?.length ? attachments : undefined,
         ...getRuntimeParams?.()
       }, callbacks)
@@ -341,16 +428,16 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         messages.value.pop()
       }
     } finally {
-      sending.value = false
-      if (session) session.sending = false
+      finishAgentSending(agentId, session)
     }
   }
 
   const regenerate = async (msg: Message) => {
-    if (sending.value) return
-
     const agentId = selectedAgentId.value
     if (!agentId) return
+
+    const session = getSession(agentId)
+    if (!session || session.sending) return
 
     const msgIndex = messages.value.findIndex(m => m.id === msg.id)
     if (msgIndex <= 0) return
@@ -364,24 +451,12 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     try { await AiMessageApi.del({ id: msg.id }) } catch { /* ignore */ }
 
     messages.value.splice(msgIndex, 1)
-    const session = getSession(agentId)
     if (session) {
       const sIdx = session.messages.findIndex(m => m.id === msg.id)
       if (sIdx >= 0) session.messages.splice(sIdx, 1)
     }
 
-    sending.value = true
-    isStreaming.value = true
-    streamingContent.value = ''
-    currentRunId.value = null
-
-    if (session) {
-      session.sending = true
-      session.isStreaming = true
-      session.streamingContent = ''
-      session.currentRunId = null
-      session.deltaBuffer = ''
-    }
+    beginAgentStream(agentId, session)
 
     const requestConversationId = currentConversationId.value
 
@@ -393,7 +468,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       const callbacks = createCallbacks(agentId, requestConversationId)
       await AiChatApi.stream({
         content: userMsg.content,
-        conversation_id: currentConversationId.value!,
+        conversation_id: requestConversationId!,
         ...getRuntimeParams?.()
       }, callbacks)
     } catch (error) {
@@ -415,8 +490,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         messages.value.pop()
       }
     } finally {
-      sending.value = false
-      if (session) session.sending = false
+      finishAgentSending(agentId, session)
     }
   }
 
@@ -454,10 +528,13 @@ export function useStreamChat(options: StreamChatOptionsV2) {
   }
 
   const editAndResend = async (msg: Message, newContent: string) => {
-    if (sending.value) return
-
     const agentId = selectedAgentId.value
     if (!agentId || !currentConversationId.value) return
+
+    const session = getSession(agentId)
+    if (!session || session.sending) return
+
+    const requestConversationId = currentConversationId.value
 
     // 1. 后端：更新消息内容 + 删除后续消息
     try {
@@ -474,7 +551,6 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     messages.value[msgIndex]!.content = newContent
     messages.value.splice(msgIndex + 1)
 
-    const session = getSession(agentId)
     if (session) {
       const sIdx = session.messages.findIndex(m => m.id === msg.id)
       if (sIdx >= 0 && sIdx < session.messages.length) {
@@ -484,28 +560,17 @@ export function useStreamChat(options: StreamChatOptionsV2) {
     }
 
     // 3. 重新发送（复用 stream 逻辑）
-    sending.value = true
-    isStreaming.value = true
-    streamingContent.value = ''
-    currentRunId.value = null
-
-    if (session) {
-      session.sending = true
-      session.isStreaming = true
-      session.streamingContent = ''
-      session.currentRunId = null
-      session.deltaBuffer = ''
-    }
+    beginAgentStream(agentId, session)
 
     addAiPlaceholder(agentId)
     await nextTick()
     scrollToBottom()
 
     try {
-      const callbacks = createCallbacks(agentId, currentConversationId.value)
+      const callbacks = createCallbacks(agentId, requestConversationId)
       await AiChatApi.stream({
         content: newContent,
-        conversation_id: currentConversationId.value!,
+        conversation_id: requestConversationId,
         ...getRuntimeParams?.()
       }, callbacks)
     } catch (error) {
@@ -527,8 +592,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         messages.value.pop()
       }
     } finally {
-      sending.value = false
-      if (session) session.sending = false
+      finishAgentSending(agentId, session)
     }
   }
 

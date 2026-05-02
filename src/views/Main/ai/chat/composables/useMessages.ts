@@ -14,6 +14,15 @@ interface ScrollRefApi {
 
 export type { ScrollRefApi }
 
+interface LoadMessagesOptions {
+  shouldApply?: () => boolean
+}
+
+interface LoadMessagesResult {
+  applied: boolean
+  list: Message[]
+}
+
 export function useMessages() {
   const {t} = useI18n()
   const {copy: copyText} = useCopy()
@@ -34,24 +43,35 @@ export function useMessages() {
   }
 
   // 加载消息
-  const loadMessages = async (conversationId: number | null) => {
+  const loadMessages = async (
+    conversationId: number | null,
+    options: LoadMessagesOptions = {}
+  ): Promise<LoadMessagesResult> => {
+    const canApply = () => options.shouldApply?.() ?? true
+
     if (!conversationId) {
-      messages.value = []
-      return
+      const applied = canApply()
+      if (applied) {
+        messages.value = []
+      }
+      return { applied, list: [] }
     }
     loading.value = true
-    page.value = 1
-    hasMore.value = true
     try {
       const res = await AiMessageApi.list({
         conversation_id: conversationId,
         page_size: PAGE_SIZE,
         current_page: 1
       })
-      const list = res.list
-      messages.value = list.reverse()
-      hasMore.value = list.length >= PAGE_SIZE
-      nextTick(() => scrollToBottom())
+      const list = res.list.reverse()
+      const applied = canApply()
+      if (applied) {
+        page.value = 1
+        messages.value = list
+        hasMore.value = list.length >= PAGE_SIZE
+        nextTick(() => scrollToBottom())
+      }
+      return { applied, list }
     } finally {
       loading.value = false
     }

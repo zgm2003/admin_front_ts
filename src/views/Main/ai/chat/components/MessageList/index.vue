@@ -6,7 +6,7 @@ import {MarkdownRenderer} from '@/components/MarkdownRenderer'
 import {DIcon} from '@/components/DIcon'
 import { CommonEnum, AiRoleEnum } from '@/enums'
 import ToolCallStatus from '../ToolCallStatus.vue'
-import type { Attachment, Message } from '../../composables/types'
+import type { Attachment, Message, MessageBlock } from '../../composables/types'
 
 const {t} = useI18n()
 
@@ -66,6 +66,20 @@ const getAttachments = (msg: Message): Attachment[] => {
   return msg.meta_json?.attachments || []
 }
 
+const getMessageBlocks = (msg: Message): MessageBlock[] => {
+  return Array.isArray(msg.meta_json?.blocks) ? msg.meta_json.blocks : []
+}
+
+const hasMessageBlocks = (msg: Message): boolean => {
+  return getMessageBlocks(msg).length > 0
+}
+
+const getImageBlocks = (msg: Message): string[] => {
+  return getMessageBlocks(msg)
+    .filter((block): block is Extract<MessageBlock, { type: 'image' }> => block.type === 'image' && !!block.url)
+    .map(block => block.url)
+}
+
 // 获取图片加载状态
 const getImageLoadingState = (url: string): string => {
   return imageLoadingStates.value.get(url) || 'loading'
@@ -86,6 +100,13 @@ const handleImageClick = (msg: Message, index: number) => {
   const attachments = getAttachments(msg)
   previewImages.value = attachments.map(a => a.url)
   previewIndex.value = index
+  previewVisible.value = true
+}
+
+const handleBlockImageClick = (msg: Message, url: string) => {
+  const urls = getImageBlocks(msg)
+  previewImages.value = urls.length > 0 ? urls : [url]
+  previewIndex.value = Math.max(0, previewImages.value.indexOf(url))
   previewVisible.value = true
 }
 
@@ -188,7 +209,39 @@ const handleFeedback = (msg: Message, feedback: number) => {
         <!-- ====== AI 消息：全宽平铺 ====== -->
         <div v-else class="ai-block">
           <ToolCallStatus v-if="msg.tool_calls?.length" :tool-calls="msg.tool_calls" />
-          <MarkdownRenderer :content="msg.content" class="ai-content"/>
+          <div v-if="hasMessageBlocks(msg)" class="ai-blocks">
+            <template v-for="(block, blockIndex) in getMessageBlocks(msg)" :key="`${msg.id}-${blockIndex}`">
+              <MarkdownRenderer
+                v-if="block.type === 'text'"
+                :content="block.text"
+                class="ai-content"
+              />
+              <div v-else-if="block.type === 'image'" class="ai-image-block">
+                <el-image
+                  :src="block.url"
+                  :alt="block.alt || t('aiChat.generatedImage')"
+                  class="ai-generated-image"
+                  fit="cover"
+                  lazy
+                  @click="handleBlockImageClick(msg, block.url)"
+                >
+                  <template #placeholder>
+                    <div class="ai-image-placeholder">
+                      <el-icon class="is-loading" :size="20"><Loading /></el-icon>
+                    </div>
+                  </template>
+                  <template #error>
+                    <div class="ai-image-error">{{ t('aiChat.imageLoadFailed') }}</div>
+                  </template>
+                </el-image>
+                <div v-if="block.alt" class="ai-image-alt">{{ block.alt }}</div>
+              </div>
+              <div v-else-if="block.type === 'error'" class="ai-error-block">
+                {{ block.message }}
+              </div>
+            </template>
+          </div>
+          <MarkdownRenderer v-else :content="msg.content" class="ai-content"/>
 
           <!-- 流式输出指示器 -->
           <div v-if="msg.isStreaming" class="streaming-indicator">
@@ -373,6 +426,54 @@ const handleFeedback = (msg: Message, feedback: number) => {
   line-height: 1.85;
   color: var(--el-text-color-primary);
   word-break: break-word;
+}
+
+.ai-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-image-block {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.ai-generated-image {
+  width: min(100%, 420px);
+  max-height: 520px;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: zoom-in;
+  border: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-light);
+}
+
+.ai-image-placeholder,
+.ai-image-error {
+  width: min(100vw - 64px, 420px);
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+}
+
+.ai-image-alt {
+  max-width: 420px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.5;
+}
+
+.ai-error-block {
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
 }
 
 /* ====== 操作按钮 - 豆包风格 ====== */

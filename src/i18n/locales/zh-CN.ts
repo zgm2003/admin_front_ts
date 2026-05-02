@@ -1030,6 +1030,10 @@ export default {
     networkError: '上传失败，请检查网络连接',
     tokenError: '获取上传凭证失败',
     modelNotSupportImage: '当前模型不支持图片输入',
+    imageGenerating: '正在生成图片...',
+    imageGenerated: '图片已生成',
+    generatedImage: 'AI 生成图片',
+    imageLoadFailed: '图片加载失败',
     maxImagesReached: '最多只能上传 {max} 张图片',
     // 输入框提示
     inputHint: 'Enter 发送，Shift + Enter 换行',
