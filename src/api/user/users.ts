@@ -32,9 +32,12 @@ export interface UserLegacyPasswordEditParams {
   respassword: string
 }
 
+const fetchCurrentUser = () =>
+  request.get<UserInitResponse>('/api/v1/users/me')
+
 export const UsersApi = {
-  init: (params?: RequestPayload) =>
-    request.post<UserInitResponse>('/api/Users/init', params),
+  me: fetchCurrentUser,
+  init: fetchCurrentUser,
 
   getLoginConfig: () =>
     request.post<LoginConfigResponse>('/api/Users/getLoginConfig', {}),
