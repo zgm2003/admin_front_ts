@@ -13,12 +13,14 @@ describe('auth platform helpers', () => {
       single_session: CommonEnum.YES,
       max_sessions: 1,
       allow_register: CommonEnum.YES,
+      captcha_type: 'slide',
     })
   })
 
   it('renders a runtime policy notice in the page source', () => {
-    const source = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/authPlatform/index.vue'), 'utf8')
+    const source = readFileSync(resolve(process.cwd(), 'src/views/Main/permission/authPlatform/index.vue'), 'utf8')
 
     expect(source).toContain("t('authPlatform.form.policy_notice')")
+    expect(source).toContain("t('authPlatform.form.captcha_type')")
   })
 })

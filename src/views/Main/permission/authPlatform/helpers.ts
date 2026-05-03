@@ -6,6 +6,7 @@ export function createAuthPlatformDefaultForm(): AuthPlatformAddPayload {
     code: '',
     name: '',
     login_types: ['password'],
+    captcha_type: 'slide',
     access_ttl: 14400,
     refresh_ttl: 1209600,
     bind_platform: CommonEnum.YES,

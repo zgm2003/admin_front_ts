@@ -32,6 +32,7 @@ interface AuthPlatformForm extends AuthPlatformAddPayload {
 const dict = ref<AuthPlatformInitResponse['dict']>({
   common_status_arr: [],
   auth_platform_login_type_arr: [],
+  auth_platform_captcha_type_arr: [],
 })
 
 const searchForm = ref<Pick<AuthPlatformListParams, 'name' | 'status'>>({ name: '', status: '' })
@@ -62,6 +63,7 @@ const rules = computed<FormRules>(() => ({
   code: [{ required: true, message: t('authPlatform.form.code') + t('common.required'), trigger: 'blur' }],
   name: [{ required: true, message: t('authPlatform.form.name') + t('common.required'), trigger: 'blur' }],
   login_types: [{ required: true, type: 'array', min: 1, message: t('authPlatform.form.login_types') + t('common.required'), trigger: 'change' }],
+  captcha_type: [{ required: true, message: t('authPlatform.form.captcha_type') + t('common.required'), trigger: 'change' }],
   access_ttl: [{ required: true, message: t('authPlatform.form.access_ttl') + t('common.required'), trigger: 'blur' }],
   refresh_ttl: [{ required: true, message: t('authPlatform.form.refresh_ttl') + t('common.required'), trigger: 'blur' }],
 }))
@@ -89,6 +91,7 @@ const columns = computed(() => [
   { key: 'code', label: t('authPlatform.table.code'), width: 120 },
   { key: 'name', label: t('authPlatform.table.name'), width: 140 },
   { key: 'login_types', label: t('authPlatform.table.login_types'), width: 200 },
+  { key: 'captcha_type', label: t('authPlatform.table.captcha_type'), width: 120 },
   { key: 'access_ttl', label: t('authPlatform.table.access_ttl'), width: 130 },
   { key: 'refresh_ttl', label: t('authPlatform.table.refresh_ttl'), width: 130 },
   { key: 'bind_platform', label: t('authPlatform.table.bind_platform'), width: 100 },
@@ -122,6 +125,7 @@ const edit = (row: AuthPlatformItem) => {
     code: row.code,
     name: row.name,
     login_types: row.login_types,
+    captcha_type: row.captcha_type,
     access_ttl: row.access_ttl,
     refresh_ttl: row.refresh_ttl,
     bind_platform: row.bind_platform,
@@ -144,6 +148,7 @@ const confirmSubmit = async () => {
       code: form.value.code,
       name: form.value.name,
       login_types: form.value.login_types,
+      captcha_type: form.value.captcha_type,
       access_ttl: form.value.access_ttl,
       refresh_ttl: form.value.refresh_ttl,
       bind_platform: form.value.bind_platform,
@@ -159,6 +164,7 @@ const confirmSubmit = async () => {
       id: Number(form.value.id),
       name: form.value.name,
       login_types: form.value.login_types,
+      captcha_type: form.value.captcha_type,
       access_ttl: form.value.access_ttl,
       refresh_ttl: form.value.refresh_ttl,
       bind_platform: form.value.bind_platform,
@@ -189,6 +195,18 @@ const getLoginTypeLabel = (val: string): string => {
   return loginTypeLabelMap.value.get(val) ?? ''
 }
 
+const captchaTypeLabelMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const item of dict.value.auth_platform_captcha_type_arr) {
+    map.set(item.value, item.label)
+  }
+  return map
+})
+
+const getCaptchaTypeLabel = (val: string): string => {
+  return captchaTypeLabelMap.value.get(val) ?? ''
+}
+
 onMounted(() => { init(); getList() })
 </script>
 
@@ -217,6 +235,9 @@ onMounted(() => { init(); getList() })
           <el-tag v-for="lt in row.login_types" :key="lt" size="small" style="margin-right:4px">
             {{ getLoginTypeLabel(lt) }}
           </el-tag>
+        </template>
+        <template #cell-captcha_type="{ row }">
+          <el-tag size="small">{{ getCaptchaTypeLabel(row.captcha_type) }}</el-tag>
         </template>
         <template #cell-access_ttl="{ row }">{{ formatTtl(row.access_ttl) }}</template>
         <template #cell-refresh_ttl="{ row }">{{ formatTtl(row.refresh_ttl) }}</template>
@@ -271,6 +292,11 @@ onMounted(() => { init(); getList() })
             <el-checkbox-group v-model="form.login_types">
               <el-checkbox v-for="opt in dict.auth_platform_login_type_arr" :key="opt.value" :value="opt.value" :label="opt.label" />
             </el-checkbox-group>
+          </el-form-item>
+        </el-col>
+        <el-col :md="12" :span="24">
+          <el-form-item :label="t('authPlatform.form.captcha_type')" prop="captcha_type" required>
+            <el-select-v2 v-model="form.captcha_type" :options="dict.auth_platform_captcha_type_arr" style="width:100%" />
           </el-form-item>
         </el-col>
       </el-row>
