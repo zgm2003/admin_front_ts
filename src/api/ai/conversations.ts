@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiConversationListParams extends RequestPayload {
@@ -34,10 +34,10 @@ export interface AiConversationDetailResponse {
 }
 
 export const AiConversationApi = {
-  list: (params: AiConversationListParams) => request.post<PaginatedResponse<AiConversationItem>>('/api/admin/AiConversations/list', params),
-  detail: (params: { id: number }) => request.post<AiConversationDetailResponse>('/api/admin/AiConversations/detail', params),
-  add: (params: { agent_id: number; title?: string }) => request.post<{ id: number }>('/api/admin/AiConversations/add', params),
-  edit: (params: { id: number; title: string }) => request.post<void>('/api/admin/AiConversations/edit', params),
-  del: (params: { id: number | number[] }) => request.post<void>('/api/admin/AiConversations/del', params),
-  status: (params: { id: number | number[]; status: number }) => request.post<void>('/api/admin/AiConversations/status', params),
+  list: (params: AiConversationListParams) => legacyRequest.post<PaginatedResponse<AiConversationItem>>('/api/admin/AiConversations/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<AiConversationDetailResponse>('/api/admin/AiConversations/detail', params),
+  add: (params: { agent_id: number; title?: string }) => legacyRequest.post<{ id: number }>('/api/admin/AiConversations/add', params),
+  edit: (params: { id: number; title: string }) => legacyRequest.post<void>('/api/admin/AiConversations/edit', params),
+  del: (params: { id: number | number[] }) => legacyRequest.post<void>('/api/admin/AiConversations/del', params),
+  status: (params: { id: number | number[]; status: number }) => legacyRequest.post<void>('/api/admin/AiConversations/status', params),
 }

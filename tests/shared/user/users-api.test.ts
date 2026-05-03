@@ -30,24 +30,26 @@ describe('users api auth contract', () => {
     expect(typeSource).not.toContain("| 'register'")
   })
 
-  it('uses the RESTful current-user endpoint for session bootstrap', () => {
+  it('uses the default REST current-user init endpoint while login is explicitly legacy-owned', () => {
     const source = readUsersApiSource()
 
-    expect(source).toContain("request.get<UserInitResponse>('/api/v1/users/me')")
+    expect(source).toContain("import request, { legacyRequest } from '@/lib/http'")
+    expect(source).toContain("request.get<UserInitResponse>('/api/v1/users/init')")
     expect(source).toContain('me: fetchCurrentUser')
     expect(source).toContain('init: fetchCurrentUser')
-    expect(source).not.toContain("request.post<UserInitResponse>('/api/Users/init'")
+    expect(source).not.toContain('goRequest')
+    expect(source).not.toContain("legacyRequest.post<UserInitResponse>('/api/Users/init', {})")
   })
 
-  it('uses the RESTful auth refresh endpoint', () => {
+  it('keeps the legacy auth refresh endpoint while login is still PHP-owned', () => {
     const source = readAuthSessionSource()
     const usersApiSource = readUsersApiSource()
 
-    expect(source).toContain('`${baseURL}/api/v1/auth/refresh`')
-    expect(source).toContain("originalRequest.url?.includes('/api/v1/auth/refresh')")
-    expect(source).not.toContain('`${baseURL}/api/Users/refresh`')
-    expect(source).not.toContain("originalRequest.url?.includes('/api/Users/refresh')")
-    expect(usersApiSource).toContain("request.post<UserLoginSession>('/api/v1/auth/refresh', params)")
-    expect(usersApiSource).not.toContain('/api/Users/refresh')
+    expect(source).toContain('`${baseURL}/api/Users/refresh`')
+    expect(source).toContain("originalRequest.url?.includes('/api/Users/refresh')")
+    expect(source).not.toContain('`${baseURL}/api/v1/auth/refresh`')
+    expect(source).not.toContain("originalRequest.url?.includes('/api/v1/auth/refresh')")
+    expect(usersApiSource).toContain("legacyRequest.post<UserLoginSession>('/api/Users/refresh', params)")
+    expect(usersApiSource).not.toContain('/api/v1/auth/refresh')
   })
 })

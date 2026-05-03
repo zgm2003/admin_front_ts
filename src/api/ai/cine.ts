@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface CineInitResponse {
@@ -92,13 +92,13 @@ export interface CineGenerateStoryboardParams extends RequestPayload {
 }
 
 export const CineApi = {
-  init: (params?: RequestPayload) => request.post<CineInitResponse>('/api/admin/Cine/init', params),
-  statusCount: (params?: CineStatusCountParams) => request.post<CineStatusCountItem[]>('/api/admin/Cine/statusCount', params),
-  list: (params: CineListParams) => request.post<PaginatedResponse<CineProjectItem>>('/api/admin/Cine/list', params),
-  detail: (params: { id: number }) => request.post<CineProjectItem>('/api/admin/Cine/detail', params),
-  add: (params: CineMutationParams) => request.post<{ id: number }>('/api/admin/Cine/add', params),
-  edit: (params: CineMutationParams & { id: number }) => request.post<void>('/api/admin/Cine/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/Cine/del', params),
-  generate: (params: CineGenerateParams) => request.post<{ msg: string }>('/api/admin/Cine/generate', params),
-  generateStoryboard: (params: CineGenerateStoryboardParams) => request.post<{ msg: string }>('/api/admin/Cine/generateKeyframes', params),
+  init: (params?: RequestPayload) => legacyRequest.post<CineInitResponse>('/api/admin/Cine/init', params),
+  statusCount: (params?: CineStatusCountParams) => legacyRequest.post<CineStatusCountItem[]>('/api/admin/Cine/statusCount', params),
+  list: (params: CineListParams) => legacyRequest.post<PaginatedResponse<CineProjectItem>>('/api/admin/Cine/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<CineProjectItem>('/api/admin/Cine/detail', params),
+  add: (params: CineMutationParams) => legacyRequest.post<{ id: number }>('/api/admin/Cine/add', params),
+  edit: (params: CineMutationParams & { id: number }) => legacyRequest.post<void>('/api/admin/Cine/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/Cine/del', params),
+  generate: (params: CineGenerateParams) => legacyRequest.post<{ msg: string }>('/api/admin/Cine/generate', params),
+  generateStoryboard: (params: CineGenerateStoryboardParams) => legacyRequest.post<{ msg: string }>('/api/admin/Cine/generateKeyframes', params),
 }

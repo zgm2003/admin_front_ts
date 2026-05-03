@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiKnowledgeInitResponse {
@@ -101,23 +101,23 @@ export interface AiKnowledgeRetrievalResponse {
 }
 
 export const AiKnowledgeApi = {
-  init: (params?: RequestPayload) => request.post<AiKnowledgeInitResponse>('/api/admin/AiKnowledgeBases/init', params),
-  list: (params: AiKnowledgeBaseListParams) => request.post<PaginatedResponse<AiKnowledgeBaseItem>>('/api/admin/AiKnowledgeBases/list', params),
-  detail: (params: { id: Id }) => request.post<AiKnowledgeBaseItem>('/api/admin/AiKnowledgeBases/detail', params),
-  add: (params: AiKnowledgeBaseMutationParams) => request.post<{ id: number }>('/api/admin/AiKnowledgeBases/add', params),
-  edit: (params: AiKnowledgeBaseMutationParams) => request.post<void>('/api/admin/AiKnowledgeBases/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/AiKnowledgeBases/del', params),
-  status: (params: { id: Id; status: number }) => request.post<{ affected: number }>('/api/admin/AiKnowledgeBases/status', params),
+  init: (params?: RequestPayload) => legacyRequest.post<AiKnowledgeInitResponse>('/api/admin/AiKnowledgeBases/init', params),
+  list: (params: AiKnowledgeBaseListParams) => legacyRequest.post<PaginatedResponse<AiKnowledgeBaseItem>>('/api/admin/AiKnowledgeBases/list', params),
+  detail: (params: { id: Id }) => legacyRequest.post<AiKnowledgeBaseItem>('/api/admin/AiKnowledgeBases/detail', params),
+  add: (params: AiKnowledgeBaseMutationParams) => legacyRequest.post<{ id: number }>('/api/admin/AiKnowledgeBases/add', params),
+  edit: (params: AiKnowledgeBaseMutationParams) => legacyRequest.post<void>('/api/admin/AiKnowledgeBases/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiKnowledgeBases/del', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiKnowledgeBases/status', params),
   documents: (params: RequestPayload & { knowledge_base_id: number }) =>
-    request.post<PaginatedResponse<AiKnowledgeDocumentItem>>('/api/admin/AiKnowledgeBases/documents', params),
+    legacyRequest.post<PaginatedResponse<AiKnowledgeDocumentItem>>('/api/admin/AiKnowledgeBases/documents', params),
   documentDetail: (params: { id: Id; knowledge_base_id: number }) =>
-    request.post<AiKnowledgeDocumentItem>('/api/admin/AiKnowledgeBases/documentDetail', params),
-  addDocument: (params: AiKnowledgeDocumentMutationParams) => request.post<{ id: number }>('/api/admin/AiKnowledgeBases/addDocument', params),
-  editDocument: (params: AiKnowledgeDocumentMutationParams & { id: number }) => request.post<void>('/api/admin/AiKnowledgeBases/editDocument', params),
-  delDocument: (params: { id: Id; knowledge_base_id: number }) => request.post<{ affected: number }>('/api/admin/AiKnowledgeBases/delDocument', params),
-  reindexDocument: (params: { id: Id; knowledge_base_id: number }) => request.post<{ chunk_count: number }>('/api/admin/AiKnowledgeBases/reindexDocument', params),
+    legacyRequest.post<AiKnowledgeDocumentItem>('/api/admin/AiKnowledgeBases/documentDetail', params),
+  addDocument: (params: AiKnowledgeDocumentMutationParams) => legacyRequest.post<{ id: number }>('/api/admin/AiKnowledgeBases/addDocument', params),
+  editDocument: (params: AiKnowledgeDocumentMutationParams & { id: number }) => legacyRequest.post<void>('/api/admin/AiKnowledgeBases/editDocument', params),
+  delDocument: (params: { id: Id; knowledge_base_id: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiKnowledgeBases/delDocument', params),
+  reindexDocument: (params: { id: Id; knowledge_base_id: number }) => legacyRequest.post<{ chunk_count: number }>('/api/admin/AiKnowledgeBases/reindexDocument', params),
   chunks: (params: RequestPayload & { knowledge_base_id: number; document_id?: number }) =>
-    request.post<PaginatedResponse<AiKnowledgeChunkItem>>('/api/admin/AiKnowledgeBases/chunks', params),
+    legacyRequest.post<PaginatedResponse<AiKnowledgeChunkItem>>('/api/admin/AiKnowledgeBases/chunks', params),
   retrievalTest: (params: { knowledge_base_id: number; query: string; top_k?: number }) =>
-    request.post<AiKnowledgeRetrievalResponse>('/api/admin/AiKnowledgeBases/retrievalTest', params),
+    legacyRequest.post<AiKnowledgeRetrievalResponse>('/api/admin/AiKnowledgeBases/retrievalTest', params),
 }

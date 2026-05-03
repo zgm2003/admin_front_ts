@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, RequestPayload } from '@/types/common'
 
 export interface SystemLogInitResponse {
@@ -33,7 +33,7 @@ export interface SystemLogContentResponse {
 }
 
 export const SystemLogApi = {
-  init: (params?: RequestPayload) => request.post<SystemLogInitResponse>('/api/admin/SystemLog/init', params),
-  files: (params?: RequestPayload) => request.post<SystemLogFilesResponse>('/api/admin/SystemLog/files', params),
-  content: (params: SystemLogContentParams) => request.post<SystemLogContentResponse>('/api/admin/SystemLog/content', params),
+  init: (params?: RequestPayload) => legacyRequest.post<SystemLogInitResponse>('/api/admin/SystemLog/init', params),
+  files: (params?: RequestPayload) => legacyRequest.post<SystemLogFilesResponse>('/api/admin/SystemLog/files', params),
+  content: (params: SystemLogContentParams) => legacyRequest.post<SystemLogContentResponse>('/api/admin/SystemLog/content', params),
 }

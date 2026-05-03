@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 
 /** 通知项 */
 export interface NotificationItem {
@@ -64,17 +64,17 @@ export interface NotificationDelParams {
 
 export const NotificationApi = {
   /** 初始化（字典） */
-  init: () => request.post<NotificationInitResponse>('/api/admin/Notification/init'),
+  init: () => legacyRequest.post<NotificationInitResponse>('/api/admin/Notification/init'),
 
   /** 获取通知列表（普通分页） */
-  list: (params: NotificationListParams) => request.post<NotificationListResponse>('/api/admin/Notification/list', params),
+  list: (params: NotificationListParams) => legacyRequest.post<NotificationListResponse>('/api/admin/Notification/list', params),
 
   /** 获取未读数量 */
-  unreadCount: () => request.post<UnreadCountResponse>('/api/admin/Notification/unreadCount'),
+  unreadCount: () => legacyRequest.post<UnreadCountResponse>('/api/admin/Notification/unreadCount'),
 
   /** 标记已读（支持单个/批量/全部） */
-  read: (params?: NotificationReadParams) => request.post('/api/admin/Notification/read', params),
+  read: (params?: NotificationReadParams) => legacyRequest.post('/api/admin/Notification/read', params),
 
   /** 删除通知（支持单个/批量） */
-  del: (params: NotificationDelParams) => request.post('/api/admin/Notification/del', params),
+  del: (params: NotificationDelParams) => legacyRequest.post('/api/admin/Notification/del', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface SystemSettingInitResponse {
@@ -43,10 +43,10 @@ export interface SystemSettingEditParams {
 }
 
 export const SystemSettingApi = {
-  init: (params?: RequestPayload) => request.post<SystemSettingInitResponse>('/api/admin/SystemSetting/init', params),
-  add: (params: SystemSettingAddParams) => request.post<void>('/api/admin/SystemSetting/add', params),
-  edit: (params: SystemSettingEditParams) => request.post<void>('/api/admin/SystemSetting/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/SystemSetting/del', params),
-  list: (params: SystemSettingListParams) => request.post<PaginatedResponse<SystemSettingItem>>('/api/admin/SystemSetting/list', params),
-  status: (params: { id: Id; status: number }) => request.post<void>('/api/admin/SystemSetting/status', params),
+  init: (params?: RequestPayload) => legacyRequest.post<SystemSettingInitResponse>('/api/admin/SystemSetting/init', params),
+  add: (params: SystemSettingAddParams) => legacyRequest.post<void>('/api/admin/SystemSetting/add', params),
+  edit: (params: SystemSettingEditParams) => legacyRequest.post<void>('/api/admin/SystemSetting/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/SystemSetting/del', params),
+  list: (params: SystemSettingListParams) => legacyRequest.post<PaginatedResponse<SystemSettingItem>>('/api/admin/SystemSetting/list', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<void>('/api/admin/SystemSetting/status', params),
 }

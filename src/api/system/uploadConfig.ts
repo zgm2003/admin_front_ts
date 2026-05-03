@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface UploadDriverInitResponse {
@@ -112,26 +112,26 @@ export interface UploadSettingForm {
 }
 
 export const UploadDriverApi = {
-  init: (params?: RequestPayload) => request.post<UploadDriverInitResponse>('/api/admin/UploadDriver/init', params),
-  list: (params: UploadDriverListParams) => request.post<PaginatedResponse<UploadDriverItem>>('/api/admin/UploadDriver/list', params),
-  add: (params: UploadDriverForm) => request.post<{ id: number }>('/api/admin/UploadDriver/add', params),
-  edit: (params: UploadDriverForm) => request.post<void>('/api/admin/UploadDriver/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/UploadDriver/del', params)
+  init: (params?: RequestPayload) => legacyRequest.post<UploadDriverInitResponse>('/api/admin/UploadDriver/init', params),
+  list: (params: UploadDriverListParams) => legacyRequest.post<PaginatedResponse<UploadDriverItem>>('/api/admin/UploadDriver/list', params),
+  add: (params: UploadDriverForm) => legacyRequest.post<{ id: number }>('/api/admin/UploadDriver/add', params),
+  edit: (params: UploadDriverForm) => legacyRequest.post<void>('/api/admin/UploadDriver/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/UploadDriver/del', params)
 }
 
 export const UploadRuleApi = {
-  init: (params?: RequestPayload) => request.post<UploadRuleInitResponse>('/api/admin/UploadRule/init', params),
-  list: (params: UploadRuleListParams) => request.post<PaginatedResponse<UploadRuleItem>>('/api/admin/UploadRule/list', params),
-  add: (params: UploadRuleForm) => request.post<void>('/api/admin/UploadRule/add', params),
-  edit: (params: UploadRuleForm) => request.post<void>('/api/admin/UploadRule/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/UploadRule/del', params)
+  init: (params?: RequestPayload) => legacyRequest.post<UploadRuleInitResponse>('/api/admin/UploadRule/init', params),
+  list: (params: UploadRuleListParams) => legacyRequest.post<PaginatedResponse<UploadRuleItem>>('/api/admin/UploadRule/list', params),
+  add: (params: UploadRuleForm) => legacyRequest.post<void>('/api/admin/UploadRule/add', params),
+  edit: (params: UploadRuleForm) => legacyRequest.post<void>('/api/admin/UploadRule/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/UploadRule/del', params)
 }
 
 export const UploadSettingApi = {
-  init: (params?: RequestPayload) => request.post<UploadSettingInitResponse>('/api/admin/UploadSetting/init', params),
-  list: (params: UploadSettingListParams) => request.post<PaginatedResponse<UploadSettingItem>>('/api/admin/UploadSetting/list', params),
-  add: (params: UploadSettingForm) => request.post<void>('/api/admin/UploadSetting/add', params),
-  edit: (params: UploadSettingForm) => request.post<void>('/api/admin/UploadSetting/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/UploadSetting/del', params),
-  status: (params: { id: Id; status: number }) => request.post<void>('/api/admin/UploadSetting/status', params)
+  init: (params?: RequestPayload) => legacyRequest.post<UploadSettingInitResponse>('/api/admin/UploadSetting/init', params),
+  list: (params: UploadSettingListParams) => legacyRequest.post<PaginatedResponse<UploadSettingItem>>('/api/admin/UploadSetting/list', params),
+  add: (params: UploadSettingForm) => legacyRequest.post<void>('/api/admin/UploadSetting/add', params),
+  edit: (params: UploadSettingForm) => legacyRequest.post<void>('/api/admin/UploadSetting/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/UploadSetting/del', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<void>('/api/admin/UploadSetting/status', params)
 }

@@ -101,8 +101,8 @@ export async function bindSharedWebSocketUser() {
   }
 
   try {
-    const { default: request } = await import('@/lib/http')
-    await request.post('/api/admin/WebSocket/bind', { client_id: sharedClientId })
+    const { legacyRequest } = await import('@/lib/http')
+    await legacyRequest.post('/api/admin/WebSocket/bind', { client_id: sharedClientId })
   } catch (error) {
     console.error('[WebSocket] Bind failed:', error)
   }

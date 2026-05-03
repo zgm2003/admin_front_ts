@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import { onWsMessage } from '@/lib/realtime/message-bus'
 import type { MessageBlock } from './messages'
 
@@ -241,7 +241,7 @@ function dispatchStreamEvent(
 }
 
 async function streamByRunEvents(params: StreamParams, callbacks: StreamCallbacks): Promise<void> {
-  const start = await request.post<StreamStartResponse>('/api/admin/AiChat/start', params)
+  const start = await legacyRequest.post<StreamStartResponse>('/api/admin/AiChat/start', params)
   callbacks.onConversation?.(start.conversation_id)
   callbacks.onRun?.(start.run_id, start.request_id)
 
@@ -282,7 +282,7 @@ async function streamByRunEvents(params: StreamParams, callbacks: StreamCallback
 
   try {
     while (!terminalEventReceived) {
-      const result = await request.post<StreamEventsResponse>('/api/admin/AiChat/events', {
+      const result = await legacyRequest.post<StreamEventsResponse>('/api/admin/AiChat/events', {
         run_id: start.run_id,
         last_id: lastId,
         timeout_ms: 50,
@@ -334,7 +334,7 @@ export const AiChatApi = {
     conversation_id?: number
     agent_id?: number
     max_history?: number
-  }) => request.post('/api/admin/AiChat/send', params),
+  }) => legacyRequest.post('/api/admin/AiChat/send', params),
 
   // 发送消息并获取 AI 回复（WebSocket 实时推送 + streamable events 补拉）
   stream: (params: StreamParams, callbacks: StreamCallbacks): Promise<void> => {
@@ -343,5 +343,5 @@ export const AiChatApi = {
 
   // 取消流式输出
   cancel: (runId: number): Promise<{ run_id: number; status: string }> =>
-    request.post('/api/admin/AiChat/cancel', { run_id: runId }),
+    legacyRequest.post('/api/admin/AiChat/cancel', { run_id: runId }),
 }

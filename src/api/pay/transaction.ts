@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface PayTransactionInitResponse {
@@ -75,7 +75,7 @@ export interface PayTransactionDetailResponse {
 }
 
 export const PayTransactionApi = {
-  init: (params?: RequestPayload) => request.post<PayTransactionInitResponse>('/api/admin/PayTransaction/init', params),
-  list: (params: PayTransactionListParams) => request.post<PaginatedResponse<PayTransactionItem>>('/api/admin/PayTransaction/list', params),
-  detail: (params: { id: number }) => request.post<PayTransactionDetailResponse>('/api/admin/PayTransaction/detail', params),
+  init: (params?: RequestPayload) => legacyRequest.post<PayTransactionInitResponse>('/api/admin/PayTransaction/init', params),
+  list: (params: PayTransactionListParams) => legacyRequest.post<PaginatedResponse<PayTransactionItem>>('/api/admin/PayTransaction/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<PayTransactionDetailResponse>('/api/admin/PayTransaction/detail', params),
 }

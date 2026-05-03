@@ -1,5 +1,5 @@
 import { computed, ref, type MaybeRef, unref } from 'vue'
-import type { Identifiable, PaginatedResponse, RequestPayload } from '@/types/common'
+import type { Identifiable, PaginatedResponse } from '@/types/common'
 
 export interface PageState {
   current_page: number
@@ -8,22 +8,23 @@ export interface PageState {
   total_page?: number
 }
 
-type PaginationParams = Pick<PageState, 'current_page' | 'page_size'>
-type ListRequest<P extends RequestPayload> = PaginationParams & Partial<Omit<P, keyof PaginationParams>>
+export type PaginationParams = Pick<PageState, 'current_page' | 'page_size'>
+type SearchParams<P extends PaginationParams> = Partial<Omit<P, keyof PaginationParams>>
+type ListRequest<P extends PaginationParams> = PaginationParams & SearchParams<P>
 
 export interface TableApiModule<
   T extends Identifiable,
-  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 > {
   list(params: ListRequest<P>): Promise<PaginatedResponse<T>>
 }
 
 export interface UseTableOptions<
   T extends Identifiable,
-  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 > {
   api: TableApiModule<T, P>
-  searchForm?: MaybeRef<Partial<Omit<P, keyof PaginationParams>>>
+  searchForm?: MaybeRef<SearchParams<P>>
   immediate?: boolean
   initPage?: Partial<PageState>
   dataCallback?: (data: PaginatedResponse<T>) => PaginatedResponse<T>
@@ -31,7 +32,7 @@ export interface UseTableOptions<
 
 export function useTable<
   T extends Identifiable = Identifiable,
-  P extends PaginationParams & RequestPayload = PaginationParams & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 >(options: UseTableOptions<T, P>) {
   const {
     api,
@@ -52,7 +53,7 @@ export function useTable<
 
   const selectedIds = ref<Array<T['id']>>([])
 
-  const requestParams = computed(() => ({
+  const requestParams = computed<ListRequest<P>>(() => ({
     ...(unref(searchForm) ?? {}),
     page_size: page.value.page_size,
     current_page: page.value.current_page,

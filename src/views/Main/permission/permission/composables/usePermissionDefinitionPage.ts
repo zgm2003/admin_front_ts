@@ -7,6 +7,7 @@ import {
   type PermissionInitResponse,
   type PermissionListItem,
   type PermissionListParams,
+  type PermissionEditPayload,
   type PermissionMutationPayload,
   type PermissionTreeNode,
 } from '@/api/permission/permission'
@@ -215,7 +216,7 @@ export function usePermissionDefinitionPage() {
       type: form.value.type,
     })
 
-    const payload: PermissionMutationPayload = {
+    return {
       name: form.value.name,
       parent_id: parentId,
       icon: form.value.icon,
@@ -228,12 +229,6 @@ export function usePermissionDefinitionPage() {
       show_menu: form.value.show_menu,
       platform: form.value.platform,
     }
-
-    if (dialogMode.value === 'edit') {
-      payload.id = Number(form.value.id)
-    }
-
-    return payload
   }
 
   async function submitForm() {
@@ -245,8 +240,21 @@ export function usePermissionDefinitionPage() {
       return
     }
 
-    const api = dialogMode.value === 'add' ? PermissionApi.add : PermissionApi.edit
-    await api(payload)
+    if (dialogMode.value === 'add') {
+      await PermissionApi.add(payload)
+    } else {
+      if (form.value.id === '') {
+        ElNotification.error({ message: '权限ID缺失' })
+        return
+      }
+
+      const editPayload: PermissionEditPayload = {
+        ...payload,
+        id: form.value.id,
+      }
+      await PermissionApi.edit(editPayload)
+    }
+
     ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
     await Promise.all([getList(), init()])
@@ -272,7 +280,7 @@ export function usePermissionDefinitionPage() {
       return
     }
 
-    await PermissionApi.del({ id: selectedIds.value })
+    await PermissionApi.delBatch({ ids: selectedIds.value })
     ElNotification.success({ message: t('common.success.operation') })
     selectedIds.value = []
     await getList()

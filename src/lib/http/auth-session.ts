@@ -9,6 +9,8 @@ import { getPlatform } from './platform'
 import { getDeviceId } from './device'
 import { setHeader } from './headers'
 
+const REFRESH_PATH = '/api/v1/auth/refresh'
+
 export type RetryableRequestConfig = InternalAxiosRequestConfig<unknown> & {
   _retry?: boolean
 }
@@ -65,7 +67,7 @@ export function createAuthSessionManager(params: {
       expires_in: number
       refresh_expires_in: number
     }>>(
-      `${baseURL}/api/v1/auth/refresh`,
+      `${baseURL}${REFRESH_PATH}`,
       { refresh_token: refreshToken },
       {
         headers: {
@@ -79,7 +81,7 @@ export function createAuthSessionManager(params: {
   }
 
   function handle401(originalRequest: RetryableRequestConfig, messageFromServer?: string) {
-    if (originalRequest.url?.includes('/api/v1/auth/refresh') || originalRequest._retry) {
+    if (originalRequest.url?.includes(REFRESH_PATH) || originalRequest._retry) {
       isRefreshing = false
       notify(messageFromServer || '登录过期，请重新登录')
       logoutAndRedirect()

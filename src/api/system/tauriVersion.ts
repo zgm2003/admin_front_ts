@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface TauriVersionInitResponse {
@@ -54,13 +54,13 @@ export interface TauriVersionUpdateJsonManifest {
 export type TauriVersionUpdateJsonResponse = TauriVersionUpdateJsonManifest | []
 
 export const TauriVersionApi = {
-  init: () => request.post<TauriVersionInitResponse>('/api/admin/TauriVersion/init'),
-  list: (params: TauriVersionListParams) => request.post<PaginatedResponse<TauriVersionItem>>('/api/admin/TauriVersion/list', params),
-  add: (params: TauriVersionForm) => request.post<{ id: number }>('/api/admin/TauriVersion/add', params),
-  edit: (params: TauriVersionForm) => request.post<void>('/api/admin/TauriVersion/edit', params),
-  setLatest: (params: { id: Id }) => request.post<void>('/api/admin/TauriVersion/setLatest', params),
-  del: (params: { id: Id }) => request.post<void>('/api/admin/TauriVersion/del', params),
-  updateJson: (params: { platform?: string }) => request.post<TauriVersionUpdateJsonResponse>('/api/admin/TauriVersion/updateJson', params),
-  forceUpdate: (params: { id: Id; force_update: number }) => request.post<void>('/api/admin/TauriVersion/forceUpdate', params),
-  clientInit: (params: { version: string; platform?: string }) => request.post<{ force_update: boolean }>('/api/TauriVersion/clientInit', params),
+  init: () => legacyRequest.post<TauriVersionInitResponse>('/api/admin/TauriVersion/init'),
+  list: (params: TauriVersionListParams) => legacyRequest.post<PaginatedResponse<TauriVersionItem>>('/api/admin/TauriVersion/list', params),
+  add: (params: TauriVersionForm) => legacyRequest.post<{ id: number }>('/api/admin/TauriVersion/add', params),
+  edit: (params: TauriVersionForm) => legacyRequest.post<void>('/api/admin/TauriVersion/edit', params),
+  setLatest: (params: { id: Id }) => legacyRequest.post<void>('/api/admin/TauriVersion/setLatest', params),
+  del: (params: { id: Id }) => legacyRequest.post<void>('/api/admin/TauriVersion/del', params),
+  updateJson: (params: { platform?: string }) => legacyRequest.post<TauriVersionUpdateJsonResponse>('/api/admin/TauriVersion/updateJson', params),
+  forceUpdate: (params: { id: Id; force_update: number }) => legacyRequest.post<void>('/api/admin/TauriVersion/forceUpdate', params),
+  clientInit: (params: { version: string; platform?: string }) => legacyRequest.post<{ force_update: boolean }>('/api/TauriVersion/clientInit', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiPromptListParams extends RequestPayload {
@@ -34,11 +34,11 @@ export interface AiPromptMutationParams extends RequestPayload {
 }
 
 export const AiPromptApi = {
-  list: (params?: AiPromptListParams) => request.post<PaginatedResponse<AiPromptItem>>('/api/admin/AiPrompts/list', params),
-  detail: (params: { id: number }) => request.post<AiPromptDetailResponse>('/api/admin/AiPrompts/detail', params),
-  add: (params: AiPromptMutationParams) => request.post<void>('/api/admin/AiPrompts/add', params),
-  edit: (params: AiPromptMutationParams) => request.post<void>('/api/admin/AiPrompts/edit', params),
-  del: (params: { id: number | number[] }) => request.post<void>('/api/admin/AiPrompts/del', params),
-  toggleFavorite: (params: { id: number }) => request.post<{ is_favorite: number }>('/api/admin/AiPrompts/toggleFavorite', params),
-  use: (params: { id: number }) => request.post<{ content: string }>('/api/admin/AiPrompts/use', params),
+  list: (params?: AiPromptListParams) => legacyRequest.post<PaginatedResponse<AiPromptItem>>('/api/admin/AiPrompts/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<AiPromptDetailResponse>('/api/admin/AiPrompts/detail', params),
+  add: (params: AiPromptMutationParams) => legacyRequest.post<void>('/api/admin/AiPrompts/add', params),
+  edit: (params: AiPromptMutationParams) => legacyRequest.post<void>('/api/admin/AiPrompts/edit', params),
+  del: (params: { id: number | number[] }) => legacyRequest.post<void>('/api/admin/AiPrompts/del', params),
+  toggleFavorite: (params: { id: number }) => legacyRequest.post<{ is_favorite: number }>('/api/admin/AiPrompts/toggleFavorite', params),
+  use: (params: { id: number }) => legacyRequest.post<{ content: string }>('/api/admin/AiPrompts/use', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 import type { AiMessageMeta } from './messages'
 
@@ -136,11 +136,11 @@ export interface AiRunStatsListParams extends RequestPayload {
 }
 
 export const AiRunApi = {
-  init: (params?: RequestPayload) => request.post<AiRunInitResponse>('/api/admin/AiRuns/init', params),
-  list: (params: AiRunListParams) => request.post<PaginatedResponse<AiRunItem>>('/api/admin/AiRuns/list', params),
-  detail: (params: { id: number }) => request.post<AiRunDetailResponse>('/api/admin/AiRuns/detail', params),
-  stats: (params?: RequestPayload) => request.post<AiRunStatsSummaryResponse>('/api/admin/AiRuns/stats', params),
-  statsByDate: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByDateItem>>('/api/admin/AiRuns/statsByDate', params),
-  statsByAgent: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByAgentItem>>('/api/admin/AiRuns/statsByAgent', params),
-  statsByUser: (params: AiRunStatsListParams) => request.post<PaginatedResponse<AiRunStatsByUserItem>>('/api/admin/AiRuns/statsByUser', params),
+  init: (params?: RequestPayload) => legacyRequest.post<AiRunInitResponse>('/api/admin/AiRuns/init', params),
+  list: (params: AiRunListParams) => legacyRequest.post<PaginatedResponse<AiRunItem>>('/api/admin/AiRuns/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<AiRunDetailResponse>('/api/admin/AiRuns/detail', params),
+  stats: (params?: RequestPayload) => legacyRequest.post<AiRunStatsSummaryResponse>('/api/admin/AiRuns/stats', params),
+  statsByDate: (params: AiRunStatsListParams) => legacyRequest.post<PaginatedResponse<AiRunStatsByDateItem>>('/api/admin/AiRuns/statsByDate', params),
+  statsByAgent: (params: AiRunStatsListParams) => legacyRequest.post<PaginatedResponse<AiRunStatsByAgentItem>>('/api/admin/AiRuns/statsByAgent', params),
+  statsByUser: (params: AiRunStatsListParams) => legacyRequest.post<PaginatedResponse<AiRunStatsByUserItem>>('/api/admin/AiRuns/statsByUser', params),
 }

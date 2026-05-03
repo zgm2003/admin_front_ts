@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface UserWalletListParams {
@@ -57,8 +57,8 @@ export interface WalletTransactionItem {
 }
 
 export const UserWalletApi = {
-  init: (params?: RequestPayload) => request.post<UserWalletInitResponse>('/api/admin/UserWallet/init', params),
-  list: (params: UserWalletListParams) => request.post<PaginatedResponse<UserWalletListItem>>('/api/admin/UserWallet/list', params),
-  transactions: (params: WalletTransactionsParams) => request.post<PaginatedResponse<WalletTransactionItem>>('/api/admin/UserWallet/transactions', params),
-  adjust: (params: WalletAdjustParams) => request.post<void>('/api/admin/UserWallet/adjust', params),
+  init: (params?: RequestPayload) => legacyRequest.post<UserWalletInitResponse>('/api/admin/UserWallet/init', params),
+  list: (params: UserWalletListParams) => legacyRequest.post<PaginatedResponse<UserWalletListItem>>('/api/admin/UserWallet/list', params),
+  transactions: (params: WalletTransactionsParams) => legacyRequest.post<PaginatedResponse<WalletTransactionItem>>('/api/admin/UserWallet/transactions', params),
+  adjust: (params: WalletAdjustParams) => legacyRequest.post<void>('/api/admin/UserWallet/adjust', params),
 }

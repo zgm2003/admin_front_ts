@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const {
@@ -16,5 +18,14 @@ describe('websocket-client helpers', () => {
     expect(shouldReconnect({ reconnectCount: 0, maxReconnectAttempts: 10, consumerCount: 1 })).toBe(true)
     expect(shouldReconnect({ reconnectCount: 10, maxReconnectAttempts: 10, consumerCount: 1 })).toBe(false)
     expect(shouldReconnect({ reconnectCount: 1, maxReconnectAttempts: 10, consumerCount: 0 })).toBe(false)
+  })
+
+  it('binds the legacy websocket endpoint through the legacy HTTP client', () => {
+    const sourcePath = fileURLToPath(new URL('../../../src/lib/realtime/websocket-client.ts', import.meta.url))
+    const source = readFileSync(sourcePath, 'utf8')
+
+    expect(source).toContain("const { legacyRequest } = await import('@/lib/http')")
+    expect(source).toContain("legacyRequest.post('/api/admin/WebSocket/bind'")
+    expect(source).not.toContain("default: request")
   })
 })

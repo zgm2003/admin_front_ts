@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface NotificationTaskInitResponse {
@@ -57,10 +57,10 @@ export interface NotificationTaskAddParams extends RequestPayload {
 }
 
 export const NotificationTaskApi = {
-  init: () => request.post<NotificationTaskInitResponse>('/api/admin/NotificationTask/init'),
-  statusCount: (params: Pick<NotificationTaskListParams, 'title'>) => request.post<NotificationTaskStatusItem[]>('/api/admin/NotificationTask/statusCount', params),
-  list: (params: NotificationTaskListParams) => request.post<PaginatedResponse<NotificationTaskItem>>('/api/admin/NotificationTask/list', params),
-  add: (params: NotificationTaskAddParams) => request.post<{ id: number }>('/api/admin/NotificationTask/add', params),
-  del: (params: { id: number }) => request.post<void>('/api/admin/NotificationTask/del', params),
-  cancel: (params: { id: number }) => request.post<void>('/api/admin/NotificationTask/cancel', params),
+  init: () => legacyRequest.post<NotificationTaskInitResponse>('/api/admin/NotificationTask/init'),
+  statusCount: (params: Pick<NotificationTaskListParams, 'title'>) => legacyRequest.post<NotificationTaskStatusItem[]>('/api/admin/NotificationTask/statusCount', params),
+  list: (params: NotificationTaskListParams) => legacyRequest.post<PaginatedResponse<NotificationTaskItem>>('/api/admin/NotificationTask/list', params),
+  add: (params: NotificationTaskAddParams) => legacyRequest.post<{ id: number }>('/api/admin/NotificationTask/add', params),
+  del: (params: { id: number }) => legacyRequest.post<void>('/api/admin/NotificationTask/del', params),
+  cancel: (params: { id: number }) => legacyRequest.post<void>('/api/admin/NotificationTask/cancel', params),
 }

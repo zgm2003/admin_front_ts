@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiModelInitResponse {
@@ -41,10 +41,10 @@ export interface AiModelMutationParams extends RequestPayload {
 }
 
 export const AiModelApi = {
-  init: (params?: RequestPayload) => request.post<AiModelInitResponse>('/api/admin/AiModels/init', params),
-  add: (params: AiModelMutationParams) => request.post<void>('/api/admin/AiModels/add', params),
-  edit: (params: AiModelMutationParams) => request.post<void>('/api/admin/AiModels/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/AiModels/del', params),
-  list: (params: AiModelListParams) => request.post<PaginatedResponse<AiModelItem>>('/api/admin/AiModels/list', params),
-  status: (params: { id: Id; status: number }) => request.post<{ affected: number }>('/api/admin/AiModels/status', params),
+  init: (params?: RequestPayload) => legacyRequest.post<AiModelInitResponse>('/api/admin/AiModels/init', params),
+  add: (params: AiModelMutationParams) => legacyRequest.post<void>('/api/admin/AiModels/add', params),
+  edit: (params: AiModelMutationParams) => legacyRequest.post<void>('/api/admin/AiModels/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiModels/del', params),
+  list: (params: AiModelListParams) => legacyRequest.post<PaginatedResponse<AiModelItem>>('/api/admin/AiModels/list', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiModels/status', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import request, { legacyRequest } from '@/lib/http'
 import type { RequestPayload } from '@/types/common'
 import type {
   LoginConfigResponse,
@@ -40,74 +40,74 @@ export const UsersApi = {
   init: fetchCurrentUser,
 
   getLoginConfig: () =>
-    request.post<LoginConfigResponse>('/api/Users/getLoginConfig', {}),
+    legacyRequest.post<LoginConfigResponse>('/api/Users/getLoginConfig', {}),
 
   login: (params: UserLoginParams) =>
-    request.post<UserLoginSession>('/api/Users/login', params),
+    legacyRequest.post<UserLoginSession>('/api/Users/login', params),
 
   refresh: (params: { refresh_token: string }) =>
     request.post<UserLoginSession>('/api/v1/auth/refresh', params),
 
   logout: (params?: { refresh_token?: string }) =>
-    request.post<void>('/api/Users/logout', params),
+    legacyRequest.post<void>('/api/Users/logout', params),
 
   sendCode: (params: UserSendCodeParams) =>
-    request.post<void>('/api/Users/sendCode', params),
+    legacyRequest.post<void>('/api/Users/sendCode', params),
 
   forgetPassword: (params: UserForgetPasswordParams) =>
-    request.post<void>('/api/Users/forgetPassword', params),
+    legacyRequest.post<void>('/api/Users/forgetPassword', params),
 
   initPersonal: (params: { user_id: number | string }) =>
-    request.post<UserPersonalInitResponse>('/api/Users/initPersonal', params),
+    legacyRequest.post<UserPersonalInitResponse>('/api/Users/initPersonal', params),
 
   editPersonal: (params: UserPersonalEditParams) =>
-    request.post<void>('/api/Users/editPersonal', params),
+    legacyRequest.post<void>('/api/Users/editPersonal', params),
 
   EditPassword: (params: UserLegacyPasswordEditParams) =>
-    request.post<void>('/api/Users/EditPassword', params),
+    legacyRequest.post<void>('/api/Users/EditPassword', params),
 
   updatePhone: (params: UserPhoneUpdateParams) =>
-    request.post<void>('/api/Users/updatePhone', params),
+    legacyRequest.post<void>('/api/Users/updatePhone', params),
 
   updateEmail: (params: UserEmailUpdateParams) =>
-    request.post<void>('/api/Users/updateEmail', params),
+    legacyRequest.post<void>('/api/Users/updateEmail', params),
 
   updatePassword: (params: UserPasswordUpdateParams) =>
-    request.post<void>('/api/Users/updatePassword', params),
+    legacyRequest.post<void>('/api/Users/updatePassword', params),
 }
 
 export const UsersListApi = {
   init: (params?: RequestPayload) =>
-    request.post<UserListInitResponse>('/api/admin/UsersList/init', params),
+    legacyRequest.post<UserListInitResponse>('/api/admin/UsersList/init', params),
 
   list: (params: UsersListParams) =>
-    request.post<UserListResponse>('/api/admin/UsersList/list', params),
+    legacyRequest.post<UserListResponse>('/api/admin/UsersList/list', params),
 
   edit: (params: UserEditParams) =>
-    request.post<void>('/api/admin/UsersList/edit', params),
+    legacyRequest.post<void>('/api/admin/UsersList/edit', params),
 
   batchEdit: (params: UserBatchEditParams) =>
-    request.post<void>('/api/admin/UsersList/batchEdit', params),
+    legacyRequest.post<void>('/api/admin/UsersList/batchEdit', params),
 
   del: (params: { id: number | number[] }) =>
-    request.post<void>('/api/admin/UsersList/del', params),
+    legacyRequest.post<void>('/api/admin/UsersList/del', params),
 
   export: (params: { ids: number[] }) =>
-    request.post<UserExportResponse>('/api/admin/UsersList/export', params),
+    legacyRequest.post<UserExportResponse>('/api/admin/UsersList/export', params),
 }
 
 export const UserSessionApi = {
   list: (params: UserSessionListParams) =>
-    request.post<UserSessionListResponse>('/api/admin/UserSession/list', params),
+    legacyRequest.post<UserSessionListResponse>('/api/admin/UserSession/list', params),
 
   stats: () =>
-    request.post<UserSessionStats>('/api/admin/UserSession/stats'),
+    legacyRequest.post<UserSessionStats>('/api/admin/UserSession/stats'),
 
   kick: (params: UserSessionKickParams) =>
-    request.post<void>('/api/admin/UserSession/kick', params),
+    legacyRequest.post<void>('/api/admin/UserSession/kick', params),
 
   batchKick: (params: UserSessionBatchKickParams) =>
-    request.post<{ count: number }>('/api/admin/UserSession/batchKick', params),
+    legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params),
 }
 
 export type { UserSessionItem }

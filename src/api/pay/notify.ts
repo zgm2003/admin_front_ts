@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface PayNotifyLogInitResponse {
@@ -54,7 +54,7 @@ export interface PayNotifyLogDetailResponse {
 }
 
 export const PayNotifyLogApi = {
-  init: (params?: RequestPayload) => request.post<PayNotifyLogInitResponse>('/api/admin/PayNotifyLog/init', params),
-  list: (params: PayNotifyLogListParams) => request.post<PaginatedResponse<PayNotifyLogItem>>('/api/admin/PayNotifyLog/list', params),
-  detail: (params: { id: number }) => request.post<PayNotifyLogDetailResponse>('/api/admin/PayNotifyLog/detail', params),
+  init: (params?: RequestPayload) => legacyRequest.post<PayNotifyLogInitResponse>('/api/admin/PayNotifyLog/init', params),
+  list: (params: PayNotifyLogListParams) => legacyRequest.post<PaginatedResponse<PayNotifyLogItem>>('/api/admin/PayNotifyLog/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<PayNotifyLogDetailResponse>('/api/admin/PayNotifyLog/detail', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface ExportTaskStatusItem {
@@ -30,7 +30,7 @@ export interface ExportTaskItem {
 }
 
 export const ExportTaskApi = {
-  statusCount: (params: Pick<ExportTaskListParams, 'title' | 'file_name'>) => request.post<ExportTaskStatusItem[]>('/api/admin/ExportTask/statusCount', params),
-  list: (params: ExportTaskListParams) => request.post<PaginatedResponse<ExportTaskItem>>('/api/admin/ExportTask/list', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/ExportTask/del', params),
+  statusCount: (params: Pick<ExportTaskListParams, 'title' | 'file_name'>) => legacyRequest.post<ExportTaskStatusItem[]>('/api/admin/ExportTask/statusCount', params),
+  list: (params: ExportTaskListParams) => legacyRequest.post<PaginatedResponse<ExportTaskItem>>('/api/admin/ExportTask/list', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/ExportTask/del', params),
 }

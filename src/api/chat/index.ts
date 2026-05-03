@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { PaginatedResponse } from '@/types/common'
 
 // ============ Types ============
@@ -80,34 +80,34 @@ const BASE = '/api/admin/Chat'
 
 export const ChatRoomApi = {
   // 会话
-  conversationList: (params?: any) => request.post<{ list: ConversationItem[] }>(`${BASE}/conversationList`, params),
-  createPrivate: (params: { user_id: number }) => request.post<{ conversation: ConversationItem }>(`${BASE}/createPrivate`, params),
-  createGroup: (params: { name: string; user_ids: number[] }) => request.post<{ conversation: ConversationItem }>(`${BASE}/createGroup`, params),
-  deleteConversation: (params: { conversation_id: number }) => request.post(`${BASE}/deleteConversation`, params),
-  togglePin: (params: { conversation_id: number }) => request.post(`${BASE}/togglePin`, params),
+  conversationList: (params?: any) => legacyRequest.post<{ list: ConversationItem[] }>(`${BASE}/conversationList`, params),
+  createPrivate: (params: { user_id: number }) => legacyRequest.post<{ conversation: ConversationItem }>(`${BASE}/createPrivate`, params),
+  createGroup: (params: { name: string; user_ids: number[] }) => legacyRequest.post<{ conversation: ConversationItem }>(`${BASE}/createGroup`, params),
+  deleteConversation: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/deleteConversation`, params),
+  togglePin: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/togglePin`, params),
 
   // 群聊管理
-  groupInfo: (params: { conversation_id: number }) => request.post(`${BASE}/groupInfo`, params),
-  groupUpdate: (params: { conversation_id: number; name?: string; announcement?: string }) => request.post(`${BASE}/groupUpdate`, params),
-  groupInvite: (params: { conversation_id: number; user_ids: number[] }) => request.post(`${BASE}/groupInvite`, params),
-  groupKick: (params: { conversation_id: number; user_id: number }) => request.post(`${BASE}/groupKick`, params),
-  groupLeave: (params: { conversation_id: number }) => request.post(`${BASE}/groupLeave`, params),
-  groupTransfer: (params: { conversation_id: number; user_id: number }) => request.post(`${BASE}/groupTransfer`, params),
-  setAdmin: (params: { conversation_id: number; user_id: number; is_admin: boolean }) => request.post(`${BASE}/setAdmin`, params),
+  groupInfo: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/groupInfo`, params),
+  groupUpdate: (params: { conversation_id: number; name?: string; announcement?: string }) => legacyRequest.post(`${BASE}/groupUpdate`, params),
+  groupInvite: (params: { conversation_id: number; user_ids: number[] }) => legacyRequest.post(`${BASE}/groupInvite`, params),
+  groupKick: (params: { conversation_id: number; user_id: number }) => legacyRequest.post(`${BASE}/groupKick`, params),
+  groupLeave: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/groupLeave`, params),
+  groupTransfer: (params: { conversation_id: number; user_id: number }) => legacyRequest.post(`${BASE}/groupTransfer`, params),
+  setAdmin: (params: { conversation_id: number; user_id: number; is_admin: boolean }) => legacyRequest.post(`${BASE}/setAdmin`, params),
 
   // 消息
-  sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => request.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
-  messageList: (params: { conversation_id: number; current_page: number; page_size?: number }) => request.post<PaginatedResponse<MessageItem>>(`${BASE}/messageList`, params),
-  markRead: (params: { conversation_id: number }) => request.post(`${BASE}/markRead`, params),
-  recallMessage: (params: { message_id: number }) => request.post(`${BASE}/recallMessage`, params),
+  sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => legacyRequest.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
+  messageList: (params: { conversation_id: number; current_page: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<MessageItem>>(`${BASE}/messageList`, params),
+  markRead: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/markRead`, params),
+  recallMessage: (params: { message_id: number }) => legacyRequest.post(`${BASE}/recallMessage`, params),
 
   // 联系人
-  contactList: (params?: any) => request.post<{ list: ContactItem[] }>(`${BASE}/contactList`, params),
-  contactAdd: (params: { user_id: number }) => request.post(`${BASE}/contactAdd`, params),
-  contactConfirm: (params: { user_id: number }) => request.post(`${BASE}/contactConfirm`, params),
-  contactDelete: (params: { user_id: number }) => request.post(`${BASE}/contactDelete`, params),
+  contactList: (params?: any) => legacyRequest.post<{ list: ContactItem[] }>(`${BASE}/contactList`, params),
+  contactAdd: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactAdd`, params),
+  contactConfirm: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactConfirm`, params),
+  contactDelete: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactDelete`, params),
 
   // 实时
-  typing: (params: { conversation_id: number }) => request.post(`${BASE}/typing`, params),
-  onlineStatus: (params: { user_ids: number[] }) => request.post<{ online_status: Record<number, boolean> }>(`${BASE}/onlineStatus`, params),
+  typing: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/typing`, params),
+  onlineStatus: (params: { user_ids: number[] }) => legacyRequest.post<{ online_status: Record<number, boolean> }>(`${BASE}/onlineStatus`, params),
 }

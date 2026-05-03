@@ -1,13 +1,13 @@
 import { ElMessageBox, ElNotification } from 'element-plus'
 import i18n from '@/i18n'
-import { useTable, type PageState, type TableApiModule, type UseTableOptions } from '@/components/Table/src/useTable'
-import type { Id, Identifiable, RequestPayload } from '@/types/common'
+import { useTable, type PaginationParams, type TableApiModule, type UseTableOptions } from '@/components/Table/src/useTable'
+import type { Id, Identifiable } from '@/types/common'
 
 const t = i18n.global.t
 
 interface CrudApiModule<
   T extends Identifiable,
-  P extends Pick<PageState, 'current_page' | 'page_size'> & RequestPayload = Pick<PageState, 'current_page' | 'page_size'> & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 > extends TableApiModule<T, P> {
   del?(params: { id: Id | Id[] }): Promise<unknown>
   status?(params: { id: Id; status: number }): Promise<unknown>
@@ -15,7 +15,7 @@ interface CrudApiModule<
 
 interface UseCrudTableOptions<
   T extends Identifiable,
-  P extends Pick<PageState, 'current_page' | 'page_size'> & RequestPayload = Pick<PageState, 'current_page' | 'page_size'> & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 > extends UseTableOptions<T, P> {
   api: CrudApiModule<T, P>
   afterDel?: () => void
@@ -23,7 +23,7 @@ interface UseCrudTableOptions<
 
 export function useCrudTable<
   T extends Identifiable = Identifiable,
-  P extends Pick<PageState, 'current_page' | 'page_size'> & RequestPayload = Pick<PageState, 'current_page' | 'page_size'> & RequestPayload,
+  P extends PaginationParams = PaginationParams,
 >(options: UseCrudTableOptions<T, P>) {
   const { api, afterDel, ...tableOptions } = options
 

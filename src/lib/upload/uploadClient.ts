@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 
 // 动态导入 SDK，只在实际上传时才加载
 const loadCOS = () => import('cos-js-sdk-v5').then(m => m.default)
@@ -47,7 +47,7 @@ export interface UploadConfig {
 const API_TOKEN = '/api/getUploadToken'
 
 export const getUploadToken = (params: any): Promise<UploadConfig> => {
-    return request.post(API_TOKEN, params)
+    return legacyRequest.post(API_TOKEN, params)
 }
 
 export const validateFile = (file: File, config: UploadConfig, type: 'image' | 'file' = 'image') => {

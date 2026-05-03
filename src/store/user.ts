@@ -51,7 +51,7 @@ export const useUserStore = defineStore('user', {
   actions: {
     async fetchUserInfo() {
       try {
-        const data = await UsersApi.init()
+        const data = await UsersApi.me()
         this.user_id = data.user_id
         this.avatar = data.avatar
         this.username = data.username || '未设置用户名'

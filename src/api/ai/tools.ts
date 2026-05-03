@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiToolInitResponse {
@@ -53,12 +53,12 @@ export interface AiAgentToolsResponse {
 }
 
 export const AiToolApi = {
-  init: (params?: RequestPayload) => request.post<AiToolInitResponse>('/api/admin/AiTools/init', params),
-  list: (params: AiToolListParams) => request.post<PaginatedResponse<AiToolItem>>('/api/admin/AiTools/list', params),
-  add: (params: AiToolMutationParams) => request.post<void>('/api/admin/AiTools/add', params),
-  edit: (params: AiToolMutationParams) => request.post<void>('/api/admin/AiTools/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/AiTools/del', params),
-  status: (params: { id: Id; status: number }) => request.post<{ affected: number }>('/api/admin/AiTools/status', params),
-  bindTools: (params: { agent_id: number; tool_ids: number[] }) => request.post<void>('/api/admin/AiTools/bindTools', params),
-  getAgentTools: (params: { agent_id?: number }) => request.post<AiAgentToolsResponse>('/api/admin/AiTools/getAgentTools', params),
+  init: (params?: RequestPayload) => legacyRequest.post<AiToolInitResponse>('/api/admin/AiTools/init', params),
+  list: (params: AiToolListParams) => legacyRequest.post<PaginatedResponse<AiToolItem>>('/api/admin/AiTools/list', params),
+  add: (params: AiToolMutationParams) => legacyRequest.post<void>('/api/admin/AiTools/add', params),
+  edit: (params: AiToolMutationParams) => legacyRequest.post<void>('/api/admin/AiTools/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiTools/del', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiTools/status', params),
+  bindTools: (params: { agent_id: number; tool_ids: number[] }) => legacyRequest.post<void>('/api/admin/AiTools/bindTools', params),
+  getAgentTools: (params: { agent_id?: number }) => legacyRequest.post<AiAgentToolsResponse>('/api/admin/AiTools/getAgentTools', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { PaginatedResponse, RequestPayload } from '@/types/common'
 import type { Attachment } from './chat'
 
@@ -31,8 +31,8 @@ export interface AiMessageListParams extends RequestPayload {
 }
 
 export const AiMessageApi = {
-  list: (params: AiMessageListParams) => request.post<PaginatedResponse<AiMessageItem>>('/api/admin/AiMessages/list', params),
-  del: (params: { id: number | number[] }) => request.post<void>('/api/admin/AiMessages/del', params),
-  editContent: (params: { id: number; content: string }) => request.post<{ deleted_count: number }>('/api/admin/AiMessages/editContent', params),
-  feedback: (params: { id: number; feedback?: number }) => request.post<void>('/api/admin/AiMessages/feedback', params),
+  list: (params: AiMessageListParams) => legacyRequest.post<PaginatedResponse<AiMessageItem>>('/api/admin/AiMessages/list', params),
+  del: (params: { id: number | number[] }) => legacyRequest.post<void>('/api/admin/AiMessages/del', params),
+  editContent: (params: { id: number; content: string }) => legacyRequest.post<{ deleted_count: number }>('/api/admin/AiMessages/editContent', params),
+  feedback: (params: { id: number; feedback?: number }) => legacyRequest.post<void>('/api/admin/AiMessages/feedback', params),
 }

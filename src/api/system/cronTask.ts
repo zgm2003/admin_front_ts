@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export type CronPresetItem = DictOption<string>
@@ -63,11 +63,11 @@ export interface CronTaskLogItem {
 }
 
 export const CronTaskApi = {
-  init: () => request.post<CronTaskInitResponse>('/api/admin/CronTask/init'),
-  list: (params?: CronTaskListParams) => request.post<PaginatedResponse<CronTaskItem>>('/api/admin/CronTask/list', params),
-  add: (params: CronTaskForm) => request.post<void>('/api/admin/CronTask/add', params),
-  edit: (params: CronTaskForm) => request.post<void>('/api/admin/CronTask/edit', params),
-  del: (params: { id: number | number[] }) => request.post<void>('/api/admin/CronTask/del', params),
-  status: (params: { id: number; status: number }) => request.post<void>('/api/admin/CronTask/status', params),
-  logs: (params: CronTaskLogListParams) => request.post<PaginatedResponse<CronTaskLogItem>>('/api/admin/CronTask/logs', params),
+  init: () => legacyRequest.post<CronTaskInitResponse>('/api/admin/CronTask/init'),
+  list: (params?: CronTaskListParams) => legacyRequest.post<PaginatedResponse<CronTaskItem>>('/api/admin/CronTask/list', params),
+  add: (params: CronTaskForm) => legacyRequest.post<void>('/api/admin/CronTask/add', params),
+  edit: (params: CronTaskForm) => legacyRequest.post<void>('/api/admin/CronTask/edit', params),
+  del: (params: { id: number | number[] }) => legacyRequest.post<void>('/api/admin/CronTask/del', params),
+  status: (params: { id: number; status: number }) => legacyRequest.post<void>('/api/admin/CronTask/status', params),
+  logs: (params: CronTaskLogListParams) => legacyRequest.post<PaginatedResponse<CronTaskLogItem>>('/api/admin/CronTask/logs', params),
 }

@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { PaginatedResponse } from '@/types/common'
 
 export interface QueueMonitorItem {
@@ -24,10 +24,10 @@ export interface QueueMonitorClearResponse {
 }
 
 export const QueueMonitorApi = {
-  list: () => request.post<QueueMonitorItem[]>('/api/admin/QueueMonitor/list'),
+  list: () => legacyRequest.post<QueueMonitorItem[]>('/api/admin/QueueMonitor/list'),
   failedList: (params: { queue: string; page_size: number; current_page: number }) =>
-    request.post<PaginatedResponse<QueueFailedItem>>('/api/admin/QueueMonitor/failedList', params),
-  retry: (params: { queue: string; index: number }) => request.post<void>('/api/admin/QueueMonitor/retry', params),
-  clear: (params: { queue: string }) => request.post<QueueMonitorClearResponse>('/api/admin/QueueMonitor/clear', params),
-  clearFailed: (params: { queue: string }) => request.post<QueueMonitorClearResponse>('/api/admin/QueueMonitor/clearFailed', params),
+    legacyRequest.post<PaginatedResponse<QueueFailedItem>>('/api/admin/QueueMonitor/failedList', params),
+  retry: (params: { queue: string; index: number }) => legacyRequest.post<void>('/api/admin/QueueMonitor/retry', params),
+  clear: (params: { queue: string }) => legacyRequest.post<QueueMonitorClearResponse>('/api/admin/QueueMonitor/clear', params),
+  clearFailed: (params: { queue: string }) => legacyRequest.post<QueueMonitorClearResponse>('/api/admin/QueueMonitor/clearFailed', params),
 }

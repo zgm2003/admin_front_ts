@@ -1,7 +1,7 @@
 import request from '@/lib/http'
-import type { DictOption, Id, RequestPayload } from '@/types/common'
+import type { DictOption } from '@/types/common'
 
-export interface PermissionTreeNode extends Record<string, unknown> {
+export interface PermissionTreeNode {
   id: number
   label: string
   value: number
@@ -21,7 +21,7 @@ export interface PermissionInitResponse {
   }
 }
 
-export interface PermissionListParams extends RequestPayload {
+export interface PermissionListParams {
   platform: string
   name?: string
   path?: string
@@ -45,10 +45,9 @@ export interface PermissionListItem {
   children?: PermissionListItem[]
 }
 
-export interface PermissionMutationPayload extends RequestPayload {
-  id?: number
+export interface PermissionMutationPayload {
   name: string
-  parent_id?: number | ''
+  parent_id: number
   icon?: string
   path?: string
   component?: string
@@ -60,27 +59,43 @@ export interface PermissionMutationPayload extends RequestPayload {
   platform: string
 }
 
-export interface PermissionBatchEditPayload extends RequestPayload {
+export interface PermissionEditPayload extends PermissionMutationPayload {
+  id: number
+}
+
+export interface PermissionCreateResponse {
+  id: number
+}
+
+export interface PermissionDeleteOnePayload {
+  id: number
+}
+
+export interface PermissionBatchDeletePayload {
   ids: number[]
-  field: string
-  description?: string
 }
 
-export interface PermissionDeletePayload extends RequestPayload {
-  id: Id | Id[]
-}
-
-export interface PermissionStatusPayload extends RequestPayload {
+export interface PermissionStatusPayload {
   id: number
   status: number
 }
 
+export interface PermissionStatusBody {
+  status: number
+}
+
 export const PermissionApi = {
-  init: () => request.post<PermissionInitResponse>('/api/admin/Permission/init'),
-  list: (params: PermissionListParams) => request.post<PermissionListItem[]>('/api/admin/Permission/list', params),
-  add: (params: PermissionMutationPayload) => request.post<void>('/api/admin/Permission/add', params),
-  edit: (params: PermissionMutationPayload) => request.post<void>('/api/admin/Permission/edit', params),
-  del: (params: PermissionDeletePayload) => request.post<void>('/api/admin/Permission/del', params),
-  batchEdit: (params: PermissionBatchEditPayload) => request.post<void>('/api/admin/Permission/batchEdit', params),
-  status: (params: PermissionStatusPayload) => request.post<void>('/api/admin/Permission/status', params),
+  init: () => request.get<PermissionInitResponse>('/api/v1/permissions/init'),
+  list: (params: PermissionListParams) => request.get<PermissionListItem[]>('/api/v1/permissions', { params }),
+  add: (params: PermissionMutationPayload) => request.post<PermissionCreateResponse, PermissionMutationPayload>('/api/v1/permissions', params),
+  edit: (params: PermissionEditPayload) => {
+    const { id, ...body } = params
+    return request.put<void, PermissionMutationPayload>(`/api/v1/permissions/${id}`, body)
+  },
+  delOne: (params: PermissionDeleteOnePayload) => request.delete<void>(`/api/v1/permissions/${params.id}`),
+  delBatch: (params: PermissionBatchDeletePayload) => request.delete<void, PermissionBatchDeletePayload>('/api/v1/permissions', { data: params }),
+  status: (params: PermissionStatusPayload) => {
+    const body: PermissionStatusBody = { status: params.status }
+    return request.patch<void, PermissionStatusBody>(`/api/v1/permissions/${params.id}/status`, body)
+  },
 }

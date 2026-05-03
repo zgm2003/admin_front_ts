@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AiAgentCapabilities {
@@ -74,10 +74,10 @@ export interface AiAgentMutationParams extends RequestPayload {
 }
 
 export const AiAgentApi = {
-  init: (params?: RequestPayload) => request.post<AiAgentInitResponse>('/api/admin/AiAgents/init', params),
-  add: (params: AiAgentMutationParams) => request.post<{ id: number }>('/api/admin/AiAgents/add', params),
-  edit: (params: AiAgentMutationParams) => request.post<void>('/api/admin/AiAgents/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/AiAgents/del', params),
-  list: (params: AiAgentListParams) => request.post<PaginatedResponse<AiAgentItem>>('/api/admin/AiAgents/list', params),
-  status: (params: { id: Id; status: number }) => request.post<{ affected: number }>('/api/admin/AiAgents/status', params),
+  init: (params?: RequestPayload) => legacyRequest.post<AiAgentInitResponse>('/api/admin/AiAgents/init', params),
+  add: (params: AiAgentMutationParams) => legacyRequest.post<{ id: number }>('/api/admin/AiAgents/add', params),
+  edit: (params: AiAgentMutationParams) => legacyRequest.post<void>('/api/admin/AiAgents/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiAgents/del', params),
+  list: (params: AiAgentListParams) => legacyRequest.post<PaginatedResponse<AiAgentItem>>('/api/admin/AiAgents/list', params),
+  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiAgents/status', params),
 }

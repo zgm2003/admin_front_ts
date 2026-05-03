@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export interface PayChannelInitResponse {
@@ -69,10 +69,10 @@ export interface PayChannelStatusParams {
 }
 
 export const PayChannelApi = {
-  init: (params?: Record<string, unknown>) => request.post<PayChannelInitResponse>('/api/admin/PayChannel/init', params),
-  list: (params: PayChannelListParams) => request.post<PaginatedResponse<PayChannelListItem>>('/api/admin/PayChannel/list', params),
-  add: (params: PayChannelMutationPayload) => request.post<unknown>('/api/admin/PayChannel/add', params),
-  edit: (params: PayChannelMutationPayload) => request.post<unknown>('/api/admin/PayChannel/edit', params),
-  del: (params: PayChannelDeleteParams) => request.post<unknown>('/api/admin/PayChannel/del', params),
-  status: (params: PayChannelStatusParams) => request.post<unknown>('/api/admin/PayChannel/status', params),
+  init: (params?: Record<string, unknown>) => legacyRequest.post<PayChannelInitResponse>('/api/admin/PayChannel/init', params),
+  list: (params: PayChannelListParams) => legacyRequest.post<PaginatedResponse<PayChannelListItem>>('/api/admin/PayChannel/list', params),
+  add: (params: PayChannelMutationPayload) => legacyRequest.post<unknown>('/api/admin/PayChannel/add', params),
+  edit: (params: PayChannelMutationPayload) => legacyRequest.post<unknown>('/api/admin/PayChannel/edit', params),
+  del: (params: PayChannelDeleteParams) => legacyRequest.post<unknown>('/api/admin/PayChannel/del', params),
+  status: (params: PayChannelStatusParams) => legacyRequest.post<unknown>('/api/admin/PayChannel/status', params),
 }

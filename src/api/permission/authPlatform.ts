@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface AuthPlatformInitResponse {
@@ -63,10 +63,10 @@ export interface AuthPlatformEditPayload extends RequestPayload {
 }
 
 export const AuthPlatformApi = {
-  init: () => request.post<AuthPlatformInitResponse>('/api/admin/AuthPlatform/init'),
-  list: (params: AuthPlatformListParams) => request.post<PaginatedResponse<AuthPlatformItem>>('/api/admin/AuthPlatform/list', params),
-  add: (params: AuthPlatformAddPayload) => request.post<void>('/api/admin/AuthPlatform/add', params),
-  edit: (params: AuthPlatformEditPayload) => request.post<void>('/api/admin/AuthPlatform/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<void>('/api/admin/AuthPlatform/del', params),
-  status: (params: { id: number; status: number }) => request.post<void>('/api/admin/AuthPlatform/status', params),
+  init: () => legacyRequest.post<AuthPlatformInitResponse>('/api/admin/AuthPlatform/init'),
+  list: (params: AuthPlatformListParams) => legacyRequest.post<PaginatedResponse<AuthPlatformItem>>('/api/admin/AuthPlatform/list', params),
+  add: (params: AuthPlatformAddPayload) => legacyRequest.post<void>('/api/admin/AuthPlatform/add', params),
+  edit: (params: AuthPlatformEditPayload) => legacyRequest.post<void>('/api/admin/AuthPlatform/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<void>('/api/admin/AuthPlatform/del', params),
+  status: (params: { id: number; status: number }) => legacyRequest.post<void>('/api/admin/AuthPlatform/status', params),
 }

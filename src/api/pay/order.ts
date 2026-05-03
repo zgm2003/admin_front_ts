@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export interface OrderListParams {
@@ -194,18 +194,18 @@ export interface OrderNoParams {
 }
 
 export const OrderApi = {
-  init: (params?: Record<string, unknown>) => request.post<OrderInitResponse>('/api/admin/PayOrder/init', params),
-  list: (params: OrderListParams) => request.post<PaginatedResponse<OrderListItem>>('/api/admin/PayOrder/list', params),
-  detail: (params: OrderIdParams) => request.post<OrderDetailResponse>('/api/admin/PayOrder/detail', params),
-  statusCount: (params?: Record<string, unknown>) => request.post<OrderStatusCountResponse>('/api/admin/PayOrder/statusCount', params),
-  close: (params: OrderCloseParams) => request.post<void>('/api/admin/PayOrder/close', params),
-  remark: (params: OrderRemarkParams) => request.post<void>('/api/admin/PayOrder/remark', params),
-  recharge: (params: RechargeCreateParams) => request.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge', params),
-  createPay: (params: CreatePayParams) => request.post<CreatePayResponse>('/api/admin/pay/createPay', params),
-  cancelOrder: (params: OrderNoParams & { reason?: string }) => request.post<void>('/api/admin/pay/cancelOrder', params),
-  myOrders: (params: { current_page?: number; page_size?: number }) => request.post<PaginatedResponse<RechargeMyOrderItem>>('/api/admin/pay/myOrders', params),
-  queryResult: (params: OrderNoParams) => request.post<OrderQueryResultResponse>('/api/admin/pay/queryResult', params),
-  orderDetail: (params: OrderNoParams) => request.post<unknown>('/api/admin/pay/orderDetail', params),
-  walletInfo: (params?: Record<string, unknown>) => request.post<WalletInfoResponse>('/api/admin/pay/walletInfo', params),
-  walletBills: (params: { current_page?: number; page_size?: number }) => request.post<PaginatedResponse<WalletBillItem>>('/api/admin/pay/walletBills', params),
+  init: (params?: Record<string, unknown>) => legacyRequest.post<OrderInitResponse>('/api/admin/PayOrder/init', params),
+  list: (params: OrderListParams) => legacyRequest.post<PaginatedResponse<OrderListItem>>('/api/admin/PayOrder/list', params),
+  detail: (params: OrderIdParams) => legacyRequest.post<OrderDetailResponse>('/api/admin/PayOrder/detail', params),
+  statusCount: (params?: Record<string, unknown>) => legacyRequest.post<OrderStatusCountResponse>('/api/admin/PayOrder/statusCount', params),
+  close: (params: OrderCloseParams) => legacyRequest.post<void>('/api/admin/PayOrder/close', params),
+  remark: (params: OrderRemarkParams) => legacyRequest.post<void>('/api/admin/PayOrder/remark', params),
+  recharge: (params: RechargeCreateParams) => legacyRequest.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge', params),
+  createPay: (params: CreatePayParams) => legacyRequest.post<CreatePayResponse>('/api/admin/pay/createPay', params),
+  cancelOrder: (params: OrderNoParams & { reason?: string }) => legacyRequest.post<void>('/api/admin/pay/cancelOrder', params),
+  myOrders: (params: { current_page?: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<RechargeMyOrderItem>>('/api/admin/pay/myOrders', params),
+  queryResult: (params: OrderNoParams) => legacyRequest.post<OrderQueryResultResponse>('/api/admin/pay/queryResult', params),
+  orderDetail: (params: OrderNoParams) => legacyRequest.post<unknown>('/api/admin/pay/orderDetail', params),
+  walletInfo: (params?: Record<string, unknown>) => legacyRequest.post<WalletInfoResponse>('/api/admin/pay/walletInfo', params),
+  walletBills: (params: { current_page?: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<WalletBillItem>>('/api/admin/pay/walletBills', params),
 }

@@ -85,6 +85,7 @@ watch(() => props.rows, applyExpansion)
             :active-value="CommonEnum.YES"
             :inactive-value="CommonEnum.NO"
             :disabled="!canStatus"
+            @click.stop
             @change="emit('statusChange', scope.row)"
           />
         </template>

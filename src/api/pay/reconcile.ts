@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface PayReconcileInitResponse {
@@ -53,9 +53,9 @@ export interface PayReconcileDownloadResponse {
 }
 
 export const PayReconcileApi = {
-  init: (params?: RequestPayload) => request.post<PayReconcileInitResponse>('/api/admin/PayReconcile/init', params),
-  list: (params: PayReconcileListParams) => request.post<PaginatedResponse<PayReconcileTaskItem>>('/api/admin/PayReconcile/list', params),
-  detail: (params: { id: number }) => request.post<PayReconcileDetailResponse>('/api/admin/PayReconcile/detail', params),
-  retry: (params: { id: number }) => request.post<void>('/api/admin/PayReconcile/retry', params),
-  download: (params: { id: number; type: 'platform' | 'local' | 'diff' }) => request.post<PayReconcileDownloadResponse>('/api/admin/PayReconcile/download', params),
+  init: (params?: RequestPayload) => legacyRequest.post<PayReconcileInitResponse>('/api/admin/PayReconcile/init', params),
+  list: (params: PayReconcileListParams) => legacyRequest.post<PaginatedResponse<PayReconcileTaskItem>>('/api/admin/PayReconcile/list', params),
+  detail: (params: { id: number }) => legacyRequest.post<PayReconcileDetailResponse>('/api/admin/PayReconcile/detail', params),
+  retry: (params: { id: number }) => legacyRequest.post<void>('/api/admin/PayReconcile/retry', params),
+  download: (params: { id: number; type: 'platform' | 'local' | 'diff' }) => legacyRequest.post<PayReconcileDownloadResponse>('/api/admin/PayReconcile/download', params),
 }

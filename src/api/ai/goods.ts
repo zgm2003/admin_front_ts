@@ -1,4 +1,4 @@
-import request from '@/lib/http'
+import { legacyRequest } from '@/lib/http'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
 export interface GoodsMetaRecord extends Record<string, unknown> {
@@ -113,14 +113,14 @@ export interface GoodsTtsParams extends RequestPayload {
 }
 
 export const GoodsApi = {
-  init: (params?: RequestPayload) => request.post<GoodsInitResponse>('/api/admin/Goods/init', params),
-  statusCount: (params?: GoodsStatusCountParams) => request.post<GoodsStatusCountItem[]>('/api/admin/Goods/statusCount', params),
-  list: (params: GoodsListParams) => request.post<PaginatedResponse<GoodsItem>>('/api/admin/Goods/list', params),
-  add: (params: GoodsAddParams) => request.post<{ id: number }>('/api/admin/Goods/add', params),
-  edit: (params: GoodsMutationParams) => request.post<void>('/api/admin/Goods/edit', params),
-  del: (params: { id: Id | Id[] }) => request.post<{ affected: number }>('/api/admin/Goods/del', params),
-  submit: (params: GoodsSubmitParams) => request.post<{ id: number }>('/api/admin/Goods/submit', params),
-  ocr: (params: GoodsOcrParams) => request.post<{ msg: string }>('/api/admin/Goods/ocr', params),
-  generate: (params: GoodsGenerateParams) => request.post<{ msg: string }>('/api/admin/Goods/generate', params),
-  tts: (params: GoodsTtsParams) => request.post<{ msg: string }>('/api/admin/Goods/tts', params),
+  init: (params?: RequestPayload) => legacyRequest.post<GoodsInitResponse>('/api/admin/Goods/init', params),
+  statusCount: (params?: GoodsStatusCountParams) => legacyRequest.post<GoodsStatusCountItem[]>('/api/admin/Goods/statusCount', params),
+  list: (params: GoodsListParams) => legacyRequest.post<PaginatedResponse<GoodsItem>>('/api/admin/Goods/list', params),
+  add: (params: GoodsAddParams) => legacyRequest.post<{ id: number }>('/api/admin/Goods/add', params),
+  edit: (params: GoodsMutationParams) => legacyRequest.post<void>('/api/admin/Goods/edit', params),
+  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/Goods/del', params),
+  submit: (params: GoodsSubmitParams) => legacyRequest.post<{ id: number }>('/api/admin/Goods/submit', params),
+  ocr: (params: GoodsOcrParams) => legacyRequest.post<{ msg: string }>('/api/admin/Goods/ocr', params),
+  generate: (params: GoodsGenerateParams) => legacyRequest.post<{ msg: string }>('/api/admin/Goods/generate', params),
+  tts: (params: GoodsTtsParams) => legacyRequest.post<{ msg: string }>('/api/admin/Goods/tts', params),
 }
