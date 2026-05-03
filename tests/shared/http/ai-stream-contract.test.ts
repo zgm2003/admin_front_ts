@@ -6,6 +6,9 @@ vi.mock('@/lib/http', () => ({
   default: {
     post,
   },
+  legacyRequest: {
+    post,
+  },
 }))
 
 describe('AI stream contracts', () => {

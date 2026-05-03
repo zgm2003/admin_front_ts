@@ -2,6 +2,7 @@ import request, { legacyRequest } from '@/lib/http'
 import type { RequestPayload } from '@/types/common'
 import type {
   LoginConfigResponse,
+  UserCaptchaChallenge,
   UserEmailUpdateParams,
   UserExportResponse,
   UserForgetPasswordParams,
@@ -33,23 +34,26 @@ export interface UserLegacyPasswordEditParams {
 }
 
 const fetchCurrentUser = () =>
-  request.get<UserInitResponse>('/api/v1/users/me')
+  request.get<UserInitResponse>('/api/admin/v1/users/me')
 
 export const UsersApi = {
   me: fetchCurrentUser,
   init: fetchCurrentUser,
 
   getLoginConfig: () =>
-    legacyRequest.post<LoginConfigResponse>('/api/Users/getLoginConfig', {}),
+    request.get<LoginConfigResponse>('/api/admin/v1/auth/login-config'),
+
+  getCaptcha: () =>
+    request.get<UserCaptchaChallenge>('/api/admin/v1/auth/captcha'),
 
   login: (params: UserLoginParams) =>
-    legacyRequest.post<UserLoginSession>('/api/Users/login', params),
+    request.post<UserLoginSession, UserLoginParams>('/api/admin/v1/auth/login', params),
 
   refresh: (params: { refresh_token: string }) =>
-    request.post<UserLoginSession>('/api/v1/auth/refresh', params),
+    request.post<UserLoginSession>('/api/admin/v1/auth/refresh', params),
 
   logout: (params?: { refresh_token?: string }) =>
-    legacyRequest.post<void>('/api/Users/logout', params),
+    request.post<void, { refresh_token?: string }>('/api/admin/v1/auth/logout', params),
 
   sendCode: (params: UserSendCodeParams) =>
     legacyRequest.post<void>('/api/Users/sendCode', params),
@@ -111,3 +115,4 @@ export const UserSessionApi = {
 }
 
 export type { UserSessionItem }
+

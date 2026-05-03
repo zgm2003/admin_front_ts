@@ -5,7 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { SendCode } from '@/components/SendCode'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { Message, Lock, View, Hide, Iphone } from '@element-plus/icons-vue'
-import type { UserLoginType } from '@/types/user'
+import type { UserCaptchaChallenge, UserLoginType } from '@/types/user'
+import LoginSlideCaptcha from './LoginSlideCaptcha.vue'
 
 type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeInstance = InstanceType<typeof SendCode>
@@ -14,6 +15,10 @@ const props = defineProps<{
   loginTypes: LoginTypeItem[]
   activeType: UserLoginType
   loginForm: { login_account: string; password: string; code: string; remember: boolean }
+  captchaChallenge: UserCaptchaChallenge | null
+  captchaX: number
+  captchaEnabled: boolean
+  captchaLoading: boolean
   rules: FormRules
   showPassword: boolean
   isPasswordLogin: boolean
@@ -35,6 +40,8 @@ const emit = defineEmits<{
   (e: 'openService'): void
   (e: 'openPolicy'): void
   (e: 'update:agreePolicy', value: boolean): void
+  (e: 'update:captchaX', value: number): void
+  (e: 'refreshCaptcha'): void
 }>()
 
 const elFormRef = useTemplateRef<FormInstance>('elForm')
@@ -151,6 +158,17 @@ onBeforeUnmount(() => {
                   />
                 </el-form-item>
               </template>
+            </div>
+
+            <div v-if="activeType === 'password' && captchaEnabled" class="input-group captcha-group">
+              <LoginSlideCaptcha
+                :enabled="captchaEnabled"
+                :challenge="captchaChallenge"
+                :model-value="captchaX"
+                :loading="captchaLoading"
+                @update:model-value="$emit('update:captchaX', $event)"
+                @refresh="$emit('refreshCaptcha')"
+              />
             </div>
           </div>
         </div>
@@ -410,14 +428,14 @@ onBeforeUnmount(() => {
 
 .method-container {
   position: relative;
-  height: 176px;
+  height: 382px;
   margin-bottom: 20px;
 }
 
 .login-form-card.is-mobile .method-container {
   position: relative;
   height: auto !important;
-  min-height: 124px !important;
+  min-height: 330px !important;
   margin-bottom: 10px;
 }
 
@@ -461,6 +479,10 @@ onBeforeUnmount(() => {
   &:nth-child(2) {
     animation-delay: 0.2s;
   }
+}
+
+.captcha-group {
+  margin-bottom: 0;
 }
 
 .input-label {

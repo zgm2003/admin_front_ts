@@ -1,4 +1,4 @@
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, shallowRef, reactive, computed, watch, onMounted } from 'vue'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import { ElMessage, ElNotification } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -6,7 +6,14 @@ import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/storage'
 import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
-import type { LoginConfigResponse, UserLoginParams, UserLoginSession, UserLoginType } from '@/types/user'
+import type {
+  LoginConfigResponse,
+  UserCaptchaAnswer,
+  UserCaptchaChallenge,
+  UserLoginParams,
+  UserLoginSession,
+  UserLoginType,
+} from '@/types/user'
 import type { SendCode } from '@/components/SendCode'
 
 type LoginTypeItem = { label: string; value: UserLoginType }
@@ -21,6 +28,10 @@ export function useLoginForm() {
   const formRef = ref<FormInstance>()
   const sendCodeRef = ref<SendCodeRef | null>(null)
   const loginTypes = ref<LoginTypeItem[]>([])
+  const captchaChallenge = shallowRef<UserCaptchaChallenge | null>(null)
+  const captchaX = shallowRef(0)
+  const captchaEnabled = shallowRef(false)
+  const captchaLoading = shallowRef(false)
 
   const loginForm = reactive({
     login_account: '',
@@ -64,12 +75,19 @@ export function useLoginForm() {
   const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
   const isValidPhone = (value: string) => /^1[3-9]\d{9}$/.test(value)
   const isAllowedType = (types: LoginTypeItem[], type: UserLoginType) => types.some(item => item.value === type)
+  const hasCompletedCaptcha = computed(() => {
+    const challenge = captchaChallenge.value
+    if (!challenge) return false
+    return captchaX.value > challenge.tile_x
+  })
 
   const resetLoginForm = ({ preserveAccount = false }: { preserveAccount?: boolean } = {}) => {
     const nextAccount = preserveAccount ? loginForm.login_account : ''
     loginForm.login_account = nextAccount
     loginForm.password = ''
     loginForm.code = ''
+    const challenge = captchaChallenge.value
+    captchaX.value = challenge ? challenge.tile_x : 0
     sendCodeRef.value?.reset?.()
     formRef.value?.clearValidate()
   }
@@ -118,6 +136,32 @@ export function useLoginForm() {
     setTimeout(() => (isShaking.value = false), 500)
   }
 
+  const refreshCaptcha = async () => {
+    if (!captchaEnabled.value) return
+    captchaLoading.value = true
+    try {
+      const challenge = await UsersApi.getCaptcha()
+      captchaChallenge.value = challenge
+      captchaX.value = challenge.tile_x
+    } finally {
+      captchaLoading.value = false
+    }
+  }
+
+  const buildCaptchaAnswer = (): { captcha_id: string; captcha_answer: UserCaptchaAnswer } | null => {
+    const challenge = captchaChallenge.value
+    if (!challenge || !hasCompletedCaptcha.value) {
+      return null
+    }
+    return {
+      captcha_id: challenge.captcha_id,
+      captcha_answer: {
+        x: Math.round(captchaX.value),
+        y: challenge.tile_y,
+      },
+    }
+  }
+
   const handleSubmit = async () => {
     if (!agreePolicy.value) return ElMessage.error('请先阅读并同意服务条款和隐私政策')
 
@@ -132,18 +176,42 @@ export function useLoginForm() {
       return
     }
 
+    const captchaPayload = isPasswordLogin.value && captchaEnabled.value ? buildCaptchaAnswer() : null
+    if (isPasswordLogin.value && captchaEnabled.value && !captchaPayload) {
+      ElMessage.error('请拖动滑块完成验证')
+      triggerShake()
+      return
+    }
+
     isSubmitting.value = true
     try {
       const account = loginForm.login_account.trim()
-      const params: UserLoginParams = loginType.value === 'password'
-        ? { login_type: 'password', login_account: account, password: loginForm.password }
-        : { login_type: loginType.value, login_account: account, code: loginForm.code }
+      let params: UserLoginParams
+      if (loginType.value === 'password') {
+        if (!captchaPayload) {
+          ElMessage.error('请拖动滑块完成验证')
+          triggerShake()
+          return
+        }
+        params = {
+          login_type: 'password',
+          login_account: account,
+          password: loginForm.password,
+          captcha_id: captchaPayload.captcha_id,
+          captcha_answer: captchaPayload.captcha_answer,
+        }
+      } else {
+        params = { login_type: loginType.value, login_account: account, code: loginForm.code }
+      }
 
       const data = await UsersApi.login(params)
       rememberPwd()
       await handleLoginSuccess(data)
     } catch (error) {
       console.error('登录失败:', error)
+      if (isPasswordLogin.value && captchaEnabled.value) {
+        await refreshCaptcha()
+      }
     } finally {
       isSubmitting.value = false
     }
@@ -209,6 +277,9 @@ export function useLoginForm() {
   const handleTabChange = (method: UserLoginType) => {
     activeAccountType.value = method
     resetLoginForm()
+    if (method === 'password') {
+      void refreshCaptcha()
+    }
   }
 
   const setFormRef = (instance: FormInstance | null | undefined) => {
@@ -229,16 +300,23 @@ export function useLoginForm() {
     ElMessage.info('请在系统设置页查看隐私政策')
   }
 
-  onMounted(() => {
-    UsersApi.getLoginConfig().then((res: LoginConfigResponse) => {
-      loginTypes.value = res.login_type_arr || []
-    })
+  onMounted(async () => {
     getLoginFormCache()
+    const res: LoginConfigResponse = await UsersApi.getLoginConfig()
+    loginTypes.value = res.login_type_arr
+    captchaEnabled.value = res.captcha_enabled
+    if (res.captcha_enabled) {
+      await refreshCaptcha()
+    }
   })
 
   return {
     loginTypes,
     loginForm,
+    captchaChallenge,
+    captchaX,
+    captchaEnabled,
+    captchaLoading,
     activeAccountType,
     showPassword,
     agreePolicy,
@@ -249,6 +327,7 @@ export function useLoginForm() {
     rules,
     handleSubmit,
     handleTabChange,
+    refreshCaptcha,
     setFormRef,
     setSendCodeRef,
     openService,

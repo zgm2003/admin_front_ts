@@ -8,6 +8,9 @@ vi.mock('@/lib/http', () => ({
   default: {
     post,
   },
+  legacyRequest: {
+    post,
+  },
 }))
 
 vi.mock('@/lib/realtime/message-bus', () => ({

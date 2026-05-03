@@ -15,8 +15,18 @@ describe('agent helpers', () => {
       system_prompt: '',
       mode: 'chat',
       scene: '',
+      scene_codes: [],
+      capabilities: {
+        chat: true,
+        tools: false,
+        rag: false,
+        workflow: false,
+      },
+      runtime_config: null,
+      policy: null,
       status: 1,
       tool_ids: [],
+      knowledge_base_ids: [],
     })
   })
 
@@ -28,13 +38,9 @@ describe('agent helpers', () => {
 
   it('builds mutation payloads without leaking chat-only tool_ids', () => {
     expect(toAgentMutationPayload({
+      ...createDefaultAgentForm(),
       name: 'demo',
       model_id: 3,
-      avatar: '',
-      system_prompt: '',
-      mode: 'chat',
-      scene: '',
-      status: 1,
       tool_ids: [1, 2],
     })).toEqual({
       name: 'demo',
@@ -43,10 +49,22 @@ describe('agent helpers', () => {
       system_prompt: null,
       mode: 'chat',
       scene: null,
+      scene_codes: [],
+      capabilities: {
+        chat: true,
+        tools: false,
+        rag: false,
+        workflow: false,
+      },
+      runtime_config: null,
+      policy: null,
       status: 1,
+      tool_ids: [],
+      knowledge_base_ids: [],
     })
 
     expect(toAgentMutationPayload({
+      ...createDefaultAgentForm(),
       id: 9,
       name: 'tool-agent',
       model_id: 4,
@@ -54,6 +72,13 @@ describe('agent helpers', () => {
       system_prompt: 'use tools',
       mode: 'tool',
       scene: 'goods_script',
+      scene_codes: ['goods_script'],
+      capabilities: {
+        chat: true,
+        tools: true,
+        rag: false,
+        workflow: false,
+      },
       status: 2,
       tool_ids: [7, 8],
     })).toEqual({
@@ -64,8 +89,18 @@ describe('agent helpers', () => {
       system_prompt: 'use tools',
       mode: 'tool',
       scene: 'goods_script',
+      scene_codes: ['goods_script'],
+      capabilities: {
+        chat: true,
+        tools: true,
+        rag: false,
+        workflow: false,
+      },
+      runtime_config: null,
+      policy: null,
       status: 2,
       tool_ids: [7, 8],
+      knowledge_base_ids: [],
     })
   })
 

@@ -57,21 +57,22 @@ function normalizeRoleIDs(id: Id | Id[]): number[] {
 }
 
 export const RoleApi = {
-  init: () => request.get<RoleInitResponse>('/api/v1/roles/init'),
-  list: (params: RoleListParams) => request.get<PaginatedResponse<RoleListItem>>('/api/v1/roles', { params }),
-  add: (params: RoleAddPayload) => request.post<void, RoleAddPayload>('/api/v1/roles', params),
+  init: () => request.get<RoleInitResponse>('/api/admin/v1/roles/init'),
+  list: (params: RoleListParams) => request.get<PaginatedResponse<RoleListItem>>('/api/admin/v1/roles', { params }),
+  add: (params: RoleAddPayload) => request.post<void, RoleAddPayload>('/api/admin/v1/roles', params),
   edit: (params: RoleEditPayload) => {
     const { id, ...body } = params
-    return request.put<void, RoleAddPayload>(`/api/v1/roles/${id}`, body)
+    return request.put<void, RoleAddPayload>(`/api/admin/v1/roles/${id}`, body)
   },
   del: (params: { id: Id | Id[] }) => {
     const ids = normalizeRoleIDs(params.id)
     if (ids.length === 1) {
-      return request.delete<void>(`/api/v1/roles/${ids[0]}`)
+      return request.delete<void>(`/api/admin/v1/roles/${ids[0]}`)
     }
     const body: RoleBatchDeletePayload = { ids }
-    return request.delete<void, RoleBatchDeletePayload>('/api/v1/roles', { data: body })
+    return request.delete<void, RoleBatchDeletePayload>('/api/admin/v1/roles', { data: body })
   },
   default: (params: { id: number }) =>
-    request.patch<void>(`/api/v1/roles/${params.id}/default`),
+    request.patch<void>(`/api/admin/v1/roles/${params.id}/default`),
 }
+

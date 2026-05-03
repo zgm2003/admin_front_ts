@@ -13,13 +13,13 @@ describe('permission api REST contract', () => {
     const source = readFrontendSource('src/api/permission/permission.ts')
 
     expect(source).toContain("import request from '@/lib/http'")
-    expect(source).toContain("request.get<PermissionInitResponse>('/api/v1/permissions/init')")
-    expect(source).toContain("request.get<PermissionListItem[]>('/api/v1/permissions'")
-    expect(source).toContain("request.post<PermissionCreateResponse, PermissionMutationPayload>('/api/v1/permissions'")
+    expect(source).toContain("request.get<PermissionInitResponse>('/api/admin/v1/permissions/init')")
+    expect(source).toContain("request.get<PermissionListItem[]>('/api/admin/v1/permissions'")
+    expect(source).toContain("request.post<PermissionCreateResponse, PermissionMutationPayload>('/api/admin/v1/permissions'")
     expect(source).toContain('request.put<void, PermissionMutationPayload>(')
     expect(source).toContain('request.patch<void, PermissionStatusBody>(')
-    expect(source).toContain('request.delete<void>(`/api/v1/permissions/${params.id}`)')
-    expect(source).toContain("request.delete<void, PermissionBatchDeletePayload>('/api/v1/permissions'")
+    expect(source).toContain('request.delete<void>(`/api/admin/v1/permissions/${params.id}`)')
+    expect(source).toContain("request.delete<void, PermissionBatchDeletePayload>('/api/admin/v1/permissions'")
     expect(source).not.toContain('goRequest')
     expect(source).not.toContain('/api/admin/Permission/')
   })
@@ -48,3 +48,4 @@ describe('permission api REST contract', () => {
     expect(envProduction).toMatch(/^VITE_GO_API_BASE_URL=.+$/m)
   })
 })
+

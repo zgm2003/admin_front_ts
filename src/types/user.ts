@@ -56,8 +56,29 @@ export interface UserLoginSession {
   is_new_user?: boolean
 }
 
+export interface UserCaptchaAnswer {
+  x: number
+  y: number
+}
+
+export interface UserCaptchaChallenge {
+  captcha_id: string
+  captcha_type: 'slide'
+  master_image: string
+  tile_image: string
+  tile_x: number
+  tile_y: number
+  tile_width: number
+  tile_height: number
+  image_width: number
+  image_height: number
+  expires_in: number
+}
+
 export interface LoginConfigResponse {
   login_type_arr: DictOption<UserLoginType>[]
+  captcha_enabled: boolean
+  captcha_type: 'slide'
 }
 
 export type UserLoginParams =
@@ -65,6 +86,8 @@ export type UserLoginParams =
       login_account: string
       login_type: 'password'
       password: string
+      captcha_id: string
+      captcha_answer: UserCaptchaAnswer
     }
   | {
       login_account: string

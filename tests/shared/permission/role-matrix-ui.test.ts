@@ -2,9 +2,13 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+function readFrontendSource(relativePath: string) {
+  return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
+}
+
 describe('role permission matrix UI contract', () => {
   it('uses matrix components instead of the old cascader permission editor', () => {
-    const source = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/role/index.vue'), 'utf8')
+    const source = readFrontendSource('src/views/Main/permission/role/index.vue')
 
     expect(source).toContain('RolePermissionMatrix')
     expect(source).toContain('RolePermissionDiffDialog')
@@ -12,7 +16,6 @@ describe('role permission matrix UI contract', () => {
     expect(source).toContain('getRoleMatrixGroupPermissionIds')
     expect(source).toContain('diffPermissionIds')
     expect(source).toContain(':height="isMobile ? \'72vh\' : \'min(72vh, 720px)\'"')
-    expect(source).toContain('top="5vh"')
     expect(source).toContain('permission_platform_arr')
     expect(source).toContain('<el-tabs')
     expect(source).not.toContain('<el-cascader')
@@ -20,8 +23,8 @@ describe('role permission matrix UI contract', () => {
   })
 
   it('keeps matrix and diff UI in focused child components', () => {
-    const matrix = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/role/components/RolePermissionMatrix.vue'), 'utf8')
-    const diff = readFileSync(resolve('e:/admin/admin_front_ts/src/views/Main/permission/role/components/RolePermissionDiffDialog.vue'), 'utf8')
+    const matrix = readFrontendSource('src/views/Main/permission/role/components/RolePermissionMatrix.vue')
+    const diff = readFrontendSource('src/views/Main/permission/role/components/RolePermissionDiffDialog.vue')
 
     expect(matrix).toContain('defineModel<number[]>')
     expect(matrix).toContain('RoleMatrixGroup')

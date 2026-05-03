@@ -16,6 +16,10 @@ const isMobile = useIsMobile()
 const {
   loginTypes,
   loginForm,
+  captchaChallenge,
+  captchaX,
+  captchaEnabled,
+  captchaLoading,
   activeAccountType,
   showPassword,
   agreePolicy,
@@ -26,6 +30,7 @@ const {
   rules,
   handleSubmit,
   handleTabChange,
+  refreshCaptcha,
   setFormRef,
   setSendCodeRef,
   openService,
@@ -81,6 +86,10 @@ async function tauriClose() {
           :login-types="loginTypes"
           :active-type="activeAccountType"
           :login-form="loginForm"
+          :captcha-challenge="captchaChallenge"
+          :captcha-x="captchaX"
+          :captcha-enabled="captchaEnabled"
+          :captcha-loading="captchaLoading"
           :rules="rules"
           :show-password="showPassword"
           :is-password-login="isPasswordLogin"
@@ -91,6 +100,8 @@ async function tauriClose() {
           :register-send-code="setSendCodeRef"
           @submit="handleSubmit"
           @tab-change="handleTabChange"
+          @update:captcha-x="captchaX = $event"
+          @refresh-captcha="refreshCaptcha"
           @toggle-password="showPassword = !showPassword"
           @forgot-password="openForgotDialog"
           @open-service="openService"

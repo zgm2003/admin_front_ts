@@ -69,7 +69,7 @@ export function toAgentMutationPayload(form: AgentFormState): AiAgentMutationPar
     runtime_config: form.runtime_config,
     policy: form.policy,
     status: form.status,
-    tool_ids: form.tool_ids,
+    tool_ids: form.capabilities.tools ? form.tool_ids : [],
     knowledge_base_ids: form.capabilities.rag ? form.knowledge_base_ids : [],
   }
 

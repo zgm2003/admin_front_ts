@@ -9,7 +9,7 @@ import { getPlatform } from './platform'
 import { getDeviceId } from './device'
 import { setHeader } from './headers'
 
-const REFRESH_PATH = '/api/v1/auth/refresh'
+const REFRESH_PATH = '/api/admin/v1/auth/refresh'
 
 export type RetryableRequestConfig = InternalAxiosRequestConfig<unknown> & {
   _retry?: boolean
@@ -142,3 +142,4 @@ export function createAuthSessionManager(params: {
     },
   }
 }
+
