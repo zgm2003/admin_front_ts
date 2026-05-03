@@ -1,4 +1,5 @@
 import type { DictOption, Id, PaginatedResponse } from './common'
+import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from './captcha'
 
 export type UserScene =
   | 'login'
@@ -56,24 +57,8 @@ export interface UserLoginSession {
   is_new_user?: boolean
 }
 
-export interface UserCaptchaAnswer {
-  x: number
-  y: number
-}
-
-export interface UserCaptchaChallenge {
-  captcha_id: string
-  captcha_type: 'slide'
-  master_image: string
-  tile_image: string
-  tile_x: number
-  tile_y: number
-  tile_width: number
-  tile_height: number
-  image_width: number
-  image_height: number
-  expires_in: number
-}
+export type UserCaptchaAnswer = SlideCaptchaAnswer
+export type UserCaptchaChallenge = SlideCaptchaChallenge
 
 export interface LoginConfigResponse {
   login_type_arr: DictOption<UserLoginType>[]

@@ -4,6 +4,7 @@ import { closeAppWindow, isTauri as isTauriEnv, minimizeAppWindow } from '@/plat
 import { SemiSelect, CloseBold } from '@element-plus/icons-vue'
 import { useLoginForm } from './composables/useLoginForm'
 import { useForgotPassword } from './composables/useForgotPassword'
+import { AppCaptchaOverlay } from '@/components/AppCaptcha'
 import LoginBackground from './components/LoginBackground.vue'
 import LoginBrandPanel from './components/LoginBrandPanel.vue'
 import LoginMobileBrand from './components/LoginMobileBrand.vue'
@@ -18,8 +19,8 @@ const {
   loginForm,
   captchaChallenge,
   captchaX,
-  captchaEnabled,
   captchaLoading,
+  captchaDialogVisible,
   activeAccountType,
   showPassword,
   agreePolicy,
@@ -29,6 +30,7 @@ const {
   isPasswordLogin,
   rules,
   handleSubmit,
+  completeCaptchaLogin,
   handleTabChange,
   refreshCaptcha,
   setFormRef,
@@ -86,10 +88,6 @@ async function tauriClose() {
           :login-types="loginTypes"
           :active-type="activeAccountType"
           :login-form="loginForm"
-          :captcha-challenge="captchaChallenge"
-          :captcha-x="captchaX"
-          :captcha-enabled="captchaEnabled"
-          :captcha-loading="captchaLoading"
           :rules="rules"
           :show-password="showPassword"
           :is-password-login="isPasswordLogin"
@@ -100,8 +98,10 @@ async function tauriClose() {
           :register-send-code="setSendCodeRef"
           @submit="handleSubmit"
           @tab-change="handleTabChange"
-          @update:captcha-x="captchaX = $event"
-          @refresh-captcha="refreshCaptcha"
+          @update:login-account="loginForm.login_account = $event"
+          @update:password="loginForm.password = $event"
+          @update:code="loginForm.code = $event"
+          @update:remember="loginForm.remember = $event"
           @toggle-password="showPassword = !showPassword"
           @forgot-password="openForgotDialog"
           @open-service="openService"
@@ -110,6 +110,17 @@ async function tauriClose() {
         />
       </div>
     </div>
+
+    <AppCaptchaOverlay
+      v-model="captchaDialogVisible"
+      :challenge="captchaChallenge"
+      :slider-x="captchaX"
+      :loading="captchaLoading"
+      :verifying="isSubmitting"
+      @update:slider-x="captchaX = $event"
+      @refresh="refreshCaptcha"
+      @complete="completeCaptchaLogin"
+    />
 
     <!-- 忘记密码弹窗 -->
     <ForgotPasswordDialog

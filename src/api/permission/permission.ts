@@ -1,4 +1,5 @@
 import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption } from '@/types/common'
 
 export interface PermissionTreeNode {
@@ -85,18 +86,17 @@ export interface PermissionStatusBody {
 }
 
 export const PermissionApi = {
-  init: () => request.get<PermissionInitResponse>('/api/admin/v1/permissions/init'),
-  list: (params: PermissionListParams) => request.get<PermissionListItem[]>('/api/admin/v1/permissions', { params }),
-  add: (params: PermissionMutationPayload) => request.post<PermissionCreateResponse, PermissionMutationPayload>('/api/admin/v1/permissions', params),
+  init: () => request.get<PermissionInitResponse>(`${ADMIN_API_PREFIX}/permissions/init`),
+  list: (params: PermissionListParams) => request.get<PermissionListItem[]>(`${ADMIN_API_PREFIX}/permissions`, { params }),
+  add: (params: PermissionMutationPayload) => request.post<PermissionCreateResponse, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions`, params),
   edit: (params: PermissionEditPayload) => {
     const { id, ...body } = params
-    return request.put<void, PermissionMutationPayload>(`/api/admin/v1/permissions/${id}`, body)
+    return request.put<void, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions/${id}`, body)
   },
-  delOne: (params: PermissionDeleteOnePayload) => request.delete<void>(`/api/admin/v1/permissions/${params.id}`),
-  delBatch: (params: PermissionBatchDeletePayload) => request.delete<void, PermissionBatchDeletePayload>('/api/admin/v1/permissions', { data: params }),
+  delOne: (params: PermissionDeleteOnePayload) => request.delete<void>(`${ADMIN_API_PREFIX}/permissions/${params.id}`),
+  delBatch: (params: PermissionBatchDeletePayload) => request.delete<void, PermissionBatchDeletePayload>(`${ADMIN_API_PREFIX}/permissions`, { data: params }),
   status: (params: PermissionStatusPayload) => {
     const body: PermissionStatusBody = { status: params.status }
-    return request.patch<void, PermissionStatusBody>(`/api/admin/v1/permissions/${params.id}/status`, body)
+    return request.patch<void, PermissionStatusBody>(`${ADMIN_API_PREFIX}/permissions/${params.id}/status`, body)
   },
 }
-

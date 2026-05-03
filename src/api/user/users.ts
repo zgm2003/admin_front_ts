@@ -1,8 +1,9 @@
 import request, { legacyRequest } from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { RequestPayload } from '@/types/common'
+import type { SlideCaptchaChallenge } from '@/types/captcha'
 import type {
   LoginConfigResponse,
-  UserCaptchaChallenge,
   UserEmailUpdateParams,
   UserExportResponse,
   UserForgetPasswordParams,
@@ -34,26 +35,26 @@ export interface UserLegacyPasswordEditParams {
 }
 
 const fetchCurrentUser = () =>
-  request.get<UserInitResponse>('/api/admin/v1/users/me')
+  request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)
 
 export const UsersApi = {
   me: fetchCurrentUser,
   init: fetchCurrentUser,
 
   getLoginConfig: () =>
-    request.get<LoginConfigResponse>('/api/admin/v1/auth/login-config'),
+    request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`),
 
   getCaptcha: () =>
-    request.get<UserCaptchaChallenge>('/api/admin/v1/auth/captcha'),
+    request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`),
 
   login: (params: UserLoginParams) =>
-    request.post<UserLoginSession, UserLoginParams>('/api/admin/v1/auth/login', params),
+    request.post<UserLoginSession, UserLoginParams>(`${ADMIN_API_PREFIX}/auth/login`, params),
 
   refresh: (params: { refresh_token: string }) =>
-    request.post<UserLoginSession>('/api/admin/v1/auth/refresh', params),
+    request.post<UserLoginSession>(`${ADMIN_API_PREFIX}/auth/refresh`, params),
 
   logout: (params?: { refresh_token?: string }) =>
-    request.post<void, { refresh_token?: string }>('/api/admin/v1/auth/logout', params),
+    request.post<void, { refresh_token?: string }>(`${ADMIN_API_PREFIX}/auth/logout`, params),
 
   sendCode: (params: UserSendCodeParams) =>
     legacyRequest.post<void>('/api/Users/sendCode', params),
@@ -115,4 +116,3 @@ export const UserSessionApi = {
 }
 
 export type { UserSessionItem }
-

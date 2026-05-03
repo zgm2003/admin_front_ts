@@ -6,10 +6,9 @@ import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/storage'
 import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
+import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from '@/types/captcha'
 import type {
   LoginConfigResponse,
-  UserCaptchaAnswer,
-  UserCaptchaChallenge,
   UserLoginParams,
   UserLoginSession,
   UserLoginType,
@@ -22,16 +21,18 @@ type SendCodeRef = InstanceType<typeof SendCode>
 const LOGIN_REMEMBER_KEY = 'loginRemember'
 const LOGIN_ACCOUNT_KEY = 'loginAccount'
 const LOGIN_TYPE_KEY = 'loginType'
+const CAPTCHA_MIN_MOVE_OFFSET = 16
 
 export function useLoginForm() {
   const router = useRouter()
   const formRef = ref<FormInstance>()
   const sendCodeRef = ref<SendCodeRef | null>(null)
   const loginTypes = ref<LoginTypeItem[]>([])
-  const captchaChallenge = shallowRef<UserCaptchaChallenge | null>(null)
+  const captchaChallenge = shallowRef<SlideCaptchaChallenge | null>(null)
   const captchaX = shallowRef(0)
   const captchaEnabled = shallowRef(false)
   const captchaLoading = shallowRef(false)
+  const captchaDialogVisible = shallowRef(false)
 
   const loginForm = reactive({
     login_account: '',
@@ -78,7 +79,7 @@ export function useLoginForm() {
   const hasCompletedCaptcha = computed(() => {
     const challenge = captchaChallenge.value
     if (!challenge) return false
-    return captchaX.value > challenge.tile_x
+    return captchaX.value >= challenge.tile_x + CAPTCHA_MIN_MOVE_OFFSET
   })
 
   const resetLoginForm = ({ preserveAccount = false }: { preserveAccount?: boolean } = {}) => {
@@ -138,6 +139,8 @@ export function useLoginForm() {
 
   const refreshCaptcha = async () => {
     if (!captchaEnabled.value) return
+    captchaChallenge.value = null
+    captchaX.value = 0
     captchaLoading.value = true
     try {
       const challenge = await UsersApi.getCaptcha()
@@ -148,7 +151,7 @@ export function useLoginForm() {
     }
   }
 
-  const buildCaptchaAnswer = (): { captcha_id: string; captcha_answer: UserCaptchaAnswer } | null => {
+  const buildCaptchaAnswer = (): { captcha_id: string; captcha_answer: SlideCaptchaAnswer } | null => {
     const challenge = captchaChallenge.value
     if (!challenge || !hasCompletedCaptcha.value) {
       return null
@@ -162,10 +165,43 @@ export function useLoginForm() {
     }
   }
 
+  const submitLogin = async (
+    params: UserLoginParams,
+    options: { closeCaptchaOnSuccess?: boolean; refreshCaptchaOnFailure?: boolean } = {},
+  ) => {
+    isSubmitting.value = true
+    try {
+      const data = await UsersApi.login(params)
+      if (options.closeCaptchaOnSuccess) {
+        captchaDialogVisible.value = false
+      }
+      rememberPwd()
+      await handleLoginSuccess(data)
+    } catch (error) {
+      console.error('登录失败:', error)
+      if (options.refreshCaptchaOnFailure) {
+        await refreshCaptcha()
+      }
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
+  const openCaptchaDialog = async () => {
+    captchaDialogVisible.value = true
+    try {
+      await refreshCaptcha()
+    } catch (error) {
+      console.error('验证码加载失败:', error)
+      ElMessage.error('验证码加载失败，请重试')
+    }
+  }
+
   const handleSubmit = async () => {
     if (!agreePolicy.value) return ElMessage.error('请先阅读并同意服务条款和隐私政策')
 
-    const fieldsToValidate = loginType.value === 'password'
+    const currentLoginType = loginType.value
+    const fieldsToValidate = currentLoginType === 'password'
       ? ['login_account', 'password']
       : ['login_account', 'code']
 
@@ -176,45 +212,36 @@ export function useLoginForm() {
       return
     }
 
-    const captchaPayload = isPasswordLogin.value && captchaEnabled.value ? buildCaptchaAnswer() : null
-    if (isPasswordLogin.value && captchaEnabled.value && !captchaPayload) {
-      ElMessage.error('请拖动滑块完成验证')
-      triggerShake()
+    const account = loginForm.login_account.trim()
+    if (currentLoginType === 'password') {
+      if (!captchaEnabled.value) {
+        ElMessage.error('密码登录验证码配置异常')
+        triggerShake()
+        return
+      }
+      await openCaptchaDialog()
       return
     }
 
-    isSubmitting.value = true
-    try {
-      const account = loginForm.login_account.trim()
-      let params: UserLoginParams
-      if (loginType.value === 'password') {
-        if (!captchaPayload) {
-          ElMessage.error('请拖动滑块完成验证')
-          triggerShake()
-          return
-        }
-        params = {
-          login_type: 'password',
-          login_account: account,
-          password: loginForm.password,
-          captcha_id: captchaPayload.captcha_id,
-          captcha_answer: captchaPayload.captcha_answer,
-        }
-      } else {
-        params = { login_type: loginType.value, login_account: account, code: loginForm.code }
-      }
+    await submitLogin({ login_type: currentLoginType, login_account: account, code: loginForm.code })
+  }
 
-      const data = await UsersApi.login(params)
-      rememberPwd()
-      await handleLoginSuccess(data)
-    } catch (error) {
-      console.error('登录失败:', error)
-      if (isPasswordLogin.value && captchaEnabled.value) {
-        await refreshCaptcha()
-      }
-    } finally {
-      isSubmitting.value = false
+  const completeCaptchaLogin = async () => {
+    const captchaPayload = buildCaptchaAnswer()
+    if (!captchaPayload) {
+      return
     }
+
+    await submitLogin(
+      {
+        login_type: 'password',
+        login_account: loginForm.login_account.trim(),
+        password: loginForm.password,
+        captcha_id: captchaPayload.captcha_id,
+        captcha_answer: captchaPayload.captcha_answer,
+      },
+      { closeCaptchaOnSuccess: true, refreshCaptchaOnFailure: true },
+    )
   }
 
   const handleLoginSuccess = async (data: UserLoginSession) => {
@@ -277,9 +304,6 @@ export function useLoginForm() {
   const handleTabChange = (method: UserLoginType) => {
     activeAccountType.value = method
     resetLoginForm()
-    if (method === 'password') {
-      void refreshCaptcha()
-    }
   }
 
   const setFormRef = (instance: FormInstance | null | undefined) => {
@@ -305,9 +329,6 @@ export function useLoginForm() {
     const res: LoginConfigResponse = await UsersApi.getLoginConfig()
     loginTypes.value = res.login_type_arr
     captchaEnabled.value = res.captcha_enabled
-    if (res.captcha_enabled) {
-      await refreshCaptcha()
-    }
   })
 
   return {
@@ -317,6 +338,7 @@ export function useLoginForm() {
     captchaX,
     captchaEnabled,
     captchaLoading,
+    captchaDialogVisible,
     activeAccountType,
     showPassword,
     agreePolicy,
@@ -326,6 +348,7 @@ export function useLoginForm() {
     isPasswordLogin,
     rules,
     handleSubmit,
+    completeCaptchaLogin,
     handleTabChange,
     refreshCaptcha,
     setFormRef,

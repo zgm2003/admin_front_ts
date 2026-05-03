@@ -5,8 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { SendCode } from '@/components/SendCode'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { Message, Lock, View, Hide, Iphone } from '@element-plus/icons-vue'
-import type { UserCaptchaChallenge, UserLoginType } from '@/types/user'
-import LoginSlideCaptcha from './LoginSlideCaptcha.vue'
+import type { UserLoginType } from '@/types/user'
 
 type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeInstance = InstanceType<typeof SendCode>
@@ -15,10 +14,6 @@ const props = defineProps<{
   loginTypes: LoginTypeItem[]
   activeType: UserLoginType
   loginForm: { login_account: string; password: string; code: string; remember: boolean }
-  captchaChallenge: UserCaptchaChallenge | null
-  captchaX: number
-  captchaEnabled: boolean
-  captchaLoading: boolean
   rules: FormRules
   showPassword: boolean
   isPasswordLogin: boolean
@@ -40,8 +35,10 @@ const emit = defineEmits<{
   (e: 'openService'): void
   (e: 'openPolicy'): void
   (e: 'update:agreePolicy', value: boolean): void
-  (e: 'update:captchaX', value: number): void
-  (e: 'refreshCaptcha'): void
+  (e: 'update:loginAccount', value: string): void
+  (e: 'update:password', value: string): void
+  (e: 'update:code', value: string): void
+  (e: 'update:remember', value: boolean): void
 }>()
 
 const elFormRef = useTemplateRef<FormInstance>('elForm')
@@ -66,6 +63,22 @@ const typeConfig = computed<Record<UserLoginType, { label: string; icon: Compone
 }))
 
 const activeTypeConfig = computed(() => typeConfig.value[props.activeType] ?? typeConfig.value.password)
+const loginAccount = computed({
+  get: () => props.loginForm.login_account,
+  set: (value: string) => emit('update:loginAccount', value),
+})
+const password = computed({
+  get: () => props.loginForm.password,
+  set: (value: string) => emit('update:password', value),
+})
+const code = computed({
+  get: () => props.loginForm.code,
+  set: (value: string) => emit('update:code', value),
+})
+const remember = computed({
+  get: () => props.loginForm.remember,
+  set: (value: boolean) => emit('update:remember', value),
+})
 
 watchPostEffect(() => {
   props.registerForm?.(elFormRef.value)
@@ -112,7 +125,7 @@ onBeforeUnmount(() => {
               <label class="input-label">{{ activeTypeConfig.label }}</label>
               <el-form-item prop="login_account">
                 <el-input
-                  v-model="loginForm.login_account"
+                  v-model="loginAccount"
                   :placeholder="activeTypeConfig.placeholder"
                   class="custom-input"
                 >
@@ -128,7 +141,7 @@ onBeforeUnmount(() => {
                 <label class="input-label">{{ t('auth.login.password') }}</label>
                 <el-form-item prop="password">
                   <el-input
-                    v-model="loginForm.password"
+                    v-model="password"
                     :type="showPassword ? 'text' : 'password'"
                     :placeholder="t('auth.login.passwordPlaceholder')"
                     class="custom-input"
@@ -148,9 +161,9 @@ onBeforeUnmount(() => {
                 <el-form-item prop="code">
                   <SendCode
                     ref="sendCode"
-                    v-model="loginForm.code"
+                    v-model="code"
                     class="login-send-code"
-                    :account="loginForm.login_account"
+                    :account="loginAccount"
                     scene="login"
                     size="large"
                     :mobile="isMobile"
@@ -160,22 +173,12 @@ onBeforeUnmount(() => {
               </template>
             </div>
 
-            <div v-if="activeType === 'password' && captchaEnabled" class="input-group captcha-group">
-              <LoginSlideCaptcha
-                :enabled="captchaEnabled"
-                :challenge="captchaChallenge"
-                :model-value="captchaX"
-                :loading="captchaLoading"
-                @update:model-value="$emit('update:captchaX', $event)"
-                @refresh="$emit('refreshCaptcha')"
-              />
-            </div>
           </div>
         </div>
 
         <div class="form-options">
           <el-checkbox
-            v-model="loginForm.remember"
+            v-model="remember"
             :label="t('auth.login.remember')"
             :class="{ 'is-invisible': !isPasswordLogin }"
           />
@@ -428,14 +431,14 @@ onBeforeUnmount(() => {
 
 .method-container {
   position: relative;
-  height: 382px;
-  margin-bottom: 20px;
+  height: 176px;
+  margin-bottom: 8px;
 }
 
 .login-form-card.is-mobile .method-container {
   position: relative;
   height: auto !important;
-  min-height: 330px !important;
+  min-height: 146px !important;
   margin-bottom: 10px;
 }
 
@@ -479,10 +482,6 @@ onBeforeUnmount(() => {
   &:nth-child(2) {
     animation-delay: 0.2s;
   }
-}
-
-.captcha-group {
-  margin-bottom: 0;
 }
 
 .input-label {
@@ -680,7 +679,7 @@ onBeforeUnmount(() => {
   }
 
   .login-form-card.is-mobile .method-container {
-    min-height: 118px !important;
+    min-height: 146px !important;
   }
 }
 </style>
