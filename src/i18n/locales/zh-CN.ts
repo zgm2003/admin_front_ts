@@ -1265,6 +1265,8 @@ export default {
   },
   queueMonitor: {
     title: '队列监控',
+    officialAsynqmonDesc: '使用官方 Asynqmon 只读监控 UI，避免重复手写队列详情、任务列表和运行态页面。',
+    openStandalone: '新窗口打开',
     queueName: '队列名称',
     group: '分组',
     waiting: '等待中',

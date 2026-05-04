@@ -1265,6 +1265,8 @@ export default {
   },
   queueMonitor: {
     title: 'Queue Monitor',
+    officialAsynqmonDesc: 'Uses the official read-only Asynqmon UI instead of duplicating queue details, task lists, and runtime pages by hand.',
+    openStandalone: 'Open Standalone',
     queueName: 'Queue Name',
     group: 'Group',
     waiting: 'Waiting',

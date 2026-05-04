@@ -1,198 +1,112 @@
 <script setup lang="ts">
-import {ref, onMounted, onUnmounted} from 'vue'
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {RefreshRight, CopyDocument} from '@element-plus/icons-vue'
-import {useI18n} from 'vue-i18n'
-import { AppDialog } from '@/components/AppDialog'
-import {AppTable} from '@/components/Table'
-import {useCopy} from '@/hooks/useCopy'
-import {
-  QueueMonitorApi,
-  type QueueFailedItem,
-  type QueueMonitorItem,
-} from '@/api/system/queueMonitor'
+import { computed, onMounted, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ADMIN_QUEUE_MONITOR_UI_URL, ensureQueueMonitorAuthCookie } from '@/api/system/queueMonitor'
 
-const {t} = useI18n()
-const {copy} = useCopy()
+const { t } = useI18n()
 
-// 队列列表
-const listLoading = ref(false)
-const listData = ref<QueueMonitorItem[]>([])
-const autoRefresh = ref(false)
-let refreshTimer: ReturnType<typeof setInterval> | null = null
+const frameSrc = computed(() => ADMIN_QUEUE_MONITOR_UI_URL)
+const frameReady = shallowRef(false)
 
-// 失败任务弹窗
-const failedVisible = ref(false)
-const failedQueue = ref('')
-const failedLoading = ref(false)
-const failedData = ref<QueueFailedItem[]>([])
-const failedPage = ref({page_size: 10, current_page: 1, total: 0})
-
-// 表格列配置
-const columns = [
-  {key: 'label', label: t('queueMonitor.queueName'), minWidth: 150, align: 'left'},
-  {key: 'group', label: t('queueMonitor.group'), width: 100},
-  {key: 'waiting', label: t('queueMonitor.waiting'), width: 120},
-  {key: 'delayed', label: t('queueMonitor.delayed'), width: 120},
-  {key: 'failed', label: t('queueMonitor.failed'), width: 120},
-  {key: 'actions', label: t('common.actions.action'), width: 240, fixed: 'right'}
-]
-
-const failedColumns = [
-  {key: 'index', label: '#', width: 60},
-  {key: 'attempts', label: t('queueMonitor.attempts'), width: 80},
-  {key: 'error', label: t('queueMonitor.error'), minWidth: 200},
-  {key: 'data', label: t('queueMonitor.data'), minWidth: 200},
-  {key: 'actions', label: t('common.actions.action'), width: 100, fixed: 'right'}
-]
-
-// 加载队列列表
-const getList = async () => {
-  listLoading.value = true
+async function prepareFrame() {
   try {
-    listData.value = await QueueMonitorApi.list()
+    await ensureQueueMonitorAuthCookie()
   } finally {
-    listLoading.value = false
+    frameReady.value = true
   }
 }
 
-// 切换自动刷新
-const toggleAutoRefresh = () => {
-  autoRefresh.value = !autoRefresh.value
-  if (autoRefresh.value) {
-    refreshTimer = setInterval(() => {
-      void getList()
-    }, 5000)
-    ElMessage.success(t('queueMonitor.autoRefreshOn'))
-  } else {
-    if (refreshTimer) clearInterval(refreshTimer)
-    ElMessage.info(t('queueMonitor.autoRefreshOff'))
-  }
+function openStandalone() {
+  window.open(ADMIN_QUEUE_MONITOR_UI_URL, '_blank', 'noopener,noreferrer')
 }
 
-// 查看失败任务
-const handleViewFailed = (row: QueueMonitorItem) => {
-  failedQueue.value = row.name
-  failedPage.value.current_page = 1
-  failedVisible.value = true
-  void getFailedList()
-}
-
-// 加载失败任务列表
-const getFailedList = async () => {
-  failedLoading.value = true
-  try {
-    const res = await QueueMonitorApi.failedList({
-      queue: failedQueue.value,
-      page_size: failedPage.value.page_size,
-      current_page: failedPage.value.current_page
-    })
-    failedData.value = res.list
-    failedPage.value.total = res.page.total
-  } finally {
-    failedLoading.value = false
-  }
-}
-
-// 重试任务
-const handleRetry = async (row: QueueFailedItem) => {
-  await ElMessageBox.confirm(t('queueMonitor.retryConfirm'), t('common.confirmTitle'))
-  await QueueMonitorApi.retry({queue: failedQueue.value, index: row.index})
-  ElMessage.success(t('common.success.operation'))
-  void getFailedList()
-  void getList()
-}
-
-// 清空等待队列
-const handleClear = async (row: QueueMonitorItem) => {
-  if (row.waiting === 0) return ElMessage.warning(t('queueMonitor.noWaitingTasks'))
-  await ElMessageBox.confirm(t('queueMonitor.clearConfirm', {count: row.waiting}), t('common.confirmTitle'), {type: 'warning'})
-  await QueueMonitorApi.clear({queue: row.name})
-  ElMessage.success(t('common.success.operation'))
-  void getList()
-}
-
-// 清空失败队列
-const handleClearFailed = async (row: QueueMonitorItem) => {
-  if (row.failed === 0) return ElMessage.warning(t('queueMonitor.noFailedTasks'))
-  await ElMessageBox.confirm(t('queueMonitor.clearFailedConfirm', {count: row.failed}), t('common.confirmTitle'), {type: 'warning'})
-  await QueueMonitorApi.clearFailed({queue: row.name})
-  ElMessage.success(t('common.success.operation'))
-  void getList()
-}
-
-// 分页变化
-const onFailedPageChange = (p: { page_size: number; current_page: number; total: number }) => {
-  failedPage.value = p
-  void getFailedList()
-}
-
-// 状态标签类型
-const getStatusType = (count: number) => count === 0 ? 'info' : count > 10 ? 'danger' : 'warning'
-
-onMounted(() => { void getList() })
-onUnmounted(() => {
-  if (refreshTimer) clearInterval(refreshTimer)
+onMounted(() => {
+  void prepareFrame()
 })
 </script>
 
 <template>
-  <div class="box">
-    <AppTable :columns="columns" :data="listData" :loading="listLoading" :show-column-setting="false" @refresh="getList">
-      <template #toolbar-left>
-        <el-button :type="autoRefresh ? 'success' : 'default'" @click="toggleAutoRefresh">
-          {{ autoRefresh ? t('queueMonitor.autoRefreshOn') : t('queueMonitor.autoRefresh') }}
-        </el-button>
-      </template>
-      <template #cell-label="{row}">
-        <div>{{ row.label }}</div>
-        <div class="queue-code">{{ row.name }}</div>
-      </template>
-      <template #cell-group="{row}">
-        <el-tag :type="row.group === 'fast' ? 'success' : 'warning'" size="small">{{ row.group }}</el-tag>
-      </template>
-      <template #cell-waiting="{row}">
-        <el-tag :type="getStatusType(row.waiting)" size="small">{{ row.waiting }}</el-tag>
-      </template>
-      <template #cell-delayed="{row}">
-        <el-tag :type="getStatusType(row.delayed)" size="small">{{ row.delayed }}</el-tag>
-      </template>
-      <template #cell-failed="{row}">
-        <el-tag :type="row.failed > 0 ? 'danger' : 'info'" size="small">{{ row.failed }}</el-tag>
-      </template>
-      <template #cell-actions="{row}">
-        <el-button size="small" type="primary" link @click="handleViewFailed(row)" :disabled="row.failed === 0">{{ t('queueMonitor.viewFailed') }}</el-button>
-        <el-button size="small" type="warning" link @click="handleClear(row)" :disabled="row.waiting === 0">{{ t('queueMonitor.clearWaiting') }}</el-button>
-        <el-button size="small" type="danger" link @click="handleClearFailed(row)" :disabled="row.failed === 0">{{ t('queueMonitor.clearFailed') }}</el-button>
-      </template>
-    </AppTable>
+  <div class="box queue-monitor-page">
+    <div class="queue-monitor-header">
+      <div>
+        <h2 class="queue-monitor-title">
+          {{ t('queueMonitor.title') }}
+        </h2>
+        <p class="queue-monitor-desc">
+          {{ t('queueMonitor.officialAsynqmonDesc') }}
+        </p>
+      </div>
+      <el-button
+        type="primary"
+        @click="openStandalone"
+      >
+        {{ t('queueMonitor.openStandalone') }}
+      </el-button>
+    </div>
 
-    <AppDialog v-model="failedVisible" :title="t('queueMonitor.failedListTitle')" width="800px">
-      <AppTable :columns="failedColumns" :data="failedData" :loading="failedLoading" :pagination="failedPage"
-                :show-refresh="false" :show-column-setting="false" :fixed-footer="false" @update:pagination="onFailedPageChange">
-        <template #cell-error="{row}">
-          <div class="cell-with-copy">
-            <span class="data-preview">{{ row.error }}</span>
-            <el-button size="small" :icon="CopyDocument" link @click="copy(row.error)" />
-          </div>
-        </template>
-        <template #cell-data="{row}">
-          <div class="cell-with-copy">
-            <span class="data-preview">{{ JSON.stringify(row.data) }}</span>
-            <el-button size="small" :icon="CopyDocument" link @click="copy(JSON.stringify(row.data, null, 2))" />
-          </div>
-        </template>
-        <template #cell-actions="{row}">
-          <el-button size="small" type="primary" :icon="RefreshRight" @click="handleRetry(row)">{{ t('queueMonitor.retry') }}</el-button>
-        </template>
-      </AppTable>
-    </AppDialog>
+    <iframe
+      v-if="frameReady"
+      class="queue-monitor-frame"
+      :src="frameSrc"
+      title="Asynqmon Queue Monitor"
+    />
+    <div
+      v-else
+      class="queue-monitor-frame queue-monitor-loading"
+    >
+      <el-skeleton
+        animated
+        :rows="8"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.box { display: flex; flex-direction: column; height: 100% }
-.queue-code { font-size: 12px; color: var(--el-text-color-secondary); font-family: monospace }
-.cell-with-copy { display: flex; align-items: center; gap: 4px }
-.data-preview { max-width: 180px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.queue-monitor-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.queue-monitor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+}
+
+.queue-monitor-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.queue-monitor-desc {
+  margin: 6px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.queue-monitor-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  height: calc(100dvh - 220px);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.queue-monitor-loading {
+  box-sizing: border-box;
+  padding: 24px;
+}
 </style>
