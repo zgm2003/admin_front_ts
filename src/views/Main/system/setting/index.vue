@@ -7,6 +7,7 @@ import {
   type SystemSettingEditParams,
   type SystemSettingInitResponse,
   type SystemSettingItem,
+  type SystemSettingValueType,
 } from '@/api/system/setting'
 import {ElNotification} from 'element-plus'
 import type {FormInstance, FormRules} from 'element-plus'
@@ -53,7 +54,7 @@ const {
 
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
-const form = ref<{ id?: number; key: string; value: string; type: number; remark: string }>({ key: '', value: '', type: 1, remark: '' })
+const form = ref<{ id?: number; key: string; value: string; type: SystemSettingValueType; remark: string }>({ key: '', value: '', type: 1, remark: '' })
 const formRef = ref<FormInstance | null>(null)
 const jsonEditorRef = ref<InstanceType<typeof JsonEditor> | null>(null)
 
@@ -145,69 +146,180 @@ onMounted(() => { init(); void getList() })
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
       <AppTable
-          :columns="columns"
-          :data="listData"
-          :loading="listLoading"
-          row-key="id"
-          :pagination="page"
-          selectable
-          :show-index="true"
-          @refresh="refresh"
-          @update:pagination="onPageChange"
-          @selection-change="onSelectionChange"
+        :columns="columns"
+        :data="listData"
+        :loading="listLoading"
+        row-key="id"
+        :pagination="page"
+        selectable
+        :show-index="true"
+        @refresh="refresh"
+        @update:pagination="onPageChange"
+        @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button v-if="userStore.can('system_setting_add')" type="success" @click="add">{{ t('common.actions.add') }}</el-button>
-          <el-button v-if="userStore.can('system_setting_del')" type="danger" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-button>
+          <el-button
+            v-if="userStore.can('system_setting_add')"
+            type="success"
+            @click="add"
+          >
+            {{ t('common.actions.add') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('system_setting_del')"
+            type="danger"
+            @click="batchDel"
+          >
+            {{ t('common.actions.batchDelete') }}
+          </el-button>
         </template>
         <template #cell-value_type="{ row }">
-          <el-tag type="primary">{{ row.value_type_name }}</el-tag>
+          <el-tag type="primary">
+            {{ row.value_type_name }}
+          </el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+            {{ row.status_name }}
+          </el-tag>
         </template>
         <template #cell-setting_value="{ row }">
           <div style="display:flex;align-items:center;gap:8px;">
-            <el-text v-if="!isMobile" style="max-width:550px" truncated>{{ row.setting_value }}</el-text>
-            <el-button size="small" @click="copy(row.setting_value)">{{ t('common.actions.copy')}}</el-button>
+            <el-text
+              v-if="!isMobile"
+              style="max-width:550px"
+              truncated
+            >
+              {{ row.setting_value }}
+            </el-text>
+            <el-button
+              size="small"
+              @click="copy(row.setting_value)"
+            >
+              {{ t('common.actions.copy') }}
+            </el-button>
           </div>
         </template>
         <template #cell-actions="{ row }">
-          <el-button v-if="userStore.can('system_setting_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button v-if="userStore.can('system_setting_status') && row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-          <el-button v-if="userStore.can('system_setting_status') && row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-          <el-button v-if="userStore.can('system_setting_del')" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button
+            v-if="userStore.can('system_setting_edit')"
+            type="primary"
+            text
+            @click="edit(row)"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('system_setting_status') && row.status === CommonEnum.NO"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.YES)"
+          >
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('system_setting_status') && row.status === CommonEnum.YES"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.NO)"
+          >
+            {{ t('common.actions.disable') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('system_setting_del')"
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
   </div>
 
-  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '900px'">
-    <template #header>{{ dialogMode === 'add' ? '新增配置' : '编辑配置' }}</template>
-    <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
+  <AppDialog
+    v-model="dialogVisible"
+    :width="isMobile ? '94vw' : '900px'"
+  >
+    <template #header>
+      {{ dialogMode === 'add' ? '新增配置' : '编辑配置' }}
+    </template>
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="auto"
+      :validate-on-rule-change="false"
+    >
       <el-row :gutter="12">
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('setting.form.key')" prop="key" required>
-            <el-input v-model="form.key" :disabled="dialogMode === 'edit'" clearable/>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('setting.form.key')"
+            prop="key"
+            required
+          >
+            <el-input
+              v-model="form.key"
+              :disabled="dialogMode === 'edit'"
+              clearable
+            />
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('setting.form.type')" prop="type" required>
-            <el-select-v2 v-model="form.type" :options="dict.system_setting_value_type_arr" style="width:100%" />
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('setting.form.type')"
+            prop="type"
+            required
+          >
+            <el-select-v2
+              v-model="form.type"
+              :options="dict.system_setting_value_type_arr"
+              style="width:100%"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('setting.form.value')" prop="value">
-            <el-input v-if="form.type!==4" v-model="form.value" clearable/>
-            <JsonEditor v-else v-model="form.value" ref="jsonEditorRef" :rows="6" />
+          <el-form-item
+            :label="t('setting.form.value')"
+            prop="value"
+          >
+            <el-input
+              v-if="form.type!==4"
+              v-model="form.value"
+              clearable
+            />
+            <JsonEditor
+              v-else
+              ref="jsonEditorRef"
+              v-model="form.value"
+              :rows="6"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('setting.form.remark')" prop="remark">
-            <el-input v-model="form.remark" clearable/>
+          <el-form-item
+            :label="t('setting.form.remark')"
+            prop="remark"
+          >
+            <el-input
+              v-model="form.remark"
+              clearable
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -215,7 +327,10 @@ onMounted(() => { init(); void getList() })
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible=false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button
+          type="primary"
+          @click="confirmSubmit"
+        >{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </AppDialog>
