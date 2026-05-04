@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
@@ -9,9 +9,12 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {
   UploadDriverApi,
-  type UploadDriverForm,
+  type UploadDriverAddPayload,
+  type UploadDriverEditPayload,
+  type UploadDriverFormState,
   type UploadDriverInitResponse,
   type UploadDriverItem,
+  type UploadDriverType,
 } from '@/api/system/uploadConfig'
 import type {FormInstance, FormRules} from 'element-plus'
 import {useUserStore} from "@/store/user.ts";
@@ -79,16 +82,6 @@ const init = () => {
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
-type UploadDriverFormState = UploadDriverForm & {
-  id: number | string
-  secret_id: string
-  secret_key: string
-  role_arn: string
-  appid: string
-  endpoint: string
-  bucket_domain: string
-}
-
 const form = ref<UploadDriverFormState>({
   id: '',
   driver: '',
@@ -133,6 +126,15 @@ const rules = computed<FormRules>(() => ({
     {
       validator: (_rule, _value, callback) => {
         if (form.value.driver === 'oss' && !form.value.role_arn) callback(new Error(requiredMsg(t('upload.driver.form.role_arn'))))
+        else callback()
+      },
+      trigger: 'blur'
+    }
+  ],
+  appid: [
+    {
+      validator: (_rule, _value, callback) => {
+        if (form.value.driver === 'cos' && !form.value.appid) callback(new Error(requiredMsg(t('upload.driver.form.appid'))))
         else callback()
       },
       trigger: 'blur'
@@ -189,12 +191,60 @@ const confirmSubmit = async () => {
     return
   }
 
-  const api = dialogMode.value === 'add' ? UploadDriverApi.add : UploadDriverApi.edit
-  api(form.value as UploadDriverForm).then(() => {
+  const request = dialogMode.value === 'add'
+    ? UploadDriverApi.add(buildAddPayload(form.value))
+    : UploadDriverApi.edit(buildEditPayload(form.value))
+
+  request.then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList()
   })
+}
+
+const requireDriverType = (value: UploadDriverFormState['driver']): UploadDriverType => {
+  if (value !== 'cos' && value !== 'oss') {
+    throw new Error('upload driver must be selected')
+  }
+  return value
+}
+
+const buildAddPayload = (state: UploadDriverFormState): UploadDriverAddPayload => ({
+  driver: requireDriverType(state.driver),
+  secret_id: state.secret_id,
+  secret_key: state.secret_key,
+  bucket: state.bucket,
+  region: state.region,
+  role_arn: state.role_arn,
+  appid: state.appid,
+  endpoint: state.endpoint,
+  bucket_domain: state.bucket_domain,
+})
+
+const buildEditPayload = (state: UploadDriverFormState): UploadDriverEditPayload => {
+  if (state.id === '') {
+    throw new Error('upload driver id is required')
+  }
+
+  const payload: UploadDriverEditPayload = {
+    id: state.id,
+    driver: requireDriverType(state.driver),
+    bucket: state.bucket,
+    region: state.region,
+    role_arn: state.role_arn,
+    appid: state.appid,
+    endpoint: state.endpoint,
+    bucket_domain: state.bucket_domain,
+  }
+
+  if (state.secret_id.trim()) {
+    payload.secret_id = state.secret_id.trim()
+  }
+  if (state.secret_key.trim()) {
+    payload.secret_key = state.secret_key.trim()
+  }
+
+  return payload
 }
 
 onMounted(() => {
@@ -279,7 +329,7 @@ onMounted(() => {
         </el-col>
         <template v-if="form.driver==='cos'">
           <el-col :span="24">
-            <el-form-item :label="t('upload.driver.form.appid')">
+          <el-form-item :label="t('upload.driver.form.appid')" prop="appid" required>
               <el-input v-model="form.appid" clearable/>
             </el-form-item>
           </el-col>

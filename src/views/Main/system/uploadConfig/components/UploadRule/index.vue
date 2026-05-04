@@ -3,6 +3,8 @@ import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {
   UploadRuleApi,
+  type UploadRuleAddPayload,
+  type UploadRuleEditPayload,
   type UploadRuleForm,
   type UploadRuleInitResponse,
   type UploadRuleItem,
@@ -68,6 +70,24 @@ const rules = computed<FormRules>(() => ({
       validator: (_rule, value, callback) => {
         const v = Number(value)
         if (!Number.isFinite(v) || v < 1 || v > 10240) callback(new Error(t('upload.rule.form.max_size_mb') + t('common.required')))
+        else callback()
+      },
+      trigger: 'change'
+    }
+  ],
+  image_exts: [
+    {
+      validator: (_rule, _value, callback) => {
+        if (form.value.image_exts.length === 0 && form.value.file_exts.length === 0) callback(new Error('Image Exts / File Exts 至少选择一项'))
+        else callback()
+      },
+      trigger: 'change'
+    }
+  ],
+  file_exts: [
+    {
+      validator: (_rule, _value, callback) => {
+        if (form.value.image_exts.length === 0 && form.value.file_exts.length === 0) callback(new Error('Image Exts / File Exts 至少选择一项'))
         else callback()
       },
       trigger: 'change'
@@ -138,12 +158,36 @@ const confirmSubmit = async () => {
     return
   }
   
-  const api = dialogMode.value === 'add' ? UploadRuleApi.add : UploadRuleApi.edit
-  api(form.value as UploadRuleForm).then(() => {
+  const request = dialogMode.value === 'add'
+    ? UploadRuleApi.add(buildAddPayload(form.value))
+    : UploadRuleApi.edit(buildEditPayload(form.value))
+
+  request.then(() => {
     ElNotification.success({message: t('common.success.operation')});
     dialogVisible.value = false;
     getList()
   })
+}
+
+const buildAddPayload = (state: UploadRuleForm): UploadRuleAddPayload => ({
+  title: state.title,
+  max_size_mb: state.max_size_mb,
+  image_exts: state.image_exts,
+  file_exts: state.file_exts,
+})
+
+const buildEditPayload = (state: UploadRuleFormState): UploadRuleEditPayload => {
+  if (state.id === '') {
+    throw new Error('upload rule id is required')
+  }
+
+  return {
+    id: Number(state.id),
+    title: state.title,
+    max_size_mb: state.max_size_mb,
+    image_exts: state.image_exts,
+    file_exts: state.file_exts,
+  }
 }
 
 onMounted(() => {
@@ -217,12 +261,12 @@ onMounted(() => {
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item label="Image Exts">
+          <el-form-item label="Image Exts" prop="image_exts">
             <el-select-v2 v-model="form.image_exts" multiple style="width:100%" :options="dict.upload_image_ext_arr"/>
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item label="File Exts">
+          <el-form-item label="File Exts" prop="file_exts">
             <el-select-v2 v-model="form.file_exts" multiple style="width:100%" :options="dict.upload_file_ext_arr"/>
           </el-form-item>
         </el-col>

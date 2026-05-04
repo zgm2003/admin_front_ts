@@ -9,7 +9,10 @@ import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {
   UploadSettingApi,
-  type UploadSettingForm,
+  type UploadCommonStatus,
+  type UploadSettingAddPayload,
+  type UploadSettingEditPayload,
+  type UploadSettingFormState,
   type UploadSettingInitResponse,
   type UploadSettingItem,
 } from '@/api/system/uploadConfig'
@@ -99,13 +102,6 @@ const init = () => {
 const dialogVisible = ref(false)
 const dialogMode = ref<'add' | 'edit'>('add')
 
-type UploadSettingFormState = UploadSettingForm & {
-  id: number | string
-  driver_id: number | string
-  rule_id: number | string
-  remark: string
-}
-
 const form = ref<UploadSettingFormState>({
   id: '',
   driver_id: '',
@@ -161,13 +157,42 @@ const confirmSubmit = async () => {
     return
   }
 
-  const api = dialogMode.value === 'add' ? UploadSettingApi.add : UploadSettingApi.edit
-  api(form.value as UploadSettingForm).then(() => {
+  const request = dialogMode.value === 'add'
+    ? UploadSettingApi.add(buildAddPayload(form.value))
+    : UploadSettingApi.edit(buildEditPayload(form.value))
+
+  request.then(() => {
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     getList()
   })
 }
+
+const requireNumber = (value: number | '', field: string): number => {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${field} is required`)
+  }
+  return value
+}
+
+const requireStatus = (value: number): UploadCommonStatus => {
+  if (value !== CommonEnum.YES && value !== CommonEnum.NO) {
+    throw new Error('upload setting status is invalid')
+  }
+  return value
+}
+
+const buildAddPayload = (state: UploadSettingFormState): UploadSettingAddPayload => ({
+  driver_id: requireNumber(state.driver_id, 'driver_id'),
+  rule_id: requireNumber(state.rule_id, 'rule_id'),
+  status: requireStatus(state.status),
+  remark: state.remark,
+})
+
+const buildEditPayload = (state: UploadSettingFormState): UploadSettingEditPayload => ({
+  id: requireNumber(state.id, 'id'),
+  ...buildAddPayload(state),
+})
 
 onMounted(() => {
   init()
