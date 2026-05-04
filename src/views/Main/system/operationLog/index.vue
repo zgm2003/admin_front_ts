@@ -11,6 +11,7 @@ import { UsersListApi } from '@/api/user/users'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
+import type { OperationLogListParams } from '@/types/operationLog'
 
 interface UserLookupOption {
   id: number | string
@@ -18,25 +19,19 @@ interface UserLookupOption {
   email?: string
 }
 
+type OperationLogSearchForm = Omit<OperationLogListParams, 'current_page' | 'page_size'>
+
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
-const searchForm = ref({
+const searchForm = ref<OperationLogSearchForm>({
   user_id: '',
   action: '',
-  date: [] as string[],
+  date: [],
 })
 
-const {
-  loading,
-  data,
-  page,
-  onPageChange,
-  onSearch,
-  refresh,
-  confirmDel,
-} = useCrudTable({
+const { loading, data, page, onPageChange, onSearch, refresh, confirmDel } = useCrudTable({
   api: OperationLogApi,
   searchForm,
   immediate: true,
@@ -82,15 +77,19 @@ const columns = computed(() => [
   { key: 'actions', label: t('common.actions.action'), width: 100, fixed: 'right', hidden: !canDelete.value },
 ])
 
-const summarizePayload = (raw: string | null | undefined): string => {
-  if (!raw) return '-'
+function summarizePayload(raw: string | null | undefined): string {
+  if (!raw) {
+    return '-'
+  }
 
   try {
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) return t('operationLog.entry.items', { count: parsed.length })
-    if (parsed && typeof parsed === 'object') {
+    const parsed: unknown = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      return t('operationLog.entry.items', { count: parsed.length })
+    }
+    if (parsed !== null && typeof parsed === 'object') {
       const keys = Object.keys(parsed)
-      return keys.length ? keys.slice(0, 4).join(', ') : t('operationLog.entry.payloadNone')
+      return keys.length > 0 ? keys.slice(0, 4).join(', ') : t('operationLog.entry.payloadNone')
     }
     return String(parsed)
   } catch {
@@ -121,21 +120,39 @@ const summarizePayload = (raw: string | null | undefined): string => {
         @update:pagination="onPageChange"
       >
         <template #cell-is_success="{ row }">
-          <ElTag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+          <ElTag
+            :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'"
+            size="small"
+          >
             {{ row.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation') }}
           </ElTag>
         </template>
 
         <template #cell-request_data="{ row }">
-          <ElText truncated class="payload-text">{{ summarizePayload(row.request_data) }}</ElText>
+          <ElText
+            truncated
+            class="payload-text"
+          >
+            {{ summarizePayload(row.request_data) }}
+          </ElText>
         </template>
 
         <template #cell-response_data="{ row }">
-          <ElText truncated class="payload-text">{{ summarizePayload(row.response_data) }}</ElText>
+          <ElText
+            truncated
+            class="payload-text"
+          >
+            {{ summarizePayload(row.response_data) }}
+          </ElText>
         </template>
 
         <template #cell-actions="{ row }">
-          <ElButton v-if="canDelete" type="danger" text @click="confirmDel(row)">
+          <ElButton
+            v-if="canDelete"
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
             {{ t('common.actions.del') }}
           </ElButton>
         </template>

@@ -14,7 +14,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
-import type { UserBatchEditParams, UserEditParams, UserListItem } from '@/types/user'
+import type { AddressTreeNode, UserBatchEditParams, UserEditParams, UserListItem } from '@/types/user'
 
 interface UserEditDialogForm extends UserEditParams {
   phone: string
@@ -27,7 +27,7 @@ const router = useRouter()
 const isMobile = useIsMobile()
 
 const sexArr = ref<DictOption<number>[]>([])
-const addressTree = ref<any[]>([])
+const addressTree = ref<AddressTreeNode[]>([])
 const roleArr = ref<DictOption<number>[]>([])
 
 const initList = async () => {
@@ -46,7 +46,7 @@ const searchForm = ref({
   email: '',
   role_id: '' as number | '',
   sex: '' as number | '',
-  address: [] as number[],
+  address_id: [] as number[],
   detail_address: '',
 })
 
@@ -73,7 +73,7 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
   { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
   {
-    key: 'address',
+    key: 'address_id',
     type: 'cascader',
     label: t('user.filter.address'),
     options: addressTree.value,
@@ -99,7 +99,7 @@ const editForm = ref<UserEditDialogForm>({
   username: '',
   email: '',
   sex: 0,
-  address: 0,
+  address_id: 0,
   detail_address: '',
   bio: '',
 })
@@ -113,7 +113,7 @@ const edit = (current: UserListItem) => {
     username: current.username,
     email: current.email,
     sex: current.sex,
-    address: current.address,
+    address_id: current.address_id,
     detail_address: current.detail_address,
     bio: current.bio || '',
   }
@@ -127,7 +127,7 @@ const confirmEdit = async () => {
     role_id: editForm.value.role_id,
     username: editForm.value.username,
     sex: editForm.value.sex,
-    address: editForm.value.address,
+    address_id: editForm.value.address_id,
     detail_address: editForm.value.detail_address,
     bio: editForm.value.bio,
   }
@@ -141,7 +141,7 @@ const confirmEdit = async () => {
 const batchEditBoxShow = ref(false)
 const batchFieldOptions = computed(() => [
   { value: 'sex', label: t('user.table.sex') },
-  { value: 'address', label: t('user.table.address') },
+  { value: 'address_id', label: t('user.table.address') },
   { value: 'detail_address', label: t('user.filter.detail_address') },
 ])
 
@@ -149,13 +149,13 @@ const batchEditForm = ref<{
   ids: number[]
   field: '' | UserBatchEditParams['field']
   sex: number | null
-  address: number | null
+  address_id: number | null
   detail_address: string
 }>({
   ids: [],
   field: '',
   sex: null,
-  address: null,
+  address_id: null,
   detail_address: '',
 })
 
@@ -169,14 +169,14 @@ const batchEdit = () => {
     ids: [...selectedIds.value],
     field: '',
     sex: null,
-    address: null,
+    address_id: null,
     detail_address: '',
   }
   batchEditBoxShow.value = true
 }
 
 const confirmBatchEdit = async () => {
-  const { ids, field, sex, address, detail_address } = batchEditForm.value
+  const { ids, field, sex, address_id, detail_address } = batchEditForm.value
   if (!field) {
     return
   }
@@ -188,12 +188,12 @@ const confirmBatchEdit = async () => {
       return
     }
     payload = { ids, field, sex }
-  } else if (field === 'address') {
-    if (address === null) {
+  } else if (field === 'address_id') {
+    if (address_id === null) {
       ElNotification.warning({ message: t('user.warning.fillComplete') })
       return
     }
-    payload = { ids, field, address }
+    payload = { ids, field, address_id }
   } else {
     payload = { ids, field, detail_address }
   }
@@ -226,7 +226,13 @@ onMounted(() => {
 
 <template>
   <div class="user-list">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" :collapse-count="2" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      :collapse-count="2"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
       <AppTable
         :columns="[
@@ -254,43 +260,142 @@ onMounted(() => {
           <el-dropdown>
             <el-button type="primary">
               {{ t('common.actions.batchAction') }}
-              <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+              <el-icon class="el-icon--right">
+                <ArrowDown />
+              </el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-if="userStore.can('user_userManager_del')" @click="batchDel">{{ t('common.actions.batchDelete') }}</el-dropdown-item>
-                <el-dropdown-item v-if="userStore.can('user_userManager_batchEdit')" @click="batchEdit">{{ t('common.actions.batchEdit') }}</el-dropdown-item>
+                <el-dropdown-item
+                  v-if="userStore.can('user_userManager_del')"
+                  @click="batchDel"
+                >
+                  {{ t('common.actions.batchDelete') }}
+                </el-dropdown-item>
+                <el-dropdown-item
+                  v-if="userStore.can('user_userManager_batchEdit')"
+                  @click="batchEdit"
+                >
+                  {{ t('common.actions.batchEdit') }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <el-button v-if="userStore.can('user_userManager_export')" type="success" @click="exportExcel">{{ t('common.actions.export') }}</el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_export')"
+            type="success"
+            @click="exportExcel"
+          >
+            {{ t('common.actions.export') }}
+          </el-button>
         </template>
         <template #cell-username="{ row }">
-          <el-link type="primary" @click="goToPersonal(row)">{{ row.username }}</el-link>
+          <el-link
+            type="primary"
+            @click="goToPersonal(row)"
+          >
+            {{ row.username }}
+          </el-link>
         </template>
-        <template #cell-avatar="{ row }"><el-avatar :src="row.avatar || undefined" /></template>
-        <template #cell-role_name="{ row }"><el-tag :type="row.role_id === 1 ? 'success' : 'danger'">{{ row.role_name }}</el-tag></template>
-        <template #cell-bio="{ row }"><el-text>{{ row.bio }}</el-text></template>
+        <template #cell-avatar="{ row }">
+          <el-avatar :src="row.avatar || undefined" />
+        </template>
+        <template #cell-role_name="{ row }">
+          <el-tag :type="row.role_id === 1 ? 'success' : 'danger'">
+            {{ row.role_name }}
+          </el-tag>
+        </template>
+        <template #cell-bio="{ row }">
+          <el-text>{{ row.bio }}</el-text>
+        </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text v-if="userStore.can('user_userManager_edit')" @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text v-if="userStore.can('user_userManager_del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_edit')"
+            type="primary"
+            text
+            @click="edit(row)"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_del')"
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
   </div>
 
-  <AppDialog v-model="editBoxShow" class="add-box" :width="isMobile ? '94vw' : '950px'" :title="t('common.actions.edit')">
+  <AppDialog
+    v-model="editBoxShow"
+    class="add-box"
+    :width="isMobile ? '94vw' : '950px'"
+    :title="t('common.actions.edit')"
+  >
     <div class="add-box">
-      <el-form label-width="auto" :model="editForm" inline>
-        <el-form-item :label="t('user.table.username')"><el-input v-model="editForm.username" :placeholder="t('user.table.username')" clearable style="width: 200px" /></el-form-item>
-        <el-form-item :label="t('user.table.email')"><el-input v-model="editForm.email" :placeholder="t('user.table.email')" clearable style="width: 200px" disabled /></el-form-item>
-        <el-form-item :label="t('user.table.phone')"><el-input v-model="editForm.phone" :placeholder="t('user.table.phone')" clearable style="width: 200px" disabled /></el-form-item>
-        <el-form-item :label="t('user.table.sex')"><el-select-v2 v-model="editForm.sex" :options="sexArr" style="width: 200px" filterable clearable /></el-form-item>
-        <el-form-item :label="t('user.table.role')"><el-select-v2 v-model="editForm.role_id" :options="roleArr" style="width: 200px" filterable clearable /></el-form-item>
-        <el-form-item :label="t('user.table.avatar')"><UpMedia v-model="editForm.avatar" folder-name="avatars" :isClearable="false" /></el-form-item>
+      <el-form
+        label-width="auto"
+        :model="editForm"
+        inline
+      >
+        <el-form-item :label="t('user.table.username')">
+          <el-input
+            v-model="editForm.username"
+            :placeholder="t('user.table.username')"
+            clearable
+            style="width: 200px"
+          />
+        </el-form-item>
+        <el-form-item :label="t('user.table.email')">
+          <el-input
+            v-model="editForm.email"
+            :placeholder="t('user.table.email')"
+            clearable
+            style="width: 200px"
+            disabled
+          />
+        </el-form-item>
+        <el-form-item :label="t('user.table.phone')">
+          <el-input
+            v-model="editForm.phone"
+            :placeholder="t('user.table.phone')"
+            clearable
+            style="width: 200px"
+            disabled
+          />
+        </el-form-item>
+        <el-form-item :label="t('user.table.sex')">
+          <el-select-v2
+            v-model="editForm.sex"
+            :options="sexArr"
+            style="width: 200px"
+            filterable
+            clearable
+          />
+        </el-form-item>
+        <el-form-item :label="t('user.table.role')">
+          <el-select-v2
+            v-model="editForm.role_id"
+            :options="roleArr"
+            style="width: 200px"
+            filterable
+            clearable
+          />
+        </el-form-item>
+        <el-form-item :label="t('user.table.avatar')">
+          <UpMedia
+            v-model="editForm.avatar"
+            folder-name="avatars"
+            :is-clearable="false"
+          />
+        </el-form-item>
         <el-form-item :label="t('user.table.address')">
           <el-cascader
-            v-model="editForm.address"
+            v-model="editForm.address_id"
             :options="addressTree"
             :props="{ emitPath: false }"
             :placeholder="t('user.filter.address')"
@@ -298,13 +403,27 @@ onMounted(() => {
             clearable
             filterable
           />
-          <el-input v-model="editForm.detail_address" :placeholder="t('user.filter.detail_address')" clearable style="width: 300px" />
+          <el-input
+            v-model="editForm.detail_address"
+            :placeholder="t('user.filter.detail_address')"
+            clearable
+            style="width: 300px"
+          />
         </el-form-item>
       </el-form>
       <el-row>
         <el-col :span="22">
           <el-form>
-            <el-form-item :label="t('user.table.desc')" style="width: 100%"><el-input type="textarea" :rows="5" v-model="editForm.bio" /></el-form-item>
+            <el-form-item
+              :label="t('user.table.desc')"
+              style="width: 100%"
+            >
+              <el-input
+                v-model="editForm.bio"
+                type="textarea"
+                :rows="5"
+              />
+            </el-form-item>
           </el-form>
         </el-col>
       </el-row>
@@ -312,24 +431,77 @@ onMounted(() => {
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="editBoxShow = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmEdit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button
+          type="primary"
+          @click="confirmEdit"
+        >{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </AppDialog>
 
-  <AppDialog v-model="batchEditBoxShow" class="add-box" :width="isMobile ? '94vw' : '650px'" :title="t('common.actions.batchEdit')">
+  <AppDialog
+    v-model="batchEditBoxShow"
+    class="add-box"
+    :width="isMobile ? '94vw' : '650px'"
+    :title="t('common.actions.batchEdit')"
+  >
     <div class="add-box">
       <el-form label-width="80">
-        <el-form-item :label="t('user.batchEdit.field')" required><el-select-v2 v-model="batchEditForm.field" :options="batchFieldOptions" /></el-form-item>
-        <el-form-item :label="t('user.table.sex')" v-if="batchEditForm.field === 'sex'"><el-select-v2 :options="sexArr" v-model="batchEditForm.sex" style="width: 300px" :placeholder="t('user.filter.sex')" clearable /></el-form-item>
-        <el-form-item :label="t('user.table.address')" v-if="batchEditForm.field === 'address'"><el-cascader v-model="batchEditForm.address" :options="addressTree" :props="{ emitPath: false }" :placeholder="t('user.filter.address')" style="width: 300px" clearable filterable /></el-form-item>
-        <el-form-item :label="t('user.filter.detail_address')" v-if="batchEditForm.field === 'detail_address'"><el-input v-model="batchEditForm.detail_address" :placeholder="t('user.filter.detail_address')" clearable style="width: 300px" /></el-form-item>
+        <el-form-item
+          :label="t('user.batchEdit.field')"
+          required
+        >
+          <el-select-v2
+            v-model="batchEditForm.field"
+            :options="batchFieldOptions"
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="batchEditForm.field === 'sex'"
+          :label="t('user.table.sex')"
+        >
+          <el-select-v2
+            v-model="batchEditForm.sex"
+            :options="sexArr"
+            style="width: 300px"
+            :placeholder="t('user.filter.sex')"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="batchEditForm.field === 'address_id'"
+          :label="t('user.table.address')"
+        >
+          <el-cascader
+            v-model="batchEditForm.address_id"
+            :options="addressTree"
+            :props="{ emitPath: false }"
+            :placeholder="t('user.filter.address')"
+            style="width: 300px"
+            clearable
+            filterable
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="batchEditForm.field === 'detail_address'"
+          :label="t('user.filter.detail_address')"
+        >
+          <el-input
+            v-model="batchEditForm.detail_address"
+            :placeholder="t('user.filter.detail_address')"
+            clearable
+            style="width: 300px"
+          />
+        </el-form-item>
       </el-form>
     </div>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="batchEditBoxShow = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmBatchEdit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button
+          type="primary"
+          @click="confirmBatchEdit"
+        >{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </AppDialog>

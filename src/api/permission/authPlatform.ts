@@ -62,6 +62,10 @@ export interface AuthPlatformAddPayload {
   allow_register: number
 }
 
+export interface AuthPlatformCreateResponse {
+  id: number
+}
+
 export type AuthPlatformUpdatePayload = Omit<AuthPlatformAddPayload, 'code'>
 
 export interface AuthPlatformEditPayload extends AuthPlatformUpdatePayload {
@@ -119,7 +123,7 @@ function normalizeAuthPlatformIDs(id: Id | Id[]): number[] {
 export const AuthPlatformApi = {
   init: () => request.get<AuthPlatformInitResponse>(`${ADMIN_API_PREFIX}/auth-platforms/init`),
   list: (params: AuthPlatformListParams) => request.get<PaginatedResponse<AuthPlatformItem>>(`${ADMIN_API_PREFIX}/auth-platforms`, { params: normalizeListParams(params) }),
-  add: (params: AuthPlatformAddPayload) => request.post<void, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`, params),
+  add: (params: AuthPlatformAddPayload) => request.post<AuthPlatformCreateResponse, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`, params),
   edit: (params: AuthPlatformEditPayload) => {
     const { id, ...body } = params
     return request.put<void, AuthPlatformUpdatePayload>(`${ADMIN_API_PREFIX}/auth-platforms/${id}`, body)

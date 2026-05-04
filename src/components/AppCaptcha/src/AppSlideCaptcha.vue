@@ -2,10 +2,40 @@
 import { computed } from 'vue'
 import { Slide as GoCaptchaSlide } from 'go-captcha-vue'
 import 'go-captcha-vue/dist/style.css'
-import type { SlideConfig } from 'go-captcha-vue/dist/components/slide/meta/config'
-import type { SlideData, SlidePoint } from 'go-captcha-vue/dist/components/slide/meta/data'
-import type { SlideEvent } from 'go-captcha-vue/dist/components/slide/meta/event'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
+
+interface SlideConfig {
+  width?: number
+  height?: number
+  thumbWidth?: number
+  thumbHeight?: number
+  verticalPadding?: number
+  horizontalPadding?: number
+  showTheme?: boolean
+  title?: string
+  iconSize?: number
+}
+
+interface SlideData {
+  thumbX: number
+  thumbY: number
+  thumbWidth: number
+  thumbHeight: number
+  image: string
+  thumb: string
+}
+
+interface SlidePoint {
+  x: number
+  y: number
+}
+
+interface SlideEvent {
+  move?: (x: number, y: number) => void
+  refresh?: () => void
+  close?: () => void
+  confirm?: (point: SlidePoint, reset: () => void) => void
+}
 
 const props = withDefaults(defineProps<{
   challenge: SlideCaptchaChallenge | null
@@ -119,6 +149,10 @@ const captchaEvents = computed<SlideEvent>(() => ({
   box-sizing: border-box;
   width: fit-content;
   max-width: calc(100vw - 32px);
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
 }
 
 .app-slide-captcha__official {
@@ -135,5 +169,12 @@ const captchaEvents = computed<SlideEvent>(() => ({
   background: #eef2f7;
   color: #64748b;
   font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .app-slide-captcha {
+    max-width: calc(100vw - 24px);
+    padding: 12px;
+  }
 }
 </style>

@@ -1,32 +1,39 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
-import {OperationLogApi} from '@/api/system/operationLog'
-import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/hooks/useResponsive'
-import {Clock} from '@element-plus/icons-vue'
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Clock } from '@element-plus/icons-vue'
+import { OperationLogApi } from '@/api/system/operationLog'
 import { CommonEnum } from '@/enums'
+import { useIsMobile } from '@/hooks/useResponsive'
+import type { OperationLogItem } from '@/types/operationLog'
 
 const props = defineProps<{
   userId: string | number
 }>()
 
-const {t} = useI18n()
+const { t } = useI18n()
 const isMobile = useIsMobile()
 
 const loading = ref(false)
-const logList = ref<any[]>([])
+const logList = ref<OperationLogItem[]>([])
 
-const getList = () => {
+async function getList() {
   loading.value = true
-  OperationLogApi.list({current_page: 1, page_size: 5, user_id: props.userId}).then((data: any) => {
-    logList.value = data.list || []
-  }).finally(() => {
+
+  try {
+    const response = await OperationLogApi.list({
+      current_page: 1,
+      page_size: 5,
+      user_id: props.userId,
+    })
+    logList.value = response.list
+  } finally {
     loading.value = false
-  })
+  }
 }
 
 onMounted(() => {
-  getList()
+  void getList()
 })
 </script>
 
@@ -36,18 +43,28 @@ onMounted(() => {
       <span class="title">{{ t('personal.tabs.operationLog') }}</span>
       <span class="desc">{{ t('personal.log.recentOperationDesc') }}</span>
     </div>
-    
-    <!-- 移动端卡片布局 -->
+
     <template v-if="isMobile">
-      <div v-loading="loading" class="card-list">
-        <el-card v-for="(item, index) in logList" :key="index" shadow="never" class="log-card">
+      <div
+        v-loading="loading"
+        class="card-list"
+      >
+        <el-card
+          v-for="item in logList"
+          :key="item.id"
+          shadow="never"
+          class="log-card"
+        >
           <div class="card-row">
             <span class="label">{{ t('operationLog.table.action') }}:</span>
             <span class="value">{{ item.action }}</span>
           </div>
           <div class="card-row">
             <span class="label">{{ t('operationLog.table.is_success') }}:</span>
-            <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+            <el-tag
+              :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'"
+              size="small"
+            >
               {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation') }}
             </el-tag>
           </div>
@@ -56,25 +73,42 @@ onMounted(() => {
             <span class="value time">{{ item.created_at }}</span>
           </div>
         </el-card>
-        <el-empty v-if="!loading && logList.length === 0" :description="t('personal.log.noData')" />
+        <el-empty
+          v-if="!loading && logList.length === 0"
+          :description="t('personal.log.noData')"
+        />
       </div>
     </template>
-    
-    <!-- PC端卡片列表布局 -->
+
     <template v-else>
-      <div v-loading="loading" class="log-list">
-        <div v-for="(item, index) in logList" :key="index" class="log-item">
+      <div
+        v-loading="loading"
+        class="log-list"
+      >
+        <div
+          v-for="item in logList"
+          :key="item.id"
+          class="log-item"
+        >
           <div class="log-main">
             <span class="action">{{ item.action }}</span>
-            <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+            <el-tag
+              :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'"
+              size="small"
+            >
               {{ item.is_success === CommonEnum.YES ? t('common.success.operation') : t('common.fail.operation') }}
             </el-tag>
           </div>
           <div class="log-meta">
-            <span class="meta-item time"><el-icon><Clock/></el-icon>{{ item.created_at }}</span>
+            <span class="meta-item time">
+              <el-icon><Clock /></el-icon>{{ item.created_at }}
+            </span>
           </div>
         </div>
-        <el-empty v-if="!loading && logList.length === 0" :description="t('personal.log.noData')" />
+        <el-empty
+          v-if="!loading && logList.length === 0"
+          :description="t('personal.log.noData')"
+        />
       </div>
     </template>
   </div>

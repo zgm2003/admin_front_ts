@@ -1,7 +1,11 @@
 import { CommonEnum } from '@/enums'
 import type { AuthPlatformAddPayload } from '@/api/permission/authPlatform'
 
-export function createAuthPlatformDefaultForm(): AuthPlatformAddPayload {
+export interface AuthPlatformForm extends AuthPlatformAddPayload {
+  id?: number
+}
+
+export function createAuthPlatformDefaultForm(): AuthPlatformForm {
   return {
     code: '',
     name: '',

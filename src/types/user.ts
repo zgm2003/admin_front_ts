@@ -165,8 +165,9 @@ export interface UserListItem {
   role_name: string
   bio: string
   address_show: string
-  address: number
+  address_id: number
   detail_address: string
+  status: number
   created_at: string
 }
 
@@ -180,16 +181,23 @@ export interface UsersListParams {
   email?: string
   detail_address?: string
   address_id?: number | number[]
-  address?: number | number[]
   role_id?: number | string
   sex?: number | string
   date?: string[]
 }
 
+export interface AddressTreeNode {
+  id: number
+  parent_id: number
+  label: string
+  value: number
+  children?: AddressTreeNode[]
+}
+
 export interface UserListInitResponse {
   dict: {
     roleArr: DictOption<number>[]
-    auth_address_tree: unknown[]
+    auth_address_tree: AddressTreeNode[]
     sexArr: DictOption<number>[]
     platformArr: DictOption<string>[]
   }
@@ -201,7 +209,7 @@ export interface UserEditParams {
   role_id: number
   avatar?: string
   sex: number
-  address: number
+  address_id: number
   detail_address?: string
   bio?: string
 }
@@ -214,8 +222,8 @@ export type UserBatchEditParams =
     }
   | {
       ids: number[]
-      field: 'address'
-      address: number
+      field: 'address_id'
+      address_id: number
     }
   | {
       ids: number[]

@@ -1,6 +1,6 @@
 import request, { legacyRequest } from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { RequestPayload } from '@/types/common'
+import type { Id } from '@/types/common'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
 import type {
   LoginConfigResponse,
@@ -34,6 +34,72 @@ export interface UserLegacyPasswordEditParams {
   respassword: string
 }
 
+type UserListQueryParams = Omit<UsersListParams, 'address_id' | 'date'> & {
+  address_id?: string
+  date?: string
+}
+
+type UserEditBody = Omit<UserEditParams, 'id'>
+type UserBatchDeletePayload = { ids: number[] }
+
+function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
+  const values = Array.isArray(id) ? id : [id]
+  const ids: number[] = []
+  const seen = new Set<number>()
+
+  for (const value of values) {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+      throw new Error(`${label} id must be a positive integer`)
+    }
+    if (seen.has(value)) {
+      continue
+    }
+    seen.add(value)
+    ids.push(value)
+  }
+
+  return ids
+}
+
+function setStringIfPresent(target: UserListQueryParams, key: 'keyword' | 'username' | 'email' | 'detail_address', value: string | undefined) {
+  const nextValue = value?.trim()
+  if (nextValue) {
+    target[key] = nextValue
+  }
+}
+
+function normalizeUsersListParams(params: UsersListParams): UserListQueryParams {
+  const query: UserListQueryParams = {
+    current_page: params.current_page,
+    page_size: params.page_size,
+  }
+
+  setStringIfPresent(query, 'keyword', params.keyword)
+  setStringIfPresent(query, 'username', params.username)
+  setStringIfPresent(query, 'email', params.email)
+  setStringIfPresent(query, 'detail_address', params.detail_address)
+
+  if (typeof params.role_id === 'number') {
+    query.role_id = params.role_id
+  }
+  if (typeof params.sex === 'number') {
+    query.sex = params.sex
+  }
+  if (Array.isArray(params.address_id)) {
+    const values = params.address_id.filter((value) => Number.isInteger(value) && value > 0)
+    if (values.length > 0) {
+      query.address_id = values.join(',')
+    }
+  } else if (typeof params.address_id === 'number' && params.address_id > 0) {
+    query.address_id = String(params.address_id)
+  }
+  if (Array.isArray(params.date) && params.date.length >= 2 && params.date[0] && params.date[1]) {
+    query.date = `${params.date[0]},${params.date[1]}`
+  }
+
+  return query
+}
+
 const fetchCurrentUser = () =>
   request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)
 
@@ -57,7 +123,7 @@ export const UsersApi = {
     request.post<void, { refresh_token?: string }>(`${ADMIN_API_PREFIX}/auth/logout`, params),
 
   sendCode: (params: UserSendCodeParams) =>
-    legacyRequest.post<void>('/api/Users/sendCode', params),
+    request.post<void, UserSendCodeParams>(`${ADMIN_API_PREFIX}/auth/send-code`, params),
 
   forgetPassword: (params: UserForgetPasswordParams) =>
     legacyRequest.post<void>('/api/Users/forgetPassword', params),
@@ -82,21 +148,30 @@ export const UsersApi = {
 }
 
 export const UsersListApi = {
-  init: (params?: RequestPayload) =>
-    legacyRequest.post<UserListInitResponse>('/api/admin/UsersList/init', params),
+  init: () =>
+    request.get<UserListInitResponse>(`${ADMIN_API_PREFIX}/users/page-init`),
 
   list: (params: UsersListParams) =>
-    legacyRequest.post<UserListResponse>('/api/admin/UsersList/list', params),
+    request.get<UserListResponse>(`${ADMIN_API_PREFIX}/users`, { params: normalizeUsersListParams(params) }),
 
-  edit: (params: UserEditParams) =>
-    legacyRequest.post<void>('/api/admin/UsersList/edit', params),
+  edit: (params: UserEditParams) => {
+    const { id, ...body } = params
+    return request.put<void, UserEditBody>(`${ADMIN_API_PREFIX}/users/${id}`, body)
+  },
 
   batchEdit: (params: UserBatchEditParams) =>
-    legacyRequest.post<void>('/api/admin/UsersList/batchEdit', params),
+    request.patch<void, UserBatchEditParams>(`${ADMIN_API_PREFIX}/users`, params),
 
-  del: (params: { id: number | number[] }) =>
-    legacyRequest.post<void>('/api/admin/UsersList/del', params),
+  del: (params: { id: Id | Id[] }) => {
+    const ids = normalizePositiveIDs(params.id, 'user')
+    if (ids.length === 1) {
+      return request.delete<void>(`${ADMIN_API_PREFIX}/users/${ids[0]}`)
+    }
+    const body: UserBatchDeletePayload = { ids }
+    return request.delete<void, UserBatchDeletePayload>(`${ADMIN_API_PREFIX}/users`, { data: body })
+  },
 
+  // Export still belongs to the explicit legacy adapter until Go export-task migration lands.
   export: (params: { ids: number[] }) =>
     legacyRequest.post<UserExportResponse>('/api/admin/UsersList/export', params),
 }
