@@ -1474,10 +1474,17 @@ export default {
   },
   error: {notFound: '抱歉，您访问的页面不存在'},
   systemLog: {
-    sidebar: { title: '日志文件', empty: '暂无日志文件' },
+    sidebar: { title: '日志文件', empty: '暂无日志文件', search: '搜索日志文件', noMatched: '没有匹配的日志文件' },
     toolbar: { keyword: '搜索关键字', level: '日志级别', query: '查询', refresh: '刷新', autoScroll: '自动滚底', lines: '行' },
+    meta: { currentFile: '当前文件', keyword: '关键字', level: '级别', tail: '尾部行数', filtered: '已筛选' },
+    actions: { copyFile: '复制文件名', copyLine: '复制本行', copyVisible: '复制结果', copySuccess: '已复制', resetFilter: '重置筛选' },
     empty: '暂无日志内容',
-    error: { loadFiles: '加载文件列表失败', loadContent: '加载日志内容失败' }
+    error: {
+      loadFiles: '加载文件列表失败',
+      loadContent: '加载日志内容失败',
+      copyUnsupported: '当前浏览器不支持复制',
+      copyFailed: '复制失败'
+    }
   },
   goods: {
     filter: { title: '商品标题', platform: '平台', status: '状态' },

@@ -1474,10 +1474,17 @@ export default {
   },
   error: {notFound: 'Sorry, the page you visited does not exist'},
   systemLog: {
-    sidebar: { title: 'Log Files', empty: 'No log files' },
+    sidebar: { title: 'Log Files', empty: 'No log files', search: 'Search log files', noMatched: 'No matched log files' },
     toolbar: { keyword: 'Search keyword', level: 'Log level', query: 'Query', refresh: 'Refresh', autoScroll: 'Auto scroll', lines: 'lines' },
+    meta: { currentFile: 'Current file', keyword: 'Keyword', level: 'Level', tail: 'Tail lines', filtered: 'Filtered' },
+    actions: { copyFile: 'Copy file', copyLine: 'Copy line', copyVisible: 'Copy result', copySuccess: 'Copied', resetFilter: 'Reset' },
     empty: 'No log content',
-    error: { loadFiles: 'Failed to load file list', loadContent: 'Failed to load log content' }
+    error: {
+      loadFiles: 'Failed to load file list',
+      loadContent: 'Failed to load log content',
+      copyUnsupported: 'Clipboard is not supported',
+      copyFailed: 'Copy failed'
+    }
   },
   goods: {
     filter: { title: 'Product Title', platform: 'Platform', status: 'Status' },
