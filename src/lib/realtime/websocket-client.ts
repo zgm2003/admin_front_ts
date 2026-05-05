@@ -1,4 +1,5 @@
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { normalizeLoopbackURLHost } from '@/lib/network/loopback'
 import { emitWsMessage, type WsMessage, type WsMessageData } from './message-bus'
 
 const REALTIME_WS_PATH = `${ADMIN_API_PREFIX}/realtime/ws`
@@ -43,10 +44,13 @@ function websocketProtocolFor(protocol: string) {
 export function buildWebSocketURL(params: {
   apiBaseURL?: string
   explicitURL?: string
+  currentHostname?: string
 }) {
   const explicitURL = params.explicitURL?.trim()
   if (explicitURL) {
-    return explicitURL
+    const wsURL = new URL(explicitURL)
+    normalizeLoopbackURLHost(wsURL, params.currentHostname)
+    return wsURL.toString()
   }
 
   const apiBaseURL = params.apiBaseURL?.trim()
@@ -55,6 +59,7 @@ export function buildWebSocketURL(params: {
   }
 
   const apiURL = new URL(apiBaseURL)
+  normalizeLoopbackURLHost(apiURL, params.currentHostname)
   const wsURL = new URL(REALTIME_WS_PATH, apiURL.origin)
   wsURL.protocol = websocketProtocolFor(apiURL.protocol)
   return wsURL.toString()

@@ -127,7 +127,7 @@ const legacyClient = createHttpClient({
 })
 const apiClient = createHttpClient({
   baseURL: apiBaseURL,
-  refreshBaseURL: legacyBaseURL,
+  refreshBaseURL: apiBaseURL,
 })
 
 const request = apiClient.request
