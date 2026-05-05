@@ -3,19 +3,20 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
-import { AppTable } from '@/components/Table'
+import { AppTable, useTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import {
   PayTransactionApi,
   type PayTransactionDetailResponse,
   type PayTransactionItem,
+  type PayTransactionListParams,
 } from '@/api/pay/transaction'
 import { UsersListApi } from '@/api/user/users'
 import { TxnStatus } from '@/enums'
 import { formatFen } from '@/enums/PayEnum'
 import type { UserListItem } from '@/types/user'
-import { useCrudTable } from '@/hooks/useCrudTable'
+import type { RequestPayload } from '@/types/common'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -38,6 +39,8 @@ const searchForm = ref({
   channel: '' as number | '',
   status: '' as number | '',
 })
+
+type PayTransactionPageListParams = PayTransactionListParams & RequestPayload
 
 const formatUserLabel = (item: UserListItem) => `${item.username} (${item.email})`
 const formatUserDisplay = (row: { user_id?: number; user_name?: string; user_email?: string }) => {
@@ -73,11 +76,16 @@ const {
   getList,
   onPageChange,
   refresh,
-  onSearch,
-} = useCrudTable({
+  resetPage,
+} = useTable<PayTransactionItem, PayTransactionPageListParams>({
   api: PayTransactionApi,
   searchForm,
 })
+
+const onSearch = () => {
+  resetPage()
+  void getList()
+}
 
 const columns = computed(() => [
   { key: 'transaction_no', label: t('pay_transaction.table.transaction_no'), width: 220 },
@@ -85,7 +93,7 @@ const columns = computed(() => [
   { key: 'user_name', label: t('pay_transaction.table.user_name'), width: 240 },
   { key: 'attempt_no', label: t('pay_transaction.table.attempt_no') },
   { key: 'channel_text', label: t('pay_transaction.table.channel') },
-  { key: 'pay_method', label: t('pay_transaction.table.pay_method') },
+  { key: 'pay_method_text', label: t('pay_transaction.table.pay_method') },
   { key: 'amount', label: t('pay_transaction.table.amount'), width: 120, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'trade_no', label: t('pay_transaction.table.trade_no'), width: 200 },
   { key: 'status_text', label: t('pay_transaction.table.status'), width: 140 },

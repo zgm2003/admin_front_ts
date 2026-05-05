@@ -10,7 +10,7 @@ import {
   type OrderInitResponse,
   type OrderListItem,
   type OrderListParams,
-  type OrderStatusCountResponse,
+  type OrderStatusCountMap,
 } from '@/api/pay/order'
 import { UsersListApi } from '@/api/user/users'
 import type { UserListItem } from '@/types/user'
@@ -63,7 +63,7 @@ export function usePayOrderPage(params: {
 
   const orderTypeArr = ref<OrderInitResponse['dict']['order_type_arr']>([])
   const payStatusArr = ref<OrderInitResponse['dict']['pay_status_arr']>([])
-  const statusCounts = ref<OrderStatusCountResponse['counts']>({})
+  const statusCounts = ref<OrderStatusCountMap>({})
   const activeStatusTab = ref('all')
 
   const searchForm = ref<{
@@ -158,7 +158,7 @@ export function usePayOrderPage(params: {
 
   async function loadStatusCount() {
     const res = await OrderApi.statusCount()
-    statusCounts.value = res.counts
+    statusCounts.value = Object.fromEntries(res.map((item) => [item.value, item]))
   }
 
   function onSearch() {

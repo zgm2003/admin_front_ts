@@ -9,7 +9,15 @@ vi.mock('@/api/user/users', () => ({
 }))
 
 vi.mock('@/components/Table', () => ({
-  useTable: () => ({}),
+  useTable: () => ({
+    loading: {},
+    data: {},
+    page: {},
+    onPageChange: vi.fn(),
+    refresh: vi.fn(),
+    getList: vi.fn(),
+    resetPage: vi.fn(),
+  }),
 }))
 
 vi.mock('element-plus', () => ({

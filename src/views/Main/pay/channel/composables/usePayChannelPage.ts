@@ -89,7 +89,6 @@ export function usePayChannelPage(params: {
     getList,
     onSelectionChange,
     confirmDel,
-    batchDel,
     toggleStatus,
   } = useCrudTable<PayChannelListItem, PayChannelListParams>({
     api: PayChannelApi,
@@ -209,7 +208,6 @@ export function usePayChannelPage(params: {
     getList,
     onSelectionChange,
     confirmDel,
-    batchDel,
     toggleStatus,
     dialogVisible,
     dialogMode,

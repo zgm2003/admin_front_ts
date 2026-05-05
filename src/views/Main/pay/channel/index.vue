@@ -9,7 +9,7 @@ import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import type { PayChannelListItem } from '@/api/pay/channel'
 import { CommonEnum } from '@/enums'
-import { ArrowDown, Lock, Key, Bell } from '@element-plus/icons-vue'
+import { Lock, Key, Bell } from '@element-plus/icons-vue'
 import { usePayChannelPage } from './composables/usePayChannelPage'
 
 const userStore = useUserStore()
@@ -28,7 +28,6 @@ const {
   getList,
   onSelectionChange,
   confirmDel,
-  batchDel,
   toggleStatus,
   dialogVisible,
   dialogMode,
@@ -97,18 +96,6 @@ onMounted(() => {
           <el-button v-if="userStore.can('pay_channel_add')" type="success" @click="openAddDialog">
             {{ t('common.actions.add') }}
           </el-button>
-          <el-dropdown>
-            <el-button type="primary">
-              {{ t('common.actions.batchAction') }}<el-icon class="el-icon--right"><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item v-if="userStore.can('pay_channel_del')" @click="batchDel">
-                  {{ t('common.actions.batchDelete') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
         </template>
         <template #cell-status_name="{ row }">
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name }}</el-tag>
@@ -151,7 +138,7 @@ onMounted(() => {
         <div class="section-header" @click="sectionBasic = !sectionBasic">
           <el-icon><Key /></el-icon>
           <span>{{ t('pay_channel.section.basic') }}</span>
-          <el-icon class="arrow" :class="{ collapsed: !sectionBasic }"><ArrowDown /></el-icon>
+          <span class="arrow" :class="{ collapsed: !sectionBasic }">⌄</span>
         </div>
         <div v-show="sectionBasic" class="section-body">
           <el-row :gutter="16">
@@ -241,7 +228,7 @@ onMounted(() => {
         <div class="section-header" @click="sectionCert = !sectionCert">
           <el-icon><Lock /></el-icon>
           <span>{{ t('pay_channel.section.secret') }}</span>
-          <el-icon class="arrow" :class="{ collapsed: !sectionCert }"><ArrowDown /></el-icon>
+          <span class="arrow" :class="{ collapsed: !sectionCert }">⌄</span>
         </div>
         <div v-show="sectionCert" class="section-body">
 
@@ -312,7 +299,7 @@ onMounted(() => {
         <div class="section-header" @click="sectionCallback = !sectionCallback">
           <el-icon><Bell /></el-icon>
           <span>{{ t('pay_channel.section.callback') }}</span>
-          <el-icon class="arrow" :class="{ collapsed: !sectionCallback }"><ArrowDown /></el-icon>
+          <span class="arrow" :class="{ collapsed: !sectionCallback }">⌄</span>
         </div>
         <div v-show="sectionCallback" class="section-body">
           <el-row :gutter="16">

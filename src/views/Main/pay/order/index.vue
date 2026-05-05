@@ -11,6 +11,11 @@ import { usePayOrderPage } from './composables/usePayOrderPage'
 const userStore = useUserStore()
 const { t } = useI18n()
 const isMobile = useIsMobile()
+
+function formatFenCell(_row: unknown, _column: unknown, value: number) {
+  return `¥${formatFen(value)}`
+}
+
 const {
   activeStatusTab,
   closeForm,
@@ -128,9 +133,9 @@ void remarkFormRef.value
       <el-divider>{{ t('pay_order.detail.items') }}</el-divider>
       <el-table :data="detailData.items" border size="small">
         <el-table-column prop="title" :label="t('pay_order.detail.item_title')" />
-        <el-table-column prop="price" :label="t('pay_order.detail.item_price')" width="140" :formatter="(_r:any,_c:any,v:number) => `¥${formatFen(v)}`" />
+        <el-table-column prop="price" :label="t('pay_order.detail.item_price')" width="140" :formatter="formatFenCell" />
         <el-table-column prop="quantity" :label="t('pay_order.detail.item_qty')" width="100" />
-        <el-table-column prop="amount" :label="t('pay_order.detail.item_amount')" width="140" :formatter="(_r:any,_c:any,v:number) => `¥${formatFen(v)}`" />
+        <el-table-column prop="amount" :label="t('pay_order.detail.item_amount')" width="140" :formatter="formatFenCell" />
       </el-table>
     </template>
   </AppDialog>

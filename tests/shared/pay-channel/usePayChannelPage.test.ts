@@ -63,7 +63,7 @@ describe('usePayChannelPage helpers', () => {
     expect(buildPayChannelNotifyUrl(999)).toBe('')
   })
 
-  it('reuses useCrudTable for standard list, search, pagination and row actions', () => {
+  it('reuses useCrudTable for standard list, search, pagination and single-row actions', () => {
     const page = usePayChannelPage({
       t: (key: string) => key,
     })
@@ -74,7 +74,6 @@ describe('usePayChannelPage helpers', () => {
     expect(page.getList).toBe(crudTableState.getList)
     expect(page.onSelectionChange).toBe(crudTableState.onSelectionChange)
     expect(page.confirmDel).toBe(crudTableState.confirmDel)
-    expect(page.batchDel).toBe(crudTableState.batchDel)
     expect(page.toggleStatus).toBe(crudTableState.toggleStatus)
   })
 })
