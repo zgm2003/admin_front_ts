@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, nextTick} from 'vue'
+import {ref, computed, onMounted, nextTick, shallowRef} from 'vue'
 import {ElMessage, ElMessageBox, ElNotification} from 'element-plus'
 import {DocumentCopy} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
@@ -18,6 +18,7 @@ import {
   type NotificationTaskInitResponse,
   type NotificationTaskItem,
   type NotificationTaskStatusItem,
+  type NotificationTaskStatus,
 } from '@/api/system/notificationTask'
 import {UsersListApi} from '@/api/user/users'
 import {RoleApi} from '@/api/permission/role'
@@ -27,7 +28,7 @@ const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
 const statusArr = ref<NotificationTaskStatusItem[]>([])
-const searchForm = ref({status: '' as number | '', title: ''})
+const searchForm = ref({status: '' as NotificationTaskStatus | '', title: ''})
 
 // 字典数据
 const typeArr = ref<NotificationTaskInitResponse['dict']['notification_type_arr']>([])
@@ -100,7 +101,7 @@ const getTypeColor = (type: number): 'success' | 'warning' | 'danger' | 'info' |
 // 弹窗
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance | null>(null)
-const submitLoading = ref(false)
+const submitLoading = shallowRef(false)
 const form = ref<NotificationTaskAddParams>({
   title: '',
   content: '',
@@ -127,39 +128,40 @@ const handleSubmit = async () => {
     return
   }
   submitLoading.value = true
-  NotificationTaskApi.add(form.value).then(() => {
+  try {
+    await NotificationTaskApi.add(form.value)
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
-    loadStatusCount()
-  }).finally(() => {
+    await loadStatusCount()
+  } finally {
     submitLoading.value = false
-  })
+  }
 }
 
 // 取消任务
-const handleCancel = (row: Pick<NotificationTaskItem, 'id'>) => {
-  ElMessageBox.confirm(t('notificationTask.cancelConfirm'), t('common.confirmTitle'), {
-    type: 'warning',
-    confirmButtonText: t('common.actions.confirm'),
-    cancelButtonText: t('common.actions.cancel')
-  })
-    .then(() => {
-      NotificationTaskApi.cancel({id: row.id}).then(() => {
-        ElMessage.success(t('common.success.operation'))
-        void loadStatusCount()
-      })
+const handleCancel = async (row: Pick<NotificationTaskItem, 'id'>) => {
+  try {
+    await ElMessageBox.confirm(t('notificationTask.cancelConfirm'), t('common.confirmTitle'), {
+      type: 'warning',
+      confirmButtonText: t('common.actions.confirm'),
+      cancelButtonText: t('common.actions.cancel')
     })
-    .catch(() => {})
+  } catch {
+    return
+  }
+
+  await NotificationTaskApi.cancel({id: row.id})
+  ElMessage.success(t('common.success.operation'))
+  await loadStatusCount()
 }
 
-onMounted(() => {
-  NotificationTaskApi.init().then((data) => {
-    typeArr.value = data.dict.notification_type_arr
-    levelArr.value = data.dict.notification_level_arr
-    targetTypeArr.value = data.dict.notification_target_type_arr
-    platformArr.value = data.dict.platformArr
-  })
-  void loadStatusCount()
+onMounted(async () => {
+  const data = await NotificationTaskApi.init()
+  typeArr.value = data.dict.notification_type_arr
+  levelArr.value = data.dict.notification_level_arr
+  targetTypeArr.value = data.dict.notification_target_type_arr
+  platformArr.value = data.dict.platformArr
+  await loadStatusCount()
 })
 </script>
 
