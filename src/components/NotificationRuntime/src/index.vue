@@ -38,10 +38,6 @@ let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
   unsubscribe = onWsMessage<NotificationWsPayload>('notification.created.v1', async ({ data }) => {
-    if (data.level !== 'urgent') {
-      return
-    }
-
     const title = typeof data.title === 'string' ? data.title : t('notification.title')
     const content = typeof data.content === 'string' ? data.content : ''
     const link = typeof data.link === 'string' ? data.link : undefined
