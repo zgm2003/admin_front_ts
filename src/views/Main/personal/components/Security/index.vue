@@ -136,6 +136,7 @@ const savePassword = async () => {
 
       await UsersApi.updatePassword({
         verify_type: 'code',
+        account: passwordAccount.value,
         code: passwordForm.value.code,
         new_password: passwordForm.value.new_password,
         confirm_password: passwordForm.value.confirm_password,

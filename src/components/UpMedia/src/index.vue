@@ -34,14 +34,13 @@ watch(() => props.modelValue, (v) => {
 const beforeUpload = async (file: File) => {
   loading.value = true
   try {
-    const config: any = await getUploadToken({ folderName: defaultFolder.value })
-    if (props.type === 'image') {
-      validateFile(file, config, 'image')
-    }
-    const result: any = await uploadFileToCloud(file, config)
+    const fileKind = props.type === 'video' ? 'file' : 'image'
+    const config = await getUploadToken({ folderName: defaultFolder.value, fileName: file.name, fileSize: file.size, fileKind })
+    validateFile(file, config, fileKind)
+    const result = await uploadFileToCloud(file, config)
     mediaUrl.value = result.url
     emit('update:modelValue', result.url)
-  } catch (error: any) {
+  } catch {
     // 错误由 request.ts 统一处理
   } finally {
     loading.value = false

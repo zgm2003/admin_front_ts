@@ -63,13 +63,13 @@ const cfg = computed(() => {
   if (props.useCosUpload) {
     if (!menu.uploadImage) menu.uploadImage = {}
     if (!menu.uploadImage.customUpload) menu.uploadImage.customUpload = async (file: File, insertFn: any) => {
-      const tokenResponse = await getUploadToken({folderName: props.uploadFolder});
+      const tokenResponse = await getUploadToken({folderName: props.uploadFolder, fileName: file.name, fileSize: file.size, fileKind: 'image'});
       const result = await uploadFileToCloud(file, tokenResponse);
       insertFn(result.url || '', '', '')
     }
     if (!menu.uploadVideo) menu.uploadVideo = {}
     if (!menu.uploadVideo.customUpload) menu.uploadVideo.customUpload = async (file: File, insertFn: any) => {
-      const tokenResponse = await getUploadToken({folderName: props.uploadFolder});
+      const tokenResponse = await getUploadToken({folderName: props.uploadFolder, fileName: file.name, fileSize: file.size, fileKind: 'file'});
       const result = await uploadFileToCloud(file, tokenResponse);
       insertFn(result.url || '')
     }

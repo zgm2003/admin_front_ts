@@ -102,6 +102,7 @@ export type UserPasswordUpdateParams =
     }
   | {
       verify_type: 'code'
+      account: string
       code: string
       new_password: string
       confirm_password: string
@@ -109,13 +110,14 @@ export type UserPasswordUpdateParams =
     }
 
 export interface UserPersonalInfo {
+  user_id: number
   username: string
   email: string
   avatar: string
   phone: string
   role_id: number
   role_name: string
-  address: number
+  address_id: number
   detail_address: string
   sex: number
   birthday: string
@@ -124,13 +126,15 @@ export interface UserPersonalInfo {
   has_password: boolean
 }
 
+export interface UserPersonalDict {
+  auth_address_tree: AddressTreeNode[]
+  sexArr: DictOption<number>[]
+  verify_type_arr: DictOption<UserVerifyType>[]
+}
+
 export interface UserPersonalInitResponse {
-  list: UserPersonalInfo
-  dict: {
-    auth_address_tree: unknown[]
-    sexArr: DictOption<number>[]
-    verify_type_arr: DictOption<UserVerifyType>[]
-  }
+  profile: UserPersonalInfo
+  dict: UserPersonalDict
 }
 
 export interface UserPersonalEditParams {
@@ -138,7 +142,7 @@ export interface UserPersonalEditParams {
   avatar?: string
   sex: number
   birthday?: string | null
-  address: number
+  address_id: number
   detail_address?: string
   bio?: string
 }

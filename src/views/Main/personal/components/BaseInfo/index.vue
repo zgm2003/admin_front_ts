@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { ElNotification } from 'element-plus'
+import type { CascaderOption } from 'element-plus'
 import { UpMedia } from '@/components/UpMedia'
 import { UsersApi } from '@/api/user/users.ts'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
-import type { UserPersonalEditParams, UserPersonalInfo } from '@/types/user'
+import type { AddressTreeNode, UserPersonalEditParams, UserPersonalInfo } from '@/types/user'
 
 const props = defineProps<{
   userinfo: UserPersonalInfo
-  addressTree: any[]
+  addressTree: AddressTreeNode[]
   sexArr: Array<DictOption<number>>
 }>()
 
@@ -21,7 +22,15 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isMobile = useIsMobile()
 const loading = ref(false)
-const editableFieldKeys = ['avatar', 'username', 'sex', 'birthday', 'address', 'detail_address', 'bio'] as const
+const editableFieldKeys = ['avatar', 'username', 'sex', 'birthday', 'address_id', 'detail_address', 'bio'] as const
+const toCascaderOptions = (nodes: AddressTreeNode[]): CascaderOption[] =>
+  nodes.map((node) => ({
+    label: node.label,
+    value: node.value,
+    children: node.children ? toCascaderOptions(node.children) : undefined,
+  }))
+
+const addressOptions = computed<CascaderOption[]>(() => toCascaderOptions(props.addressTree))
 
 type EditableFieldKey = (typeof editableFieldKeys)[number]
 type DirtyFieldMap = Record<EditableFieldKey, boolean>
@@ -31,14 +40,15 @@ const createSnapshot = (source: UserPersonalInfo | UserPersonalEditParams): User
   username: source.username?.trim?.() || source.username,
   sex: source.sex,
   birthday: source.birthday || null,
-  address: source.address,
+  address_id: source.address_id,
   detail_address: source.detail_address,
   bio: source.bio,
 })
 
 // 仅快照可编辑字段，并以规范化后的值作为重置基准
 const original = ref<UserPersonalEditParams>(createSnapshot(props.userinfo))
-const currentSnapshot = computed(() => createSnapshot(props.userinfo))
+const form = ref<UserPersonalEditParams>(createSnapshot(props.userinfo))
+const currentSnapshot = computed(() => createSnapshot(form.value))
 const dirtyFields = computed<DirtyFieldMap>(() => {
   const current = currentSnapshot.value
   const baseline = original.value
@@ -55,8 +65,11 @@ const dirtyFields = computed<DirtyFieldMap>(() => {
 watch(
   () => props.userinfo,
   (userinfo) => {
-    original.value = createSnapshot(userinfo)
+    const snapshot = createSnapshot(userinfo)
+    original.value = snapshot
+    form.value = { ...snapshot }
   },
+  { deep: true },
 )
 
 const confirmEdit = async () => {
@@ -65,7 +78,6 @@ const confirmEdit = async () => {
   loading.value = true
   try {
     await UsersApi.editPersonal(params)
-    Object.assign(props.userinfo, params)
     original.value = { ...params }
     ElNotification.success(t('common.success.operation'))
     emit('refresh')
@@ -75,7 +87,7 @@ const confirmEdit = async () => {
 }
 
 const resetForm = () => {
-  Object.assign(props.userinfo, { ...original.value })
+  form.value = { ...original.value }
 }
 </script>
 
@@ -85,7 +97,7 @@ const resetForm = () => {
       <el-form label-width="auto" label-position="top" class="base-form">
         <el-form-item :label="t('personal.form.avatar')" :class="{ 'is-dirty-item': dirtyFields.avatar }">
           <div class="upload-shell" :class="{ 'is-dirty-upload': dirtyFields.avatar }">
-            <UpMedia v-model="userinfo.avatar" folder-name="avatars" :isClearable="false" />
+            <UpMedia v-model="form.avatar" folder-name="avatars" :isClearable="false" />
           </div>
         </el-form-item>
 
@@ -94,7 +106,7 @@ const resetForm = () => {
           <el-col :xs="24" :sm="24" :md="12">
             <el-form-item :label="t('personal.form.username')" :class="{ 'is-dirty-item': dirtyFields.username }">
               <el-input
-                v-model="userinfo.username"
+                v-model="form.username"
                 :placeholder="t('personal.form.usernamePlaceholder')"
                 class="custom-input"
                 clearable
@@ -104,7 +116,7 @@ const resetForm = () => {
           <el-col :xs="24" :sm="24" :md="12">
             <el-form-item :label="t('personal.form.sex')" :class="{ 'is-dirty-item': dirtyFields.sex }">
               <el-select-v2
-                v-model="userinfo.sex"
+                v-model="form.sex"
                 :options="sexArr"
                 :placeholder="t('personal.form.sexPlaceholder')"
                 class="custom-select"
@@ -120,7 +132,7 @@ const resetForm = () => {
           <el-col :xs="24" :sm="24" :md="12">
             <el-form-item :label="t('personal.form.birthday')" :class="{ 'is-dirty-item': dirtyFields.birthday }">
               <el-date-picker
-                v-model="userinfo.birthday"
+                v-model="form.birthday"
                 type="date"
                 :placeholder="t('personal.form.birthdayPlaceholder')"
                 class="custom-date"
@@ -132,10 +144,10 @@ const resetForm = () => {
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="24" :md="12">
-            <el-form-item :label="t('personal.form.address')" :class="{ 'is-dirty-item': dirtyFields.address }">
+            <el-form-item :label="t('personal.form.address')" :class="{ 'is-dirty-item': dirtyFields.address_id }">
               <el-cascader
-                v-model="userinfo.address"
-                :options="addressTree"
+                v-model="form.address_id"
+                :options="addressOptions"
                 :props="{ emitPath: false }"
                 :placeholder="t('personal.form.addressPlaceholder')"
                 class="custom-cascader"
@@ -148,7 +160,7 @@ const resetForm = () => {
 
         <el-form-item :label="t('personal.form.detailAddress')" :class="{ 'is-dirty-item': dirtyFields.detail_address }">
           <el-input
-            v-model="userinfo.detail_address"
+            v-model="form.detail_address"
             :placeholder="t('personal.form.detailAddress')"
             class="custom-input"
             clearable
@@ -159,7 +171,7 @@ const resetForm = () => {
           <el-input
             type="textarea"
             :rows="isMobile ? 4 : 5"
-            v-model="userinfo.bio"
+            v-model="form.bio"
             :placeholder="t('personal.form.bioPlaceholder')"
             class="custom-textarea"
           />

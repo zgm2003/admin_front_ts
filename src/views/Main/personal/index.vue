@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
 import { UsersApi } from '@/api/user/users.ts'
 import { useUserStore } from '@/store/user'
 import type { DictOption } from '@/types/common'
-import type { UserPersonalInfo } from '@/types/user'
+import type { AddressTreeNode, UserPersonalInfo } from '@/types/user'
 import BaseInfo from './components/BaseInfo/index.vue'
 import LoginLog from './components/LoginLog/index.vue'
 import OperationLog from './components/OperationLog/index.vue'
@@ -18,12 +18,17 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const sexArr = ref<DictOption<number>[]>([])
-const addressTree = ref<any[]>([])
+const addressTree = ref<AddressTreeNode[]>([])
 const verifyTypeArr = ref<DictOption<'password' | 'code'>[]>([])
 const loading = ref(false)
-const userId = (route.query.user_id as string | undefined) || String(userStore.user_id)
+const userId = computed(() => {
+  const queryUserID = Array.isArray(route.query.user_id) ? route.query.user_id[0] : route.query.user_id
+  return queryUserID || String(userStore.user_id)
+})
+const userIdForLog = computed(() => String(userId.value))
 
 const userinfo = ref<UserPersonalInfo>({
+  user_id: 0,
   username: '',
   email: '',
   avatar: '',
@@ -32,7 +37,7 @@ const userinfo = ref<UserPersonalInfo>({
   role_name: '',
   sex: 0,
   birthday: '',
-  address: 0,
+  address_id: 0,
   detail_address: '',
   bio: '',
   is_self: 0,
@@ -44,8 +49,8 @@ const activeTab = ref('basic')
 const initPersonal = async () => {
   loading.value = true
   try {
-    const data = await UsersApi.initPersonal({ user_id: userId })
-    userinfo.value = data.list
+    const data = await UsersApi.initPersonal({ user_id: userId.value })
+    userinfo.value = data.profile
     addressTree.value = data.dict.auth_address_tree || []
     sexArr.value = data.dict.sexArr || []
     verifyTypeArr.value = data.dict.verify_type_arr || []
@@ -78,10 +83,10 @@ onMounted(() => {
               <Security :userinfo="userinfo" :verify-type-arr="verifyTypeArr" @refresh="initPersonal" />
             </el-tab-pane>
             <el-tab-pane :label="t('personal.tabs.loginLog')" name="loginLog" lazy>
-              <LoginLog :user-id="userId" />
+              <LoginLog :user-id="userIdForLog" />
             </el-tab-pane>
             <el-tab-pane :label="t('personal.tabs.operationLog')" name="operationLog" lazy>
-              <OperationLog :user-id="userId" />
+              <OperationLog :user-id="userIdForLog" />
             </el-tab-pane>
           </el-tabs>
         </el-card>

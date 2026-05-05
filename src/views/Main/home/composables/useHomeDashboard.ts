@@ -23,7 +23,7 @@ import {
 interface HomeProfileSummary {
   sex: number
   birthday: string
-  address: number
+  addressId: number
   detail_address: string
   bio: string
   addressTree: import('./helpers').AddressTreeNode[]
@@ -86,8 +86,8 @@ export function useHomeDashboard() {
 
     const sexLabel = profileSummary.value.sexOptions.find((item) => item.value === profileSummary.value?.sex)?.label || '--'
     const birthday = profileSummary.value.birthday || '--'
-    const address = profileSummary.value.address > 0
-      ? (buildAddressLabel(profileSummary.value.addressTree, profileSummary.value.address) || '--')
+    const address = profileSummary.value.addressId > 0
+      ? (buildAddressLabel(profileSummary.value.addressTree, profileSummary.value.addressId) || '--')
       : '--'
     const detailAddress = profileSummary.value.detail_address || '--'
 
@@ -119,11 +119,11 @@ export function useHomeDashboard() {
 
     const data = await UsersApi.initPersonal({ user_id: userId })
     profileSummary.value = {
-      sex: data.list.sex,
-      birthday: data.list.birthday,
-      address: data.list.address,
-      detail_address: data.list.detail_address,
-      bio: data.list.bio,
+      sex: data.profile.sex,
+      birthday: data.profile.birthday,
+      addressId: data.profile.address_id,
+      detail_address: data.profile.detail_address,
+      bio: data.profile.bio,
       addressTree: data.dict.auth_address_tree as HomeProfileSummary['addressTree'],
       sexOptions: data.dict.sexArr,
     }

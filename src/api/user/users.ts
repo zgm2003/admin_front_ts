@@ -128,23 +128,29 @@ export const UsersApi = {
   forgetPassword: (params: UserForgetPasswordParams) =>
     legacyRequest.post<void>('/api/Users/forgetPassword', params),
 
-  initPersonal: (params: { user_id: number | string }) =>
-    legacyRequest.post<UserPersonalInitResponse>('/api/Users/initPersonal', params),
+  initPersonal: (params?: { user_id?: number | string }) => {
+    const rawUserID = params?.user_id
+    const userID = typeof rawUserID === 'string' ? Number(rawUserID) : rawUserID
+    if (typeof userID === 'number' && Number.isInteger(userID) && userID > 0) {
+      return request.get<UserPersonalInitResponse>(`${ADMIN_API_PREFIX}/users/${userID}/profile`)
+    }
+    return request.get<UserPersonalInitResponse>(`${ADMIN_API_PREFIX}/profile`)
+  },
 
   editPersonal: (params: UserPersonalEditParams) =>
-    legacyRequest.post<void>('/api/Users/editPersonal', params),
+    request.put<void, UserPersonalEditParams>(`${ADMIN_API_PREFIX}/profile`, params),
 
   EditPassword: (params: UserLegacyPasswordEditParams) =>
     legacyRequest.post<void>('/api/Users/EditPassword', params),
 
   updatePhone: (params: UserPhoneUpdateParams) =>
-    legacyRequest.post<void>('/api/Users/updatePhone', params),
+    request.put<void, UserPhoneUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/phone`, params),
 
   updateEmail: (params: UserEmailUpdateParams) =>
-    legacyRequest.post<void>('/api/Users/updateEmail', params),
+    request.put<void, UserEmailUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/email`, params),
 
   updatePassword: (params: UserPasswordUpdateParams) =>
-    legacyRequest.post<void>('/api/Users/updatePassword', params),
+    request.put<void, UserPasswordUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/password`, params),
 }
 
 export const UsersListApi = {

@@ -181,17 +181,21 @@ async function handleSend() {
   if (attachments.length > 0) {
     uploading.value = true
     try {
-      // 分别获取图片和文件的上传凭证
-      const hasImages = attachments.some(a => a.type === 'image')
-      const hasFiles = attachments.some(a => a.type === 'file')
       let imageConfig: UploadConfig | null = null
       let fileConfig: UploadConfig | null = null
-      if (hasImages) imageConfig = await getUploadToken({ folderName: 'chat_images' })
-      if (hasFiles) fileConfig = await getUploadToken({ folderName: 'chat_files' })
-
       for (const att of attachments) {
         try {
-          const config = att.type === 'image' ? imageConfig! : fileConfig!
+          let config: UploadConfig | null = att.type === 'image' ? imageConfig : fileConfig
+          if (!config) {
+            config = await getUploadToken({
+              folderName: att.type === 'image' ? 'chat_images' : 'chat_files',
+              fileName: att.file.name || (att.type === 'image' ? 'clipboard.png' : 'file'),
+              fileSize: att.file.size,
+              fileKind: att.type === 'image' ? 'image' : 'file',
+            })
+            if (att.type === 'image') imageConfig = config
+            else fileConfig = config
+          }
           validateFile(att.file, config, att.type === 'image' ? 'image' : 'file')
           const { url } = await uploadFileToCloud(att.file, config)
           const msgType = att.type === 'image' ? MessageType.Image : MessageType.File
@@ -239,9 +243,9 @@ async function handleImageChange(e: Event) {
 
   uploading.value = true
   try {
-    const config: UploadConfig = await getUploadToken({ folderName: 'chat_images' })
     for (const file of Array.from(files)) {
       try {
+        const config: UploadConfig = await getUploadToken({ folderName: 'chat_images', fileName: file.name, fileSize: file.size, fileKind: 'image' })
         validateFile(file, config, 'image')
         const { url } = await uploadFileToCloud(file, config)
         await chatStore.sendMessage(
@@ -272,7 +276,7 @@ async function handleFileChange(e: Event) {
 
   uploading.value = true
   try {
-    const config: UploadConfig = await getUploadToken({ folderName: 'chat_files' })
+    const config: UploadConfig = await getUploadToken({ folderName: 'chat_files', fileName: file.name, fileSize: file.size, fileKind: 'file' })
     validateFile(file, config, 'file')
     const { url } = await uploadFileToCloud(file, config)
     await chatStore.sendMessage(

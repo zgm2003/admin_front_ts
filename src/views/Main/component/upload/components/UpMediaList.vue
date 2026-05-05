@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { ElIcon } from 'element-plus'
+import type { UploadFile, UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { uploadFileToCloud, getUploadToken, validateFile } from '@/lib/upload'
@@ -8,35 +9,48 @@ import { useIsMobile } from '@/hooks/useResponsive'
 
 const isMobile = useIsMobile()
 
-const props = defineProps({
-  modelValue: { type: Array as any, default: () => [] },
-  folderName: { type: String, default: 'images' },
-  type: { type: String as () => 'image' | 'video', default: 'image' },
-})
-const emits = defineEmits(['update:modelValue'])
+interface MediaItem {
+  name: string
+  url: string
+  uid: number
+}
 
-const mediaList = ref([...(props.modelValue as any[])])
+const props = withDefaults(defineProps<{
+  modelValue?: MediaItem[]
+  folderName?: string
+  type?: 'image' | 'video'
+}>(), {
+  modelValue: () => [],
+  folderName: 'images',
+  type: 'image',
+})
+const emits = defineEmits<{
+  'update:modelValue': [value: MediaItem[]]
+}>()
+
+const mediaList = ref<UploadUserFile[]>([...props.modelValue])
 const loading = ref(false)
 
 const acceptType = computed(() => props.type === 'video' ? 'video/*' : 'image/*')
 const listType = computed(() => props.type === 'video' ? 'text' : 'picture-card')
 
-watch(() => props.modelValue, (newValue: any[]) => { mediaList.value = [...newValue] })
+watch(() => props.modelValue, (newValue: MediaItem[]) => { mediaList.value = [...newValue] })
 
 const beforeUpload = async (file: File) => {
   loading.value = true
   try {
-    const config: any = await getUploadToken({ folderName: props.folderName })
+    const fileKind = props.type === 'video' ? 'file' : 'image'
+    const config = await getUploadToken({ folderName: props.folderName, fileName: file.name, fileSize: file.size, fileKind })
     validateFile(file, config, props.type === 'video' ? 'file' : 'image')
-    const result: any = await uploadFileToCloud(file, config)
+    const result = await uploadFileToCloud(file, config)
     const uploadedMedia = { 
-      name: (file as any).name, 
+      name: file.name,
       url: result.url, 
-      uid: Date.now() + Math.random().toString(36).substr(2, 9) 
+      uid: Date.now()
     }
-    mediaList.value.push(uploadedMedia as any)
-    emits('update:modelValue', mediaList.value as any)
-  } catch (error: any) {
+    mediaList.value.push(uploadedMedia)
+    emits('update:modelValue', toMediaItems(mediaList.value))
+  } catch {
     // 错误由 validateFile 或 uploadFileToCloud 内部处理
   } finally { 
     loading.value = false 
@@ -44,16 +58,25 @@ const beforeUpload = async (file: File) => {
   return false
 }
 
-const removeMedia = (file: any) => { 
-  mediaList.value = mediaList.value.filter((item: any) => item.uid !== file.uid)
-  emits('update:modelValue', mediaList.value as any) 
+const removeMedia = (file: UploadFile) => {
+  mediaList.value = mediaList.value.filter((item) => item.uid !== file.uid)
+  emits('update:modelValue', toMediaItems(mediaList.value))
 }
 
 const dialogUrl = ref('')
 const dialogVisible = ref(false)
-const handlePreview = (file: any) => { 
-  dialogUrl.value = file.url
+const handlePreview = (file: UploadFile) => {
+  dialogUrl.value = file.url || ''
   dialogVisible.value = true 
+}
+
+function toMediaItems(values: UploadUserFile[]): MediaItem[] {
+  return values.flatMap((item) => {
+    if (!item.url || typeof item.uid !== 'number') {
+      return []
+    }
+    return [{ name: item.name, url: item.url, uid: item.uid }]
+  })
 }
 </script>
 

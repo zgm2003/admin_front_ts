@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { ElNotification } from 'element-plus'
 import { UploadFilled, Loading, Document } from '@element-plus/icons-vue'
+import type { UploadRequestOptions } from 'element-plus'
 import { getUploadToken, uploadFileToCloud, type UploadConfig } from '@/lib/upload'
 import { useIsMobile } from '@/hooks/useResponsive'
 
@@ -29,21 +30,21 @@ const fileName = ref('')
 
 const displayUrl = computed(() => props.modelValue)
 
-const handleUpload = async (options: any) => {
-  const file = options.file as File
+const handleUpload = async (options: UploadRequestOptions) => {
+  const file = options.file
   if (!file) return
 
   uploading.value = true
   fileName.value = file.name
 
   try {
-    const config: UploadConfig = await getUploadToken({ folderName: props.folderName })
+    const config: UploadConfig = await getUploadToken({ folderName: props.folderName, fileName: file.name, fileSize: file.size, fileKind: 'file' })
     const { url } = await uploadFileToCloud(file, config)
     emit('update:modelValue', url)
     emit('success', { url, size: file.size, name: file.name })
     ElNotification.success({ message: '上传成功' })
-  } catch (e: any) {
-    ElNotification.error({ message: e.message || '上传失败' })
+  } catch (error: unknown) {
+    ElNotification.error({ message: error instanceof Error ? error.message : '上传失败' })
   } finally {
     uploading.value = false
   }
