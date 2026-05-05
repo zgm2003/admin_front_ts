@@ -11,13 +11,14 @@ describe('message-bus', () => {
     const notificationHandler = vi.fn()
     const broadcastHandler = vi.fn()
 
-    const unsubscribeNotification = onWsMessage('notification', notificationHandler)
-    const unsubscribeBroadcast = onWsMessage('broadcast', broadcastHandler)
+    const unsubscribeNotification = onWsMessage('notification.created.v1', notificationHandler)
+    const unsubscribeBroadcast = onWsMessage('broadcast.created.v1', broadcastHandler)
 
-    emitWsMessage({ type: 'notification', data: { title: 'demo' } })
+    emitWsMessage({ type: 'notification.created.v1', request_id: 'rid-1', data: { title: 'demo' } })
 
     expect(notificationHandler).toHaveBeenCalledWith({
-      type: 'notification',
+      type: 'notification.created.v1',
+      request_id: 'rid-1',
       data: { title: 'demo' },
     })
     expect(broadcastHandler).not.toHaveBeenCalled()
@@ -29,14 +30,14 @@ describe('message-bus', () => {
   it('removes handlers through both unsubscribe function and offWsMessage', () => {
     const handler = vi.fn()
 
-    const unsubscribe = onWsMessage('notification', handler)
+    const unsubscribe = onWsMessage('notification.created.v1', handler)
     unsubscribe()
-    emitWsMessage({ type: 'notification', data: { title: 'demo' } })
+    emitWsMessage({ type: 'notification.created.v1', data: { title: 'demo' } })
     expect(handler).not.toHaveBeenCalled()
 
-    onWsMessage('notification', handler)
-    offWsMessage('notification', handler)
-    emitWsMessage({ type: 'notification', data: { title: 'demo-2' } })
+    onWsMessage('notification.created.v1', handler)
+    offWsMessage('notification.created.v1', handler)
+    emitWsMessage({ type: 'notification.created.v1', data: { title: 'demo-2' } })
     expect(handler).not.toHaveBeenCalled()
   })
 })

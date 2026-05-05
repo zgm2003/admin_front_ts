@@ -1,6 +1,5 @@
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, shallowRef, onMounted, onUnmounted } from 'vue'
 import {
-  bindSharedWebSocketUser,
   connectSharedWebSocket,
   disconnectSharedWebSocket,
   retainWebSocketConsumer,
@@ -39,10 +38,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     onError,
   } = options
 
-  const isConnected = ref(false)
-  const isBound = ref(false)
-  const clientId = ref('')
-  const reconnectCount = ref(0)
+  const isConnected = shallowRef(false)
+  const isReady = shallowRef(false)
+  const reconnectCount = shallowRef(0)
   let consumerHandle: ReturnType<typeof retainWebSocketConsumer> | null = null
 
   onMounted(() => {
@@ -55,8 +53,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       onError,
       onStateChange(snapshot) {
         isConnected.value = snapshot.isConnected
-        isBound.value = snapshot.isBound
-        clientId.value = snapshot.clientId
+        isReady.value = snapshot.isReady
         reconnectCount.value = snapshot.reconnectCount
       },
     })
@@ -70,13 +67,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   return {
     ws: computed(() => consumerHandle?.getSnapshot().ws ?? null),
     isConnected,
-    isBound,
-    clientId,
+    isReady,
     reconnectCount,
     connect: connectSharedWebSocket,
     disconnect: disconnectSharedWebSocket,
     send: sendSharedWebSocket,
-    bindUser: bindSharedWebSocketUser,
   }
 }
 

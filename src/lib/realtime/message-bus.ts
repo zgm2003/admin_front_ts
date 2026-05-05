@@ -1,9 +1,25 @@
-export type MessageType = 'init' | 'pong' | 'bind_success' | 'error' | 'notification' | 'broadcast' | string
+export type RealtimeSystemMessageType =
+  | 'realtime.connected.v1'
+  | 'realtime.ping.v1'
+  | 'realtime.pong.v1'
+  | 'realtime.subscribe.v1'
+  | 'realtime.subscribed.v1'
+  | 'realtime.error.v1'
+
+export type MessageType =
+  | RealtimeSystemMessageType
+  | 'notification.created.v1'
+  | 'ai.response.start.v1'
+  | 'ai.response.delta.v1'
+  | 'ai.response.completed.v1'
+  | 'ai.response.failed.v1'
+  | string
 
 export type WsMessageData = Record<string, unknown>
 
 export interface WsMessage<T extends WsMessageData = WsMessageData> {
   type: MessageType
+  request_id?: string
   data: T
 }
 
