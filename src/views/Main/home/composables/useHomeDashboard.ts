@@ -319,7 +319,7 @@ export function useHomeDashboard() {
   let unsubscribe: (() => void) | null = null
 
   onMounted(() => {
-    unsubscribe = onWsMessage('notification', () => {
+    unsubscribe = onWsMessage('notification.created.v1', () => {
       void loadNotificationSnapshot()
     })
   })

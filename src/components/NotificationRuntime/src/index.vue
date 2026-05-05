@@ -4,11 +4,11 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { onWsMessage } from '@/lib/realtime'
+import type { WsMessageData } from '@/lib/realtime'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
 
-interface NotificationWsPayload {
-  [key: string]: unknown
+interface NotificationWsPayload extends WsMessageData {
   title?: string
   content?: string
   link?: string
@@ -37,7 +37,7 @@ function navigateTo(link?: string) {
 let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
-  unsubscribe = onWsMessage<NotificationWsPayload>('notification', async ({ data }) => {
+  unsubscribe = onWsMessage<NotificationWsPayload>('notification.created.v1', async ({ data }) => {
     if (data.level !== 'urgent') {
       return
     }

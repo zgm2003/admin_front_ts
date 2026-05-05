@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { NotificationApi, type NotificationItem, type NotificationInitResponse } from '@/api/system/notification'
+import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { CommonEnum, NotificationLevelEnum, NotificationTypeColorMap } from '@/enums'
 import { AppTable } from '@/components/Table'
@@ -11,14 +11,15 @@ import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { DIcon } from '@/components/DIcon'
+import type { DictOption } from '@/types/common'
 
 const { t } = useI18n()
 const router = useRouter()
 
 interface DictState {
-  notification_type_arr: { value: number; label: string }[]
-  notification_level_arr: { value: number; label: string }[]
-  notification_read_status_arr: { value: number; label: string }[]
+  notification_type_arr: DictOption<number>[]
+  notification_level_arr: DictOption<number>[]
+  notification_read_status_arr: DictOption<number>[]
 }
 const dict = ref<DictState>({ notification_type_arr: [], notification_level_arr: [], notification_read_status_arr: [] })
 
@@ -76,10 +77,17 @@ const handleBatchRead = async () => {
   if (!selectedIds.value.length) return ElNotification.warning({ message: t('common.selectAtLeastOne') })
   try {
     await ElMessageBox.confirm(t('notification.page.confirmBatchRead'), t('common.confirmTitle'), { type: 'info' })
+  } catch {
+    return
+  }
+
+  try {
     await NotificationApi.read({ id: selectedIds.value })
     ElNotification.success({ message: t('common.success.operation') })
     getList()
-  } catch {}
+  } catch (error) {
+    console.error('notification batch read failed', error)
+  }
 }
 
 const handleDetail = (link?: string) => {
@@ -89,8 +97,7 @@ const handleDetail = (link?: string) => {
 
 onMounted(() => {
   NotificationApi.init().then((data) => {
-    const res = data as unknown as NotificationInitResponse
-    dict.value = res.dict || dict.value
+    dict.value = data.dict
   })
   getList()
 })
@@ -98,7 +105,12 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
       <AppTable
         :columns="columns"
@@ -112,38 +124,88 @@ onMounted(() => {
         @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="primary" @click="handleBatchRead">
-            <DIcon icon="Check" :size="14" />
+          <el-button
+            type="primary"
+            @click="handleBatchRead"
+          >
+            <DIcon
+              icon="Check"
+              :size="14"
+            />
             {{ t('notification.page.batchRead') }}
           </el-button>
-          <el-button type="danger" @click="batchDel">{{ t('notification.page.batchDelete') }}</el-button>
+          <el-button
+            type="danger"
+            @click="batchDel"
+          >
+            {{ t('notification.page.batchDelete') }}
+          </el-button>
         </template>
 
         <template #cell-title="{ row }">
-          <div class="cell-title" :class="{ unread: isUnread(row) }">
-            <span v-if="isUnread(row)" class="unread-dot" />
+          <div
+            class="cell-title"
+            :class="{ unread: isUnread(row) }"
+          >
+            <span
+              v-if="isUnread(row)"
+              class="unread-dot"
+            />
             <span>{{ row.title }}</span>
           </div>
         </template>
 
         <template #cell-type="{ row }">
-          <el-tag :type="getTypeColor(row.type)" size="small">{{ row.type_text }}</el-tag>
+          <el-tag
+            :type="getTypeColor(row.type)"
+            size="small"
+          >
+            {{ row.type_text }}
+          </el-tag>
         </template>
 
         <template #cell-level="{ row }">
-          <el-tag :type="row.level === NotificationLevelEnum.URGENT ? 'danger' : 'info'" size="small">{{ row.level_text }}</el-tag>
+          <el-tag
+            :type="row.level === NotificationLevelEnum.URGENT ? 'danger' : 'info'"
+            size="small"
+          >
+            {{ row.level_text }}
+          </el-tag>
         </template>
 
         <template #cell-is_read="{ row }">
-          <el-tag :type="isUnread(row) ? 'warning' : 'success'" size="small">
+          <el-tag
+            :type="isUnread(row) ? 'warning' : 'success'"
+            size="small"
+          >
             {{ isUnread(row) ? t('notification.page.unread') : t('notification.page.read') }}
           </el-tag>
         </template>
 
         <template #cell-actions="{ row }">
-          <el-button v-if="isUnread(row)" type="primary" text @click="handleMarkRead(row)">{{ t('notification.page.markRead') }}</el-button>
-          <el-button v-if="row.link" type="success" text @click="handleDetail(row.link)">{{ t('common.actions.detail') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button
+            v-if="isUnread(row)"
+            type="primary"
+            text
+            @click="handleMarkRead(row)"
+          >
+            {{ t('notification.page.markRead') }}
+          </el-button>
+          <el-button
+            v-if="row.link"
+            type="success"
+            text
+            @click="handleDetail(row.link)"
+          >
+            {{ t('common.actions.detail') }}
+          </el-button>
+          <el-button
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
