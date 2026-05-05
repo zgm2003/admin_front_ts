@@ -12,7 +12,7 @@ interface NotificationWsPayload extends WsMessageData {
   title?: string
   content?: string
   link?: string
-  level?: string
+  level?: 'normal' | 'urgent'
   notification_type?: 'success' | 'warning' | 'info' | 'error'
 }
 
