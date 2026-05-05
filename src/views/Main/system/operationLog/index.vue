@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElButton, ElTag, ElText } from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -11,7 +12,12 @@ import { UsersListApi } from '@/api/user/users'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import type { OperationLogListParams } from '@/types/operationLog'
+import type { OperationLogItem, OperationLogListParams } from '@/types/operationLog'
+import {
+  formatOperationLogPayload,
+  summarizeOperationLogPayload,
+  type OperationLogPayloadKind,
+} from './utils/payload'
 
 interface UserLookupOption {
   id: number | string
@@ -30,6 +36,8 @@ const searchForm = ref<OperationLogSearchForm>({
   action: '',
   date: [],
 })
+const detailVisible = shallowRef(false)
+const detailRow = shallowRef<OperationLogItem | null>(null)
 
 const { loading, data, page, onPageChange, onSearch, refresh, confirmDel } = useCrudTable({
   api: OperationLogApi,
@@ -74,27 +82,25 @@ const columns = computed(() => [
   { key: 'request_data', label: t('operationLog.table.request_data'), minWidth: 180, overflowTooltip: false },
   { key: 'response_data', label: t('operationLog.table.response_data'), minWidth: 180, overflowTooltip: false },
   { key: 'created_at', label: t('operationLog.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 100, fixed: 'right', hidden: !canDelete.value },
+  { key: 'actions', label: t('common.actions.action'), width: canDelete.value ? 150 : 90, fixed: 'right' },
 ])
 
-function summarizePayload(raw: string | null | undefined): string {
-  if (!raw) {
-    return '-'
-  }
+const detailTitle = computed(() => {
+  if (!detailRow.value) return t('operationLog.table.params')
+  return `${t('operationLog.table.params')} #${detailRow.value.id}`
+})
 
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    if (Array.isArray(parsed)) {
-      return t('operationLog.entry.items', { count: parsed.length })
-    }
-    if (parsed !== null && typeof parsed === 'object') {
-      const keys = Object.keys(parsed)
-      return keys.length > 0 ? keys.slice(0, 4).join(', ') : t('operationLog.entry.payloadNone')
-    }
-    return String(parsed)
-  } catch {
-    return raw
-  }
+function summarizePayload(raw: string | null | undefined, kind: OperationLogPayloadKind): string {
+  return summarizeOperationLogPayload(raw, kind, {
+    empty: '-',
+    payloadNone: t('operationLog.entry.payloadNone'),
+    items: (count) => t('operationLog.entry.items', { count }),
+  })
+}
+
+function openDetail(row: OperationLogItem) {
+  detailRow.value = row
+  detailVisible.value = true
 }
 </script>
 
@@ -133,7 +139,7 @@ function summarizePayload(raw: string | null | undefined): string {
             truncated
             class="payload-text"
           >
-            {{ summarizePayload(row.request_data) }}
+            {{ summarizePayload(row.request_data, 'request') }}
           </ElText>
         </template>
 
@@ -142,11 +148,18 @@ function summarizePayload(raw: string | null | undefined): string {
             truncated
             class="payload-text"
           >
-            {{ summarizePayload(row.response_data) }}
+            {{ summarizePayload(row.response_data, 'response') }}
           </ElText>
         </template>
 
         <template #cell-actions="{ row }">
+          <ElButton
+            type="primary"
+            text
+            @click="openDetail(row)"
+          >
+            {{ t('common.actions.detail') }}
+          </ElButton>
           <ElButton
             v-if="canDelete"
             type="danger"
@@ -158,6 +171,32 @@ function summarizePayload(raw: string | null | undefined): string {
         </template>
       </AppTable>
     </div>
+
+    <AppDialog
+      v-model="detailVisible"
+      :title="detailTitle"
+      :width="isMobile ? '94vw' : '960px'"
+      height="70vh"
+      body-padding="16px"
+    >
+      <template v-if="detailRow">
+        <div class="payload-detail">
+          <section class="payload-panel">
+            <div class="payload-panel__title">
+              {{ t('operationLog.table.request_data') }}
+            </div>
+            <pre class="payload-panel__body">{{ formatOperationLogPayload(detailRow.request_data, 'request') || '-' }}</pre>
+          </section>
+
+          <section class="payload-panel">
+            <div class="payload-panel__title">
+              {{ t('operationLog.table.response_data') }}
+            </div>
+            <pre class="payload-panel__body">{{ formatOperationLogPayload(detailRow.response_data, 'response') || '-' }}</pre>
+          </section>
+        </div>
+      </template>
+    </AppDialog>
   </div>
 </template>
 
@@ -176,5 +215,48 @@ function summarizePayload(raw: string | null | undefined): string {
 
 .payload-text {
   max-width: 100%;
+}
+
+.payload-detail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.payload-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-fill-color-blank);
+}
+
+.payload-panel__title {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.payload-panel__body {
+  min-height: 360px;
+  max-height: 58vh;
+  margin: 0;
+  overflow: auto;
+  padding: 12px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  font-family: Consolas, 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .payload-detail {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -29,6 +29,10 @@ describe('operation log api and page REST contract', () => {
     expect(pageSource).toContain("type OperationLogSearchForm = Omit<OperationLogListParams, 'current_page' | 'page_size'>")
     expect(pageSource).toContain('const searchForm = ref<OperationLogSearchForm>({')
     expect(pageSource).toContain("userStore.can('devTools_operationLog_del')")
+    expect(pageSource).toContain("summarizePayload(row.request_data, 'request')")
+    expect(pageSource).toContain("summarizePayload(row.response_data, 'response')")
+    expect(pageSource).toContain('formatOperationLogPayload(detailRow.request_data, \'request\')')
+    expect(pageSource).toContain('formatOperationLogPayload(detailRow.response_data, \'response\')')
     expect(pageSource).not.toContain('legacyRequest')
     expect(pageSource).not.toMatch(forbiddenLooseTypePattern)
 
