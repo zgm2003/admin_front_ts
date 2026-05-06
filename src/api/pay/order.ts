@@ -1,4 +1,4 @@
-import request, { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
@@ -222,6 +222,10 @@ export interface OrderCloseBody {
   reason?: string
 }
 
+export interface OrderCancelBody {
+  reason?: string
+}
+
 export interface OrderRemarkBody {
   remark: string
 }
@@ -278,10 +282,9 @@ export const OrderApi = {
     pay_method: params.pay_method,
     return_url: params.return_url,
   }),
-  cancelOrder: (params: OrderNoParams & { reason?: string }) => legacyRequest.post<void>('/api/admin/pay/cancelOrder', params),
-  myOrders: (params: { current_page?: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<RechargeMyOrderItem>>('/api/admin/pay/myOrders', params),
-  queryResult: (params: OrderNoParams) => legacyRequest.post<OrderQueryResultResponse>('/api/admin/pay/queryResult', params),
-  orderDetail: (params: OrderNoParams) => legacyRequest.post<unknown>('/api/admin/pay/orderDetail', params),
-  walletInfo: (params?: EmptyQueryParams) => legacyRequest.post<WalletInfoResponse>('/api/admin/pay/walletInfo', params),
-  walletBills: (params: { current_page?: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<WalletBillItem>>('/api/admin/pay/walletBills', params),
+  cancelOrder: (params: OrderNoParams & { reason?: string }) => request.patch<void, OrderCancelBody>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/cancel`, { reason: params.reason }),
+  myOrders: (params: { current_page?: number; page_size?: number }) => request.get<PaginatedResponse<RechargeMyOrderItem>>(`${ADMIN_API_PREFIX}/recharge-orders`, { params }),
+  queryResult: (params: OrderNoParams) => request.get<OrderQueryResultResponse>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/result`),
+  walletInfo: (params?: EmptyQueryParams) => request.get<WalletInfoResponse>(`${ADMIN_API_PREFIX}/wallet/summary`, { params }),
+  walletBills: (params: { current_page?: number; page_size?: number }) => request.get<PaginatedResponse<WalletBillItem>>(`${ADMIN_API_PREFIX}/wallet/bills`, { params }),
 }

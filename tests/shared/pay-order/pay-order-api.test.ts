@@ -12,7 +12,7 @@ describe('pay order api REST contract', () => {
   it('uses Go REST endpoints for admin order management instead of legacy all-post PayOrder routes', () => {
     const source = readFrontendSource('src/api/pay/order.ts')
 
-    expect(source).toContain("import request, { legacyRequest } from '@/lib/http'")
+    expect(source).toContain("import request from '@/lib/http'")
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<OrderInitResponse>(`${ADMIN_API_PREFIX}/pay-orders/page-init`)')
     expect(source).toContain('request.get<OrderStatusCountResponse>(`${ADMIN_API_PREFIX}/pay-orders/status-count`')
@@ -24,15 +24,20 @@ describe('pay order api REST contract', () => {
     expect(source).not.toContain(legacyPayOrderPrefix)
   })
 
-  it('moves recharge creation and pay attempt to Go while keeping unmigrated wallet runtime on legacy endpoints', () => {
+  it('moves personal recharge and wallet runtime to Go REST endpoints', () => {
     const source = readFrontendSource('src/api/pay/order.ts')
 
     expect(source).toContain('request.post<RechargeOrderCreateResponse, RechargeCreateParams>(`${ADMIN_API_PREFIX}/recharge-orders`, params)')
     expect(source).toContain('request.post<CreatePayResponse, CreatePayPayload>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/pay-attempts`')
-    expect(source).not.toContain("legacyRequest.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge'")
-    expect(source).not.toContain("legacyRequest.post<CreatePayResponse>('/api/admin/pay/createPay'")
+    expect(source).toContain('request.patch<void, OrderCancelBody>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/cancel`')
+    expect(source).toContain('request.get<PaginatedResponse<RechargeMyOrderItem>>(`${ADMIN_API_PREFIX}/recharge-orders`')
+    expect(source).toContain('request.get<OrderQueryResultResponse>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/result`)')
+    expect(source).toContain('request.get<WalletInfoResponse>(`${ADMIN_API_PREFIX}/wallet/summary`')
+    expect(source).toContain('request.get<PaginatedResponse<WalletBillItem>>(`${ADMIN_API_PREFIX}/wallet/bills`')
 
     for (const path of [
+      '/api/admin/pay/recharge',
+      '/api/admin/pay/createPay',
       '/api/admin/pay/cancelOrder',
       '/api/admin/pay/myOrders',
       '/api/admin/pay/queryResult',
@@ -40,8 +45,7 @@ describe('pay order api REST contract', () => {
       '/api/admin/pay/walletInfo',
       '/api/admin/pay/walletBills',
     ]) {
-      expect(source).toContain(`legacyRequest.post`)
-      expect(source).toContain(path)
+      expect(source).not.toContain(path)
     }
   })
 

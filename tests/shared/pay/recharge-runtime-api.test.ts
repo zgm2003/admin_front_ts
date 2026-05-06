@@ -9,19 +9,20 @@ function readFrontendSource(relativePath: string) {
 const forbiddenLooseTypePattern = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
 
 describe('recharge runtime api REST contract', () => {
-  it('creates recharge orders and pay attempts through Go admin REST endpoints', () => {
+  it('routes the entire personal wallet recharge page runtime through Go admin REST endpoints', () => {
     const source = readFrontendSource('src/api/pay/order.ts')
 
     expect(source).toContain('request.post<RechargeOrderCreateResponse, RechargeCreateParams>(`${ADMIN_API_PREFIX}/recharge-orders`, params)')
     expect(source).toContain('request.post<CreatePayResponse, CreatePayPayload>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/pay-attempts`')
-    expect(source).not.toContain("legacyRequest.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge'")
-    expect(source).not.toContain("legacyRequest.post<CreatePayResponse>('/api/admin/pay/createPay'")
-  })
-
-  it('keeps unmigrated wallet runtime endpoints on legacy client for this slice', () => {
-    const source = readFrontendSource('src/api/pay/order.ts')
+    expect(source).toContain('request.patch<void, OrderCancelBody>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/cancel`')
+    expect(source).toContain('request.get<PaginatedResponse<RechargeMyOrderItem>>(`${ADMIN_API_PREFIX}/recharge-orders`')
+    expect(source).toContain('request.get<OrderQueryResultResponse>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/result`)')
+    expect(source).toContain('request.get<WalletInfoResponse>(`${ADMIN_API_PREFIX}/wallet/summary`')
+    expect(source).toContain('request.get<PaginatedResponse<WalletBillItem>>(`${ADMIN_API_PREFIX}/wallet/bills`')
 
     for (const path of [
+      '/api/admin/pay/recharge',
+      '/api/admin/pay/createPay',
       '/api/admin/pay/cancelOrder',
       '/api/admin/pay/myOrders',
       '/api/admin/pay/queryResult',
@@ -29,7 +30,7 @@ describe('recharge runtime api REST contract', () => {
       '/api/admin/pay/walletInfo',
       '/api/admin/pay/walletBills',
     ]) {
-      expect(source).toContain(path)
+      expect(source).not.toContain(path)
     }
   })
 
