@@ -209,6 +209,11 @@ export interface CreatePayParams {
   return_url?: string
 }
 
+export interface CreatePayPayload {
+  pay_method?: string
+  return_url?: string
+}
+
 export interface OrderNoParams {
   order_no: string
 }
@@ -268,8 +273,11 @@ export const OrderApi = {
   statusCount: (params?: EmptyQueryParams) => request.get<OrderStatusCountResponse>(`${ADMIN_API_PREFIX}/pay-orders/status-count`, { params }),
   close: (params: OrderCloseParams) => request.patch<void, OrderCloseBody>(`${ADMIN_API_PREFIX}/pay-orders/${params.id}/close`, { reason: params.reason }),
   remark: (params: OrderRemarkParams) => request.patch<void, OrderRemarkBody>(`${ADMIN_API_PREFIX}/pay-orders/${params.id}/remark`, { remark: params.remark }),
-  recharge: (params: RechargeCreateParams) => legacyRequest.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge', params),
-  createPay: (params: CreatePayParams) => legacyRequest.post<CreatePayResponse>('/api/admin/pay/createPay', params),
+  recharge: (params: RechargeCreateParams) => request.post<RechargeOrderCreateResponse, RechargeCreateParams>(`${ADMIN_API_PREFIX}/recharge-orders`, params),
+  createPay: (params: CreatePayParams) => request.post<CreatePayResponse, CreatePayPayload>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/pay-attempts`, {
+    pay_method: params.pay_method,
+    return_url: params.return_url,
+  }),
   cancelOrder: (params: OrderNoParams & { reason?: string }) => legacyRequest.post<void>('/api/admin/pay/cancelOrder', params),
   myOrders: (params: { current_page?: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<RechargeMyOrderItem>>('/api/admin/pay/myOrders', params),
   queryResult: (params: OrderNoParams) => legacyRequest.post<OrderQueryResultResponse>('/api/admin/pay/queryResult', params),

@@ -24,12 +24,15 @@ describe('pay order api REST contract', () => {
     expect(source).not.toContain(legacyPayOrderPrefix)
   })
 
-  it('keeps user-side wallet runtime on legacy endpoints until wallet slice migrates', () => {
+  it('moves recharge creation and pay attempt to Go while keeping unmigrated wallet runtime on legacy endpoints', () => {
     const source = readFrontendSource('src/api/pay/order.ts')
 
+    expect(source).toContain('request.post<RechargeOrderCreateResponse, RechargeCreateParams>(`${ADMIN_API_PREFIX}/recharge-orders`, params)')
+    expect(source).toContain('request.post<CreatePayResponse, CreatePayPayload>(`${ADMIN_API_PREFIX}/recharge-orders/${params.order_no}/pay-attempts`')
+    expect(source).not.toContain("legacyRequest.post<RechargeOrderCreateResponse>('/api/admin/pay/recharge'")
+    expect(source).not.toContain("legacyRequest.post<CreatePayResponse>('/api/admin/pay/createPay'")
+
     for (const path of [
-      '/api/admin/pay/recharge',
-      '/api/admin/pay/createPay',
       '/api/admin/pay/cancelOrder',
       '/api/admin/pay/myOrders',
       '/api/admin/pay/queryResult',
