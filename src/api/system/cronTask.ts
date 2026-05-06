@@ -1,11 +1,16 @@
-import { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export type CronPresetItem = DictOption<string>
+export type CronTaskRegistryStatus = 'registered' | 'missing' | 'disabled' | 'invalid_cron'
 
 export interface CronTaskInitResponse {
   dict: {
     cron_preset_arr: CronPresetItem[]
+    cron_task_status_arr: DictOption<number>[]
+    cron_task_registry_status_arr: DictOption<CronTaskRegistryStatus>[]
+    cron_task_log_status_arr: DictOption<number>[]
   }
 }
 
@@ -13,6 +18,9 @@ export interface CronTaskListParams {
   current_page?: number
   page_size?: number
   title?: string
+  name?: string
+  status?: number
+  registry_status?: CronTaskRegistryStatus
 }
 
 export interface CronTaskItem {
@@ -26,6 +34,10 @@ export interface CronTaskItem {
   status: number
   status_name: string
   next_run_time: string
+  registry_status: CronTaskRegistryStatus
+  registry_status_text: string
+  registry_task_type: string
+  registry_description: string
   created_at: string
   updated_at: string
 }
@@ -41,11 +53,17 @@ export interface CronTaskForm {
   status: number
 }
 
+export interface CronTaskStatusBody {
+  status: number
+}
+
 export interface CronTaskLogListParams {
   current_page: number
   page_size: number
   task_id: number
-  date?: string[]
+  status?: number
+  start_date?: string
+  end_date?: string
 }
 
 export interface CronTaskLogItem {
@@ -63,11 +81,13 @@ export interface CronTaskLogItem {
 }
 
 export const CronTaskApi = {
-  init: () => legacyRequest.post<CronTaskInitResponse>('/api/admin/CronTask/init'),
-  list: (params?: CronTaskListParams) => legacyRequest.post<PaginatedResponse<CronTaskItem>>('/api/admin/CronTask/list', params),
-  add: (params: CronTaskForm) => legacyRequest.post<void>('/api/admin/CronTask/add', params),
-  edit: (params: CronTaskForm) => legacyRequest.post<void>('/api/admin/CronTask/edit', params),
-  del: (params: { id: number | number[] }) => legacyRequest.post<void>('/api/admin/CronTask/del', params),
-  status: (params: { id: number; status: number }) => legacyRequest.post<void>('/api/admin/CronTask/status', params),
-  logs: (params: CronTaskLogListParams) => legacyRequest.post<PaginatedResponse<CronTaskLogItem>>('/api/admin/CronTask/logs', params),
+  init: () => request.get<CronTaskInitResponse>(`${ADMIN_API_PREFIX}/cron-tasks/init`),
+  list: (params?: CronTaskListParams) => request.get<PaginatedResponse<CronTaskItem>>(`${ADMIN_API_PREFIX}/cron-tasks`, { params }),
+  add: (params: CronTaskForm) => request.post<CronTaskItem, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks`, params),
+  edit: (params: CronTaskForm & { id: number }) => request.put<void, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`, params),
+  del: (params: { id: number | number[] }) => Array.isArray(params.id)
+    ? request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/cron-tasks`, { data: { ids: params.id } })
+    : request.delete<void>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`),
+  status: (params: { id: number; status: number }) => request.patch<void, CronTaskStatusBody>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}/status`, { status: params.status }),
+  logs: (params: CronTaskLogListParams) => request.get<PaginatedResponse<CronTaskLogItem>>(`${ADMIN_API_PREFIX}/cron-tasks/${params.task_id}/logs`, { params }),
 }

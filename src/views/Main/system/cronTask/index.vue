@@ -10,12 +10,14 @@ import {
   type CronPresetItem,
   type CronTaskForm,
   type CronTaskItem,
+  type CronTaskRegistryStatus,
 } from '@/api/system/cronTask'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { useCronTaskLogs } from './composables/useCronTaskLogs'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -30,7 +32,7 @@ const init = () => {
 }
 
 // 主列表
-const searchForm = ref({ title: '' })
+const searchForm = ref<{ title: string }>({ title: '' })
 const { loading, data, page, onPageChange, refresh, toggleStatus, confirmDel, getList, onSearch } = useCrudTable({
   api: CronTaskApi,
   searchForm,
@@ -46,6 +48,7 @@ const columns = computed(() => [
   { key: 'description', label: t('cronTask.description'), minWidth: 200, overflowTooltip: true },
   { key: 'cron', label: t('cronTask.cronExpr'), width: 140 },
   { key: 'next_run_time', label: t('cronTask.nextRunTime'), width: 180 },
+  { key: 'registry_status', label: '接入状态', width: 110 },
   { key: 'status', label: t('cronTask.status'), width: 100 },
   { key: 'handler', label: t('cronTask.handler'), minWidth: 200 },
   { key: 'actions', label: t('common.actions.action'), width: 340 }
@@ -91,12 +94,16 @@ const openEdit = (row: CronTaskItem) => {
 const confirmSubmit = async () => {
   if (!formRef.value) return
   try { await formRef.value.validate() } catch { return }
-  const api = dialogMode.value === 'add' ? CronTaskApi.add : CronTaskApi.edit
-  api(form.value).then(() => {
-    ElNotification.success({ message: t('common.success.operation') })
-    dialogVisible.value = false
-    getList()
-  })
+
+  if (dialogMode.value === 'add') {
+    await CronTaskApi.add(form.value)
+  } else if (form.value.id != null) {
+    await CronTaskApi.edit({ ...form.value, id: form.value.id })
+  }
+
+  ElNotification.success({ message: t('common.success.operation') })
+  dialogVisible.value = false
+  getList()
 }
 
 // 日志弹窗
@@ -108,14 +115,6 @@ const logSearchFields = [
   { key: 'date', type: 'date-range' as const, label: t('cronTask.log.startTime'), width: 240 }
 ]
 
-const cronTaskLogTableApi = {
-  list: (params: { current_page: number; page_size: number; task_id?: number; date?: string[] }) =>
-    CronTaskApi.logs({
-      ...params,
-      task_id: Number(params.task_id ?? 0),
-    }),
-}
-
 const {
   loading: logLoading,
   data: logData,
@@ -123,11 +122,7 @@ const {
   onPageChange: onLogPageChange,
   refresh: refreshLogs,
   onSearch: onLogSearch,
-} = useCrudTable({
-  api: cronTaskLogTableApi,
-  searchForm: logSearchForm,
-  immediate: false
-})
+} = useCronTaskLogs(logSearchForm)
 
 const showLogs = (row: { id: number; title: string }) => {
   logTaskTitle.value = row.title
@@ -145,7 +140,17 @@ const logColumns = computed(() => [
   { key: 'error_msg', label: t('cronTask.log.errorMsg'), minWidth: 150, overflowTooltip: true }
 ])
 
-const LOG_STATUS_TYPE = { 1: 'success', 2: 'danger', 3: 'warning' } as const
+const REGISTRY_STATUS_TYPE: Record<CronTaskRegistryStatus, 'success' | 'warning' | 'danger' | 'info'> = {
+  registered: 'success',
+  missing: 'warning',
+  disabled: 'info',
+  invalid_cron: 'danger',
+}
+
+const LOG_STATUS_TYPE: Record<number, 'success' | 'danger' | 'warning' | 'info'> = { 1: 'success', 2: 'danger', 3: 'warning' }
+
+const registryTagType = (status: CronTaskRegistryStatus) => REGISTRY_STATUS_TYPE[status]
+const logStatusType = (status: number) => LOG_STATUS_TYPE[status] ?? 'info'
 
 onMounted(() => init())
 </script>
@@ -167,6 +172,11 @@ onMounted(() => init())
         <el-tooltip :content="row.cron" placement="top">
           <el-tag size="small" type="info">{{ row.cron_readable || row.cron }}</el-tag>
         </el-tooltip>
+      </template>
+      <template #cell-registry_status="{ row }">
+        <el-tag :type="registryTagType(row.registry_status)" size="small">
+          {{ row.registry_status_text }}
+        </el-tag>
       </template>
       <template #cell-status="{ row }">
         <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'" size="small">
@@ -231,7 +241,7 @@ onMounted(() => init())
     <AppTable :columns="logColumns" :data="logData" :loading="logLoading" :pagination="logPage" @refresh="refreshLogs" @update:pagination="onLogPageChange" :tableProps="{ height: 400 }" :fixedFooter="false">
       <template #cell-duration_ms="{ row }">{{ row.duration_ms != null ? `${row.duration_ms}ms` : '-' }}</template>
       <template #cell-status="{ row }">
-        <el-tag :type="LOG_STATUS_TYPE[row.status as keyof typeof LOG_STATUS_TYPE] || 'info'" size="small">{{ row.status_name }}</el-tag>
+        <el-tag :type="logStatusType(row.status)" size="small">{{ row.status_name }}</el-tag>
       </template>
     </AppTable>
     <template #footer>
