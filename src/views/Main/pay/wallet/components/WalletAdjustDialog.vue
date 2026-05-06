@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
 import { RemoteSelect } from '@/components/RemoteSelect'
-import { UserWalletApi } from '@/api/pay/wallet'
+import { LegacyWalletAdjustmentApi } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { formatWalletUserLabel } from '../helpers'
 import { ElNotification } from 'element-plus'
@@ -64,7 +64,7 @@ const submit = async () => {
     return
   }
 
-  await UserWalletApi.adjust({
+  await LegacyWalletAdjustmentApi.create({
     user_id: Number(form.value.user_id),
     delta: Math.round(form.value.delta * 100),
     reason: form.value.reason,
@@ -86,9 +86,22 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '480px'" :title="t('pay_wallet.actions.adjust')">
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto">
-      <el-form-item :label="t('pay_wallet.form.user_id')" prop="user_id" required>
+  <AppDialog
+    v-model="dialogVisible"
+    :width="isMobile ? '94vw' : '480px'"
+    :title="t('pay_wallet.actions.adjust')"
+  >
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="auto"
+    >
+      <el-form-item
+        :label="t('pay_wallet.form.user_id')"
+        prop="user_id"
+        required
+      >
         <RemoteSelect
           v-model="form.user_id"
           :fetch-method="UsersListApi.list"
@@ -98,18 +111,38 @@ watch(
           width="100%"
         />
       </el-form-item>
-      <el-form-item :label="t('pay_wallet.form.delta')" prop="delta" required>
-        <el-input-number v-model="form.delta" :precision="2" :step="1" style="width:100%" />
-        <div class="adjust-hint">{{ t('pay_wallet.form.deltaHint') }}</div>
+      <el-form-item
+        :label="t('pay_wallet.form.delta')"
+        prop="delta"
+        required
+      >
+        <el-input-number
+          v-model="form.delta"
+          :precision="2"
+          :step="1"
+          style="width:100%"
+        />
+        <div class="adjust-hint">
+          {{ t('pay_wallet.form.deltaHint') }}
+        </div>
       </el-form-item>
       <el-form-item :label="t('pay_wallet.form.reason')">
-        <el-input v-model="form.reason" type="textarea" :rows="3" clearable style="width:100%" />
+        <el-input
+          v-model="form.reason"
+          type="textarea"
+          :rows="3"
+          clearable
+          style="width:100%"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="submit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button
+          type="primary"
+          @click="submit"
+        >{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </AppDialog>

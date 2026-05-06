@@ -6,7 +6,7 @@ import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { UserWalletApi } from '@/api/pay/wallet'
+import { WalletApi, type WalletTransactionItem, type WalletTransactionsParams } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { WalletType, formatFen } from '@/enums'
 import { formatWalletBizActionDisplay, formatWalletUserDisplay, formatWalletUserLabel } from '../helpers'
@@ -59,7 +59,7 @@ const txSearchFields = computed<SearchField[]>(() => [
 ])
 
 const walletTransactionTableApi = {
-  list: (params: Record<string, unknown>) => UserWalletApi.transactions(params),
+  list: (params: WalletTransactionsParams) => WalletApi.transactions(params),
 }
 
 const {
@@ -84,10 +84,10 @@ const columns = computed(() => [
   { key: 'user_name', label: t('pay_wallet.table.user_name'), width: 220 },
   { key: 'biz_action_no', label: t('pay_wallet.txn.table.biz_action_no'), minWidth: 280 },
   { key: 'type_text', label: t('pay_wallet.txn.table.type'), width: 140 },
-  { key: 'available_delta', label: t('pay_wallet.txn.table.available_delta'), width: 140, formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
-  { key: 'frozen_delta', label: t('pay_wallet.txn.table.frozen_delta'), width: 140, formatter: (_r: any, _c: any, v: number) => `${v >= 0 ? '+' : ''}¥${formatFen(Math.abs(v))}` },
-  { key: 'balance_before', label: t('pay_wallet.txn.table.balance_before'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
-  { key: 'balance_after', label: t('pay_wallet.txn.table.balance_after'), width: 140, formatter: (_r: any, _c: any, v: number) => `¥${formatFen(v)}` },
+  { key: 'available_delta', label: t('pay_wallet.txn.table.available_delta'), width: 140, formatter: (_row: WalletTransactionItem, _column: unknown, value: number) => `${value >= 0 ? '+' : ''}¥${formatFen(Math.abs(value))}` },
+  { key: 'frozen_delta', label: t('pay_wallet.txn.table.frozen_delta'), width: 140, formatter: (_row: WalletTransactionItem, _column: unknown, value: number) => `${value >= 0 ? '+' : ''}¥${formatFen(Math.abs(value))}` },
+  { key: 'balance_before', label: t('pay_wallet.txn.table.balance_before'), width: 140, formatter: (_row: WalletTransactionItem, _column: unknown, value: number) => `¥${formatFen(value)}` },
+  { key: 'balance_after', label: t('pay_wallet.txn.table.balance_after'), width: 140, formatter: (_row: WalletTransactionItem, _column: unknown, value: number) => `¥${formatFen(value)}` },
   { key: 'order_no', label: t('pay_wallet.txn.table.order_no'), width: 200 },
   { key: 'title', label: t('pay_wallet.txn.table.title'), minWidth: 180 },
   { key: 'created_at', label: t('pay_wallet.txn.table.created_at'), width: 180 },
@@ -137,7 +137,11 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '1280px'" :title="t('pay_wallet.txn.title')">
+  <AppDialog
+    v-model="dialogVisible"
+    :width="isMobile ? '94vw' : '1280px'"
+    :title="t('pay_wallet.txn.title')"
+  >
     <Search
       v-model="txSearchForm"
       :fields="txSearchFields"
@@ -163,12 +167,20 @@ watch(
           <span>{{ formatWalletUserDisplay(row) }}</span>
         </template>
         <template #cell-biz_action_no="{ row }">
-          <span class="tx-biz-action" :title="row.biz_action_no || ''">
+          <span
+            class="tx-biz-action"
+            :title="row.biz_action_no || ''"
+          >
             {{ formatWalletBizActionDisplay(row, typeLabels) }}
           </span>
         </template>
         <template #cell-type_text="{ row }">
-          <el-tag :type="walletTypeTag(row.type)" size="small">{{ row.type_text }}</el-tag>
+          <el-tag
+            :type="walletTypeTag(row.type)"
+            size="small"
+          >
+            {{ row.type_text }}
+          </el-tag>
         </template>
         <template #cell-available_delta="{ row }">
           <span :style="{ color: row.available_delta >= 0 ? '#67c23a' : '#f56c6c' }">

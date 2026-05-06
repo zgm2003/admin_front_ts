@@ -1,16 +1,29 @@
-import { legacyRequest } from '@/lib/http'
-import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
+import request, { legacyRequest } from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import type { DictOption, PaginatedResponse } from '@/types/common'
 
-export interface UserWalletListParams {
-  current_page?: number
-  page_size?: number
+export interface WalletListParams {
+  current_page: number
+  page_size: number
   user_id?: number | ''
   start_date?: string
   end_date?: string
 }
 
-export interface WalletTransactionsParams extends UserWalletListParams {
+interface WalletListQueryParams {
+  current_page: number
+  page_size: number
+  user_id?: number
+  start_date?: string
+  end_date?: string
+}
+
+export interface WalletTransactionsParams extends WalletListParams {
   type?: number | ''
+}
+
+interface WalletTransactionsQueryParams extends WalletListQueryParams {
+  type?: number
 }
 
 export interface WalletAdjustParams {
@@ -19,14 +32,14 @@ export interface WalletAdjustParams {
   reason?: string
 }
 
-export interface UserWalletInitResponse {
+export interface WalletPageInitResponse {
   dict: {
     wallet_type_arr: DictOption<number>[]
     wallet_source_arr: DictOption<number>[]
   }
 }
 
-export interface UserWalletListItem {
+export interface WalletListItem {
   id: number
   user_id: number
   user_name: string
@@ -50,15 +63,52 @@ export interface WalletTransactionItem {
   frozen_delta: number
   balance_before: number
   balance_after: number
-  order_no?: string
+  order_no: string
   title: string
-  remark?: string
+  remark: string
   created_at: string
 }
 
-export const UserWalletApi = {
-  init: (params?: RequestPayload) => legacyRequest.post<UserWalletInitResponse>('/api/admin/UserWallet/init', params),
-  list: (params: UserWalletListParams) => legacyRequest.post<PaginatedResponse<UserWalletListItem>>('/api/admin/UserWallet/list', params),
-  transactions: (params: WalletTransactionsParams) => legacyRequest.post<PaginatedResponse<WalletTransactionItem>>('/api/admin/UserWallet/transactions', params),
-  adjust: (params: WalletAdjustParams) => legacyRequest.post<void>('/api/admin/UserWallet/adjust', params),
+function trimOptional(value: string | undefined): string | undefined {
+  const next = value?.trim()
+  return next ? next : undefined
+}
+
+function normalizeListParams(params: WalletListParams): WalletListQueryParams {
+  const query: WalletListQueryParams = {
+    current_page: params.current_page,
+    page_size: params.page_size,
+  }
+
+  if (typeof params.user_id === 'number') {
+    query.user_id = params.user_id
+  }
+  const startDate = trimOptional(params.start_date)
+  if (startDate) {
+    query.start_date = startDate
+  }
+  const endDate = trimOptional(params.end_date)
+  if (endDate) {
+    query.end_date = endDate
+  }
+
+  return query
+}
+
+function normalizeTransactionParams(params: WalletTransactionsParams): WalletTransactionsQueryParams {
+  const query: WalletTransactionsQueryParams = normalizeListParams(params)
+  if (typeof params.type === 'number') {
+    query.type = params.type
+  }
+  return query
+}
+
+export const WalletApi = {
+  pageInit: () => request.get<WalletPageInitResponse>(`${ADMIN_API_PREFIX}/wallets/page-init`),
+  list: (params: WalletListParams) => request.get<PaginatedResponse<WalletListItem>>(`${ADMIN_API_PREFIX}/wallets`, { params: normalizeListParams(params) }),
+  transactions: (params: WalletTransactionsParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet-transactions`, { params: normalizeTransactionParams(params) }),
+}
+
+export const LegacyWalletAdjustmentApi = {
+  create: (params: WalletAdjustParams) => legacyRequest.post<void>('/api/admin/UserWallet/adjust', params),
 }

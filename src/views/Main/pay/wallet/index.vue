@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, shallowRef, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { UserWalletApi, type UserWalletListItem } from '@/api/pay/wallet'
+import { WalletApi, type WalletListItem } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { formatFen } from '@/enums/PayEnum'
 import WalletTransactionDialog from './components/WalletTransactionDialog.vue'
@@ -19,10 +19,10 @@ const { t } = useI18n()
 const isMobile = useIsMobile()
 
 // ==================== 下拉字典 ====================
-const walletTypeArr = ref<{ label: string; value: number }[]>([])
+const walletTypeArr = shallowRef<{ label: string; value: number }[]>([])
 
 const init = async () => {
-  const data = await UserWalletApi.init()
+  const data = await WalletApi.pageInit()
   walletTypeArr.value = data.dict.wallet_type_arr
 }
 
@@ -54,7 +54,7 @@ const {
   refresh,
   onSearch,
 } = useCrudTable({
-  api: UserWalletApi,
+  api: WalletApi,
   searchForm,
 })
 
@@ -70,7 +70,7 @@ const columns = computed(() => [
 
 const txDialogVisible = ref(false)
 const activeTransactionUserId = ref<number | ''>('')
-const openTransactions = (row: UserWalletListItem) => {
+const openTransactions = (row: WalletListItem) => {
   activeTransactionUserId.value = row.user_id
   txDialogVisible.value = true
 }
@@ -79,7 +79,7 @@ const openTransactions = (row: UserWalletListItem) => {
 const adjustVisible = ref(false)
 const activeAdjustUserId = ref<number | ''>('')
 
-const openAdjust = (row?: Pick<UserWalletListItem, 'user_id'>) => {
+const openAdjust = (row?: Pick<WalletListItem, 'user_id'>) => {
   activeAdjustUserId.value = row ? row.user_id : ''
   adjustVisible.value = true
 }
@@ -96,7 +96,12 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
       <AppTable
         :columns="columns"
@@ -112,13 +117,28 @@ onMounted(() => {
           <span>{{ formatWalletUserDisplay(row) }}</span>
         </template>
         <template #toolbar-left>
-          <el-button v-if="userStore.can('pay_wallet_adjust')" type="warning" @click="openAdjust()">
+          <el-button
+            v-if="userStore.can('pay_wallet_adjust')"
+            type="warning"
+            @click="openAdjust()"
+          >
             {{ t('pay_wallet.actions.adjust') }}
           </el-button>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="openTransactions(row)">{{ t('pay_wallet.actions.transactions') }}</el-button>
-          <el-button type="warning" text v-if="userStore.can('pay_wallet_adjust')" @click="openAdjust(row)">
+          <el-button
+            type="primary"
+            text
+            @click="openTransactions(row)"
+          >
+            {{ t('pay_wallet.actions.transactions') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('pay_wallet_adjust')"
+            type="warning"
+            text
+            @click="openAdjust(row)"
+          >
             {{ t('pay_wallet.actions.adjust') }}
           </el-button>
         </template>
