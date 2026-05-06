@@ -82,7 +82,7 @@ const columns = computed(() => [
   { key: 'request_data', label: t('operationLog.table.request_data'), minWidth: 180, overflowTooltip: false },
   { key: 'response_data', label: t('operationLog.table.response_data'), minWidth: 180, overflowTooltip: false },
   { key: 'created_at', label: t('operationLog.table.created_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: canDelete.value ? 150 : 90, fixed: 'right' },
+  { key: 'actions', label: t('common.actions.action'), width: canDelete.value ? 180 : 90, fixed: 'right' },
 ])
 
 const detailTitle = computed(() => {

@@ -95,9 +95,33 @@ const resetForm = () => {
   <div class="base-info" v-loading="loading">
     <div class="base-info-card">
       <el-form label-width="auto" label-position="top" class="base-form">
-        <el-form-item :label="t('personal.form.avatar')" :class="{ 'is-dirty-item': dirtyFields.avatar }">
-          <div class="upload-shell" :class="{ 'is-dirty-upload': dirtyFields.avatar }">
-            <UpMedia v-model="form.avatar" folder-name="avatars" :isClearable="false" />
+        <el-form-item
+          :label="t('personal.form.avatar')"
+          :class="{ 'is-dirty-item': dirtyFields.avatar }"
+        >
+          <div
+            class="avatar-editor"
+            :class="{ 'is-dirty-avatar': dirtyFields.avatar }"
+          >
+            <UpMedia
+              v-model="form.avatar"
+              folder-name="avatars"
+              :is-clearable="false"
+            />
+            <div class="avatar-editor__meta">
+              <div class="avatar-editor__title">
+                <span>{{ t('personal.form.avatar') }}</span>
+                <span
+                  v-if="dirtyFields.avatar"
+                  class="avatar-editor__badge"
+                >
+                  已修改
+                </span>
+              </div>
+              <p class="avatar-editor__hint">
+                点击头像更换，建议使用 JPG / PNG 正方形图片
+              </p>
+            </div>
           </div>
         </el-form-item>
 
@@ -265,19 +289,75 @@ const resetForm = () => {
     line-height: normal;
   }
 
-  .upload-shell {
-    width: 100%;
-    padding: 10px;
-    border: 1px dashed transparent;
+  .avatar-editor {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
     border-radius: 18px;
-    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
     box-sizing: border-box;
+
+    :deep(.up-media-container) {
+      gap: 0;
+    }
+
+    :deep(.media-uploader-wrapper) {
+      border-radius: 16px;
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+    }
+
+    :deep(.media-uploader-wrapper:hover) {
+      border-color: var(--el-color-primary);
+    }
   }
 
-  .upload-shell.is-dirty-upload {
+  .avatar-editor.is-dirty-avatar {
     border-color: var(--dirty-border);
-    background: linear-gradient(180deg, rgba(255, 251, 235, 0.9) 0%, rgba(255, 247, 237, 0.9) 100%);
-    box-shadow: 0 0 0 3px var(--dirty-ring);
+    background: #fffaf0;
+    box-shadow: 0 10px 26px rgba(217, 119, 6, 0.12);
+  }
+
+  .avatar-editor__meta {
+    min-width: 0;
+    max-width: 260px;
+  }
+
+  .avatar-editor__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .avatar-editor__badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    color: var(--dirty-accent);
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  .avatar-editor__hint {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   :deep(.custom-input .el-input__wrapper) {
@@ -432,6 +512,16 @@ const resetForm = () => {
 
     .base-form > .form-row + .el-form-item {
       margin-top: 16px;
+    }
+
+    .avatar-editor {
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .avatar-editor__meta {
+      max-width: none;
+      padding-top: 4px;
     }
   }
 
