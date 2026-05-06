@@ -50,7 +50,7 @@ const columns = computed(() => [
   { key: 'next_run_time', label: t('cronTask.nextRunTime'), width: 180 },
   { key: 'registry_status', label: '接入状态', width: 110 },
   { key: 'status', label: t('cronTask.status'), width: 100 },
-  { key: 'handler', label: t('cronTask.handler'), minWidth: 200 },
+  { key: 'handler', label: t('cronTask.handler'), minWidth: 220 },
   { key: 'actions', label: t('common.actions.action'), width: 340 }
 ])
 
@@ -64,8 +64,7 @@ const form = ref<CronTaskForm>(defaultForm())
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('cronTask.form.name') + t('common.required'), trigger: 'blur' }],
   title: [{ required: true, message: t('cronTask.form.title') + t('common.required'), trigger: 'blur' }],
-  cron: [{ required: true, message: t('cronTask.form.cron') + t('common.required'), trigger: 'blur' }],
-  handler: [{ required: true, message: t('cronTask.form.handler') + t('common.required'), trigger: 'blur' }]
+  cron: [{ required: true, message: t('cronTask.form.cron') + t('common.required'), trigger: 'blur' }]
 }))
 
 const onPresetChange = (val: string) => {
@@ -151,6 +150,8 @@ const LOG_STATUS_TYPE: Record<number, 'success' | 'danger' | 'warning' | 'info'>
 
 const registryTagType = (status: CronTaskRegistryStatus) => REGISTRY_STATUS_TYPE[status]
 const logStatusType = (status: number) => LOG_STATUS_TYPE[status] ?? 'info'
+const displayTaskType = (row: CronTaskItem) => row.registry_task_type || row.handler || '-'
+const displayTaskTypeLabel = (row: CronTaskItem) => row.registry_task_type ? t('cronTask.goTaskType') : t('cronTask.legacyHandler')
 
 onMounted(() => init())
 </script>
@@ -184,7 +185,10 @@ onMounted(() => init())
         </el-tag>
       </template>
       <template #cell-handler="{ row }">
-        <code class="handler-code">{{ row.handler }}</code>
+        <div class="task-type-cell">
+          <el-tag :type="row.registry_task_type ? 'success' : 'info'" size="small">{{ displayTaskTypeLabel(row) }}</el-tag>
+          <code class="handler-code">{{ displayTaskType(row) }}</code>
+        </div>
       </template>
       <template #cell-actions="{ row }">
         <el-button v-if="userStore.can('devTools_cronTask_edit')" type="primary" text @click="openEdit(row)">{{ t('common.actions.edit') }}</el-button>
@@ -218,7 +222,7 @@ onMounted(() => init())
       <el-form-item :label="t('cronTask.form.cronReadable')">
         <el-input v-model="form.cron_readable" :placeholder="t('cronTask.form.cronReadablePlaceholder')" />
       </el-form-item>
-      <el-form-item :label="t('cronTask.form.handler')" prop="handler" required>
+      <el-form-item :label="t('cronTask.form.handler')" prop="handler">
         <el-input v-model="form.handler" :placeholder="t('cronTask.form.handlerPlaceholder')" />
       </el-form-item>
       <el-form-item :label="t('cronTask.status')">
@@ -256,5 +260,6 @@ onMounted(() => init())
 .task-title .title { font-weight: 500; }
 .task-title .name { font-size: 12px; }
 .text-secondary { color: var(--el-text-color-secondary); }
+.task-type-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .handler-code { font-size: 12px; background: var(--el-fill-color-light); padding: 2px 6px; border-radius: 4px; }
 </style>

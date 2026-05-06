@@ -1310,7 +1310,9 @@ export default {
     cronExpr: '执行周期',
     nextRunTime: '下次执行',
     status: '状态',
-    handler: '处理类',
+    handler: '任务类型/旧处理器',
+    goTaskType: 'Go任务',
+    legacyHandler: '旧处理器',
     statusEnabled: '运行中',
     statusDisabled: '已禁用',
     viewLogs: '查看日志',
@@ -1329,8 +1331,8 @@ export default {
       cronPlaceholder: '如：0 0 1 * * *（每天凌晨1点）',
       cronReadable: '可读描述',
       cronReadablePlaceholder: '可选，如：每天凌晨1点执行',
-      handler: '处理类',
-      handlerPlaceholder: '如：app\\process\\CleanExportTask',
+      handler: '任务类型/旧处理器',
+      handlerPlaceholder: 'Go 已接入任务会自动使用 task type；未迁移任务可记录旧处理器来源',
       restartTip: '修改后需重启服务才能生效'
     },
     log: {

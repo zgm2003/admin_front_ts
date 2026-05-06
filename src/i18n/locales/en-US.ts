@@ -1322,7 +1322,9 @@ export default {
     cronExpr: 'Schedule',
     nextRunTime: 'Next Run',
     status: 'Status',
-    handler: 'Handler',
+    handler: 'Task Type / Legacy Handler',
+    goTaskType: 'Go Task',
+    legacyHandler: 'Legacy',
     statusEnabled: 'Running',
     statusDisabled: 'Disabled',
     viewLogs: 'View Logs',
@@ -1341,8 +1343,8 @@ export default {
       cronPlaceholder: 'e.g. 0 0 1 * * * (daily at 1am)',
       cronReadable: 'Readable Description',
       cronReadablePlaceholder: 'Optional, e.g. Daily at 1am',
-      handler: 'Handler Class',
-      handlerPlaceholder: 'e.g. app\\process\\CleanExportTask',
+      handler: 'Task Type / Legacy Handler',
+      handlerPlaceholder: 'Registered Go tasks use task type automatically; unmigrated tasks may keep legacy provenance',
       restartTip: 'Changes require service restart to take effect'
     },
     log: {

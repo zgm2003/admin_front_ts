@@ -43,4 +43,15 @@ describe('cron task API REST contract', () => {
     expect(logsComposableSource).toContain("import { useTable } from '@/components/Table'")
     expect(logsComposableSource).not.toContain('useCrudTable')
   })
+
+  it('does not present PHP handler strings as the executable cron processor', () => {
+    const viewSource = readFrontendSource('src/views/Main/system/cronTask/index.vue')
+    const zhSource = readFrontendSource('src/i18n/locales/zh-CN.ts')
+
+    expect(viewSource).toContain('displayTaskType(row)')
+    expect(viewSource).not.toContain('{{ row.handler }}')
+    expect(viewSource).not.toContain('prop="handler" required')
+    expect(zhSource).not.toContain("handler: '处理类'")
+    expect(zhSource).not.toContain('app\\process')
+  })
 })
