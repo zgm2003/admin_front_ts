@@ -1,4 +1,4 @@
-import request, { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
@@ -24,12 +24,6 @@ export interface WalletTransactionsParams extends WalletListParams {
 
 interface WalletTransactionsQueryParams extends WalletListQueryParams {
   type?: number
-}
-
-export interface WalletAdjustParams {
-  user_id: number
-  delta: number
-  reason?: string
 }
 
 export interface WalletPageInitResponse {
@@ -67,6 +61,20 @@ export interface WalletTransactionItem {
   title: string
   remark: string
   created_at: string
+}
+
+export interface WalletAdjustmentCreatePayload {
+  user_id: number
+  delta: number
+  reason: string
+  idempotency_key: string
+}
+
+export interface WalletAdjustmentCreateResponse {
+  transaction_id: number
+  biz_action_no: string
+  balance_before: number
+  balance_after: number
 }
 
 function trimOptional(value: string | undefined): string | undefined {
@@ -109,6 +117,7 @@ export const WalletApi = {
   transactions: (params: WalletTransactionsParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet-transactions`, { params: normalizeTransactionParams(params) }),
 }
 
-export const LegacyWalletAdjustmentApi = {
-  create: (params: WalletAdjustParams) => legacyRequest.post<void>('/api/admin/UserWallet/adjust', params),
+export const WalletAdjustmentApi = {
+  create: (payload: WalletAdjustmentCreatePayload) =>
+    request.post<WalletAdjustmentCreateResponse, WalletAdjustmentCreatePayload>(`${ADMIN_API_PREFIX}/wallet-adjustments`, payload),
 }

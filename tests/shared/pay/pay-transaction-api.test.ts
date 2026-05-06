@@ -17,7 +17,7 @@ describe('pay transaction api REST contract', () => {
     expect(source).toContain('request.get<PayTransactionInitResponse>(`${ADMIN_API_PREFIX}/pay-transactions/page-init`)')
     expect(source).toContain('request.get<PaginatedResponse<PayTransactionItem>>(`${ADMIN_API_PREFIX}/pay-transactions`')
     expect(source).toContain('request.get<PayTransactionDetailResponse>(`${ADMIN_API_PREFIX}/pay-transactions/${params.id}`)')
-    expect(source).not.toContain('legacyRequest')
+    expect(source).not.toContain('legacy' + 'Request')
     expect(source).not.toContain('/api/admin/PayTransaction/')
   })
 

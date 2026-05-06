@@ -4,11 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
 import { RemoteSelect } from '@/components/RemoteSelect'
-import { LegacyWalletAdjustmentApi } from '@/api/pay/wallet'
+import { WalletAdjustmentApi } from '@/api/pay/wallet'
 import { UsersListApi } from '@/api/user/users'
 import { formatWalletUserLabel } from '../helpers'
 import { ElNotification } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormInstance, FormItemRule, FormRules } from 'element-plus'
 
 const props = withDefaults(defineProps<{
   modelValue: boolean
@@ -37,10 +37,38 @@ const form = ref({
   reason: '',
 })
 
+type ValidateCallback = NonNullable<FormItemRule['validator']>
+type ValidateDone = Parameters<ValidateCallback>[2]
+
+const validateDelta: ValidateCallback = (_rule, value: unknown, callback: ValidateDone) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    callback(new Error(t('pay_wallet.form.delta') + t('common.required')))
+    return
+  }
+  if (value === 0) {
+    callback(new Error('调账金额不能为 0'))
+    return
+  }
+  callback()
+}
+
 const rules = computed<FormRules>(() => ({
   user_id: [{ required: true, message: t('pay_wallet.form.user_id') + t('common.required'), trigger: 'change' }],
-  delta: [{ required: true, message: t('pay_wallet.form.delta') + t('common.required'), trigger: 'blur' }],
+  delta: [{ required: true, validator: validateDelta, trigger: 'blur' }],
+  reason: [
+    { required: true, message: t('pay_wallet.form.reason') + t('common.required'), trigger: 'blur' },
+    { max: 255, message: '调账原因不能超过 255 个字符', trigger: 'blur' },
+  ],
 }))
+
+const createIdempotencyKey = () => {
+  const idempotencyKey = globalThis.crypto?.randomUUID?.()
+  if (!idempotencyKey) {
+    ElNotification.error({ message: '当前浏览器不支持安全幂等键生成，请升级浏览器' })
+    return ''
+  }
+  return idempotencyKey
+}
 
 const resetForm = () => {
   form.value = {
@@ -64,10 +92,16 @@ const submit = async () => {
     return
   }
 
-  await LegacyWalletAdjustmentApi.create({
+  const idempotencyKey = createIdempotencyKey()
+  if (!idempotencyKey) {
+    return
+  }
+
+  await WalletAdjustmentApi.create({
     user_id: Number(form.value.user_id),
     delta: Math.round(form.value.delta * 100),
-    reason: form.value.reason,
+    reason: form.value.reason.trim(),
+    idempotency_key: idempotencyKey,
   })
 
   ElNotification.success({ message: t('common.success.operation') })
@@ -126,11 +160,17 @@ watch(
           {{ t('pay_wallet.form.deltaHint') }}
         </div>
       </el-form-item>
-      <el-form-item :label="t('pay_wallet.form.reason')">
+      <el-form-item
+        :label="t('pay_wallet.form.reason')"
+        prop="reason"
+        required
+      >
         <el-input
           v-model="form.reason"
           type="textarea"
           :rows="3"
+          maxlength="255"
+          show-word-limit
           clearable
           style="width:100%"
         />

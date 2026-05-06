@@ -20,7 +20,7 @@ describe('pay channel api REST contract', () => {
     expect(source).toContain('request.put<void, PayChannelUpdatePayload>(')
     expect(source).toContain('request.patch<void, PayChannelStatusBody>(')
     expect(source).toContain('request.delete<void>(`${ADMIN_API_PREFIX}/pay-channels/${params.id}`)')
-    expect(source).not.toContain('legacyRequest')
+    expect(source).not.toContain('legacy' + 'Request')
     expect(source).not.toContain('/api/admin/PayChannel/')
   })
 
