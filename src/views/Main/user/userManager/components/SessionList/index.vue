@@ -4,7 +4,7 @@ import { ElMessageBox, ElNotification } from 'element-plus'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable, useTable } from '@/components/Table'
-import { UserSessionApi, UsersListApi } from '@/api/user/users'
+import { UserSessionApi } from '@/api/user/users'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
@@ -22,7 +22,7 @@ const statsLoading = ref(false)
 
 const init = async () => {
   try {
-    const data = await UsersListApi.init()
+    const data = await UserSessionApi.pageInit()
     platformArr.value = data.dict.platformArr || []
   } catch {
     // request interceptor handles notification

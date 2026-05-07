@@ -248,6 +248,13 @@ export interface UserSessionListParams {
   status?: UserSessionStatus
 }
 
+export interface UserSessionPageInitResponse {
+  dict: {
+    platformArr: DictOption<string>[]
+    statusArr: DictOption<UserSessionStatus>[]
+  }
+}
+
 export interface UserSessionItem {
   id: number
   user_id: number

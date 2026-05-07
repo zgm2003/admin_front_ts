@@ -22,6 +22,7 @@ import type {
   UserSessionKickParams,
   UserSessionListParams,
   UserSessionListResponse,
+  UserSessionPageInitResponse,
   UserSessionStats,
   UsersListParams,
   UserEditParams,
@@ -97,6 +98,25 @@ function normalizeUsersListParams(params: UsersListParams): UserListQueryParams 
     query.date = `${params.date[0]},${params.date[1]}`
   }
 
+  return query
+}
+
+function normalizeUserSessionListParams(params: UserSessionListParams): UserSessionListParams {
+  const query: UserSessionListParams = {
+    current_page: params.current_page,
+    page_size: params.page_size,
+  }
+
+  const username = params.username?.trim()
+  if (username) {
+    query.username = username
+  }
+  if (params.platform) {
+    query.platform = params.platform
+  }
+  if (params.status) {
+    query.status = params.status
+  }
   return query
 }
 
@@ -182,11 +202,14 @@ export const UsersListApi = {
 }
 
 export const UserSessionApi = {
+  pageInit: () =>
+    request.get<UserSessionPageInitResponse>(`${ADMIN_API_PREFIX}/user-sessions/page-init`),
+
   list: (params: UserSessionListParams) =>
-    legacyRequest.post<UserSessionListResponse>('/api/admin/UserSession/list', params),
+    request.get<UserSessionListResponse>(`${ADMIN_API_PREFIX}/user-sessions`, { params: normalizeUserSessionListParams(params) }),
 
   stats: () =>
-    legacyRequest.post<UserSessionStats>('/api/admin/UserSession/stats'),
+    request.get<UserSessionStats>(`${ADMIN_API_PREFIX}/user-sessions/stats`),
 
   kick: (params: UserSessionKickParams) =>
     legacyRequest.post<void>('/api/admin/UserSession/kick', params),

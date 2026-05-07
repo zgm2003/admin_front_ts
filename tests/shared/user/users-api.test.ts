@@ -101,5 +101,22 @@ describe('users api auth contract', () => {
     expect(slideCaptchaSource).not.toContain('<el-slider')
     expect(slideCaptchaSource).toContain('<GoCaptchaSlide')
   })
+
+  it('uses Go REST for user session read-only APIs and keeps kick legacy for now', () => {
+    const source = readUsersApiSource()
+    const typeSource = readUserTypeSource()
+    const sessionListSource = readFrontendSource('src/views/Main/user/userManager/components/SessionList/index.vue')
+
+    expect(typeSource).toContain('export interface UserSessionPageInitResponse')
+    expect(source).toContain('request.get<UserSessionPageInitResponse>(`${ADMIN_API_PREFIX}/user-sessions/page-init`)')
+    expect(source).toContain('request.get<UserSessionListResponse>(`${ADMIN_API_PREFIX}/user-sessions`, { params: normalizeUserSessionListParams(params) })')
+    expect(source).toContain('request.get<UserSessionStats>(`${ADMIN_API_PREFIX}/user-sessions/stats`)')
+    expect(source).not.toContain("legacyRequest.post<UserSessionListResponse>('/api/admin/UserSession/list', params)")
+    expect(source).not.toContain("legacyRequest.post<UserSessionStats>('/api/admin/UserSession/stats')")
+    expect(source).toContain("legacyRequest.post<void>('/api/admin/UserSession/kick', params)")
+    expect(source).toContain("legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params)")
+    expect(sessionListSource).toContain('const data = await UserSessionApi.pageInit()')
+    expect(sessionListSource).not.toContain('const data = await UsersListApi.init()')
+  })
 })
 
