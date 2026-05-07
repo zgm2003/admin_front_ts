@@ -302,8 +302,6 @@ export default {
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
     system_queueMonitor: 'Queue Monitor',
-    // Chat
-    chat: 'Chat Room',
     // Payment module
     pay: 'Payment',
     pay_channel: 'Payment Channel',
@@ -1410,21 +1408,6 @@ export default {
     later: 'Later',
     updating: 'Updating',
     downloading: 'Downloading update, please wait...'
-  },
-  chat: {
-    tabs: { chat: 'Chat', contacts: 'Contacts' },
-    createGroup: 'Create Group',
-    groupName: 'Group Name',
-    groupNamePlaceholder: 'Enter group name',
-    selectFriends: 'Select Friends',
-    selectFriendsPlaceholder: 'Select friends (at least 1)',
-    selectContact: 'Select a contact to view profile',
-    selectConversation: 'Select a conversation to start chatting',
-    sendMessage: 'Send Message',
-    addedTime: 'Added',
-    online: 'Online',
-    offline: 'Offline',
-    startChatFailed: 'Failed to start chat'
   },
   notification: {
     title: 'Notifications',

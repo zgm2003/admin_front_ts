@@ -8,7 +8,7 @@ describe('normalizeNotificationLink', () => {
   })
 
   it('keeps non-legacy links unchanged', () => {
-    expect(normalizeNotificationLink('/chat')).toBe('/chat')
+    expect(normalizeNotificationLink('/notification')).toBe('/notification')
     expect(normalizeNotificationLink('https://example.com')).toBe('https://example.com')
   })
 })

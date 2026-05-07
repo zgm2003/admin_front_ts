@@ -302,8 +302,6 @@ export default {
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
     system_queueMonitor: '队列监控',
-    // 聊天
-    chat: '聊天室',
     // 支付管理模块
     pay: '支付管理',
     pay_channel: '支付渠道',
@@ -1410,21 +1408,6 @@ export default {
       title: '系统通知',
       newMessage: '您有新消息'
     }
-  },
-  chat: {
-    tabs: { chat: '聊天', contacts: '联系人' },
-    createGroup: '创建群聊',
-    groupName: '群名称',
-    groupNamePlaceholder: '请输入群名称',
-    selectFriends: '选择好友',
-    selectFriendsPlaceholder: '请选择好友（至少1人）',
-    selectContact: '选择一个联系人查看资料',
-    selectConversation: '选择一个会话开始聊天',
-    sendMessage: '发消息',
-    addedTime: '添加时间',
-    online: '在线',
-    offline: '离线',
-    startChatFailed: '发起聊天失败'
   },
   notification: {
     title: '通知中心',
