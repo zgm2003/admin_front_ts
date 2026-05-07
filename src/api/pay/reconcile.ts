@@ -1,5 +1,6 @@
-import { legacyRequest } from '@/lib/http'
-import type { DictOption, PaginatedResponse, RequestPayload } from '@/types/common'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export interface PayReconcileInitResponse {
   dict: {
@@ -9,12 +10,24 @@ export interface PayReconcileInitResponse {
   }
 }
 
-export interface PayReconcileListParams extends RequestPayload {
-  current_page?: number
-  page_size?: number
+export interface PayReconcileListParams {
+  current_page: number
+  page_size: number
   channel?: number | ''
   status?: number | ''
   bill_type?: number | ''
+  start_date?: string
+  end_date?: string
+}
+
+interface PayReconcileListQueryParams {
+  current_page: number
+  page_size: number
+  channel?: number
+  status?: number
+  bill_type?: number
+  start_date?: string
+  end_date?: string
 }
 
 export interface PayReconcileTaskItem {
@@ -52,10 +65,42 @@ export interface PayReconcileDownloadResponse {
   filename: string
 }
 
+function trimOptional(value: string | undefined): string | undefined {
+  const next = value?.trim()
+  return next ? next : undefined
+}
+
+function normalizeListParams(params: PayReconcileListParams): PayReconcileListQueryParams {
+  const query: PayReconcileListQueryParams = {
+    current_page: params.current_page,
+    page_size: params.page_size,
+  }
+
+  if (typeof params.channel === 'number') {
+    query.channel = params.channel
+  }
+  if (typeof params.status === 'number') {
+    query.status = params.status
+  }
+  if (typeof params.bill_type === 'number') {
+    query.bill_type = params.bill_type
+  }
+  const startDate = trimOptional(params.start_date)
+  if (startDate) {
+    query.start_date = startDate
+  }
+  const endDate = trimOptional(params.end_date)
+  if (endDate) {
+    query.end_date = endDate
+  }
+
+  return query
+}
+
 export const PayReconcileApi = {
-  init: (params?: RequestPayload) => legacyRequest.post<PayReconcileInitResponse>('/api/admin/PayReconcile/init', params),
-  list: (params: PayReconcileListParams) => legacyRequest.post<PaginatedResponse<PayReconcileTaskItem>>('/api/admin/PayReconcile/list', params),
-  detail: (params: { id: number }) => legacyRequest.post<PayReconcileDetailResponse>('/api/admin/PayReconcile/detail', params),
-  retry: (params: { id: number }) => legacyRequest.post<void>('/api/admin/PayReconcile/retry', params),
-  download: (params: { id: number; type: 'platform' | 'local' | 'diff' }) => legacyRequest.post<PayReconcileDownloadResponse>('/api/admin/PayReconcile/download', params),
+  init: () => request.get<PayReconcileInitResponse>(`${ADMIN_API_PREFIX}/pay-reconcile-tasks/page-init`),
+  list: (params: PayReconcileListParams) => request.get<PaginatedResponse<PayReconcileTaskItem>>(`${ADMIN_API_PREFIX}/pay-reconcile-tasks`, { params: normalizeListParams(params) }),
+  detail: (params: { id: number }) => request.get<PayReconcileDetailResponse>(`${ADMIN_API_PREFIX}/pay-reconcile-tasks/${params.id}`),
+  retry: (params: { id: number }) => request.patch<void>(`${ADMIN_API_PREFIX}/pay-reconcile-tasks/${params.id}/retry`),
+  download: (params: { id: number; type: 'platform' | 'local' | 'diff' }) => request.get<PayReconcileDownloadResponse>(`${ADMIN_API_PREFIX}/pay-reconcile-tasks/${params.id}/files/${params.type}`),
 }
