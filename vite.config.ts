@@ -94,6 +94,10 @@ export default defineConfig({
               test: /@iconify\//,
               name: 'iconify',
             },
+            {
+              test: /node_modules\/(?:vue-element-plus-x|x-sender|virtua)\//,
+              name: 'chat-ui',
+            },
           ],
         },
       },

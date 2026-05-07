@@ -1,4 +1,5 @@
-import { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { PaginatedResponse } from '@/types/common'
 
 // ============ Types ============
@@ -22,6 +23,8 @@ export type ContactStatus = (typeof ContactStatus)[keyof typeof ContactStatus]
 /** 通用是否枚举 */
 export const CommonYesNo = { Yes: 1, No: 2 } as const
 export type CommonYesNo = (typeof CommonYesNo)[keyof typeof CommonYesNo]
+
+export type ChatMessageMeta = Record<string, unknown>
 
 /** 会话项 */
 export interface ConversationItem {
@@ -47,7 +50,7 @@ export interface MessageItem {
   sender_id: number
   type: MessageType
   content: string
-  meta_json: Record<string, any> | null
+  meta_json?: ChatMessageMeta | null
   created_at: string
   sender?: { id: number; username: string; avatar: string }
 }
@@ -74,40 +77,125 @@ export interface ContactItem {
   created_at: string
 }
 
+export interface ConversationListParams {
+  current_page?: number
+  page_size?: number
+}
+
+export interface CreatePrivateParams {
+  user_id: number
+}
+
+export interface CreateGroupParams {
+  name: string
+  user_ids: number[]
+}
+
+export interface SendMessageParams {
+  conversation_id: number
+  type: MessageType
+  content: string
+  meta_json?: ChatMessageMeta
+}
+
+export interface MessageListParams {
+  conversation_id: number
+  current_page: number
+  page_size?: number
+}
+
+export interface ConversationIDParams {
+  conversation_id: number
+}
+
+export interface UserIDParams {
+  user_id: number
+}
+
+export interface OnlineStatusResponse {
+  online_status: Record<number, boolean>
+}
+
+export interface EmptyResponse {
+  _empty?: never
+}
+
 // ============ API ============
 
-const BASE = '/api/admin/Chat'
+const BASE = `${ADMIN_API_PREFIX}/chat`
 
 export const ChatRoomApi = {
   // 会话
-  conversationList: (params?: any) => legacyRequest.post<{ list: ConversationItem[] }>(`${BASE}/conversationList`, params),
-  createPrivate: (params: { user_id: number }) => legacyRequest.post<{ conversation: ConversationItem }>(`${BASE}/createPrivate`, params),
-  createGroup: (params: { name: string; user_ids: number[] }) => legacyRequest.post<{ conversation: ConversationItem }>(`${BASE}/createGroup`, params),
-  deleteConversation: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/deleteConversation`, params),
-  togglePin: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/togglePin`, params),
+  conversationList: (params: ConversationListParams = {}) => request.get<{ list: ConversationItem[] }>(`${BASE}/conversations`, { params }),
+  createPrivate: (params: CreatePrivateParams) => request.post<{ conversation: ConversationItem }, CreatePrivateParams>(`${BASE}/conversations/private`, params),
+  createGroup: (params: CreateGroupParams): Promise<{ conversation: ConversationItem }> => {
+    void params
+    return Promise.reject(new Error('群聊创建迁移尚未开放'))
+  },
+  deleteConversation: (params: ConversationIDParams) => request.delete<void>(`${BASE}/conversations/${params.conversation_id}`),
+  togglePin: (params: ConversationIDParams) => request.patch<void>(`${BASE}/conversations/${params.conversation_id}/pin`),
 
-  // 群聊管理
-  groupInfo: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/groupInfo`, params),
-  groupUpdate: (params: { conversation_id: number; name?: string; announcement?: string }) => legacyRequest.post(`${BASE}/groupUpdate`, params),
-  groupInvite: (params: { conversation_id: number; user_ids: number[] }) => legacyRequest.post(`${BASE}/groupInvite`, params),
-  groupKick: (params: { conversation_id: number; user_id: number }) => legacyRequest.post(`${BASE}/groupKick`, params),
-  groupLeave: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/groupLeave`, params),
-  groupTransfer: (params: { conversation_id: number; user_id: number }) => legacyRequest.post(`${BASE}/groupTransfer`, params),
-  setAdmin: (params: { conversation_id: number; user_id: number; is_admin: boolean }) => legacyRequest.post(`${BASE}/setAdmin`, params),
+  // 群聊管理：后续切片迁移，当前不走旧 PHP 兜底。
+  groupInfo: (params: ConversationIDParams): Promise<{ participants: ParticipantItem[] }> => {
+    void params
+    return Promise.reject(new Error('群聊详情迁移尚未开放'))
+  },
+  groupUpdate: (params: ConversationIDParams & { name?: string; announcement?: string }): Promise<void> => {
+    void params
+    return Promise.reject(new Error('群聊编辑迁移尚未开放'))
+  },
+  groupInvite: (params: ConversationIDParams & { user_ids: number[] }): Promise<void> => {
+    void params
+    return Promise.reject(new Error('群成员邀请迁移尚未开放'))
+  },
+  groupKick: (params: ConversationIDParams & UserIDParams): Promise<void> => {
+    void params
+    return Promise.reject(new Error('群成员移除迁移尚未开放'))
+  },
+  groupLeave: (params: ConversationIDParams): Promise<void> => {
+    void params
+    return Promise.reject(new Error('退群迁移尚未开放'))
+  },
+  groupTransfer: (params: ConversationIDParams & UserIDParams): Promise<void> => {
+    void params
+    return Promise.reject(new Error('群主转让迁移尚未开放'))
+  },
+  setAdmin: (params: ConversationIDParams & { user_id: number; is_admin: boolean }): Promise<void> => {
+    void params
+    return Promise.reject(new Error('群管理员迁移尚未开放'))
+  },
 
   // 消息
-  sendMessage: (params: { conversation_id: number; type: MessageType; content: string; meta_json?: Record<string, any> }) => legacyRequest.post<{ message: MessageItem }>(`${BASE}/sendMessage`, params),
-  messageList: (params: { conversation_id: number; current_page: number; page_size?: number }) => legacyRequest.post<PaginatedResponse<MessageItem>>(`${BASE}/messageList`, params),
-  markRead: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/markRead`, params),
-  recallMessage: (params: { message_id: number }) => legacyRequest.post(`${BASE}/recallMessage`, params),
+  sendMessage: (params: SendMessageParams) => request.post<{ message: MessageItem }, Omit<SendMessageParams, 'conversation_id'>>(`${BASE}/conversations/${params.conversation_id}/messages`, {
+    type: params.type,
+    content: params.content,
+    meta_json: params.meta_json,
+  }),
+  messageList: (params: MessageListParams) => request.get<PaginatedResponse<MessageItem>>(`${BASE}/conversations/${params.conversation_id}/messages`, {
+    params: {
+      current_page: params.current_page,
+      page_size: params.page_size,
+    },
+  }),
+  markRead: (params: ConversationIDParams) => request.patch<void>(`${BASE}/conversations/${params.conversation_id}/read`),
+  recallMessage: (params: { message_id: number }): Promise<void> => {
+    void params
+    return Promise.reject(new Error('消息撤回迁移尚未开放'))
+  },
 
   // 联系人
-  contactList: (params?: any) => legacyRequest.post<{ list: ContactItem[] }>(`${BASE}/contactList`, params),
-  contactAdd: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactAdd`, params),
-  contactConfirm: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactConfirm`, params),
-  contactDelete: (params: { user_id: number }) => legacyRequest.post(`${BASE}/contactDelete`, params),
+  contactList: () => request.get<{ list: ContactItem[] }>(`${BASE}/contacts`),
+  contactAdd: (params: UserIDParams) => request.post<void, UserIDParams>(`${BASE}/contacts/${params.user_id}/requests`, params),
+  contactConfirm: (params: UserIDParams) => request.patch<void>(`${BASE}/contacts/${params.user_id}/confirm`),
+  contactDelete: (params: UserIDParams) => request.delete<void>(`${BASE}/contacts/${params.user_id}`),
 
-  // 实时
-  typing: (params: { conversation_id: number }) => legacyRequest.post(`${BASE}/typing`, params),
-  onlineStatus: (params: { user_ids: number[] }) => legacyRequest.post<{ online_status: Record<number, boolean> }>(`${BASE}/onlineStatus`, params),
+  // 实时辅助：后续用 Go realtime typed event 迁移，不再打 legacy POST。
+  typing: (params: ConversationIDParams): Promise<void> => {
+    void params
+    return Promise.resolve()
+  },
+  onlineStatus: (params: { user_ids: number[] }): Promise<OnlineStatusResponse> => {
+    void params
+    return Promise.resolve({ online_status: {} })
+  },
 }

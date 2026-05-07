@@ -16,7 +16,7 @@ describe('auth platform api REST contract', () => {
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<AuthPlatformInitResponse>(`${ADMIN_API_PREFIX}/auth-platforms/init`)')
     expect(source).toContain('request.get<PaginatedResponse<AuthPlatformItem>>(`${ADMIN_API_PREFIX}/auth-platforms`')
-    expect(source).toContain('request.post<void, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`')
+    expect(source).toContain('request.post<AuthPlatformCreateResponse, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`')
     expect(source).toContain('request.put<void, AuthPlatformUpdatePayload>(')
     expect(source).toContain('request.patch<void, AuthPlatformStatusBody>(')
     expect(source).toContain('request.delete<void>(`${ADMIN_API_PREFIX}/auth-platforms/${ids[0]}`)')
@@ -28,12 +28,13 @@ describe('auth platform api REST contract', () => {
   it('declares captcha_type as a strict contract field', () => {
     const apiSource = readFrontendSource('src/api/permission/authPlatform.ts')
     const pageSource = readFrontendSource('src/views/Main/permission/authPlatform/index.vue')
+    const dialogSource = readFrontendSource('src/views/Main/permission/authPlatform/components/FormDialog.vue')
 
     expect(apiSource).toContain("export type AuthPlatformCaptchaType = 'slide'")
     expect(apiSource).toContain('auth_platform_captcha_type_arr: DictOption<AuthPlatformCaptchaType>[]')
     expect(apiSource).toContain('captcha_type: AuthPlatformCaptchaType')
     expect(pageSource).toContain("t('authPlatform.table.captcha_type')")
-    expect(pageSource).toContain('dict.auth_platform_captcha_type_arr')
+    expect(dialogSource).toContain('dict.auth_platform_captcha_type_arr')
   })
 
   it('keeps touched auth platform api types strict without catch-all fields', () => {

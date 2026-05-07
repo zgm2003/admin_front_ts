@@ -227,35 +227,11 @@ export const useChatStore = defineStore('chat', {
     /** 处理收到的 WebSocket 消息（统一入口） */
     handleWsMessage(message: WsMessage) {
       switch (message.type) {
-        case 'chat_message':
+        case 'chat.message.created.v1':
           this._handleChatMessage(message.data as { conversation_id: number; message: MessageItem })
           break
-        case 'chat_typing':
-          this._handleChatTyping(message.data as { conversation_id: number; user_id: number })
-          break
-        case 'chat_read':
+        case 'chat.read.v1':
           this._handleChatRead(message.data as { conversation_id: number; user_id: number })
-          break
-        case 'chat_online':
-          this._handleChatOnline(message.data as { user_id: number; is_online: boolean })
-          break
-        case 'chat_message_recall':
-          this._handleMessageRecall(message.data as { conversation_id: number; message_id: number })
-          break
-        case 'chat_group_update':
-          this._handleGroupUpdate(message.data as unknown as GroupUpdateData)
-          break
-        case 'chat_contact_request':
-          this._handleContactRequest(message.data as { from_user_id: number })
-          break
-        case 'chat_contact_rejected':
-          this._handleContactRejected(message.data as { rejected_by: number })
-          break
-        case 'chat_contact_confirmed':
-          this._handleContactConfirmed(message.data as { confirmed_by: number })
-          break
-        case 'chat_contact_deleted':
-          this._handleContactDeleted(message.data as { deleted_by: number; conversation_id: number | null })
           break
       }
     },
@@ -352,17 +328,17 @@ export const useChatStore = defineStore('chat', {
       this.groupInfoVersion++
     },
 
-    _handleContactRequest(_data: { from_user_id: number }) {
+    _handleContactRequest() {
       // 收到好友请求，刷新联系人列表
       this.loadContacts()
     },
 
-    _handleContactRejected(_data: { rejected_by: number }) {
+    _handleContactRejected() {
       // 好友请求被拒绝，刷新联系人列表
       this.loadContacts()
     },
 
-    _handleContactConfirmed(_data: { confirmed_by: number }) {
+    _handleContactConfirmed() {
       // 好友请求被确认，刷新联系人列表
       this.loadContacts()
     },
@@ -416,7 +392,7 @@ export const useChatStore = defineStore('chat', {
 
     /** 注册 WebSocket 消息监听（在聊天页面挂载时调用） */
     registerWsListeners() {
-      const types = ['chat_message', 'chat_typing', 'chat_read', 'chat_online', 'chat_message_recall', 'chat_group_update', 'chat_contact_request', 'chat_contact_rejected', 'chat_contact_confirmed', 'chat_contact_deleted']
+      const types = ['chat.message.created.v1', 'chat.read.v1']
       const handler = (msg: WsMessage) => this.handleWsMessage(msg)
       for (const type of types) {
         const cleanup = onWsMessage(type, handler)

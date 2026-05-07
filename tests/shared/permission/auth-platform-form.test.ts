@@ -18,7 +18,7 @@ describe('auth platform helpers', () => {
   })
 
   it('renders a runtime policy notice in the page source', () => {
-    const source = readFileSync(resolve(process.cwd(), 'src/views/Main/permission/authPlatform/index.vue'), 'utf8')
+    const source = readFileSync(resolve(process.cwd(), 'src/views/Main/permission/authPlatform/components/FormDialog.vue'), 'utf8')
 
     expect(source).toContain("t('authPlatform.form.policy_notice')")
     expect(source).toContain("t('authPlatform.form.captcha_type')")

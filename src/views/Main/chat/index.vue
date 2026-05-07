@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { useChatStore } from '@/store/chat'
 import { useIsMobile } from '@/hooks/useResponsive'
-import type { ConversationItem, ContactItem } from '@/api/chat'
+import type { ContactItem } from '@/api/chat'
 import { formatDateTime } from '@/utils/date'
 import ConversationList from './components/ConversationList/index.vue'
 import ChatWindow from './components/ChatWindow/index.vue'
@@ -60,9 +60,8 @@ function goBackToList() {
   selectedContact.value = null
 }
 
-/** 选中会话 */
-async function handleSelectConversation(conv: ConversationItem) {
-  await chatStore.selectConversation(conv)
+/** 选中会话：ConversationList owns chatStore.selectConversation; parent only owns responsive panel state. */
+function handleSelectConversation() {
   if (isMobile.value) showMainPanel.value = true
 }
 

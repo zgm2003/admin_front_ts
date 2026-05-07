@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { shallowRef, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Plus, Check } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
@@ -7,7 +7,8 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useChatStore } from '@/store/chat'
 import { UsersListApi } from '@/api/user/users'
-import { ChatRoomApi, ContactStatus } from '@/api/chat'
+import { ChatRoomApi, CommonYesNo, ContactStatus } from '@/api/chat'
+import type { UserListItem, UsersListParams } from '@/types/user'
 
 const props = defineProps<{
   visible: boolean
@@ -25,22 +26,33 @@ const chatStore = useChatStore()
 // 当前用户ID
 const currentUserId = computed(() => Number(userStore.user_id))
 
-// 已确认的好友ID集合
-const confirmedContactIds = computed(() => {
-  return new Set(
-    chatStore.contacts
-      .filter(c => c.status === ContactStatus.Confirmed)
-      .map(c => c.contact_user_id)
-  )
+type ContactAddState = 'none' | 'pending_sent' | 'pending_received' | 'confirmed'
+
+const contactStateMap = computed(() => {
+  const map = new Map<number, ContactAddState>()
+  for (const contact of chatStore.contacts) {
+    if (contact.status === ContactStatus.Confirmed) {
+      map.set(contact.contact_user_id, 'confirmed')
+      continue
+    }
+    if (contact.status === ContactStatus.Pending && contact.is_initiator === CommonYesNo.Yes) {
+      map.set(contact.contact_user_id, 'pending_sent')
+      continue
+    }
+    if (contact.status === ContactStatus.Pending && contact.is_initiator === CommonYesNo.No) {
+      map.set(contact.contact_user_id, 'pending_received')
+    }
+  }
+  return map
 })
 
 // ========== 搜索 ==========
-const searchKeyword = ref('')
+const searchKeyword = shallowRef('')
 
 // ========== 用户列表 ==========
-const userLoading = ref(false)
-const userList = ref<any[]>([])
-const userPage = ref({ current_page: 1, page_size: 10, total: 0 })
+const userLoading = shallowRef(false)
+const userList = shallowRef<UserListItem[]>([])
+const userPage = shallowRef({ current_page: 1, page_size: 10, total: 0 })
 
 // 过滤后的用户列表（排除自己）
 const filteredUserList = computed(() => {
@@ -50,9 +62,9 @@ const filteredUserList = computed(() => {
 const loadUsers = async () => {
   userLoading.value = true
   try {
-    const params: any = {
+    const params: UsersListParams = {
       current_page: userPage.value.current_page,
-      page_size: userPage.value.page_size
+      page_size: userPage.value.page_size,
     }
     if (searchKeyword.value) {
       params.keyword = searchKeyword.value
@@ -78,23 +90,44 @@ const handlePageChange = (page: number) => {
   loadUsers()
 }
 
-// ========== 判断是否已添加 ==========
-const isAdded = (userId: number) => {
-  return confirmedContactIds.value.has(userId)
+function getContactAddState(userId: number): ContactAddState {
+  return contactStateMap.value.get(userId) ?? 'none'
+}
+
+function canAddContact(userId: number): boolean {
+  return getContactAddState(userId) === 'none'
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
 }
 
 // ========== 添加联系人 ==========
-const addingUserId = ref<number | null>(null)
-const handleAddContact = async (user: any) => {
+const addingUserId = shallowRef<number | null>(null)
+const handleAddContact = async (user: UserListItem) => {
   addingUserId.value = user.id
   try {
     await ChatRoomApi.contactAdd({ user_id: user.id })
     ElMessage.success(`已向 ${user.username} 发送好友请求`)
+    await chatStore.loadContacts()
     emit('success')
-    // 添加成功后刷新列表，显示"已添加"状态
     await loadUsers()
-  } catch (err: any) {
-    ElMessage.error(err.message || '添加失败')
+  } catch (error: unknown) {
+    ElMessage.error(getErrorMessage(error, '添加失败'))
+  } finally {
+    addingUserId.value = null
+  }
+}
+
+async function handleConfirmContact(user: UserListItem) {
+  addingUserId.value = user.id
+  try {
+    await ChatRoomApi.contactConfirm({ user_id: user.id })
+    ElMessage.success('已通过请求')
+    await chatStore.loadContacts()
+    emit('success')
+  } catch (error: unknown) {
+    ElMessage.error(getErrorMessage(error, '确认失败'))
   } finally {
     addingUserId.value = null
   }
@@ -105,6 +138,7 @@ watch(() => props.visible, (val) => {
   if (val) {
     searchKeyword.value = ''
     userPage.value.current_page = 1
+    void chatStore.loadContacts()
     loadUsers()
   }
 })
@@ -130,20 +164,32 @@ const dialogVisible = computed({
         v-model="searchKeyword"
         placeholder="搜索用户名 / 邮箱 / 手机号"
         clearable
+        size="large"
         @keyup.enter="handleSearch"
         @clear="handleSearch"
-        size="large"
       >
         <template #prefix>
           <el-icon><Search /></el-icon>
         </template>
       </el-input>
-      <el-button type="primary" size="large" @click="handleSearch">搜索</el-button>
+      <el-button
+        type="primary"
+        size="large"
+        @click="handleSearch"
+      >
+        搜索
+      </el-button>
     </div>
 
     <!-- 用户列表 -->
-    <el-scrollbar :height="isMobile ? 'auto' : '450px'" :max-height="isMobile ? '60vh' : '450px'">
-      <div v-loading="userLoading" class="user-list">
+    <el-scrollbar
+      :height="isMobile ? 'auto' : '450px'"
+      :max-height="isMobile ? '60vh' : '450px'"
+    >
+      <div
+        v-loading="userLoading"
+        class="user-list"
+      >
         <!-- 空状态 -->
         <template v-if="filteredUserList.length === 0 && !userLoading">
           <el-empty 
@@ -158,48 +204,106 @@ const dialogVisible = computed({
             v-for="user in filteredUserList"
             :key="user.id"
             class="user-card"
-            :class="{ 'is-added': isAdded(user.id) }"
+            :class="{ 'is-added': getContactAddState(user.id) === 'confirmed' }"
           >
             <div class="card-left">
-              <el-avatar :size="isMobile ? 50 : 60" :src="user.avatar">
+              <el-avatar
+                :size="isMobile ? 50 : 60"
+                :src="user.avatar ?? undefined"
+              >
                 {{ user.username?.charAt(0) || '?' }}
               </el-avatar>
             </div>
             <div class="card-body">
               <div class="user-name">
                 {{ user.username }}
-                <el-tag v-if="isAdded(user.id)" type="success" size="small" effect="plain">好友</el-tag>
+                <el-tag
+                  v-if="getContactAddState(user.id) === 'confirmed'"
+                  type="success"
+                  size="small"
+                  effect="plain"
+                >
+                  好友
+                </el-tag>
+                <el-tag
+                  v-else-if="getContactAddState(user.id) === 'pending_sent'"
+                  type="warning"
+                  size="small"
+                  effect="plain"
+                >
+                  已发送
+                </el-tag>
+                <el-tag
+                  v-else-if="getContactAddState(user.id) === 'pending_received'"
+                  type="primary"
+                  size="small"
+                  effect="plain"
+                >
+                  待通过
+                </el-tag>
               </div>
-              <div v-if="user.email" class="user-info-row">
+              <div
+                v-if="user.email"
+                class="user-info-row"
+              >
                 <span class="info-label">邮箱</span>
                 <span class="info-value">{{ user.email }}</span>
               </div>
-              <div v-if="user.phone" class="user-info-row">
+              <div
+                v-if="user.phone"
+                class="user-info-row"
+              >
                 <span class="info-label">手机</span>
                 <span class="info-value">{{ user.phone }}</span>
               </div>
-              <div v-if="user.sex_show || user.address_show" class="user-info-row">
+              <div
+                v-if="user.sex_show || user.address_show"
+                class="user-info-row"
+              >
                 <span class="info-label">{{ user.sex_show ? '性别' : '地址' }}</span>
                 <span class="info-value">{{ user.sex_show || user.address_show }}</span>
               </div>
             </div>
             <div class="card-right">
               <el-button
-                v-if="isAdded(user.id)"
+                v-if="getContactAddState(user.id) === 'confirmed'"
                 type="success"
                 plain
                 disabled
               >
-                <el-icon style="margin-right: 4px"><Check /></el-icon>
+                <el-icon style="margin-right: 4px">
+                  <Check />
+                </el-icon>
                 已添加
               </el-button>
               <el-button
-                v-else
+                v-else-if="getContactAddState(user.id) === 'pending_sent'"
+                type="warning"
+                plain
+                disabled
+              >
+                已发送
+              </el-button>
+              <el-button
+                v-else-if="getContactAddState(user.id) === 'pending_received'"
+                type="primary"
+                :loading="addingUserId === user.id"
+                @click="handleConfirmContact(user)"
+              >
+                通过请求
+              </el-button>
+              <el-button
+                v-else-if="canAddContact(user.id)"
                 type="primary"
                 :loading="addingUserId === user.id"
                 @click="handleAddContact(user)"
               >
-                <el-icon v-if="addingUserId !== user.id" style="margin-right: 4px"><Plus /></el-icon>
+                <el-icon
+                  v-if="addingUserId !== user.id"
+                  style="margin-right: 4px"
+                >
+                  <Plus />
+                </el-icon>
                 添加好友
               </el-button>
             </div>
@@ -222,191 +326,4 @@ const dialogVisible = computed({
   </AppDialog>
 </template>
 
-<style scoped>
-.search-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.search-bar .el-input {
-  flex: 1;
-}
-
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-}
-
-.user-card {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  transition: all 0.2s;
-  align-items: flex-start;
-}
-
-.user-card:hover {
-  border-color: var(--el-color-primary-light-5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-
-.user-card.is-added {
-  background: var(--el-fill-color-extra-light);
-  opacity: 0.85;
-}
-
-.user-card.is-added:hover {
-  border-color: var(--el-border-color-light);
-  box-shadow: none;
-  transform: none;
-}
-
-.card-left {
-  flex-shrink: 0;
-}
-
-.card-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.user-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-info-row {
-  display: flex;
-  align-items: center;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.info-label {
-  color: var(--el-text-color-secondary);
-  min-width: 50px;
-  flex-shrink: 0;
-}
-
-.info-value {
-  color: var(--el-text-color-regular);
-  word-break: break-all;
-  line-height: 1.4;
-}
-
-.card-right {
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-start;
-  padding-top: 4px;
-}
-
-.card-right .el-button {
-  min-width: 100px;
-}
-
-.pagination {
-  margin-top: 16px;
-  justify-content: center;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .search-bar {
-    gap: 8px;
-  }
-
-  .user-list {
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .user-card {
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .card-left .el-avatar {
-    width: 44px !important;
-    height: 44px !important;
-  }
-
-  .card-body {
-    gap: 3px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .user-name {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 2px;
-    flex-wrap: wrap;
-  }
-
-  .user-name .el-tag {
-    font-size: 11px;
-    height: 18px;
-    line-height: 18px;
-    padding: 0 4px;
-  }
-
-  .user-info-row {
-    font-size: 12px;
-    line-height: 1.3;
-  }
-
-  .info-label {
-    min-width: 36px;
-    font-size: 11px;
-    color: var(--el-text-color-placeholder);
-  }
-
-  .info-value {
-    font-size: 11px;
-    flex: 1;
-    word-break: break-all;
-  }
-
-  .card-right {
-    flex-shrink: 0;
-    align-items: flex-start;
-    padding-top: 0;
-  }
-
-  .card-right .el-button {
-    min-width: 72px;
-    height: 32px;
-    padding: 0 10px;
-    font-size: 12px;
-  }
-
-  .card-right .el-button .el-icon {
-    margin-right: 2px !important;
-    font-size: 12px;
-  }
-
-  .card-right .el-button.is-disabled {
-    min-width: 60px;
-  }
-}
-
-.add-contact-dialog :deep(.el-dialog__body) {
-  padding: 16px 20px;
-}
-</style>
+<style scoped src="./add-contact-dialog.css"></style>

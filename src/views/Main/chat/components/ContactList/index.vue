@@ -97,30 +97,64 @@ defineExpose({ activate })
 </script>
 
 <template>
-  <div class="contact-list-wrap" v-loading="loading">
+  <div
+    v-loading="loading"
+    class="contact-list-wrap"
+  >
     <!-- 头部 -->
     <div class="contact-header">
       <span class="contact-title">联系人</span>
-      <el-button text size="small" @click="showAddDialog = true">
-        <el-icon :size="18"><Plus /></el-icon>
+      <el-button
+        text
+        size="small"
+        @click="showAddDialog = true"
+      >
+        <el-icon :size="18">
+          <Plus />
+        </el-icon>
       </el-button>
     </div>
 
     <el-scrollbar class="contact-scrollbar">
       <!-- 收到的好友请求（别人加我的） -->
       <template v-if="pendingContacts.length > 0">
-        <div class="section-label">待确认请求</div>
-        <div v-for="c in pendingContacts" :key="c.id" class="contact-item pending">
+        <div class="section-label">
+          待确认请求
+        </div>
+        <div
+          v-for="c in pendingContacts"
+          :key="c.id"
+          class="contact-item pending"
+        >
           <div class="contact-left">
-            <el-avatar :size="36" :src="c.avatar || undefined">{{ (c.username || '?')[0] }}</el-avatar>
+            <el-avatar
+              :size="36"
+              :src="c.avatar || undefined"
+            >
+              {{ (c.username || '?')[0] }}
+            </el-avatar>
             <span class="contact-name">{{ c.username }}</span>
           </div>
           <div class="contact-actions">
-            <el-button text size="small" type="success" @click="handleConfirm(c)">
-              <el-icon :size="16"><Check /></el-icon>
+            <el-button
+              text
+              size="small"
+              type="success"
+              @click="handleConfirm(c)"
+            >
+              <el-icon :size="16">
+                <Check />
+              </el-icon>
             </el-button>
-            <el-button text size="small" type="danger" @click="handleReject(c)">
-              <el-icon :size="16"><Close /></el-icon>
+            <el-button
+              text
+              size="small"
+              type="danger"
+              @click="handleReject(c)"
+            >
+              <el-icon :size="16">
+                <Close />
+              </el-icon>
             </el-button>
           </div>
         </div>
@@ -128,10 +162,21 @@ defineExpose({ activate })
 
       <!-- 我发出的请求（等待对方确认） -->
       <template v-if="sentContacts.length > 0">
-        <div class="section-label">已发送请求</div>
-        <div v-for="c in sentContacts" :key="c.id" class="contact-item pending">
+        <div class="section-label">
+          已发送请求
+        </div>
+        <div
+          v-for="c in sentContacts"
+          :key="c.id"
+          class="contact-item pending"
+        >
           <div class="contact-left">
-            <el-avatar :size="36" :src="c.avatar || undefined">{{ (c.username || '?')[0] }}</el-avatar>
+            <el-avatar
+              :size="36"
+              :src="c.avatar || undefined"
+            >
+              {{ (c.username || '?')[0] }}
+            </el-avatar>
             <span class="contact-name">{{ c.username }}</span>
           </div>
           <span class="sent-label">等待确认</span>
@@ -139,9 +184,13 @@ defineExpose({ activate })
       </template>
 
       <!-- 已确认联系人 -->
-      <div class="section-label">联系人（{{ confirmedContacts.length }}）</div>
+      <div class="section-label">
+        联系人（{{ confirmedContacts.length }}）
+      </div>
       <template v-if="confirmedContacts.length === 0">
-        <div class="empty-tip">暂无联系人</div>
+        <div class="empty-tip">
+          暂无联系人
+        </div>
       </template>
       <div
         v-for="c in confirmedContacts"
@@ -151,19 +200,37 @@ defineExpose({ activate })
       >
         <div class="contact-left">
           <div class="avatar-wrap">
-            <el-avatar :size="36" :src="c.avatar || undefined">{{ (c.username || '?')[0] }}</el-avatar>
-            <span class="online-dot" :class="{ online: c.is_online || chatStore.onlineUsers.has(c.contact_user_id) }"></span>
+            <el-avatar
+              :size="36"
+              :src="c.avatar || undefined"
+            >
+              {{ (c.username || '?')[0] }}
+            </el-avatar>
+            <span
+              class="online-dot"
+              :class="{ online: c.is_online || chatStore.onlineUsers.has(c.contact_user_id) }"
+            />
           </div>
           <span class="contact-name">{{ c.username }}</span>
         </div>
-        <el-button text size="small" type="danger" @click.stop="handleDelete(c)">
-          <el-icon :size="14"><Delete /></el-icon>
+        <el-button
+          text
+          size="small"
+          type="danger"
+          @click.stop="handleDelete(c)"
+        >
+          <el-icon :size="14">
+            <Delete />
+          </el-icon>
         </el-button>
       </div>
     </el-scrollbar>
 
     <!-- 添加联系人对话框 -->
-    <AddContactDialog v-model:visible="showAddDialog" @success="handleAddSuccess" />
+    <AddContactDialog
+      v-model:visible="showAddDialog"
+      @success="handleAddSuccess"
+    />
   </div>
 </template>
 
