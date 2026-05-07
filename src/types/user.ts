@@ -236,6 +236,7 @@ export type UserBatchEditParams =
     }
 
 export interface UserExportResponse {
+  id: number
   message: string
 }
 

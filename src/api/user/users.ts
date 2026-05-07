@@ -177,9 +177,8 @@ export const UsersListApi = {
     return request.delete<void, UserBatchDeletePayload>(`${ADMIN_API_PREFIX}/users`, { data: body })
   },
 
-  // Export still belongs to the explicit legacy adapter until Go export-task migration lands.
   export: (params: { ids: number[] }) =>
-    legacyRequest.post<UserExportResponse>('/api/admin/UsersList/export', params),
+    request.post<UserExportResponse, { ids: number[] }>(`${ADMIN_API_PREFIX}/users/export`, params),
 }
 
 export const UserSessionApi = {
