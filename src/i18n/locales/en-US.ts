@@ -139,6 +139,14 @@ export default {
     },
     setting: 'Setting'
   },
+  network: {
+    offline: {
+      title: 'Network disconnected',
+      message: 'This page may not sync the latest data. Check your connection and refresh.',
+      since: 'Detected at {time}',
+      refresh: 'Refresh page'
+    }
+  },
   loginPage: {
     form: {
       welcomeDesc: 'Sign in to the ZhiLan admin workspace and continue managing efficiently',

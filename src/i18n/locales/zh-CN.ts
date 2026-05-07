@@ -139,6 +139,14 @@ export default {
     },
     setting: '设置'
   },
+  network: {
+    offline: {
+      title: '网络连接已断开',
+      message: '当前页面可能无法同步最新数据，请检查网络后刷新页面。',
+      since: '检测时间：{time}',
+      refresh: '刷新页面'
+    }
+  },
   loginPage: {
     form: {
       welcomeDesc: '登录智澜系统后台，继续高效管理',
