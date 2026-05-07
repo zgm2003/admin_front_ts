@@ -74,7 +74,7 @@ const columns = computed(() => [
   { key: 'diff_amount', label: t('pay_reconcile.table.diff_amount'), width: 130, formatter: (_r: unknown, _c: unknown, v: number) => `¥${formatFen(v)}` },
   { key: 'started_at', label: t('pay_reconcile.table.started_at'), width: 180 },
   { key: 'finished_at', label: t('pay_reconcile.table.finished_at'), width: 180 },
-  { key: 'actions', label: t('common.actions.action'), width: 100 },
+  { key: 'actions', label: t('common.actions.action'), width: 180 },
 ])
 
 // ==================== 状态标签颜色 ====================

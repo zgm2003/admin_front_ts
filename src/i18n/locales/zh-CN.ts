@@ -364,7 +364,7 @@ export default {
     detail: { title: '订单详情', items: '订单明细', item_title: '商品名称', item_price: '单价', item_qty: '数量', item_amount: '小计' },
   },
   pay_transaction: {
-    filter: { order_no: '订单号', transaction_no: '流水号', user: '用户' },
+    filter: { order_no: '订单号', transaction_no: '流水号', user: '用户', date: '创建日期' },
     table: {
       transaction_no: '流水号', order_no: '订单号', user_name: '用户', attempt_no: '支付次数',
       channel: '支付渠道', pay_method: '支付方式', amount: '交易金额',

@@ -364,7 +364,7 @@ export default {
     detail: { title: 'Order Detail', items: 'Order Items', item_title: 'Title', item_price: 'Price', item_qty: 'Qty', item_amount: 'Subtotal' },
   },
   pay_transaction: {
-    filter: { order_no: 'Order No', transaction_no: 'Transaction No', user: 'User' },
+    filter: { order_no: 'Order No', transaction_no: 'Transaction No', user: 'User', date: 'Created Date' },
     table: {
       transaction_no: 'Transaction No', order_no: 'Order No', user_name: 'User', attempt_no: 'Attempt',
       channel: 'Channel', pay_method: 'Pay Method', amount: 'Amount',

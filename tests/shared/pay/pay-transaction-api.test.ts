@@ -24,13 +24,50 @@ describe('pay transaction api REST contract', () => {
   it('keeps touched pay transaction files strict and read-only', () => {
     const apiSource = readFrontendSource('src/api/pay/transaction.ts')
     const viewSource = readFrontendSource('src/views/Main/pay/transaction/index.vue')
+    const composableSource = readFrontendSource('src/views/Main/pay/transaction/composables/usePayTransactionPage.ts')
 
     expect(apiSource).not.toMatch(forbiddenLooseTypePattern)
     expect(viewSource).not.toMatch(forbiddenLooseTypePattern)
+    expect(composableSource).not.toMatch(forbiddenLooseTypePattern)
     expect(apiSource).not.toContain('add:')
     expect(apiSource).not.toContain('edit:')
     expect(apiSource).not.toContain('del:')
     expect(viewSource).not.toContain('useCrudTable')
-    expect(viewSource).toContain("import { AppTable, useTable } from '@/components/Table'")
+    expect(composableSource).not.toContain('useCrudTable')
+    expect(composableSource).toContain("import { useTable } from '@/components/Table'")
+    expect(viewSource).toContain("import { usePayTransactionPage } from './composables/usePayTransactionPage'")
+  })
+
+  it('keeps date-range UI state out of the API contract and sends Go start/end query fields', async () => {
+    const apiSource = readFrontendSource('src/api/pay/transaction.ts')
+    const viewSource = readFrontendSource('src/views/Main/pay/transaction/index.vue')
+    const composableSource = readFrontendSource('src/views/Main/pay/transaction/composables/usePayTransactionPage.ts')
+
+    expect(apiSource).not.toMatch(/\n\s+date\?:/)
+    expect(viewSource).toContain("import { usePayTransactionPage } from './composables/usePayTransactionPage'")
+    expect(composableSource).toContain("type: 'date-range'")
+
+    const { toPayTransactionListQuery } = await import('../../../src/views/Main/pay/transaction/helpers')
+
+    expect(toPayTransactionListQuery({
+      current_page: 2,
+      page_size: 20,
+      order_no: ' ORD-1 ',
+      transaction_no: ' TXN-1 ',
+      user_id: 7,
+      channel: 2,
+      status: 3,
+      date: ['2026-05-01', '2026-05-07'],
+    })).toEqual({
+      current_page: 2,
+      page_size: 20,
+      order_no: 'ORD-1',
+      transaction_no: 'TXN-1',
+      user_id: 7,
+      channel: 2,
+      status: 3,
+      start_date: '2026-05-01',
+      end_date: '2026-05-07',
+    })
   })
 })

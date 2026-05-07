@@ -1,20 +1,19 @@
 import { getCommonHeaders } from './headers'
 
 const baseURL = import.meta.env.VITE_SOME_KEY
-const sseBaseURL = import.meta.env.VITE_SSE_URL || baseURL
 
-export interface SSECallbacks<T = any> {
+export interface SSECallbacks<T = unknown> {
   onEvent?: (event: string, data: T) => boolean | void
   onError?: (message: string) => void
   onComplete?: () => void
 }
 
-export async function streamPost<T = any, TData = unknown>(
+export async function streamPost<T = unknown, TData = unknown>(
   url: string,
   data: TData,
   callbacks: SSECallbacks<T>
 ): Promise<void> {
-  const fullUrl = url.startsWith('http') ? url : `${sseBaseURL}${url}`
+  const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`
   const controller = new AbortController()
 
   const response = await fetch(fullUrl, {
