@@ -5,7 +5,7 @@ import { ElMessageBox, ElNotification } from 'element-plus'
 import { Loading, CircleClose } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { useTauriStore } from '@/store/tauri'
-import { TauriVersionApi } from '@/api/system/tauriVersion'
+import { ClientVersionApi, type ClientPlatform } from '@/api/system/clientVersion'
 import {
   checkForAppUpdate,
   relaunchAppProcess,
@@ -26,6 +26,14 @@ const lastTimestamp = ref(0)
 const lastDownloaded = ref(0)
 const speed = ref(0)
 const errorMessage = ref('')
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+function getClientPlatform(value: string): ClientPlatform | '' {
+  return value === 'windows-x86_64' || value === 'darwin-x86_64' ? value : ''
+}
 
 const progress = computed(() => {
   if (contentLength.value <= 0) return 0
@@ -75,10 +83,10 @@ const doDownloadAndInstall = async (update: Update, isForce: boolean) => {
     updateStatus.value = 'installing'
     await update.install()
     await relaunchAppProcess()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update failed:', error)
     updateStatus.value = 'failed'
-    errorMessage.value = error?.message || String(error)
+    errorMessage.value = getErrorMessage(error)
 
     if (isForce) {
       ElNotification.error({ title: '更新失败', message: errorMessage.value, duration: 3000 })
@@ -101,9 +109,9 @@ const retryUpdate = async () => {
     if (update) {
       await doDownloadAndInstall(update, false)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     updateStatus.value = 'failed'
-    errorMessage.value = error?.message || String(error)
+    errorMessage.value = getErrorMessage(error)
   }
 }
 
@@ -111,11 +119,11 @@ const retryUpdate = async () => {
 const clientInit = async () => {
   try {
     await tauriStore.init()
-    const res: any = await TauriVersionApi.clientInit({
+    const res = await ClientVersionApi.currentCheck({
       version: tauriStore.version,
-      platform: tauriStore.platform
+      platform: getClientPlatform(tauriStore.platform),
     })
-    tauriStore.setForceUpdate(res?.force_update || false)
+    tauriStore.setForceUpdate(res.force_update)
 
     if (tauriStore.forceUpdate) {
       showForceUpdateDialog()
@@ -142,10 +150,10 @@ const showForceUpdateDialog = async () => {
       updateInfo.value = { version: update.version, body: update.body }
       await doDownloadAndInstall(update, true)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Force update check failed:', error)
     if (tauriStore.forceUpdate) {
-      ElNotification.error({ title: '检查更新失败', message: error?.message || String(error), duration: 3000 })
+      ElNotification.error({ title: '检查更新失败', message: getErrorMessage(error), duration: 3000 })
       setTimeout(() => showForceUpdateDialog(), 3000)
     }
   }
@@ -176,11 +184,11 @@ const checkUpdate = async () => {
     if (action !== 'confirm') return
 
     await doDownloadAndInstall(update, false)
-  } catch (e: any) {
-    console.error('Update check failed:', e)
+  } catch (error: unknown) {
+    console.error('Update check failed:', error)
     ElNotification.error({
       title: '检查更新失败',
-      message: e?.message || String(e),
+      message: getErrorMessage(error),
       duration: 5000
     })
   }

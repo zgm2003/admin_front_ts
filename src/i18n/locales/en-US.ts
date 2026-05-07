@@ -269,7 +269,7 @@ export default {
     system_operationLog: 'Operation Log',
     system_exportTask: 'Export Tasks',
     system_cronTask: 'Scheduled Tasks',
-    system_tauriVersion: 'Version Management',
+    system_clientVersion: 'Version Management',
     system_uploadConfig: 'Upload Config',
     system_setting: 'System Settings',
     system_authPlatform: 'Auth Platform',
@@ -1355,7 +1355,7 @@ export default {
       errorMsg: 'Error Message'
     }
   },
-  tauriVersion: {
+  clientVersion: {
     version: 'Version',
     platform: 'Platform',
     notes: 'Release Notes',

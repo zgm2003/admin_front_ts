@@ -16,7 +16,7 @@ const hasContent = computed(() => !!props.modelValue)
 /** 读取 .sig 文件文本内容 */
 function readSigFile(file: File) {
   if (!file.name.endsWith('.sig')) {
-    ElMessage.warning(t('tauriVersion.signature.onlySig'))
+    ElMessage.warning(t('clientVersion.signature.onlySig'))
     return
   }
   const reader = new FileReader()
@@ -58,39 +58,74 @@ function onClear() { emit('update:modelValue', '') }
       @dragleave.prevent="onDragLeave"
       @click="onClickUpload"
     >
-      <el-icon :size="32" class="drop-icon"><UploadFilled /></el-icon>
-      <div class="drop-text">{{ t('tauriVersion.signature.dropHint') }}</div>
-      <div class="drop-sub">{{ t('tauriVersion.signature.acceptTip') }}</div>
+      <el-icon
+        :size="32"
+        class="drop-icon"
+      >
+        <UploadFilled />
+      </el-icon>
+      <div class="drop-text">
+        {{ t('clientVersion.signature.dropHint') }}
+      </div>
+      <div class="drop-sub">
+        {{ t('clientVersion.signature.acceptTip') }}
+      </div>
     </div>
 
     <!-- 已有内容：textarea + 操作按钮 -->
-    <div v-else class="signature-content">
+    <div
+      v-else
+      class="signature-content"
+    >
       <el-input
         :model-value="props.modelValue"
-        @update:model-value="(v: string) => emit('update:modelValue', v)"
         type="textarea"
         :rows="4"
-        :placeholder="t('tauriVersion.signature.placeholder')"
+        :placeholder="t('clientVersion.signature.placeholder')"
+        @update:model-value="(v: string) => emit('update:modelValue', v)"
       />
       <div class="signature-actions">
-        <el-button text size="small" @click="onClickUpload">{{ t('tauriVersion.signature.reUpload') }}</el-button>
-        <el-button text size="small" type="danger" :icon="Delete" @click="onClear">{{ t('tauriVersion.signature.clear') }}</el-button>
+        <el-button
+          text
+          size="small"
+          @click="onClickUpload"
+        >
+          {{ t('clientVersion.signature.reUpload') }}
+        </el-button>
+        <el-button
+          text
+          size="small"
+          type="danger"
+          :icon="Delete"
+          @click="onClear"
+        >
+          {{ t('clientVersion.signature.clear') }}
+        </el-button>
       </div>
     </div>
 
     <!-- 无内容时：手动输入入口 -->
-    <div v-if="!hasContent" class="signature-manual">
-      <span class="manual-divider">{{ t('tauriVersion.signature.or') }}</span>
+    <div
+      v-if="!hasContent"
+      class="signature-manual"
+    >
+      <span class="manual-divider">{{ t('clientVersion.signature.or') }}</span>
       <el-input
         :model-value="props.modelValue"
-        @update:model-value="(v: string) => emit('update:modelValue', v)"
         type="textarea"
         :rows="3"
-        :placeholder="t('tauriVersion.signature.placeholder')"
+        :placeholder="t('clientVersion.signature.placeholder')"
+        @update:model-value="(v: string) => emit('update:modelValue', v)"
       />
     </div>
 
-    <input ref="fileInputRef" type="file" accept=".sig" style="display: none" @change="onFileChange" />
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept=".sig"
+      style="display: none"
+      @change="onFileChange"
+    >
   </div>
 </template>
 

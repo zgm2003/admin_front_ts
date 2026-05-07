@@ -269,7 +269,7 @@ export default {
     system_operationLog: '操作日志',
     system_exportTask: '导出任务',
     system_cronTask: '定时任务',
-    system_tauriVersion: '版本管理',
+    system_clientVersion: '版本管理',
     system_uploadConfig: '上传配置',
     system_setting: '系统设置',
     system_authPlatform: '认证平台',
@@ -1343,7 +1343,7 @@ export default {
       errorMsg: '错误信息'
     }
   },
-  tauriVersion: {
+  clientVersion: {
     version: '版本号',
     platform: '平台',
     notes: '更新说明',
