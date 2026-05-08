@@ -1,5 +1,6 @@
-import { legacyRequest } from '@/lib/http'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import type { DictOption, Id, PaginatedResponse } from '@/types/common'
 
 export interface AiModelInitResponse {
   dict: {
@@ -8,12 +9,20 @@ export interface AiModelInitResponse {
   }
 }
 
-export interface AiModelListParams extends RequestPayload {
+export interface AiModelListParams {
   current_page?: number
   page_size?: number
   name?: string
   driver?: string
   status?: number | ''
+}
+
+interface AiModelListQueryParams {
+  current_page?: number
+  page_size?: number
+  name?: string
+  driver?: string
+  status?: number
 }
 
 export interface AiModelItem {
@@ -30,8 +39,7 @@ export interface AiModelItem {
   updated_at: string
 }
 
-export interface AiModelMutationParams extends RequestPayload {
-  id?: number
+export interface AiModelMutationBody {
   name: string
   driver: string
   model_code: string
@@ -40,11 +48,78 @@ export interface AiModelMutationParams extends RequestPayload {
   status?: number
 }
 
+export interface AiModelMutationParams extends AiModelMutationBody {
+  id?: number
+}
+
+export interface AiModelCreateResponse {
+  id: number
+}
+
+export interface AiModelStatusBody {
+  status: number
+}
+
+function normalizeListParams(params: AiModelListParams): AiModelListQueryParams {
+  const query: AiModelListQueryParams = {}
+
+  if (typeof params.current_page === 'number') {
+    query.current_page = params.current_page
+  }
+  if (typeof params.page_size === 'number') {
+    query.page_size = params.page_size
+  }
+  if (params.name) {
+    query.name = params.name
+  }
+  if (params.driver) {
+    query.driver = params.driver
+  }
+  if (typeof params.status === 'number') {
+    query.status = params.status
+  }
+
+  return query
+}
+
+function positiveID(value: Id | number): number {
+  const id = typeof value === 'number' ? value : Number(value)
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new Error('AI model id must be a positive integer')
+  }
+  return id
+}
+
+function mutationBody(params: AiModelMutationParams): AiModelMutationBody {
+  return {
+    name: params.name,
+    driver: params.driver,
+    model_code: params.model_code,
+    endpoint: params.endpoint ?? null,
+    ...(params.api_key ? { api_key: params.api_key } : {}),
+    ...(typeof params.status === 'number' ? { status: params.status } : {}),
+  }
+}
+
+function deleteModel(id: number): Promise<void> {
+  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-models/${id}`)
+}
+
 export const AiModelApi = {
-  init: (params?: RequestPayload) => legacyRequest.post<AiModelInitResponse>('/api/admin/AiModels/init', params),
-  add: (params: AiModelMutationParams) => legacyRequest.post<void>('/api/admin/AiModels/add', params),
-  edit: (params: AiModelMutationParams) => legacyRequest.post<void>('/api/admin/AiModels/edit', params),
-  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiModels/del', params),
-  list: (params: AiModelListParams) => legacyRequest.post<PaginatedResponse<AiModelItem>>('/api/admin/AiModels/list', params),
-  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiModels/status', params),
+  init: () => request.get<AiModelInitResponse>(`${ADMIN_API_PREFIX}/ai-models/page-init`),
+  list: (params: AiModelListParams) => request.get<PaginatedResponse<AiModelItem>>(`${ADMIN_API_PREFIX}/ai-models`, { params: normalizeListParams(params) }),
+  add: (params: AiModelMutationParams) => request.post<AiModelCreateResponse, AiModelMutationBody>(`${ADMIN_API_PREFIX}/ai-models`, mutationBody(params)),
+  edit: (params: AiModelMutationParams) => {
+    const id = positiveID(params.id ?? 0)
+    return request.put<void, AiModelMutationBody>(`${ADMIN_API_PREFIX}/ai-models/${id}`, mutationBody(params))
+  },
+  del: async (params: { id: Id | Id[] }): Promise<void> => {
+    const ids = Array.isArray(params.id) ? params.id : [params.id]
+    await Promise.all(ids.map((item) => deleteModel(positiveID(item))))
+  },
+  status: (params: { id: Id; status: number }) => {
+    const id = positiveID(params.id)
+    const body: AiModelStatusBody = { status: params.status }
+    return request.patch<void, AiModelStatusBody>(`${ADMIN_API_PREFIX}/ai-models/${id}/status`, body)
+  },
 }
