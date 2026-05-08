@@ -296,8 +296,6 @@ export default {
     ai_chat: 'Chat',
     ai_runs: 'Run Monitor',
     ai_prompts: 'Prompts',
-    ai_goods: 'E-commerce Script',
-    ai_cine: 'AI Cine Factory',
     ai_tools: 'AI Tools',
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
@@ -1477,79 +1475,6 @@ export default {
       loadContent: 'Failed to load log content',
       copyUnsupported: 'Clipboard is not supported',
       copyFailed: 'Copy failed'
-    }
-  },
-  goods: {
-    filter: { title: 'Product Title', platform: 'Platform', status: 'Status' },
-    table: {
-      title: 'Title', main_img: 'Image', platform: 'Platform',
-      status: 'Status', audio_url: 'Audio'
-    },
-    form: {
-      title: 'Title', main_img: 'Main Image URL',
-      link: 'Product Link', tips: 'Prompt', point: 'Selling Points', script_text: 'Script'
-    },
-    actions: { generate: 'Generate', selectProduct: 'Select Product' },
-    editTitle: 'Edit Product', detailTitle: 'Product Detail',
-    platform: { title: 'Select Platform', hint: 'Open platform and use browser extension to capture product data' },
-    detail: { ocrResult: 'Result', images: 'Detail Images', productInfo: 'Product Info',
-      promptEng: 'AI Prompt Engineering', sellingPoints: 'Selling Points', sellingPointsHint: 'AI generated selling points, editable',
-      finalScript: 'Final Script', finalScriptHint: 'AI generated script, editable',
-      modelOrigin: 'AI Raw Output' },
-    meta: {
-      title: 'Scraped Metadata', hint: 'Auto-collected by scraper, may be inaccurate, editable',
-      placeholder: 'One per line, format: field: value\ne.g.: Price: 58\nSales: 10000+',
-      price: 'Price', originalPrice: 'Original Price', sales: 'Sales', brand: 'Brand',
-      shop: 'Shop', specs: 'Specs', description: 'Description', reviews: 'Reviews'
-    },
-    ocr: {
-      title: 'OCR Recognition', hint: 'Click to select images for recognition',
-      selectImages: 'Please select at least one image', start: 'Start OCR',
-      imagesSelected: ' selected', previousResult: 'Previous Result',
-      submitted: 'OCR task submitted', buttonText: 'OCR ({count} selected)'
-    },
-    generate: {
-      title: 'AI Script Generation', noOcr: 'No OCR result yet, recommend running OCR first',
-      tipsPlaceholder: 'Optional, e.g.: highlight value, emphasize limited-time offer, lively tone', start: 'Generate',
-      agent: 'Select Agent', selectAgent: 'Please select an agent',
-      submitted: 'Generation task submitted'
-    },
-    tts: {
-      title: 'Text to Speech', noScript: 'Please enter script text first',
-      placeholder: 'Enter or edit script text', start: 'Synthesize', currentAudio: 'Current Audio',
-      voice: 'TTS Voice', emotion: 'Emotion Preset', submitted: 'TTS task submitted'
-    },
-    srt: { download: 'Download SRT Subtitle', noSrt: 'No subtitle file' }
-  },
-  cine: {
-    filter: { title: 'Project Title', titlePlaceholder: 'Search cine projects' },
-    table: { title: 'Project', duration: 'Duration/Aspect', status: 'Status' },
-    actions: {
-      createProject: 'New Cine', copy: 'Copy',
-      generateDraft: 'Generate Draft', regenerateDraft: 'Regenerate Draft',
-      generateStoryboard: 'Generate Storyboard', regenerateStoryboard: 'Regenerate Storyboard',
-      reviewDraft: 'Review Draft', viewProgress: 'View Progress', viewResult: 'View Result', viewFailure: 'View Failure',
-      copyFailure: 'Copy Failure Reason',
-      copyImagePrompt: 'Copy Storyboard Image Prompt', copyVideoPrompt: 'Copy Video Prompt'
-    },
-    form: {
-      createTitle: 'New Cine', editTitle: 'Edit Cine',
-      title: 'Project Title', titlePlaceholder: 'e.g. Rainy Night Message',
-      sourceText: 'Source Material', sourcePlaceholder: 'Paste a novel excerpt, rough script, ad brief, or voiceover draft. The system creates a reviewable draft first, not final video.',
-      duration: 'Duration (s)', aspectRatio: 'Aspect Ratio', agent: 'Director Agent', agentPlaceholder: 'Select a cine_project scene agent',
-      style: 'Style and Constraints', stylePlaceholder: 'e.g. cinematic suspense, cold palette, restrained acting, continuity first',
-      noAgentTitle: 'No Cine Factory agent yet', noAgentDesc: 'Create an agent with scene=cine_project and mode=tool. gpt-5.5 is recommended, with the storyboard image tool bound.'
-    },
-    detail: {
-      title: 'Cine Detail', deliverable: 'Draft Preview', deliverableHint: 'Review the story rhythm, continuity, and shot breakdown before generating storyboard images.',
-      shotlist: 'Storyboard Script', videoPrompts: 'Video Prompts', assets: 'Storyboard Images', raw: 'Raw Data',
-      assetsHint: 'Generate static images for each storyboard shot, then continue synthesis in an external video tool.',
-      performance: 'Performance', camera: 'Camera', continuity: 'Continuity', segment: 'Segment', uploadImages: 'Upload Images'
-    },
-    messages: {
-      noAgent: 'Please configure an AI Cine Factory agent first', generateSubmitted: 'Draft generation task submitted',
-      storyboardSubmitted: 'Storyboard generation task submitted',
-      deleteConfirm: 'Delete this cine project?', copied: 'Copied'
     }
   },
   tabTag: {

@@ -31,7 +31,7 @@ describe('agent helpers', () => {
   })
 
   it('maps scenes to stable tag types', () => {
-    expect(getAgentSceneTagType('goods_script')).toBe('warning')
+    expect(getAgentSceneTagType('general_chat')).toBe('info')
     expect(getAgentSceneTagType('chat')).toBe('info')
     expect(getAgentSceneTagType('')).toBe('info')
   })
@@ -71,8 +71,8 @@ describe('agent helpers', () => {
       avatar: '/avatar.png',
       system_prompt: 'use tools',
       mode: 'tool',
-      scene: 'goods_script',
-      scene_codes: ['goods_script'],
+      scene: 'general_chat',
+      scene_codes: ['general_chat'],
       capabilities: {
         chat: true,
         tools: true,
@@ -88,8 +88,8 @@ describe('agent helpers', () => {
       avatar: '/avatar.png',
       system_prompt: 'use tools',
       mode: 'tool',
-      scene: 'goods_script',
-      scene_codes: ['goods_script'],
+      scene: 'general_chat',
+      scene_codes: ['general_chat'],
       capabilities: {
         chat: true,
         tools: true,

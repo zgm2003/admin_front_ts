@@ -296,8 +296,6 @@ export default {
     ai_chat: '对话',
     ai_runs: '运行监控',
     ai_prompts: '提示词',
-    ai_goods: '电商口播',
-    ai_cine: 'AI短剧工厂',
     ai_tools: 'AI工具管理',
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
@@ -1477,79 +1475,6 @@ export default {
       loadContent: '加载日志内容失败',
       copyUnsupported: '当前浏览器不支持复制',
       copyFailed: '复制失败'
-    }
-  },
-  goods: {
-    filter: { title: '商品标题', platform: '平台', status: '状态' },
-    table: {
-      title: '商品标题', main_img: '主图', platform: '平台',
-      status: '状态', audio_url: '音频'
-    },
-    form: {
-      title: '商品标题', main_img: '商品主图URL',
-      link: '商品链接', tips: '提示词', point: '卖点', script_text: '口播词'
-    },
-    actions: { generate: '生成口播', selectProduct: '去选品' },
-    editTitle: '编辑商品', detailTitle: '商品详情',
-    platform: { title: '选品平台', hint: '打开平台后，使用浏览器插件抓取商品数据' },
-    detail: { ocrResult: '识别结果', images: '详情图片', productInfo: '商品信息',
-      promptEng: 'AI提示词工程', sellingPoints: '生成卖点', sellingPointsHint: 'AI生成的核心卖点，可手动编辑',
-      finalScript: '最终卖点效应，口播词', finalScriptHint: 'AI生成的口播词，可手动编辑调整',
-      modelOrigin: 'AI原始输出' },
-    meta: {
-      title: '采集元数据', hint: '由爬虫自动采集，可能不准确，可手动修正',
-      placeholder: '每行一条，格式：字段名: 值\n如：价格: 58\n销量: 已售 1万+',
-      price: '价格', originalPrice: '原价', sales: '销量', brand: '品牌',
-      shop: '店铺', specs: '规格', description: '描述', reviews: '评论'
-    },
-    ocr: {
-      title: 'OCR图片识别', hint: '点击选择需要识别的图片，选中后点击开始识别',
-      selectImages: '请至少选择一张图片', start: '开始识别',
-      imagesSelected: '张已选', previousResult: '上次识别结果',
-      submitted: 'OCR任务已提交', buttonText: 'OCR识别（{count}张已选）'
-    },
-    generate: {
-      title: 'AI生成口播词', noOcr: '暂无OCR结果，建议先进行图片识别',
-      tipsPlaceholder: '可选，例如：突出性价比、强调限时优惠、语气活泼等', start: '开始生成',
-      agent: '选择智能体', selectAgent: '请选择智能体',
-      submitted: '生成任务已提交'
-    },
-    tts: {
-      title: '语音合成', noScript: '请先填写口播词内容',
-      placeholder: '输入或编辑口播词内容', start: '开始合成', currentAudio: '当前音频',
-      voice: 'TTS音色', emotion: '情绪预设', submitted: 'TTS任务已提交'
-    },
-    srt: { download: '下载SRT字幕', noSrt: '暂无字幕文件' }
-  },
-  cine: {
-    filter: { title: '项目标题', titlePlaceholder: '搜索短剧项目' },
-    table: { title: '项目', duration: '时长/画幅', status: '状态' },
-    actions: {
-      createProject: '新建短剧', copy: '复制',
-      generateDraft: '生成草稿', regenerateDraft: '重新生成草稿',
-      generateStoryboard: '生成分镜', regenerateStoryboard: '重新生成分镜',
-      reviewDraft: '审查草稿', viewProgress: '查看进度', viewResult: '查看结果', viewFailure: '查看失败原因',
-      copyFailure: '复制失败原因',
-      copyImagePrompt: '复制分镜图片提示词', copyVideoPrompt: '复制视频提示词'
-    },
-    form: {
-      createTitle: '新建短剧', editTitle: '编辑短剧',
-      title: '项目标题', titlePlaceholder: '例如：雨夜短信 / 霸总反转开场',
-      sourceText: '原始素材', sourcePlaceholder: '粘贴小说片段、粗脚本、广告 brief 或口播稿。系统会先做导演拆解，不会直接生成视频。',
-      duration: '目标时长（秒）', aspectRatio: '画幅', agent: '导演智能体', agentPlaceholder: '选择 cine_project 场景智能体',
-      style: '风格与约束', stylePlaceholder: '例如：电影感悬疑、冷色调、克制表演、不要夸张恐怖、人物连续性优先',
-      noAgentTitle: '还没有 AI短剧工厂智能体', noAgentDesc: '请在智能体配置里创建 scene=cine_project、mode=tool 的智能体，推荐绑定 gpt-5.5，并绑定短剧分镜图片生成工具。'
-    },
-    detail: {
-      title: '短剧详情', deliverable: '草稿预览', deliverableHint: '先审查这份草稿，确认故事节奏、角色连续性和镜头拆解后，再生成分镜图片。',
-      shotlist: '分镜脚本', videoPrompts: '视频生成提示词', assets: '分镜图片', raw: '原始数据',
-      assetsHint: '生成每个分镜对应的静态图片，完成后可交给外部视频工具继续合成。',
-      performance: '表演', camera: '镜头', continuity: '连续性', segment: '片段', uploadImages: '上传图片'
-    },
-    messages: {
-      noAgent: '请先配置 AI短剧工厂 智能体', generateSubmitted: '草稿生成任务已提交',
-      storyboardSubmitted: '分镜生成任务已提交',
-      deleteConfirm: '确定删除这个短剧项目吗？', copied: '已复制'
     }
   },
   tabTag: {

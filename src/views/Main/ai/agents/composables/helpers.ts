@@ -46,8 +46,7 @@ export function createDefaultAgentForm(): AgentFormState {
   }
 }
 
-export function getAgentSceneTagType(scene?: string | null): 'warning' | 'info' {
-  if (scene === 'goods_script') return 'warning'
+export function getAgentSceneTagType(_scene?: string | null): 'info' {
   return 'info'
 }
 
