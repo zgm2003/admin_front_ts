@@ -284,8 +284,19 @@ export interface UserSessionKickParams {
   id: number
 }
 
+export interface UserSessionKickResponse {
+  id: number
+  revoked: boolean
+}
+
 export interface UserSessionBatchKickParams {
   ids: number[]
+}
+
+export interface UserSessionBatchKickResponse {
+  count: number
+  skipped_current: number
+  skipped_already_revoked: number
 }
 
 export interface UserLoginLogItem {

@@ -18,8 +18,10 @@ import type {
   UserPhoneUpdateParams,
   UserSendCodeParams,
   UserSessionBatchKickParams,
+  UserSessionBatchKickResponse,
   UserSessionItem,
   UserSessionKickParams,
+  UserSessionKickResponse,
   UserSessionListParams,
   UserSessionListResponse,
   UserSessionPageInitResponse,
@@ -29,12 +31,6 @@ import type {
   UserBatchEditParams,
 } from '@/types/user'
 
-export interface UserLegacyPasswordEditParams {
-  password: string
-  newpassword: string
-  respassword: string
-}
-
 type UserListQueryParams = Omit<UsersListParams, 'address_id' | 'date'> & {
   address_id?: string
   date?: string
@@ -42,6 +38,7 @@ type UserListQueryParams = Omit<UsersListParams, 'address_id' | 'date'> & {
 
 type UserEditBody = Omit<UserEditParams, 'id'>
 type UserBatchDeletePayload = { ids: number[] }
+type UserSessionBatchKickPayload = { ids: number[] }
 
 function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
   const values = Array.isArray(id) ? id : [id]
@@ -160,9 +157,6 @@ export const UsersApi = {
   editPersonal: (params: UserPersonalEditParams) =>
     request.put<void, UserPersonalEditParams>(`${ADMIN_API_PREFIX}/profile`, params),
 
-  EditPassword: (params: UserLegacyPasswordEditParams) =>
-    legacyRequest.post<void>('/api/Users/EditPassword', params),
-
   updatePhone: (params: UserPhoneUpdateParams) =>
     request.put<void, UserPhoneUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/phone`, params),
 
@@ -212,10 +206,12 @@ export const UserSessionApi = {
     request.get<UserSessionStats>(`${ADMIN_API_PREFIX}/user-sessions/stats`),
 
   kick: (params: UserSessionKickParams) =>
-    legacyRequest.post<void>('/api/admin/UserSession/kick', params),
+    request.patch<UserSessionKickResponse>(`${ADMIN_API_PREFIX}/user-sessions/${params.id}/revoke`),
 
-  batchKick: (params: UserSessionBatchKickParams) =>
-    legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params),
+  batchKick: (params: UserSessionBatchKickParams) => {
+    const ids = normalizePositiveIDs(params.ids, 'user session')
+    return request.patch<UserSessionBatchKickResponse, UserSessionBatchKickPayload>(`${ADMIN_API_PREFIX}/user-sessions/revoke`, { ids })
+  },
 }
 
 export type { UserSessionItem }

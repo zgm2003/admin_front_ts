@@ -21,4 +21,14 @@ describe('export task api REST contract', () => {
     expect(source).not.toContain('/api/admin/ExportTask/list')
     expect(source).not.toContain('/api/admin/ExportTask/del')
   })
+
+  it('refreshes both list and status-count from the toolbar refresh button', () => {
+    const source = readFrontendSource('src/views/Main/system/exportTask/index.vue')
+
+    expect(source).toContain('const handleRefresh = async () => {')
+    expect(source).toContain('await getList()')
+    expect(source).toContain('await refreshStatusCount()')
+    expect(source).toContain('@refresh="handleRefresh"')
+    expect(source).not.toContain('@refresh="refresh"')
+  })
 })

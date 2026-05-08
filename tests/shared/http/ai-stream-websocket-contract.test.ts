@@ -2,13 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WsMessage } from '../../../src/lib/realtime/message-bus'
 
 const post = vi.fn()
+const get = vi.fn()
 const wsHandlers = new Map<string, Set<(message: WsMessage) => void>>()
 
 vi.mock('@/lib/http', () => ({
   default: {
-    post,
-  },
-  legacyRequest: {
+    get,
     post,
   },
 }))
@@ -43,6 +42,7 @@ function startResponse(runId = 22) {
 
 describe('AI stream websocket acceleration contract', () => {
   beforeEach(() => {
+    get.mockReset()
     post.mockReset()
     wsHandlers.clear()
     vi.resetModules()
@@ -52,36 +52,33 @@ describe('AI stream websocket acceleration contract', () => {
     const onContent = vi.fn()
     const onDone = vi.fn()
 
-    post
-      .mockResolvedValueOnce(startResponse())
-      .mockImplementationOnce(async () => {
-        emitWs('ai_run_event', {
-          run_id: 22,
-          event_id: '1-0',
-          event: 'content',
-          payload: { delta: 'hello' },
-        })
+    post.mockResolvedValueOnce(startResponse())
+    get.mockImplementationOnce(async () => {
+      emitWs('ai.response.delta.v1', {
+        run_id: 22,
+        delta: 'hello',
+      })
 
         return {
           events: [
-            { id: '1-0', event: 'content', data: { delta: 'hello' } },
-            {
-              id: '2-0',
-              event: 'done',
-              data: {
-                conversation_id: 11,
-                run_id: 22,
-                user_message_id: 33,
-                assistant_message_id: 55,
-              },
+            { id: 'ai.response.delta.v1', event: 'ai.response.delta.v1', data: { run_id: 22, delta: 'hello' } },
+          {
+            id: '2-0',
+            event: 'ai.response.completed.v1',
+            data: {
+              conversation_id: 11,
+              run_id: 22,
+              user_message_id: 33,
+              assistant_message_id: 55,
             },
-          ],
-          last_id: '2-0',
-          run_status: 2,
-          terminal: true,
-          error_msg: '',
-        }
-      })
+          },
+        ],
+        last_id: '2-0',
+        run_status: 2,
+        terminal: true,
+        error_msg: '',
+      }
+    })
 
     const { AiChatApi } = await import('../../../src/api/ai/chat')
 
@@ -101,48 +98,39 @@ describe('AI stream websocket acceleration contract', () => {
     const onContent = vi.fn()
     const onDone = vi.fn()
 
-    post
-      .mockResolvedValueOnce(startResponse(22))
-      .mockImplementationOnce(async () => {
-        emitWs('ai_run_event', {
-          run_id: 99,
-          event_id: '1-0',
-          event: 'content',
-          payload: { delta: 'wrong run' },
-        })
-        emitWs('ai_run_event', {
-          run_id: 22,
-          event_id: '2-0',
-          event: 'done',
-          payload: {
-            conversation_id: 11,
-            run_id: 22,
-            user_message_id: 33,
-            assistant_message_id: 55,
-          },
-        })
-
-        return {
-          events: [],
-          last_id: '0-0',
-          run_status: 2,
-          terminal: true,
-          error_msg: '',
-        }
+    post.mockResolvedValueOnce(startResponse(22))
+    get.mockImplementationOnce(async () => {
+      emitWs('ai.response.delta.v1', {
+        run_id: 99,
+        delta: 'wrong run',
       })
+      emitWs('ai.response.completed.v1', {
+        run_id: 22,
+        conversation_id: 11,
+        user_message_id: 33,
+        assistant_message_id: 55,
+      })
+
+      return {
+        events: [],
+        last_id: '0-0',
+        run_status: 2,
+        terminal: true,
+        error_msg: '',
+      }
+    })
 
     const { AiChatApi } = await import('../../../src/api/ai/chat')
 
     await AiChatApi.stream({ content: 'hello' }, { onContent, onDone })
-    emitWs('ai_run_event', {
+    emitWs('ai.response.delta.v1', {
       run_id: 22,
-      event_id: '3-0',
-      event: 'content',
-      payload: { delta: 'late' },
+      delta: 'late',
     })
 
     expect(onContent).not.toHaveBeenCalled()
     expect(onDone).toHaveBeenCalledTimes(1)
-    expect(wsHandlers.get('ai_run_event')?.size ?? 0).toBe(0)
+    expect(wsHandlers.get('ai.response.delta.v1')?.size ?? 0).toBe(0)
+    expect(wsHandlers.get('ai.response.completed.v1')?.size ?? 0).toBe(0)
   })
 })

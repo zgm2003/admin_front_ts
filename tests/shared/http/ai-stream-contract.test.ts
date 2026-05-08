@@ -1,56 +1,58 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const post = vi.fn()
+const get = vi.fn()
 
 vi.mock('@/lib/http', () => ({
   default: {
-    post,
-  },
-  legacyRequest: {
+    get,
     post,
   },
 }))
 
 describe('AI stream contracts', () => {
   beforeEach(() => {
+    get.mockReset()
     post.mockReset()
+    vi.resetModules()
   })
 
-  it('AiChatApi uses streamable start and event polling instead of holding one SSE request', async () => {
+  it('AiChatApi uses Go REST streamable start and event polling instead of legacy PHP or SSE', async () => {
     const onDone = vi.fn()
     const onError = vi.fn()
     const onContent = vi.fn()
     const onConversation = vi.fn()
     const onRun = vi.fn()
 
-    post
-      .mockResolvedValueOnce({
-        conversation_id: 11,
-        run_id: 22,
-        request_id: 'req-22',
-        user_message_id: 33,
-        agent_id: 44,
-        is_new: true,
-      })
-      .mockResolvedValueOnce({
-        events: [
-          { id: '1-0', event: 'content', data: { delta: 'hello' } },
-          {
-            id: '2-0',
-            event: 'done',
-            data: {
-              conversation_id: 11,
-              run_id: 22,
-              user_message_id: 33,
-              assistant_message_id: 55,
-            },
+    post.mockResolvedValueOnce({
+      conversation_id: 11,
+      run_id: 22,
+      request_id: 'req-22',
+      user_message_id: 33,
+      agent_id: 44,
+      is_new: true,
+    })
+    get.mockResolvedValueOnce({
+      events: [
+        { id: '1-0', event: 'ai.response.delta.v1', data: { run_id: 22, delta: 'hello' } },
+        {
+          id: '2-0',
+          event: 'ai.response.completed.v1',
+          data: {
+            conversation_id: 11,
+            run_id: 22,
+            user_message_id: 33,
+            assistant_message_id: 55,
           },
-        ],
-        last_id: '2-0',
-        run_status: 2,
-        terminal: true,
-        error_msg: '',
-      })
+        },
+      ],
+      last_id: '2-0',
+      run_status: 2,
+      terminal: true,
+      error_msg: '',
+    })
 
     const { AiChatApi } = await import('../../../src/api/ai/chat')
 
@@ -62,11 +64,10 @@ describe('AI stream contracts', () => {
       onRun,
     })
 
-    expect(post).toHaveBeenNthCalledWith(1, '/api/admin/AiChat/start', { content: 'hello' })
-    expect(post).toHaveBeenNthCalledWith(2, '/api/admin/AiChat/events', {
-      run_id: 22,
-      last_id: '0-0',
-      timeout_ms: 50,
+    expect(post).toHaveBeenCalledTimes(1)
+    expect(post).toHaveBeenNthCalledWith(1, '/api/admin/v1/ai-chat/runs', { content: 'hello' })
+    expect(get).toHaveBeenNthCalledWith(1, '/api/admin/v1/ai-chat/runs/22/events', {
+      params: { last_id: '0-0', timeout_ms: 50 },
     })
     expect(onConversation).toHaveBeenCalledWith(11)
     expect(onRun).toHaveBeenCalledWith(22, 'req-22')
@@ -80,4 +81,17 @@ describe('AI stream contracts', () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
+  it('does not keep old PHP AiChat route strings or ai_run_event in active source', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/api/ai/chat.ts'), 'utf8')
+    expect(source).toContain('ai.response.start.v1')
+    expect(source).toContain('ai.response.delta.v1')
+    expect(source).toContain('ai.response.completed.v1')
+    expect(source).toContain('ai.response.failed.v1')
+    expect(source).toContain('ai.response.cancel.v1')
+    expect(source).not.toContain('legacy' + 'Request')
+    expect(source).not.toContain('/api/admin/AiChat')
+    expect(source).not.toContain('ai_run_event')
+    expect(source).not.toContain('EventSource')
+    expect(source).not.toContain('text/event-stream')
+  })
 })

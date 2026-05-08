@@ -55,13 +55,17 @@ const handleSearch = async () => {
   await refreshStatusCount()
 }
 
+const handleRefresh = async () => {
+  await getList()
+  await refreshStatusCount()
+}
+
 const {
   loading: listLoading,
   data: listData,
   page,
   selectedIds,
   onPageChange,
-  refresh,
   getList,
   onSelectionChange,
   confirmDel,
@@ -121,7 +125,7 @@ watch(() => route.query.status, () => {
     <Search v-model="searchForm" :fields="searchFields" @query="handleSearch" @reset="handleSearch" />
     
     <AppTable :columns="columns" :data="listData" :loading="listLoading" :pagination="page" selectable
-              @update:pagination="onPageChange" @selection-change="onSelectionChange" @refresh="refresh">
+              @update:pagination="onPageChange" @selection-change="onSelectionChange" @refresh="handleRefresh">
       <template #toolbar-left>
         <el-button type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
           {{ t('common.actions.batchDelete') }}

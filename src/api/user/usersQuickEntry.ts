@@ -1,7 +1,8 @@
-import { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { QuickEntryItem } from '@/types/user'
 
 export const UsersQuickEntryApi = {
   save: (params: { permission_ids: number[] }) =>
-    legacyRequest.post<{ quick_entry: QuickEntryItem[] }>('/api/admin/UsersQuickEntry/save', params),
+    request.put<{ quick_entry: QuickEntryItem[] }, { permission_ids: number[] }>(`${ADMIN_API_PREFIX}/users/me/quick-entries`, params),
 }

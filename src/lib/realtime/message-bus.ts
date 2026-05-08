@@ -13,6 +13,7 @@ export type MessageType =
   | 'ai.response.delta.v1'
   | 'ai.response.completed.v1'
   | 'ai.response.failed.v1'
+  | 'ai.response.cancel.v1'
   | string
 
 export type WsMessageData = Record<string, unknown>

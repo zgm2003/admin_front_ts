@@ -52,12 +52,16 @@ const handleSearch = async () => {
   await refreshStatusCount()
 }
 
+const handleRefresh = async () => {
+  await getList()
+  await refreshStatusCount()
+}
+
 const {
   loading: listLoading,
   data: listData,
   page,
   onPageChange,
-  refresh,
   getList,
   confirmDel
 } = useCrudTable({
@@ -176,7 +180,7 @@ onMounted(async () => {
     <Search v-model="searchForm" :fields="searchFields" @query="handleSearch" @reset="handleSearch" />
     
     <AppTable :columns="columns" :data="listData" :loading="listLoading" :pagination="page"
-              @update:pagination="onPageChange" @refresh="refresh">
+              @update:pagination="onPageChange" @refresh="handleRefresh">
       <template #toolbar-left>
         <el-button type="primary" @click="showAdd">{{ t('notificationTask.publish') }}</el-button>
       </template>

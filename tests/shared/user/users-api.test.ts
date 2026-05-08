@@ -10,6 +10,14 @@ function readUsersApiSource() {
   return readFrontendSource('src/api/user/users.ts')
 }
 
+function readUsersQuickEntrySource() {
+  return readFrontendSource('src/api/user/usersQuickEntry.ts')
+}
+
+function readUsersLoginLogSource() {
+  return readFrontendSource('src/api/user/usersLoginLog.ts')
+}
+
 function readUserTypeSource() {
   return readFrontendSource('src/types/user.ts')
 }
@@ -102,7 +110,7 @@ describe('users api auth contract', () => {
     expect(slideCaptchaSource).toContain('<GoCaptchaSlide')
   })
 
-  it('uses Go REST for user session read-only APIs and keeps kick legacy for now', () => {
+  it('uses Go REST for user session APIs including kick and batchKick', () => {
     const source = readUsersApiSource()
     const typeSource = readUserTypeSource()
     const sessionListSource = readFrontendSource('src/views/Main/user/userManager/components/SessionList/index.vue')
@@ -111,12 +119,37 @@ describe('users api auth contract', () => {
     expect(source).toContain('request.get<UserSessionPageInitResponse>(`${ADMIN_API_PREFIX}/user-sessions/page-init`)')
     expect(source).toContain('request.get<UserSessionListResponse>(`${ADMIN_API_PREFIX}/user-sessions`, { params: normalizeUserSessionListParams(params) })')
     expect(source).toContain('request.get<UserSessionStats>(`${ADMIN_API_PREFIX}/user-sessions/stats`)')
+    expect(source).toContain('request.patch<UserSessionKickResponse>(`${ADMIN_API_PREFIX}/user-sessions/${params.id}/revoke`)')
+    expect(source).toContain('request.patch<UserSessionBatchKickResponse, UserSessionBatchKickPayload>(`${ADMIN_API_PREFIX}/user-sessions/revoke`, { ids })')
     expect(source).not.toContain("legacyRequest.post<UserSessionListResponse>('/api/admin/UserSession/list', params)")
     expect(source).not.toContain("legacyRequest.post<UserSessionStats>('/api/admin/UserSession/stats')")
-    expect(source).toContain("legacyRequest.post<void>('/api/admin/UserSession/kick', params)")
-    expect(source).toContain("legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params)")
+    expect(source).not.toContain("legacyRequest.post<void>('/api/admin/UserSession/kick', params)")
+    expect(source).not.toContain("legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params)")
     expect(sessionListSource).toContain('const data = await UserSessionApi.pageInit()')
     expect(sessionListSource).not.toContain('const data = await UsersListApi.init()')
+  })
+
+  it('uses Go REST for current-user quick-entry save', () => {
+    const source = readUsersQuickEntrySource()
+
+    expect(source).toContain("import request from '@/lib/http'")
+    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
+    expect(source).toContain('request.put<{ quick_entry: QuickEntryItem[] }, { permission_ids: number[] }>(`${ADMIN_API_PREFIX}/users/me/quick-entries`, params)')
+    expect(source).not.toContain('legacyRequest')
+    expect(source).not.toContain('/api/admin/UsersQuickEntry/save')
+  })
+
+  it('uses Go REST for user login log init/list and normalizes date range', () => {
+    const source = readUsersLoginLogSource()
+
+    expect(source).toContain("import request from '@/lib/http'")
+    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
+    expect(source).toContain('request.get<UserLoginLogInitResponse>(`${ADMIN_API_PREFIX}/users/login-logs/page-init`)')
+    expect(source).toContain('request.get<UserLoginLogListResponse>(`${ADMIN_API_PREFIX}/users/login-logs`, { params: normalizeLoginLogListParams(params) })')
+    expect(source).toContain('query.date_start = params.date[0]')
+    expect(source).toContain('query.date_end = params.date[1]')
+    expect(source).not.toContain('legacyRequest')
+    expect(source).not.toContain('/api/admin/UsersLoginLog')
   })
 })
 

@@ -1,5 +1,8 @@
-import { legacyRequest } from '@/lib/http'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import type { DictOption, Id, PaginatedResponse } from '@/types/common'
+
+export type JsonObject = { [key: string]: unknown }
 
 export interface AiAgentCapabilities {
   chat?: boolean
@@ -8,7 +11,7 @@ export interface AiAgentCapabilities {
   workflow?: boolean
 }
 
-export interface AiAgentListParams extends RequestPayload {
+export interface AiAgentListParams {
   current_page?: number
   page_size?: number
   name?: string
@@ -35,8 +38,8 @@ export interface AiAgentItem {
   scene_codes: string[]
   scene_names: string[]
   capabilities: AiAgentCapabilities
-  runtime_config?: Record<string, unknown> | null
-  policy?: Record<string, unknown> | null
+  runtime_config?: JsonObject | null
+  policy?: JsonObject | null
   knowledge_base_ids: number[]
   knowledge_base_names: string[]
   status: number
@@ -56,7 +59,7 @@ export interface AiAgentInitResponse {
   }
 }
 
-export interface AiAgentMutationParams extends RequestPayload {
+export interface AiAgentMutationParams {
   id?: number
   name: string
   model_id: number
@@ -66,18 +69,75 @@ export interface AiAgentMutationParams extends RequestPayload {
   scene?: string | null
   capabilities?: AiAgentCapabilities
   scene_codes?: string[]
-  runtime_config?: Record<string, unknown> | null
-  policy?: Record<string, unknown> | null
+  runtime_config?: JsonObject | null
+  policy?: JsonObject | null
   status?: number
   tool_ids?: number[]
   knowledge_base_ids?: number[]
 }
 
+
+interface AiAgentListQueryParams {
+  current_page?: number
+  page_size?: number
+  name?: string
+  model_id?: number
+  mode?: string
+  status?: number
+}
+
+type AiAgentMutationBody = Omit<AiAgentMutationParams, 'id'>
+
+function normalizeListParams(params: AiAgentListParams): AiAgentListQueryParams {
+  const query: AiAgentListQueryParams = {}
+  if (typeof params.current_page === 'number') query.current_page = params.current_page
+  if (typeof params.page_size === 'number') query.page_size = params.page_size
+  if (params.name) query.name = params.name
+  if (typeof params.model_id === 'number') query.model_id = params.model_id
+  if (params.mode) query.mode = params.mode
+  if (typeof params.status === 'number') query.status = params.status
+  return query
+}
+
+function positiveID(value: Id | number): number {
+  const id = typeof value === 'number' ? value : Number(value)
+  if (!Number.isInteger(id) || id <= 0) throw new Error('AI agent id must be a positive integer')
+  return id
+}
+
+function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
+  return {
+    name: params.name,
+    model_id: params.model_id,
+    avatar: params.avatar ?? null,
+    system_prompt: params.system_prompt ?? null,
+    mode: params.mode,
+    scene: params.scene ?? null,
+    capabilities: params.capabilities,
+    scene_codes: params.scene_codes,
+    runtime_config: params.runtime_config ?? null,
+    policy: params.policy ?? null,
+    status: params.status,
+    tool_ids: params.tool_ids,
+    knowledge_base_ids: params.knowledge_base_ids,
+  }
+}
+
+function deleteAgent(id: number): Promise<void> {
+  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-agents/${id}`)
+}
+
 export const AiAgentApi = {
-  init: (params?: RequestPayload) => legacyRequest.post<AiAgentInitResponse>('/api/admin/AiAgents/init', params),
-  add: (params: AiAgentMutationParams) => legacyRequest.post<{ id: number }>('/api/admin/AiAgents/add', params),
-  edit: (params: AiAgentMutationParams) => legacyRequest.post<void>('/api/admin/AiAgents/edit', params),
-  del: (params: { id: Id | Id[] }) => legacyRequest.post<{ affected: number }>('/api/admin/AiAgents/del', params),
-  list: (params: AiAgentListParams) => legacyRequest.post<PaginatedResponse<AiAgentItem>>('/api/admin/AiAgents/list', params),
-  status: (params: { id: Id; status: number }) => legacyRequest.post<{ affected: number }>('/api/admin/AiAgents/status', params),
+  init: () => request.get<AiAgentInitResponse>(`${ADMIN_API_PREFIX}/ai-agents/page-init`),
+  add: (params: AiAgentMutationParams) => request.post<{ id: number }, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params)),
+  edit: (params: AiAgentMutationParams) => {
+    const id = positiveID(params.id ?? 0)
+    return request.put<void, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents/${id}`, mutationBody(params))
+  },
+  del: async (params: { id: Id | Id[] }): Promise<void> => {
+    const ids = Array.isArray(params.id) ? params.id : [params.id]
+    await Promise.all(ids.map((item) => deleteAgent(positiveID(item))))
+  },
+  list: (params: AiAgentListParams) => request.get<PaginatedResponse<AiAgentItem>>(`${ADMIN_API_PREFIX}/ai-agents`, { params: normalizeListParams(params) }),
+  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id)}/status`, { status: params.status }),
 }

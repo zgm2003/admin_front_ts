@@ -1,4 +1,5 @@
-import { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
+import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import { onWsMessage } from '@/lib/realtime/message-bus'
 import type { MessageBlock } from './messages'
 
@@ -56,12 +57,11 @@ interface StreamEventsResponse {
   error_msg: string
 }
 
-interface RunEventWsData extends Record<string, unknown> {
-  run_id: number
-  event_id: string
-  event: string
-  payload: StreamEventPayload
-}
+const EVENT_AI_RESPONSE_START = 'ai.response.start.v1'
+const EVENT_AI_RESPONSE_DELTA = 'ai.response.delta.v1'
+const EVENT_AI_RESPONSE_COMPLETED = 'ai.response.completed.v1'
+const EVENT_AI_RESPONSE_FAILED = 'ai.response.failed.v1'
+const EVENT_AI_RESPONSE_CANCEL = 'ai.response.cancel.v1'
 
 const RUN_STATUS_FAIL = 3
 const STREAM_POLL_INTERVAL = 80
@@ -126,24 +126,16 @@ function requireMessageBlockField(data: StreamEventPayload, field: string): Mess
   return value as MessageBlock
 }
 
-function normalizeWsRunEvent(data: Record<string, unknown>, runId: number): StreamEventItem | null {
+function streamItemFromWsMessage(event: string, data: StreamEventPayload, runId: number): StreamEventItem | null {
   if (data.run_id !== runId) {
     return null
   }
 
-  if (typeof data.event_id !== 'string' || typeof data.event !== 'string') {
-    return null
-  }
-
-  const payload = data.payload
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null
-  }
-
+  const id = typeof data.event_id === 'string' ? data.event_id : event
   return {
-    id: data.event_id,
-    event: data.event,
-    data: payload as StreamEventPayload,
+    id,
+    event,
+    data,
   }
 }
 
@@ -184,27 +176,31 @@ function dispatchStreamEvent(
   callbacks: StreamCallbacks
 ): boolean {
   switch (event) {
-    case 'content':
+    case EVENT_AI_RESPONSE_START:
+      if (typeof data.conversation_id === 'number') {
+        callbacks.onConversation?.(data.conversation_id)
+      }
+      if (typeof data.run_id === 'number') {
+        callbacks.onRun?.(data.run_id, typeof data.request_id === 'string' ? data.request_id : '')
+      }
+      break
+    case EVENT_AI_RESPONSE_DELTA:
       callbacks.onContent?.(requireStringField(data, 'delta'))
       break
-    case 'conversation':
-      callbacks.onConversation?.(requireNumberField(data, 'conversation_id'))
-      break
-    case 'run':
-      callbacks.onRun?.(
-        requireNumberField(data, 'run_id'),
-        requireStringField(data, 'request_id')
-      )
-      break
-    case 'run_started':
-      break
-    case 'done':
-    case 'canceled':
+    case EVENT_AI_RESPONSE_COMPLETED:
       callbacks.onDone?.({
         conversation_id: requireNumberField(data, 'conversation_id'),
         run_id: requireNumberField(data, 'run_id'),
         user_message_id: requireNumberField(data, 'user_message_id'),
         assistant_message_id: optionalNumberField(data, 'assistant_message_id'),
+      })
+      return true
+    case EVENT_AI_RESPONSE_CANCEL:
+      callbacks.onDone?.({
+        conversation_id: typeof data.conversation_id === 'number' ? data.conversation_id : 0,
+        run_id: requireNumberField(data, 'run_id'),
+        user_message_id: typeof data.user_message_id === 'number' ? data.user_message_id : 0,
+        assistant_message_id: null,
       })
       return true
     case 'tool_call':
@@ -232,7 +228,7 @@ function dispatchStreamEvent(
         block: requireMessageBlockField(data, 'block'),
       })
       break
-    case 'error':
+    case EVENT_AI_RESPONSE_FAILED:
       callbacks.onError?.(requireStringField(data, 'msg'))
       return true
   }
@@ -241,7 +237,7 @@ function dispatchStreamEvent(
 }
 
 async function streamByRunEvents(params: StreamParams, callbacks: StreamCallbacks): Promise<void> {
-  const start = await legacyRequest.post<StreamStartResponse>('/api/admin/AiChat/start', params)
+  const start = await request.post<StreamStartResponse, StreamParams>(`${ADMIN_API_PREFIX}/ai-chat/runs`, params)
   callbacks.onConversation?.(start.conversation_id)
   callbacks.onRun?.(start.run_id, start.request_id)
 
@@ -270,22 +266,43 @@ async function streamByRunEvents(params: StreamParams, callbacks: StreamCallback
     return terminalEventReceived
   }
 
-  const unsubscribeRunEvent = onWsMessage<RunEventWsData>('ai_run_event', (message) => {
-    const item = normalizeWsRunEvent(message.data, start.run_id)
-    if (!item) {
-      return
-    }
-
-    realtimeEventReceived = true
-    dispatchUniqueEvent(item)
-  })
+  const unsubscribers = [
+    onWsMessage<StreamEventPayload>(EVENT_AI_RESPONSE_START, (message) => {
+      const item = streamItemFromWsMessage(EVENT_AI_RESPONSE_START, message.data, start.run_id)
+      if (!item) return
+      realtimeEventReceived = true
+      dispatchUniqueEvent(item)
+    }),
+    onWsMessage<StreamEventPayload>(EVENT_AI_RESPONSE_DELTA, (message) => {
+      const item = streamItemFromWsMessage(EVENT_AI_RESPONSE_DELTA, message.data, start.run_id)
+      if (!item) return
+      realtimeEventReceived = true
+      dispatchUniqueEvent(item)
+    }),
+    onWsMessage<StreamEventPayload>(EVENT_AI_RESPONSE_COMPLETED, (message) => {
+      const item = streamItemFromWsMessage(EVENT_AI_RESPONSE_COMPLETED, message.data, start.run_id)
+      if (!item) return
+      realtimeEventReceived = true
+      dispatchUniqueEvent(item)
+    }),
+    onWsMessage<StreamEventPayload>(EVENT_AI_RESPONSE_FAILED, (message) => {
+      const item = streamItemFromWsMessage(EVENT_AI_RESPONSE_FAILED, message.data, start.run_id)
+      if (!item) return
+      realtimeEventReceived = true
+      dispatchUniqueEvent(item)
+    }),
+    onWsMessage<StreamEventPayload>(EVENT_AI_RESPONSE_CANCEL, (message) => {
+      const item = streamItemFromWsMessage(EVENT_AI_RESPONSE_CANCEL, message.data, start.run_id)
+      if (!item) return
+      realtimeEventReceived = true
+      dispatchUniqueEvent(item)
+    }),
+  ]
 
   try {
     while (!terminalEventReceived) {
-      const result = await legacyRequest.post<StreamEventsResponse>('/api/admin/AiChat/events', {
-        run_id: start.run_id,
-        last_id: lastId,
-        timeout_ms: 50,
+      const result = await request.get<StreamEventsResponse>(`${ADMIN_API_PREFIX}/ai-chat/runs/${start.run_id}/events`, {
+        params: { last_id: lastId, timeout_ms: 50 },
       })
 
       if (terminalEventReceived) {
@@ -323,7 +340,7 @@ async function streamByRunEvents(params: StreamParams, callbacks: StreamCallback
       }
     }
   } finally {
-    unsubscribeRunEvent()
+    unsubscribers.forEach((unsubscribe) => unsubscribe())
   }
 }
 
@@ -334,7 +351,7 @@ export const AiChatApi = {
     conversation_id?: number
     agent_id?: number
     max_history?: number
-  }) => legacyRequest.post('/api/admin/AiChat/send', params),
+  }) => request.post<StreamStartResponse, StreamParams>(`${ADMIN_API_PREFIX}/ai-chat/messages`, params),
 
   // 发送消息并获取 AI 回复（WebSocket 实时推送 + streamable events 补拉）
   stream: (params: StreamParams, callbacks: StreamCallbacks): Promise<void> => {
@@ -343,5 +360,5 @@ export const AiChatApi = {
 
   // 取消流式输出
   cancel: (runId: number): Promise<{ run_id: number; status: string }> =>
-    legacyRequest.post('/api/admin/AiChat/cancel', { run_id: runId }),
+    request.post<{ run_id: number; status: string }>(`${ADMIN_API_PREFIX}/ai-chat/runs/${runId}/cancel`),
 }
