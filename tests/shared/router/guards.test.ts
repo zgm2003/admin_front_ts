@@ -21,11 +21,12 @@ describe('router guards', () => {
   })
 
   it('restores the last visited path when the current route is root or login', () => {
-    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/pay/channel' })).toBe('/pay/channel')
+    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/payment/channel' })).toBe('/payment/channel')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/login' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '/user/userManager' })).toBe('/user/userManager')
     expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '' })).toBe('/home')
+    // Retired legacy path: keep it out of the normal root/login restore fixture.
     expect(resolveRouteRestoreTarget({ currentPath: '/pay/channel', lastVisitedPath: '/home' })).toBeNull()
   })
 })

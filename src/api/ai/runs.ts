@@ -6,7 +6,8 @@ import type { AiMessageMeta } from './messages'
 export interface AiRunInitResponse {
   dict: {
     run_status_arr: DictOption<number>[]
-    agentArr: DictOption<number>[]
+    appArr: DictOption<number>[]
+    engineArr: DictOption<number>[]
   }
 }
 
@@ -16,7 +17,8 @@ export interface AiRunListParams extends RequestPayload {
   run_status?: number | ''
   user_id?: number | ''
   request_id?: string
-  agent_id?: number | ''
+  app_id?: number | ''
+  engine_connection_id?: number | ''
   date_start?: string
   date_end?: string
 }
@@ -25,8 +27,13 @@ export interface AiRunItem {
   id: number
   request_id: string
   user_id: number
-  agent_id: number
-  agent_name: string
+  app_id: number
+  app_name: string
+  engine_connection_id: number
+  engine_name: string
+  engine_type: string
+  engine_task_id?: string
+  engine_run_id?: string
   conversation_id: number
   conversation_title: string
   run_status: number
@@ -53,8 +60,8 @@ export interface AiRunStepItem {
   step_no: number
   step_type: number
   step_type_name: string
-  agent_id?: number | null
-  agent_name?: string | null
+  app_id?: number | null
+  app_name?: string | null
   model_snapshot?: string | null
   status: number
   status_name: string
@@ -70,8 +77,13 @@ export interface AiRunDetailResponse {
   request_id: string
   user_id: number
   username: string
-  agent_id: number
-  agent_name: string
+  app_id: number
+  app_name: string
+  engine_connection_id: number
+  engine_name: string
+  engine_type: string
+  engine_task_id?: string
+  engine_run_id?: string
   conversation_id: number
   conversation_title: string
   run_status: number
@@ -86,9 +98,20 @@ export interface AiRunDetailResponse {
   meta_json?: Record<string, unknown> | null
   user_message?: AiRunMessageSummary | null
   assistant_message?: AiRunMessageSummary | null
+  events: AiRunEventItem[]
   created_at: string
   updated_at: string
   steps: AiRunStepItem[]
+}
+
+export interface AiRunEventItem {
+  id: number
+  seq: number
+  event_id: string
+  event_type: string
+  delta_text: string
+  payload_json?: Record<string, unknown> | null
+  created_at: string
 }
 
 export interface AiRunStatsSummaryResponse {
@@ -120,7 +143,8 @@ export interface AiRunStatsByDateItem extends AiRunStatsMetricItem {
 }
 
 export interface AiRunStatsByAgentItem extends AiRunStatsMetricItem {
-  agent_name: string
+  app_id: number
+  app_name: string
 }
 
 export interface AiRunStatsByUserItem extends AiRunStatsMetricItem {
@@ -132,7 +156,8 @@ export interface AiRunStatsListParams extends RequestPayload {
   page_size: number
   date_start?: string
   date_end?: string
-  agent_id?: number | ''
+  app_id?: number | ''
+  engine_connection_id?: number | ''
   user_id?: number | ''
 }
 
@@ -142,7 +167,8 @@ interface AiRunListQueryParams {
   run_status?: number
   user_id?: number
   request_id?: string
-  agent_id?: number
+  app_id?: number
+  engine_connection_id?: number
   date_start?: string
   date_end?: string
 }
@@ -150,7 +176,8 @@ interface AiRunListQueryParams {
 interface AiRunStatsQueryParams {
   date_start?: string
   date_end?: string
-  agent_id?: number
+  app_id?: number
+  engine_connection_id?: number
   user_id?: number
 }
 
@@ -172,7 +199,8 @@ function normalizeListParams(params: AiRunListParams): AiRunListQueryParams {
   if (typeof params.run_status === 'number') query.run_status = params.run_status
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   if (params.request_id) query.request_id = params.request_id
-  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
+  if (typeof params.app_id === 'number') query.app_id = params.app_id
+  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
   if (params.date_start) query.date_start = params.date_start
   if (params.date_end) query.date_end = params.date_end
   return query
@@ -183,7 +211,8 @@ function normalizeStatsParams(params?: RequestPayload): AiRunStatsQueryParams {
   if (!params) return query
   if (typeof params.date_start === 'string' && params.date_start) query.date_start = params.date_start
   if (typeof params.date_end === 'string' && params.date_end) query.date_end = params.date_end
-  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
+  if (typeof params.app_id === 'number') query.app_id = params.app_id
+  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   return query
 }

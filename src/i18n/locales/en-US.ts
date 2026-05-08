@@ -277,12 +277,11 @@ export default {
     component_display: 'Display',
     component_effect: 'Effect',
     // AI module
-    ai_models: 'Models',
-    ai_agents: 'Agents',
+    ai_providers: 'Providers',
+    ai_apps: 'AI Apps',
     ai_knowledge: 'Knowledge Base',
-    ai_chat: 'Chat',
+    ai_chat: 'AI Chat',
     ai_runs: 'Run Monitor',
-    ai_prompts: 'Prompts',
     ai_tools: 'AI Tools',
     // DevTools module
     devTools_queueMonitor: 'Queue Monitor',
@@ -745,70 +744,24 @@ export default {
       value_type: 'Value Type'
     }
   },
-  aiModels: {
-    filter: { name: 'Model Name', driver: 'Driver', status: 'Status' },
-    table: {
-      name: 'Model Name',
-      driver: 'Driver',
-      model_code: 'Model Code',
-      endpoint: 'Endpoint',
-      api_key_hint: 'API Key',
-      status: 'Status',
-      created_at: 'Created At'
-    },
-    form: {
-      name: 'Model Name',
-      driver: 'Driver',
-      model_code: 'Model Code',
-      endpoint: 'Endpoint',
-      api_key: 'API Key',
-      status: 'Status',
-      modelCodePlaceholder: 'e.g. gpt-4o / qwen-turbo',
-      endpointPlaceholder: 'Optional, uses driver default',
-      apiKeyPlaceholder: 'Enter API Key',
-      apiKeyEditPlaceholder: 'Leave empty to keep unchanged'
-    },
-    addTitle: 'Add AI Model',
-    editTitle: 'Edit AI Model'
+  aiProviders: {
+    filter: { name: 'Provider Name', engineType: 'Engine Type', status: 'Status' },
+    table: { name: 'Provider Name', engineType: 'Engine Type', baseUrl: 'Base URL', apiKeyMasked: 'API Key', health: 'Health', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Provider Name', engineType: 'Engine Type', baseUrl: 'Base URL', workspaceId: 'Workspace ID', status: 'Status', apiKey: 'API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged' },
+    actions: { test: 'Test' },
+    addTitle: 'Add Provider',
+    editTitle: 'Edit Provider',
+    testDone: 'Connection test completed'
   },
-  aiAgents: {
-    filter: { name: 'Agent Name', model_id: 'Model', mode: 'Mode', status: 'Status' },
-    table: {
-      name: 'Agent Name',
-      model_name: 'Model',
-      mode: 'Mode',
-      capabilities: 'Capabilities',
-      knowledgeBases: 'Knowledge Bases',
-      avatar: 'Avatar',
-      system_prompt: 'System Prompt',
-      temperature: 'Temperature',
-      max_tokens: 'Max Tokens',
-      status: 'Status',
-      scene: 'Scene',
-      created_at: 'Created At'
-    },
-    form: {
-      name: 'Agent Name',
-      model_id: 'Model',
-      avatar: 'Avatar',
-      system_prompt: 'System Prompt',
-      mode: 'Mode',
-      temperature: 'Temperature',
-      max_tokens: 'Max Tokens',
-      extra_params: 'Extra Params',
-      status: 'Status',
-      scene: 'Scene',
-      systemPromptPlaceholder: 'Define the agent\'s role and behavior',
-      invalidJson: 'Extra params must be valid JSON'
-    },
-    addTitle: 'Add Agent',
-    editTitle: 'Edit Agent',
-    deleted: 'Deleted',
-    capabilities: 'Agent Capabilities',
-    tools: 'Bind Tools',
-    selectTools: 'Select tools',
-    knowledgeBases: 'Bind Knowledge Bases',
-    selectKnowledgeBases: 'Select knowledge bases'
+  aiApps: {
+    filter: { name: 'App Name', code: 'App Code', appType: 'App Type', engineConnection: 'Provider', status: 'Status' },
+    table: { name: 'App Name', code: 'Code', engineConnection: 'Provider', appType: 'Type', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'App Name', code: 'App Code', engineConnection: 'Provider', appType: 'App Type', engineAppId: 'Dify App ID', responseMode: 'Response Mode', status: 'Status', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
+    actions: { test: 'Test App', bindings: 'Bindings' },
+    binding: { title: 'App Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
+    addTitle: 'Add AI App',
+    editTitle: 'Edit AI App',
+    testDone: 'App test completed'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -886,11 +839,11 @@ export default {
       older: 'Older'
     },
     // Agent list
-    agentList: 'Agents',
+    agentList: 'AI Apps',
     noAgent: 'No agents available',
     // History conversations
     historyConversations: 'History',
-    currentAgent: 'Current Agent',
+    currentAgent: 'Current AI App',
     // 语音输入
     voiceInput: 'Voice Input',
     voiceNotSupported: 'Voice recognition not supported in this browser',
@@ -912,82 +865,27 @@ export default {
     toolDone: 'Tool call done',
   },
   aiTools: {
-    filter: { name: 'Tool Name', status: 'Status' },
-    table: {
-      name: 'Tool Name',
-      code: 'Tool Code',
-      executorType: 'Executor Type',
-      description: 'Description',
-      status: 'Status',
-      createdAt: 'Created At'
-    },
-    form: {
-      name: 'Tool Name',
-      code: 'Tool Code',
-      description: 'Description',
-      schemaJson: 'Parameter Schema',
-      schemaJsonPlaceholder: 'Enter JSON parameter definition',
-      executorType: 'Executor Type',
-      status: 'Status',
-      httpUrl: 'HTTP URL',
-      sqlQuery: 'SQL Query',
-      invalidJson: 'Parameter Schema must be valid JSON'
-    },
-    addTitle: 'Add Tool',
-    editTitle: 'Edit Tool'
+    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', engineConnection: 'Provider', app: 'AI App', status: 'Status' },
+    table: { name: 'Tool Name', code: 'Code', toolType: 'Tool Type', engineConnection: 'Provider', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', riskLevel: 'Risk', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Tool Name', code: 'Tool Code', engineConnection: 'Provider', app: 'AI App', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
+    addTitle: 'Add Tool Map',
+    editTitle: 'Edit Tool Map'
   },
   aiKnowledge: {
-    filter: { name: 'Knowledge Base', visibility: 'Visibility', status: 'Status' },
-    table: {
-      name: 'Knowledge Base',
-      visibility: 'Visibility',
-      chunk: 'Chunk',
-      retrieval: 'Retrieval',
-      status: 'Status'
-    },
-    tabs: { bases: 'Knowledge Bases', documents: 'Documents', chunks: 'Chunks', retrieval: 'Retrieval Test' },
-    form: {
-      name: 'Knowledge Base Name',
-      description: 'Description',
-      visibility: 'Visibility',
-      chunkSize: 'Chunk Size',
-      chunkOverlap: 'Chunk Overlap',
-      topK: 'Top K',
-      scoreThreshold: 'Score Threshold',
-      status: 'Status',
-      chunkOverlapInvalid: 'Chunk overlap must be smaller than chunk size'
-    },
-    document: {
-      add: 'Add Document',
-      edit: 'Edit Document',
-      title: 'Document Title',
-      sourceType: 'Source Type',
-      content: 'Content',
-      chunkCount: 'Chunks',
-      indexStatus: 'Index',
-      status: 'Status',
-      viewChunks: 'View Chunks',
-      reindex: 'Reindex',
-      reindexSuccess: 'Index rebuilt'
-    },
-    chunk: {
-      no: 'No.',
-      content: 'Chunk Content',
-      tokens: 'Token Estimate',
-      showAll: 'Show All Chunks'
-    },
-    retrieval: {
-      placeholder: 'Enter a question to test recalled chunks from this knowledge base',
-      run: 'Run Retrieval Test',
-      queryRequired: 'Please enter a retrieval query'
-    },
-    addTitle: 'Add Knowledge Base',
-    editTitle: 'Edit Knowledge Base'
+    filter: { name: 'Knowledge Name', code: 'Knowledge Code', engineConnection: 'Provider', visibility: 'Visibility', status: 'Status' },
+    table: { name: 'Knowledge', code: 'Code', engineConnection: 'Provider', dataset: 'Dataset ID', visibility: 'Visibility', status: 'Status', updatedAt: 'Updated At' },
+    actions: { sync: 'Sync' },
+    syncDone: 'Sync submitted',
+    form: { name: 'Knowledge Name', code: 'Knowledge Code', engineConnection: 'Provider', visibility: 'Visibility', dataset: 'Dify Dataset ID', metaJson: 'Meta JSON', invalidJson: 'JSON must be a valid object' },
+    document: { add: 'Add Document', title: 'Document', selectMap: 'Select knowledge map', sourceType: 'Source Type', sourceRef: 'Source Ref', content: 'Content', indexStatus: 'Index Status', error: 'Error' },
+    addTitle: 'Add Knowledge Map',
+    editTitle: 'Edit Knowledge Map'
   },
   aiRuns: {
     filter: {
       status: 'Status',
-      agent: 'Agent',
+      app: 'AI App',
+      engine: 'Provider',
       user: 'User',
       request_id: 'Request ID',
       dateRange: 'Date Range',
@@ -996,7 +894,8 @@ export default {
     },
     table: {
       request_id: 'Request ID',
-      agent: 'Agent',
+      app: 'AI App',
+      engine: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
       model: 'Model',
@@ -1008,7 +907,8 @@ export default {
     detail: {
       title: 'Run Detail',
       user: 'User',
-      agent: 'Agent',
+      app: 'AI App',
+      engine: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
       model: 'Model',
@@ -1022,6 +922,7 @@ export default {
       userMessage: 'User Message',
       assistantMessage: 'AI Response',
       executionSteps: 'Execution Steps',
+      events: 'Run Events',
       fetchFailed: 'Failed to fetch details'
     },
     tabs: {
@@ -1042,10 +943,11 @@ export default {
       avgLatency: 'Avg Latency',
       totalCost: 'Total Cost',
       byDate: 'By Date',
-      byAgent: 'By Agent',
+      byApp: 'By App',
       byUser: 'By User',
       date: 'Date',
-      agent: 'Agent',
+      app: 'AI App',
+      engine: 'Provider',
       user: 'User',
       runs: 'Runs',
       tokens: 'Tokens',
@@ -1053,26 +955,6 @@ export default {
       output: 'Output',
       latency: 'Latency',
       noData: 'No statistics data'
-    }
-  },
-  aiPrompts: {
-    title: 'Prompt Management',
-    search: 'Search title/category/tags',
-    add: 'Add',
-    addTitle: 'Add Prompt',
-    editTitle: 'Edit Prompt',
-    empty: 'No prompts yet',
-    useCount: 'Used {count} times',
-    use: 'Use',
-    form: {
-      title: 'Title',
-      titlePlaceholder: 'Prompt name',
-      content: 'Content',
-      contentPlaceholder: 'Prompt content',
-      category: 'Category',
-      categoryPlaceholder: 'e.g. Development, Writing, Translation',
-      tags: 'Tags',
-      tagsPlaceholder: 'Multiple tags separated by commas'
     }
   },
   queueMonitor: {

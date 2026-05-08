@@ -31,7 +31,7 @@ describe('AI stream contracts', () => {
       run_id: 22,
       request_id: 'req-22',
       user_message_id: 33,
-      agent_id: 44,
+      app_id: 44,
       is_new: true,
     })
     get.mockResolvedValueOnce({
@@ -91,8 +91,8 @@ describe('AI stream contracts', () => {
     expect(source).not.toContain('legacy' + 'Request')
     expect(source).not.toContain('/api/admin/AiChat')
     expect(source).not.toContain('ai_run_event')
-    expect(source).not.toContain('EventSource')
-    expect(source).not.toContain('text/event-stream')
+    expect(source).not.toContain('Event' + 'Source')
+    expect(source).not.toContain('text/event' + '-stream')
   })
 
   it('does not use tiny 50ms events polling timeout', () => {

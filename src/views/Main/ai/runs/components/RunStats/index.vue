@@ -21,7 +21,8 @@ const {t} = useI18n()
 // 字典数据
 const dict = ref<AiRunInitResponse['dict']>({
   run_status_arr: [],
-  agentArr: [],
+  appArr: [],
+  engineArr: [],
 })
 const loadDict = async () => {
   try {
@@ -33,20 +34,23 @@ const loadDict = async () => {
 // 筛选表单 — dateRange 是数组 [start, end]，Search 组件 date-range 类型绑定到单个 key
 interface RunStatsSearchForm {
   dateRange: string[]
-  agent_id: number | ''
+  app_id: number | ''
+  engine_connection_id: number | ''
   user_id: number | ''
 }
 
 const searchForm = ref({
   dateRange: [] as string[],
-  agent_id: '' as number | '',
+  app_id: '' as number | '',
+  engine_connection_id: '' as number | '',
   user_id: '' as number | '',
 } satisfies RunStatsSearchForm)
 
 interface RunStatsQueryParams extends RequestPayload {
   date_start: string
   date_end: string
-  agent_id: number | ''
+  app_id: number | ''
+  engine_connection_id: number | ''
   user_id: number | ''
   current_page?: number
   page_size?: number
@@ -58,7 +62,8 @@ const buildParams = (extra: Partial<RunStatsQueryParams> = {}): RunStatsQueryPar
   return {
     date_start: date_start ?? '',
     date_end: date_end ?? '',
-    agent_id: searchForm.value.agent_id,
+    app_id: searchForm.value.app_id,
+    engine_connection_id: searchForm.value.engine_connection_id,
     user_id: searchForm.value.user_id,
     ...extra
   }
@@ -72,10 +77,17 @@ const searchFields = computed<SearchField[]>(() => [
     label: t('aiRuns.stats.dateRange'),
   },
   {
-    key: 'agent_id',
+    key: 'app_id',
     type: 'select-v2',
-    label: t('aiRuns.stats.agent'),
-    options: dict.value.agentArr,
+    label: t('aiRuns.stats.app'),
+    options: dict.value.appArr,
+    clearable: true
+  },
+  {
+    key: 'engine_connection_id',
+    type: 'select-v2',
+    label: t('aiRuns.stats.engine'),
+    options: dict.value.engineArr,
     clearable: true
   },
   {
@@ -263,11 +275,11 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- 按智能体统计 -->
+    <!-- 按应用统计 -->
     <div class="stats-section" v-if="agentLoader.state.value.data.length || agentLoader.state.value.loading">
-      <h3 class="section-title">{{ t('aiRuns.stats.byAgent') }}</h3>
+      <h3 class="section-title">{{ t('aiRuns.stats.byApp') }}</h3>
       <el-table :data="agentLoader.state.value.data" v-loading="agentLoader.state.value.loading" stripe size="small">
-        <el-table-column v-for="col in statsColumns('agent_name', t('aiRuns.stats.agent'))" :key="col.prop"
+        <el-table-column v-for="col in statsColumns('app_name', t('aiRuns.stats.app'))" :key="col.prop"
           :prop="col.prop" :label="col.label" :formatter="col.formatter" />
       </el-table>
       <div class="load-more" v-if="agentLoader.state.value.hasMore">

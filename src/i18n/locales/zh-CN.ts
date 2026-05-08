@@ -277,12 +277,11 @@ export default {
     component_display: '展示',
     component_effect: '特效',
     // AI助手模块
-    ai_models: '模型配置',
-    ai_agents: '智能体',
+    ai_providers: '供应商配置',
+    ai_apps: '智能体配置',
     ai_knowledge: '知识库',
-    ai_chat: '对话',
+    ai_chat: 'AI 对话',
     ai_runs: '运行监控',
-    ai_prompts: '提示词',
     ai_tools: 'AI工具管理',
     // 开发工具模块
     devTools_queueMonitor: '队列监控',
@@ -745,70 +744,24 @@ export default {
       value_type: '值类型'
     }
   },
-  aiModels: {
-    filter: { name: '模型名称', driver: '驱动', status: '状态' },
-    table: {
-      name: '模型名称',
-      driver: '驱动',
-      model_code: '模型标识',
-      endpoint: '接口地址',
-      api_key_hint: 'API Key',
-      status: '状态',
-      created_at: '创建时间'
-    },
-    form: {
-      name: '模型名称',
-      driver: '驱动',
-      model_code: '模型标识',
-      endpoint: '接口地址',
-      api_key: 'API Key',
-      status: '状态',
-      modelCodePlaceholder: '如 gpt-4o / qwen-turbo',
-      endpointPlaceholder: '可留空，使用驱动默认地址',
-      apiKeyPlaceholder: '输入API Key',
-      apiKeyEditPlaceholder: '留空则不修改'
-    },
-    addTitle: '新增AI模型',
-    editTitle: '编辑AI模型'
+  aiProviders: {
+    filter: { name: '供应商名称', engineType: '引擎类型', status: '状态' },
+    table: { name: '供应商名称', engineType: '引擎类型', baseUrl: 'Base URL', apiKeyMasked: 'API Key', health: '健康状态', status: '状态', updatedAt: '更新时间' },
+    form: { name: '供应商名称', engineType: '引擎类型', baseUrl: 'Base URL', workspaceId: '工作区ID', status: '状态', apiKey: 'API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改' },
+    actions: { test: '测试连接' },
+    addTitle: '新增供应商',
+    editTitle: '编辑供应商',
+    testDone: '连接测试完成'
   },
-  aiAgents: {
-    filter: { name: '智能体名称', model_id: '关联模型', mode: '模式', status: '状态' },
-    table: {
-      name: '智能体名称',
-      model_name: '关联模型',
-      mode: '模式',
-      capabilities: '能力',
-      knowledgeBases: '知识库',
-      avatar: '头像',
-      system_prompt: '系统提示词',
-      temperature: '温度',
-      max_tokens: '最大输出',
-      status: '状态',
-      scene: '场景',
-      created_at: '创建时间'
-    },
-    form: {
-      name: '智能体名称',
-      model_id: '关联模型',
-      avatar: '头像',
-      system_prompt: '系统提示词',
-      mode: '模式',
-      temperature: '温度',
-      max_tokens: '最大输出',
-      extra_params: '额外参数',
-      status: '状态',
-      scene: '场景',
-      systemPromptPlaceholder: '设定智能体的角色和行为',
-      invalidJson: '额外参数必须为合法JSON'
-    },
-    addTitle: '新增智能体',
-    editTitle: '编辑智能体',
-    deleted: '已删除',
-    capabilities: '智能体能力',
-    tools: '绑定工具',
-    selectTools: '请选择工具',
-    knowledgeBases: '绑定知识库',
-    selectKnowledgeBases: '请选择知识库'
+  aiApps: {
+    filter: { name: '应用名称', code: '应用编码', appType: '应用类型', engineConnection: '供应商', status: '状态' },
+    table: { name: '应用名称', code: '编码', engineConnection: '供应商', appType: '类型', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
+    form: { name: '应用名称', code: '应用编码', engineConnection: '供应商', appType: '应用类型', engineAppId: 'Dify App ID', responseMode: '响应模式', status: '状态', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
+    actions: { test: '测试应用', bindings: '绑定' },
+    binding: { title: '应用绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },
+    addTitle: '新增 AI 应用',
+    editTitle: '编辑 AI 应用',
+    testDone: '应用测试完成'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -833,7 +786,7 @@ export default {
     copied: '已复制到剪贴板',
     confirmDeleteMessage: '确定删除这条消息吗？',
     noDescription: '暂无描述',
-    noAgentTip: '暂无可用智能体，请先在设置中配置',
+    noAgentTip: '请先配置 AI 应用和 Dify 连接',
     // 图片上传相关
     uploadImage: '上传图片',
     uploadFailed: '上传失败',
@@ -851,7 +804,7 @@ export default {
     inputHint: 'Enter 发送，Shift + Enter 换行',
     inputHintImage: '，支持粘贴/拖拽图片',
     inputHintMobile: 'Enter 发送',
-    selectAgentFirst: '请先选择智能体',
+    selectAgentFirst: '请先选择 AI 应用',
     // 消息操作
     copyFailed: '复制失败',
     sendFailed: '发送失败',
@@ -886,11 +839,11 @@ export default {
       older: '更早'
     },
     // 智能体列表
-    agentList: '智能体',
-    noAgent: '暂无智能体',
+    agentList: 'AI 应用',
+    noAgent: '暂无 AI 应用',
     // 历史会话
     historyConversations: '历史会话',
-    currentAgent: '当前智能体',
+    currentAgent: '当前 AI 应用',
     // 语音输入
     voiceInput: '语音输入',
     voiceNotSupported: '当前浏览器不支持语音识别',
@@ -912,82 +865,73 @@ export default {
     toolDone: '工具调用完成',
   },
   aiTools: {
-    filter: { name: '工具名称', status: '状态' },
+    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', engineConnection: '供应商', app: 'AI 应用', status: '状态' },
     table: {
       name: '工具名称',
       code: '工具编码',
-      executorType: '执行器类型',
-      description: '描述',
+      toolType: '工具类型',
+      engineConnection: '供应商',
+      engineToolId: '引擎工具ID',
+      permissionCode: '权限编码',
+      riskLevel: '风险等级',
       status: '状态',
-      createdAt: '创建时间'
+      updatedAt: '更新时间'
     },
     form: {
       name: '工具名称',
       code: '工具编码',
-      description: '描述',
-      schemaJson: '参数Schema',
-      schemaJsonPlaceholder: '输入 JSON 格式的参数定义',
-      executorType: '执行器类型',
-      status: '状态',
-      httpUrl: 'HTTP URL',
-      sqlQuery: 'SQL 查询',
-      invalidJson: '参数Schema必须为合法JSON'
+      engineConnection: '供应商',
+      app: 'AI 应用',
+      toolType: '工具类型',
+      riskLevel: '风险等级',
+      engineToolId: '引擎工具ID',
+      permissionCode: '权限编码',
+      configJson: '配置JSON',
+      invalidJson: '配置必须为合法JSON对象'
     },
-    addTitle: '新增工具',
-    editTitle: '编辑工具'
+    addTitle: '新增工具映射',
+    editTitle: '编辑工具映射'
   },
   aiKnowledge: {
-    filter: { name: '知识库名称', visibility: '可见性', status: '状态' },
+    filter: { name: '知识库名称', code: '知识库编码', engineConnection: '供应商', visibility: '可见性', status: '状态' },
     table: {
       name: '知识库',
+      code: '编码',
+      engineConnection: '供应商',
+      dataset: '数据集ID',
       visibility: '可见性',
-      chunk: '切片',
-      retrieval: '召回',
-      status: '状态'
+      status: '状态',
+      updatedAt: '更新时间'
     },
-    tabs: { bases: '知识库', documents: '文档', chunks: '切片', retrieval: '召回测试' },
+    actions: { sync: '同步' },
+    syncDone: '同步已提交',
     form: {
       name: '知识库名称',
-      description: '描述',
+      code: '知识库编码',
+      engineConnection: '供应商',
       visibility: '可见性',
-      chunkSize: '切片长度',
-      chunkOverlap: '切片重叠',
-      topK: '召回数量',
-      scoreThreshold: '分数阈值',
-      status: '状态',
-      chunkOverlapInvalid: '切片重叠必须小于切片长度'
+      dataset: 'Dify 数据集ID',
+      metaJson: '元数据JSON',
+      invalidJson: 'JSON 必须是合法对象'
     },
     document: {
       add: '新增文档',
-      edit: '编辑文档',
-      title: '文档标题',
+      title: '文档',
+      selectMap: '请选择知识库',
       sourceType: '来源类型',
+      sourceRef: '来源引用',
       content: '文档内容',
-      chunkCount: '切片数',
-      indexStatus: '索引',
-      status: '状态',
-      viewChunks: '查看切片',
-      reindex: '重建索引',
-      reindexSuccess: '索引已重建'
+      indexStatus: '索引状态',
+      error: '错误信息'
     },
-    chunk: {
-      no: '序号',
-      content: '切片内容',
-      tokens: 'Token估算',
-      showAll: '显示全部切片'
-    },
-    retrieval: {
-      placeholder: '输入问题，测试当前知识库能召回哪些切片',
-      run: '运行召回测试',
-      queryRequired: '请输入召回测试问题'
-    },
-    addTitle: '新增知识库',
-    editTitle: '编辑知识库'
+    addTitle: '新增知识库映射',
+    editTitle: '编辑知识库映射'
   },
   aiRuns: {
     filter: {
       status: '状态',
-      agent: '智能体',
+      app: 'AI 应用',
+      engine: '供应商',
       user: '用户',
       request_id: 'Request ID',
       dateRange: '日期范围',
@@ -996,7 +940,8 @@ export default {
     },
     table: {
       request_id: 'Request ID',
-      agent: '智能体',
+      app: 'AI 应用',
+      engine: '供应商',
       conversation: '会话',
       status: '状态',
       model: '模型',
@@ -1008,7 +953,8 @@ export default {
     detail: {
       title: '运行详情',
       user: '用户',
-      agent: '智能体',
+      app: 'AI 应用',
+      engine: '供应商',
       conversation: '会话',
       status: '状态',
       model: '模型',
@@ -1022,6 +968,7 @@ export default {
       userMessage: '用户消息',
       assistantMessage: 'AI 回复',
       executionSteps: '执行步骤',
+      events: '运行事件',
       fetchFailed: '获取详情失败'
     },
     tabs: {
@@ -1042,10 +989,11 @@ export default {
       avgLatency: '平均耗时',
       totalCost: '总成本',
       byDate: '按日期',
-      byAgent: '按智能体',
+      byApp: '按应用',
       byUser: '按用户',
       date: '日期',
-      agent: '智能体',
+      app: 'AI 应用',
+      engine: '供应商',
       user: '用户',
       runs: '请求',
       tokens: 'Tokens',
@@ -1053,26 +1001,6 @@ export default {
       output: '输出',
       latency: '耗时',
       noData: '暂无统计数据'
-    }
-  },
-  aiPrompts: {
-    title: '提示词管理',
-    search: '搜索标题/分类/标签',
-    add: '新增',
-    addTitle: '新增提示词',
-    editTitle: '编辑提示词',
-    empty: '暂无提示词',
-    useCount: '使用 {count} 次',
-    use: '使用',
-    form: {
-      title: '标题',
-      titlePlaceholder: '提示词名称',
-      content: '内容',
-      contentPlaceholder: '提示词内容',
-      category: '分类',
-      categoryPlaceholder: '如：开发、写作、翻译',
-      tags: '标签',
-      tagsPlaceholder: '多个标签用逗号分隔'
     }
   },
   queueMonitor: {

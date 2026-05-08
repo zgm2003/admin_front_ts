@@ -21,8 +21,8 @@ export interface ToolCallRecord {
 export interface Conversation {
   id: number
   title: string
-  agent_id?: number
-  agent_name?: string
+  app_id?: number
+  app_name?: string
   agent_avatar?: string
   last_message_at: string
   created_at: string
@@ -42,12 +42,15 @@ export interface Message {
   meta_json?: AiMessageMeta
 }
 
-// 智能体类型
+// AI 应用类型；保留 Agent 命名一轮，避免一次性重命名聊天组件导致大 diff。
 export interface Agent {
   id: number
   name: string
   avatar?: string | null
-  description?: string
+  description?: string | null
+  engine_connection_id?: number
+  engine_type?: string
+  code?: string
 }
 
 // 流式聊天选项

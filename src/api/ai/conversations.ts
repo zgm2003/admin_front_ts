@@ -5,16 +5,17 @@ import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
 export interface AiConversationListParams extends RequestPayload {
   current_page?: number
   page_size?: number
-  status?: number
-  agent_id?: number
+  status?: number | ''
+  app_id?: number | ''
   title?: string
 }
 
 export interface AiConversationItem {
   id: number
   user_id: number
-  agent_id: number
-  agent_name: string
+  app_id: number
+  app_name: string
+  agent_name?: string
   title: string
   last_message_at: string
   status: number
@@ -26,8 +27,9 @@ export interface AiConversationItem {
 export interface AiConversationDetailResponse {
   id: number
   user_id: number
-  agent_id: number
-  agent_name: string
+  app_id: number
+  app_name: string
+  agent_name?: string
   title: string
   last_message_at: string
   status: number
@@ -39,12 +41,12 @@ interface AiConversationListQueryParams {
   current_page?: number
   page_size?: number
   status?: number
-  agent_id?: number
+  app_id?: number
   title?: string
 }
 
 interface AiConversationCreateBody {
-  agent_id: number
+  app_id: number
   title?: string
 }
 
@@ -57,7 +59,7 @@ function normalizeListParams(params: AiConversationListParams): AiConversationLi
   if (typeof params.current_page === 'number') query.current_page = params.current_page
   if (typeof params.page_size === 'number') query.page_size = params.page_size
   if (typeof params.status === 'number') query.status = params.status
-  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
+  if (typeof params.app_id === 'number') query.app_id = params.app_id
   if (params.title) query.title = params.title
   return query
 }
@@ -75,7 +77,7 @@ function deleteConversation(id: number): Promise<void> {
 export const AiConversationApi = {
   list: (params: AiConversationListParams) => request.get<PaginatedResponse<AiConversationItem>>(`${ADMIN_API_PREFIX}/ai-conversations`, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiConversationDetailResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`),
-  add: (params: { agent_id: number; title?: string }) => request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`, params),
+  add: (params: { app_id: number; title?: string }) => request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`, params),
   edit: (params: { id: Id; title: string }) => request.put<void, AiConversationTitleBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`, { title: params.title }),
   del: async (params: { id: Id | Id[] }): Promise<void> => {
     const ids = Array.isArray(params.id) ? params.id : [params.id]

@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue'
-import { AiAgentApi } from '@/api/ai/agents'
+import { AiAppApi } from '@/api/ai/apps'
 import type { Agent } from './types'
 
-const STORAGE_KEY = 'ai_chat_selected_agent'
+const STORAGE_KEY = 'ai_chat_selected_app'
 
 export function useAgents() {
   const agents = ref<Agent[]>([])
@@ -64,12 +64,11 @@ export function useAgents() {
     }
     searchLoading.value = true
     try {
-      const res = await AiAgentApi.list({
-        page_size: 50,  // 加载更多智能体
-        status: 1,
-        name: keyword || undefined
-      })
-      agents.value = res.list
+      const res = await AiAppApi.options()
+      const keywordText = keyword?.trim().toLowerCase()
+      agents.value = keywordText
+        ? res.list.filter((item) => item.name.toLowerCase().includes(keywordText) || item.code?.toLowerCase().includes(keywordText))
+        : res.list
       
       // 初始加载时，尝试恢复选择或选中第一个
       if (!keyword && agents.value.length > 0) {

@@ -35,7 +35,7 @@ function startResponse(runId = 22) {
     run_id: runId,
     request_id: `req-${runId}`,
     user_message_id: 33,
-    agent_id: 44,
+    app_id: 44,
     is_new: true,
   }
 }

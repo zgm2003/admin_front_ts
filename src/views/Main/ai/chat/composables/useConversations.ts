@@ -28,7 +28,7 @@ export function useConversations() {
   const page = ref(1)
   const hasMore = ref(true)
   const showArchived = ref(false)
-  const currentAgentId = ref<number | null>(null)
+  const currentAppId = ref<number | null>(null)
   const searchKeyword = ref('')
 
   // 构建请求参数
@@ -37,7 +37,7 @@ export function useConversations() {
       page_size: PAGE_SIZE,
       current_page: pageNum,
       status: showArchived.value ? 2 : 1,
-      agent_id: currentAgentId.value ?? undefined,
+      app_id: currentAppId.value ?? undefined,
     }
     if (searchKeyword.value.trim()) {
       params.title = searchKeyword.value.trim()
@@ -45,15 +45,15 @@ export function useConversations() {
     return params
   }
 
-  // 加载会话列表（支持按 agent_id 过滤）
-  const loadConversations = async (options?: { agent_id?: number }) => {
+  // 加载会话列表（支持按 app_id 过滤）
+  const loadConversations = async (options?: { app_id?: number }) => {
     loading.value = true
     page.value = 1
     hasMore.value = true
     
-    // 更新当前过滤的 agent_id
-    if (options?.agent_id !== undefined) {
-      currentAgentId.value = options.agent_id
+    // 更新当前过滤的 app_id
+    if (options?.app_id !== undefined) {
+      currentAppId.value = options.app_id
     }
     
     try {
@@ -158,7 +158,7 @@ export function useConversations() {
     loadingMore,
     hasMore,
     showArchived,
-    currentAgentId,
+    currentAppId,
     searchKeyword,
     loadConversations,
     loadMore,
