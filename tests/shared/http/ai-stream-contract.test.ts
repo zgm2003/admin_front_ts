@@ -67,7 +67,7 @@ describe('AI stream contracts', () => {
     expect(post).toHaveBeenCalledTimes(1)
     expect(post).toHaveBeenNthCalledWith(1, '/api/admin/v1/ai-chat/runs', { content: 'hello' })
     expect(get).toHaveBeenNthCalledWith(1, '/api/admin/v1/ai-chat/runs/22/events', {
-      params: { last_id: '0-0', timeout_ms: 50 },
+      params: { last_id: '0-0', timeout_ms: 3000 },
     })
     expect(onConversation).toHaveBeenCalledWith(11)
     expect(onRun).toHaveBeenCalledWith(22, 'req-22')
@@ -93,5 +93,14 @@ describe('AI stream contracts', () => {
     expect(source).not.toContain('ai_run_event')
     expect(source).not.toContain('EventSource')
     expect(source).not.toContain('text/event-stream')
+  })
+
+  it('does not use tiny 50ms events polling timeout', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/api/ai/chat.ts'), 'utf8')
+
+    expect(source).toContain('const STREAM_EVENTS_TIMEOUT_MS = 3000')
+    expect(source).toContain('timeout_ms: STREAM_EVENTS_TIMEOUT_MS')
+    expect(source).not.toContain('timeout_ms: 50')
+    expect(source).not.toContain('const STREAM_POLL_INTERVAL = 80\n')
   })
 })

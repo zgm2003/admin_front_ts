@@ -64,7 +64,8 @@ const EVENT_AI_RESPONSE_FAILED = 'ai.response.failed.v1'
 const EVENT_AI_RESPONSE_CANCEL = 'ai.response.cancel.v1'
 
 const RUN_STATUS_FAIL = 3
-const STREAM_POLL_INTERVAL = 80
+const STREAM_EVENTS_TIMEOUT_MS = 3000
+const STREAM_POLL_INTERVAL = 800
 const STREAM_REALTIME_POLL_INTERVAL = 500
 const STREAM_TERMINAL_GRACE_POLLS = 3
 
@@ -302,7 +303,7 @@ async function streamByRunEvents(params: StreamParams, callbacks: StreamCallback
   try {
     while (!terminalEventReceived) {
       const result = await request.get<StreamEventsResponse>(`${ADMIN_API_PREFIX}/ai-chat/runs/${start.run_id}/events`, {
-        params: { last_id: lastId, timeout_ms: 50 },
+        params: { last_id: lastId, timeout_ms: STREAM_EVENTS_TIMEOUT_MS },
       })
 
       if (terminalEventReceived) {

@@ -43,4 +43,13 @@ describe('recharge runtime api REST contract', () => {
       expect(readFrontendSource(file), file).not.toMatch(forbiddenLooseTypePattern)
     }
   })
+
+  it('derives recent recharge orders from the main order list without duplicate myOrders requests', () => {
+    const source = readFrontendSource('src/views/Main/wallet/useRechargePayment.ts')
+    const myOrdersCalls = source.match(/OrderApi\.myOrders\(/g) ?? []
+
+    expect(myOrdersCalls).toHaveLength(1)
+    expect(source).toContain('const recentRechargeOrders = computed(() => rechargeOrders.value.slice(0, DEFAULT_PAGE.page_size))')
+    expect(source).not.toContain('loadRecentRechargeOrders')
+  })
 })

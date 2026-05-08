@@ -213,13 +213,11 @@ export function useRechargePayment() {
   const paymentDialogVisible = shallowRef(false)
   const popupBlocked = shallowRef(false)
   const orderLoading = shallowRef(false)
-  const recentOrdersLoading = shallowRef(false)
 
   const wallet = ref<WalletSummaryItem | null>(null)
   const transactions = ref<WalletTransactionItem[]>([])
   const transactionPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
   const rechargeOrders = ref<RechargeOrderListItem[]>([])
-  const recentRechargeOrders = ref<RechargeOrderListItem[]>([])
   const orderPage = ref<WalletTransactionPage>({ ...DEFAULT_PAGE })
 
   const channelRecords = ref<PayChannelRecord[]>([])
@@ -251,6 +249,7 @@ export function useRechargePayment() {
     const filtered = payMethodOptions.value.filter((item) => supported.has(String(item.value)))
     return filtered.length > 0 ? filtered : payMethodOptions.value
   })
+  const recentRechargeOrders = computed(() => rechargeOrders.value.slice(0, DEFAULT_PAGE.page_size))
 
   const mapOrderRowToState = (row: RechargeOrderListItem): RechargeOrderState => {
     const payMethod = row.pay_method ?? ''
@@ -300,9 +299,6 @@ export function useRechargePayment() {
 
   const updateRechargeOrderRow = (orderNo: string, patch: Partial<RechargeOrderListItem>) => {
     rechargeOrders.value = rechargeOrders.value.map((item) =>
-      item.order_no === orderNo ? { ...item, ...patch } : item,
-    )
-    recentRechargeOrders.value = recentRechargeOrders.value.map((item) =>
       item.order_no === orderNo ? { ...item, ...patch } : item,
     )
   }
@@ -597,26 +593,6 @@ export function useRechargePayment() {
     }
   }
 
-  const loadRecentRechargeOrders = async () => {
-    if (!userId.value) {
-      recentRechargeOrders.value = []
-      return
-    }
-
-    recentOrdersLoading.value = true
-    try {
-      const data = await OrderApi.myOrders({
-        current_page: DEFAULT_PAGE.current_page,
-        page_size: DEFAULT_PAGE.page_size,
-      })
-
-      recentRechargeOrders.value = Array.isArray(data.list) ? (data.list as RechargeOrderListItem[]) : []
-      syncCurrentOrderFromRows(recentRechargeOrders.value)
-    } finally {
-      recentOrdersLoading.value = false
-    }
-  }
-
   const handleOrderPageChange = (page: WalletTransactionPage) => {
     orderPage.value = {
       ...orderPage.value,
@@ -626,7 +602,7 @@ export function useRechargePayment() {
   }
 
   const reloadData = async () => {
-    await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders(), loadRecentRechargeOrders()])
+    await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
   }
 
   const selectRechargeOrder = (order: RechargeOrderListItem) => {
@@ -704,7 +680,7 @@ export function useRechargePayment() {
 
       if (data.pay_status === PayStatus.CLOSED || data.pay_status === PayStatus.EXCEPTION) {
         stopPolling()
-        await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
+        await loadRechargeOrders()
       }
     } finally {
       statusChecking.value = false
@@ -752,7 +728,7 @@ export function useRechargePayment() {
         pay_status: PayStatus.CLOSED,
         pay_status_text: payStatusLabelMap.value.get(String(PayStatus.CLOSED)) ?? currentOrder.value.payStatusText,
       })
-      await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
+      await loadRechargeOrders()
 
       ElNotification.success({ message: t('personal.recharge.cancelOrderSuccess') })
     } finally {
@@ -974,11 +950,11 @@ export function useRechargePayment() {
         ...orderPage.value,
         current_page: DEFAULT_PAGE.current_page,
       }
-      await Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
+      await loadRechargeOrders()
 
       await requestPayment(rechargeRes.order_no, selectedPayMethod.value, preopenedWindow)
     } catch {
-      void Promise.all([loadRechargeOrders(), loadRecentRechargeOrders()])
+      void loadRechargeOrders()
       if (preopenedWindow && !preopenedWindow.closed) {
         preopenedWindow.close()
       }
@@ -1055,7 +1031,6 @@ export function useRechargePayment() {
         wallet.value = null
         transactions.value = []
         rechargeOrders.value = []
-        recentRechargeOrders.value = []
         transactionPage.value = { ...DEFAULT_PAGE }
         orderPage.value = { ...DEFAULT_PAGE }
         return
@@ -1069,7 +1044,7 @@ export function useRechargePayment() {
           return
         }
 
-        await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders(), loadRecentRechargeOrders()])
+        await Promise.all([loadWallet(), loadTransactions(), loadRechargeOrders()])
       })()
     },
     { immediate: true },
@@ -1113,7 +1088,7 @@ export function useRechargePayment() {
     orderPage,
     orderLoading,
     recentRechargeOrders,
-    recentOrdersLoading,
+    recentOrdersLoading: orderLoading,
     handleOrderPageChange,
     selectRechargeOrder,
     wallet,
