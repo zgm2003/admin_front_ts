@@ -61,6 +61,22 @@ describe('payment views', () => {
     }
   })
 
+  it('renders payment channel actions from current RBAC button codes', () => {
+    const source = read('src/views/Main/payment/channel/index.vue')
+
+    expect(source).toContain("import { useUserStore } from '@/store/user'")
+    expect(source).toContain('const userStore = useUserStore()')
+    expect(source).toContain('<template #toolbar-left>')
+    expect(source).toContain("userStore.can('payment_channel_add')")
+    expect(source).toContain("userStore.can('payment_channel_edit')")
+    expect(source).toContain("userStore.can('payment_channel_status')")
+    expect(source).toContain("userStore.can('payment_channel_del')")
+    expect(source).toContain('@click="openAddDialog"')
+    expect(source).toContain('@click="openEditDialog(row)"')
+    expect(source).toContain('@click="confirmDel(row)"')
+    expect(source).not.toContain('pay_' + 'channel_')
+  })
+
   it('removes active old pay and fund references from source and tests', () => {
     for (const path of [...listSourceFiles('src'), ...listSourceFiles('tests')]) {
       if (!/\.(ts|vue)$/.test(path)) {
