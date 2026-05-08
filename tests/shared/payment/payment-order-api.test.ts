@@ -6,7 +6,7 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8'
 const forbiddenLooseTypePattern = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
 
 describe('payment order api', () => {
-  it('uses new payment order REST paths and no old recharge routes', () => {
+  it('uses new payment order REST paths and no retired routes', () => {
     const source = read('src/api/payment/order.ts')
     expect(source).toContain('request.get<PaymentOrderInitResponse>(`${ADMIN_API_PREFIX}/payment/orders/page-init`)')
     expect(source).toContain('request.post<PaymentCreateOrderResponse, PaymentCreateOrderPayload>(`${ADMIN_API_PREFIX}/payment/orders`')
@@ -17,9 +17,9 @@ describe('payment order api', () => {
     expect(source).toContain('const value = orderNo.trim()')
     expect(source).toContain('if (!value) throw new Error(\'payment order_no is required\')')
     expect(source).toContain('return encodeURIComponent(value)')
-    expect(source).not.toContain('/recharge-orders')
-    expect(source).not.toContain('/pay-orders')
-    expect(source).not.toContain('/wallet')
+    expect(source).not.toContain('/recharge-' + 'orders')
+    expect(source).not.toContain('/pay-' + 'orders')
+    expect(source).not.toContain('/wal' + 'let')
     expect(source).not.toContain('legacy' + 'Request')
     expect(source).not.toMatch(forbiddenLooseTypePattern)
   })

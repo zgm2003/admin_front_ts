@@ -3,7 +3,7 @@ import type { DynamicRouteItem, PermissionMenuItem, QuickEntryItem } from '@/typ
 export const HOME_QUICK_ENTRY_LIMIT = 6
 
 export interface HomeOverviewSignal {
-  key: 'notifications' | 'quickEntry' | 'wallet' | 'user'
+  key: 'notifications' | 'quickEntry' | 'user'
   value: string
   tone: 'danger' | 'primary' | 'success' | 'warning'
 }
@@ -91,11 +91,6 @@ export function buildHomeOverviewSignals(params: {
       key: 'quickEntry',
       value: String(quickEntryCount),
       tone: 'primary',
-    },
-    {
-      key: 'wallet',
-      value: 'ready',
-      tone: 'success',
     },
     {
       key: 'user',

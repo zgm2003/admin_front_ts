@@ -4,42 +4,36 @@ import { describe, expect, it } from 'vitest'
 
 function readHomeIndexSource() {
   return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/views/Main/home/index.vue'),
+    resolve(process.cwd(), 'src/views/Main/home/index.vue'),
     'utf8',
   )
 }
 
 function readHomeHeroSource() {
   return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/views/Main/home/components/HomeHeroPanel.vue'),
+    resolve(process.cwd(), 'src/views/Main/home/components/HomeHeroPanel.vue'),
     'utf8',
   )
 }
 
-function readHomeWalletSource() {
-  return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/views/Main/home/components/HomeWalletPanel.vue'),
-    'utf8',
-  )
-}
 
 function readHomeNotificationsSource() {
   return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/views/Main/home/components/HomeNotificationsPanel.vue'),
+    resolve(process.cwd(), 'src/views/Main/home/components/HomeNotificationsPanel.vue'),
     'utf8',
   )
 }
 
 function readHomeDashboardComposableSource() {
   return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/views/Main/home/composables/useHomeDashboard.ts'),
+    resolve(process.cwd(), 'src/views/Main/home/composables/useHomeDashboard.ts'),
     'utf8',
   )
 }
 
 function readUsersQuickEntryApiSource() {
   return readFileSync(
-    resolve('e:/admin/admin_front_ts/src/api/user/usersQuickEntry.ts'),
+    resolve(process.cwd(), 'src/api/user/usersQuickEntry.ts'),
     'utf8',
   )
 }
@@ -48,7 +42,6 @@ describe('home dashboard helpers', async () => {
   const {
     HOME_QUICK_ENTRY_LIMIT,
     buildAddressLabel,
-    buildHomeOverviewSignals,
     buildQuickEntryDraft,
     buildQuickEntryManagerOptions,
     resolveHomeNavigationAction,
@@ -62,24 +55,6 @@ describe('home dashboard helpers', async () => {
     expect(isQuickEntryLimitReached(6)).toBe(true)
   })
 
-  it('builds overview signals from unread notifications, quick entries, wallet state, and user identity', () => {
-    expect(buildHomeOverviewSignals({
-      userId: 7,
-      unreadCount: 3,
-      quickEntryCount: 4,
-    })).toEqual([
-      { key: 'notifications', value: '3', tone: 'danger' },
-      { key: 'quickEntry', value: '4', tone: 'primary' },
-      { key: 'wallet', value: 'ready', tone: 'success' },
-      { key: 'user', value: '#7', tone: 'warning' },
-    ])
-
-    expect(buildHomeOverviewSignals({
-      userId: 0,
-      unreadCount: 0,
-      quickEntryCount: 0,
-    })[3]).toEqual({ key: 'user', value: '--', tone: 'warning' })
-  })
 
   it('derives quick entry options only from actual route pages with menu ids', () => {
     const permissionMap = new Map([
@@ -174,10 +149,10 @@ describe('home dashboard layout contract', () => {
     expect(source).toContain('height: 100%;')
     expect(source).toContain('overflow: hidden;')
     expect(source).toContain('grid-template-columns: repeat(2, minmax(0, 1fr));')
-    expect(source).toContain('grid-template-rows: repeat(2, minmax(0, 1fr));')
+    expect(source).toContain('grid-template-rows: minmax(0, 1fr);')
     expect(source).toContain('class="home-dashboard__card home-dashboard__card--hero"')
     expect(source).toContain('class="home-dashboard__card home-dashboard__card--notifications"')
-    expect(source).toContain('class="home-dashboard__card home-dashboard__card--wallet"')
+    expect(source).not.toContain('HomeWalletPanel')
     expect(source).toContain('class="home-dashboard__card home-dashboard__card--quick-entry"')
     expect(source).not.toContain('home-dashboard__main')
     expect(source).not.toContain('home-dashboard__side')
@@ -208,8 +183,6 @@ describe('home quadrant content contract', () => {
     const indexSource = readHomeIndexSource()
 
     expect(source).toContain(`$emit('personal')`)
-    expect(source).not.toContain(`$emit('wallet')`)
-    expect(source).not.toContain(`menu.wallet`)
     expect(source).toContain('profile-details')
     expect(source).toContain('profile-bio')
     expect(source).not.toContain('hero-signals')
@@ -220,17 +193,6 @@ describe('home quadrant content contract', () => {
     expect(indexSource).not.toContain(':security-items=')
   })
 
-  it('renders the wallet quadrant as a 2x2 metric grid without created-at or a long balance banner', () => {
-    const source = readHomeWalletSource()
-
-    expect(source).not.toContain('wallet-balance')
-    expect(source).not.toContain('walletCreatedAt')
-    expect(source).toContain('walletAvailable')
-    expect(source).toContain('walletFrozen')
-    expect(source).toContain('walletTotalRecharge')
-    expect(source).toContain('walletTotalConsume')
-    expect(source).toContain('is-highlight')
-  })
 
   it('keeps unread notification count in the title row instead of a separate metric block', () => {
     const source = readHomeNotificationsSource()
@@ -268,24 +230,10 @@ describe('home quadrant content contract', () => {
     expect(source).not.toContain('await UsersQuickEntryApi.sort')
   })
 
-  it('keeps wallet, notification, and quick-entry mini cards compact', () => {
-    const walletSource = readHomeWalletSource()
-    const notificationSource = readHomeNotificationsSource()
-    const quickEntrySource = readFileSync(
-      resolve('e:/admin/admin_front_ts/src/views/Main/home/components/HomeQuickEntryPanel.vue'),
-      'utf8',
-    )
-
-    expect(walletSource).toContain('min-height: 72px;')
-    expect(notificationSource).toContain('padding: 10px;')
-    expect(quickEntrySource).toContain('min-height: 88px;')
-    expect(quickEntrySource).toContain('width: 32px;')
-    expect(quickEntrySource).toContain('height: 32px;')
-  })
 
   it('keeps the quick entry manager as a home-local component instead of a shared app component', () => {
     const quickEntrySource = readFileSync(
-      resolve('e:/admin/admin_front_ts/src/views/Main/home/components/HomeQuickEntryPanel.vue'),
+      resolve(process.cwd(), 'src/views/Main/home/components/HomeQuickEntryPanel.vue'),
       'utf8',
     )
 

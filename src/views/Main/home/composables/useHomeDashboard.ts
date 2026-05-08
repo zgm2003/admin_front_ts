@@ -3,7 +3,6 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { CommonEnum } from '@/enums'
-import { OrderApi } from '@/api/pay/order'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { UsersApi } from '@/api/user/users'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
@@ -30,13 +29,6 @@ interface HomeProfileSummary {
   sexOptions: Array<{ label: string; value: number }>
 }
 
-interface HomeWalletSummary {
-  balance: number
-  frozen: number
-  total_recharge: number
-  total_consume: number
-  created_at: string
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
@@ -50,18 +42,9 @@ export function useHomeDashboard() {
   const { t } = useI18n()
 
   const notificationsLoading = ref(false)
-  const walletLoading = ref(false)
   const profileSummary = ref<HomeProfileSummary | null>(null)
   const notifications = ref<NotificationItem[]>([])
   const unreadCount = ref(0)
-  const wallet = ref<HomeWalletSummary>({
-    balance: 0,
-    frozen: 0,
-    total_recharge: 0,
-    total_consume: 0,
-    created_at: '',
-  })
-
   const savingQuickEntries = ref(false)
   const quickEntryManagerVisible = ref(false)
   const selectedPermissionId = ref<number | ''>('')
@@ -129,21 +112,6 @@ export function useHomeDashboard() {
     }
   }
 
-  async function loadWalletSummary() {
-    walletLoading.value = true
-    try {
-      const data = await OrderApi.walletInfo()
-      wallet.value = {
-        balance: Number(data.balance ?? 0),
-        frozen: Number(data.frozen ?? 0),
-        total_recharge: Number(data.total_recharge ?? 0),
-        total_consume: Number(data.total_consume ?? 0),
-        created_at: typeof data.created_at === 'string' ? data.created_at : '',
-      }
-    } finally {
-      walletLoading.value = false
-    }
-  }
 
   async function loadNotificationSnapshot() {
     notificationsLoading.value = true
@@ -168,7 +136,6 @@ export function useHomeDashboard() {
   async function loadHomeData() {
     await Promise.allSettled([
       loadProfileSummary(),
-      loadWalletSummary(),
       loadNotificationSnapshot(),
     ])
   }
@@ -200,9 +167,6 @@ export function useHomeDashboard() {
     })
   }
 
-  function goToWallet() {
-    router.push('/wallet')
-  }
 
   function goToNotifications() {
     router.push('/notification')
@@ -331,7 +295,6 @@ export function useHomeDashboard() {
   return {
     savingQuickEntries,
     notificationsLoading,
-    walletLoading,
     avatar,
     displayName,
     roleName,
@@ -339,7 +302,6 @@ export function useHomeDashboard() {
     profileBio,
     notifications,
     unreadCount,
-    wallet,
     localizedQuickEntryCards,
     quickEntryManagerVisible,
     quickEntryDraft,
@@ -350,7 +312,6 @@ export function useHomeDashboard() {
     loadHomeData,
     goTo,
     goToPersonal,
-    goToWallet,
     goToNotifications,
     openNotification,
     openQuickEntryManager,

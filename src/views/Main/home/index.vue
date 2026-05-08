@@ -3,13 +3,11 @@ import { onMounted } from 'vue'
 import HomeHeroPanel from './components/HomeHeroPanel.vue'
 import HomeNotificationsPanel from './components/HomeNotificationsPanel.vue'
 import HomeQuickEntryPanel from './components/HomeQuickEntryPanel.vue'
-import HomeWalletPanel from './components/HomeWalletPanel.vue'
 import { useHomeDashboard } from './composables/useHomeDashboard'
 
 const {
   savingQuickEntries,
   notificationsLoading,
-  walletLoading,
   avatar,
   displayName,
   roleName,
@@ -17,7 +15,6 @@ const {
   profileBio,
   notifications,
   unreadCount,
-  wallet,
   localizedQuickEntryCards,
   quickEntryManagerVisible,
   quickEntryDraft,
@@ -28,7 +25,6 @@ const {
   loadHomeData,
   goTo,
   goToPersonal,
-  goToWallet,
   goToNotifications,
   openNotification,
   openQuickEntryManager,
@@ -54,13 +50,6 @@ onMounted(() => {
         :profile-items="profileItems"
         :profile-bio="profileBio"
         @personal="goToPersonal"
-      />
-
-      <HomeWalletPanel
-        class="home-dashboard__card home-dashboard__card--wallet"
-        :loading="walletLoading"
-        :wallet="wallet"
-        @open="goToWallet"
       />
 
       <HomeNotificationsPanel
@@ -111,7 +100,7 @@ onMounted(() => {
   min-height: 0;
   gap: 16px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
 }
 
@@ -125,18 +114,13 @@ onMounted(() => {
   grid-row: 1;
 }
 
-.home-dashboard__card--wallet {
+.home-dashboard__card--notifications {
   grid-column: 2;
   grid-row: 1;
 }
 
-.home-dashboard__card--notifications {
-  grid-column: 1;
-  grid-row: 2;
-}
-
 .home-dashboard__card--quick-entry {
-  grid-column: 2;
+  grid-column: 1 / span 2;
   grid-row: 2;
 }
 
@@ -153,7 +137,6 @@ onMounted(() => {
   }
 
   .home-dashboard__card--hero,
-  .home-dashboard__card--wallet,
   .home-dashboard__card--notifications,
   .home-dashboard__card--quick-entry {
     grid-column: auto;

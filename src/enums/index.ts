@@ -1,5 +1,5 @@
 /**
- * 前端枚举 - 对应后端 CommonEnum / PayEnum / PermissionEnum / AiEnum
+ * 前端枚举 - 对应后端 CommonEnum / PermissionEnum / AiEnum
  */
 
 // CommonEnum - 是/否、启用/禁用
@@ -8,8 +8,6 @@ export const CommonEnum = {
   NO: 2,
 } as const
 
-// PayEnum - 支付相关枚举（从 PayEnum.ts 重新导出）
-export { PayChannel, PayStatus, BizStatus, TxnStatus, FulfillStatus, WalletType, OrderType, ReconcileStatus, formatFen } from './PayEnum'
 
 // PermissionEnum
 export const PermissionTypeEnum = {
