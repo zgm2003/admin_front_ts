@@ -67,7 +67,7 @@ export function useAgents() {
       const res = await AiAgentApi.options()
       const keywordText = keyword?.trim().toLowerCase()
       agents.value = keywordText
-        ? res.list.filter((item) => item.name.toLowerCase().includes(keywordText) || item.code?.toLowerCase().includes(keywordText))
+        ? res.list.filter((item) => item.name.toLowerCase().includes(keywordText))
         : res.list
       
       // 初始加载时，尝试恢复选择或选中第一个

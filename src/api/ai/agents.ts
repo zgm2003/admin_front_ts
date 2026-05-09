@@ -3,9 +3,6 @@ import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 import type { AiProviderDriver, AiProviderModelItem } from './providers'
 
-export type JsonObject = Record<string, unknown>
-export type AiAgentType = 'chat' | 'workflow' | 'agent'
-export type AiResponseMode = 'streaming' | 'blocking'
 export type AiAgentScene = 'chat'
 
 export interface AiAgentProviderModelOption extends DictOption<string> {
@@ -16,8 +13,6 @@ export interface AiAgentProviderModelOption extends DictOption<string> {
 
 export interface AiAgentInitResponse {
   dict: {
-    agent_type_arr: DictOption<AiAgentType>[]
-    response_mode_arr: DictOption<AiResponseMode>[]
     scene_arr: DictOption<AiAgentScene>[]
     common_status_arr: DictOption<number>[]
     provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
@@ -29,8 +24,7 @@ export interface AiAgentListParams extends RequestPayload {
   current_page?: number
   page_size?: number
   name?: string
-  code?: string
-  agent_type?: AiAgentType | ''
+  scene?: AiAgentScene | ''
   provider_id?: number | ''
   status?: number | ''
 }
@@ -41,7 +35,6 @@ export interface AiAgentItem {
   provider_name: string
   engine_type: AiProviderDriver | string
   name: string
-  code: string
   avatar?: string | null
   description?: string | null
   model_id: string
@@ -49,13 +42,6 @@ export interface AiAgentItem {
   scenes: AiAgentScene[]
   scene_names?: string[]
   system_prompt?: string
-  agent_type: AiAgentType
-  agent_type_name?: string
-  external_agent_id: string
-  external_agent_api_key_masked?: string | null
-  default_response_mode: AiResponseMode
-  default_response_mode_name?: string
-  runtime_config?: JsonObject | null
   status: number
   status_name?: string
   created_at: string
@@ -69,7 +55,6 @@ export interface AiAgentOption {
   description?: string | null
   provider_id: number
   engine_type: string
-  code?: string
   label?: string
   value?: number
 }
@@ -81,7 +66,6 @@ interface RemoteAiAgentOption {
   description?: string | null
   provider_id?: number
   engine_type?: string
-  code?: string
   label?: string
   value?: number
 }
@@ -93,33 +77,21 @@ export interface AiAgentOptionsResponse {
 export interface AiAgentMutationParams {
   id?: Id
   name: string
-  code?: string
   provider_id: number
   model_id: string
   scenes: AiAgentScene[]
   system_prompt?: string
   avatar?: string
-  external_agent_id?: string
-  agent_type?: 'chat' | 'workflow' | 'agent'
-  external_agent_api_key?: string
-  default_response_mode?: AiResponseMode
-  runtime_config?: JsonObject | null
   status?: number
 }
 
 export interface AiAgentMutationBody {
   name: string
-  code: string
   provider_id: number
   model_id: string
   scenes: AiAgentScene[]
   system_prompt?: string
   avatar?: string
-  external_agent_id: string
-  agent_type: NonNullable<AiAgentMutationParams['agent_type']>
-  external_agent_api_key?: string
-  default_response_mode: AiResponseMode
-  runtime_config?: JsonObject | null
   status: number
 }
 
@@ -131,8 +103,7 @@ interface AiAgentListQueryParams {
   current_page?: number
   page_size?: number
   name?: string
-  code?: string
-  agent_type?: AiAgentType
+  scene?: AiAgentScene
   provider_id?: number
   status?: number
 }
@@ -148,8 +119,7 @@ function normalizeListParams(params: AiAgentListParams): AiAgentListQueryParams 
   if (typeof params.current_page === 'number') query.current_page = params.current_page
   if (typeof params.page_size === 'number') query.page_size = params.page_size
   if (typeof params.name === 'string' && params.name.trim()) query.name = params.name.trim()
-  if (typeof params.code === 'string' && params.code.trim()) query.code = params.code.trim()
-  if (params.agent_type) query.agent_type = params.agent_type
+  if (params.scene) query.scene = params.scene
   if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.status === 'number') query.status = params.status
   return query
@@ -158,17 +128,11 @@ function normalizeListParams(params: AiAgentListParams): AiAgentListQueryParams 
 function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
   return {
     name: params.name,
-    code: params.code ?? params.name,
     provider_id: params.provider_id,
     model_id: params.model_id,
     scenes: params.scenes.length > 0 ? params.scenes : ['chat'],
     system_prompt: params.system_prompt?.trim(),
     avatar: params.avatar?.trim(),
-    external_agent_id: params.external_agent_id ?? '',
-    agent_type: params.agent_type ?? 'chat',
-    external_agent_api_key: params.external_agent_api_key,
-    default_response_mode: params.default_response_mode ?? 'streaming',
-    runtime_config: params.runtime_config ?? null,
     status: params.status ?? 1,
   }
 }
@@ -181,7 +145,6 @@ function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
     description: item.description ?? null,
     provider_id: item.provider_id ?? 0,
     engine_type: item.engine_type ?? '',
-    code: item.code,
     label: item.label,
     value: item.value,
   }

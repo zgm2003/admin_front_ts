@@ -50,7 +50,6 @@ export interface Agent {
   description?: string | null
   provider_id?: number
   engine_type?: string
-  code?: string
 }
 
 // 流式聊天选项

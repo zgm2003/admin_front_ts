@@ -17,7 +17,6 @@ import {
   type AiAgentItem,
   type AiAgentMutationParams,
   type AiAgentScene,
-  type AiAgentType,
 } from '@/api/ai/agents'
 
 type ModelPath = [number, string]
@@ -25,21 +24,17 @@ type ModelPath = [number, string]
 interface AgentForm {
   id?: number
   name: string
-  code: string
   model_path: ModelPath | []
   scenes: AiAgentScene[]
   status: number
   system_prompt: string
   avatar: string
-  agent_type: 'chat' | 'workflow' | 'agent'
 }
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
 const dict = shallowRef<AiAgentInitResponse['dict']>({
-  agent_type_arr: [],
-  response_mode_arr: [],
   scene_arr: [],
   common_status_arr: [],
   provider_options: [],
@@ -48,8 +43,7 @@ const dict = shallowRef<AiAgentInitResponse['dict']>({
 
 const searchForm = ref({
   name: '',
-  code: '',
-  agent_type: '' as AiAgentType | '',
+  scene: '' as AiAgentScene | '',
   provider_id: '' as number | '',
   status: '' as number | '',
 })
@@ -79,13 +73,11 @@ const modelOptions = ref<CascaderOption[]>([])
 function defaultForm(): AgentForm {
   return {
     name: '',
-    code: '',
     model_path: [],
     scenes: ['chat'],
     status: CommonEnum.YES,
     system_prompt: '',
     avatar: '',
-    agent_type: 'chat',
   }
 }
 
@@ -98,8 +90,7 @@ const rules = computed<FormRules>(() => ({
 
 const searchFields = computed<SearchField[]>(() => [
   { key: 'name', type: 'input', label: t('aiAgents.filter.name'), placeholder: t('aiAgents.filter.name'), width: 160 },
-  { key: 'code', type: 'input', label: t('aiAgents.filter.code'), placeholder: t('aiAgents.filter.code'), width: 150 },
-  { key: 'agent_type', type: 'select-v2', label: t('aiAgents.filter.agentType'), placeholder: t('aiAgents.filter.agentType'), width: 140, options: dict.value.agent_type_arr },
+  { key: 'scene', type: 'select-v2', label: t('aiAgents.filter.scene'), placeholder: t('aiAgents.filter.scene'), width: 140, options: dict.value.scene_arr },
   { key: 'provider_id', type: 'select-v2', label: t('aiAgents.filter.provider'), placeholder: t('aiAgents.filter.provider'), width: 180, options: dict.value.provider_options },
   { key: 'status', type: 'select-v2', label: t('aiAgents.filter.status'), placeholder: t('aiAgents.filter.status'), width: 120, options: dict.value.common_status_arr },
 ])
@@ -182,13 +173,11 @@ function edit(row: AiAgentItem) {
   form.value = {
     id: row.id,
     name: row.name,
-    code: row.code,
     model_path: row.provider_id && row.model_id ? [row.provider_id, row.model_id] : [],
     scenes: row.scenes.length > 0 ? row.scenes : ['chat'],
     status: row.status,
     system_prompt: row.system_prompt ?? '',
     avatar: row.avatar ?? '',
-    agent_type: row.agent_type === 'workflow' || row.agent_type === 'agent' ? row.agent_type : 'chat',
   }
   dialogVisible.value = true
   void nextTick(() => formRef.value?.clearValidate())
@@ -211,14 +200,12 @@ async function confirmSubmit() {
   const payload: AiAgentMutationParams = {
     id: form.value.id,
     name: form.value.name,
-    code: form.value.code || form.value.name,
     provider_id: providerID,
     model_id: modelID,
     scenes: form.value.scenes,
     status: form.value.status,
     system_prompt: form.value.system_prompt,
     avatar: form.value.avatar,
-    agent_type: form.value.agent_type,
   }
   const api = dialogMode.value === 'add' ? AiAgentApi.add : AiAgentApi.edit
   await api(payload)

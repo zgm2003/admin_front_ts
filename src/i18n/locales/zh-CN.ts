@@ -779,9 +779,9 @@ export default {
     syncModelsDone: '模型同步完成，共 {count} 个'
   },
   aiAgents: {
-    filter: { name: '智能体名称', code: '智能体编码', agentType: '智能体类型', provider: '供应商', status: '状态' },
-    table: { avatar: '头像', name: '智能体名称', code: '编码', provider: '供应商', model: '关联模型', scenes: '场景', agentType: '类型', externalAgentId: '外部智能体 ID', externalAgentKeyMasked: '外部智能体 Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
-    form: { name: '智能体名称', code: '智能体编码', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', agentType: '智能体类型', externalAgentId: '外部智能体 ID', responseMode: '响应模式', status: '状态', externalAgentApiKey: '外部智能体 API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
+    filter: { name: '智能体名称', scene: '场景', provider: '供应商', status: '状态' },
+    table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
+    form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
     scene: { chat: '对话' },
     actions: { test: '测试智能体', bindings: '绑定' },
     binding: { title: '智能体绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },

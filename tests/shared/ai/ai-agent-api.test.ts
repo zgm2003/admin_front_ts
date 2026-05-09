@@ -20,18 +20,21 @@ describe('AI agent api contract', () => {
     expect(source).not.toContain('/test`)')
     expect(source).not.toContain('/bindings`)')
     expect(source).not.toContain('legacy' + 'Request')
-    expect(source).not.toContain('external_agent_api_key' + '_enc')
+    expect(source).not.toContain('external_agent')
+    expect(source).not.toContain('default_response_mode')
+    expect(source).not.toContain('runtime_config')
+    expect(source).not.toContain('agent_type')
+    expect(source).not.toMatch(/\bcode\??:/)
     expect(source).not.toContain('Authorization')
   })
 
-  it('keeps strict types and write-only agent key body', () => {
+  it('keeps strict MVP mutation types', () => {
     const source = readFrontendSource('src/api/ai/agents.ts')
     expect(source).toContain('model_id: string')
     expect(source).toContain('scenes: AiAgentScene[]')
     expect(source).toContain('system_prompt?: string')
     expect(source).toContain('avatar?: string')
-    expect(source).toContain('external_agent_api_key?: string')
-    expect(source).toContain('external_agent_api_key_masked?: string | null')
+    expect(source).not.toContain('AiAgentType')
     expect(source).not.toMatch(forbiddenLooseTypePattern)
   })
 
@@ -43,6 +46,9 @@ describe('AI agent api contract', () => {
     expect(source).toContain('scenes')
     expect(source).toContain('system_prompt')
     expect(source).toContain('UpMedia')
+    expect(source).toContain("key: 'scene'")
+    expect(source).not.toContain("key: 'agent_type'")
+    expect(source).not.toContain("key: 'code'")
     expect(source).not.toContain('Authorization')
   })
 

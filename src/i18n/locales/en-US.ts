@@ -779,9 +779,9 @@ export default {
     syncModelsDone: 'Model sync completed, {count} found'
   },
   aiAgents: {
-    filter: { name: 'Agent Name', code: 'Agent Code', agentType: 'Agent Type', provider: 'Provider', status: 'Status' },
-    table: { avatar: 'Avatar', name: 'Agent Name', code: 'Code', provider: 'Provider', model: 'Model', scenes: 'Scenes', agentType: 'Type', externalAgentId: 'External Agent ID', externalAgentKeyMasked: 'External Agent Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Agent Name', code: 'Agent Code', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', agentType: 'Agent Type', externalAgentId: 'External Agent ID', responseMode: 'Response Mode', status: 'Status', externalAgentApiKey: 'External Agent API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
+    filter: { name: 'Agent Name', scene: 'Scene', provider: 'Provider', status: 'Status' },
+    table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
     scene: { chat: 'Chat' },
     actions: { test: 'Test Agent', bindings: 'Bindings' },
     binding: { title: 'Agent Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
