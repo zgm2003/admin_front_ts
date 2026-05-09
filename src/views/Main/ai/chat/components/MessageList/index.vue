@@ -1,578 +1,166 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import {useI18n} from 'vue-i18n'
-import {Loading, CopyDocument, Delete, RefreshRight, Edit} from '@element-plus/icons-vue'
-import {MarkdownRenderer} from '@/components/MarkdownRenderer'
-import {DIcon} from '@/components/DIcon'
-import { CommonEnum, AiRoleEnum } from '@/enums'
-import ToolCallStatus from '../ToolCallStatus.vue'
-import type { Attachment, Message, MessageBlock } from '../../composables/types'
+import { useI18n } from 'vue-i18n'
+import { CopyDocument, Loading } from '@element-plus/icons-vue'
+import { MarkdownRenderer } from '@/components/MarkdownRenderer'
+import { AiRoleEnum } from '@/enums'
+import type { Message } from '../../composables/types'
 
-const {t} = useI18n()
+const { t } = useI18n()
 
-const props = defineProps<{
+defineProps<{
   messages: Message[]
   loading: boolean
-  sending?: boolean
 }>()
 
 const emit = defineEmits<{
-  copy: [msg: Message]
-  delete: [msg: Message]
-  regenerate: [msg: Message]
-  edit: [msg: Message, newContent: string]
-  feedback: [msg: Message, feedback: number | null]
+  copy: [message: Message]
 }>()
-
-// 编辑状态
-const editingMsgId = ref<number | null>(null)
-const editContent = ref('')
-
-// 是否可编辑（仅用户消息 + 非流式中 + 有真实 id）
-const canEdit = (msg: Message) => {
-  return msg.role === AiRoleEnum.USER && !msg.isStreaming && msg.id > 0 && !props.sending
-}
-
-const startEdit = (msg: Message) => {
-  editingMsgId.value = msg.id
-  editContent.value = msg.content
-}
-
-const cancelEdit = () => {
-  editingMsgId.value = null
-  editContent.value = ''
-}
-
-const confirmEdit = (msg: Message) => {
-  const trimmed = editContent.value.trim()
-  if (!trimmed || trimmed === msg.content) {
-    cancelEdit()
-    return
-  }
-  emit('edit', msg, trimmed)
-  cancelEdit()
-}
-
-// 图片预览相关
-const previewVisible = ref(false)
-const previewImages = ref<string[]>([])
-const previewIndex = ref(0)
-
-// 图片加载状态 Map: url -> 'loading' | 'loaded' | 'error'
-const imageLoadingStates = ref<Map<string, string>>(new Map())
-
-// 从消息中提取附件
-const getAttachments = (msg: Message): Attachment[] => {
-  return msg.meta_json?.attachments || []
-}
-
-const getMessageBlocks = (msg: Message): MessageBlock[] => {
-  return Array.isArray(msg.meta_json?.blocks) ? msg.meta_json.blocks : []
-}
-
-const hasMessageBlocks = (msg: Message): boolean => {
-  return getMessageBlocks(msg).length > 0
-}
-
-const getImageBlocks = (msg: Message): string[] => {
-  return getMessageBlocks(msg)
-    .filter((block): block is Extract<MessageBlock, { type: 'image' }> => block.type === 'image' && !!block.url)
-    .map(block => block.url)
-}
-
-// 获取图片加载状态
-const getImageLoadingState = (url: string): string => {
-  return imageLoadingStates.value.get(url) || 'loading'
-}
-
-// 图片加载完成
-const handleImageLoad = (url: string) => {
-  imageLoadingStates.value.set(url, 'loaded')
-}
-
-// 图片加载失败
-const handleImageError = (url: string) => {
-  imageLoadingStates.value.set(url, 'error')
-}
-
-// 点击图片预览
-const handleImageClick = (msg: Message, index: number) => {
-  const attachments = getAttachments(msg)
-  previewImages.value = attachments.map(a => a.url)
-  previewIndex.value = index
-  previewVisible.value = true
-}
-
-const handleBlockImageClick = (msg: Message, url: string) => {
-  const urls = getImageBlocks(msg)
-  previewImages.value = urls.length > 0 ? urls : [url]
-  previewIndex.value = Math.max(0, previewImages.value.indexOf(url))
-  previewVisible.value = true
-}
-
-// 关闭预览
-const closePreview = () => {
-  previewVisible.value = false
-}
-
-// 是否显示重新生成按钮（只有最后一条 AI 消息才显示）
-const showRegenerate = (msg: Message, index: number) => {
-  if (msg.role === AiRoleEnum.USER) return false
-  if (msg.isStreaming) return false
-  for (let i = props.messages.length - 1; i >= 0; i--) {
-    const candidate = props.messages[i]
-    if (candidate && candidate.role !== AiRoleEnum.USER) {
-      return i === index
-    }
-  }
-  return false
-}
-
-// 获取消息的反馈状态
-const getFeedback = (msg: Message): number | null => {
-  return msg.meta_json?.feedback ?? null
-}
-
-// 点击反馈按钮
-const handleFeedback = (msg: Message, feedback: number) => {
-  const current = getFeedback(msg)
-  emit('feedback', msg, current === feedback ? null : feedback)
-}
 </script>
 
 <template>
-  <div class="message-list-container">
-    <!-- 只在没有消息且正在加载时显示 loading -->
-    <div v-if="loading && messages.length === 0" class="loading-tip">
-      <el-icon class="is-loading" :size="24"><Loading/></el-icon>
+  <div class="message-list">
+    <div v-if="loading && messages.length === 0" class="state-tip">
+      <el-icon class="is-loading" :size="24"><Loading /></el-icon>
       <span>{{ t('aiChat.loading') }}</span>
     </div>
-    <!-- 消息列表 - 豆包风格单列文档流 -->
-    <div v-else class="message-list">
-      <template v-for="(msg, index) in messages" :key="msg.id">
-        <!-- ====== 用户消息：横条卡片 ====== -->
-        <div v-if="msg.role === AiRoleEnum.USER" class="user-block">
-          <!-- 用户消息图片附件 -->
-          <div v-if="getAttachments(msg).length > 0" class="user-attachments">
-            <div
-              v-for="(attachment, idx) in getAttachments(msg)"
-              :key="idx"
-              class="attachment-image-wrapper"
-            >
-              <div v-if="getImageLoadingState(attachment.url) === 'loading'" class="attachment-loading">
-                <el-icon class="is-loading" :size="20"><Loading /></el-icon>
-              </div>
-              <img
-                :src="attachment.url"
-                :alt="attachment.name"
-                class="attachment-image"
-                :class="{ 'image-loaded': getImageLoadingState(attachment.url) === 'loaded' }"
-                @load="handleImageLoad(attachment.url)"
-                @error="handleImageError(attachment.url)"
-                @click="handleImageClick(msg, idx)"
-              />
-            </div>
-          </div>
-          <!-- 编辑模式 -->
-          <div v-if="editingMsgId === msg.id" class="user-card editing">
-            <el-input
-              v-model="editContent"
-              type="textarea"
-              :autosize="{ minRows: 1, maxRows: 8 }"
-              class="edit-textarea"
-              @keydown.enter.exact.prevent="confirmEdit(msg)"
-              @keydown.escape="cancelEdit"
-            />
-            <div class="edit-actions">
-              <el-button size="small" @click="cancelEdit">{{ t('common.actions.cancel') }}</el-button>
-              <el-button size="small" type="primary" @click="confirmEdit(msg)">{{ t('aiChat.editSubmit') }}</el-button>
-            </div>
-          </div>
-          <!-- 正常显示 -->
-          <div v-else class="user-card">
-            <span class="user-text">{{ msg.content }}</span>
-          </div>
-          <!-- 用户消息操作 -->
-          <div class="msg-actions user-actions" v-if="!msg.isStreaming && editingMsgId !== msg.id">
-            <button v-if="canEdit(msg)" class="action-btn" @click="startEdit(msg)" :title="t('aiChat.editMessage')">
-              <el-icon :size="15"><Edit /></el-icon>
-            </button>
-            <button class="action-btn" @click="emit('copy', msg)" :title="t('aiChat.copyMessage')">
-              <el-icon :size="15"><CopyDocument /></el-icon>
-            </button>
-            <button class="action-btn" @click="emit('delete', msg)" :title="t('aiChat.deleteMessage')">
-              <el-icon :size="15"><Delete /></el-icon>
-            </button>
-          </div>
+
+    <template v-else>
+      <article
+        v-for="message in messages"
+        :key="`${message.id}-${message.request_id || ''}`"
+        class="message-row"
+        :class="message.role === AiRoleEnum.USER ? 'user-row' : 'assistant-row'"
+      >
+        <div class="message-meta">
+          {{ message.role === AiRoleEnum.USER ? t('aiChat.you') : t('aiChat.assistant') }}
         </div>
-
-        <!-- ====== AI 消息：全宽平铺 ====== -->
-        <div v-else class="ai-block">
-          <ToolCallStatus v-if="msg.tool_calls?.length" :tool-calls="msg.tool_calls" />
-          <div v-if="hasMessageBlocks(msg)" class="ai-blocks">
-            <template v-for="(block, blockIndex) in getMessageBlocks(msg)" :key="`${msg.id}-${blockIndex}`">
-              <MarkdownRenderer
-                v-if="block.type === 'text'"
-                :content="block.text"
-                class="ai-content"
-              />
-              <div v-else-if="block.type === 'image'" class="ai-image-block">
-                <el-image
-                  :src="block.url"
-                  :alt="block.alt || t('aiChat.generatedImage')"
-                  class="ai-generated-image"
-                  fit="cover"
-                  lazy
-                  @click="handleBlockImageClick(msg, block.url)"
-                >
-                  <template #placeholder>
-                    <div class="ai-image-placeholder">
-                      <el-icon class="is-loading" :size="20"><Loading /></el-icon>
-                    </div>
-                  </template>
-                  <template #error>
-                    <div class="ai-image-error">{{ t('aiChat.imageLoadFailed') }}</div>
-                  </template>
-                </el-image>
-                <div v-if="block.alt" class="ai-image-alt">{{ block.alt }}</div>
-              </div>
-              <div v-else-if="block.type === 'error'" class="ai-error-block">
-                {{ block.message }}
-              </div>
-            </template>
+        <div class="message-card">
+          <MarkdownRenderer v-if="message.content" :content="message.content" class="message-content" />
+          <div v-else-if="message.isStreaming" class="typing-dots">
+            <span />
+            <span />
+            <span />
           </div>
-          <MarkdownRenderer v-else :content="msg.content" class="ai-content"/>
-
-          <!-- 流式输出指示器 -->
-          <div v-if="msg.isStreaming" class="streaming-indicator">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-          </div>
-
-          <!-- AI 消息操作 -->
-          <div class="msg-actions ai-actions" v-if="!msg.isStreaming">
-            <!-- 点赞/点踩 -->
-            <button
-              class="action-btn"
-              :class="{ 'like-active': getFeedback(msg) === CommonEnum.YES }"
-              @click="handleFeedback(msg, 1)"
-              :title="t('aiChat.like')"
-            >
-              <DIcon icon="mdi:thumb-up" :size="15" />
-            </button>
-            <button
-              class="action-btn"
-              :class="{ 'dislike-active': getFeedback(msg) === CommonEnum.NO }"
-              @click="handleFeedback(msg, 2)"
-              :title="t('aiChat.dislike')"
-            >
-              <DIcon icon="mdi:thumb-down" :size="15" />
-            </button>
-            <span class="action-divider"></span>
-            <button class="action-btn" @click="emit('copy', msg)" :title="t('aiChat.copyMessage')">
-              <el-icon :size="15"><CopyDocument /></el-icon>
-            </button>
-            <button class="action-btn" @click="emit('delete', msg)" :title="t('aiChat.deleteMessage')">
-              <el-icon :size="15"><Delete /></el-icon>
-            </button>
-            <button
-              v-if="showRegenerate(msg, index)"
-              class="action-btn"
-              :disabled="sending"
-              @click="emit('regenerate', msg)"
-              :title="t('aiChat.regenerate')"
-            >
-              <el-icon :size="15"><RefreshRight /></el-icon>
-            </button>
-          </div>
+          <span v-else class="empty-content">...</span>
         </div>
-
-        <!-- 消息分隔线（AI 消息后面，且不是最后一条） -->
-        <div v-if="msg.role !== AiRoleEnum.USER && index < messages.length - 1" class="msg-divider"></div>
-      </template>
-    </div>
-
-    <!-- 图片预览 -->
-    <el-image-viewer
-      v-if="previewVisible"
-      :url-list="previewImages"
-      :initial-index="previewIndex"
-      @close="closePreview"
-    />
+        <div v-if="!message.isStreaming" class="message-actions">
+          <el-button text size="small" @click="emit('copy', message)">
+            <el-icon :size="15"><CopyDocument /></el-icon>
+            {{ t('aiChat.copyMessage') }}
+          </el-button>
+        </div>
+      </article>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.message-list-container {
-  height: 100%;
-  overflow-y: auto;
-}
-
-.loading-tip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 48px;
-  color: var(--el-text-color-secondary);
-}
-
 .message-list {
-  display: flex;
-  flex-direction: column;
-  padding: 24px 0;
-  max-width: 768px;
+  width: min(860px, calc(100% - 32px));
   margin: 0 auto;
+  padding: 24px 0 40px;
 }
 
-/* ====== 用户消息块 ====== */
-.user-block {
-  padding: 0 16px;
-  margin-bottom: 24px;
-}
-
-.user-card {
-  background: var(--el-fill-color-light);
-  border-radius: 12px;
-  padding: 14px 18px;
-  font-size: 15px;
-  line-height: 1.75;
-  color: var(--el-text-color-primary);
-  word-break: break-word;
-  white-space: pre-wrap;
-  position: relative;
-}
-
-.user-card.editing {
-  background: var(--el-fill-color);
-  border: 1px solid var(--el-color-primary-light-5);
-}
-
-.user-text {
-  display: block;
-}
-
-/* 用户附件 */
-.user-attachments {
+.state-tip {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-  padding: 0 16px;
-}
-
-.attachment-image-wrapper {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--el-fill-color-light);
-  min-width: 60px;
-  min-height: 60px;
-}
-
-.attachment-loading {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--el-fill-color-light);
+  gap: 10px;
+  min-height: 260px;
   color: var(--el-text-color-secondary);
 }
 
-.attachment-image {
-  display: block;
-  max-width: 200px;
-  max-height: 150px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.attachment-image.image-loaded {
-  opacity: 1;
-}
-
-/* 编辑模式 */
-.edit-textarea :deep(.el-textarea__inner) {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  font-size: 15px;
-  line-height: 1.75;
-  padding: 0;
-  resize: none;
-  color: var(--el-text-color-primary);
-}
-
-.edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-/* ====== AI 消息块 ====== */
-.ai-block {
-  padding: 0 16px;
-  margin-bottom: 8px;
-}
-
-.ai-content {
-  font-size: 15px;
-  line-height: 1.85;
-  color: var(--el-text-color-primary);
-  word-break: break-word;
-}
-
-.ai-blocks {
+.message-row {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.ai-image-block {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
   gap: 6px;
+  margin-bottom: 22px;
 }
 
-.ai-generated-image {
-  width: min(100%, 420px);
-  max-height: 520px;
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: zoom-in;
-  border: 1px solid var(--el-border-color-lighter);
-  background: var(--el-fill-color-light);
-}
-
-.ai-image-placeholder,
-.ai-image-error {
-  width: min(100vw - 64px, 420px);
-  height: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
-  background: var(--el-fill-color-light);
-}
-
-.ai-image-alt {
-  max-width: 420px;
+.message-meta {
+  padding: 0 4px;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
-  line-height: 1.5;
+  color: var(--el-text-color-placeholder);
 }
 
-.ai-error-block {
-  padding: 10px 12px;
-  border-radius: 10px;
-  color: var(--el-color-danger);
-  background: var(--el-color-danger-light-9);
+.user-row {
+  align-items: flex-end;
 }
 
-/* ====== 操作按钮 - 豆包风格 ====== */
-.msg-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-top: 8px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+.assistant-row {
+  align-items: flex-start;
 }
 
-.user-block:hover .msg-actions,
-.ai-block:hover .msg-actions {
-  opacity: 1;
+.message-card {
+  max-width: min(720px, 100%);
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
 }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--el-text-color-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
+.user-row .message-card {
+  color: #fff;
+  background: var(--el-color-primary);
+  border-bottom-right-radius: 4px;
 }
 
-.action-btn:hover {
-  background: var(--el-fill-color);
+.assistant-row .message-card {
   color: var(--el-text-color-primary);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-bottom-left-radius: 4px;
 }
 
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.message-content {
+  line-height: 1.7;
+  word-break: break-word;
 }
 
-.action-btn.like-active {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
+.user-row .message-content :deep(*) {
+  color: inherit;
 }
 
-.action-btn.dislike-active {
-  color: var(--el-color-danger);
-  background: var(--el-color-danger-light-9);
-}
-
-.action-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--el-border-color-lighter);
-  margin: 0 4px;
-}
-
-/* ====== 分隔线 ====== */
-.msg-divider {
-  height: 1px;
-  background: var(--el-border-color-extra-light);
-  margin: 16px 16px 24px;
-}
-
-/* ====== 流式输出指示器 ====== */
-.streaming-indicator {
+.message-actions {
   display: flex;
+  justify-content: flex-start;
+  min-height: 24px;
+}
+
+.user-row .message-actions {
+  justify-content: flex-end;
+}
+
+.empty-content {
+  color: var(--el-text-color-placeholder);
+}
+
+.typing-dots {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 12px;
-  padding-left: 2px;
+  min-width: 36px;
+  min-height: 20px;
 }
 
-.typing-dot {
+.typing-dots span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--el-text-color-placeholder);
-  animation: typing 1.4s infinite ease-in-out both;
+  animation: typing 1.2s infinite ease-in-out;
 }
 
-.typing-dot:nth-child(1) { animation-delay: 0s; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 @keyframes typing {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
-/* ====== 移动端适配 ====== */
-@media (max-width: 768px) {
-  .message-list { padding: 16px 0; }
-  .user-block, .ai-block { padding: 0 12px; }
-  .msg-divider { margin: 12px 12px 20px; }
-  .user-card { padding: 12px 14px; font-size: 14px; }
-  .ai-content { font-size: 14px; }
-  .user-attachments { padding: 0 12px; }
-  .attachment-image { max-width: 160px; max-height: 120px; }
+  0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
 }
 </style>

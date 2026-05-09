@@ -1,7 +1,15 @@
 import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiMessageMeta } from './messages'
+
+export interface AiRunMessageAttachment {
+  url: string
+}
+
+export interface AiRunMessageMeta {
+  attachments?: AiRunMessageAttachment[]
+  [key: string]: unknown
+}
 
 export interface AiRunInitResponse {
   dict: {
@@ -51,7 +59,7 @@ export interface AiRunItem {
 export interface AiRunMessageSummary {
   id: number
   content: string
-  meta_json?: AiMessageMeta
+  meta_json?: AiRunMessageMeta
   created_at: string
 }
 

@@ -12,7 +12,6 @@ import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
 import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
-import {DIcon} from '@/components/DIcon'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
@@ -323,11 +322,6 @@ onMounted(() => {
                 <div class="message-content">{{ detailData.assistant_message.content }}</div>
                 <div class="message-meta">
                   <span>{{ detailData.assistant_message.created_at }}</span>
-                  <span v-if="detailData.assistant_message.meta_json?.feedback" class="feedback-badge">
-                    <DIcon v-if="detailData.assistant_message.meta_json.feedback === CommonEnum.YES" 
-                          icon="mdi:thumb-up" :size="14" style="color: var(--el-color-primary)"/>
-                    <DIcon v-else icon="mdi:thumb-down" :size="14" style="color: var(--el-color-danger)"/>
-                  </span>
                 </div>
                 <div v-if="detailData.assistant_message.meta_json" class="meta-json">
                   <div v-if="detailData.assistant_message.meta_json.run_request_id" class="meta-item">
@@ -499,11 +493,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.feedback-badge {
-  display: inline-flex;
-  align-items: center;
 }
 
 .meta-json {

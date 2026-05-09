@@ -1,110 +1,67 @@
-import { ref, computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { AiAgentApi } from '@/api/ai/agents'
 import type { Agent } from './types'
 
-const STORAGE_KEY = 'ai_chat_selected_app'
+const STORAGE_KEY = 'ai_chat_selected_agent'
 
 export function useAgents() {
-  const agents = ref<Agent[]>([])
-  const selectedAgentId = ref<number | null>(null)
-  const searchLoading = ref(false)
-  const loading = ref(false)
+  const agents = shallowRef<Agent[]>([])
+  const selectedAgentId = shallowRef<number | null>(null)
+  const loading = shallowRef(false)
 
-  // 当前选中的智能体
-  const selectedAgent = computed(() => {
-    return agents.value.find(a => a.id === selectedAgentId.value)
-  })
+  const selectedAgent = computed(() => agents.value.find((agent) => agent.id === selectedAgentId.value))
 
-  // 智能体选项（el-select-v2 格式）
-  const agentOptions = computed(() => {
-    return agents.value.map(a => ({
-      value: a.id,
-      label: a.name,
-      avatar: a.avatar,
-      description: a.description
-    }))
-  })
-
-  // 从 localStorage 恢复选择
-  const restoreSelection = (): boolean => {
+  function persistSelection(agentId: number | null) {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const id = parseInt(saved, 10)
-        if (!isNaN(id) && agents.value.some(a => a.id === id)) {
-          selectedAgentId.value = id
-          return true
-        }
-      }
-    } catch { /* localStorage 不可用 */ }
-    return false
-  }
-
-  // 持久化选择到 localStorage
-  const persistSelection = (agentId: number | null) => {
-    try {
-      if (agentId !== null) {
+      if (agentId) {
         localStorage.setItem(STORAGE_KEY, String(agentId))
       } else {
         localStorage.removeItem(STORAGE_KEY)
       }
-    } catch { /* localStorage 不可用 */ }
+    } catch {
+      // localStorage can be unavailable in private mode.
+    }
   }
 
-  // 选择智能体
-  const selectAgent = (agent: Agent) => {
+  function restoreSelection(): boolean {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      const id = raw ? Number(raw) : 0
+      if (Number.isInteger(id) && agents.value.some((agent) => agent.id === id)) {
+        selectedAgentId.value = id
+        return true
+      }
+    } catch {
+      // Ignore storage errors.
+    }
+    return false
+  }
+
+  function selectAgent(agent: Agent) {
     selectedAgentId.value = agent.id
     persistSelection(agent.id)
   }
 
-  // 加载智能体
-  const loadAgents = async (keyword?: string) => {
-    if (!keyword) {
-      loading.value = true
-    }
-    searchLoading.value = true
+  async function loadAgents() {
+    loading.value = true
     try {
-      const res = await AiAgentApi.options()
-      const keywordText = keyword?.trim().toLowerCase()
-      agents.value = keywordText
-        ? res.list.filter((item) => item.name.toLowerCase().includes(keywordText))
-        : res.list
-      
-      // 初始加载时，尝试恢复选择或选中第一个
-      if (!keyword && agents.value.length > 0) {
-        if (!restoreSelection() && !selectedAgentId.value) {
-          selectedAgentId.value = agents.value[0]!.id
-          persistSelection(selectedAgentId.value)
-        }
+      const response = await AiAgentApi.options()
+      agents.value = response.list
+      if (agents.value.length > 0 && !restoreSelection() && selectedAgentId.value === null) {
+        selectedAgentId.value = agents.value[0]!.id
+        persistSelection(selectedAgentId.value)
       }
-    } catch { /* ignore */ }
-    searchLoading.value = false
-    loading.value = false
-  }
-
-  // 搜索智能体
-  const handleSearch = (keyword: string) => {
-    loadAgents(keyword)
-  }
-
-  // 获取智能体头像
-  const getAgentAvatar = (agentId: number | null | undefined, fallbackAvatar?: string) => {
-    if (fallbackAvatar) return fallbackAvatar
-    const agent = agents.value.find(a => a.id === agentId)
-    return agent?.avatar || ''
+    } finally {
+      loading.value = false
+    }
   }
 
   return {
     agents,
     selectedAgentId,
-    searchLoading,
     loading,
     selectedAgent,
-    agentOptions,
     loadAgents,
-    handleSearch,
     selectAgent,
-    restoreSelection,
-    getAgentAvatar,
   }
 }

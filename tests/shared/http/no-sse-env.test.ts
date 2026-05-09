@@ -12,7 +12,6 @@ describe('frontend realtime environment boundary', () => {
       '.env.development',
       '.env.production',
       'src/vite-env.d.ts',
-      'src/lib/http/stream.ts',
     ]
 
     for (const file of files) {

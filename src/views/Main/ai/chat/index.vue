@@ -1,68 +1,35 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { computed, nextTick, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
-import { AppDialog } from '@/components/AppDialog'
+import { ElNotification } from 'element-plus'
+import { AiMessageApi } from '@/api/ai/messages'
+import { createAiRequestId } from '@/api/ai/chat'
+import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
-
 import AgentList from './components/AgentList/index.vue'
-import ConversationDrawer from './components/ConversationDrawer/index.vue'
+import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
 import MessageInput from './components/MessageInput/index.vue'
-
-import {
-  useConversations,
-  findTodayConversation,
-  useMessages,
-  useAgents,
-  useStreamChat,
-  useChatSessionManager
-} from './composables'
-import type { Agent, Conversation } from './composables/types'
-import type { Message } from './composables/types'
-import type { ScrollRefApi } from './composables/useMessages'
+import { useAgents, useConversations, useConversationSessions, useConversationSocket } from './composables'
+import type { Agent, Conversation, Message } from './composables/types'
 
 const { t } = useI18n()
+const { copy } = useCopy()
 const isMobile = useIsMobile()
 
-// ========== 状态管理 ==========
-const currentConversationId = ref<number | null>(null)
-const showConversationDrawer = ref(false)
-const switchingAgent = ref(false)
+const MESSAGE_PAGE_SIZE = 50
 
-// ========== Session Manager ==========
-const sessionManager = useChatSessionManager()
+interface ScrollbarRef {
+  wrapRef?: HTMLElement
+  setScrollTop: (value: number) => void
+}
 
-// ========== Composables ==========
-const {
-  conversations,
-  loaded,
-  loading: conversationsLoading,
-  loadingMore: conversationsLoadingMore,
-  hasMore: conversationsHasMore,
-  showArchived,
-  loadConversations,
-  loadMore: loadMoreConversations,
-  rename: renameConversation,
-  remove: removeConversation,
-  archive: archiveConversation,
-  toggleArchived,
-  search: searchConversations
-} = useConversations()
-
-const {
-  messages,
-  loading: messagesLoading,
-  loadingMore: messagesLoadingMore,
-  hasMore: messagesHasMore,
-  scrollRef: messageScrollRef,
-  scrollToBottom,
-  loadMessages: loadMessagesRaw,
-  handleScroll: handleScrollRaw,
-  copy: copyMessage,
-  remove: removeMessage,
-  feedback: feedbackMessage
-} = useMessages()
+const messageInputRef = shallowRef<InstanceType<typeof MessageInput> | null>(null)
+const messageScrollRef = shallowRef<ScrollbarRef | null>(null)
+const currentConversationId = shallowRef<number | null>(null)
+const switchingAgent = shallowRef(false)
+const selectedConversationByAgent = shallowRef(new Map<number, number | null>())
 
 const {
   agents,
@@ -73,307 +40,257 @@ const {
   selectAgent,
 } = useAgents()
 
-// 包装 loadMessages 以便传入 conversationId
-const loadMessages = async () => {
-  await loadMessagesRaw(currentConversationId.value)
-}
-const handleScroll = (e: { scrollTop: number }) => handleScrollRaw(e, currentConversationId.value)
-
 const {
-  sending,
-  isStreaming,
-  currentRunId,
-  streamingContent,
-  send: sendMessage,
-  regenerate: regenerateMessage,
-  editAndResend: editAndResendMessage,
-  stop: stopGeneration
-} = useStreamChat({
-  messages,
   conversations,
-  currentConversationId,
-  selectedAgentId,
-  selectedAgent,
-  scrollToBottom,
-  loadMessages,
-  getActiveAgentId: () => selectedAgentId.value,
-  getSession: (agentId: number) => sessionManager.getOrCreate(agentId),
-  getRuntimeParams: () => messageInputRef.value?.getRequestParams?.() ?? {},
-})
+  loading: conversationsLoading,
+  loadingMore: conversationsLoadingMore,
+  hasMore: conversationsHasMore,
+  loadConversations,
+  loadMore: loadMoreConversations,
+  create: createConversation,
+  remove: removeConversation,
+  upsertConversation,
+  touchConversation,
+} = useConversations()
 
-// ========== 计算属性 ==========
-const currentConversation = computed(() => {
-  return conversations.value.find(c => c.id === currentConversationId.value)
-})
+const sessions = useConversationSessions()
 
-const setMessageScrollRef = (el: unknown) => {
-  messageScrollRef.value = el as ScrollRefApi | null
+const currentConversation = computed(() => conversations.value.find((conversation) => conversation.id === currentConversationId.value))
+const currentSession = computed(() => sessions.get(currentConversationId.value))
+const messages = computed(() => currentSession.value?.messages ?? [])
+const messagesLoading = computed(() => currentSession.value?.loadingMessages ?? false)
+const messagesLoadingMore = computed(() => currentSession.value?.loadingMoreMessages ?? false)
+const messagesHasMore = computed(() => currentSession.value?.hasMoreMessages ?? false)
+const sending = computed(() => currentSession.value?.sending ?? false)
+const isStreaming = computed(() => currentSession.value?.isStreaming ?? false)
+
+function setSelectedConversationForAgent(agentId: number, conversationId: number | null) {
+  const next = new Map(selectedConversationByAgent.value)
+  next.set(agentId, conversationId)
+  selectedConversationByAgent.value = next
 }
 
-const resetStreamUiState = () => {
-  isStreaming.value = false
-  sending.value = false
-  streamingContent.value = ''
-  currentRunId.value = null
+function setMessageScrollRef(el: unknown) {
+  messageScrollRef.value = el as ScrollbarRef | null
 }
 
-// ========== 挂起当前 agent 状态到 session ==========
-const suspendCurrentAgent = () => {
-  const agentId = selectedAgentId.value
-  if (!agentId) return
-
-  const session = sessionManager.getOrCreate(agentId)
-  // 保存 UI 状态到 session
-  session.conversationId = currentConversationId.value
-  session.messages = [...messages.value]
-  session.conversations = [...conversations.value]
-  session.conversationsLoaded = loaded.value
-  session.isStreaming = isStreaming.value
-  session.sending = sending.value
-  session.streamingContent = streamingContent.value
-  session.currentRunId = currentRunId.value
+function scrollToBottom() {
+  nextTick(() => {
+    const wrap = messageScrollRef.value?.wrapRef
+    if (wrap) messageScrollRef.value?.setScrollTop(wrap.scrollHeight)
+  })
 }
 
-// ========== 从 session 恢复 agent 状态到 UI ==========
-const resumeAgent = (agentId: number) => {
-  const session = sessionManager.resume(agentId)
-  if (!session) return false
+function responseToMessages(list: Message[]) {
+  return [...list].reverse()
+}
 
-  currentConversationId.value = session.conversationId
-  messages.value = [...session.messages]
-  conversations.value = [...session.conversations]
-  loaded.value = session.conversationsLoaded
-  // 恢复流式状态
-  isStreaming.value = session.isStreaming
-  sending.value = session.sending
-  streamingContent.value = session.streamingContent
-  currentRunId.value = session.currentRunId
+async function loadConversationMessages(conversationId: number) {
+  const session = sessions.getOrCreate(conversationId)
+  if (session.messages.length > 0 || session.isStreaming || session.sending) return
 
-  if (session.isStreaming) {
-    nextTick(() => scrollToBottom())
+  sessions.setLoading(conversationId, true)
+  try {
+    const response = await AiMessageApi.list({ conversation_id: conversationId, limit: MESSAGE_PAGE_SIZE })
+    sessions.replaceMessages(conversationId, responseToMessages(response.list), response.next_id, response.has_more)
+    scrollToBottom()
+  } finally {
+    sessions.setLoading(conversationId, false)
   }
-  return true
 }
 
-// ========== 智能体选择处理（断点续连版） ==========
-const handleSelectAgent = async (agent: Agent) => {
-  if (selectedAgentId.value === agent.id) return
+async function loadMoreMessages() {
+  const conversationId = currentConversationId.value
+  if (!conversationId) return
 
-  switchingAgent.value = true
+  const session = sessions.get(conversationId)
+  if (!session || session.loadingMoreMessages || !session.hasMoreMessages) return
 
-  // 1. 挂起当前 agent 的状态（不中断 SSE）
-  suspendCurrentAgent()
-
-  // 2. 切换到新 agent
-  selectAgent(agent)
-
-  // 3. 尝试从 session 恢复
-  const restored = resumeAgent(agent.id)
-
-  if (restored) {
-    // 恢复成功，直接显示缓存的状态
-    switchingAgent.value = false
-    nextTick(() => {
-      scrollToBottom()
-      messageInputRef.value?.focus()
+  const wrap = messageScrollRef.value?.wrapRef
+  const oldHeight = wrap?.scrollHeight ?? 0
+  sessions.setLoadingMore(conversationId, true)
+  try {
+    const response = await AiMessageApi.list({
+      conversation_id: conversationId,
+      before_id: session.nextMessageId || undefined,
+      limit: MESSAGE_PAGE_SIZE,
     })
+    sessions.prependMessages(conversationId, responseToMessages(response.list), response.next_id, response.has_more)
+    nextTick(() => {
+      const newHeight = wrap?.scrollHeight ?? 0
+      if (wrap) messageScrollRef.value?.setScrollTop(newHeight - oldHeight)
+    })
+  } finally {
+    sessions.setLoadingMore(conversationId, false)
+  }
+}
+
+function handleMessageScroll(event: { scrollTop: number }) {
+  if (event.scrollTop < 50) void loadMoreMessages()
+}
+
+async function selectConversation(conversation: Conversation) {
+  currentConversationId.value = conversation.id
+  if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, conversation.id)
+  sessions.getOrCreate(conversation.id)
+  await loadConversationMessages(conversation.id)
+  scrollToBottom()
+}
+
+async function selectDefaultConversation(agentId: number) {
+  const savedConversationId = selectedConversationByAgent.value.get(agentId)
+  const savedConversation = conversations.value.find((conversation) => conversation.id === savedConversationId)
+  const nextConversation = savedConversation ?? conversations.value[0]
+
+  if (nextConversation) {
+    await selectConversation(nextConversation)
     return
   }
 
-  // 4. 没有缓存，正常加载
   currentConversationId.value = null
-  messages.value = []
-  resetStreamUiState()
+  setSelectedConversationForAgent(agentId, null)
+}
+
+async function handleSelectAgent(agent: Agent) {
+  if (selectedAgentId.value === agent.id && conversations.value.length > 0) return
+
+  switchingAgent.value = true
+  selectAgent(agent)
+  currentConversationId.value = selectedConversationByAgent.value.get(agent.id) ?? null
 
   try {
-    await loadConversations({ agent_id: agent.id })
-
-    // 确保还是当前 agent（防竞态）
+    await loadConversations(agent.id)
     if (selectedAgentId.value !== agent.id) return
-
-    // 初始化 session
-    const session = sessionManager.getOrCreate(agent.id)
-    session.conversations = [...conversations.value]
-    session.conversationsLoaded = true
-
-    if (session.sending || session.isStreaming || session.messages.length > 0 || session.conversationId) {
-      return
-    }
-
-    const todayConv = findTodayConversation(conversations.value)
-    if (todayConv) {
-      currentConversationId.value = todayConv.id
-      session.conversationId = todayConv.id
-    }
-  } catch {
-    if (selectedAgentId.value !== agent.id) return
-    currentConversationId.value = null
-    messages.value = []
+    await selectDefaultConversation(agent.id)
   } finally {
-    if (selectedAgentId.value === agent.id) {
-      switchingAgent.value = false
-    }
+    if (selectedAgentId.value === agent.id) switchingAgent.value = false
+    nextTick(() => messageInputRef.value?.focus())
   }
+}
 
+function handleCreateConversation() {
+  currentConversationId.value = null
+  if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, null)
   nextTick(() => messageInputRef.value?.focus())
 }
 
-// ========== 会话抽屉处理 ==========
-const handleOpenDrawer = async () => {
-  showConversationDrawer.value = true
-  if (selectedAgentId.value && !loaded.value) {
-    await loadConversations({ agent_id: selectedAgentId.value })
-  }
-}
+async function handleDeleteConversation(conversation: Conversation) {
+  const removed = await removeConversation(conversation.id)
+  if (!removed) return
 
-const handleSelectConversation = async (conv: Conversation) => {
-  currentConversationId.value = conv.id
-  // 同步到 session
-  const agentId = selectedAgentId.value
-  if (agentId) {
-    const session = sessionManager.getOrCreate(agentId)
-    session.conversationId = conv.id
-  }
-}
-
-const handleCreateConversation = async () => {
-  currentConversationId.value = null
-  messages.value = []
-  const agentId = selectedAgentId.value
-  if (agentId) {
-    const session = sessionManager.getOrCreate(agentId)
-    session.conversationId = null
-    session.messages = []
-  }
-}
-
-// 重命名弹窗
-const showRenameDialog = ref(false)
-const renameForm = ref({ id: 0, title: '' })
-
-const handleRenameConversation = (conv: Conversation) => {
-  renameForm.value = { id: conv.id, title: conv.title || '' }
-  showRenameDialog.value = true
-}
-
-const confirmRename = async () => {
-  const success = await renameConversation(renameForm.value.id, renameForm.value.title)
-  if (success) showRenameDialog.value = false
-}
-
-const handleDeleteConversation = async (conv: Conversation) => {
-  const deleted = await removeConversation(conv.id)
-  if (deleted && currentConversationId.value === conv.id) {
+  sessions.remove(conversation.id)
+  if (currentConversationId.value === conversation.id) {
     currentConversationId.value = null
-    messages.value = []
+    if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, null)
   }
 }
 
-const handleArchiveConversation = async (conv: Conversation) => {
-  await archiveConversation(conv.id)
-  if (currentConversationId.value === conv.id) {
-    currentConversationId.value = null
-    messages.value = []
-  }
+function firstTitle(content: string) {
+  const normalized = content.trim().replace(/\s+/g, ' ')
+  return normalized.length > 30 ? normalized.slice(0, 30) : normalized
 }
 
-const handleToggleArchived = (archived: boolean) => {
-  toggleArchived(archived)
-  currentConversationId.value = null
-  messages.value = []
+function touchActiveConversation(conversationId: number, content: string) {
+  const now = new Date().toISOString()
+  const conversation = conversations.value.find((item) => item.id === conversationId)
+  if (!conversation || !selectedAgent.value) return
+
+  touchConversation(conversationId, {
+    title: conversation.title || firstTitle(content),
+    last_message_at: now,
+    updated_at: now,
+  })
 }
 
-// ========== 消息处理 ==========
-const messageInputRef = ref<InstanceType<typeof MessageInput> | null>(null)
+async function ensureConversation(content: string) {
+  if (currentConversationId.value) return currentConversationId.value
 
-const handleSendMessage = async (content: string, attachments?: Array<{ type: 'image'; url: string; name: string; size: number }>) => {
-  messageInputRef.value?.clear()
-  await sendMessage(content, attachments)
-}
-
-const handleDeleteMessage = async (msg: Message) => {
-  const deleted = await removeMessage(msg)
-  if (deleted) await loadMessages()
-}
-
-const handleFeedbackMessage = async (msg: Message, feedback: number | null) => {
-  await feedbackMessage(msg, feedback)
-}
-
-const handleRegenerateMessage = async (msg: Message) => {
-  await regenerateMessage(msg)
-}
-
-const handleEditMessage = async (msg: Message, newContent: string) => {
-  await editAndResendMessage(msg, newContent)
-}
-
-// ========== 移动端返回 ==========
-const handleBackToAgentList = () => {
-  suspendCurrentAgent()
-  selectedAgentId.value = null
-  currentConversationId.value = null
-  messages.value = []
-}
-
-// ========== 生命周期 ==========
-onMounted(async () => {
-  await loadAgents()
-
-  // 自动初始化第一个智能体的会话（loadAgents 已设置 selectedAgentId）
   const agentId = selectedAgentId.value
-  if (agentId) {
-    switchingAgent.value = true
-    try {
-      await loadConversations({ agent_id: agentId })
-      if (selectedAgentId.value !== agentId) return // 防竞态
+  const agent = selectedAgent.value
+  if (!agentId || !agent) throw new Error(t('aiChat.selectAgentFirst'))
 
-      const session = sessionManager.getOrCreate(agentId)
-      session.conversations = [...conversations.value]
-      session.conversationsLoaded = true
+  const conversationId = await createConversation(agentId, firstTitle(content))
+  const now = new Date().toISOString()
+  const created = conversations.value.find((item) => item.id === conversationId) ?? {
+    id: conversationId,
+    agent_id: agentId,
+    agent_name: agent.name,
+    title: firstTitle(content),
+    last_message_at: now,
+    created_at: now,
+    updated_at: now,
+  }
+  upsertConversation(created)
+  currentConversationId.value = conversationId
+  setSelectedConversationForAgent(agentId, conversationId)
+  sessions.getOrCreate(conversationId)
+  return conversationId
+}
 
-      const todayConv = findTodayConversation(conversations.value)
-      if (todayConv) {
-        currentConversationId.value = todayConv.id
-        session.conversationId = todayConv.id
-      }
-    } catch { /* ignore */ }
-    finally {
-      if (selectedAgentId.value === agentId) {
-        switchingAgent.value = false
-      }
+async function handleSendMessage(content: string) {
+  if (!selectedAgentId.value) {
+    ElNotification.warning({ message: t('aiChat.selectAgentFirst') })
+    return
+  }
+
+  const requestId = createAiRequestId()
+  let conversationId = 0
+  try {
+    conversationId = await ensureConversation(content)
+    messageInputRef.value?.clear()
+    sessions.beginSend(conversationId, requestId, content)
+    touchActiveConversation(conversationId, content)
+    scrollToBottom()
+
+    const response = await AiMessageApi.send({ conversation_id: conversationId, content, request_id: requestId })
+    sessions.markUserMessage(conversationId, response.request_id, response.user_message_id)
+  } catch (error) {
+    if (conversationId > 0) {
+      sessions.fail(conversationId, requestId, error instanceof Error ? error.message : t('aiChat.sendFailed'))
     }
-    nextTick(() => messageInputRef.value?.focus())
+    ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.sendFailed') })
   }
+}
+
+async function handleCopyMessage(message: Message) {
+  await copy(message.content)
+}
+
+function handleBackToAgentList() {
+  currentConversationId.value = null
+  selectedAgentId.value = null
+}
+
+useConversationSocket({
+  onStart(payload) {
+    sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
+  },
+  onDelta(payload) {
+    sessions.appendDelta(payload.conversation_id, payload.request_id, payload.delta)
+    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+  },
+  onCompleted(payload) {
+    sessions.complete(payload.conversation_id, payload.request_id, payload.assistant_message_id)
+    touchConversation(payload.conversation_id, { last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+  },
+  onFailed(payload) {
+    sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
+    ElNotification.error({ message: payload.msg })
+    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+  },
 })
 
-watch(currentConversationId, async (newId, oldId) => {
-  if (newId) {
-    const isNewConversationFromSend = oldId === null && isStreaming.value
-    const agentId = selectedAgentId.value
-    if (currentConversationId.value === newId && agentId && !isNewConversationFromSend) {
-      const loadResult = await loadMessagesRaw(newId, {
-        shouldApply: () => {
-          if (currentConversationId.value !== newId || selectedAgentId.value !== agentId) {
-            return false
-          }
-          const session = sessionManager.getOrCreate(agentId)
-          return !session.sending && !session.isStreaming
-        },
-      })
-      // 同步到 session
-      if (loadResult.applied && selectedAgentId.value === agentId) {
-        const session = sessionManager.getOrCreate(agentId)
-        session.messages = [...messages.value]
-      }
-    }
-  }
+onMounted(async () => {
+  await loadAgents()
+  const agentId = selectedAgentId.value
+  const agent = agents.value.find((item) => item.id === agentId)
+  if (agent) await handleSelectAgent(agent)
 })
 </script>
 
 <template>
   <div class="chat-container">
-    <!-- 左侧智能体列表 -->
     <AgentList
       v-show="!isMobile || !selectedAgentId"
       :agents="agents"
@@ -382,34 +299,36 @@ watch(currentConversationId, async (newId, oldId) => {
       @select="handleSelectAgent"
     />
 
-    <!-- 右侧主区域 -->
-    <div class="main-area" v-show="!isMobile || selectedAgentId">
-      <!-- 顶部标题栏 -->
-      <div class="main-header">
-        <el-button v-if="isMobile" text @click="handleBackToAgentList" class="back-btn">
+    <ConversationList
+      v-show="!isMobile || selectedAgentId"
+      :conversations="conversations"
+      :loading="conversationsLoading"
+      :loading-more="conversationsLoadingMore"
+      :has-more="conversationsHasMore"
+      :current-id="currentConversationId"
+      @select="selectConversation"
+      @create="handleCreateConversation"
+      @delete="handleDeleteConversation"
+      @load-more="loadMoreConversations"
+    />
+
+    <main v-show="!isMobile || selectedAgentId" class="main-area">
+      <header class="main-header">
+        <el-button v-if="isMobile" text class="back-btn" @click="handleBackToAgentList">
           <el-icon :size="20"><ArrowLeft /></el-icon>
         </el-button>
         <div class="header-content">
-          <span class="header-title">
-            {{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}
-          </span>
-          <span class="header-agent" v-if="currentConversation && selectedAgent">
-            {{ selectedAgent.name }}
-          </span>
+          <span class="header-title">{{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}</span>
+          <span v-if="selectedAgent" class="header-agent">{{ selectedAgent.name }}</span>
         </div>
-      </div>
+      </header>
 
-      <!-- 消息滚动区 -->
-      <el-scrollbar :ref="setMessageScrollRef" class="message-area" @scroll="handleScroll">
-        <!-- 切换智能体加载中 -->
+      <el-scrollbar :ref="setMessageScrollRef" class="message-area" @scroll="handleMessageScroll">
         <div v-if="switchingAgent" class="welcome-area">
-          <div class="welcome-content">
-            <el-icon class="is-loading" :size="32" color="var(--el-color-primary)"><Loading /></el-icon>
-          </div>
+          <el-icon class="is-loading" :size="32" color="var(--el-color-primary)"><Loading /></el-icon>
         </div>
 
-        <!-- 欢迎界面（选中智能体但无会话时） -->
-        <div v-else-if="selectedAgentId && !currentConversationId && messages.length === 0" class="welcome-area">
+        <div v-else-if="selectedAgentId && messages.length === 0 && !messagesLoading" class="welcome-area">
           <div class="welcome-content">
             <el-avatar :size="64" :src="selectedAgent?.avatar ?? undefined" class="welcome-avatar">
               {{ selectedAgent?.name?.charAt(0) || '?' }}
@@ -419,7 +338,6 @@ watch(currentConversationId, async (newId, oldId) => {
           </div>
         </div>
 
-        <!-- 未选择智能体时的提示 -->
         <div v-else-if="!selectedAgentId && agents.length > 0" class="welcome-area">
           <div class="welcome-content">
             <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
@@ -427,101 +345,57 @@ watch(currentConversationId, async (newId, oldId) => {
           </div>
         </div>
 
-        <!-- 无智能体时的提示 -->
         <div v-else-if="!agentsLoading && agents.length === 0" class="welcome-area">
-          <div class="welcome-content">
-            <p class="no-agent-tip">{{ t('aiChat.noAgentTip') }}</p>
-          </div>
+          <p class="welcome-tip">{{ t('aiChat.noAgentTip') }}</p>
         </div>
 
-        <!-- 加载更多历史消息提示 -->
-        <div v-if="messagesLoadingMore" class="loading-more-tip">
+        <div v-if="messagesLoadingMore" class="history-tip">
           <el-icon class="is-loading"><Loading /></el-icon>
           <span>{{ t('aiChat.loading') }}</span>
         </div>
-        <div v-else-if="!messagesHasMore && messages.length > 0" class="no-more-tip">
-          {{ t('aiChat.noMoreHistory') }}
-        </div>
+        <div v-else-if="!messagesHasMore && messages.length > 0" class="history-tip">{{ t('aiChat.noMoreHistory') }}</div>
 
         <MessageList
-          v-if="currentConversationId || messages.length > 0"
+          v-if="messages.length > 0 || messagesLoading"
           :messages="messages"
           :loading="messagesLoading"
-          :sending="sending"
-          @copy="copyMessage"
-          @delete="handleDeleteMessage"
-          @regenerate="handleRegenerateMessage"
-          @edit="handleEditMessage"
-          @feedback="handleFeedbackMessage"
+          @copy="handleCopyMessage"
         />
       </el-scrollbar>
 
-      <!-- 底部输入区 -->
       <MessageInput
         ref="messageInputRef"
         :sending="sending"
         :disabled="!selectedAgentId"
         :is-streaming="isStreaming"
-        :show-history-btn="true"
         @send="handleSendMessage"
-        @stop="stopGeneration"
-        @open-history="handleOpenDrawer"
       />
-    </div>
-
-    <!-- 历史会话抽屉 -->
-    <ConversationDrawer
-      v-model:visible="showConversationDrawer"
-      :conversations="conversations"
-      :loading="conversationsLoading"
-      :loading-more="conversationsLoadingMore"
-      :has-more="conversationsHasMore"
-      :current-id="currentConversationId"
-      :agent-name="selectedAgent?.name"
-      :show-archived="showArchived"
-      @select="handleSelectConversation"
-      @create="handleCreateConversation"
-      @rename="handleRenameConversation"
-      @delete="handleDeleteConversation"
-      @archive="handleArchiveConversation"
-      @load-more="loadMoreConversations"
-      @toggle-archived="handleToggleArchived"
-      @search="searchConversations"
-    />
+    </main>
   </div>
-
-  <!-- 重命名弹窗 -->
-  <AppDialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" mobile-width="94vw" body-padding="24px" class="rename-dialog">
-    <el-input v-model="renameForm.title" :placeholder="t('aiChat.newTitle')" maxlength="50" show-word-limit />
-    <template #footer>
-      <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" @click="confirmRename">{{ t('common.actions.confirm') }}</el-button>
-    </template>
-  </AppDialog>
 </template>
-
 
 <style scoped>
 .chat-container {
   display: flex;
   height: 100%;
+  min-height: 0;
   background: var(--el-bg-color-page);
 }
 
 .main-area {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   background: var(--el-bg-color);
 }
 
 .main-header {
   height: 60px;
-  padding: 0 20px;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0 20px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
 }
@@ -531,25 +405,25 @@ watch(currentConversationId, async (newId, oldId) => {
 }
 
 .header-content {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1;
-  min-width: 0;
 }
 
 .header-title {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
   font-size: 15px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .header-agent {
-  font-size: 12px;
   color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 
 .message-area {
@@ -571,8 +445,7 @@ watch(currentConversationId, async (newId, oldId) => {
 }
 
 .welcome-content {
-  max-width: 400px;
-  width: 100%;
+  width: min(420px, 100%);
   text-align: center;
 }
 
@@ -580,50 +453,37 @@ watch(currentConversationId, async (newId, oldId) => {
   background: var(--el-color-primary-light-7);
   color: var(--el-color-primary);
   font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-weight: 700;
 }
 
 .welcome-title {
-  font-size: 22px;
-  font-weight: 500;
+  margin: 18px 0 8px;
   color: var(--el-text-color-primary);
-  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 650;
 }
 
-.welcome-tip {
-  color: var(--el-text-color-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-.no-agent-tip {
+.welcome-tip,
+.history-tip {
   color: var(--el-text-color-secondary);
   font-size: 14px;
 }
 
-:deep(.rename-dialog .el-dialog__body) {
-  padding-top: 20px;
-}
-
-.loading-more-tip,
-.no-more-tip {
-  text-align: center;
-  padding: 12px;
-  color: var(--el-text-color-placeholder);
-  font-size: 12px;
-  opacity: 0.6;
-}
-
-.loading-more-tip {
+.history-tip {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 12px;
 }
 
 @media (max-width: 768px) {
-  .welcome-content { padding: 0 16px; }
-  .welcome-title { font-size: 24px; }
+  .chat-container {
+    display: block;
+  }
+
+  .main-area {
+    height: 100%;
+  }
 }
 </style>

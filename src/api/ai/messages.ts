@@ -1,41 +1,50 @@
 import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { Attachment } from './chat'
+import type { Id } from '@/types/common'
 
-export type MessageBlock =
-  | { type: 'text'; text: string }
-  | { type: 'image'; url: string; alt?: string; meta?: Record<string, unknown> }
-  | { type: 'tool'; name: string; status?: string; meta?: Record<string, unknown> }
-  | { type: 'error'; message: string; meta?: Record<string, unknown> }
-
-export interface AiMessageMeta {
-  attachments?: Attachment[]
-  blocks?: MessageBlock[]
-  feedback?: number
-  [key: string]: unknown
-}
+export type AiMessageContentType = 'text'
 
 export interface AiMessageItem {
   id: number
-  conversation_id: number
   role: number
+  content_type: AiMessageContentType
   content: string
-  meta_json?: AiMessageMeta
   created_at: string
+  updated_at: string
 }
 
-export interface AiMessageListParams extends RequestPayload {
+export interface AiMessageListParams {
   conversation_id: number
-  current_page: number
-  page_size: number
-  role?: number
+  before_id?: number
+  limit?: number
+}
+
+export interface AiMessageListResponse {
+  list: AiMessageItem[]
+  next_id: number
+  has_more: boolean
+}
+
+export interface AiMessageSendParams {
+  conversation_id: number
+  content: string
+  request_id: string
+}
+
+export interface AiMessageSendResponse {
+  conversation_id: number
+  user_message_id: number
+  request_id: string
 }
 
 interface AiMessageListQueryParams {
-  current_page?: number
-  page_size?: number
-  role?: number
+  before_id?: number
+  limit?: number
+}
+
+interface AiMessageSendBody {
+  content: string
+  request_id: string
 }
 
 function positiveID(value: Id | number, label = 'AI message id'): number {
@@ -46,26 +55,15 @@ function positiveID(value: Id | number, label = 'AI message id'): number {
 
 function normalizeListParams(params: AiMessageListParams): AiMessageListQueryParams {
   const query: AiMessageListQueryParams = {}
-  if (typeof params.current_page === 'number') query.current_page = params.current_page
-  if (typeof params.page_size === 'number') query.page_size = params.page_size
-  if (typeof params.role === 'number') query.role = params.role
+  if (typeof params.before_id === 'number') query.before_id = params.before_id
+  if (typeof params.limit === 'number') query.limit = params.limit
   return query
 }
 
-function normalizeIDs(id: Id | Id[]): number[] {
-  const ids = Array.isArray(id) ? id : [id]
-  return [...new Set(ids.map((item) => positiveID(item)))]
-}
-
 export const AiMessageApi = {
-  list: (params: AiMessageListParams) => request.get<PaginatedResponse<AiMessageItem>>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, { params: normalizeListParams(params) }),
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizeIDs(params.id)
-    if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/ai-messages/${ids[0]}`)
-    }
-    return request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/ai-messages`, { data: { ids } })
-  },
-  editContent: (params: { id: Id; content: string }) => request.patch<{ deleted_count: number }, { content: string }>(`${ADMIN_API_PREFIX}/ai-messages/${positiveID(params.id, 'message id')}/content`, { content: params.content }),
-  feedback: (params: { id: Id; feedback?: number | null }) => request.patch<void, { feedback: number | null }>(`${ADMIN_API_PREFIX}/ai-messages/${positiveID(params.id, 'message id')}/feedback`, { feedback: params.feedback ?? null }),
+  list: (params: AiMessageListParams) => request.get<AiMessageListResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, { params: normalizeListParams(params) }),
+  send: (params: AiMessageSendParams) => request.post<AiMessageSendResponse, AiMessageSendBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, {
+    content: params.content,
+    request_id: params.request_id,
+  }),
 }
