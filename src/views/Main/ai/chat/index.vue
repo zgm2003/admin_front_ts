@@ -186,7 +186,7 @@ const handleSelectAgent = async (agent: Agent) => {
   resetStreamUiState()
 
   try {
-    await loadConversations({ app_id: agent.id })
+    await loadConversations({ agent_id: agent.id })
 
     // 确保还是当前 agent（防竞态）
     if (selectedAgentId.value !== agent.id) return
@@ -222,7 +222,7 @@ const handleSelectAgent = async (agent: Agent) => {
 const handleOpenDrawer = async () => {
   showConversationDrawer.value = true
   if (selectedAgentId.value && !loaded.value) {
-    await loadConversations({ app_id: selectedAgentId.value })
+    await loadConversations({ agent_id: selectedAgentId.value })
   }
 }
 
@@ -325,7 +325,7 @@ onMounted(async () => {
   if (agentId) {
     switchingAgent.value = true
     try {
-      await loadConversations({ app_id: agentId })
+      await loadConversations({ agent_id: agentId })
       if (selectedAgentId.value !== agentId) return // 防竞态
 
       const session = sessionManager.getOrCreate(agentId)

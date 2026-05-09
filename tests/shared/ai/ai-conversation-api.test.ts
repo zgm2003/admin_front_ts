@@ -28,44 +28,44 @@ describe('AI conversation api REST contract', () => {
     expect(source).not.toMatch(forbiddenLooseTypePattern)
   })
 
-  it('uses app_id as the only selector', () => {
+  it('uses agent_id as the only selector', () => {
     const source = readFrontendSource('src/api/ai/conversations.ts')
-    expect(source).toContain("app_id?: number | ''")
-    expect(source).toContain("if (typeof params.app_id === 'number') query.app_id = params.app_id")
-    expect(source).toContain('add: (params: { app_id: number; title?: string }) =>')
-    expect(source).not.toContain('agent' + '_id')
+    expect(source).toContain("agent_id?: number | ''")
+    expect(source).toContain("if (typeof params.agent_id === 'number') query.agent_id = params.agent_id")
+    expect(source).toContain('add: (params: { agent_id: number; title?: string }) =>')
+    expect(source).not.toContain('app' + '_id')
   })
 
-  it('chat page loads ai app options and sends app_id from the new selector', () => {
+  it('chat page loads AI agent options and sends agent_id from the new selector', () => {
     const useAgents = readFrontendSource('src/views/Main/ai/chat/composables/useAgents.ts')
     const useConversations = readFrontendSource('src/views/Main/ai/chat/composables/useConversations.ts')
     const useStreamChat = readFrontendSource('src/views/Main/ai/chat/composables/useStreamChat.ts')
     const chatView = readFrontendSource('src/views/Main/ai/chat/index.vue')
 
-    expect(useAgents).toContain("import { AiAppApi }")
-    expect(useAgents).toContain('AiAppApi.options()')
-    expect(useConversations).toContain('app_id: currentAppId.value ?? undefined')
-    expect(chatView).toContain('loadConversations({ app_id: agent.id })')
-    expect(chatView).not.toContain('loadConversations({ agent' + '_id:')
-    expect(useStreamChat).toContain('app_id: requestConversationId ? undefined : agentId')
-    expect(useStreamChat).not.toContain('agent' + '_id')
+    expect(useAgents).toContain("import { AiAgentApi }")
+    expect(useAgents).toContain('AiAgentApi.options()')
+    expect(useConversations).toContain('agent_id: currentAgentId.value ?? undefined')
+    expect(chatView).toContain('loadConversations({ agent_id: agent.id })')
+    expect(chatView).not.toContain('loadConversations({ app' + '_id:')
+    expect(useStreamChat).toContain('agent_id: requestConversationId ? undefined : agentId')
+    expect(useStreamChat).not.toContain('app' + '_id')
   })
 
 
-  it('runs page uses app and provider filters plus persisted event details', () => {
+  it('runs page uses agent and provider filters plus persisted event details', () => {
     const runsApi = readFrontendSource('src/api/ai/runs.ts')
     const runList = readFrontendSource('src/views/Main/ai/runs/components/RunList/index.vue')
     const runStats = readFrontendSource('src/views/Main/ai/runs/components/RunStats/index.vue')
 
-    expect(runsApi).toContain('appArr: DictOption<number>[]')
+    expect(runsApi).toContain('agentArr: DictOption<number>[]')
     expect(runsApi).toContain('providerArr: DictOption<number>[]')
-    expect(runList).toContain("app_id: '' as number | ''")
+    expect(runList).toContain("agent_id: '' as number | ''")
     expect(runList).toContain("provider_id: '' as number | ''")
-    expect(runList).toContain("{key: 'app_name'")
+    expect(runList).toContain("{key: 'agent_name'")
     expect(runList).toContain("{key: 'provider_name'")
     expect(runList).toContain('detailData.events')
-    expect(runStats).toContain('app_id: searchForm.value.app_id')
-    expect(runStats).toContain("statsColumns('app_name', t('aiRuns.stats.app'))")
+    expect(runStats).toContain('agent_id: searchForm.value.agent_id')
+    expect(runStats).toContain("statsColumns('agent_name', t('aiRuns.stats.agent'))")
   })
 
 })

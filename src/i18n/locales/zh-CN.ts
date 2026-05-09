@@ -278,7 +278,7 @@ export default {
     component_effect: '特效',
     // AI助手模块
     ai_providers: '供应商配置',
-    ai_apps: '智能体配置',
+    ai_agents: '智能体配置',
     ai_knowledge: '知识库',
     ai_chat: 'AI 对话',
     ai_runs: '运行监控',
@@ -778,15 +778,16 @@ export default {
     fetchModelsDone: '模型拉取完成',
     syncModelsDone: '模型同步完成，共 {count} 个'
   },
-  aiApps: {
-    filter: { name: '应用名称', code: '应用编码', appType: '应用类型', provider: '供应商', status: '状态' },
-    table: { name: '应用名称', code: '编码', provider: '供应商', appType: '类型', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
-    form: { name: '应用名称', code: '应用编码', provider: '供应商', appType: '应用类型', engineAppId: 'Dify App ID', responseMode: '响应模式', status: '状态', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
-    actions: { test: '测试应用', bindings: '绑定' },
-    binding: { title: '应用绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },
-    addTitle: '新增 AI 应用',
-    editTitle: '编辑 AI 应用',
-    testDone: '应用测试完成'
+  aiAgents: {
+    filter: { name: '智能体名称', code: '智能体编码', agentType: '智能体类型', provider: '供应商', status: '状态' },
+    table: { avatar: '头像', name: '智能体名称', code: '编码', provider: '供应商', model: '关联模型', scenes: '场景', agentType: '类型', externalAgentId: '外部智能体 ID', externalAgentKeyMasked: '外部智能体 Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
+    form: { name: '智能体名称', code: '智能体编码', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', agentType: '智能体类型', externalAgentId: '外部智能体 ID', responseMode: '响应模式', status: '状态', externalAgentApiKey: '外部智能体 API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
+    scene: { chat: '对话' },
+    actions: { test: '测试智能体', bindings: '绑定' },
+    binding: { title: '智能体绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },
+    addTitle: '新增 AI 智能体',
+    editTitle: '编辑 AI 智能体',
+    testDone: '智能体测试完成'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -811,7 +812,7 @@ export default {
     copied: '已复制到剪贴板',
     confirmDeleteMessage: '确定删除这条消息吗？',
     noDescription: '暂无描述',
-    noAgentTip: '请先配置 AI 应用和 Dify 连接',
+    noAgentTip: '请先配置 AI 供应商和智能体',
     // 图片上传相关
     uploadImage: '上传图片',
     uploadFailed: '上传失败',
@@ -829,7 +830,7 @@ export default {
     inputHint: 'Enter 发送，Shift + Enter 换行',
     inputHintImage: '，支持粘贴/拖拽图片',
     inputHintMobile: 'Enter 发送',
-    selectAgentFirst: '请先选择 AI 应用',
+    selectAgentFirst: '请先选择 AI 智能体',
     // 消息操作
     copyFailed: '复制失败',
     sendFailed: '发送失败',
@@ -864,11 +865,11 @@ export default {
       older: '更早'
     },
     // 智能体列表
-    agentList: 'AI 应用',
-    noAgent: '暂无 AI 应用',
+    agentList: 'AI 智能体',
+    noAgent: '暂无 AI 智能体',
     // 历史会话
     historyConversations: '历史会话',
-    currentAgent: '当前 AI 应用',
+    currentAgent: '当前 AI 智能体',
     // 语音输入
     voiceInput: '语音输入',
     voiceNotSupported: '当前浏览器不支持语音识别',
@@ -890,7 +891,7 @@ export default {
     toolDone: '工具调用完成',
   },
   aiTools: {
-    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', provider: '供应商', app: 'AI 应用', status: '状态' },
+    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', provider: '供应商', agent: 'AI 智能体', status: '状态' },
     table: {
       name: '工具名称',
       code: '工具编码',
@@ -906,7 +907,7 @@ export default {
       name: '工具名称',
       code: '工具编码',
       provider: '供应商',
-      app: 'AI 应用',
+      agent: 'AI 智能体',
       toolType: '工具类型',
       riskLevel: '风险等级',
       engineToolId: '引擎工具ID',
@@ -955,7 +956,7 @@ export default {
   aiRuns: {
     filter: {
       status: '状态',
-      app: 'AI 应用',
+      agent: 'AI 智能体',
       provider: '供应商',
       user: '用户',
       request_id: 'Request ID',
@@ -965,7 +966,7 @@ export default {
     },
     table: {
       request_id: 'Request ID',
-      app: 'AI 应用',
+      agent: 'AI 智能体',
       provider: '供应商',
       conversation: '会话',
       status: '状态',
@@ -978,7 +979,7 @@ export default {
     detail: {
       title: '运行详情',
       user: '用户',
-      app: 'AI 应用',
+      agent: 'AI 智能体',
       provider: '供应商',
       conversation: '会话',
       status: '状态',
@@ -1014,10 +1015,10 @@ export default {
       avgLatency: '平均耗时',
       totalCost: '总成本',
       byDate: '按日期',
-      byApp: '按应用',
+      byAgent: '按智能体',
       byUser: '按用户',
       date: '日期',
-      app: 'AI 应用',
+      agent: 'AI 智能体',
       provider: '供应商',
       user: '用户',
       runs: '请求',

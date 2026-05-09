@@ -24,7 +24,7 @@ export interface AiToolMapListParams extends RequestPayload {
   tool_type?: AiToolType | ''
   risk_level?: AiToolRiskLevel | ''
   provider_id?: number | ''
-  app_id?: number | ''
+  agent_id?: number | ''
   status?: number | ''
 }
 
@@ -33,7 +33,7 @@ export interface AiToolMapItem {
   provider_id: number
   provider_name: string
   engine_type: AiProviderDriver | string
-  app_id?: number | null
+  agent_id?: number | null
   name: string
   code: string
   tool_type: AiToolType
@@ -52,7 +52,7 @@ export interface AiToolMapItem {
 export interface AiToolMapMutationParams {
   id?: Id
   provider_id: number
-  app_id?: number | null
+  agent_id?: number | null
   name: string
   code: string
   tool_type: AiToolType
@@ -65,7 +65,7 @@ export interface AiToolMapMutationParams {
 
 export interface AiToolMapMutationBody {
   provider_id: number
-  app_id?: number | null
+  agent_id?: number | null
   name: string
   code: string
   tool_type: AiToolType
@@ -88,7 +88,7 @@ interface AiToolMapListQueryParams {
   tool_type?: AiToolType
   risk_level?: AiToolRiskLevel
   provider_id?: number
-  app_id?: number
+  agent_id?: number
   status?: number
 }
 
@@ -107,7 +107,7 @@ function normalizeListParams(params: AiToolMapListParams): AiToolMapListQueryPar
   if (params.tool_type) query.tool_type = params.tool_type
   if (params.risk_level) query.risk_level = params.risk_level
   if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
-  if (typeof params.app_id === 'number') query.app_id = params.app_id
+  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
   if (typeof params.status === 'number') query.status = params.status
   return query
 }
@@ -115,7 +115,7 @@ function normalizeListParams(params: AiToolMapListParams): AiToolMapListQueryPar
 function mutationBody(params: AiToolMapMutationParams): AiToolMapMutationBody {
   return {
     provider_id: params.provider_id,
-    app_id: params.app_id ?? null,
+    agent_id: params.agent_id ?? null,
     name: params.name,
     code: params.code,
     tool_type: params.tool_type,

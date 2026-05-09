@@ -278,7 +278,7 @@ export default {
     component_effect: 'Effect',
     // AI module
     ai_providers: 'Providers',
-    ai_apps: 'AI Apps',
+    ai_agents: 'AI Agents',
     ai_knowledge: 'Knowledge Base',
     ai_chat: 'AI Chat',
     ai_runs: 'Run Monitor',
@@ -778,15 +778,16 @@ export default {
     fetchModelsDone: 'Models fetched',
     syncModelsDone: 'Model sync completed, {count} found'
   },
-  aiApps: {
-    filter: { name: 'App Name', code: 'App Code', appType: 'App Type', provider: 'Provider', status: 'Status' },
-    table: { name: 'App Name', code: 'Code', provider: 'Provider', appType: 'Type', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'App Name', code: 'App Code', provider: 'Provider', appType: 'App Type', engineAppId: 'Dify App ID', responseMode: 'Response Mode', status: 'Status', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
-    actions: { test: 'Test App', bindings: 'Bindings' },
-    binding: { title: 'App Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
-    addTitle: 'Add AI App',
-    editTitle: 'Edit AI App',
-    testDone: 'App test completed'
+  aiAgents: {
+    filter: { name: 'Agent Name', code: 'Agent Code', agentType: 'Agent Type', provider: 'Provider', status: 'Status' },
+    table: { avatar: 'Avatar', name: 'Agent Name', code: 'Code', provider: 'Provider', model: 'Model', scenes: 'Scenes', agentType: 'Type', externalAgentId: 'External Agent ID', externalAgentKeyMasked: 'External Agent Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Agent Name', code: 'Agent Code', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', agentType: 'Agent Type', externalAgentId: 'External Agent ID', responseMode: 'Response Mode', status: 'Status', externalAgentApiKey: 'External Agent API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
+    scene: { chat: 'Chat' },
+    actions: { test: 'Test Agent', bindings: 'Bindings' },
+    binding: { title: 'Agent Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
+    addTitle: 'Add AI Agent',
+    editTitle: 'Edit AI Agent',
+    testDone: 'Agent test completed'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -864,11 +865,11 @@ export default {
       older: 'Older'
     },
     // Agent list
-    agentList: 'AI Apps',
+    agentList: 'AI Agents',
     noAgent: 'No agents available',
     // History conversations
     historyConversations: 'History',
-    currentAgent: 'Current AI App',
+    currentAgent: 'Current AI Agent',
     // 语音输入
     voiceInput: 'Voice Input',
     voiceNotSupported: 'Voice recognition not supported in this browser',
@@ -890,9 +891,9 @@ export default {
     toolDone: 'Tool call done',
   },
   aiTools: {
-    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', provider: 'Provider', app: 'AI App', status: 'Status' },
+    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', provider: 'Provider', agent: 'AI Agent', status: 'Status' },
     table: { name: 'Tool Name', code: 'Code', toolType: 'Tool Type', provider: 'Provider', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', riskLevel: 'Risk', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Tool Name', code: 'Tool Code', provider: 'Provider', app: 'AI App', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
+    form: { name: 'Tool Name', code: 'Tool Code', provider: 'Provider', agent: 'AI Agent', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
     addTitle: 'Add Tool Map',
     editTitle: 'Edit Tool Map'
   },
@@ -909,7 +910,7 @@ export default {
   aiRuns: {
     filter: {
       status: 'Status',
-      app: 'AI App',
+      agent: 'AI Agent',
       provider: 'Provider',
       user: 'User',
       request_id: 'Request ID',
@@ -919,7 +920,7 @@ export default {
     },
     table: {
       request_id: 'Request ID',
-      app: 'AI App',
+      agent: 'AI Agent',
       provider: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
@@ -932,7 +933,7 @@ export default {
     detail: {
       title: 'Run Detail',
       user: 'User',
-      app: 'AI App',
+      agent: 'AI Agent',
       provider: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
@@ -968,10 +969,10 @@ export default {
       avgLatency: 'Avg Latency',
       totalCost: 'Total Cost',
       byDate: 'By Date',
-      byApp: 'By App',
+      byAgent: 'By Agent',
       byUser: 'By User',
       date: 'Date',
-      app: 'AI App',
+      agent: 'AI Agent',
       provider: 'Provider',
       user: 'User',
       runs: 'Runs',

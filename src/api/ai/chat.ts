@@ -13,7 +13,7 @@ export interface Attachment {
 export interface StreamParams {
   content: string
   conversation_id?: number
-  app_id?: number
+  agent_id?: number
   max_history?: number
   attachments?: Attachment[]
   temperature?: number
@@ -39,7 +39,7 @@ interface StreamStartResponse {
   run_id: number
   request_id: string
   user_message_id: number
-  app_id: number
+  agent_id: number
   is_new: boolean
 }
 
@@ -350,7 +350,7 @@ export const AiChatApi = {
   send: (params: {
     content: string
     conversation_id?: number
-    app_id?: number
+    agent_id?: number
     max_history?: number
   }) => request.post<StreamStartResponse, StreamParams>(`${ADMIN_API_PREFIX}/ai-chat/messages`, params),
 

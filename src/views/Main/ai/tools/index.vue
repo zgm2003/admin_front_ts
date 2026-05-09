@@ -19,12 +19,12 @@ import {
   type AiToolType,
   type JsonObject,
 } from '@/api/ai/toolMaps'
-import { AiAppApi, type AiAppOption } from '@/api/ai/apps'
+import { AiAgentApi, type AiAgentOption } from '@/api/ai/agents'
 
 interface ToolMapForm {
   id?: number
   provider_id: number | null
-  app_id: number | null
+  agent_id: number | null
   name: string
   code: string
   tool_type: AiToolType
@@ -43,7 +43,7 @@ const dict = shallowRef<AiToolMapInitResponse['dict']>({
   common_status_arr: [],
   provider_options: [],
 })
-const appOptions = ref<AiAppOption[]>([])
+const agentOptions = ref<AiAgentOption[]>([])
 
 const searchForm = ref({
   name: '',
@@ -51,7 +51,7 @@ const searchForm = ref({
   tool_type: '' as AiToolType | '',
   risk_level: '' as AiToolRiskLevel | '',
   provider_id: '' as number | '',
-  app_id: '' as number | '',
+  agent_id: '' as number | '',
   status: '' as number | '',
 })
 
@@ -78,7 +78,7 @@ const form = ref<ToolMapForm>(defaultForm())
 function defaultForm(): ToolMapForm {
   return {
     provider_id: null,
-    app_id: null,
+    agent_id: null,
     name: '',
     code: '',
     tool_type: 'dify_tool',
@@ -98,7 +98,7 @@ const rules = computed<FormRules>(() => ({
   risk_level: [{ required: true, message: t('aiTools.form.riskLevel') + t('common.required'), trigger: 'change' }],
 }))
 
-const appSelectOptions = computed(() => appOptions.value.map((item) => ({ label: item.name, value: item.id })))
+const agentSelectOptions = computed(() => agentOptions.value.map((item) => ({ label: item.name, value: item.id })))
 
 const searchFields = computed<SearchField[]>(() => [
   { key: 'name', type: 'input', label: t('aiTools.filter.name'), placeholder: t('aiTools.filter.name'), width: 160 },
@@ -106,7 +106,7 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'tool_type', type: 'select-v2', label: t('aiTools.filter.toolType'), placeholder: t('aiTools.filter.toolType'), width: 150, options: dict.value.tool_type_arr },
   { key: 'risk_level', type: 'select-v2', label: t('aiTools.filter.riskLevel'), placeholder: t('aiTools.filter.riskLevel'), width: 130, options: dict.value.risk_level_arr },
   { key: 'provider_id', type: 'select-v2', label: t('aiTools.filter.provider'), placeholder: t('aiTools.filter.provider'), width: 180, options: dict.value.provider_options },
-  { key: 'app_id', type: 'select-v2', label: t('aiTools.filter.app'), placeholder: t('aiTools.filter.app'), width: 160, options: appSelectOptions.value },
+  { key: 'agent_id', type: 'select-v2', label: t('aiTools.filter.agent'), placeholder: t('aiTools.filter.agent'), width: 160, options: agentSelectOptions.value },
   { key: 'status', type: 'select-v2', label: t('aiTools.filter.status'), placeholder: t('aiTools.filter.status'), width: 120, options: dict.value.common_status_arr },
 ])
 
@@ -142,9 +142,9 @@ function riskTagType(level: AiToolRiskLevel) {
 }
 
 async function init() {
-  const [initData, apps] = await Promise.all([AiToolMapApi.init(), AiAppApi.options()])
+  const [initData, agents] = await Promise.all([AiToolMapApi.init(), AiAgentApi.options()])
   dict.value = initData.dict
-  appOptions.value = apps.list
+  agentOptions.value = agents.list
 }
 
 function add() {
@@ -159,7 +159,7 @@ function edit(row: AiToolMapItem) {
   form.value = {
     id: row.id,
     provider_id: row.provider_id,
-    app_id: row.app_id ?? null,
+    agent_id: row.agent_id ?? null,
     name: row.name,
     code: row.code,
     tool_type: row.tool_type,
@@ -191,7 +191,7 @@ async function confirmSubmit() {
   const payload: AiToolMapMutationParams = {
     id: form.value.id,
     provider_id: form.value.provider_id,
-    app_id: form.value.app_id,
+    agent_id: form.value.agent_id,
     name: form.value.name,
     code: form.value.code,
     tool_type: form.value.tool_type,
@@ -264,8 +264,8 @@ onMounted(() => {
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.app')" prop="app_id">
-            <el-select-v2 v-model="form.app_id" :options="appSelectOptions" style="width: 100%" clearable />
+          <el-form-item :label="t('aiTools.form.agent')" prop="agent_id">
+            <el-select-v2 v-model="form.agent_id" :options="agentSelectOptions" style="width: 100%" clearable />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

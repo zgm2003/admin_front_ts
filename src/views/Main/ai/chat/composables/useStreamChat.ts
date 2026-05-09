@@ -207,7 +207,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
         const now = new Date().toISOString()
         session.conversationId = conversationId
         session.conversations.unshift({
-          id: conversationId, title: '', app_id: requestAgentId, app_name: selectedAgent.value?.name || '',
+          id: conversationId, title: '', agent_id: requestAgentId, agent_name: selectedAgent.value?.name || '',
           last_message_at: now,
           created_at: now,
         })
@@ -387,8 +387,8 @@ export function useStreamChat(options: StreamChatOptionsV2) {
           const newConv = {
             id: conversationId,
             title: '',
-            app_id: selectedAgentId.value ?? undefined,
-            app_name: selectedAgent.value?.name || '',
+            agent_id: selectedAgentId.value ?? undefined,
+            agent_name: selectedAgent.value?.name || '',
             last_message_at: now,
             created_at: now,
           }
@@ -405,7 +405,7 @@ export function useStreamChat(options: StreamChatOptionsV2) {
       await AiChatApi.stream({
         content,
         conversation_id: requestConversationId || undefined,
-        app_id: requestConversationId ? undefined : agentId,
+        agent_id: requestConversationId ? undefined : agentId,
         attachments: attachments?.length ? attachments : undefined,
         ...getRuntimeParams?.()
       }, callbacks)

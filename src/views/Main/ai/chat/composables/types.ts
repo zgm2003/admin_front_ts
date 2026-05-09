@@ -21,8 +21,8 @@ export interface ToolCallRecord {
 export interface Conversation {
   id: number
   title: string
-  app_id?: number
-  app_name?: string
+  agent_id?: number
+  agent_name?: string
   agent_avatar?: string
   last_message_at: string
   created_at: string

@@ -31,7 +31,7 @@ describe('AI stream contracts', () => {
       run_id: 22,
       request_id: 'req-22',
       user_message_id: 33,
-      app_id: 44,
+      agent_id: 44,
       is_new: true,
     })
     get.mockResolvedValueOnce({

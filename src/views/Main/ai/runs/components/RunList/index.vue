@@ -27,7 +27,7 @@ const isMobile = useIsMobile()
 const {copy} = useCopy()
 const dict = ref<AiRunInitResponse['dict']>({
   run_status_arr: [],
-  appArr: [],
+  agentArr: [],
   providerArr: [],
 })
 
@@ -36,7 +36,7 @@ const searchForm = ref({
   user_id: '' as number | '',
   request_id: '',
   dateRange: [] as string[],
-  app_id: '' as number | '',
+  agent_id: '' as number | '',
   provider_id: '' as number | '',
 })
 
@@ -76,12 +76,12 @@ const searchFields = computed<SearchField[]>(() => [
     options: dict.value.run_status_arr
   },
   {
-    key: 'app_id',
+    key: 'agent_id',
     type: 'select-v2',
-    label: t('aiRuns.filter.app'),
-    placeholder: t('aiRuns.filter.app'),
+    label: t('aiRuns.filter.agent'),
+    placeholder: t('aiRuns.filter.agent'),
     width: 160,
-    options: dict.value.appArr,
+    options: dict.value.agentArr,
     clearable: true
   },
   {
@@ -119,7 +119,7 @@ const searchFields = computed<SearchField[]>(() => [
 
 const columns = computed(() => [
   {key: 'request_id', label: t('aiRuns.table.request_id'), width: 240},
-  {key: 'app_name', label: t('aiRuns.table.app'), width: 140},
+  {key: 'agent_name', label: t('aiRuns.table.agent'), width: 140},
   {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160, overflowTooltip: true},
   {key: 'run_status', label: t('aiRuns.table.status'), width: 100},
@@ -248,7 +248,7 @@ onMounted(() => {
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
           <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.app')">{{ detailData.app_name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.agent')">{{ detailData.agent_name }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.provider')">{{ detailData.provider_name }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{
               detailData.conversation_title
@@ -386,7 +386,7 @@ onMounted(() => {
                         }}
                       </el-tag>
                       <span class="step-status">{{ step.status_name }}</span>
-                      <el-tag v-if="step.app_name" type="info" size="small" effect="plain">{{ step.app_name }}</el-tag>
+                      <el-tag v-if="step.agent_name" type="info" size="small" effect="plain">{{ step.agent_name }}</el-tag>
                       <el-tag v-if="step.model_snapshot" type="warning" size="small" effect="plain">{{ step.model_snapshot }}</el-tag>
                     </div>
                     <div v-if="getStepTokenPayload(step)" class="step-tokens">

@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { AiAppApi } from '@/api/ai/apps'
+import { AiAgentApi } from '@/api/ai/agents'
 import type { Agent } from './types'
 
 const STORAGE_KEY = 'ai_chat_selected_app'
@@ -64,7 +64,7 @@ export function useAgents() {
     }
     searchLoading.value = true
     try {
-      const res = await AiAppApi.options()
+      const res = await AiAgentApi.options()
       const keywordText = keyword?.trim().toLowerCase()
       agents.value = keywordText
         ? res.list.filter((item) => item.name.toLowerCase().includes(keywordText) || item.code?.toLowerCase().includes(keywordText))
