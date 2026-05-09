@@ -56,7 +56,6 @@ const handleSelect = (agent: Agent) => {
         >
           <el-avatar
             :size="36"
-            :src="agent.avatar ?? undefined"
             class="agent-avatar"
           >
             {{ agent.name?.charAt(0) || '?' }}

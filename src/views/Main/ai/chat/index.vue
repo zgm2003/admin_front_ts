@@ -330,7 +330,7 @@ onMounted(async () => {
 
         <div v-else-if="selectedAgentId && messages.length === 0 && !messagesLoading" class="welcome-area">
           <div class="welcome-content">
-            <el-avatar :size="64" :src="selectedAgent?.avatar ?? undefined" class="welcome-avatar">
+            <el-avatar :size="64" class="welcome-avatar">
               {{ selectedAgent?.name?.charAt(0) || '?' }}
             </el-avatar>
             <h1 class="welcome-title">{{ selectedAgent?.name }}</h1>

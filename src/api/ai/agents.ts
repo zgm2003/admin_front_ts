@@ -36,7 +36,6 @@ export interface AiAgentItem {
   engine_type: AiProviderDriver | string
   name: string
   avatar?: string | null
-  description?: string | null
   model_id: string
   model_display_name: string
   scenes: AiAgentScene[]
@@ -51,23 +50,11 @@ export interface AiAgentItem {
 export interface AiAgentOption {
   id: number
   name: string
-  avatar?: string | null
-  description?: string | null
-  provider_id: number
-  engine_type: string
-  label?: string
-  value?: number
 }
 
 interface RemoteAiAgentOption {
-  id?: number
-  name?: string
-  avatar?: string | null
-  description?: string | null
-  provider_id?: number
-  engine_type?: string
-  label?: string
-  value?: number
+  id: number
+  name: string
 }
 
 export interface AiAgentOptionsResponse {
@@ -139,14 +126,8 @@ function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
 
 function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   return {
-    id: item.id ?? item.value ?? 0,
-    name: item.name ?? item.label ?? '',
-    avatar: item.avatar ?? null,
-    description: item.description ?? null,
-    provider_id: item.provider_id ?? 0,
-    engine_type: item.engine_type ?? '',
-    label: item.label,
-    value: item.value,
+    id: item.id,
+    name: item.name,
   }
 }
 

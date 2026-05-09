@@ -24,10 +24,6 @@ export interface Message {
 export interface Agent {
   id: number
   name: string
-  avatar?: string | null
-  description?: string | null
-  provider_id?: number
-  engine_type?: string
 }
 
 export interface ConversationSession {
