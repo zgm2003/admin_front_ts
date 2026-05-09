@@ -101,7 +101,6 @@ async function edit(row: AiEngineConnectionItem) {
     driver: row.driver ?? row.engine_type,
     base_url: row.base_url,
     api_key: '',
-    workspace_id: row.workspace_id ?? '',
     model_ids: models.map((model) => model.model_id),
     default_model_id: models.find((model) => model.is_default === CommonEnum.YES)?.model_id ?? row.default_model_id ?? '',
     model_display_names: Object.fromEntries(models.map((model) => [model.model_id, model.display_name || model.model_id])),

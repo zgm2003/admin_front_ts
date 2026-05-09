@@ -64,7 +64,6 @@ export interface AiEngineConnectionItem {
   base_url: string
   base_url_effective?: string
   api_key_masked?: string | null
-  workspace_id?: string | null
   health_status: AiEngineHealthStatus
   last_checked_at?: string | null
   last_check_error?: string | null
@@ -87,7 +86,6 @@ export interface AiEngineConnectionMutationParams {
   driver?: AiProviderDriver
   base_url?: string
   api_key?: string
-  workspace_id?: string | null
   model_ids: string[]
   default_model_id: string
   model_display_names?: Record<string, string>
@@ -100,7 +98,6 @@ export interface AiEngineConnectionMutationBody {
   driver: AiProviderDriver
   base_url: string
   api_key?: string
-  workspace_id?: string | null
   model_ids: string[]
   default_model_id: string
   model_display_names?: Record<string, string>
@@ -181,7 +178,6 @@ function mutationBody(params: AiEngineConnectionMutationParams): AiEngineConnect
     driver,
     base_url: params.base_url ?? '',
     api_key: params.api_key,
-    workspace_id: params.workspace_id ?? null,
     model_ids: params.model_ids,
     default_model_id: params.default_model_id,
     model_display_names: params.model_display_names,

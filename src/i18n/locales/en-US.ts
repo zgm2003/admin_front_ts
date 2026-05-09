@@ -755,11 +755,22 @@ export default {
       defaultModel: 'Default Model',
       modelDisplayName: 'Model Display Name',
       baseUrl: 'Base URL',
-      workspaceId: 'Workspace ID',
       status: 'Status',
       apiKey: 'API Key',
       apiKeyPlaceholder: 'Enter API key to fetch models',
       apiKeyEditPlaceholder: 'Leave empty to keep unchanged'
+    },
+    dialog: {
+      addSubtitle: 'Configure a directly usable OpenAI-compatible provider with only the required fields.',
+      editSubtitle: 'Update provider connection and model catalog. Leave API key empty to keep it unchanged.',
+      openaiOnly: 'OpenAI only',
+      basicSection: 'Connection',
+      basicHint: 'Base URL can stay empty; the server will use the official OpenAI endpoint.',
+      modelSection: 'Model Catalog',
+      selectedModels: '{count} selected',
+      displayNames: 'Model display names',
+      secretNote: 'API key is encrypted server-side and never returned to the browser.',
+      namePlaceholder: 'For example: Primary OpenAI account'
     },
     actions: { test: 'Test', fetchModels: 'Fetch Models', syncModels: 'Sync Models' },
     addTitle: 'Add Provider',

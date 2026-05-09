@@ -755,11 +755,22 @@ export default {
       defaultModel: '默认模型',
       modelDisplayName: '模型显示名',
       baseUrl: 'Base URL',
-      workspaceId: '工作区ID',
       status: '状态',
       apiKey: 'API Key',
       apiKeyPlaceholder: '请输入 API Key 后拉取模型',
       apiKeyEditPlaceholder: '留空表示不修改'
+    },
+    dialog: {
+      addSubtitle: '配置一个可直接调用的 OpenAI 兼容供应商，只保存必要字段。',
+      editSubtitle: '调整供应商连接与模型清单，API Key 留空则保持原值。',
+      openaiOnly: 'OpenAI only',
+      basicSection: '基础连接',
+      basicHint: 'Base URL 可留空，留空时服务端使用 OpenAI 官方默认地址。',
+      modelSection: '模型目录',
+      selectedModels: '已选 {count} 个模型',
+      displayNames: '模型显示名',
+      secretNote: 'API Key 只写入服务端加密存储，不会返回前端。',
+      namePlaceholder: '例如：主力 OpenAI 账号'
     },
     actions: { test: '测试连接', fetchModels: '拉取模型', syncModels: '同步模型' },
     addTitle: '新增供应商',

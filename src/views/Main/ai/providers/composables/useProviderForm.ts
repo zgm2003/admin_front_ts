@@ -9,7 +9,6 @@ export interface ProviderFormState {
   driver: AiProviderDriver
   base_url: string
   api_key: string
-  workspace_id: string
   model_ids: string[]
   default_model_id: string
   model_display_names: Record<string, string>
@@ -24,7 +23,6 @@ export function createDefaultProviderForm(): ProviderFormState {
     driver: 'openai',
     base_url: '',
     api_key: '',
-    workspace_id: '',
     model_ids: [],
     default_model_id: '',
     model_display_names: {},
