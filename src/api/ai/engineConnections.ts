@@ -30,7 +30,6 @@ export interface AiProviderModelItem {
   provider_id: number
   model_id: string
   display_name: string
-  is_default: number
   source: string
   raw?: JsonObject | null
   status: number
@@ -71,7 +70,6 @@ export interface AiEngineConnectionItem {
   last_model_sync_status?: AiModelSyncStatus
   last_model_sync_error?: string | null
   enabled_model_count?: number
-  default_model_id?: string
   models?: AiProviderModelItem[]
   status: number
   status_name?: string
@@ -87,7 +85,6 @@ export interface AiEngineConnectionMutationParams {
   base_url?: string
   api_key?: string
   model_ids: string[]
-  default_model_id: string
   model_display_names?: Record<string, string>
   status: number
 }
@@ -99,7 +96,6 @@ export interface AiEngineConnectionMutationBody {
   base_url: string
   api_key?: string
   model_ids: string[]
-  default_model_id: string
   model_display_names?: Record<string, string>
   status: number
 }
@@ -121,14 +117,12 @@ export interface AiModelOptionsBody {
 export interface AiProviderModelsUpdateParams {
   id: Id
   model_ids: string[]
-  default_model_id: string
   model_display_names?: Record<string, string>
   statuses?: Record<string, number>
 }
 
 export interface AiProviderModelsUpdateBody {
   model_ids: string[]
-  default_model_id: string
   model_display_names?: Record<string, string>
   statuses?: Record<string, number>
 }
@@ -179,7 +173,6 @@ function mutationBody(params: AiEngineConnectionMutationParams): AiEngineConnect
     base_url: params.base_url ?? '',
     api_key: params.api_key,
     model_ids: params.model_ids,
-    default_model_id: params.default_model_id,
     model_display_names: params.model_display_names,
     status: params.status,
   }
@@ -198,7 +191,6 @@ function modelOptionsBody(params: AiModelOptionsParams): AiModelOptionsBody {
 function updateModelsBody(params: AiProviderModelsUpdateParams): AiProviderModelsUpdateBody {
   return {
     model_ids: params.model_ids,
-    default_model_id: params.default_model_id,
     model_display_names: params.model_display_names,
     statuses: params.statuses,
   }
@@ -212,6 +204,7 @@ export const AiEngineConnectionApi = {
   init: () => request.get<AiEngineConnectionInitResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/page-init`),
   list: (params: AiEngineConnectionListParams) => request.get<PaginatedResponse<AiEngineConnectionItem>>(`${ADMIN_API_PREFIX}/ai-engine-connections`, { params: normalizeListParams(params) }),
   previewModels: (params: AiModelOptionsParams) => request.post<AiModelOptionsResponse, AiModelOptionsBody>(`${ADMIN_API_PREFIX}/ai-engine-connections/model-options`, modelOptionsBody(params)),
+  previewStoredModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/model-options`),
   add: (params: AiEngineConnectionMutationParams) => request.post<AiEngineConnectionCreateResponse, AiEngineConnectionMutationBody>(`${ADMIN_API_PREFIX}/ai-engine-connections`, mutationBody(params)),
   edit: (params: AiEngineConnectionMutationParams) => {
     const id = positiveID(params.id ?? 0, 'AI provider id')

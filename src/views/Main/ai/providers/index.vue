@@ -6,7 +6,6 @@ import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { useCrudTable } from '@/hooks/useCrudTable'
-import { CommonEnum } from '@/enums'
 import {
   AiEngineConnectionApi,
   type AiEngineConnectionInitResponse,
@@ -102,7 +101,6 @@ async function edit(row: AiEngineConnectionItem) {
     base_url: row.base_url,
     api_key: '',
     model_ids: models.map((model) => model.model_id),
-    default_model_id: models.find((model) => model.is_default === CommonEnum.YES)?.model_id ?? row.default_model_id ?? '',
     model_display_names: Object.fromEntries(models.map((model) => [model.model_id, model.display_name || model.model_id])),
     status: row.status,
   }
@@ -174,15 +172,15 @@ onMounted(() => {
           <el-tag v-else :type="stateTagType(row.last_model_sync_status)">{{ row.last_model_sync_status || 'unknown' }}</el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
           <div class="ai-provider-page__actions">
             <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
             <el-button type="success" text @click="testConnection(row)">{{ t('aiProviders.actions.test') }}</el-button>
             <el-button type="info" text @click="syncModels(row)">{{ t('aiProviders.actions.syncModels') }}</el-button>
-            <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-            <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
+            <el-button v-if="row.status === 2" type="warning" text @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
+            <el-button v-if="row.status === 1" type="warning" text @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
             <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
           </div>
         </template>

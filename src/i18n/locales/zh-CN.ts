@@ -752,7 +752,6 @@ export default {
       driver: '驱动',
       modelIds: '模型标识',
       modelIdsPlaceholder: '请先拉取或手动输入模型标识',
-      defaultModel: '默认模型',
       modelDisplayName: '模型显示名',
       baseUrl: 'Base URL',
       status: '状态',

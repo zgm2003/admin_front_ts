@@ -43,14 +43,6 @@ const selectModelOptions = computed(() => modelOptions.value.map((model) => ({
   value: model.model_id,
 })))
 
-const selectedModelOptions = computed(() => form.model_ids.map((modelID) => ({ label: modelID, value: modelID })))
-
-const defaultModelOptions = computed(() => {
-  const remoteOptions = selectModelOptions.value.filter((item) => form.model_ids.includes(item.value))
-  if (remoteOptions.length > 0) return remoteOptions
-  return selectedModelOptions.value
-})
-
 watch(
   () => props.modelValue,
   (open) => {
@@ -60,29 +52,21 @@ watch(
   }
 )
 
-watch(
-  () => form.model_ids.slice(),
-  (ids) => {
-    if (!ids.includes(form.default_model_id)) {
-      form.default_model_id = ids[0] ?? ''
-    }
-  }
-)
-
 async function fetchModels() {
-  if (!form.api_key.trim()) {
+  if (props.mode === 'add' && !form.api_key.trim()) {
     ElNotification.warning({ message: t('aiProviders.form.apiKeyPlaceholder') })
     return
   }
   modelLoading.value = true
   try {
-    const result = await AiEngineConnectionApi.previewModels({ driver: form.driver, base_url: form.base_url, api_key: form.api_key })
+    const result = props.mode === 'edit' && !form.api_key.trim() && form.id
+      ? await AiEngineConnectionApi.previewStoredModels({ id: form.id })
+      : await AiEngineConnectionApi.previewModels({ driver: form.driver, base_url: form.base_url, api_key: form.api_key })
     modelOptions.value = result.list
     mergeDisplayNames(result.list)
     const firstModel = result.list[0]
     if (form.model_ids.length === 0 && firstModel) {
       form.model_ids = [firstModel.model_id]
-      form.default_model_id = firstModel.model_id
     }
     ElNotification.success({ message: t('aiProviders.fetchModelsDone') })
   } finally {
@@ -106,7 +90,6 @@ function buildPayload(): AiEngineConnectionMutationParams {
     engine_type: form.driver,
     base_url: form.base_url,
     model_ids: form.model_ids,
-    default_model_id: form.default_model_id,
     model_display_names: form.model_display_names,
     status: form.status,
     ...(form.api_key ? { api_key: form.api_key } : {}),
@@ -213,11 +196,6 @@ async function confirmSubmit() {
                   style="width: 100%"
                   :placeholder="t('aiProviders.form.modelIdsPlaceholder')"
                 />
-              </el-form-item>
-            </el-col>
-            <el-col :md="12" :span="24">
-              <el-form-item :label="t('aiProviders.form.defaultModel')" prop="default_model_id" required>
-                <el-select-v2 v-model="form.default_model_id" :options="defaultModelOptions" filterable style="width: 100%" />
               </el-form-item>
             </el-col>
             <el-col :md="12" :span="24">

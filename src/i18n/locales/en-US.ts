@@ -752,7 +752,6 @@ export default {
       driver: 'Driver',
       modelIds: 'Model IDs',
       modelIdsPlaceholder: 'Fetch models or enter model IDs',
-      defaultModel: 'Default Model',
       modelDisplayName: 'Model Display Name',
       baseUrl: 'Base URL',
       status: 'Status',

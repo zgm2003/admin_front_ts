@@ -10,7 +10,6 @@ export interface ProviderFormState {
   base_url: string
   api_key: string
   model_ids: string[]
-  default_model_id: string
   model_display_names: Record<string, string>
   status: number
 }
@@ -24,7 +23,6 @@ export function createDefaultProviderForm(): ProviderFormState {
     base_url: '',
     api_key: '',
     model_ids: [],
-    default_model_id: '',
     model_display_names: {},
     status: CommonEnum.YES,
   }
@@ -39,7 +37,6 @@ export function useProviderForm(t: TranslateFn) {
     name: [{ required: true, message: t('aiProviders.form.name') + t('common.required'), trigger: 'blur' }],
     driver: [{ required: true, message: t('aiProviders.form.driver') + t('common.required'), trigger: 'change' }],
     model_ids: [{ required: true, type: 'array', min: 1, message: t('aiProviders.form.modelIds') + t('common.required'), trigger: 'change' }],
-    default_model_id: [{ required: true, message: t('aiProviders.form.defaultModel') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiProviders.form.status') + t('common.required'), trigger: 'change' }],
   }))
 
