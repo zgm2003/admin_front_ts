@@ -7,7 +7,7 @@ export interface AiRunInitResponse {
   dict: {
     run_status_arr: DictOption<number>[]
     appArr: DictOption<number>[]
-    engineArr: DictOption<number>[]
+    providerArr: DictOption<number>[]
   }
 }
 
@@ -18,7 +18,7 @@ export interface AiRunListParams extends RequestPayload {
   user_id?: number | ''
   request_id?: string
   app_id?: number | ''
-  engine_connection_id?: number | ''
+  provider_id?: number | ''
   date_start?: string
   date_end?: string
 }
@@ -29,8 +29,8 @@ export interface AiRunItem {
   user_id: number
   app_id: number
   app_name: string
-  engine_connection_id: number
-  engine_name: string
+  provider_id: number
+  provider_name: string
   engine_type: string
   engine_task_id?: string
   engine_run_id?: string
@@ -79,8 +79,8 @@ export interface AiRunDetailResponse {
   username: string
   app_id: number
   app_name: string
-  engine_connection_id: number
-  engine_name: string
+  provider_id: number
+  provider_name: string
   engine_type: string
   engine_task_id?: string
   engine_run_id?: string
@@ -157,7 +157,7 @@ export interface AiRunStatsListParams extends RequestPayload {
   date_start?: string
   date_end?: string
   app_id?: number | ''
-  engine_connection_id?: number | ''
+  provider_id?: number | ''
   user_id?: number | ''
 }
 
@@ -168,7 +168,7 @@ interface AiRunListQueryParams {
   user_id?: number
   request_id?: string
   app_id?: number
-  engine_connection_id?: number
+  provider_id?: number
   date_start?: string
   date_end?: string
 }
@@ -177,7 +177,7 @@ interface AiRunStatsQueryParams {
   date_start?: string
   date_end?: string
   app_id?: number
-  engine_connection_id?: number
+  provider_id?: number
   user_id?: number
 }
 
@@ -200,7 +200,7 @@ function normalizeListParams(params: AiRunListParams): AiRunListQueryParams {
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   if (params.request_id) query.request_id = params.request_id
   if (typeof params.app_id === 'number') query.app_id = params.app_id
-  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
+  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (params.date_start) query.date_start = params.date_start
   if (params.date_end) query.date_end = params.date_end
   return query
@@ -212,7 +212,7 @@ function normalizeStatsParams(params?: RequestPayload): AiRunStatsQueryParams {
   if (typeof params.date_start === 'string' && params.date_start) query.date_start = params.date_start
   if (typeof params.date_end === 'string' && params.date_end) query.date_end = params.date_end
   if (typeof params.app_id === 'number') query.app_id = params.app_id
-  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
+  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   return query
 }

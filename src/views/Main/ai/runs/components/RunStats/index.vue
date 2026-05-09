@@ -22,7 +22,7 @@ const {t} = useI18n()
 const dict = ref<AiRunInitResponse['dict']>({
   run_status_arr: [],
   appArr: [],
-  engineArr: [],
+  providerArr: [],
 })
 const loadDict = async () => {
   try {
@@ -35,14 +35,14 @@ const loadDict = async () => {
 interface RunStatsSearchForm {
   dateRange: string[]
   app_id: number | ''
-  engine_connection_id: number | ''
+  provider_id: number | ''
   user_id: number | ''
 }
 
 const searchForm = ref({
   dateRange: [] as string[],
   app_id: '' as number | '',
-  engine_connection_id: '' as number | '',
+  provider_id: '' as number | '',
   user_id: '' as number | '',
 } satisfies RunStatsSearchForm)
 
@@ -50,7 +50,7 @@ interface RunStatsQueryParams extends RequestPayload {
   date_start: string
   date_end: string
   app_id: number | ''
-  engine_connection_id: number | ''
+  provider_id: number | ''
   user_id: number | ''
   current_page?: number
   page_size?: number
@@ -63,7 +63,7 @@ const buildParams = (extra: Partial<RunStatsQueryParams> = {}): RunStatsQueryPar
     date_start: date_start ?? '',
     date_end: date_end ?? '',
     app_id: searchForm.value.app_id,
-    engine_connection_id: searchForm.value.engine_connection_id,
+    provider_id: searchForm.value.provider_id,
     user_id: searchForm.value.user_id,
     ...extra
   }
@@ -84,10 +84,10 @@ const searchFields = computed<SearchField[]>(() => [
     clearable: true
   },
   {
-    key: 'engine_connection_id',
+    key: 'provider_id',
     type: 'select-v2',
-    label: t('aiRuns.stats.engine'),
-    options: dict.value.engineArr,
+    label: t('aiRuns.stats.provider'),
+    options: dict.value.providerArr,
     clearable: true
   },
   {

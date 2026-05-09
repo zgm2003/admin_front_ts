@@ -24,7 +24,7 @@ import {
 
 interface MapForm {
   id?: number
-  engine_connection_id: number | null
+  provider_id: number | null
   name: string
   code: string
   engine_dataset_id: string
@@ -49,14 +49,14 @@ const dict = shallowRef<AiKnowledgeMapInitResponse['dict']>({
   source_type_arr: [],
   indexing_status_arr: [],
   common_status_arr: [],
-  engine_connection_options: [],
+  provider_options: [],
 })
 
 const searchForm = ref({
   name: '',
   code: '',
   visibility: '' as AiKnowledgeVisibility | '',
-  engine_connection_id: '' as number | '',
+  provider_id: '' as number | '',
   status: '' as number | '',
 })
 
@@ -89,7 +89,7 @@ const documentForm = ref<DocumentForm>(defaultDocumentForm())
 
 function defaultMapForm(): MapForm {
   return {
-    engine_connection_id: null,
+    provider_id: null,
     name: '',
     code: '',
     engine_dataset_id: '',
@@ -113,7 +113,7 @@ function defaultDocumentForm(): DocumentForm {
 const mapRules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiKnowledge.form.name') + t('common.required'), trigger: 'blur' }],
   code: [{ required: true, message: t('aiKnowledge.form.code') + t('common.required'), trigger: 'blur' }],
-  engine_connection_id: [{ required: true, message: t('aiKnowledge.form.engineConnection') + t('common.required'), trigger: 'change' }],
+  provider_id: [{ required: true, message: t('aiKnowledge.form.provider') + t('common.required'), trigger: 'change' }],
   visibility: [{ required: true, message: t('aiKnowledge.form.visibility') + t('common.required'), trigger: 'change' }],
 }))
 
@@ -125,7 +125,7 @@ const documentRules = computed<FormRules>(() => ({
 const searchFields = computed<SearchField[]>(() => [
   { key: 'name', type: 'input', label: t('aiKnowledge.filter.name'), placeholder: t('aiKnowledge.filter.name'), width: 160 },
   { key: 'code', type: 'input', label: t('aiKnowledge.filter.code'), placeholder: t('aiKnowledge.filter.code'), width: 150 },
-  { key: 'engine_connection_id', type: 'select-v2', label: t('aiKnowledge.filter.engineConnection'), placeholder: t('aiKnowledge.filter.engineConnection'), width: 180, options: dict.value.engine_connection_options },
+  { key: 'provider_id', type: 'select-v2', label: t('aiKnowledge.filter.provider'), placeholder: t('aiKnowledge.filter.provider'), width: 180, options: dict.value.provider_options },
   { key: 'visibility', type: 'select-v2', label: t('aiKnowledge.filter.visibility'), placeholder: t('aiKnowledge.filter.visibility'), width: 130, options: dict.value.visibility_arr },
   { key: 'status', type: 'select-v2', label: t('aiKnowledge.filter.status'), placeholder: t('aiKnowledge.filter.status'), width: 120, options: dict.value.common_status_arr },
 ])
@@ -133,7 +133,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'name', label: t('aiKnowledge.table.name'), minWidth: 160 },
   { key: 'code', label: t('aiKnowledge.table.code'), width: 140 },
-  { key: 'engine_connection_name', label: t('aiKnowledge.table.engineConnection'), width: 160 },
+  { key: 'provider_name', label: t('aiKnowledge.table.provider'), width: 160 },
   { key: 'engine_dataset_id', label: t('aiKnowledge.table.dataset'), minWidth: 180, overflowTooltip: true },
   { key: 'visibility', label: t('aiKnowledge.table.visibility'), width: 110 },
   { key: 'status', label: t('aiKnowledge.table.status'), width: 90 },
@@ -169,7 +169,7 @@ function editMap(row: AiKnowledgeMapItem) {
   mapDialogMode.value = 'edit'
   mapForm.value = {
     id: row.id,
-    engine_connection_id: row.engine_connection_id,
+    provider_id: row.provider_id,
     name: row.name,
     code: row.code,
     engine_dataset_id: row.engine_dataset_id,
@@ -188,7 +188,7 @@ async function submitMap() {
   } catch {
     return
   }
-  if (!mapForm.value.engine_connection_id) return
+  if (!mapForm.value.provider_id) return
 
   let meta: JsonObject | null
   try {
@@ -200,7 +200,7 @@ async function submitMap() {
 
   const payload: AiKnowledgeMapMutationParams = {
     id: mapForm.value.id,
-    engine_connection_id: mapForm.value.engine_connection_id,
+    provider_id: mapForm.value.provider_id,
     name: mapForm.value.name,
     code: mapForm.value.code,
     engine_dataset_id: mapForm.value.engine_dataset_id || undefined,
@@ -367,8 +367,8 @@ onMounted(() => {
           <el-form-item :label="t('aiKnowledge.form.code')" prop="code" required><el-input v-model="mapForm.code" /></el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.engineConnection')" prop="engine_connection_id" required>
-            <el-select-v2 v-model="mapForm.engine_connection_id" :options="dict.engine_connection_options" style="width: 100%" />
+          <el-form-item :label="t('aiKnowledge.form.provider')" prop="provider_id" required>
+            <el-select-v2 v-model="mapForm.provider_id" :options="dict.provider_options" style="width: 100%" />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

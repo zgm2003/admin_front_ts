@@ -1,7 +1,7 @@
 import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiEngineConnectionTestResult, AiEngineType } from './engineConnections'
+import type { AiProviderTestResult, AiProviderDriver } from './providers'
 
 export type JsonObject = Record<string, unknown>
 export type AiAppType = 'chat' | 'workflow' | 'completion' | 'agent'
@@ -14,7 +14,7 @@ export interface AiAppInitResponse {
     response_mode_arr: DictOption<AiResponseMode>[]
     binding_type_arr: DictOption<AiBindingType>[]
     common_status_arr: DictOption<number>[]
-    engine_connection_options: Array<DictOption<number> & { engine_type: AiEngineType }>
+    provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
   }
 }
 
@@ -24,15 +24,15 @@ export interface AiAppListParams extends RequestPayload {
   name?: string
   code?: string
   app_type?: AiAppType | ''
-  engine_connection_id?: number | ''
+  provider_id?: number | ''
   status?: number | ''
 }
 
 export interface AiAppItem {
   id: number
-  engine_connection_id: number
-  engine_connection_name: string
-  engine_type: AiEngineType | string
+  provider_id: number
+  provider_name: string
+  engine_type: AiProviderDriver | string
   name: string
   code: string
   avatar?: string | null
@@ -55,7 +55,7 @@ export interface AiAppOption {
   name: string
   avatar?: string | null
   description?: string | null
-  engine_connection_id: number
+  provider_id: number
   engine_type: string
   code?: string
   label?: string
@@ -67,7 +67,7 @@ interface RemoteAiAppOption {
   name?: string
   avatar?: string | null
   description?: string | null
-  engine_connection_id?: number
+  provider_id?: number
   engine_type?: string
   code?: string
   label?: string
@@ -82,7 +82,7 @@ export interface AiAppMutationParams {
   id?: Id
   name: string
   code?: string
-  engine_connection_id: number
+  provider_id: number
   engine_app_id: string
   app_type: 'chat' | 'workflow' | 'agent'
   engine_app_api_key?: string
@@ -94,7 +94,7 @@ export interface AiAppMutationParams {
 export interface AiAppMutationBody {
   name: string
   code: string
-  engine_connection_id: number
+  provider_id: number
   engine_app_id: string
   app_type: AiAppMutationParams['app_type']
   engine_app_api_key?: string
@@ -107,7 +107,7 @@ export interface AiAppCreateResponse {
   id: number
 }
 
-export type AiAppTestResult = AiEngineConnectionTestResult
+export type AiAppTestResult = AiProviderTestResult
 
 export interface AiAppBindingItem {
   id: number
@@ -147,7 +147,7 @@ interface AiAppListQueryParams {
   name?: string
   code?: string
   app_type?: AiAppType
-  engine_connection_id?: number
+  provider_id?: number
   status?: number
 }
 
@@ -164,7 +164,7 @@ function normalizeListParams(params: AiAppListParams): AiAppListQueryParams {
   if (typeof params.name === 'string' && params.name.trim()) query.name = params.name.trim()
   if (typeof params.code === 'string' && params.code.trim()) query.code = params.code.trim()
   if (params.app_type) query.app_type = params.app_type
-  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
+  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.status === 'number') query.status = params.status
   return query
 }
@@ -173,7 +173,7 @@ function mutationBody(params: AiAppMutationParams): AiAppMutationBody {
   return {
     name: params.name,
     code: params.code ?? params.name,
-    engine_connection_id: params.engine_connection_id,
+    provider_id: params.provider_id,
     engine_app_id: params.engine_app_id,
     app_type: params.app_type,
     engine_app_api_key: params.engine_app_api_key,
@@ -198,7 +198,7 @@ function normalizeOption(item: RemoteAiAppOption): AiAppOption {
     name: item.name ?? item.label ?? '',
     avatar: item.avatar ?? null,
     description: item.description ?? null,
-    engine_connection_id: item.engine_connection_id ?? 0,
+    provider_id: item.provider_id ?? 0,
     engine_type: item.engine_type ?? '',
     code: item.code,
     label: item.label,

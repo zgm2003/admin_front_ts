@@ -28,7 +28,7 @@ const {copy} = useCopy()
 const dict = ref<AiRunInitResponse['dict']>({
   run_status_arr: [],
   appArr: [],
-  engineArr: [],
+  providerArr: [],
 })
 
 const searchForm = ref({
@@ -37,7 +37,7 @@ const searchForm = ref({
   request_id: '',
   dateRange: [] as string[],
   app_id: '' as number | '',
-  engine_connection_id: '' as number | '',
+  provider_id: '' as number | '',
 })
 
 // useTable 会 unref 并展开 searchForm，需要转换 dateRange → date_start/date_end
@@ -85,12 +85,12 @@ const searchFields = computed<SearchField[]>(() => [
     clearable: true
   },
   {
-    key: 'engine_connection_id',
+    key: 'provider_id',
     type: 'select-v2',
-    label: t('aiRuns.filter.engine'),
-    placeholder: t('aiRuns.filter.engine'),
+    label: t('aiRuns.filter.provider'),
+    placeholder: t('aiRuns.filter.provider'),
     width: 180,
-    options: dict.value.engineArr,
+    options: dict.value.providerArr,
     clearable: true
   },
   {
@@ -120,7 +120,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   {key: 'request_id', label: t('aiRuns.table.request_id'), width: 240},
   {key: 'app_name', label: t('aiRuns.table.app'), width: 140},
-  {key: 'engine_name', label: t('aiRuns.table.engine'), width: 150},
+  {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160, overflowTooltip: true},
   {key: 'run_status', label: t('aiRuns.table.status'), width: 100},
   {key: 'model_snapshot', label: t('aiRuns.table.model'), width: 140},
@@ -249,7 +249,7 @@ onMounted(() => {
           <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.app')">{{ detailData.app_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.engine')">{{ detailData.engine_name }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.provider')">{{ detailData.provider_name }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{
               detailData.conversation_title
             }}

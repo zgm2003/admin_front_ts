@@ -2,22 +2,20 @@ import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
-export type JsonObject = Record<string, unknown>
 export type AiProviderDriver = 'openai'
-export type AiEngineType = AiProviderDriver
-export type AiEngineHealthStatus = 'unknown' | 'ok' | 'failed'
+export type AiProviderHealthStatus = 'unknown' | 'ok' | 'failed'
 export type AiModelSyncStatus = 'unknown' | 'ok' | 'failed'
 
-export interface AiEngineConnectionInitResponse {
+export interface AiProviderInitResponse {
   dict: {
     engine_type_arr: DictOption<AiProviderDriver>[]
     common_status_arr: DictOption<number>[]
-    health_status_arr: DictOption<AiEngineHealthStatus>[]
+    health_status_arr: DictOption<AiProviderHealthStatus>[]
     model_sync_arr?: DictOption<AiModelSyncStatus>[]
   }
 }
 
-export interface AiEngineConnectionListParams extends RequestPayload {
+export interface AiProviderListParams extends RequestPayload {
   current_page?: number
   page_size?: number
   name?: string
@@ -30,8 +28,6 @@ export interface AiProviderModelItem {
   provider_id: number
   model_id: string
   display_name: string
-  source: string
-  raw?: JsonObject | null
   status: number
   status_name?: string
   created_at?: string
@@ -42,7 +38,6 @@ export interface AiModelOptionItem {
   model_id: string
   display_name: string
   owned_by?: string
-  raw?: JsonObject | null
 }
 
 export interface AiModelOptionsResponse {
@@ -53,7 +48,7 @@ export interface AiProviderModelsResponse {
   list: AiProviderModelItem[]
 }
 
-export interface AiEngineConnectionItem {
+export interface AiProviderItem {
   id: number
   name: string
   engine_type: AiProviderDriver
@@ -63,7 +58,7 @@ export interface AiEngineConnectionItem {
   base_url: string
   base_url_effective?: string
   api_key_masked?: string | null
-  health_status: AiEngineHealthStatus
+  health_status: AiProviderHealthStatus
   last_checked_at?: string | null
   last_check_error?: string | null
   last_model_sync_at?: string | null
@@ -77,7 +72,7 @@ export interface AiEngineConnectionItem {
   updated_at: string
 }
 
-export interface AiEngineConnectionMutationParams {
+export interface AiProviderMutationParams {
   id?: Id
   name: string
   engine_type?: AiProviderDriver
@@ -89,7 +84,7 @@ export interface AiEngineConnectionMutationParams {
   status: number
 }
 
-export interface AiEngineConnectionMutationBody {
+export interface AiProviderMutationBody {
   name: string
   engine_type: AiProviderDriver
   driver: AiProviderDriver
@@ -127,20 +122,19 @@ export interface AiProviderModelsUpdateBody {
   statuses?: Record<string, number>
 }
 
-export interface AiEngineConnectionCreateResponse {
+export interface AiProviderCreateResponse {
   id: number
 }
 
-export interface AiEngineConnectionTestResult {
+export interface AiProviderTestResult {
   ok: boolean
   status?: string
   latency_ms?: number
   message?: string
   model_count?: number
-  raw?: JsonObject | null
 }
 
-interface AiEngineConnectionListQueryParams {
+interface AiProviderListQueryParams {
   current_page?: number
   page_size?: number
   name?: string
@@ -154,8 +148,8 @@ export function positiveID(value: Id | number, label: string): number {
   return id
 }
 
-function normalizeListParams(params: AiEngineConnectionListParams): AiEngineConnectionListQueryParams {
-  const query: AiEngineConnectionListQueryParams = {}
+function normalizeListParams(params: AiProviderListParams): AiProviderListQueryParams {
+  const query: AiProviderListQueryParams = {}
   if (typeof params.current_page === 'number') query.current_page = params.current_page
   if (typeof params.page_size === 'number') query.page_size = params.page_size
   if (typeof params.name === 'string' && params.name.trim()) query.name = params.name.trim()
@@ -164,7 +158,7 @@ function normalizeListParams(params: AiEngineConnectionListParams): AiEngineConn
   return query
 }
 
-function mutationBody(params: AiEngineConnectionMutationParams): AiEngineConnectionMutationBody {
+function mutationBody(params: AiProviderMutationParams): AiProviderMutationBody {
   const driver = params.driver ?? params.engine_type ?? 'openai'
   return {
     name: params.name,
@@ -196,30 +190,31 @@ function updateModelsBody(params: AiProviderModelsUpdateParams): AiProviderModel
   }
 }
 
-function deleteConnection(id: number): Promise<void> {
-  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-engine-connections/${id}`)
+function deleteProvider(id: number): Promise<void> {
+  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-providers/${id}`)
 }
 
-export const AiEngineConnectionApi = {
-  init: () => request.get<AiEngineConnectionInitResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/page-init`),
-  list: (params: AiEngineConnectionListParams) => request.get<PaginatedResponse<AiEngineConnectionItem>>(`${ADMIN_API_PREFIX}/ai-engine-connections`, { params: normalizeListParams(params) }),
-  previewModels: (params: AiModelOptionsParams) => request.post<AiModelOptionsResponse, AiModelOptionsBody>(`${ADMIN_API_PREFIX}/ai-engine-connections/model-options`, modelOptionsBody(params)),
-  previewStoredModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/model-options`),
-  add: (params: AiEngineConnectionMutationParams) => request.post<AiEngineConnectionCreateResponse, AiEngineConnectionMutationBody>(`${ADMIN_API_PREFIX}/ai-engine-connections`, mutationBody(params)),
-  edit: (params: AiEngineConnectionMutationParams) => {
+export const AiProviderApi = {
+  init: () => request.get<AiProviderInitResponse>(`${ADMIN_API_PREFIX}/ai-providers/page-init`),
+  list: (params: AiProviderListParams) => request.get<PaginatedResponse<AiProviderItem>>(`${ADMIN_API_PREFIX}/ai-providers`, { params: normalizeListParams(params) }),
+  previewModels: (params: AiModelOptionsParams) => request.post<AiModelOptionsResponse, AiModelOptionsBody>(`${ADMIN_API_PREFIX}/ai-providers/model-options`, modelOptionsBody(params)),
+  previewStoredModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/model-options`),
+  add: (params: AiProviderMutationParams) => request.post<AiProviderCreateResponse, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers`, mutationBody(params)),
+  edit: (params: AiProviderMutationParams) => {
     const id = positiveID(params.id ?? 0, 'AI provider id')
-    return request.put<void, AiEngineConnectionMutationBody>(`${ADMIN_API_PREFIX}/ai-engine-connections/${id}`, mutationBody(params))
+    return request.put<void, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers/${id}`, mutationBody(params))
   },
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/status`, { status: params.status }),
-  test: (params: { id: Id }) => request.post<AiEngineConnectionTestResult>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/test`),
-  syncModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/sync-models`),
-  models: (params: { id: Id }) => request.get<AiProviderModelsResponse>(`${ADMIN_API_PREFIX}/ai-engine-connections/${positiveID(params.id, 'AI provider id')}/models`),
+  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/status`, { status: params.status }),
+  test: (params: { id: Id }) => request.post<AiProviderTestResult>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/test`),
+  syncModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/sync-models`),
+  models: (params: { id: Id }) => request.get<AiProviderModelsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/models`),
   updateModels: (params: AiProviderModelsUpdateParams) => {
     const id = positiveID(params.id, 'AI provider id')
-    return request.put<void, AiProviderModelsUpdateBody>(`${ADMIN_API_PREFIX}/ai-engine-connections/${id}/models`, updateModelsBody(params))
+    return request.put<void, AiProviderModelsUpdateBody>(`${ADMIN_API_PREFIX}/ai-providers/${id}/models`, updateModelsBody(params))
   },
   del: async (params: { id: Id | Id[] }): Promise<void> => {
     const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteConnection(positiveID(item, 'AI provider id'))))
+    await Promise.all(ids.map((item) => deleteProvider(positiveID(item, 'AI provider id'))))
   },
 }
+

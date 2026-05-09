@@ -779,9 +779,9 @@ export default {
     syncModelsDone: '模型同步完成，共 {count} 个'
   },
   aiApps: {
-    filter: { name: '应用名称', code: '应用编码', appType: '应用类型', engineConnection: '供应商', status: '状态' },
-    table: { name: '应用名称', code: '编码', engineConnection: '供应商', appType: '类型', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
-    form: { name: '应用名称', code: '应用编码', engineConnection: '供应商', appType: '应用类型', engineAppId: 'Dify App ID', responseMode: '响应模式', status: '状态', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
+    filter: { name: '应用名称', code: '应用编码', appType: '应用类型', provider: '供应商', status: '状态' },
+    table: { name: '应用名称', code: '编码', provider: '供应商', appType: '类型', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: '响应模式', status: '状态', updatedAt: '更新时间' },
+    form: { name: '应用名称', code: '应用编码', provider: '供应商', appType: '应用类型', engineAppId: 'Dify App ID', responseMode: '响应模式', status: '状态', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改', runtimeConfig: '运行配置JSON', invalidRuntimeConfig: '运行配置必须是合法 JSON 对象' },
     actions: { test: '测试应用', bindings: '绑定' },
     binding: { title: '应用绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },
     addTitle: '新增 AI 应用',
@@ -890,12 +890,12 @@ export default {
     toolDone: '工具调用完成',
   },
   aiTools: {
-    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', engineConnection: '供应商', app: 'AI 应用', status: '状态' },
+    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', provider: '供应商', app: 'AI 应用', status: '状态' },
     table: {
       name: '工具名称',
       code: '工具编码',
       toolType: '工具类型',
-      engineConnection: '供应商',
+      provider: '供应商',
       engineToolId: '引擎工具ID',
       permissionCode: '权限编码',
       riskLevel: '风险等级',
@@ -905,7 +905,7 @@ export default {
     form: {
       name: '工具名称',
       code: '工具编码',
-      engineConnection: '供应商',
+      provider: '供应商',
       app: 'AI 应用',
       toolType: '工具类型',
       riskLevel: '风险等级',
@@ -918,11 +918,11 @@ export default {
     editTitle: '编辑工具映射'
   },
   aiKnowledge: {
-    filter: { name: '知识库名称', code: '知识库编码', engineConnection: '供应商', visibility: '可见性', status: '状态' },
+    filter: { name: '知识库名称', code: '知识库编码', provider: '供应商', visibility: '可见性', status: '状态' },
     table: {
       name: '知识库',
       code: '编码',
-      engineConnection: '供应商',
+      provider: '供应商',
       dataset: '数据集ID',
       visibility: '可见性',
       status: '状态',
@@ -933,7 +933,7 @@ export default {
     form: {
       name: '知识库名称',
       code: '知识库编码',
-      engineConnection: '供应商',
+      provider: '供应商',
       visibility: '可见性',
       dataset: 'Dify 数据集ID',
       metaJson: '元数据JSON',
@@ -956,7 +956,7 @@ export default {
     filter: {
       status: '状态',
       app: 'AI 应用',
-      engine: '供应商',
+      provider: '供应商',
       user: '用户',
       request_id: 'Request ID',
       dateRange: '日期范围',
@@ -966,7 +966,7 @@ export default {
     table: {
       request_id: 'Request ID',
       app: 'AI 应用',
-      engine: '供应商',
+      provider: '供应商',
       conversation: '会话',
       status: '状态',
       model: '模型',
@@ -979,7 +979,7 @@ export default {
       title: '运行详情',
       user: '用户',
       app: 'AI 应用',
-      engine: '供应商',
+      provider: '供应商',
       conversation: '会话',
       status: '状态',
       model: '模型',
@@ -1018,7 +1018,7 @@ export default {
       byUser: '按用户',
       date: '日期',
       app: 'AI 应用',
-      engine: '供应商',
+      provider: '供应商',
       user: '用户',
       runs: '请求',
       tokens: 'Tokens',

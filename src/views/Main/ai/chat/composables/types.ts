@@ -48,7 +48,7 @@ export interface Agent {
   name: string
   avatar?: string | null
   description?: string | null
-  engine_connection_id?: number
+  provider_id?: number
   engine_type?: string
   code?: string
 }

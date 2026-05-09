@@ -1,7 +1,7 @@
 import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiEngineType } from './engineConnections'
+import type { AiProviderDriver } from './providers'
 
 export type JsonObject = Record<string, unknown>
 export type AiKnowledgeVisibility = 'private' | 'public'
@@ -14,7 +14,7 @@ export interface AiKnowledgeMapInitResponse {
     source_type_arr: DictOption<AiKnowledgeSourceType>[]
     indexing_status_arr: DictOption<AiKnowledgeIndexingStatus>[]
     common_status_arr: DictOption<number>[]
-    engine_connection_options: Array<DictOption<number> & { engine_type: AiEngineType }>
+    provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
   }
 }
 
@@ -24,15 +24,15 @@ export interface AiKnowledgeMapListParams extends RequestPayload {
   name?: string
   code?: string
   visibility?: AiKnowledgeVisibility | ''
-  engine_connection_id?: number | ''
+  provider_id?: number | ''
   status?: number | ''
 }
 
 export interface AiKnowledgeMapItem {
   id: number
-  engine_connection_id: number
-  engine_connection_name: string
-  engine_type: AiEngineType | string
+  provider_id: number
+  provider_name: string
+  engine_type: AiProviderDriver | string
   name: string
   code: string
   engine_dataset_id: string
@@ -47,7 +47,7 @@ export interface AiKnowledgeMapItem {
 
 export interface AiKnowledgeMapMutationParams {
   id?: Id
-  engine_connection_id: number
+  provider_id: number
   name: string
   code: string
   engine_dataset_id?: string
@@ -57,7 +57,7 @@ export interface AiKnowledgeMapMutationParams {
 }
 
 export interface AiKnowledgeMapMutationBody {
-  engine_connection_id: number
+  provider_id: number
   name: string
   code: string
   engine_dataset_id?: string
@@ -117,7 +117,7 @@ interface AiKnowledgeMapListQueryParams {
   name?: string
   code?: string
   visibility?: AiKnowledgeVisibility
-  engine_connection_id?: number
+  provider_id?: number
   status?: number
 }
 
@@ -134,14 +134,14 @@ function normalizeListParams(params: AiKnowledgeMapListParams): AiKnowledgeMapLi
   if (typeof params.name === 'string' && params.name.trim()) query.name = params.name.trim()
   if (typeof params.code === 'string' && params.code.trim()) query.code = params.code.trim()
   if (params.visibility) query.visibility = params.visibility
-  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
+  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.status === 'number') query.status = params.status
   return query
 }
 
 function mapBody(params: AiKnowledgeMapMutationParams): AiKnowledgeMapMutationBody {
   return {
-    engine_connection_id: params.engine_connection_id,
+    provider_id: params.provider_id,
     name: params.name,
     code: params.code,
     engine_dataset_id: params.engine_dataset_id,

@@ -6,17 +6,17 @@ import type { FormInstance } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import {
-  AiEngineConnectionApi,
-  type AiEngineConnectionInitResponse,
-  type AiEngineConnectionMutationParams,
+  AiProviderApi,
+  type AiProviderInitResponse,
+  type AiProviderMutationParams,
   type AiModelOptionItem,
-} from '@/api/ai/engineConnections'
+} from '@/api/ai/providers'
 import { type ProviderFormState, useProviderForm } from '../composables/useProviderForm'
 
 const props = defineProps<{
   modelValue: boolean
   mode: 'add' | 'edit'
-  dict: AiEngineConnectionInitResponse['dict']
+  dict: AiProviderInitResponse['dict']
   initial?: Partial<ProviderFormState>
 }>()
 
@@ -60,8 +60,8 @@ async function fetchModels() {
   modelLoading.value = true
   try {
     const result = props.mode === 'edit' && !form.api_key.trim() && form.id
-      ? await AiEngineConnectionApi.previewStoredModels({ id: form.id })
-      : await AiEngineConnectionApi.previewModels({ driver: form.driver, base_url: form.base_url, api_key: form.api_key })
+      ? await AiProviderApi.previewStoredModels({ id: form.id })
+      : await AiProviderApi.previewModels({ driver: form.driver, base_url: form.base_url, api_key: form.api_key })
     modelOptions.value = result.list
     mergeDisplayNames(result.list)
     const firstModel = result.list[0]
@@ -82,7 +82,7 @@ function mergeDisplayNames(options: AiModelOptionItem[]) {
   }
 }
 
-function buildPayload(): AiEngineConnectionMutationParams {
+function buildPayload(): AiProviderMutationParams {
   return {
     id: form.id,
     name: form.name,
@@ -107,7 +107,7 @@ async function confirmSubmit() {
     ElNotification.warning({ message: t('aiProviders.form.apiKey') + t('common.required') })
     return
   }
-  const api = props.mode === 'add' ? AiEngineConnectionApi.add : AiEngineConnectionApi.edit
+  const api = props.mode === 'add' ? AiProviderApi.add : AiProviderApi.edit
   await api(buildPayload())
   ElNotification.success({ message: t('common.success.operation') })
   visible.value = false

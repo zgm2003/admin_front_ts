@@ -7,19 +7,19 @@ import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import {
-  AiEngineConnectionApi,
-  type AiEngineConnectionInitResponse,
-  type AiEngineConnectionItem,
-  type AiEngineHealthStatus,
+  AiProviderApi,
+  type AiProviderInitResponse,
+  type AiProviderItem,
+  type AiProviderHealthStatus,
   type AiProviderDriver,
   type AiProviderModelItem,
-} from '@/api/ai/engineConnections'
+} from '@/api/ai/providers'
 import ProviderFormDialog from './components/ProviderFormDialog.vue'
 import ProviderModelList from './components/ProviderModelList.vue'
 import { createDefaultProviderForm, type ProviderFormState } from './composables/useProviderForm'
 
 const { t } = useI18n()
-const dict = shallowRef<AiEngineConnectionInitResponse['dict']>({
+const dict = shallowRef<AiProviderInitResponse['dict']>({
   engine_type_arr: [],
   common_status_arr: [],
   health_status_arr: [],
@@ -42,8 +42,8 @@ const {
   getList,
   confirmDel,
   toggleStatus,
-} = useCrudTable<AiEngineConnectionItem>({
-  api: AiEngineConnectionApi,
+} = useCrudTable<AiProviderItem>({
+  api: AiProviderApi,
   searchForm,
 })
 
@@ -70,18 +70,18 @@ const columns = computed(() => [
   { key: 'actions', label: t('common.actions.action'), width: 460 },
 ])
 
-function stateTagType(status?: AiEngineHealthStatus) {
+function stateTagType(status?: AiProviderHealthStatus) {
   if (status === 'ok') return 'success'
   if (status === 'failed') return 'danger'
   return 'info'
 }
 
 async function init() {
-  const data = await AiEngineConnectionApi.init()
+  const data = await AiProviderApi.init()
   dict.value = data.dict
 }
 
-function rowModels(row: AiEngineConnectionItem): AiProviderModelItem[] {
+function rowModels(row: AiProviderItem): AiProviderModelItem[] {
   return row.models ?? []
 }
 
@@ -91,8 +91,8 @@ function add() {
   dialogVisible.value = true
 }
 
-async function edit(row: AiEngineConnectionItem) {
-  const modelResponse = await AiEngineConnectionApi.models({ id: row.id })
+async function edit(row: AiProviderItem) {
+  const modelResponse = await AiProviderApi.models({ id: row.id })
   const models = modelResponse.list
   currentInitial.value = {
     id: row.id,
@@ -108,14 +108,14 @@ async function edit(row: AiEngineConnectionItem) {
   dialogVisible.value = true
 }
 
-async function testConnection(row: AiEngineConnectionItem) {
-  const result = await AiEngineConnectionApi.test({ id: row.id })
+async function testConnection(row: AiProviderItem) {
+  const result = await AiProviderApi.test({ id: row.id })
   ElNotification.success({ message: result.message || t('aiProviders.testDone') })
   await getList()
 }
 
-async function syncModels(row: AiEngineConnectionItem) {
-  const result = await AiEngineConnectionApi.syncModels({ id: row.id })
+async function syncModels(row: AiProviderItem) {
+  const result = await AiProviderApi.syncModels({ id: row.id })
   ElNotification.success({ message: t('aiProviders.syncModelsDone', { count: result.list.length }) })
   await getList()
 }

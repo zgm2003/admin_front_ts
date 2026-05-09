@@ -23,7 +23,7 @@ import { AiAppApi, type AiAppOption } from '@/api/ai/apps'
 
 interface ToolMapForm {
   id?: number
-  engine_connection_id: number | null
+  provider_id: number | null
   app_id: number | null
   name: string
   code: string
@@ -41,7 +41,7 @@ const dict = shallowRef<AiToolMapInitResponse['dict']>({
   tool_type_arr: [],
   risk_level_arr: [],
   common_status_arr: [],
-  engine_connection_options: [],
+  provider_options: [],
 })
 const appOptions = ref<AiAppOption[]>([])
 
@@ -50,7 +50,7 @@ const searchForm = ref({
   code: '',
   tool_type: '' as AiToolType | '',
   risk_level: '' as AiToolRiskLevel | '',
-  engine_connection_id: '' as number | '',
+  provider_id: '' as number | '',
   app_id: '' as number | '',
   status: '' as number | '',
 })
@@ -77,7 +77,7 @@ const form = ref<ToolMapForm>(defaultForm())
 
 function defaultForm(): ToolMapForm {
   return {
-    engine_connection_id: null,
+    provider_id: null,
     app_id: null,
     name: '',
     code: '',
@@ -93,7 +93,7 @@ function defaultForm(): ToolMapForm {
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiTools.form.name') + t('common.required'), trigger: 'blur' }],
   code: [{ required: true, message: t('aiTools.form.code') + t('common.required'), trigger: 'blur' }],
-  engine_connection_id: [{ required: true, message: t('aiTools.form.engineConnection') + t('common.required'), trigger: 'change' }],
+  provider_id: [{ required: true, message: t('aiTools.form.provider') + t('common.required'), trigger: 'change' }],
   tool_type: [{ required: true, message: t('aiTools.form.toolType') + t('common.required'), trigger: 'change' }],
   risk_level: [{ required: true, message: t('aiTools.form.riskLevel') + t('common.required'), trigger: 'change' }],
 }))
@@ -105,7 +105,7 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'code', type: 'input', label: t('aiTools.filter.code'), placeholder: t('aiTools.filter.code'), width: 150 },
   { key: 'tool_type', type: 'select-v2', label: t('aiTools.filter.toolType'), placeholder: t('aiTools.filter.toolType'), width: 150, options: dict.value.tool_type_arr },
   { key: 'risk_level', type: 'select-v2', label: t('aiTools.filter.riskLevel'), placeholder: t('aiTools.filter.riskLevel'), width: 130, options: dict.value.risk_level_arr },
-  { key: 'engine_connection_id', type: 'select-v2', label: t('aiTools.filter.engineConnection'), placeholder: t('aiTools.filter.engineConnection'), width: 180, options: dict.value.engine_connection_options },
+  { key: 'provider_id', type: 'select-v2', label: t('aiTools.filter.provider'), placeholder: t('aiTools.filter.provider'), width: 180, options: dict.value.provider_options },
   { key: 'app_id', type: 'select-v2', label: t('aiTools.filter.app'), placeholder: t('aiTools.filter.app'), width: 160, options: appSelectOptions.value },
   { key: 'status', type: 'select-v2', label: t('aiTools.filter.status'), placeholder: t('aiTools.filter.status'), width: 120, options: dict.value.common_status_arr },
 ])
@@ -114,7 +114,7 @@ const columns = computed(() => [
   { key: 'name', label: t('aiTools.table.name'), minWidth: 160 },
   { key: 'code', label: t('aiTools.table.code'), width: 140 },
   { key: 'tool_type', label: t('aiTools.table.toolType'), width: 130 },
-  { key: 'engine_connection_name', label: t('aiTools.table.engineConnection'), width: 160 },
+  { key: 'provider_name', label: t('aiTools.table.provider'), width: 160 },
   { key: 'engine_tool_id', label: t('aiTools.table.engineToolId'), minWidth: 170, overflowTooltip: true },
   { key: 'permission_code', label: t('aiTools.table.permissionCode'), minWidth: 170, overflowTooltip: true },
   { key: 'risk_level', label: t('aiTools.table.riskLevel'), width: 110 },
@@ -158,7 +158,7 @@ function edit(row: AiToolMapItem) {
   dialogMode.value = 'edit'
   form.value = {
     id: row.id,
-    engine_connection_id: row.engine_connection_id,
+    provider_id: row.provider_id,
     app_id: row.app_id ?? null,
     name: row.name,
     code: row.code,
@@ -180,7 +180,7 @@ async function confirmSubmit() {
   } catch {
     return
   }
-  if (!form.value.engine_connection_id) return
+  if (!form.value.provider_id) return
   let config: JsonObject | null
   try {
     config = parseConfig()
@@ -190,7 +190,7 @@ async function confirmSubmit() {
   }
   const payload: AiToolMapMutationParams = {
     id: form.value.id,
-    engine_connection_id: form.value.engine_connection_id,
+    provider_id: form.value.provider_id,
     app_id: form.value.app_id,
     name: form.value.name,
     code: form.value.code,
@@ -259,8 +259,8 @@ onMounted(() => {
           <el-form-item :label="t('aiTools.form.code')" prop="code" required><el-input v-model="form.code" /></el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.engineConnection')" prop="engine_connection_id" required>
-            <el-select-v2 v-model="form.engine_connection_id" :options="dict.engine_connection_options" style="width: 100%" />
+          <el-form-item :label="t('aiTools.form.provider')" prop="provider_id" required>
+            <el-select-v2 v-model="form.provider_id" :options="dict.provider_options" style="width: 100%" />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

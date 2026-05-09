@@ -1,7 +1,7 @@
 import { computed, reactive, shallowRef } from 'vue'
 import type { FormRules } from 'element-plus'
 import { CommonEnum } from '@/enums'
-import type { AiModelOptionItem, AiProviderDriver } from '@/api/ai/engineConnections'
+import type { AiModelOptionItem, AiProviderDriver } from '@/api/ai/providers'
 
 export interface ProviderFormState {
   id?: number

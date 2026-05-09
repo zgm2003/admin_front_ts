@@ -1,7 +1,7 @@
 import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
-import type { AiEngineType } from './engineConnections'
+import type { AiProviderDriver } from './providers'
 
 export type JsonObject = Record<string, unknown>
 export type AiToolType = 'dify_tool' | 'workflow_node' | 'admin_action_gateway' | 'http_reference'
@@ -12,7 +12,7 @@ export interface AiToolMapInitResponse {
     tool_type_arr: DictOption<AiToolType>[]
     risk_level_arr: DictOption<AiToolRiskLevel>[]
     common_status_arr: DictOption<number>[]
-    engine_connection_options: Array<DictOption<number> & { engine_type: AiEngineType }>
+    provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
   }
 }
 
@@ -23,16 +23,16 @@ export interface AiToolMapListParams extends RequestPayload {
   code?: string
   tool_type?: AiToolType | ''
   risk_level?: AiToolRiskLevel | ''
-  engine_connection_id?: number | ''
+  provider_id?: number | ''
   app_id?: number | ''
   status?: number | ''
 }
 
 export interface AiToolMapItem {
   id: number
-  engine_connection_id: number
-  engine_connection_name: string
-  engine_type: AiEngineType | string
+  provider_id: number
+  provider_name: string
+  engine_type: AiProviderDriver | string
   app_id?: number | null
   name: string
   code: string
@@ -51,7 +51,7 @@ export interface AiToolMapItem {
 
 export interface AiToolMapMutationParams {
   id?: Id
-  engine_connection_id: number
+  provider_id: number
   app_id?: number | null
   name: string
   code: string
@@ -64,7 +64,7 @@ export interface AiToolMapMutationParams {
 }
 
 export interface AiToolMapMutationBody {
-  engine_connection_id: number
+  provider_id: number
   app_id?: number | null
   name: string
   code: string
@@ -87,7 +87,7 @@ interface AiToolMapListQueryParams {
   code?: string
   tool_type?: AiToolType
   risk_level?: AiToolRiskLevel
-  engine_connection_id?: number
+  provider_id?: number
   app_id?: number
   status?: number
 }
@@ -106,7 +106,7 @@ function normalizeListParams(params: AiToolMapListParams): AiToolMapListQueryPar
   if (typeof params.code === 'string' && params.code.trim()) query.code = params.code.trim()
   if (params.tool_type) query.tool_type = params.tool_type
   if (params.risk_level) query.risk_level = params.risk_level
-  if (typeof params.engine_connection_id === 'number') query.engine_connection_id = params.engine_connection_id
+  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.app_id === 'number') query.app_id = params.app_id
   if (typeof params.status === 'number') query.status = params.status
   return query
@@ -114,7 +114,7 @@ function normalizeListParams(params: AiToolMapListParams): AiToolMapListQueryPar
 
 function mutationBody(params: AiToolMapMutationParams): AiToolMapMutationBody {
   return {
-    engine_connection_id: params.engine_connection_id,
+    provider_id: params.provider_id,
     app_id: params.app_id ?? null,
     name: params.name,
     code: params.code,

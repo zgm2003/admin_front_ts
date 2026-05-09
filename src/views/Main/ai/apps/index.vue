@@ -27,7 +27,7 @@ interface AppForm {
   id?: number
   name: string
   code: string
-  engine_connection_id: number | null
+  provider_id: number | null
   engine_app_id: string
   app_type: 'chat' | 'workflow' | 'agent'
   engine_app_api_key: string
@@ -52,14 +52,14 @@ const dict = shallowRef<AiAppInitResponse['dict']>({
   response_mode_arr: [],
   binding_type_arr: [],
   common_status_arr: [],
-  engine_connection_options: [],
+  provider_options: [],
 })
 
 const searchForm = ref({
   name: '',
   code: '',
   app_type: '' as AiAppType | '',
-  engine_connection_id: '' as number | '',
+  provider_id: '' as number | '',
   status: '' as number | '',
 })
 
@@ -94,7 +94,7 @@ function defaultForm(): AppForm {
   return {
     name: '',
     code: '',
-    engine_connection_id: null,
+    provider_id: null,
     engine_app_id: '',
     app_type: 'chat',
     engine_app_api_key: '',
@@ -116,7 +116,7 @@ function defaultBindingForm(appId: number): BindingForm {
 
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiApps.form.name') + t('common.required'), trigger: 'blur' }],
-  engine_connection_id: [{ required: true, message: t('aiApps.form.engineConnection') + t('common.required'), trigger: 'change' }],
+  provider_id: [{ required: true, message: t('aiApps.form.provider') + t('common.required'), trigger: 'change' }],
   engine_app_id: [{ required: true, message: t('aiApps.form.engineAppId') + t('common.required'), trigger: 'blur' }],
   app_type: [{ required: true, message: t('aiApps.form.appType') + t('common.required'), trigger: 'change' }],
 }))
@@ -130,14 +130,14 @@ const searchFields = computed<SearchField[]>(() => [
   { key: 'name', type: 'input', label: t('aiApps.filter.name'), placeholder: t('aiApps.filter.name'), width: 160 },
   { key: 'code', type: 'input', label: t('aiApps.filter.code'), placeholder: t('aiApps.filter.code'), width: 150 },
   { key: 'app_type', type: 'select-v2', label: t('aiApps.filter.appType'), placeholder: t('aiApps.filter.appType'), width: 140, options: dict.value.app_type_arr },
-  { key: 'engine_connection_id', type: 'select-v2', label: t('aiApps.filter.engineConnection'), placeholder: t('aiApps.filter.engineConnection'), width: 180, options: dict.value.engine_connection_options },
+  { key: 'provider_id', type: 'select-v2', label: t('aiApps.filter.provider'), placeholder: t('aiApps.filter.provider'), width: 180, options: dict.value.provider_options },
   { key: 'status', type: 'select-v2', label: t('aiApps.filter.status'), placeholder: t('aiApps.filter.status'), width: 120, options: dict.value.common_status_arr },
 ])
 
 const columns = computed(() => [
   { key: 'name', label: t('aiApps.table.name'), minWidth: 160 },
   { key: 'code', label: t('aiApps.table.code'), width: 140 },
-  { key: 'engine_connection_name', label: t('aiApps.table.engineConnection'), width: 160 },
+  { key: 'provider_name', label: t('aiApps.table.provider'), width: 160 },
   { key: 'app_type', label: t('aiApps.table.appType'), width: 120 },
   { key: 'engine_app_id', label: t('aiApps.table.engineAppId'), minWidth: 180, overflowTooltip: true },
   { key: 'engine_app_api_key_masked', label: t('aiApps.table.appKeyMasked'), width: 160 },
@@ -180,7 +180,7 @@ function edit(row: AiAppItem) {
     id: row.id,
     name: row.name,
     code: row.code,
-    engine_connection_id: row.engine_connection_id,
+    provider_id: row.provider_id,
     engine_app_id: row.engine_app_id,
     app_type: row.app_type === 'completion' ? 'chat' : row.app_type,
     engine_app_api_key: '',
@@ -208,8 +208,8 @@ async function confirmSubmit() {
     return
   }
 
-  if (!form.value.engine_connection_id) {
-    ElNotification.warning({ message: t('aiApps.form.engineConnection') + t('common.required') })
+  if (!form.value.provider_id) {
+    ElNotification.warning({ message: t('aiApps.form.provider') + t('common.required') })
     return
   }
 
@@ -217,7 +217,7 @@ async function confirmSubmit() {
     id: form.value.id,
     name: form.value.name,
     code: form.value.code || form.value.name,
-    engine_connection_id: form.value.engine_connection_id,
+    provider_id: form.value.provider_id,
     engine_app_id: form.value.engine_app_id,
     app_type: form.value.app_type,
     default_response_mode: form.value.default_response_mode,
@@ -339,8 +339,8 @@ onMounted(() => {
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiApps.form.engineConnection')" prop="engine_connection_id" required>
-            <el-select-v2 v-model="form.engine_connection_id" :options="dict.engine_connection_options" style="width: 100%" clearable />
+          <el-form-item :label="t('aiApps.form.provider')" prop="provider_id" required>
+            <el-select-v2 v-model="form.provider_id" :options="dict.provider_options" style="width: 100%" clearable />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

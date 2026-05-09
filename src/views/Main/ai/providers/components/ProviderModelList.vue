@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { AiProviderModelItem } from '@/api/ai/engineConnections'
+import type { AiProviderModelItem } from '@/api/ai/providers'
 
 const props = defineProps<{
   models: AiProviderModelItem[]

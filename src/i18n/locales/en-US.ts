@@ -779,9 +779,9 @@ export default {
     syncModelsDone: 'Model sync completed, {count} found'
   },
   aiApps: {
-    filter: { name: 'App Name', code: 'App Code', appType: 'App Type', engineConnection: 'Provider', status: 'Status' },
-    table: { name: 'App Name', code: 'Code', engineConnection: 'Provider', appType: 'Type', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'App Name', code: 'App Code', engineConnection: 'Provider', appType: 'App Type', engineAppId: 'Dify App ID', responseMode: 'Response Mode', status: 'Status', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
+    filter: { name: 'App Name', code: 'App Code', appType: 'App Type', provider: 'Provider', status: 'Status' },
+    table: { name: 'App Name', code: 'Code', provider: 'Provider', appType: 'Type', engineAppId: 'Dify App ID', appKeyMasked: 'App Key', responseMode: 'Response Mode', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'App Name', code: 'App Code', provider: 'Provider', appType: 'App Type', engineAppId: 'Dify App ID', responseMode: 'Response Mode', status: 'Status', engineAppApiKey: 'Dify App API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged', runtimeConfig: 'Runtime Config JSON', invalidRuntimeConfig: 'Runtime config must be a valid JSON object' },
     actions: { test: 'Test App', bindings: 'Bindings' },
     binding: { title: 'App Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
     addTitle: 'Add AI App',
@@ -890,18 +890,18 @@ export default {
     toolDone: 'Tool call done',
   },
   aiTools: {
-    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', engineConnection: 'Provider', app: 'AI App', status: 'Status' },
-    table: { name: 'Tool Name', code: 'Code', toolType: 'Tool Type', engineConnection: 'Provider', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', riskLevel: 'Risk', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Tool Name', code: 'Tool Code', engineConnection: 'Provider', app: 'AI App', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
+    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', provider: 'Provider', app: 'AI App', status: 'Status' },
+    table: { name: 'Tool Name', code: 'Code', toolType: 'Tool Type', provider: 'Provider', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', riskLevel: 'Risk', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Tool Name', code: 'Tool Code', provider: 'Provider', app: 'AI App', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
     addTitle: 'Add Tool Map',
     editTitle: 'Edit Tool Map'
   },
   aiKnowledge: {
-    filter: { name: 'Knowledge Name', code: 'Knowledge Code', engineConnection: 'Provider', visibility: 'Visibility', status: 'Status' },
-    table: { name: 'Knowledge', code: 'Code', engineConnection: 'Provider', dataset: 'Dataset ID', visibility: 'Visibility', status: 'Status', updatedAt: 'Updated At' },
+    filter: { name: 'Knowledge Name', code: 'Knowledge Code', provider: 'Provider', visibility: 'Visibility', status: 'Status' },
+    table: { name: 'Knowledge', code: 'Code', provider: 'Provider', dataset: 'Dataset ID', visibility: 'Visibility', status: 'Status', updatedAt: 'Updated At' },
     actions: { sync: 'Sync' },
     syncDone: 'Sync submitted',
-    form: { name: 'Knowledge Name', code: 'Knowledge Code', engineConnection: 'Provider', visibility: 'Visibility', dataset: 'Dify Dataset ID', metaJson: 'Meta JSON', invalidJson: 'JSON must be a valid object' },
+    form: { name: 'Knowledge Name', code: 'Knowledge Code', provider: 'Provider', visibility: 'Visibility', dataset: 'Dify Dataset ID', metaJson: 'Meta JSON', invalidJson: 'JSON must be a valid object' },
     document: { add: 'Add Document', title: 'Document', selectMap: 'Select knowledge map', sourceType: 'Source Type', sourceRef: 'Source Ref', content: 'Content', indexStatus: 'Index Status', error: 'Error' },
     addTitle: 'Add Knowledge Map',
     editTitle: 'Edit Knowledge Map'
@@ -910,7 +910,7 @@ export default {
     filter: {
       status: 'Status',
       app: 'AI App',
-      engine: 'Provider',
+      provider: 'Provider',
       user: 'User',
       request_id: 'Request ID',
       dateRange: 'Date Range',
@@ -920,7 +920,7 @@ export default {
     table: {
       request_id: 'Request ID',
       app: 'AI App',
-      engine: 'Provider',
+      provider: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
       model: 'Model',
@@ -933,7 +933,7 @@ export default {
       title: 'Run Detail',
       user: 'User',
       app: 'AI App',
-      engine: 'Provider',
+      provider: 'Provider',
       conversation: 'Conversation',
       status: 'Status',
       model: 'Model',
@@ -972,7 +972,7 @@ export default {
       byUser: 'By User',
       date: 'Date',
       app: 'AI App',
-      engine: 'Provider',
+      provider: 'Provider',
       user: 'User',
       runs: 'Runs',
       tokens: 'Tokens',

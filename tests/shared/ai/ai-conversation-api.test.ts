@@ -52,17 +52,17 @@ describe('AI conversation api REST contract', () => {
   })
 
 
-  it('runs page uses app and engine filters plus persisted event details', () => {
+  it('runs page uses app and provider filters plus persisted event details', () => {
     const runsApi = readFrontendSource('src/api/ai/runs.ts')
     const runList = readFrontendSource('src/views/Main/ai/runs/components/RunList/index.vue')
     const runStats = readFrontendSource('src/views/Main/ai/runs/components/RunStats/index.vue')
 
     expect(runsApi).toContain('appArr: DictOption<number>[]')
-    expect(runsApi).toContain('engineArr: DictOption<number>[]')
+    expect(runsApi).toContain('providerArr: DictOption<number>[]')
     expect(runList).toContain("app_id: '' as number | ''")
-    expect(runList).toContain("engine_connection_id: '' as number | ''")
+    expect(runList).toContain("provider_id: '' as number | ''")
     expect(runList).toContain("{key: 'app_name'")
-    expect(runList).toContain("{key: 'engine_name'")
+    expect(runList).toContain("{key: 'provider_name'")
     expect(runList).toContain('detailData.events')
     expect(runStats).toContain('app_id: searchForm.value.app_id')
     expect(runStats).toContain("statsColumns('app_name', t('aiRuns.stats.app'))")
