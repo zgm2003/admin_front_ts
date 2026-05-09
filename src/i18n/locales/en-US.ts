@@ -745,13 +745,28 @@ export default {
     }
   },
   aiProviders: {
-    filter: { name: 'Provider Name', engineType: 'Engine Type', status: 'Status' },
-    table: { name: 'Provider Name', engineType: 'Engine Type', baseUrl: 'Base URL', apiKeyMasked: 'API Key', health: 'Health', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Provider Name', engineType: 'Engine Type', baseUrl: 'Base URL', workspaceId: 'Workspace ID', status: 'Status', apiKey: 'API Key', apiKeyPlaceholder: 'Encrypted on server only', apiKeyEditPlaceholder: 'Leave empty to keep unchanged' },
-    actions: { test: 'Test' },
+    filter: { name: 'Provider Name', driver: 'Driver', status: 'Status' },
+    table: { name: 'Provider Name', driver: 'Driver', baseUrl: 'Base URL', apiKeyMasked: 'API Key', models: 'Enabled Models', health: 'Health', modelSync: 'Model Sync', status: 'Status', updatedAt: 'Updated At' },
+    form: {
+      name: 'Provider Name',
+      driver: 'Driver',
+      modelIds: 'Model IDs',
+      modelIdsPlaceholder: 'Fetch models or enter model IDs',
+      defaultModel: 'Default Model',
+      modelDisplayName: 'Model Display Name',
+      baseUrl: 'Base URL',
+      workspaceId: 'Workspace ID',
+      status: 'Status',
+      apiKey: 'API Key',
+      apiKeyPlaceholder: 'Enter API key to fetch models',
+      apiKeyEditPlaceholder: 'Leave empty to keep unchanged'
+    },
+    actions: { test: 'Test', fetchModels: 'Fetch Models', syncModels: 'Sync Models' },
     addTitle: 'Add Provider',
     editTitle: 'Edit Provider',
-    testDone: 'Connection test completed'
+    testDone: 'Connection test completed',
+    fetchModelsDone: 'Models fetched',
+    syncModelsDone: 'Model sync completed, {count} found'
   },
   aiApps: {
     filter: { name: 'App Name', code: 'App Code', appType: 'App Type', engineConnection: 'Provider', status: 'Status' },

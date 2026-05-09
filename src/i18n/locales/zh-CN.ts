@@ -745,13 +745,28 @@ export default {
     }
   },
   aiProviders: {
-    filter: { name: '供应商名称', engineType: '引擎类型', status: '状态' },
-    table: { name: '供应商名称', engineType: '引擎类型', baseUrl: 'Base URL', apiKeyMasked: 'API Key', health: '健康状态', status: '状态', updatedAt: '更新时间' },
-    form: { name: '供应商名称', engineType: '引擎类型', baseUrl: 'Base URL', workspaceId: '工作区ID', status: '状态', apiKey: 'API Key', apiKeyPlaceholder: '仅服务端加密保存', apiKeyEditPlaceholder: '留空表示不修改' },
-    actions: { test: '测试连接' },
+    filter: { name: '供应商名称', driver: '驱动', status: '状态' },
+    table: { name: '供应商名称', driver: '驱动', baseUrl: 'Base URL', apiKeyMasked: 'API Key', models: '启用模型', health: '健康状态', modelSync: '模型同步', status: '状态', updatedAt: '更新时间' },
+    form: {
+      name: '供应商名称',
+      driver: '驱动',
+      modelIds: '模型标识',
+      modelIdsPlaceholder: '请先拉取或手动输入模型标识',
+      defaultModel: '默认模型',
+      modelDisplayName: '模型显示名',
+      baseUrl: 'Base URL',
+      workspaceId: '工作区ID',
+      status: '状态',
+      apiKey: 'API Key',
+      apiKeyPlaceholder: '请输入 API Key 后拉取模型',
+      apiKeyEditPlaceholder: '留空表示不修改'
+    },
+    actions: { test: '测试连接', fetchModels: '拉取模型', syncModels: '同步模型' },
     addTitle: '新增供应商',
     editTitle: '编辑供应商',
-    testDone: '连接测试完成'
+    testDone: '连接测试完成',
+    fetchModelsDone: '模型拉取完成',
+    syncModelsDone: '模型同步完成，共 {count} 个'
   },
   aiApps: {
     filter: { name: '应用名称', code: '应用编码', appType: '应用类型', engineConnection: '供应商', status: '状态' },
