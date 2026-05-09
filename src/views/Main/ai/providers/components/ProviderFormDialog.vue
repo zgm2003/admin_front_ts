@@ -133,7 +133,13 @@ async function confirmSubmit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '760px'" body-padding="0" class="provider-form-dialog">
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '760px'"
+    :height="isMobile ? 'calc(88vh - 118px)' : 'calc(min(82vh, 720px) - 118px)'"
+    body-padding="0"
+    class="provider-form-dialog"
+  >
     <template #header>
       <div class="provider-form-dialog__header">
         <div>

@@ -68,7 +68,7 @@ const columns = computed(() => [
   { key: 'last_model_sync_status', label: t('aiProviders.table.modelSync'), width: 120 },
   { key: 'status', label: t('aiProviders.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiProviders.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 320 },
+  { key: 'actions', label: t('common.actions.action'), width: 460 },
 ])
 
 function stateTagType(status?: AiEngineHealthStatus) {
@@ -177,12 +177,14 @@ onMounted(() => {
           <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="success" text @click="testConnection(row)">{{ t('aiProviders.actions.test') }}</el-button>
-          <el-button type="info" text @click="syncModels(row)">{{ t('aiProviders.actions.syncModels') }}</el-button>
-          <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-          <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <div class="ai-provider-page__actions">
+            <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+            <el-button type="success" text @click="testConnection(row)">{{ t('aiProviders.actions.test') }}</el-button>
+            <el-button type="info" text @click="syncModels(row)">{{ t('aiProviders.actions.syncModels') }}</el-button>
+            <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
+            <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
+            <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          </div>
         </template>
       </AppTable>
     </div>
@@ -208,5 +210,17 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+}
+
+.ai-provider-page__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.ai-provider-page__actions :deep(.el-button + .el-button) {
+  margin-left: 0;
 }
 </style>
