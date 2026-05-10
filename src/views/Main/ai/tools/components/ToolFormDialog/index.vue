@@ -166,7 +166,12 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '900px'" height="76vh" body-padding="16px 18px 6px">
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '900px'"
+    height="76vh"
+    body-padding="12px 18px 0"
+  >
     <template #header>{{ title }}</template>
     <el-form
       ref="formRef"
@@ -223,12 +228,12 @@ watch(
         <el-row :gutter="14">
           <el-col :md="12" :span="24">
             <el-form-item :label="t('aiTools.form.parametersJson')" prop="parameters_text" required>
-              <el-input v-model="form.parameters_text" class="json-input" type="textarea" :rows="10" resize="vertical" spellcheck="false" />
+              <el-input v-model="form.parameters_text" class="json-input" type="textarea" :rows="8" resize="vertical" spellcheck="false" />
             </el-form-item>
           </el-col>
           <el-col :md="12" :span="24">
             <el-form-item :label="t('aiTools.form.resultSchemaJson')" prop="result_schema_text" required>
-              <el-input v-model="form.result_schema_text" class="json-input" type="textarea" :rows="10" resize="vertical" spellcheck="false" />
+              <el-input v-model="form.result_schema_text" class="json-input" type="textarea" :rows="8" resize="vertical" spellcheck="false" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -245,18 +250,18 @@ watch(
 .tool-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .tool-form-section {
-  padding: 14px 14px 2px;
+  padding: 12px 14px 0;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 10px;
   background: var(--el-fill-color-blank);
 }
 
 .tool-form-section__title {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 600;
   color: var(--el-text-color-primary);
