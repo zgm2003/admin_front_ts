@@ -2,13 +2,14 @@
 import { computed, nextTick, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
+import { AppDialog } from '@/components/AppDialog'
 import { ElNotification } from 'element-plus'
-import { AiMessageApi } from '@/api/ai/messages'
-import { createAiRequestId } from '@/api/ai/chat'
+import { AiMessageApi, type AiChatAttachment } from '@/api/ai/messages'
+import { AiChatApi, createAiRequestId } from '@/api/ai/chat'
 import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
 import AgentList from './components/AgentList/index.vue'
-import ConversationList from './components/ConversationList/index.vue'
+import ConversationDrawer from './components/ConversationDrawer/index.vue'
 import MessageList from './components/MessageList/index.vue'
 import MessageInput from './components/MessageInput/index.vue'
 import { useAgents, useConversations, useConversationSessions, useConversationSocket } from './composables'
@@ -28,8 +29,12 @@ interface ScrollbarRef {
 const messageInputRef = shallowRef<InstanceType<typeof MessageInput> | null>(null)
 const messageScrollRef = shallowRef<ScrollbarRef | null>(null)
 const currentConversationId = shallowRef<number | null>(null)
+const showConversationDrawer = shallowRef(false)
 const switchingAgent = shallowRef(false)
 const selectedConversationByAgent = shallowRef(new Map<number, number | null>())
+const showRenameDialog = shallowRef(false)
+const renameConversationId = shallowRef(0)
+const renameTitle = shallowRef('')
 
 const {
   agents,
@@ -42,6 +47,8 @@ const {
 
 const {
   conversations,
+  loaded: conversationsLoaded,
+  searched: conversationsSearched,
   loading: conversationsLoading,
   loadingMore: conversationsLoadingMore,
   hasMore: conversationsHasMore,
@@ -49,6 +56,8 @@ const {
   loadMore: loadMoreConversations,
   create: createConversation,
   remove: removeConversation,
+  rename: renameConversation,
+  search: searchConversations,
   upsertConversation,
   touchConversation,
 } = useConversations()
@@ -63,6 +72,7 @@ const messagesLoadingMore = computed(() => currentSession.value?.loadingMoreMess
 const messagesHasMore = computed(() => currentSession.value?.hasMoreMessages ?? false)
 const sending = computed(() => currentSession.value?.sending ?? false)
 const isStreaming = computed(() => currentSession.value?.isStreaming ?? false)
+const activeRequestId = computed(() => currentSession.value?.pendingRequestId ?? '')
 
 function setSelectedConversationForAgent(agentId: number, conversationId: number | null) {
   const next = new Map(selectedConversationByAgent.value)
@@ -82,7 +92,7 @@ function scrollToBottom() {
 }
 
 function responseToMessages(list: Message[]) {
-  return [...list].reverse()
+  return [...list]
 }
 
 async function loadConversationMessages(conversationId: number) {
@@ -227,7 +237,7 @@ async function ensureConversation(content: string) {
   return conversationId
 }
 
-async function handleSendMessage(content: string) {
+async function handleSendMessage(content: string, attachments?: AiChatAttachment[], runtimeParams?: Record<string, number>) {
   if (!selectedAgentId.value) {
     ElNotification.warning({ message: t('aiChat.selectAgentFirst') })
     return
@@ -238,11 +248,11 @@ async function handleSendMessage(content: string) {
   try {
     conversationId = await ensureConversation(content)
     messageInputRef.value?.clear()
-    sessions.beginSend(conversationId, requestId, content)
+    sessions.beginSend(conversationId, requestId, content, attachments)
     touchActiveConversation(conversationId, content)
     scrollToBottom()
 
-    const response = await AiMessageApi.send({ conversation_id: conversationId, content, request_id: requestId })
+    const response = await AiMessageApi.send({ conversation_id: conversationId, content, request_id: requestId, attachments, runtime_params: runtimeParams })
     sessions.markUserMessage(conversationId, response.request_id, response.user_message_id)
   } catch (error) {
     if (conversationId > 0) {
@@ -250,6 +260,38 @@ async function handleSendMessage(content: string) {
     }
     ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.sendFailed') })
   }
+}
+
+async function handleStopGeneration() {
+  const conversationId = currentConversationId.value
+  const requestId = activeRequestId.value
+  if (!conversationId || !requestId) return
+
+  sessions.cancel(conversationId, requestId)
+  try {
+    await AiChatApi.cancel({ conversation_id: conversationId, request_id: requestId })
+  } catch (error) {
+    ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.stopFailed') })
+  }
+}
+
+async function handleOpenDrawer() {
+  showConversationDrawer.value = true
+  if (selectedAgentId.value && !conversationsLoaded.value && !conversationsSearched.value) {
+    await loadConversations(selectedAgentId.value)
+  }
+}
+
+async function handleRenameConversation(conversation: Conversation) {
+  renameConversationId.value = conversation.id
+  renameTitle.value = conversation.title || ''
+  showRenameDialog.value = true
+}
+
+async function confirmRenameConversation() {
+  if (!renameConversationId.value) return
+  await renameConversation(renameConversationId.value, renameTitle.value)
+  showRenameDialog.value = false
 }
 
 async function handleCopyMessage(message: Message) {
@@ -263,18 +305,21 @@ function handleBackToAgentList() {
 
 useConversationSocket({
   onStart(payload) {
-    sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
+    if (!sessions.isCanceled(payload.conversation_id, payload.request_id)) sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
   },
   onDelta(payload) {
+    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
     sessions.appendDelta(payload.conversation_id, payload.request_id, payload.delta)
     if (currentConversationId.value === payload.conversation_id) scrollToBottom()
   },
   onCompleted(payload) {
+    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
     sessions.complete(payload.conversation_id, payload.request_id, payload.assistant_message_id)
     touchConversation(payload.conversation_id, { last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     if (currentConversationId.value === payload.conversation_id) scrollToBottom()
   },
   onFailed(payload) {
+    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
     sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
     ElNotification.error({ message: payload.msg })
     if (currentConversationId.value === payload.conversation_id) scrollToBottom()
@@ -299,19 +344,6 @@ onMounted(async () => {
       @select="handleSelectAgent"
     />
 
-    <ConversationList
-      v-show="!isMobile || selectedAgentId"
-      :conversations="conversations"
-      :loading="conversationsLoading"
-      :loading-more="conversationsLoadingMore"
-      :has-more="conversationsHasMore"
-      :current-id="currentConversationId"
-      @select="selectConversation"
-      @create="handleCreateConversation"
-      @delete="handleDeleteConversation"
-      @load-more="loadMoreConversations"
-    />
-
     <main v-show="!isMobile || selectedAgentId" class="main-area">
       <header class="main-header">
         <el-button v-if="isMobile" text class="back-btn" @click="handleBackToAgentList">
@@ -331,10 +363,11 @@ onMounted(async () => {
         <div v-else-if="selectedAgentId && messages.length === 0 && !messagesLoading" class="welcome-area">
           <div class="welcome-content">
             <el-avatar :size="64" class="welcome-avatar">
+              <img v-if="selectedAgent?.avatar" :src="selectedAgent.avatar" :alt="selectedAgent.name" />
               {{ selectedAgent?.name?.charAt(0) || '?' }}
             </el-avatar>
             <h1 class="welcome-title">{{ selectedAgent?.name }}</h1>
-            <p class="welcome-tip">{{ t('aiChat.welcomeTip') }}</p>
+            <p class="welcome-tip">{{ selectedAgent?.description || t('aiChat.welcomeTip') }}</p>
           </div>
         </div>
 
@@ -359,6 +392,7 @@ onMounted(async () => {
           v-if="messages.length > 0 || messagesLoading"
           :messages="messages"
           :loading="messagesLoading"
+          :sending="sending"
           @copy="handleCopyMessage"
         />
       </el-scrollbar>
@@ -368,9 +402,36 @@ onMounted(async () => {
         :sending="sending"
         :disabled="!selectedAgentId"
         :is-streaming="isStreaming"
+        :show-history-btn="true"
         @send="handleSendMessage"
+        @stop="handleStopGeneration"
+        @open-history="handleOpenDrawer"
       />
     </main>
+
+    <ConversationDrawer
+      v-model:visible="showConversationDrawer"
+      :conversations="conversations"
+      :loading="conversationsLoading"
+      :loading-more="conversationsLoadingMore"
+      :has-more="conversationsHasMore"
+      :current-id="currentConversationId"
+      :agent-name="selectedAgent?.name"
+      @select="selectConversation"
+      @create="handleCreateConversation"
+      @rename="handleRenameConversation"
+      @delete="handleDeleteConversation"
+      @load-more="loadMoreConversations"
+      @search="searchConversations"
+    />
+
+    <AppDialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" mobile-width="94vw" body-padding="24px" class="rename-dialog">
+      <el-input v-model="renameTitle" :placeholder="t('aiChat.newTitle')" maxlength="50" show-word-limit />
+      <template #footer>
+        <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmRenameConversation">{{ t('common.actions.confirm') }}</el-button>
+      </template>
+    </AppDialog>
   </div>
 </template>
 

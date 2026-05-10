@@ -44,6 +44,10 @@ interface AiConversationCreateBody {
   title?: string
 }
 
+interface AiConversationEditBody {
+  title: string
+}
+
 function normalizeListParams(params: AiConversationListParams = {}): AiConversationListQueryParams {
   const query: AiConversationListQueryParams = {}
   if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
@@ -66,6 +70,7 @@ export const AiConversationApi = {
   list: (params: AiConversationListParams = {}) => request.get<AiConversationListResponse>(`${ADMIN_API_PREFIX}/ai-conversations`, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiConversationDetailResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`),
   add: (params: { agent_id: number; title?: string }) => request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`, params),
+  edit: (params: { id: Id; title: string }) => request.put<void, AiConversationEditBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`, { title: params.title }),
   del: async (params: { id: Id | Id[] }): Promise<void> => {
     const ids = Array.isArray(params.id) ? params.id : [params.id]
     await Promise.all(ids.map((item) => deleteConversation(positiveID(item))))

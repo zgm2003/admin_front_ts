@@ -12,23 +12,35 @@ export function useConversations() {
   const loading = shallowRef(false)
   const loadingMore = shallowRef(false)
   const hasMore = shallowRef(false)
+  const loaded = shallowRef(false)
+  const searchKeyword = shallowRef('')
+  const searched = shallowRef(false)
   const nextId = shallowRef(0)
   const currentAgentId = shallowRef<number | null>(null)
 
   async function loadConversations(agentId: number | null) {
     currentAgentId.value = agentId
+    const searching = searchKeyword.value.trim().length > 0
     conversations.value = []
     nextId.value = 0
     hasMore.value = false
+
+    if (!searching) loaded.value = false
+    searched.value = false
 
     if (!agentId) return
 
     loading.value = true
     try {
       const response = await AiConversationApi.list({ agent_id: agentId, limit: PAGE_SIZE })
-      conversations.value = response.list
+      conversations.value = filterConversations(response.list)
       nextId.value = response.next_id
       hasMore.value = response.has_more
+      if (searching) {
+        searched.value = true
+      } else {
+        loaded.value = true
+      }
     } finally {
       loading.value = false
     }
@@ -36,6 +48,7 @@ export function useConversations() {
 
   async function loadMore() {
     if (!currentAgentId.value || !hasMore.value || loadingMore.value) return
+    if (searchKeyword.value.trim()) return
 
     loadingMore.value = true
     try {
@@ -44,7 +57,7 @@ export function useConversations() {
         before_id: nextId.value || undefined,
         limit: PAGE_SIZE,
       })
-      conversations.value = [...conversations.value, ...response.list]
+      conversations.value = [...conversations.value, ...filterConversations(response.list)]
       nextId.value = response.next_id
       hasMore.value = response.has_more
     } finally {
@@ -86,8 +99,30 @@ export function useConversations() {
     upsertConversation({ ...old, ...patch })
   }
 
+  function filterConversations(list: Conversation[]) {
+    const keyword = searchKeyword.value.trim().toLowerCase()
+    if (!keyword) return list
+    return list.filter((item) => item.title.toLowerCase().includes(keyword))
+  }
+
+  async function rename(id: number, title: string) {
+    const normalized = title.trim()
+    if (!normalized) return false
+    await AiConversationApi.edit({ id, title: normalized })
+    touchConversation(id, { title: normalized, updated_at: new Date().toISOString() })
+    ElNotification.success({ message: t('common.success.operation') })
+    return true
+  }
+
+  async function search(keyword: string) {
+    searchKeyword.value = keyword
+    if (currentAgentId.value) await loadConversations(currentAgentId.value)
+  }
+
   return {
     conversations,
+    loaded,
+    searched,
     loading,
     loadingMore,
     hasMore,
@@ -96,6 +131,8 @@ export function useConversations() {
     loadMore,
     create,
     remove,
+    rename,
+    search,
     upsertConversation,
     touchConversation,
   }

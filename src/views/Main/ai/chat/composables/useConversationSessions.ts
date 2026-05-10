@@ -1,5 +1,6 @@
 import { computed, shallowRef } from 'vue'
 import { AiRoleEnum } from '@/enums'
+import type { AiChatAttachment } from '@/api/ai/messages'
 import type { ConversationSession, Message } from './types'
 
 const MAX_SESSIONS = 8
@@ -17,12 +18,17 @@ function createSession(conversationId: number): ConversationSession {
     isStreaming: false,
     pendingRequestId: '',
     streamingContent: '',
+    canceledRequestIds: [],
     updatedAt: Date.now(),
   }
 }
 
 function nowText() {
   return new Date().toISOString()
+}
+
+function commitSession(sessions: Map<number, ConversationSession>, conversationId: number, session: ConversationSession) {
+  sessions.set(conversationId, session)
 }
 
 export function useConversationSessions() {
@@ -51,12 +57,12 @@ export function useConversationSessions() {
   }
 
   function getOrCreate(conversationId: number): ConversationSession {
-    let session = sessions.value.get(conversationId)
-    if (!session) {
-      session = createSession(conversationId)
-      sessions.value.set(conversationId, session)
+    const current = sessions.value.get(conversationId)
+    const session = {
+      ...(current ?? createSession(conversationId)),
+      updatedAt: Date.now(),
     }
-    session.updatedAt = Date.now()
+    commitSession(sessions.value, conversationId, session)
     touch(conversationId)
     evict()
     commit()
@@ -69,112 +75,141 @@ export function useConversationSessions() {
   }
 
   function replaceMessages(conversationId: number, messages: Message[], nextMessageId: number, hasMoreMessages: boolean) {
-    const session = getOrCreate(conversationId)
-    if (session.isStreaming || session.sending) return
-    session.messages = messages
-    session.nextMessageId = nextMessageId
-    session.hasMoreMessages = hasMoreMessages
-    session.updatedAt = Date.now()
+    const current = getOrCreate(conversationId)
+    if (current.isStreaming || current.sending) return
+    const session: ConversationSession = {
+      ...current,
+      messages,
+      nextMessageId,
+      hasMoreMessages,
+      loadingMessages: false,
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function prependMessages(conversationId: number, messages: Message[], nextMessageId: number, hasMoreMessages: boolean) {
-    const session = getOrCreate(conversationId)
-    const existingIds = new Set(session.messages.map((message) => message.id))
-    session.messages = [...messages.filter((message) => !existingIds.has(message.id)), ...session.messages]
-    session.nextMessageId = nextMessageId
-    session.hasMoreMessages = hasMoreMessages
-    session.updatedAt = Date.now()
+    const current = getOrCreate(conversationId)
+    const existingIds = new Set(current.messages.map((message) => message.id))
+    const session: ConversationSession = {
+      ...current,
+      messages: [...messages.filter((message) => !existingIds.has(message.id)), ...current.messages],
+      nextMessageId,
+      hasMoreMessages,
+      loadingMoreMessages: false,
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function setLoading(conversationId: number, value: boolean) {
-    const session = getOrCreate(conversationId)
-    session.loadingMessages = value
+    const current = getOrCreate(conversationId)
+    commitSession(sessions.value, conversationId, { ...current, loadingMessages: value, updatedAt: Date.now() })
     commit()
   }
 
   function setLoadingMore(conversationId: number, value: boolean) {
-    const session = getOrCreate(conversationId)
-    session.loadingMoreMessages = value
+    const current = getOrCreate(conversationId)
+    commitSession(sessions.value, conversationId, { ...current, loadingMoreMessages: value, updatedAt: Date.now() })
     commit()
   }
 
-  function beginSend(conversationId: number, requestId: string, content: string) {
-    const session = getOrCreate(conversationId)
+  function beginSend(conversationId: number, requestId: string, content: string, attachments?: AiChatAttachment[]) {
+    const current = getOrCreate(conversationId)
     const createdAt = nowText()
-    session.pendingRequestId = requestId
-    session.sending = true
-    session.isStreaming = true
-    session.streamingContent = ''
-    session.messages = [
-      ...session.messages,
-      {
-        id: -Date.now(),
-        role: AiRoleEnum.USER,
-        content_type: TEXT_CONTENT_TYPE,
-        content,
-        created_at: createdAt,
-        updated_at: createdAt,
-        request_id: requestId,
-      },
-      {
-        id: -Date.now() - 1,
-        role: AiRoleEnum.ASSISTANT,
-        content_type: TEXT_CONTENT_TYPE,
-        content: '',
-        created_at: createdAt,
-        updated_at: createdAt,
-        isStreaming: true,
-        request_id: requestId,
-      },
-    ]
-    session.updatedAt = Date.now()
+    const session: ConversationSession = {
+      ...current,
+      pendingRequestId: requestId,
+      sending: true,
+      isStreaming: true,
+      streamingContent: '',
+      messages: [
+        ...current.messages,
+        {
+          id: -Date.now(),
+          role: AiRoleEnum.USER,
+          content_type: TEXT_CONTENT_TYPE,
+          content,
+          created_at: createdAt,
+          updated_at: createdAt,
+          meta_json: attachments?.length ? { attachments } : undefined,
+          request_id: requestId,
+        },
+        {
+          id: -Date.now() - 1,
+          role: AiRoleEnum.ASSISTANT,
+          content_type: TEXT_CONTENT_TYPE,
+          content: '',
+          created_at: createdAt,
+          updated_at: createdAt,
+          isStreaming: true,
+          request_id: requestId,
+        },
+      ],
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function markUserMessage(conversationId: number, requestId: string, userMessageId: number) {
-    const session = getOrCreate(conversationId)
-    session.messages = session.messages.map((message) => {
-      if (message.request_id === requestId && message.role === AiRoleEnum.USER && message.id < 0) {
-        return { ...message, id: userMessageId }
-      }
-      return message
-    })
-    session.sending = false
+    const current = getOrCreate(conversationId)
+    if (current.canceledRequestIds.includes(requestId)) return
+    const session: ConversationSession = {
+      ...current,
+      messages: current.messages.map((message) => {
+        if (message.request_id === requestId && message.role === AiRoleEnum.USER && message.id < 0) {
+          return { ...message, id: userMessageId }
+        }
+        return message
+      }),
+      sending: false,
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function appendDelta(conversationId: number, requestId: string, delta: string) {
-    const session = getOrCreate(conversationId)
-    if (session.pendingRequestId && session.pendingRequestId !== requestId) return
+    const current = getOrCreate(conversationId)
+    if (current.canceledRequestIds.includes(requestId)) return
+    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
 
-    session.pendingRequestId = requestId
-    session.isStreaming = true
-    session.sending = false
-    session.streamingContent += delta
-    session.messages = session.messages.map((message, index) => {
-      const isLast = index === session.messages.length - 1
+    const streamingContent = current.streamingContent + delta
+    const messages = current.messages.map((message, index) => {
+      const isLast = index === current.messages.length - 1
       if (isLast && message.role === AiRoleEnum.ASSISTANT) {
-        return { ...message, content: session.streamingContent, isStreaming: true, request_id: requestId }
+        return { ...message, content: streamingContent, isStreaming: true, request_id: requestId }
       }
       return message
     })
-    session.updatedAt = Date.now()
+    const session: ConversationSession = {
+      ...current,
+      pendingRequestId: requestId,
+      isStreaming: true,
+      sending: false,
+      streamingContent,
+      messages,
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function complete(conversationId: number, requestId: string, assistantMessageId: number) {
-    const session = getOrCreate(conversationId)
-    if (session.pendingRequestId && session.pendingRequestId !== requestId) return
+    const current = getOrCreate(conversationId)
+    if (current.canceledRequestIds.includes(requestId)) return
+    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
 
-    session.messages = session.messages.map((message, index) => {
-      const isLast = index === session.messages.length - 1
+    const messages = current.messages.map((message, index) => {
+      const isLast = index === current.messages.length - 1
       if (isLast && message.role === AiRoleEnum.ASSISTANT) {
         return {
           ...message,
           id: assistantMessageId,
-          content: session.streamingContent || message.content,
+          content: current.streamingContent || message.content,
           isStreaming: false,
           request_id: requestId,
           updated_at: nowText(),
@@ -182,20 +217,27 @@ export function useConversationSessions() {
       }
       return message
     })
-    session.pendingRequestId = ''
-    session.sending = false
-    session.isStreaming = false
-    session.streamingContent = ''
-    session.updatedAt = Date.now()
+    const session: ConversationSession = {
+      ...current,
+      messages,
+      pendingRequestId: '',
+      sending: false,
+      isStreaming: false,
+      streamingContent: '',
+      canceledRequestIds: [],
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
   }
 
   function fail(conversationId: number, requestId: string, messageText: string) {
-    const session = getOrCreate(conversationId)
-    if (session.pendingRequestId && session.pendingRequestId !== requestId) return
+    const current = getOrCreate(conversationId)
+    if (current.canceledRequestIds.includes(requestId)) return
+    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
 
-    session.messages = session.messages.map((message, index) => {
-      const isLast = index === session.messages.length - 1
+    const messages = current.messages.map((message, index) => {
+      const isLast = index === current.messages.length - 1
       if (isLast && message.role === AiRoleEnum.ASSISTANT) {
         return {
           ...message,
@@ -207,12 +249,53 @@ export function useConversationSessions() {
       }
       return message
     })
-    session.pendingRequestId = ''
-    session.sending = false
-    session.isStreaming = false
-    session.streamingContent = ''
-    session.updatedAt = Date.now()
+    const session: ConversationSession = {
+      ...current,
+      messages,
+      pendingRequestId: '',
+      sending: false,
+      isStreaming: false,
+      streamingContent: '',
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
     commit()
+  }
+
+  function cancel(conversationId: number, requestId: string, messageText = '') {
+    const current = getOrCreate(conversationId)
+    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
+
+    const messages = current.messages.map((message, index) => {
+      const isLast = index === current.messages.length - 1
+      if (isLast && message.role === AiRoleEnum.ASSISTANT) {
+        return {
+          ...message,
+          content: message.content || messageText,
+          isStreaming: false,
+          request_id: requestId,
+          updated_at: nowText(),
+        }
+      }
+      return message
+    })
+    const session: ConversationSession = {
+      ...current,
+      messages,
+      pendingRequestId: '',
+      sending: false,
+      isStreaming: false,
+      streamingContent: '',
+      canceledRequestIds: [...current.canceledRequestIds.filter((id) => id !== requestId), requestId].slice(-20),
+      updatedAt: Date.now(),
+    }
+    commitSession(sessions.value, conversationId, session)
+    commit()
+  }
+
+  function isCanceled(conversationId: number, requestId: string) {
+    const current = get(conversationId)
+    return current?.canceledRequestIds.includes(requestId) ?? false
   }
 
   function remove(conversationId: number) {
@@ -235,6 +318,8 @@ export function useConversationSessions() {
     appendDelta,
     complete,
     fail,
+    cancel,
+    isCanceled,
     remove,
   }
 }

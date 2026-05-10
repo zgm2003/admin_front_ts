@@ -1,4 +1,4 @@
-import type { AiMessageContentType } from '@/api/ai/messages'
+import type { AiMessageContentType, AiMessageMeta } from '@/api/ai/messages'
 
 export interface Conversation {
   id: number
@@ -17,6 +17,7 @@ export interface Message {
   content: string
   created_at: string
   updated_at: string
+  meta_json?: AiMessageMeta
   isStreaming?: boolean
   request_id?: string
 }
@@ -24,6 +25,8 @@ export interface Message {
 export interface Agent {
   id: number
   name: string
+  avatar?: string | null
+  description?: string
 }
 
 export interface ConversationSession {
@@ -37,5 +40,6 @@ export interface ConversationSession {
   isStreaming: boolean
   pendingRequestId: string
   streamingContent: string
+  canceledRequestIds: string[]
   updatedAt: number
 }

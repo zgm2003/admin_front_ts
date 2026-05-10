@@ -4,6 +4,26 @@ import type { Id } from '@/types/common'
 
 export type AiMessageContentType = 'text'
 
+export interface AiChatAttachment {
+  type: 'image'
+  url: string
+  name: string
+  size: number
+}
+
+export type MessageBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; url: string; alt?: string; meta?: Record<string, unknown> }
+  | { type: 'tool'; name: string; status?: string; meta?: Record<string, unknown> }
+  | { type: 'error'; message: string; meta?: Record<string, unknown> }
+
+export interface AiMessageMeta {
+  attachments?: AiChatAttachment[]
+  blocks?: MessageBlock[]
+  feedback?: number
+  [key: string]: unknown
+}
+
 export interface AiMessageItem {
   id: number
   role: number
@@ -11,6 +31,7 @@ export interface AiMessageItem {
   content: string
   created_at: string
   updated_at: string
+  meta_json?: AiMessageMeta
 }
 
 export interface AiMessageListParams {
@@ -29,6 +50,8 @@ export interface AiMessageSendParams {
   conversation_id: number
   content: string
   request_id: string
+  attachments?: AiChatAttachment[]
+  runtime_params?: Record<string, number>
 }
 
 export interface AiMessageSendResponse {
@@ -45,6 +68,8 @@ interface AiMessageListQueryParams {
 interface AiMessageSendBody {
   content: string
   request_id: string
+  attachments?: AiChatAttachment[]
+  runtime_params?: Record<string, number>
 }
 
 function positiveID(value: Id | number, label = 'AI message id'): number {
@@ -65,5 +90,7 @@ export const AiMessageApi = {
   send: (params: AiMessageSendParams) => request.post<AiMessageSendResponse, AiMessageSendBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, {
     content: params.content,
     request_id: params.request_id,
+    attachments: params.attachments,
+    runtime_params: params.runtime_params,
   }),
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CopyDocument, Loading } from '@element-plus/icons-vue'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
@@ -10,11 +11,26 @@ const { t } = useI18n()
 defineProps<{
   messages: Message[]
   loading: boolean
+  sending?: boolean
 }>()
 
 const emit = defineEmits<{
   copy: [message: Message]
 }>()
+
+const previewVisible = ref(false)
+const previewImages = ref<string[]>([])
+const previewIndex = ref(0)
+
+function getAttachments(message: Message) {
+  return message.meta_json?.attachments ?? []
+}
+
+function handleImageClick(message: Message, index: number) {
+  previewImages.value = getAttachments(message).map((attachment) => attachment.url)
+  previewIndex.value = index
+  previewVisible.value = true
+}
 </script>
 
 <template>
@@ -34,6 +50,27 @@ const emit = defineEmits<{
         <div class="message-meta">
           {{ message.role === AiRoleEnum.USER ? t('aiChat.you') : t('aiChat.assistant') }}
         </div>
+        <div v-if="message.role === AiRoleEnum.USER && getAttachments(message).length > 0" class="message-attachments">
+          <el-image
+            v-for="(attachment, index) in getAttachments(message)"
+            :key="`${message.id}-${attachment.url}`"
+            :src="attachment.url"
+            :alt="attachment.name"
+            fit="cover"
+            lazy
+            class="attachment-image"
+            @click="handleImageClick(message, index)"
+          >
+            <template #placeholder>
+              <div class="attachment-placeholder">
+                <el-icon class="is-loading" :size="18"><Loading /></el-icon>
+              </div>
+            </template>
+            <template #error>
+              <div class="attachment-placeholder">{{ t('aiChat.imageLoadFailed') }}</div>
+            </template>
+          </el-image>
+        </div>
         <div class="message-card">
           <MarkdownRenderer v-if="message.content" :content="message.content" class="message-content" />
           <div v-else-if="message.isStreaming" class="typing-dots">
@@ -51,6 +88,12 @@ const emit = defineEmits<{
         </div>
       </article>
     </template>
+    <el-image-viewer
+      v-if="previewVisible"
+      :url-list="previewImages"
+      :initial-index="previewIndex"
+      @close="previewVisible = false"
+    />
   </div>
 </template>
 
@@ -97,6 +140,38 @@ const emit = defineEmits<{
   padding: 12px 14px;
   border-radius: 14px;
   box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
+}
+
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: min(720px, 100%);
+}
+
+.user-row .message-attachments {
+  justify-content: flex-end;
+}
+
+.attachment-image {
+  width: 144px;
+  height: 108px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: zoom-in;
+  border: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-light);
+}
+
+.attachment-placeholder {
+  width: 144px;
+  height: 108px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  background: var(--el-fill-color-light);
 }
 
 .user-row .message-card {

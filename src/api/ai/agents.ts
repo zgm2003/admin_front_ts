@@ -50,11 +50,15 @@ export interface AiAgentItem {
 export interface AiAgentOption {
   id: number
   name: string
+  avatar?: string | null
+  description?: string
 }
 
 interface RemoteAiAgentOption {
   id: number
   name: string
+  avatar?: string | null
+  system_prompt?: string
 }
 
 export interface AiAgentOptionsResponse {
@@ -128,6 +132,8 @@ function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   return {
     id: item.id,
     name: item.name,
+    avatar: item.avatar,
+    description: item.system_prompt,
   }
 }
 
