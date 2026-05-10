@@ -783,7 +783,7 @@ export default {
     table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
     form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
     scene: { chat: '对话', agentGenerate: '智能体生成' },
-    actions: { tools: '工具配置' },
+    actions: { tools: '工具配置', knowledge: '知识库' },
     tools: {
       title: '配置智能体工具',
       agent: '当前智能体',
@@ -791,6 +791,14 @@ export default {
       selectAgent: '请选择智能体',
       selectTools: '请选择工具',
       activeTools: '当前可用工具数'
+    },
+    knowledge: {
+      title: '配置智能体知识库',
+      agent: '当前智能体',
+      addBinding: '添加知识库',
+      selectBase: '请选择知识库',
+      empty: '暂无知识库绑定',
+      saveNoPermission: '没有保存知识库绑定权限'
     },
     addTitle: '新增 AI 智能体',
     editTitle: '编辑 AI 智能体'
@@ -941,39 +949,69 @@ export default {
     editTitle: '编辑AI工具'
   },
   aiKnowledge: {
-    filter: { name: '知识库名称', code: '知识库编码', provider: '供应商', visibility: '可见性', status: '状态' },
+    filter: { name: '知识库名称', code: '知识库编码', status: '状态' },
     table: {
       name: '知识库',
       code: '编码',
-      provider: '供应商',
-      dataset: '数据集ID',
-      visibility: '可见性',
+      description: '描述',
+      chunk: '分块/重叠',
+      retrieval: '检索配置',
       status: '状态',
       updatedAt: '更新时间'
     },
-    actions: { sync: '同步' },
-    syncDone: '同步已提交',
+    actions: { reindex: '重建索引', retrievalTest: '检索测试' },
+    initFailed: '知识库初始化失败',
     form: {
       name: '知识库名称',
       code: '知识库编码',
-      provider: '供应商',
-      visibility: '可见性',
-      dataset: 'Dify 数据集ID',
-      metaJson: '元数据JSON',
-      invalidJson: 'JSON 必须是合法对象'
+      description: '描述',
+      chunkSize: '分块字符数',
+      chunkOverlap: '重叠字符数',
+      defaultTopK: '默认 TopK',
+      defaultMinScore: '最低分',
+      defaultContext: '上下文字符数',
+      status: '状态',
+      chunkSizeRange: '分块字符数必须在 300 到 8000 之间',
+      topKRange: 'TopK 必须在 1 到 20 之间',
+      minScoreRange: '最低分必须在 0 到 100 之间',
+      contextRange: '上下文字符数必须在 1000 到 30000 之间',
+      overlapLessThanSize: '分块重叠必须小于分块大小'
     },
     document: {
       add: '新增文档',
+      edit: '编辑文档',
       title: '文档',
-      selectMap: '请选择知识库',
+      selectBase: '请选择知识库',
+      selectBaseTip: '左侧选择一个知识库后管理文档',
+      currentBase: '当前知识库',
       sourceType: '来源类型',
       sourceRef: '来源引用',
       content: '文档内容',
       indexStatus: '索引状态',
-      error: '错误信息'
+      error: '错误信息',
+      chunks: '分块',
+      reindexDone: '索引已重建',
+      chunkLoadFailed: '分块加载失败'
     },
-    addTitle: '新增知识库映射',
-    editTitle: '编辑知识库映射'
+    chunk: {
+      index: '序号',
+      chars: '字符数',
+      content: '内容'
+    },
+    retrieval: {
+      title: '知识库检索测试',
+      query: '检索问题',
+      queryPlaceholder: '输入要测试的问题，例如：这个项目后端架构是什么？',
+      queryRequired: '检索问题不能为空',
+      summary: '选中 {selected} / 命中 {total}',
+      rank: '排名',
+      score: '分数',
+      hitStatus: '命中状态',
+      selected: '进入上下文',
+      skipped: '已跳过'
+    },
+    addTitle: '新增知识库',
+    editTitle: '编辑知识库'
   },
   aiRuns: {
     filter: {
@@ -1017,6 +1055,7 @@ export default {
       error: '错误信息',
       userMessage: '用户消息',
       assistantMessage: 'AI 回复',
+      knowledgeRetrievals: '知识库检索',
       toolCalls: '工具调用',
       toolArguments: '调用参数',
       toolResult: '调用结果',

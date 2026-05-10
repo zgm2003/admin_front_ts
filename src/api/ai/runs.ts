@@ -85,6 +85,38 @@ export interface AiRunToolCallItem {
   finished_at: string
 }
 
+export interface AiRunKnowledgeHitItem {
+  id: number
+  knowledge_base_id: number
+  knowledge_base_name: string
+  document_id: number
+  document_title: string
+  chunk_id: number
+  chunk_index: number
+  score: number
+  rank_no: number
+  content_snapshot: string
+  status: number
+  status_name: string
+  skip_reason: string
+  created_at: string
+}
+
+export interface AiRunKnowledgeRetrievalItem {
+  id: number
+  run_id: number
+  query: string
+  status: string
+  status_name: string
+  total_hits: number
+  selected_hits: number
+  duration_ms?: number | null
+  duration_text: string
+  error_message: string
+  created_at: string
+  hits: AiRunKnowledgeHitItem[]
+}
+
 export interface AiRunDetailResponse {
   id: number
   request_id: string
@@ -109,6 +141,7 @@ export interface AiRunDetailResponse {
   user_message?: AiRunMessageSummary | null
   assistant_message?: AiRunMessageSummary | null
   events: AiRunEventItem[]
+  knowledge_retrievals: AiRunKnowledgeRetrievalItem[]
   tool_calls: AiRunToolCallItem[]
   started_at: string
   finished_at: string

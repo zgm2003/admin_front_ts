@@ -783,8 +783,9 @@ export default {
     table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
     form: { name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
     scene: { chat: 'Chat', agentGenerate: 'Agent Generation' },
-    actions: { tools: 'Tool Config' },
+    actions: { tools: 'Tool Config', knowledge: 'Knowledge' },
     tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
+    knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
     addTitle: 'Add AI Agent',
     editTitle: 'Edit AI Agent'
   },
@@ -899,14 +900,16 @@ export default {
     editTitle: 'Edit AI Tool'
   },
   aiKnowledge: {
-    filter: { name: 'Knowledge Name', code: 'Knowledge Code', provider: 'Provider', visibility: 'Visibility', status: 'Status' },
-    table: { name: 'Knowledge', code: 'Code', provider: 'Provider', dataset: 'Dataset ID', visibility: 'Visibility', status: 'Status', updatedAt: 'Updated At' },
-    actions: { sync: 'Sync' },
-    syncDone: 'Sync submitted',
-    form: { name: 'Knowledge Name', code: 'Knowledge Code', provider: 'Provider', visibility: 'Visibility', dataset: 'Dify Dataset ID', metaJson: 'Meta JSON', invalidJson: 'JSON must be a valid object' },
-    document: { add: 'Add Document', title: 'Document', selectMap: 'Select knowledge map', sourceType: 'Source Type', sourceRef: 'Source Ref', content: 'Content', indexStatus: 'Index Status', error: 'Error' },
-    addTitle: 'Add Knowledge Map',
-    editTitle: 'Edit Knowledge Map'
+    filter: { name: 'Knowledge Name', code: 'Knowledge Code', status: 'Status' },
+    table: { name: 'Knowledge', code: 'Code', description: 'Description', chunk: 'Chunk/Overlap', retrieval: 'Retrieval', status: 'Status', updatedAt: 'Updated At' },
+    actions: { reindex: 'Reindex', retrievalTest: 'Retrieval Test' },
+    initFailed: 'Failed to initialize knowledge module',
+    form: { name: 'Knowledge Name', code: 'Knowledge Code', description: 'Description', chunkSize: 'Chunk Chars', chunkOverlap: 'Overlap Chars', defaultTopK: 'Default TopK', defaultMinScore: 'Min Score', defaultContext: 'Context Chars', status: 'Status', chunkSizeRange: 'Chunk chars must be between 300 and 8000', topKRange: 'TopK must be between 1 and 20', minScoreRange: 'Min score must be between 0 and 100', contextRange: 'Context chars must be between 1000 and 30000', overlapLessThanSize: 'Overlap must be smaller than chunk size' },
+    document: { add: 'Add Document', edit: 'Edit Document', title: 'Document', selectBase: 'Select a knowledge base', selectBaseTip: 'Select a knowledge base from the left to manage documents', currentBase: 'Current Knowledge Base', sourceType: 'Source Type', sourceRef: 'Source Ref', content: 'Content', indexStatus: 'Index Status', error: 'Error', chunks: 'Chunks', reindexDone: 'Index rebuilt', chunkLoadFailed: 'Failed to load chunks' },
+    chunk: { index: 'Index', chars: 'Chars', content: 'Content' },
+    retrieval: { title: 'Knowledge Retrieval Test', query: 'Query', queryPlaceholder: 'Ask a question, e.g. what is the backend architecture?', queryRequired: 'Query is required', summary: 'Selected {selected} / total {total}', rank: 'Rank', score: 'Score', hitStatus: 'Hit Status', selected: 'Selected', skipped: 'Skipped' },
+    addTitle: 'Add Knowledge Base',
+    editTitle: 'Edit Knowledge Base'
   },
   aiRuns: {
     filter: {
@@ -950,6 +953,7 @@ export default {
       error: 'Error',
       userMessage: 'User Message',
       assistantMessage: 'AI Response',
+      knowledgeRetrievals: 'Knowledge Retrievals',
       toolCalls: 'Tool Calls',
       toolArguments: 'Arguments',
       toolResult: 'Result',

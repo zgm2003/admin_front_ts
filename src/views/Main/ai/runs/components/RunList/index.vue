@@ -212,6 +212,21 @@ const toolCallTagType = (status: string) => {
   }
 }
 
+const knowledgeRetrievalTagType = (status: string) => {
+  switch (status) {
+    case 'success':
+      return 'success'
+    case 'failed':
+      return 'danger'
+    case 'skipped':
+      return 'info'
+    default:
+      return 'warning'
+  }
+}
+
+const knowledgeHitTagType = (status: number) => status === 1 ? 'success' : 'info'
+
 onMounted(() => {
   init()
   getList()
@@ -309,6 +324,112 @@ onMounted(() => {
           </el-alert>
         </template>
 
+        <!-- 持久化运行事件 -->
+        <template v-if="detailData.events && detailData.events.length > 0">
+          <el-divider content-position="left">{{ t('aiRuns.detail.events') }}</el-divider>
+          <el-timeline>
+            <el-timeline-item
+              v-for="event in detailData.events"
+              :key="event.id"
+              :timestamp="event.created_at"
+              placement="top"
+            >
+              <div class="event-item">
+                <div class="event-header">
+                  <el-tag size="small" type="info">#{{ event.seq }}</el-tag>
+                  <el-tag size="small" :type="eventTagType(detailData.status)">{{ event.event_type_name || event.event_type }}</el-tag>
+                  <span class="event-type">{{ event.event_type }}</span>
+                  <span class="event-id">ID {{ event.id }}</span>
+                  <span v-if="event.elapsed_text && event.elapsed_text !== '-'" class="event-elapsed">+{{ event.elapsed_text }}</span>
+                </div>
+                <div v-if="event.message" class="event-message">{{ event.message }}</div>
+                <div v-if="event.seq === detailData.events.length && isTerminalRun(detailData.status)" class="terminal-run-facts">
+                  <span>{{ t('aiRuns.detail.promptTokens') }}: {{ formatTokens(detailData.prompt_tokens) }}</span>
+                  <span>{{ t('aiRuns.detail.completionTokens') }}: {{ formatTokens(detailData.completion_tokens) }}</span>
+                  <span>{{ t('aiRuns.detail.totalTokens') }}: {{ formatTokens(detailData.total_tokens) }}</span>
+                  <span>{{ t('aiRuns.detail.latency') }}: {{ detailData.duration_text }}</span>
+                  <span v-if="detailData.error_message" class="terminal-error">{{ t('aiRuns.detail.error') }}: {{ detailData.error_message }}</span>
+                </div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </template>
+
+        <!-- 知识库检索 -->
+        <template v-if="detailData.knowledge_retrievals && detailData.knowledge_retrievals.length > 0">
+          <el-divider content-position="left">{{ t('aiRuns.detail.knowledgeRetrievals') }}</el-divider>
+          <div class="knowledge-retrieval-list">
+            <div v-for="retrieval in detailData.knowledge_retrievals" :key="retrieval.id" class="knowledge-retrieval-card">
+              <div class="knowledge-retrieval-header">
+                <div class="knowledge-retrieval-title">
+                  <span>{{ retrieval.query }}</span>
+                  <el-tag size="small" :type="knowledgeRetrievalTagType(retrieval.status)">{{ retrieval.status_name || retrieval.status }}</el-tag>
+                </div>
+                <div class="knowledge-retrieval-meta">
+                  <span>{{ retrieval.selected_hits }} / {{ retrieval.total_hits }}</span>
+                  <span>{{ retrieval.duration_text }}</span>
+                  <span>{{ retrieval.created_at }}</span>
+                </div>
+              </div>
+              <div v-if="retrieval.error_message" class="knowledge-retrieval-error">{{ retrieval.error_message }}</div>
+              <el-collapse v-if="retrieval.hits.length > 0">
+                <el-collapse-item
+                  v-for="hit in retrieval.hits"
+                  :key="hit.id"
+                  :name="String(hit.id)"
+                >
+                  <template #title>
+                    <div class="knowledge-hit-title">
+                      <el-tag size="small" type="info">#{{ hit.rank_no }}</el-tag>
+                      <span>{{ hit.knowledge_base_name }}</span>
+                      <span>{{ hit.document_title }} / {{ hit.chunk_index }}</span>
+                      <span>{{ hit.score.toFixed(4) }}</span>
+                      <el-tag size="small" :type="knowledgeHitTagType(hit.status)">{{ hit.status_name }}</el-tag>
+                      <span v-if="hit.skip_reason">{{ hit.skip_reason }}</span>
+                    </div>
+                  </template>
+                  <div class="knowledge-hit-content">{{ hit.content_snapshot }}</div>
+                </el-collapse-item>
+              </el-collapse>
+            </div>
+          </div>
+        </template>
+
+        <!-- 工具调用 -->
+        <template v-if="detailData.tool_calls && detailData.tool_calls.length > 0">
+          <el-divider content-position="left">{{ t('aiRuns.detail.toolCalls') }}</el-divider>
+          <div class="tool-call-list">
+            <div v-for="call in detailData.tool_calls" :key="call.id" class="tool-call-card">
+              <div class="tool-call-header">
+                <div class="tool-call-title">
+                  <span class="tool-call-name">{{ call.tool_name || call.tool_code }}</span>
+                  <code>{{ call.tool_code }}</code>
+                </div>
+                <div class="tool-call-meta">
+                  <el-tag size="small" :type="toolCallTagType(call.status)">{{ call.status }}</el-tag>
+                  <span v-if="call.duration_ms !== null && call.duration_ms !== undefined">{{ call.duration_ms }}ms</span>
+                  <span v-if="call.call_id">Call ID {{ call.call_id }}</span>
+                </div>
+              </div>
+              <div v-if="call.error_message" class="tool-call-error">{{ call.error_message }}</div>
+              <el-row :gutter="12">
+                <el-col :md="12" :span="24">
+                  <div class="tool-call-json">
+                    <div class="tool-call-json-title">{{ t('aiRuns.detail.toolArguments') }}</div>
+                    <pre>{{ prettyJSON(call.arguments_json) }}</pre>
+                  </div>
+                </el-col>
+                <el-col :md="12" :span="24">
+                  <div class="tool-call-json">
+                    <div class="tool-call-json-title">{{ t('aiRuns.detail.toolResult') }}</div>
+                    <pre>{{ prettyJSON(call.result_json) }}</pre>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
+          </div>
+        </template>
+
             <!-- 用户消息 -->
             <template v-if="detailData.user_message">
               <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
@@ -363,73 +484,6 @@ onMounted(() => {
               </div>
             </template>
 
-
-            <!-- 工具调用 -->
-            <template v-if="detailData.tool_calls && detailData.tool_calls.length > 0">
-              <el-divider content-position="left">{{ t('aiRuns.detail.toolCalls') }}</el-divider>
-              <div class="tool-call-list">
-                <div v-for="call in detailData.tool_calls" :key="call.id" class="tool-call-card">
-                  <div class="tool-call-header">
-                    <div class="tool-call-title">
-                      <span class="tool-call-name">{{ call.tool_name || call.tool_code }}</span>
-                      <code>{{ call.tool_code }}</code>
-                    </div>
-                    <div class="tool-call-meta">
-                      <el-tag size="small" :type="toolCallTagType(call.status)">{{ call.status }}</el-tag>
-                      <span v-if="call.duration_ms !== null && call.duration_ms !== undefined">{{ call.duration_ms }}ms</span>
-                      <span v-if="call.call_id">Call ID {{ call.call_id }}</span>
-                    </div>
-                  </div>
-                  <div v-if="call.error_message" class="tool-call-error">{{ call.error_message }}</div>
-                  <el-row :gutter="12">
-                    <el-col :md="12" :span="24">
-                      <div class="tool-call-json">
-                        <div class="tool-call-json-title">{{ t('aiRuns.detail.toolArguments') }}</div>
-                        <pre>{{ prettyJSON(call.arguments_json) }}</pre>
-                      </div>
-                    </el-col>
-                    <el-col :md="12" :span="24">
-                      <div class="tool-call-json">
-                        <div class="tool-call-json-title">{{ t('aiRuns.detail.toolResult') }}</div>
-                        <pre>{{ prettyJSON(call.result_json) }}</pre>
-                      </div>
-                    </el-col>
-                  </el-row>
-                </div>
-              </div>
-            </template>
-
-
-            <!-- 持久化运行事件 -->
-            <template v-if="detailData.events && detailData.events.length > 0">
-              <el-divider content-position="left">{{ t('aiRuns.detail.events') }}</el-divider>
-              <el-timeline>
-                <el-timeline-item
-                  v-for="event in detailData.events"
-                  :key="event.id"
-                  :timestamp="event.created_at"
-                  placement="top"
-                >
-                  <div class="event-item">
-                    <div class="event-header">
-                      <el-tag size="small" type="info">#{{ event.seq }}</el-tag>
-                      <el-tag size="small" :type="eventTagType(detailData.status)">{{ event.event_type_name || event.event_type }}</el-tag>
-                      <span class="event-type">{{ event.event_type }}</span>
-                      <span class="event-id">ID {{ event.id }}</span>
-                      <span v-if="event.elapsed_text && event.elapsed_text !== '-'" class="event-elapsed">+{{ event.elapsed_text }}</span>
-                    </div>
-                    <div v-if="event.message" class="event-message">{{ event.message }}</div>
-                    <div v-if="event.seq === detailData.events.length && isTerminalRun(detailData.status)" class="terminal-run-facts">
-                      <span>{{ t('aiRuns.detail.promptTokens') }}: {{ formatTokens(detailData.prompt_tokens) }}</span>
-                      <span>{{ t('aiRuns.detail.completionTokens') }}: {{ formatTokens(detailData.completion_tokens) }}</span>
-                      <span>{{ t('aiRuns.detail.totalTokens') }}: {{ formatTokens(detailData.total_tokens) }}</span>
-                      <span>{{ t('aiRuns.detail.latency') }}: {{ detailData.duration_text }}</span>
-                      <span v-if="detailData.error_message" class="terminal-error">{{ t('aiRuns.detail.error') }}: {{ detailData.error_message }}</span>
-                    </div>
-                  </div>
-                </el-timeline-item>
-              </el-timeline>
-            </template>
       </template>
       </div>
     <template #footer>
@@ -676,5 +730,55 @@ onMounted(() => {
   font-family: 'SF Mono', Monaco, Consolas, monospace;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.knowledge-retrieval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.knowledge-retrieval-card {
+  padding: 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  background: var(--el-fill-color-blank);
+}
+
+.knowledge-retrieval-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.knowledge-retrieval-title,
+.knowledge-retrieval-meta,
+.knowledge-hit-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.knowledge-retrieval-title {
+  font-weight: 600;
+}
+
+.knowledge-retrieval-meta,
+.knowledge-hit-title {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.knowledge-retrieval-error {
+  margin-bottom: 8px;
+  color: var(--el-color-danger);
+}
+
+.knowledge-hit-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.55;
 }
 </style>

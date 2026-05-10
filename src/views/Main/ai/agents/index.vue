@@ -19,6 +19,7 @@ import {
   type AiAgentScene,
 } from '@/api/ai/agents'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
+import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
 
 type ModelPath = [number, string]
 
@@ -72,6 +73,8 @@ const modelLoading = ref(false)
 const modelOptions = ref<CascaderOption[]>([])
 const toolDialogVisible = ref(false)
 const toolAgent = shallowRef<AiAgentItem | null>(null)
+const knowledgeDialogVisible = ref(false)
+const knowledgeAgent = shallowRef<AiAgentItem | null>(null)
 
 function defaultForm(): AgentForm {
   return {
@@ -106,7 +109,7 @@ const columns = computed(() => [
   { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
   { key: 'status', label: t('aiAgents.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 350 },
+  { key: 'actions', label: t('common.actions.action'), width: 410 },
 ])
 
 watch(
@@ -194,6 +197,11 @@ function openTools(row: AiAgentItem) {
   toolDialogVisible.value = true
 }
 
+function openKnowledge(row: AiAgentItem) {
+  knowledgeAgent.value = row
+  knowledgeDialogVisible.value = true
+}
+
 async function confirmSubmit() {
   if (!formRef.value) return
   try {
@@ -268,6 +276,7 @@ onMounted(() => {
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
           <el-button type="primary" text @click="openTools(row)">{{ t('aiAgents.actions.tools') }}</el-button>
+          <el-button type="success" text @click="openKnowledge(row)">{{ t('aiAgents.actions.knowledge') }}</el-button>
           <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
           <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
           <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
@@ -330,6 +339,12 @@ onMounted(() => {
   <AgentToolDialog
     v-model="toolDialogVisible"
     :agent="toolAgent"
+    @saved="getList"
+  />
+
+  <AgentKnowledgeDialog
+    v-model="knowledgeDialogVisible"
+    :agent="knowledgeAgent"
     @saved="getList"
   />
 </template>

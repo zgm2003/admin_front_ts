@@ -96,6 +96,32 @@ export interface AiAgentToolBindingResponse {
   active_tool_ids: number[]
 }
 
+export interface AiAgentKnowledgeBaseOption {
+  label: string
+  value: number
+  description: string
+  default_top_k: number
+  default_min_score: number
+  default_max_context_chars: number
+}
+
+export interface AiAgentKnowledgeBindingItem {
+  id?: number
+  knowledge_base_id: number
+  knowledge_base_name: string
+  top_k: number
+  min_score: number
+  max_context_chars: number
+  status: number
+  status_name?: string
+}
+
+export interface AiAgentKnowledgeBindingResponse {
+  agent_id: number
+  bindings: AiAgentKnowledgeBindingItem[]
+  base_options: AiAgentKnowledgeBaseOption[]
+}
+
 export interface AiAgentUpdateToolsParams {
   agent_id: Id
   tool_ids: Id[]
@@ -103,6 +129,23 @@ export interface AiAgentUpdateToolsParams {
 
 export interface AiAgentUpdateToolsBody {
   tool_ids: number[]
+}
+
+export interface AiAgentUpdateKnowledgeBasesParams {
+  agent_id: Id
+  bindings: AiAgentKnowledgeBindingItem[]
+}
+
+export interface AiAgentKnowledgeBindingBodyItem {
+  knowledge_base_id: number
+  top_k: number
+  min_score: number
+  max_context_chars: number
+  status: number
+}
+
+export interface AiAgentUpdateKnowledgeBasesBody {
+  bindings: AiAgentKnowledgeBindingBodyItem[]
 }
 
 interface AiAgentListQueryParams {
@@ -155,6 +198,18 @@ function updateToolsBody(params: AiAgentUpdateToolsParams): AiAgentUpdateToolsBo
   return { tool_ids: normalizeToolIDs(params.tool_ids) }
 }
 
+function updateKnowledgeBasesBody(params: AiAgentUpdateKnowledgeBasesParams): AiAgentUpdateKnowledgeBasesBody {
+  return {
+    bindings: params.bindings.map((item) => ({
+      knowledge_base_id: positiveID(item.knowledge_base_id, 'AI knowledge base id'),
+      top_k: item.top_k,
+      min_score: item.min_score,
+      max_context_chars: item.max_context_chars,
+      status: item.status,
+    })),
+  }
+}
+
 function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   return {
     id: item.id,
@@ -181,6 +236,8 @@ export const AiAgentApi = {
   detail: (params: { id: Id }) => request.get<AiAgentItem>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}`),
   tools: (params: { agent_id: Id }) => request.get<AiAgentToolBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`),
   updateTools: (params: AiAgentUpdateToolsParams) => request.put<void, AiAgentUpdateToolsBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`, updateToolsBody(params)),
+  knowledgeBases: (params: { agent_id: Id }) => request.get<AiAgentKnowledgeBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`),
+  updateKnowledgeBases: (params: AiAgentUpdateKnowledgeBasesParams) => request.put<void, AiAgentUpdateKnowledgeBasesBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`, updateKnowledgeBasesBody(params)),
   add: (params: AiAgentMutationParams) => request.post<AiAgentCreateResponse, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params)),
   edit: (params: AiAgentMutationParams) => {
     const id = positiveID(params.id ?? 0, 'AI agent id')
