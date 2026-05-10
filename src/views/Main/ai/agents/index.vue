@@ -106,7 +106,7 @@ const columns = computed(() => [
   { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
   { key: 'status', label: t('aiAgents.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 300 },
+  { key: 'actions', label: t('common.actions.action'), width: 350 },
 ])
 
 watch(

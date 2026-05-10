@@ -67,7 +67,7 @@ const columns = computed(() => [
   { key: 'last_model_sync_status', label: t('aiProviders.table.modelSync'), width: 120 },
   { key: 'status', label: t('aiProviders.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiProviders.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 460 },
+  { key: 'actions', label: t('common.actions.action'), width: 460 , fixed: 'right' },
 ])
 
 function stateTagType(status?: AiProviderHealthStatus) {
