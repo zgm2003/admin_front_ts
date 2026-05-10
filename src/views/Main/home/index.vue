@@ -12,7 +12,6 @@ const {
   displayName,
   roleName,
   profileItems,
-  profileBio,
   notifications,
   unreadCount,
   localizedQuickEntryCards,
@@ -48,7 +47,6 @@ onMounted(() => {
         :role-name="roleName"
         :avatar="avatar"
         :profile-items="profileItems"
-        :profile-bio="profileBio"
         @personal="goToPersonal"
       />
 
@@ -61,25 +59,26 @@ onMounted(() => {
         @open-item="openNotification"
       />
 
-      <HomeQuickEntryPanel
-        class="home-dashboard__card home-dashboard__card--quick-entry"
-        :entries="localizedQuickEntryCards"
-        :model-value="quickEntryManagerVisible"
-        :draft="quickEntryDraft"
-        :options="availableQuickEntryOptions"
-        :limit="quickEntryLimit"
-        :limit-reached="quickEntryLimitReached"
-        :selected-permission-id="selectedPermissionId"
-        :saving="savingQuickEntries"
-        @navigate="goTo"
-        @manage="openQuickEntryManager"
-        @update:model-value="quickEntryManagerVisible = $event"
-        @update:selected-permission-id="selectedPermissionId = $event"
-        @add="addQuickEntryDraft"
-        @remove="removeQuickEntryDraft"
-        @move="moveQuickEntry"
-        @save="saveQuickEntryDraft"
-      />
+      <div class="home-dashboard__card home-dashboard__card--quick-entry">
+        <HomeQuickEntryPanel
+          :entries="localizedQuickEntryCards"
+          :model-value="quickEntryManagerVisible"
+          :draft="quickEntryDraft"
+          :options="availableQuickEntryOptions"
+          :limit="quickEntryLimit"
+          :limit-reached="quickEntryLimitReached"
+          :selected-permission-id="selectedPermissionId"
+          :saving="savingQuickEntries"
+          @navigate="goTo"
+          @manage="openQuickEntryManager"
+          @update:model-value="quickEntryManagerVisible = $event"
+          @update:selected-permission-id="selectedPermissionId = $event"
+          @add="addQuickEntryDraft"
+          @remove="removeQuickEntryDraft"
+          @move="moveQuickEntry"
+          @save="saveQuickEntryDraft"
+        />
+      </div>
     </div>
   </div>
 </template>

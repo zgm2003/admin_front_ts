@@ -24,6 +24,13 @@ function readHomeNotificationsSource() {
   )
 }
 
+function readHomeQuickEntrySource() {
+  return readFileSync(
+    resolve(process.cwd(), 'src/views/Main/home/components/HomeQuickEntryPanel.vue'),
+    'utf8',
+  )
+}
+
 function readHomeDashboardComposableSource() {
   return readFileSync(
     resolve(process.cwd(), 'src/views/Main/home/composables/useHomeDashboard.ts'),
@@ -153,9 +160,18 @@ describe('home dashboard layout contract', () => {
     expect(source).toContain('class="home-dashboard__card home-dashboard__card--hero"')
     expect(source).toContain('class="home-dashboard__card home-dashboard__card--notifications"')
     expect(source).not.toContain('HomeWalletPanel')
-    expect(source).toContain('class="home-dashboard__card home-dashboard__card--quick-entry"')
+    expect(source).toContain('<div class="home-dashboard__card home-dashboard__card--quick-entry">')
     expect(source).not.toContain('home-dashboard__main')
     expect(source).not.toContain('home-dashboard__side')
+  })
+
+  it('wraps the multi-root quick-entry component before applying grid placement classes', () => {
+    const indexSource = readHomeIndexSource()
+    const quickEntrySource = readHomeQuickEntrySource()
+
+    expect(indexSource).not.toContain('<HomeQuickEntryPanel\n        class=')
+    expect(indexSource).toContain('<div class="home-dashboard__card home-dashboard__card--quick-entry">')
+    expect(quickEntrySource).toContain('<HomeQuickEntryManagerDialog')
   })
 
   it('keeps the profile card inside the 2x2 grid instead of placing it above the grid', () => {
@@ -184,11 +200,12 @@ describe('home quadrant content contract', () => {
 
     expect(source).toContain(`$emit('personal')`)
     expect(source).toContain('profile-details')
-    expect(source).toContain('profile-bio')
+    expect(source).not.toContain('profile-bio')
+    expect(source).not.toContain('profileBio')
     expect(source).not.toContain('hero-signals')
     expect(source).not.toContain('security-strip')
     expect(source).toContain(':title="item.value"')
-    expect(source).toContain('title="profileBio"')
+    expect(indexSource).not.toContain(':profile-bio=')
     expect(indexSource).not.toContain(':signals=')
     expect(indexSource).not.toContain(':security-items=')
   })
@@ -232,10 +249,7 @@ describe('home quadrant content contract', () => {
 
 
   it('keeps the quick entry manager as a home-local component instead of a shared app component', () => {
-    const quickEntrySource = readFileSync(
-      resolve(process.cwd(), 'src/views/Main/home/components/HomeQuickEntryPanel.vue'),
-      'utf8',
-    )
+    const quickEntrySource = readHomeQuickEntrySource()
 
     expect(quickEntrySource).toContain("import HomeQuickEntryManagerDialog from './HomeQuickEntryManagerDialog.vue'")
     expect(quickEntrySource).not.toContain("@/components/QuickEntryManager")

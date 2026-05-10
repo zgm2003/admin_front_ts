@@ -24,7 +24,6 @@ interface HomeProfileSummary {
   birthday: string
   addressId: number
   detail_address: string
-  bio: string
   addressTree: import('./helpers').AddressTreeNode[]
   sexOptions: Array<{ label: string; value: number }>
 }
@@ -82,8 +81,6 @@ export function useHomeDashboard() {
     ]
   })
 
-  const profileBio = computed(() => profileSummary.value?.bio?.trim() || '')
-
   const availableQuickEntryOptions = computed(() =>
     buildQuickEntryManagerOptions({
       routes: userStore.router,
@@ -106,7 +103,6 @@ export function useHomeDashboard() {
       birthday: data.profile.birthday,
       addressId: data.profile.address_id,
       detail_address: data.profile.detail_address,
-      bio: data.profile.bio,
       addressTree: data.dict.auth_address_tree as HomeProfileSummary['addressTree'],
       sexOptions: data.dict.sexArr,
     }
@@ -299,7 +295,6 @@ export function useHomeDashboard() {
     displayName,
     roleName,
     profileItems,
-    profileBio,
     notifications,
     unreadCount,
     localizedQuickEntryCards,

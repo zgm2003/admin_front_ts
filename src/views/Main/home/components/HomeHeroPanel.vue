@@ -8,7 +8,6 @@ defineProps<{
     label: string
     value: string
   }>
-  profileBio: string
 }>()
 
 defineEmits<{
@@ -42,11 +41,6 @@ defineEmits<{
         <div class="profile-detail-card__label">{{ item.label }}</div>
         <div class="profile-detail-card__value" :title="item.value">{{ item.value }}</div>
       </div>
-    </div>
-
-    <div v-if="profileBio" class="profile-bio">
-      <div class="profile-bio__label">{{ $t('personal.form.bio') }}</div>
-      <div class="profile-bio__text" :title="profileBio">{{ profileBio }}</div>
     </div>
   </section>
 </template>
@@ -137,29 +131,6 @@ defineEmits<{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.profile-bio {
-  padding: 12px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 16px;
-  background: var(--el-bg-color);
-}
-
-.profile-bio__label {
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.profile-bio__text {
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--el-text-color-primary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 @media (max-width: 768px) {
