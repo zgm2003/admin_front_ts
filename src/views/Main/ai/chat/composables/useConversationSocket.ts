@@ -6,7 +6,7 @@ import {
   type AiResponseDeltaPayload,
   type AiResponseFailedPayload,
   type AiResponseStartPayload,
-} from '@/api/ai/chat'
+} from '@/api/ai/chat-events'
 import type { WsMessageData } from '@/lib/realtime/message-bus'
 
 interface SocketHandlers {

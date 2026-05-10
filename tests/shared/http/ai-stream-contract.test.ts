@@ -5,11 +5,12 @@ import { describe, expect, it } from 'vitest'
 describe('AI chat transport contract', () => {
   it('keeps chat transport websocket-only and run-free', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/api/ai/chat.ts'), 'utf8')
+    const eventsSource = readFileSync(resolve(process.cwd(), 'src/api/ai/chat-events.ts'), 'utf8')
 
-    expect(source).toContain("start: 'ai.response.start.v1'")
-    expect(source).toContain("delta: 'ai.response.delta.v1'")
-    expect(source).toContain("completed: 'ai.response.completed.v1'")
-    expect(source).toContain("failed: 'ai.response.failed.v1'")
+    expect(eventsSource).toContain("start: 'ai.response.start.v1'")
+    expect(eventsSource).toContain("delta: 'ai.response.delta.v1'")
+    expect(eventsSource).toContain("completed: 'ai.response.completed.v1'")
+    expect(eventsSource).toContain("failed: 'ai.response.failed.v1'")
     expect(source).toContain('createAiRequestId')
     expect(source).not.toContain('ai.response.' + 'cancel.v1')
     expect(source).not.toContain('/ai-chat/' + 'runs')

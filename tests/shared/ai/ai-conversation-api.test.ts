@@ -8,18 +8,18 @@ function readFrontendSource(relativePath: string) {
 
 const forbiddenLooseTypePattern = new RegExp(`\b${'an'}${'y'}\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
 
-describe('AI conversation api minimal REST contract', () => {
-  it('uses only conversation MVP endpoints', () => {
+describe('AI conversation api REST contract', () => {
+  it('uses only current conversation endpoints', () => {
     const source = readFrontendSource('src/api/ai/conversations.ts')
     expect(source).toContain("import request from '@/lib/http'")
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<AiConversationListResponse>(`${ADMIN_API_PREFIX}/ai-conversations`')
     expect(source).toContain('request.get<AiConversationDetailResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`)')
     expect(source).toContain('request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`')
+    expect(source).toContain('request.put<void, AiConversationEditBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`')
     expect(source).toContain('request.delete<void>(`${ADMIN_API_PREFIX}/ai-conversations/${id}`)')
     expect(source).not.toContain('PaginatedResponse')
     expect(source).not.toContain('status')
-    expect(source).not.toContain('request.put')
     expect(source).not.toContain('request.patch')
     expect(source).not.toContain('/api/admin/AiConversations')
   })
