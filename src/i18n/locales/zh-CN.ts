@@ -783,11 +783,17 @@ export default {
     table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
     form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
     scene: { chat: '对话' },
-    actions: { test: '测试智能体', bindings: '绑定' },
-    binding: { title: '智能体绑定', add: '新增绑定', type: '绑定类型', key: '绑定键', sort: '排序', status: '状态' },
+    actions: { tools: '工具配置' },
+    tools: {
+      title: '配置智能体工具',
+      agent: '当前智能体',
+      tools: '启用工具',
+      selectAgent: '请选择智能体',
+      selectTools: '请选择工具',
+      activeTools: '当前可用工具数'
+    },
     addTitle: '新增 AI 智能体',
-    editTitle: '编辑 AI 智能体',
-    testDone: '智能体测试完成'
+    editTitle: '编辑 AI 智能体'
   },
   aiChat: {
     newConversation: '新建对话',
@@ -891,32 +897,32 @@ export default {
     toolDone: '工具调用完成',
   },
   aiTools: {
-    filter: { name: '工具名称', code: '工具编码', toolType: '工具类型', riskLevel: '风险等级', provider: '供应商', agent: 'AI 智能体', status: '状态' },
+    filter: { name: '工具名称', code: '工具编码', riskLevel: '风险等级', status: '状态' },
     table: {
       name: '工具名称',
       code: '工具编码',
-      toolType: '工具类型',
-      provider: '供应商',
-      engineToolId: '引擎工具ID',
-      permissionCode: '权限编码',
+      executor: '执行器',
+      description: '描述',
       riskLevel: '风险等级',
+      timeout: '超时',
       status: '状态',
       updatedAt: '更新时间'
     },
     form: {
       name: '工具名称',
       code: '工具编码',
-      provider: '供应商',
-      agent: 'AI 智能体',
-      toolType: '工具类型',
+      description: '描述',
+      executor: '执行器',
       riskLevel: '风险等级',
-      engineToolId: '引擎工具ID',
-      permissionCode: '权限编码',
-      configJson: '配置JSON',
-      invalidJson: '配置必须为合法JSON对象'
+      timeout: '超时毫秒',
+      timeoutRange: '超时必须在 100 到 30000 毫秒之间',
+      status: '状态',
+      parametersJson: '参数JSON Schema',
+      resultSchemaJson: '结果JSON Schema',
+      invalidJson: '必须为合法JSON对象'
     },
-    addTitle: '新增工具映射',
-    editTitle: '编辑工具映射'
+    addTitle: '新增AI工具',
+    editTitle: '编辑AI工具'
   },
   aiKnowledge: {
     filter: { name: '知识库名称', code: '知识库编码', provider: '供应商', visibility: '可见性', status: '状态' },
@@ -995,6 +1001,9 @@ export default {
       error: '错误信息',
       userMessage: '用户消息',
       assistantMessage: 'AI 回复',
+      toolCalls: '工具调用',
+      toolArguments: '调用参数',
+      toolResult: '调用结果',
       events: '运行事件',
       fetchFailed: '获取详情失败'
     },

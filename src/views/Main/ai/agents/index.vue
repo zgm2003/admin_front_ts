@@ -18,6 +18,7 @@ import {
   type AiAgentMutationParams,
   type AiAgentScene,
 } from '@/api/ai/agents'
+import AgentToolDialog from './components/AgentToolDialog/index.vue'
 
 type ModelPath = [number, string]
 
@@ -69,6 +70,8 @@ const formRef = ref<FormInstance | null>(null)
 const form = ref<AgentForm>(defaultForm())
 const modelLoading = ref(false)
 const modelOptions = ref<CascaderOption[]>([])
+const toolDialogVisible = ref(false)
+const toolAgent = shallowRef<AiAgentItem | null>(null)
 
 function defaultForm(): AgentForm {
   return {
@@ -103,7 +106,7 @@ const columns = computed(() => [
   { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
   { key: 'status', label: t('aiAgents.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 230 },
+  { key: 'actions', label: t('common.actions.action'), width: 300 },
 ])
 
 watch(
@@ -183,6 +186,11 @@ function edit(row: AiAgentItem) {
   void nextTick(() => formRef.value?.clearValidate())
 }
 
+function openTools(row: AiAgentItem) {
+  toolAgent.value = row
+  toolDialogVisible.value = true
+}
+
 async function confirmSubmit() {
   if (!formRef.value) return
   try {
@@ -256,6 +264,7 @@ onMounted(() => {
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+          <el-button type="primary" text @click="openTools(row)">{{ t('aiAgents.actions.tools') }}</el-button>
           <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
           <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
           <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
@@ -314,6 +323,12 @@ onMounted(() => {
       <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
     </template>
   </AppDialog>
+
+  <AgentToolDialog
+    v-model="toolDialogVisible"
+    :agent="toolAgent"
+    @saved="getList"
+  />
 </template>
 
 <style scoped>

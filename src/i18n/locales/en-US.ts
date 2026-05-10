@@ -783,11 +783,10 @@ export default {
     table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
     form: { name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
     scene: { chat: 'Chat' },
-    actions: { test: 'Test Agent', bindings: 'Bindings' },
-    binding: { title: 'Agent Bindings', add: 'Add Binding', type: 'Binding Type', key: 'Binding Key', sort: 'Sort', status: 'Status' },
+    actions: { tools: 'Tool Config' },
+    tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
     addTitle: 'Add AI Agent',
-    editTitle: 'Edit AI Agent',
-    testDone: 'Agent test completed'
+    editTitle: 'Edit AI Agent'
   },
   aiChat: {
     newConversation: 'New Chat',
@@ -891,11 +890,11 @@ export default {
     toolDone: 'Tool call done',
   },
   aiTools: {
-    filter: { name: 'Tool Name', code: 'Tool Code', toolType: 'Tool Type', riskLevel: 'Risk', provider: 'Provider', agent: 'AI Agent', status: 'Status' },
-    table: { name: 'Tool Name', code: 'Code', toolType: 'Tool Type', provider: 'Provider', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', riskLevel: 'Risk', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Tool Name', code: 'Tool Code', provider: 'Provider', agent: 'AI Agent', toolType: 'Tool Type', riskLevel: 'Risk', engineToolId: 'Engine Tool ID', permissionCode: 'Permission Code', configJson: 'Config JSON', invalidJson: 'Config must be a valid JSON object' },
-    addTitle: 'Add Tool Map',
-    editTitle: 'Edit Tool Map'
+    filter: { name: 'Tool Name', code: 'Tool Code', riskLevel: 'Risk', status: 'Status' },
+    table: { name: 'Tool Name', code: 'Code', executor: 'Executor', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Tool Name', code: 'Tool Code', description: 'Description', executor: 'Executor', riskLevel: 'Risk', timeout: 'Timeout MS', timeoutRange: 'Timeout must be between 100 and 30000 ms', status: 'Status', parametersJson: 'Parameters JSON Schema', resultSchemaJson: 'Result JSON Schema', invalidJson: ' must be a valid JSON object' },
+    addTitle: 'Add AI Tool',
+    editTitle: 'Edit AI Tool'
   },
   aiKnowledge: {
     filter: { name: 'Knowledge Name', code: 'Knowledge Code', provider: 'Provider', visibility: 'Visibility', status: 'Status' },
@@ -949,6 +948,9 @@ export default {
       error: 'Error',
       userMessage: 'User Message',
       assistantMessage: 'AI Response',
+      toolCalls: 'Tool Calls',
+      toolArguments: 'Arguments',
+      toolResult: 'Result',
       events: 'Run Events',
       fetchFailed: 'Failed to fetch details'
     },

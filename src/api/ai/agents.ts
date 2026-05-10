@@ -90,6 +90,21 @@ export interface AiAgentCreateResponse {
   id: number
 }
 
+export interface AiAgentToolBindingResponse {
+  agent_id: number
+  tool_ids: number[]
+  active_tool_ids: number[]
+}
+
+export interface AiAgentUpdateToolsParams {
+  agent_id: Id
+  tool_ids: Id[]
+}
+
+export interface AiAgentUpdateToolsBody {
+  tool_ids: number[]
+}
+
 interface AiAgentListQueryParams {
   current_page?: number
   page_size?: number
@@ -128,6 +143,18 @@ function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
   }
 }
 
+function normalizeToolIDs(values: Id[]): number[] {
+  const ids = new Set<number>()
+  for (const value of values) {
+    ids.add(positiveID(value, 'AI tool id'))
+  }
+  return Array.from(ids).sort((left, right) => left - right)
+}
+
+function updateToolsBody(params: AiAgentUpdateToolsParams): AiAgentUpdateToolsBody {
+  return { tool_ids: normalizeToolIDs(params.tool_ids) }
+}
+
 function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   return {
     id: item.id,
@@ -152,6 +179,8 @@ export const AiAgentApi = {
   options: () => listOptions(),
   models: (params: { provider_id: Id }) => request.get<{ list: AiProviderModelItem[] }>(`${ADMIN_API_PREFIX}/ai-agents/provider-models/${positiveID(params.provider_id, 'AI provider id')}`),
   detail: (params: { id: Id }) => request.get<AiAgentItem>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}`),
+  tools: (params: { agent_id: Id }) => request.get<AiAgentToolBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`),
+  updateTools: (params: AiAgentUpdateToolsParams) => request.put<void, AiAgentUpdateToolsBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`, updateToolsBody(params)),
   add: (params: AiAgentMutationParams) => request.post<AiAgentCreateResponse, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params)),
   edit: (params: AiAgentMutationParams) => {
     const id = positiveID(params.id ?? 0, 'AI agent id')

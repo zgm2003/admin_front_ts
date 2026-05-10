@@ -177,6 +177,11 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 
 const formatTokens = (value: number) => value ? value.toLocaleString() : '-'
 
+const prettyJSON = (value: unknown) => {
+  if (value === null || value === undefined) return '-'
+  return JSON.stringify(value, null, 2)
+}
+
 const eventTagType = (status: AiRunStatus) => {
   switch (status) {
     case 'success':
@@ -186,6 +191,20 @@ const eventTagType = (status: AiRunStatus) => {
       return 'danger'
     case 'canceled':
       return 'info'
+    case 'running':
+      return 'warning'
+    default:
+      return 'info'
+  }
+}
+
+const toolCallTagType = (status: string) => {
+  switch (status) {
+    case 'success':
+      return 'success'
+    case 'failed':
+    case 'timeout':
+      return 'danger'
     case 'running':
       return 'warning'
     default:
@@ -344,6 +363,41 @@ onMounted(() => {
               </div>
             </template>
 
+
+            <!-- 工具调用 -->
+            <template v-if="detailData.tool_calls && detailData.tool_calls.length > 0">
+              <el-divider content-position="left">{{ t('aiRuns.detail.toolCalls') }}</el-divider>
+              <div class="tool-call-list">
+                <div v-for="call in detailData.tool_calls" :key="call.id" class="tool-call-card">
+                  <div class="tool-call-header">
+                    <div class="tool-call-title">
+                      <span class="tool-call-name">{{ call.tool_name || call.tool_code }}</span>
+                      <code>{{ call.tool_code }}</code>
+                    </div>
+                    <div class="tool-call-meta">
+                      <el-tag size="small" :type="toolCallTagType(call.status)">{{ call.status }}</el-tag>
+                      <span v-if="call.duration_ms !== null && call.duration_ms !== undefined">{{ call.duration_ms }}ms</span>
+                      <span v-if="call.call_id">Call ID {{ call.call_id }}</span>
+                    </div>
+                  </div>
+                  <div v-if="call.error_message" class="tool-call-error">{{ call.error_message }}</div>
+                  <el-row :gutter="12">
+                    <el-col :md="12" :span="24">
+                      <div class="tool-call-json">
+                        <div class="tool-call-json-title">{{ t('aiRuns.detail.toolArguments') }}</div>
+                        <pre>{{ prettyJSON(call.arguments_json) }}</pre>
+                      </div>
+                    </el-col>
+                    <el-col :md="12" :span="24">
+                      <div class="tool-call-json">
+                        <div class="tool-call-json-title">{{ t('aiRuns.detail.toolResult') }}</div>
+                        <pre>{{ prettyJSON(call.result_json) }}</pre>
+                      </div>
+                    </el-col>
+                  </el-row>
+                </div>
+              </div>
+            </template>
 
 
             <!-- 持久化运行事件 -->
@@ -556,5 +610,71 @@ onMounted(() => {
 
 .terminal-error {
   color: var(--el-color-danger);
+}
+
+.tool-call-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tool-call-card {
+  padding: 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  background: var(--el-fill-color-blank);
+}
+
+.tool-call-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.tool-call-title,
+.tool-call-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tool-call-name {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.tool-call-meta {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+
+.tool-call-error {
+  margin-bottom: 10px;
+  color: var(--el-color-danger);
+  font-size: 13px;
+}
+
+.tool-call-json {
+  min-height: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--el-fill-color-lighter);
+}
+
+.tool-call-json-title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.tool-call-json pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
 }
 </style>

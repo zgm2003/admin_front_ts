@@ -2,6 +2,10 @@ import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 
+export type JsonPrimitive = string | number | boolean | null
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
+export interface JsonObject { [key: string]: JsonValue }
+
 export interface AiRunMessageAttachment {
   url: string
 }
@@ -14,6 +18,7 @@ export interface AiRunMessageMeta {
 }
 
 export type AiRunStatus = 'running' | 'success' | 'failed' | 'canceled' | 'timeout'
+export type AiRunToolCallStatus = 'running' | 'success' | 'failed' | 'timeout'
 
 export interface AiRunInitResponse {
   dict: {
@@ -65,6 +70,21 @@ export interface AiRunMessageSummary {
   created_at: string
 }
 
+export interface AiRunToolCallItem {
+  id: number
+  tool_id: number
+  tool_code: string
+  tool_name: string
+  call_id?: string | null
+  status: AiRunToolCallStatus
+  arguments_json: JsonObject
+  result_json?: JsonObject | null
+  error_message: string
+  duration_ms?: number | null
+  started_at: string
+  finished_at: string
+}
+
 export interface AiRunDetailResponse {
   id: number
   request_id: string
@@ -89,6 +109,7 @@ export interface AiRunDetailResponse {
   user_message?: AiRunMessageSummary | null
   assistant_message?: AiRunMessageSummary | null
   events: AiRunEventItem[]
+  tool_calls: AiRunToolCallItem[]
   started_at: string
   finished_at: string
   created_at: string
