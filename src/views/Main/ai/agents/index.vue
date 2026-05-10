@@ -121,7 +121,10 @@ async function init() {
   const data = await AiAgentApi.init()
   dict.value = {
     ...data.dict,
-    scene_arr: data.dict.scene_arr.length > 0 ? data.dict.scene_arr : [{ label: t('aiAgents.scene.chat'), value: 'chat' }],
+    scene_arr: data.dict.scene_arr.length > 0 ? data.dict.scene_arr : [
+      { label: t('aiAgents.scene.chat'), value: 'chat' },
+      { label: t('aiAgents.scene.agentGenerate'), value: 'agent_generate' },
+    ],
   }
   modelOptions.value = buildModelOptions()
 }

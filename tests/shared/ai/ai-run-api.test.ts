@@ -84,4 +84,16 @@ describe('AI run api REST contract', () => {
     expect(listSource).toContain('tool-call-card')
     expect(listSource).toContain('prettyJSON')
   })
+
+  it('keeps the statistics tab key-only and avoids loading a user ranking', () => {
+    const statsSource = readFrontendSource('src/views/Main/ai/runs/components/RunStats/index.vue')
+
+    expect(statsSource).toContain('const TOP_LIMIT = 10')
+    expect(statsSource).toContain('keyOnlyTip')
+    expect(statsSource).toContain('topAgents')
+    expect(statsSource).toContain('recentDates')
+    expect(statsSource).not.toContain('AiRunStatsByUserItem')
+    expect(statsSource).not.toContain('statsByUser')
+    expect(statsSource).not.toContain('loadMore')
+  })
 })

@@ -72,7 +72,7 @@ function defaultForm(): ToolForm {
     result_schema_text: '',
     risk_level: 'low',
     timeout_ms: 3000,
-    status: CommonEnum.NO,
+    status: CommonEnum.YES,
   }
 }
 
@@ -151,51 +151,73 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '780px'" height="72vh">
+  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '900px'" height="76vh" body-padding="16px 18px 6px">
     <template #header>{{ title }}</template>
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto" :validate-on-rule-change="false">
-      <el-row :gutter="12">
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.name')" prop="name" required>
-            <el-input v-model="form.name" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.code')" prop="code" required>
-            <el-input v-model="form.code" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiTools.form.description')">
-            <el-input v-model="form.description" type="textarea" :rows="2" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.riskLevel')" prop="risk_level" required>
-            <el-select-v2 v-model="form.risk_level" :options="dict.risk_level_arr" style="width: 100%" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.timeout')" prop="timeout_ms" required>
-            <el-input-number v-model="form.timeout_ms" :min="100" :max="30000" :step="100" style="width: 100%" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.status')" prop="status" required>
-            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width: 100%" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiTools.form.parametersJson')" prop="parameters_text" required>
-            <el-input v-model="form.parameters_text" type="textarea" :rows="5" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiTools.form.resultSchemaJson')" prop="result_schema_text" required>
-            <el-input v-model="form.result_schema_text" type="textarea" :rows="8" />
-          </el-form-item>
-        </el-col>
-      </el-row>
+    <el-form
+      ref="formRef"
+      class="tool-form"
+      :model="form"
+      :rules="rules"
+      label-position="top"
+      :validate-on-rule-change="false"
+    >
+      <section class="tool-form-section">
+        <div class="tool-form-section__title">{{ t('aiTools.form.basicInfo') }}</div>
+        <el-row :gutter="14">
+          <el-col :md="9" :span="24">
+            <el-form-item :label="t('aiTools.form.name')" prop="name" required>
+              <el-input v-model="form.name" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :md="9" :span="24">
+            <el-form-item :label="t('aiTools.form.code')" prop="code" required>
+              <el-input v-model="form.code" placeholder="admin_user_count" clearable />
+            </el-form-item>
+          </el-col>
+          <el-col :md="6" :span="24">
+            <el-form-item :label="t('aiTools.form.status')" prop="status" required>
+              <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item :label="t('aiTools.form.description')">
+              <el-input v-model="form.description" type="textarea" :rows="2" resize="none" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </section>
+
+      <section class="tool-form-section">
+        <div class="tool-form-section__title">{{ t('aiTools.form.runtimeConfig') }}</div>
+        <el-row :gutter="14">
+          <el-col :md="12" :span="24">
+            <el-form-item :label="t('aiTools.form.riskLevel')" prop="risk_level" required>
+              <el-select-v2 v-model="form.risk_level" :options="dict.risk_level_arr" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :md="12" :span="24">
+            <el-form-item :label="t('aiTools.form.timeout')" prop="timeout_ms" required>
+              <el-input-number v-model="form.timeout_ms" :min="100" :max="30000" :step="100" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </section>
+
+      <section class="tool-form-section">
+        <div class="tool-form-section__title">{{ t('aiTools.form.schemaConfig') }}</div>
+        <el-row :gutter="14">
+          <el-col :md="12" :span="24">
+            <el-form-item :label="t('aiTools.form.parametersJson')" prop="parameters_text" required>
+              <el-input v-model="form.parameters_text" class="json-input" type="textarea" :rows="10" resize="vertical" spellcheck="false" />
+            </el-form-item>
+          </el-col>
+          <el-col :md="12" :span="24">
+            <el-form-item :label="t('aiTools.form.resultSchemaJson')" prop="result_schema_text" required>
+              <el-input v-model="form.result_schema_text" class="json-input" type="textarea" :rows="10" resize="vertical" spellcheck="false" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </section>
     </el-form>
     <template #footer>
       <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
@@ -203,3 +225,31 @@ watch(
     </template>
   </AppDialog>
 </template>
+
+<style scoped>
+.tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tool-form-section {
+  padding: 14px 14px 2px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-fill-color-blank);
+}
+
+.tool-form-section__title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.json-input :deep(.el-textarea__inner) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+</style>
