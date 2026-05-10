@@ -785,7 +785,7 @@ export default {
     scene: { chat: 'Chat', agentGenerate: 'Agent Generation' },
     actions: { tools: 'Tool Config', knowledge: 'Knowledge' },
     tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
-    knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
+    knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
     addTitle: 'Add AI Agent',
     editTitle: 'Edit AI Agent'
   },
@@ -901,6 +901,7 @@ export default {
   },
   aiKnowledge: {
     filter: { name: 'Knowledge Name', code: 'Knowledge Code', status: 'Status' },
+    nav: { title: 'Knowledge Bases', subtitle: 'Select a base, then manage documents, chunks, and retrieval on the right', total: '{count} knowledge bases', empty: 'No knowledge base', noDescription: 'No description', minScore: 'Min', more: 'More' },
     table: { name: 'Knowledge', code: 'Code', description: 'Description', chunk: 'Chunk/Overlap', retrieval: 'Retrieval', status: 'Status', updatedAt: 'Updated At' },
     actions: { reindex: 'Reindex', retrievalTest: 'Retrieval Test' },
     initFailed: 'Failed to initialize knowledge module',

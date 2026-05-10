@@ -31,10 +31,11 @@ function selectBase(row: AiKnowledgeBaseItem) {
 <style scoped>
 .ai-knowledge-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, 42%);
-  gap: 12px;
+  grid-template-columns: 336px minmax(0, 1fr);
+  gap: 16px;
   height: 100%;
   min-height: 0;
+  padding: 2px;
 }
 
 .ai-knowledge-page__bases,
@@ -46,6 +47,7 @@ function selectBase(row: AiKnowledgeBaseItem) {
   .ai-knowledge-page {
     grid-template-columns: 1fr;
     height: auto;
+    padding: 0;
   }
 }
 </style>

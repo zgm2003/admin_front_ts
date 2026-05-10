@@ -17,6 +17,7 @@ import {
 } from '@/api/ai/knowledge'
 import KnowledgeDocumentFormDialog from '../KnowledgeDocumentFormDialog/index.vue'
 import KnowledgeChunkDialog from '../KnowledgeChunkDialog/index.vue'
+import KnowledgeDocumentHero from '../KnowledgeDocumentHero/index.vue'
 import RetrievalTestDialog from '../RetrievalTestDialog/index.vue'
 
 interface Props {
@@ -47,7 +48,6 @@ const chunkDialogVisible = shallowRef(false)
 const chunkDocument = shallowRef<AiKnowledgeDocumentItem | null>(null)
 const retrievalDialogVisible = shallowRef(false)
 
-const selectedBaseName = computed(() => props.knowledgeBase?.name ?? t('aiKnowledge.document.selectBase'))
 const hasBase = computed(() => Boolean(props.knowledgeBase))
 
 const searchFields = computed<SearchField[]>(() => [
@@ -191,20 +191,30 @@ onMounted(() => {
 
 <template>
   <div class="knowledge-document-panel">
-    <div class="knowledge-document-panel__header">
-      <div>
-        <h3>{{ selectedBaseName }}</h3>
-        <p v-if="knowledgeBase">{{ knowledgeBase.description || knowledgeBase.code }}</p>
-        <p v-else>{{ t('aiKnowledge.document.selectBaseTip') }}</p>
-      </div>
-      <div class="knowledge-document-panel__actions">
-        <el-button type="primary" :disabled="!hasBase" @click="openAdd">{{ t('aiKnowledge.document.add') }}</el-button>
-        <el-button type="success" :disabled="!hasBase" @click="openRetrievalTest">{{ t('aiKnowledge.actions.retrievalTest') }}</el-button>
-      </div>
-    </div>
+    <KnowledgeDocumentHero
+      :knowledge-base="knowledgeBase"
+      @add="openAdd"
+      @retrieval-test="openRetrievalTest"
+    />
 
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <template v-if="hasBase">
+      <div class="knowledge-document-panel__toolbar">
+        <Search
+          v-model="searchForm"
+          :fields="searchFields"
+          @query="onSearch"
+          @reset="onSearch"
+        />
+      </div>
+    </template>
+    <el-empty
+      v-else
+      class="knowledge-document-panel__empty"
+      :description="t('aiKnowledge.document.selectBaseTip')"
+    />
+
     <AppTable
+      v-if="hasBase"
       :columns="columns"
       :data="documents"
       :loading="loading"
@@ -215,21 +225,65 @@ onMounted(() => {
       @update:pagination="onPageChange"
     >
       <template #cell-source_type="{ row }">
-        <el-tag type="info">{{ row.source_type_name || row.source_type }}</el-tag>
+        <el-tag type="info">
+          {{ row.source_type_name || row.source_type }}
+        </el-tag>
       </template>
       <template #cell-index_status="{ row }">
-        <el-tag :type="indexStatusType(row.index_status)">{{ row.index_status_name || row.index_status }}</el-tag>
+        <el-tag :type="indexStatusType(row.index_status)">
+          {{ row.index_status_name || row.index_status }}
+        </el-tag>
       </template>
       <template #cell-status="{ row }">
-        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
+        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+          {{ row.status_name || row.status }}
+        </el-tag>
       </template>
       <template #cell-actions="{ row }">
-        <el-button type="primary" text @click="openEdit(row)">{{ t('common.actions.edit') }}</el-button>
-        <el-button type="success" text @click="reindex(row)">{{ t('aiKnowledge.actions.reindex') }}</el-button>
-        <el-button type="info" text @click="openChunks(row)">{{ t('aiKnowledge.document.chunks') }}</el-button>
-        <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="changeDocumentStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-        <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="changeDocumentStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-        <el-button type="danger" text @click="deleteDocument(row)">{{ t('common.actions.del') }}</el-button>
+        <el-button
+          type="primary"
+          text
+          @click="openEdit(row)"
+        >
+          {{ t('common.actions.edit') }}
+        </el-button>
+        <el-button
+          type="success"
+          text
+          @click="reindex(row)"
+        >
+          {{ t('aiKnowledge.actions.reindex') }}
+        </el-button>
+        <el-button
+          type="info"
+          text
+          @click="openChunks(row)"
+        >
+          {{ t('aiKnowledge.document.chunks') }}
+        </el-button>
+        <el-button
+          v-if="row.status === CommonEnum.NO"
+          type="warning"
+          text
+          @click="changeDocumentStatus(row, CommonEnum.YES)"
+        >
+          {{ t('common.actions.enable') }}
+        </el-button>
+        <el-button
+          v-if="row.status === CommonEnum.YES"
+          type="warning"
+          text
+          @click="changeDocumentStatus(row, CommonEnum.NO)"
+        >
+          {{ t('common.actions.disable') }}
+        </el-button>
+        <el-button
+          type="danger"
+          text
+          @click="deleteDocument(row)"
+        >
+          {{ t('common.actions.del') }}
+        </el-button>
       </template>
     </AppTable>
 
@@ -242,8 +296,14 @@ onMounted(() => {
       @saved="loadDocuments"
     />
 
-    <KnowledgeChunkDialog v-model="chunkDialogVisible" :document="chunkDocument" />
-    <RetrievalTestDialog v-model="retrievalDialogVisible" :knowledge-base="knowledgeBase" />
+    <KnowledgeChunkDialog
+      v-model="chunkDialogVisible"
+      :document="chunkDocument"
+    />
+    <RetrievalTestDialog
+      v-model="retrievalDialogVisible"
+      :knowledge-base="knowledgeBase"
+    />
   </div>
 </template>
 
@@ -253,33 +313,19 @@ onMounted(() => {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   background: var(--el-bg-color);
 }
 
-.knowledge-document-panel__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0 12px;
+.knowledge-document-panel__toolbar {
+  margin-bottom: 10px;
 }
 
-.knowledge-document-panel__header h3,
-.knowledge-document-panel__header p {
-  margin: 0;
+.knowledge-document-panel__empty {
+  flex: 1;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 14px;
+  background: var(--el-fill-color-lighter);
 }
 
-.knowledge-document-panel__header p {
-  margin-top: 4px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
-}
-
-.knowledge-document-panel__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
 </style>

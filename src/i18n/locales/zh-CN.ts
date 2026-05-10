@@ -796,6 +796,11 @@ export default {
       title: '配置智能体知识库',
       agent: '当前智能体',
       addBinding: '添加知识库',
+      base: '知识库',
+      topK: 'TopK',
+      minScore: '最低分',
+      contextChars: '上下文字符',
+      status: '状态',
       selectBase: '请选择知识库',
       empty: '暂无知识库绑定',
       saveNoPermission: '没有保存知识库绑定权限'
@@ -950,6 +955,15 @@ export default {
   },
   aiKnowledge: {
     filter: { name: '知识库名称', code: '知识库编码', status: '状态' },
+    nav: {
+      title: '知识库',
+      subtitle: '先选知识库，再在右侧管理文档、分块和检索',
+      total: '共 {count} 个知识库',
+      empty: '暂无知识库',
+      noDescription: '暂无描述',
+      minScore: '最低分',
+      more: '更多'
+    },
     table: {
       name: '知识库',
       code: '编码',
