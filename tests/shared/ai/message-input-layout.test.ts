@@ -25,4 +25,14 @@ describe('AI chat message input layout', () => {
     expect(source).toContain("emit('stop')")
     expect(source).toContain("emit('openHistory')")
   })
+
+  it('requests ai chat image upload tokens with real file metadata', () => {
+    const source = readFrontendSource('src/views/Main/ai/chat/components/MessageInput/index.vue')
+
+    expect(source).toContain("folderName: 'ai_chat_images'")
+    expect(source).toContain('fileName: pending.file.name')
+    expect(source).toContain('fileSize: pending.file.size')
+    expect(source).toContain("fileKind: 'image'")
+    expect(source).not.toContain("getUploadToken({ folderName: 'ai_chat_images' })")
+  })
 })

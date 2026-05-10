@@ -225,7 +225,12 @@ const uploadFile = async (pending: PendingAttachment) => {
 
   let config: UploadConfig | null = null
   try {
-    config = await getUploadToken({ folderName: 'ai_chat_images' })
+    config = await getUploadToken({
+      folderName: 'ai_chat_images',
+      fileName: pending.file.name,
+      fileSize: pending.file.size,
+      fileKind: 'image',
+    })
   } catch {
     item.status = 'error'
     item.error = t('aiChat.tokenError')

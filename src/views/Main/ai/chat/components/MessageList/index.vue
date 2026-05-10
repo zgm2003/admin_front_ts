@@ -47,9 +47,6 @@ function handleImageClick(message: Message, index: number) {
         class="message-row"
         :class="message.role === AiRoleEnum.USER ? 'user-row' : 'assistant-row'"
       >
-        <div class="message-meta">
-          {{ message.role === AiRoleEnum.USER ? t('aiChat.you') : t('aiChat.assistant') }}
-        </div>
         <div v-if="message.role === AiRoleEnum.USER && getAttachments(message).length > 0" class="message-attachments">
           <el-image
             v-for="(attachment, index) in getAttachments(message)"
@@ -119,12 +116,6 @@ function handleImageClick(message: Message, index: number) {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 22px;
-}
-
-.message-meta {
-  padding: 0 4px;
-  font-size: 12px;
-  color: var(--el-text-color-placeholder);
 }
 
 .user-row {
