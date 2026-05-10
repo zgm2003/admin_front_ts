@@ -70,12 +70,12 @@ function handleImageClick(message: Message, index: number) {
         </div>
         <div class="message-card">
           <MarkdownRenderer v-if="message.content" :content="message.content" class="message-content" />
-          <div v-else-if="message.isStreaming" class="typing-dots">
+          <div v-else-if="message.role === AiRoleEnum.ASSISTANT && message.isStreaming" class="typing-dots">
             <span />
             <span />
             <span />
           </div>
-          <span v-else class="empty-content">...</span>
+          <span v-else-if="message.role === AiRoleEnum.ASSISTANT" class="empty-content">...</span>
         </div>
         <div v-if="!message.isStreaming" class="message-actions">
           <el-button text size="small" @click="emit('copy', message)">
