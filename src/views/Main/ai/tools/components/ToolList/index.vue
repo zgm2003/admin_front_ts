@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
+import { useUserStore } from '@/store/user'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
@@ -20,12 +21,14 @@ interface Props {
 
 interface Emits {
   add: []
+  generate: []
   edit: [row: AiToolItem]
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
+const userStore = useUserStore()
 
 const searchForm = ref({
   name: '',
@@ -100,6 +103,7 @@ onMounted(() => {
     >
       <template #toolbar-left>
         <el-button type="success" @click="emit('add')">{{ t('common.actions.add') }}</el-button>
+        <el-button v-if="userStore.can('ai_tool_generate')" type="primary" @click="emit('generate')">{{ t('aiTools.actions.generate') }}</el-button>
       </template>
       <template #cell-risk_level="{ row }">
         <el-tag :type="riskTagType(row.risk_level)">{{ row.risk_level_name || row.risk_level }}</el-tag>

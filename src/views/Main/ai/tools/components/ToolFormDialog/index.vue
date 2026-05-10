@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import {
   AiToolApi,
+  type AiToolGeneratedDraft,
   type AiToolInitResponse,
   type AiToolItem,
   type AiToolMutationParams,
@@ -31,6 +32,7 @@ interface Props {
   modelValue: boolean
   mode: 'add' | 'edit'
   row: AiToolItem | null
+  draft: AiToolGeneratedDraft | null
   dict: AiToolInitResponse['dict']
 }
 
@@ -100,6 +102,19 @@ function resetForm() {
       risk_level: props.row.risk_level,
       timeout_ms: props.row.timeout_ms,
       status: props.row.status,
+    }
+    return
+  }
+  if (props.draft) {
+    form.value = {
+      name: props.draft.name,
+      code: props.draft.code,
+      description: props.draft.description,
+      parameters_text: jsonText(props.draft.parameters_json),
+      result_schema_text: jsonText(props.draft.result_schema_json),
+      risk_level: props.draft.risk_level,
+      timeout_ms: props.draft.timeout_ms,
+      status: props.draft.status,
     }
     return
   }

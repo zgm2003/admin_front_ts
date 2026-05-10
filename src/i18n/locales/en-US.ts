@@ -890,9 +890,11 @@ export default {
     toolDone: 'Tool call done',
   },
   aiTools: {
+    actions: { generate: 'AI Generate' },
     filter: { name: 'Tool Name', code: 'Tool Code', riskLevel: 'Risk', status: 'Status' },
     table: { name: 'Tool Name', code: 'Code', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout', status: 'Status', updatedAt: 'Updated At' },
     form: { basicInfo: 'Basic Info', runtimeConfig: 'Runtime Config', schemaConfig: 'Schema Config', name: 'Tool Name', code: 'Tool Code', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout MS', timeoutRange: 'Timeout must be between 100 and 30000 ms', status: 'Status', parametersJson: 'Parameters JSON Schema', resultSchemaJson: 'Result JSON Schema', invalidJson: ' must be a valid JSON object' },
+    generate: { title: 'AI Generate Tool Draft', agent: 'Generator Agent', agentPlaceholder: 'Select agent_generate agent', requirement: 'Tool Requirement', requirementPlaceholder: 'Describe what the tool queries or executes, required inputs, returned fields, and boundaries.', codeHint: 'Tool Code Hint', submit: 'Generate Draft', failed: 'Failed to generate tool draft', initFailed: 'Failed to initialize AI generate', emptyDraft: 'AI returned no draft', needMoreInfo: 'More information needed', usage: 'Tokens used: {total} (prompt {prompt} / completion {completion})' },
     addTitle: 'Add AI Tool',
     editTitle: 'Edit AI Tool'
   },

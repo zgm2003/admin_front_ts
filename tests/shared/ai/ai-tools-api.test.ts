@@ -14,6 +14,8 @@ describe('AI tools api contract', () => {
 
     expect(source).toContain("import request from '@/lib/http'")
     expect(source).toContain('request.get<AiToolInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/page-init`)')
+    expect(source).toContain('request.get<AiToolGenerateInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/generate/page-init`)')
+    expect(source).toContain('request.post<AiToolGenerateDraftResponse, AiToolGenerateDraftBody>(`${ADMIN_API_PREFIX}/ai-tools/generate-draft`')
     expect(source).toContain('request.get<PaginatedResponse<AiToolItem>>(`${ADMIN_API_PREFIX}/ai-tools`')
     expect(source).toContain('request.post<AiToolCreateResponse, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools`')
     expect(source).toContain('request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-tools/${positiveID(params.id,')
@@ -29,7 +31,9 @@ describe('AI tools api contract', () => {
     const page = readFrontendSource('src/views/Main/ai/tools/index.vue')
     const list = readFrontendSource('src/views/Main/ai/tools/components/ToolList/index.vue')
     const form = readFrontendSource('src/views/Main/ai/tools/components/ToolFormDialog/index.vue')
-    const combined = `${source}\n${page}\n${list}\n${form}`
+    const generate = readFrontendSource('src/views/Main/ai/tools/components/ToolGenerateDialog/index.vue')
+    const mutationBlock = source.slice(source.indexOf('export interface AiToolMutationParams'), source.indexOf('export type AiToolGeneratedDraft'))
+    const combined = `${source}\n${page}\n${list}\n${form}\n${generate}`
 
     expect(source).toContain("export type AiToolRiskLevel = 'low' | 'medium' | 'high'")
     expect(source).toContain('parameters_json: JsonObject')
@@ -44,20 +48,26 @@ describe('AI tools api contract', () => {
     expect(combined).not.toContain('engine_tool_id')
     expect(combined).not.toContain('permission_code')
     expect(combined).not.toContain('provider_id')
-    expect(combined).not.toContain('agent_id')
+    expect(mutationBlock).not.toContain('agent_id')
   })
 
   it('keeps the route view thin and splits real tool UI components', () => {
     const page = readFrontendSource('src/views/Main/ai/tools/index.vue')
     const list = readFrontendSource('src/views/Main/ai/tools/components/ToolList/index.vue')
     const form = readFrontendSource('src/views/Main/ai/tools/components/ToolFormDialog/index.vue')
+    const generate = readFrontendSource('src/views/Main/ai/tools/components/ToolGenerateDialog/index.vue')
 
     expect(page).toContain('<ToolList')
     expect(page).toContain('<ToolFormDialog')
+    expect(page).toContain('<ToolGenerateDialog')
     expect(page).not.toContain('AgentToolBindingDialog')
     expect(page).not.toContain('@bind')
     expect(list).toContain('defineEmits')
+    expect(list).toContain("userStore.can('ai_tool_generate')")
     expect(form).toContain('defineProps')
+    expect(form).toContain('draft: AiToolGeneratedDraft | null')
+    expect(generate).toContain('defineEmits')
+    expect(generate).toContain('AiToolApi.generateDraft')
     expect(form).toContain('<el-select-v2')
     expect(form).toContain("width=\"isMobile ? '94vw' : '900px'\"")
     expect(form).toContain('tool-form-section')

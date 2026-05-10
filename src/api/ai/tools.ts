@@ -63,6 +63,43 @@ export interface AiToolMutationBody {
   status: number
 }
 
+export type AiToolGeneratedDraft = Omit<AiToolMutationParams, 'id'>
+
+export interface AiToolGenerateAgentOption {
+  label: string
+  value: number
+}
+
+export interface AiToolGenerateInitResponse {
+  agent_options: AiToolGenerateAgentOption[]
+}
+
+export interface AiToolGenerateDraftParams extends RequestPayload {
+  agent_id: Id
+  requirement: string
+  code_hint?: string
+}
+
+export interface AiToolGenerateDraftBody {
+  agent_id: number
+  requirement: string
+  code_hint: string
+}
+
+export interface AiToolGenerateUsage {
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+}
+
+export interface AiToolGenerateDraftResponse {
+  ok: boolean
+  draft: AiToolGeneratedDraft | null
+  warnings: string[]
+  clarifying_questions: string[]
+  usage?: AiToolGenerateUsage
+}
+
 export interface AiToolCreateResponse {
   id: number
 }
@@ -106,12 +143,22 @@ function mutationBody(params: AiToolMutationParams): AiToolMutationBody {
   }
 }
 
+function generateDraftBody(params: AiToolGenerateDraftParams): AiToolGenerateDraftBody {
+  return {
+    agent_id: positiveID(params.agent_id, 'AI generate agent id'),
+    requirement: params.requirement,
+    code_hint: params.code_hint ?? '',
+  }
+}
+
 function deleteTool(id: number): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-tools/${id}`)
 }
 
 export const AiToolApi = {
   init: () => request.get<AiToolInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/page-init`),
+  generateInit: () => request.get<AiToolGenerateInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/generate/page-init`),
+  generateDraft: (params: AiToolGenerateDraftParams) => request.post<AiToolGenerateDraftResponse, AiToolGenerateDraftBody>(`${ADMIN_API_PREFIX}/ai-tools/generate-draft`, generateDraftBody(params)),
   list: (params: AiToolListParams) => request.get<PaginatedResponse<AiToolItem>>(`${ADMIN_API_PREFIX}/ai-tools`, { params: normalizeListParams(params) }),
   add: (params: AiToolMutationParams) => request.post<AiToolCreateResponse, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools`, mutationBody(params)),
   edit: (params: AiToolMutationParams) => {

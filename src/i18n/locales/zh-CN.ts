@@ -897,6 +897,7 @@ export default {
     toolDone: '工具调用完成',
   },
   aiTools: {
+    actions: { generate: 'AI生成' },
     filter: { name: '工具名称', code: '工具编码', riskLevel: '风险等级', status: '状态' },
     table: {
       name: '工具名称',
@@ -921,6 +922,20 @@ export default {
       parametersJson: '参数JSON Schema',
       resultSchemaJson: '结果JSON Schema',
       invalidJson: '必须为合法JSON对象'
+    },
+    generate: {
+      title: 'AI生成工具草稿',
+      agent: '生成智能体',
+      agentPlaceholder: '请选择智能体生成场景',
+      requirement: '工具需求',
+      requirementPlaceholder: '说明这个工具要查询或执行什么、需要哪些入参、返回哪些字段、边界是什么。例如：查询当前后台用户数量，只返回总数、启用数、禁用数。',
+      codeHint: '工具编码提示',
+      submit: '生成草稿',
+      failed: 'AI生成工具草稿失败',
+      initFailed: 'AI生成初始化失败',
+      emptyDraft: 'AI未返回工具草稿',
+      needMoreInfo: '还需要补充信息',
+      usage: '本次生成消耗 token：{total}（输入 {prompt} / 输出 {completion}）'
     },
     addTitle: '新增AI工具',
     editTitle: '编辑AI工具'
