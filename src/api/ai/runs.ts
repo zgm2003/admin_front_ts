@@ -8,6 +8,8 @@ export interface AiRunMessageAttachment {
 
 export interface AiRunMessageMeta {
   attachments?: AiRunMessageAttachment[]
+  run_request_id?: string
+  provider_request_id?: string
   [key: string]: unknown
 }
 
@@ -97,7 +99,10 @@ export interface AiRunEventItem {
   id: number
   seq: number
   event_type: string
+  event_type_name: string
   message: string
+  elapsed_ms?: number | null
+  elapsed_text: string
   created_at: string
 }
 

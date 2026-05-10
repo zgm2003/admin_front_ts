@@ -6,6 +6,7 @@ import {
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
+  type AiRunMessageMeta,
   type AiRunStatus,
 } from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
@@ -169,6 +170,29 @@ const showDetail = async (row: AiRunItem) => {
 const getAttachmentPreviewUrls = (detail: AiRunDetailResponse) =>
   detail.user_message?.meta_json?.attachments?.map((attachment) => attachment.url) ?? []
 
+const hasAssistantMeta = (meta?: AiRunMessageMeta | null) =>
+  Boolean(meta?.run_request_id || meta?.provider_request_id)
+
+const isTerminalRun = (status: AiRunStatus) => status !== 'running'
+
+const formatTokens = (value: number) => value ? value.toLocaleString() : '-'
+
+const eventTagType = (status: AiRunStatus) => {
+  switch (status) {
+    case 'success':
+      return 'success'
+    case 'failed':
+    case 'timeout':
+      return 'danger'
+    case 'canceled':
+      return 'info'
+    case 'running':
+      return 'warning'
+    default:
+      return 'info'
+  }
+}
+
 onMounted(() => {
   init()
   getList()
@@ -307,7 +331,7 @@ onMounted(() => {
                 <div class="message-meta">
                   <span>{{ detailData.assistant_message.created_at }}</span>
                 </div>
-                <div v-if="detailData.assistant_message.meta_json" class="meta-json">
+                <div v-if="detailData.assistant_message.meta_json && hasAssistantMeta(detailData.assistant_message.meta_json)" class="meta-json">
                   <div v-if="detailData.assistant_message.meta_json.run_request_id" class="meta-item">
                     <span class="meta-label">Run Request ID:</span>
                     <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
@@ -335,9 +359,19 @@ onMounted(() => {
                   <div class="event-item">
                     <div class="event-header">
                       <el-tag size="small" type="info">#{{ event.seq }}</el-tag>
-                    <span class="event-type">{{ event.event_type }}</span>
+                      <el-tag size="small" :type="eventTagType(detailData.status)">{{ event.event_type_name || event.event_type }}</el-tag>
+                      <span class="event-type">{{ event.event_type }}</span>
+                      <span class="event-id">ID {{ event.id }}</span>
+                      <span v-if="event.elapsed_text && event.elapsed_text !== '-'" class="event-elapsed">+{{ event.elapsed_text }}</span>
                     </div>
                     <div v-if="event.message" class="event-message">{{ event.message }}</div>
+                    <div v-if="event.seq === detailData.events.length && isTerminalRun(detailData.status)" class="terminal-run-facts">
+                      <span>{{ t('aiRuns.detail.promptTokens') }}: {{ formatTokens(detailData.prompt_tokens) }}</span>
+                      <span>{{ t('aiRuns.detail.completionTokens') }}: {{ formatTokens(detailData.completion_tokens) }}</span>
+                      <span>{{ t('aiRuns.detail.totalTokens') }}: {{ formatTokens(detailData.total_tokens) }}</span>
+                      <span>{{ t('aiRuns.detail.latency') }}: {{ detailData.duration_text }}</span>
+                      <span v-if="detailData.error_message" class="terminal-error">{{ t('aiRuns.detail.error') }}: {{ detailData.error_message }}</span>
+                    </div>
                   </div>
                 </el-timeline-item>
               </el-timeline>
@@ -494,10 +528,33 @@ onMounted(() => {
   color: #666;
 }
 
+.event-id,
+.event-elapsed {
+  font-size: 12px;
+  color: #909399;
+}
+
 .event-message {
   white-space: pre-wrap;
   word-break: break-word;
   color: #303133;
   margin-bottom: 6px;
+}
+
+.terminal-run-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--el-fill-color-lighter);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.terminal-error {
+  color: var(--el-color-danger);
 }
 </style>

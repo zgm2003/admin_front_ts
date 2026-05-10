@@ -49,6 +49,9 @@ describe('AI run api REST contract', () => {
     expect(apiSource).toContain('error_message: string')
     expect(apiSource).toContain('avg_duration_ms: number')
     expect(apiSource).toContain('message: string')
+    expect(apiSource).toContain('event_type_name: string')
+    expect(apiSource).toContain('elapsed_ms?: number | null')
+    expect(apiSource).toContain('elapsed_text: string')
 
     expect(combined).not.toMatch(new RegExp(snake(['run', 'status'])))
     expect(combined).not.toMatch(new RegExp(snake(['model', 'snapshot'])))
@@ -63,5 +66,15 @@ describe('AI run api REST contract', () => {
     expect(combined).not.toMatch(new RegExp(snake(['delta', 'text'])))
     expect(combined).not.toMatch(new RegExp(['AiRun', 'Step'].join('')))
     expect(combined).not.toMatch(new RegExp(['step', 's'].join('')))
+  })
+
+  it('renders only meaningful assistant metadata and richer run event facts', () => {
+    const listSource = readFrontendSource('src/views/Main/ai/runs/components/RunList/index.vue')
+
+    expect(listSource).toContain('hasAssistantMeta')
+    expect(listSource).toContain('v-if="detailData.assistant_message.meta_json && hasAssistantMeta(detailData.assistant_message.meta_json)"')
+    expect(listSource).toContain('event.event_type_name || event.event_type')
+    expect(listSource).toContain('event.elapsed_text')
+    expect(listSource).toContain('terminal-run-facts')
   })
 })
