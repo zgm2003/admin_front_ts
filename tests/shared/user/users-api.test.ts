@@ -108,6 +108,8 @@ describe('users api auth contract', () => {
     expect(slideCaptchaSource).toContain("import 'go-captcha-vue/dist/style.css'")
     expect(slideCaptchaSource).not.toContain('<el-slider')
     expect(slideCaptchaSource).toContain('<GoCaptchaSlide')
+    expect(slideCaptchaSource).toContain('background: transparent;')
+    expect(slideCaptchaSource).toContain('box-shadow: none;')
   })
 
   it('uses Go REST for user session APIs including kick and batchKick', () => {

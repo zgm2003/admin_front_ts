@@ -149,10 +149,9 @@ const captchaEvents = computed<SlideEvent>(() => ({
   box-sizing: border-box;
   width: fit-content;
   max-width: calc(100vw - 32px);
-  padding: 16px;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .app-slide-captcha__official {
@@ -167,6 +166,7 @@ const captchaEvents = computed<SlideEvent>(() => ({
   justify-content: center;
   border-radius: 12px;
   background: #eef2f7;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
   color: #64748b;
   font-size: 13px;
 }
@@ -174,7 +174,6 @@ const captchaEvents = computed<SlideEvent>(() => ({
 @media (max-width: 480px) {
   .app-slide-captcha {
     max-width: calc(100vw - 24px);
-    padding: 12px;
   }
 }
 </style>
