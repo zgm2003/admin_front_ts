@@ -11,9 +11,11 @@ export interface AiRunMessageMeta {
   [key: string]: unknown
 }
 
+export type AiRunStatus = 'running' | 'success' | 'failed' | 'canceled' | 'timeout'
+
 export interface AiRunInitResponse {
   dict: {
-    run_status_arr: DictOption<number>[]
+    status_arr: DictOption<AiRunStatus>[]
     agentArr: DictOption<number>[]
     providerArr: DictOption<number>[]
   }
@@ -22,7 +24,7 @@ export interface AiRunInitResponse {
 export interface AiRunListParams extends RequestPayload {
   current_page?: number
   page_size?: number
-  run_status?: number | ''
+  status?: AiRunStatus | ''
   user_id?: number | ''
   request_id?: string
   agent_id?: number | ''
@@ -39,20 +41,18 @@ export interface AiRunItem {
   agent_name: string
   provider_id: number
   provider_name: string
-  engine_type: string
-  engine_task_id?: string
-  engine_run_id?: string
   conversation_id: number
   conversation_title: string
-  run_status: number
-  run_status_name: string
-  model_snapshot: string
-  prompt_tokens?: number | null
-  completion_tokens?: number | null
-  total_tokens?: number | null
-  latency_ms?: number | null
-  latency_str: string
-  error_msg?: string | null
+  status: AiRunStatus
+  status_name: string
+  model_id: string
+  model_display_name: string
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  duration_ms?: number | null
+  duration_text: string
+  error_message: string
   created_at: string
 }
 
@@ -60,23 +60,6 @@ export interface AiRunMessageSummary {
   id: number
   content: string
   meta_json?: AiRunMessageMeta
-  created_at: string
-}
-
-export interface AiRunStepItem {
-  id: number
-  step_no: number
-  step_type: number
-  step_type_name: string
-  agent_id?: number | null
-  agent_name?: string | null
-  model_snapshot?: string | null
-  status: number
-  status_name: string
-  error_msg?: string | null
-  latency_ms?: number | null
-  latency_str: string
-  payload_json?: Record<string, unknown> | null
   created_at: string
 }
 
@@ -89,36 +72,32 @@ export interface AiRunDetailResponse {
   agent_name: string
   provider_id: number
   provider_name: string
-  engine_type: string
-  engine_task_id?: string
-  engine_run_id?: string
   conversation_id: number
   conversation_title: string
-  run_status: number
-  run_status_name: string
-  model_snapshot: string
-  prompt_tokens?: number | null
-  completion_tokens?: number | null
-  total_tokens?: number | null
-  latency_ms?: number | null
-  latency_str: string
-  error_msg?: string | null
-  meta_json?: Record<string, unknown> | null
+  status: AiRunStatus
+  status_name: string
+  model_id: string
+  model_display_name: string
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  duration_ms?: number | null
+  duration_text: string
+  error_message: string
   user_message?: AiRunMessageSummary | null
   assistant_message?: AiRunMessageSummary | null
   events: AiRunEventItem[]
+  started_at: string
+  finished_at: string
   created_at: string
   updated_at: string
-  steps: AiRunStepItem[]
 }
 
 export interface AiRunEventItem {
   id: number
   seq: number
-  event_id: string
   event_type: string
-  delta_text: string
-  payload_json?: Record<string, unknown> | null
+  message: string
   created_at: string
 }
 
@@ -134,7 +113,7 @@ export interface AiRunStatsSummaryResponse {
     total_tokens: number
     total_prompt_tokens: number
     total_completion_tokens: number
-    avg_latency_ms: number
+    avg_duration_ms: number
   }
 }
 
@@ -143,7 +122,7 @@ export interface AiRunStatsMetricItem {
   total_tokens: number
   total_prompt_tokens: number
   total_completion_tokens: number
-  avg_latency_ms: number
+  avg_duration_ms: number
 }
 
 export interface AiRunStatsByDateItem extends AiRunStatsMetricItem {
@@ -172,7 +151,7 @@ export interface AiRunStatsListParams extends RequestPayload {
 interface AiRunListQueryParams {
   current_page?: number
   page_size?: number
-  run_status?: number
+  status?: AiRunStatus
   user_id?: number
   request_id?: string
   agent_id?: number
@@ -204,7 +183,7 @@ function normalizeListParams(params: AiRunListParams): AiRunListQueryParams {
   const query: AiRunListQueryParams = {}
   if (typeof params.current_page === 'number') query.current_page = params.current_page
   if (typeof params.page_size === 'number') query.page_size = params.page_size
-  if (typeof params.run_status === 'number') query.run_status = params.run_status
+  if (params.status) query.status = params.status
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   if (params.request_id) query.request_id = params.request_id
   if (typeof params.agent_id === 'number') query.agent_id = params.agent_id

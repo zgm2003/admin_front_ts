@@ -20,7 +20,7 @@ const {t} = useI18n()
 
 // 字典数据
 const dict = ref<AiRunInitResponse['dict']>({
-  run_status_arr: [],
+  status_arr: [],
   agentArr: [],
   providerArr: [],
 })
@@ -212,7 +212,7 @@ const summaryCards = computed(() => {
     { value: formatNumber(s.total_tokens), label: t('aiRuns.stats.totalTokens'), color: '' },
     { value: formatNumber(s.total_prompt_tokens), label: t('aiRuns.stats.promptTokens'), color: '' },
     { value: formatNumber(s.total_completion_tokens), label: t('aiRuns.stats.completionTokens'), color: '' },
-    { value: `${s.avg_latency_ms}ms`, label: t('aiRuns.stats.avgLatency'), color: '' },
+    { value: `${s.avg_duration_ms}ms`, label: t('aiRuns.stats.avgLatency'), color: '' },
   ]
 })
 
@@ -234,7 +234,7 @@ const statsColumns = (nameKey: string, nameLabel: string) => [
   { prop: 'total_tokens', label: t('aiRuns.stats.tokens'), formatter: formatMetricColumn },
   { prop: 'total_prompt_tokens', label: t('aiRuns.stats.input'), formatter: formatMetricColumn },
   { prop: 'total_completion_tokens', label: t('aiRuns.stats.output'), formatter: formatMetricColumn },
-  { prop: 'avg_latency_ms', label: t('aiRuns.stats.latency'), formatter: formatLatencyColumn },
+  { prop: 'avg_duration_ms', label: t('aiRuns.stats.latency'), formatter: formatLatencyColumn },
 ]
 
 onMounted(async () => {

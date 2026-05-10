@@ -6,7 +6,7 @@ import {
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
-  type AiRunStepItem,
+  type AiRunStatus,
 } from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
@@ -17,7 +17,6 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useCopy} from '@/hooks/useCopy'
-import { CommonEnum } from '@/enums'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { resolveAiRunsDetailDialogLayout } from './detail-dialog'
 
@@ -25,13 +24,13 @@ const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
 const dict = ref<AiRunInitResponse['dict']>({
-  run_status_arr: [],
+  status_arr: [],
   agentArr: [],
   providerArr: [],
 })
 
 const searchForm = ref({
-  run_status: '' as number | '',
+  status: '' as AiRunStatus | '',
   user_id: '' as number | '',
   request_id: '',
   dateRange: [] as string[],
@@ -67,12 +66,12 @@ const init = () => {
 
 const searchFields = computed<SearchField[]>(() => [
   {
-    key: 'run_status',
+    key: 'status',
     type: 'select-v2',
     label: t('aiRuns.filter.status'),
     placeholder: t('aiRuns.filter.status'),
     width: 140,
-    options: dict.value.run_status_arr
+    options: dict.value.status_arr
   },
   {
     key: 'agent_id',
@@ -121,26 +120,28 @@ const columns = computed(() => [
   {key: 'agent_name', label: t('aiRuns.table.agent'), width: 140},
   {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160, overflowTooltip: true},
-  {key: 'run_status', label: t('aiRuns.table.status'), width: 100},
-  {key: 'model_snapshot', label: t('aiRuns.table.model'), width: 140},
+  {key: 'status', label: t('aiRuns.table.status'), width: 100},
+  {key: 'model_display_name', label: t('aiRuns.table.model'), width: 140},
   {key: 'total_tokens', label: t('aiRuns.table.tokens'), width: 100},
-  {key: 'latency_str', label: t('aiRuns.table.latency'), width: 100},
-  {key: 'error_msg', label: t('aiRuns.table.error'), width: 200, overflowTooltip: true},
+  {key: 'duration_text', label: t('aiRuns.table.latency'), width: 100},
+  {key: 'error_message', label: t('aiRuns.table.error'), width: 200, overflowTooltip: true},
   {key: 'created_at', label: t('aiRuns.table.created_at'), width: 160},
   {key: 'actions', label: t('common.actions.action'), fixed: 'right'}
 ])
 
 // 状态标签样式
-const getStatusType = (status: number) => {
+const getStatusType = (status: AiRunStatus) => {
   switch (status) {
-    case 1:
+    case 'running':
       return 'warning'
-    case 2:
+    case 'success':
       return 'success'
-    case 3:
+    case 'failed':
       return 'danger'
-    case 4:
+    case 'canceled':
       return 'info'
+    case 'timeout':
+      return 'danger'
     default:
       return 'info'
   }
@@ -168,25 +169,6 @@ const showDetail = async (row: AiRunItem) => {
 const getAttachmentPreviewUrls = (detail: AiRunDetailResponse) =>
   detail.user_message?.meta_json?.attachments?.map((attachment) => attachment.url) ?? []
 
-interface StepTokenPayload {
-  prompt_tokens?: number | null
-  completion_tokens?: number | null
-  total_tokens?: number | null
-}
-
-const getStepTokenPayload = (step: AiRunStepItem): StepTokenPayload | null => {
-  if (!step.payload_json || typeof step.payload_json !== 'object') {
-    return null
-  }
-
-  const payload = step.payload_json as StepTokenPayload
-  if (payload.prompt_tokens == null && payload.completion_tokens == null && payload.total_tokens == null) {
-    return null
-  }
-
-  return payload
-}
-
 onMounted(() => {
   init()
   getList()
@@ -213,15 +195,15 @@ onMounted(() => {
             <el-button :icon="CopyDocument" size="small" text @click.stop="copy(row.request_id)"/>
           </div>
         </template>
-        <template #cell-run_status="{row}">
-          <el-tag :type="getStatusType(row.run_status)" size="small">{{ row.run_status_name }}</el-tag>
+        <template #cell-status="{row}">
+          <el-tag :type="getStatusType(row.status)" size="small">{{ row.status_name }}</el-tag>
         </template>
         <template #cell-total_tokens="{row}">
           <span v-if="row.total_tokens">{{ row.total_tokens.toLocaleString() }}</span>
           <span v-else>-</span>
         </template>
-        <template #cell-error_msg="{row}">
-          <el-text v-if="row.error_msg" type="danger" truncated>{{ row.error_msg }}</el-text>
+        <template #cell-error_message="{row}">
+          <el-text v-if="row.error_message" type="danger" truncated>{{ row.error_message }}</el-text>
           <span v-else>-</span>
         </template>
         <template #cell-actions="{row}">
@@ -254,9 +236,9 @@ onMounted(() => {
             }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.status')">
-            <el-tag :type="getStatusType(detailData.run_status)" size="small">{{ detailData.run_status_name }}</el-tag>
+            <el-tag :type="getStatusType(detailData.status)" size="small">{{ detailData.status_name }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_snapshot }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_display_name || detailData.model_id }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{
               detailData.prompt_tokens ?? '-'
             }}
@@ -269,16 +251,18 @@ onMounted(() => {
               detailData.total_tokens ?? '-'
             }}
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.latency_str }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.duration_text }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.startedAt')">{{ detailData.started_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.finishedAt')">{{ detailData.finished_at || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">{{ detailData.updated_at }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 错误信息 -->
-        <template v-if="detailData.error_msg">
+        <template v-if="detailData.error_message">
           <el-divider content-position="left">{{ t('aiRuns.detail.error') }}</el-divider>
           <el-alert type="error" :closable="false" show-icon>
-            <template #title>{{ detailData.error_msg }}</template>
+            <template #title>{{ detailData.error_message }}</template>
           </el-alert>
         </template>
 
@@ -351,47 +335,9 @@ onMounted(() => {
                   <div class="event-item">
                     <div class="event-header">
                       <el-tag size="small" type="info">#{{ event.seq }}</el-tag>
-                      <span class="event-type">{{ event.event_type }}</span>
+                    <span class="event-type">{{ event.event_type }}</span>
                     </div>
-                    <div v-if="event.delta_text" class="event-delta">{{ event.delta_text }}</div>
-                    <div v-if="event.payload_json" class="step-payload">
-                      <code>{{ JSON.stringify(event.payload_json, null, 2) }}</code>
-                    </div>
-                  </div>
-                </el-timeline-item>
-              </el-timeline>
-            </template>
-
-            <!-- 执行步骤 -->
-            <template v-if="detailData.steps && detailData.steps.length > 0">
-              <el-divider content-position="left">{{ t('aiRuns.detail.executionSteps') }}</el-divider>
-              <el-timeline>
-                <el-timeline-item
-                    v-for="step in detailData.steps"
-                    :key="step.id"
-                    :type="step.status === CommonEnum.YES ? 'success' : 'danger'"
-                    :timestamp="step.latency_str"
-                    placement="top"
-                >
-                  <div class="step-item">
-                    <div class="step-header">
-                      <el-tag :type="step.status === CommonEnum.YES ? 'success' : 'danger'" size="small">{{
-                          step.step_type_name
-                        }}
-                      </el-tag>
-                      <span class="step-status">{{ step.status_name }}</span>
-                      <el-tag v-if="step.agent_name" type="info" size="small" effect="plain">{{ step.agent_name }}</el-tag>
-                      <el-tag v-if="step.model_snapshot" type="warning" size="small" effect="plain">{{ step.model_snapshot }}</el-tag>
-                    </div>
-                    <div v-if="getStepTokenPayload(step)" class="step-tokens">
-                      <span v-if="getStepTokenPayload(step)?.prompt_tokens != null">Prompt: {{ getStepTokenPayload(step)?.prompt_tokens?.toLocaleString() }}</span>
-                      <span v-if="getStepTokenPayload(step)?.completion_tokens != null">Completion: {{ getStepTokenPayload(step)?.completion_tokens?.toLocaleString() }}</span>
-                      <span v-if="getStepTokenPayload(step)?.total_tokens != null">Total: {{ getStepTokenPayload(step)?.total_tokens?.toLocaleString() }}</span>
-                    </div>
-                    <div v-if="step.error_msg" class="step-error">{{ step.error_msg }}</div>
-                    <div v-if="step.payload_json" class="step-payload">
-                      <code>{{ JSON.stringify(step.payload_json, null, 2) }}</code>
-                    </div>
+                    <div v-if="event.message" class="event-message">{{ event.message }}</div>
                   </div>
                 </el-timeline-item>
               </el-timeline>
@@ -548,55 +494,10 @@ onMounted(() => {
   color: #666;
 }
 
-.event-delta {
+.event-message {
   white-space: pre-wrap;
   word-break: break-word;
   color: #303133;
   margin-bottom: 6px;
-}
-
-.step-item {
-  padding: 8px 0;
-}
-
-.step-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.step-status {
-  font-size: 12px;
-  color: #666;
-}
-
-.step-tokens {
-  display: flex;
-  gap: 12px;
-  font-size: 11px;
-  color: #909399;
-  margin-bottom: 6px;
-}
-
-.step-error {
-  color: #f56c6c;
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.step-payload {
-  background: #f8f8f8;
-  border-radius: 4px;
-  padding: 8px;
-  overflow-x: auto;
-}
-
-.step-payload code {
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 11px;
-  color: #476582;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 </style>

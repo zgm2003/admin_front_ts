@@ -6,6 +6,10 @@ function readFrontendSource(relativePath: string) {
   return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
 }
 
+function snake(parts: string[]) {
+  return parts.join('_')
+}
+
 const forbiddenLooseTypePattern = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
 
 describe('AI run api REST contract', () => {
@@ -27,5 +31,37 @@ describe('AI run api REST contract', () => {
   it('keeps AI run api types strict', () => {
     const source = readFrontendSource('src/api/ai/runs.ts')
     expect(source).not.toMatch(forbiddenLooseTypePattern)
+  })
+
+  it('uses the token-only run monitor field contract', () => {
+    const apiSource = readFrontendSource('src/api/ai/runs.ts')
+    const listSource = readFrontendSource('src/views/Main/ai/runs/components/RunList/index.vue')
+    const statsSource = readFrontendSource('src/views/Main/ai/runs/components/RunStats/index.vue')
+    const combined = `${apiSource}\n${listSource}\n${statsSource}`
+
+    expect(apiSource).toContain('status_arr: DictOption<AiRunStatus>[]')
+    expect(apiSource).toContain("export type AiRunStatus = 'running' | 'success' | 'failed' | 'canceled' | 'timeout'")
+    expect(apiSource).toContain('status?: AiRunStatus |')
+    expect(apiSource).toContain('model_id: string')
+    expect(apiSource).toContain('model_display_name: string')
+    expect(apiSource).toContain('duration_ms?: number | null')
+    expect(apiSource).toContain('duration_text: string')
+    expect(apiSource).toContain('error_message: string')
+    expect(apiSource).toContain('avg_duration_ms: number')
+    expect(apiSource).toContain('message: string')
+
+    expect(combined).not.toMatch(new RegExp(snake(['run', 'status'])))
+    expect(combined).not.toMatch(new RegExp(snake(['model', 'snapshot'])))
+    expect(combined).not.toMatch(new RegExp(snake(['engine', 'task', 'id'])))
+    expect(combined).not.toMatch(new RegExp(snake(['engine', 'run', 'id'])))
+    expect(combined).not.toMatch(new RegExp(snake(['latency', 'ms'])))
+    expect(combined).not.toMatch(new RegExp(snake(['latency', 'str'])))
+    expect(combined).not.toMatch(new RegExp(snake(['error', 'msg'])))
+    expect(combined).not.toMatch(new RegExp(snake(['usage', 'json'])))
+    expect(combined).not.toMatch(new RegExp(snake(['output', 'snapshot', 'json'])))
+    expect(combined).not.toMatch(new RegExp(snake(['payload', 'json'])))
+    expect(combined).not.toMatch(new RegExp(snake(['delta', 'text'])))
+    expect(combined).not.toMatch(new RegExp(['AiRun', 'Step'].join('')))
+    expect(combined).not.toMatch(new RegExp(['step', 's'].join('')))
   })
 })
