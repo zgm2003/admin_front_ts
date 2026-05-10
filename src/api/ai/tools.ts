@@ -29,7 +29,6 @@ export interface AiToolItem {
   name: string
   code: string
   description: string
-  executor: string
   parameters_json: JsonObject
   result_schema_json: JsonObject
   risk_level: AiToolRiskLevel
@@ -46,7 +45,6 @@ export interface AiToolMutationParams {
   name: string
   code: string
   description: string
-  executor: string
   parameters_json: JsonObject
   result_schema_json: JsonObject
   risk_level: AiToolRiskLevel
@@ -58,7 +56,6 @@ export interface AiToolMutationBody {
   name: string
   code: string
   description: string
-  executor: string
   parameters_json: JsonObject
   result_schema_json: JsonObject
   risk_level: AiToolRiskLevel
@@ -101,7 +98,6 @@ function mutationBody(params: AiToolMutationParams): AiToolMutationBody {
     name: params.name,
     code: params.code,
     description: params.description,
-    executor: params.executor,
     parameters_json: params.parameters_json,
     result_schema_json: params.result_schema_json,
     risk_level: params.risk_level,

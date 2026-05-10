@@ -59,13 +59,12 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'name', label: t('aiTools.table.name'), minWidth: 160 },
   { key: 'code', label: t('aiTools.table.code'), width: 160 },
-  { key: 'executor', label: t('aiTools.table.executor'), width: 160 },
   { key: 'description', label: t('aiTools.table.description'), minWidth: 220, overflowTooltip: true },
   { key: 'risk_level', label: t('aiTools.table.riskLevel'), width: 110 },
   { key: 'timeout_ms', label: t('aiTools.table.timeout'), width: 110 },
   { key: 'status', label: t('aiTools.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiTools.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 210, fixed: 'right' },
+  { key: 'actions', label: t('common.actions.action'), width: 280, fixed: 'right' },
 ])
 
 function riskTagType(level: AiToolRiskLevel) {

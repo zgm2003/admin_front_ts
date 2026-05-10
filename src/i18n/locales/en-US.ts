@@ -891,8 +891,8 @@ export default {
   },
   aiTools: {
     filter: { name: 'Tool Name', code: 'Tool Code', riskLevel: 'Risk', status: 'Status' },
-    table: { name: 'Tool Name', code: 'Code', executor: 'Executor', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout', status: 'Status', updatedAt: 'Updated At' },
-    form: { name: 'Tool Name', code: 'Tool Code', description: 'Description', executor: 'Executor', riskLevel: 'Risk', timeout: 'Timeout MS', timeoutRange: 'Timeout must be between 100 and 30000 ms', status: 'Status', parametersJson: 'Parameters JSON Schema', resultSchemaJson: 'Result JSON Schema', invalidJson: ' must be a valid JSON object' },
+    table: { name: 'Tool Name', code: 'Code', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout', status: 'Status', updatedAt: 'Updated At' },
+    form: { name: 'Tool Name', code: 'Tool Code', description: 'Description', riskLevel: 'Risk', timeout: 'Timeout MS', timeoutRange: 'Timeout must be between 100 and 30000 ms', status: 'Status', parametersJson: 'Parameters JSON Schema', resultSchemaJson: 'Result JSON Schema', invalidJson: ' must be a valid JSON object' },
     addTitle: 'Add AI Tool',
     editTitle: 'Edit AI Tool'
   },

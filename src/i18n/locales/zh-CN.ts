@@ -901,7 +901,6 @@ export default {
     table: {
       name: '工具名称',
       code: '工具编码',
-      executor: '执行器',
       description: '描述',
       riskLevel: '风险等级',
       timeout: '超时',
@@ -912,7 +911,6 @@ export default {
       name: '工具名称',
       code: '工具编码',
       description: '描述',
-      executor: '执行器',
       riskLevel: '风险等级',
       timeout: '超时毫秒',
       timeoutRange: '超时必须在 100 到 30000 毫秒之间',

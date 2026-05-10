@@ -20,7 +20,6 @@ interface ToolForm {
   name: string
   code: string
   description: string
-  executor: string
   parameters_text: string
   result_schema_text: string
   risk_level: AiToolRiskLevel
@@ -57,7 +56,8 @@ const title = computed(() => props.mode === 'add' ? t('aiTools.addTitle') : t('a
 const rules = computed<FormRules>(() => ({
   name: [{ required: true, message: t('aiTools.form.name') + t('common.required'), trigger: 'blur' }],
   code: [{ required: true, message: t('aiTools.form.code') + t('common.required'), trigger: 'blur' }],
-  executor: [{ required: true, message: t('aiTools.form.executor') + t('common.required'), trigger: 'blur' }],
+  parameters_text: [{ required: true, message: t('aiTools.form.parametersJson') + t('common.required'), trigger: 'blur' }],
+  result_schema_text: [{ required: true, message: t('aiTools.form.resultSchemaJson') + t('common.required'), trigger: 'blur' }],
   risk_level: [{ required: true, message: t('aiTools.form.riskLevel') + t('common.required'), trigger: 'change' }],
   timeout_ms: [{ required: true, type: 'number', min: 100, max: 30000, message: t('aiTools.form.timeoutRange'), trigger: 'blur' }],
   status: [{ required: true, message: t('aiTools.form.status') + t('common.required'), trigger: 'change' }],
@@ -68,12 +68,11 @@ function defaultForm(): ToolForm {
     name: '',
     code: '',
     description: '',
-    executor: 'admin_user_count',
-    parameters_text: '{\n  "type": "object",\n  "properties": {},\n  "additionalProperties": false\n}',
-    result_schema_text: '{\n  "type": "object",\n  "required": ["total_users", "enabled_users", "disabled_users"],\n  "properties": {\n    "total_users": { "type": "integer", "minimum": 0 },\n    "enabled_users": { "type": "integer", "minimum": 0 },\n    "disabled_users": { "type": "integer", "minimum": 0 }\n  },\n  "additionalProperties": false\n}',
+    parameters_text: '',
+    result_schema_text: '',
     risk_level: 'low',
     timeout_ms: 3000,
-    status: CommonEnum.YES,
+    status: CommonEnum.NO,
   }
 }
 
@@ -96,7 +95,6 @@ function resetForm() {
       name: props.row.name,
       code: props.row.code,
       description: props.row.description,
-      executor: props.row.executor,
       parameters_text: jsonText(props.row.parameters_json),
       result_schema_text: jsonText(props.row.result_schema_json),
       risk_level: props.row.risk_level,
@@ -129,7 +127,6 @@ async function confirmSubmit() {
     name: form.value.name,
     code: form.value.code,
     description: form.value.description,
-    executor: form.value.executor,
     parameters_json: parameters,
     result_schema_json: resultSchema,
     risk_level: form.value.risk_level,
@@ -174,11 +171,6 @@ watch(
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiTools.form.executor')" prop="executor" required>
-            <el-input v-model="form.executor" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
           <el-form-item :label="t('aiTools.form.riskLevel')" prop="risk_level" required>
             <el-select-v2 v-model="form.risk_level" :options="dict.risk_level_arr" style="width: 100%" />
           </el-form-item>
@@ -194,12 +186,12 @@ watch(
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiTools.form.parametersJson')">
+          <el-form-item :label="t('aiTools.form.parametersJson')" prop="parameters_text" required>
             <el-input v-model="form.parameters_text" type="textarea" :rows="5" />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiTools.form.resultSchemaJson')">
+          <el-form-item :label="t('aiTools.form.resultSchemaJson')" prop="result_schema_text" required>
             <el-input v-model="form.result_schema_text" type="textarea" :rows="8" />
           </el-form-item>
         </el-col>
