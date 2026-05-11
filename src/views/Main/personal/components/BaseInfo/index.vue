@@ -193,9 +193,9 @@ const resetForm = () => {
 
         <el-form-item :label="t('personal.form.bio')" :class="{ 'is-dirty-item': dirtyFields.bio }">
           <el-input
-            type="textarea"
-            :rows="isMobile ? 4 : 5"
             v-model="form.bio"
+            type="textarea"
+            :rows="isMobile ? 4 : 3"
             :placeholder="t('personal.form.bioPlaceholder')"
             class="custom-textarea"
           />
@@ -217,14 +217,14 @@ const resetForm = () => {
 <style scoped lang="scss">
 // ==================== 统一输入控件外观 ====================
 @mixin login-input-base {
-  border-radius: 16px;
-  padding: 10px 14px;
+  border-radius: 10px;
+  padding: 8px 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   box-shadow: none;
-  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
-  height: 46px;
-  min-height: 46px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  height: 40px;
+  min-height: 40px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -232,7 +232,7 @@ const resetForm = () => {
 @mixin login-input-focus {
   background: #fff;
   border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 4px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.12);
+  box-shadow: 0 0 0 3px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.1);
 }
 
 @mixin dirty-input-state {
@@ -242,28 +242,28 @@ const resetForm = () => {
 }
 
 .base-info {
-  padding-bottom: 4px;
+  padding-bottom: 0;
 }
 
 .base-info-card {
-  --dirty-accent: #d97706;
-  --dirty-border: rgba(245, 158, 11, 0.55);
-  --dirty-bg: #fffbeb;
-  --dirty-ring: rgba(245, 158, 11, 0.18);
+  --dirty-accent: var(--el-color-warning);
+  --dirty-border: rgba(230, 162, 60, 0.5);
+  --dirty-bg: var(--el-color-warning-light-9);
+  --dirty-ring: rgba(230, 162, 60, 0.14);
 
-  max-width: 880px;
+  max-width: 920px;
   margin: 0 auto;
 
   :deep(.el-form-item__label) {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #334155;
+    color: var(--el-text-color-regular);
     line-height: 1.4;
-    padding-bottom: 6px;
+    padding-bottom: 5px;
   }
 
   :deep(.el-form-item) {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
 
   :deep(.is-dirty-item .el-form-item__label) {
@@ -274,13 +274,13 @@ const resetForm = () => {
 
   :deep(.is-dirty-item .el-form-item__label::before) {
     content: '';
-    width: 8px;
-    height: 8px;
-    margin-right: 8px;
+    width: 6px;
+    height: 6px;
+    margin-right: 7px;
     border-radius: 999px;
     flex-shrink: 0;
     background: var(--dirty-accent);
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
+    box-shadow: 0 0 0 3px var(--dirty-ring);
   }
 
   // label-top 下拉控件对齐
@@ -292,14 +292,14 @@ const resetForm = () => {
   .avatar-editor {
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     width: fit-content;
     max-width: 100%;
-    padding: 12px;
+    padding: 10px 12px 10px 10px;
     border: 1px solid #e5e7eb;
-    border-radius: 18px;
+    border-radius: 14px;
     background: #fff;
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+    box-shadow: none;
     transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
     box-sizing: border-box;
 
@@ -308,10 +308,12 @@ const resetForm = () => {
     }
 
     :deep(.media-uploader-wrapper) {
-      border-radius: 16px;
+      width: 76px !important;
+      height: 76px !important;
+      border-radius: 12px;
       border-color: #e2e8f0;
       background: #f8fafc;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+      box-shadow: none;
     }
 
     :deep(.media-uploader-wrapper:hover) {
@@ -321,8 +323,8 @@ const resetForm = () => {
 
   .avatar-editor.is-dirty-avatar {
     border-color: var(--dirty-border);
-    background: #fffaf0;
-    box-shadow: 0 10px 26px rgba(217, 119, 6, 0.12);
+    background: var(--dirty-bg);
+    box-shadow: 0 0 0 3px var(--dirty-ring);
   }
 
   .avatar-editor__meta {
@@ -334,28 +336,28 @@ const resetForm = () => {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
-    color: #0f172a;
+    margin-bottom: 5px;
+    color: var(--el-text-color-primary);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
   }
 
   .avatar-editor__badge {
     display: inline-flex;
     align-items: center;
-    height: 20px;
-    padding: 0 8px;
+    height: 18px;
+    padding: 0 7px;
     border-radius: 999px;
     color: var(--dirty-accent);
     font-size: 12px;
-    font-weight: 700;
-    background: rgba(245, 158, 11, 0.12);
+    font-weight: 600;
+    background: rgba(230, 162, 60, 0.14);
   }
 
   .avatar-editor__hint {
     margin: 0;
-    color: #64748b;
+    color: var(--el-text-color-secondary);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -375,8 +377,8 @@ const resetForm = () => {
 
   :deep(.custom-textarea .el-textarea__inner) {
     @include login-input-base;
-    border-radius: 16px;
-    padding: 12px 14px;
+    border-radius: 10px;
+    padding: 10px 12px;
     height: auto;
     min-height: unset;
     line-height: 1.5;
@@ -449,8 +451,13 @@ const resetForm = () => {
 }
 
 .btn-item {
-  margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 6px;
   margin-bottom: 0;
+  padding: 12px 0 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--el-bg-color) 30%);
 
   :deep(.el-form-item__content) {
     display: flex;
@@ -460,30 +467,30 @@ const resetForm = () => {
 }
 
 %btn-base {
-  height: 48px;
-  border-radius: 16px;
-  font-size: 15px;
-  font-weight: 700;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   border: none;
 }
 
 .submit-btn {
   @extend %btn-base;
-  padding: 0 28px;
-  min-width: 140px;
-  background: linear-gradient(135deg, var(--el-color-primary) 0%, var(--el-color-primary-dark-2) 100%);
-  box-shadow: 0 10px 22px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.28);
+  padding: 0 22px;
+  min-width: 112px;
+  background: var(--el-color-primary);
+  box-shadow: none;
 
   &:hover {
-    filter: brightness(1.03);
-    box-shadow: 0 14px 28px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.35);
+    background: var(--el-color-primary-light-3);
+    box-shadow: none;
   }
 }
 
 .reset-btn {
   @extend %btn-base;
-  padding: 0 24px;
-  min-width: 100px;
+  padding: 0 18px;
+  min-width: 88px;
   font-weight: 600;
   color: var(--el-text-color-regular);
   background: var(--el-fill-color-light);
@@ -526,7 +533,11 @@ const resetForm = () => {
   }
 
   .btn-item {
+    position: sticky;
+    bottom: 0;
     margin-top: 8px;
+    padding: 10px 0 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--el-bg-color-page) 28%);
 
     :deep(.el-form-item__content) {
       flex-direction: column;
@@ -543,14 +554,14 @@ const resetForm = () => {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    height: 46px;
-    border-radius: 14px;
+    height: 42px;
+    border-radius: 10px;
     box-sizing: border-box;
   }
 
   .submit-btn {
     @extend %btn-mobile;
-    box-shadow: 0 6px 16px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.22);
+    box-shadow: none;
   }
 
   .reset-btn {

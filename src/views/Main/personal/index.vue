@@ -109,24 +109,13 @@ onMounted(() => {
 <style scoped lang="scss">
 .personal-page {
   min-height: calc(100vh - 120px);
-  padding: 24px;
+  padding: 18px 20px;
   background: var(--el-bg-color-page);
-
-  &::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 80% 50% at 16% 84%, rgba(64, 158, 255, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 85% 20%, rgba(103, 194, 58, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 30% at 50% 50%, rgba(230, 162, 60, 0.04) 0%, transparent 50%);
-  }
 }
 
 .personal-container {
-  max-width: 900px;
+  width: 100%;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -141,7 +130,7 @@ onMounted(() => {
 
 @media (min-width: 1200px) {
   .personal-container {
-    max-width: 1100px;
+    max-width: 1040px;
   }
 }
 
@@ -149,23 +138,19 @@ onMounted(() => {
   .personal-page {
     flex: 1 1 auto;
     min-height: 0;
-    padding: 8px 0 16px;
+    padding: 12px 0 16px;
     overflow-y: auto;
     background: transparent;
-
-    &::before {
-      display: none;
-    }
   }
 
   .personal-card {
     border: 1px solid var(--el-border-color-lighter);
-    border-radius: 16px;
+    border-radius: 12px;
     background: var(--el-bg-color);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
     :deep(.el-card__header) {
-      padding: 18px 24px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--el-border-color-extra-light);
       color: var(--el-text-color-primary);
       font-size: 16px;
@@ -173,11 +158,11 @@ onMounted(() => {
     }
 
     :deep(.el-card__body) {
-      padding: 24px;
+      padding: 18px 20px 0;
     }
 
     :deep(.el-tabs__header) {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     :deep(.el-tabs__nav-wrap::after) {
@@ -187,8 +172,10 @@ onMounted(() => {
 
     :deep(.el-tabs__item) {
       color: var(--el-text-color-secondary);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
+      height: 38px;
+      padding: 0 16px;
 
       &:hover {
         color: var(--el-color-primary);
@@ -213,10 +200,6 @@ onMounted(() => {
     flex-shrink: 0;
     padding: 0 2px 10px;
     background: transparent;
-
-    &::before {
-      display: none;
-    }
   }
 
   .personal-card {
