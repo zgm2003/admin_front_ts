@@ -33,7 +33,7 @@ describe('permission api REST contract', () => {
     expect(source).not.toContain('permission_id')
   })
 
-  it('declares the new API base URL as the default request client and marks PHP as legacy', () => {
+  it('declares the new API base URL as the only active request client', () => {
     const clientSource = readFrontendSource('src/lib/http/client.ts')
     const envDevelopment = readFrontendSource('.env.development')
     const envProduction = readFrontendSource('.env.production')
@@ -41,8 +41,9 @@ describe('permission api REST contract', () => {
     expect(clientSource).toContain('const apiBaseURL = requiredEnv')
     expect(clientSource).toContain('VITE_GO_API_BASE_URL')
     expect(clientSource).toContain('const request = apiClient.request')
-    expect(clientSource).toContain('const legacyRequest = legacyClient.request')
-    expect(clientSource).toContain('refreshBaseURL: legacyBaseURL')
+    expect(clientSource).not.toContain('legacyRequest')
+    expect(clientSource).not.toContain('legacyBaseURL')
+    expect(clientSource).not.toContain('VITE_SOME_KEY')
     expect(clientSource).not.toContain('goRequest')
     expect(clientSource).not.toMatch(forbiddenLooseTypePattern)
     expect(envDevelopment).toMatch(/^VITE_GO_API_BASE_URL=http:\/\/localhost:8080$/m)

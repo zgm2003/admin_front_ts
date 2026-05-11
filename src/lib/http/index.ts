@@ -1,6 +1,6 @@
-import { legacyRequest, legacyService, request, service } from './client'
+import { request, service } from './client'
 
 export { getCommonHeaders } from './headers'
-export { legacyRequest, legacyService, request, service }
+export { request, service }
 export type { RequestConfig } from './client'
 export default request

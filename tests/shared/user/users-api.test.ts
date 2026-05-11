@@ -45,7 +45,7 @@ describe('users api auth contract', () => {
   it('uses the REST current-user endpoint as the bootstrap contract', () => {
     const source = readUsersApiSource()
 
-    expect(source).toContain("import request, { legacyRequest } from '@/lib/http'")
+    expect(source).toContain("import request from '@/lib/http'")
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)')
     expect(source).toContain('me: fetchCurrentUser')
@@ -85,6 +85,17 @@ describe('users api auth contract', () => {
     expect(typeSource).toContain('captcha_enabled: boolean')
     expect(typeSource).toContain('captcha_id: string')
     expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
+  })
+
+  it('uses Go REST for forgot password instead of the legacy PHP endpoint', () => {
+    const source = readUsersApiSource()
+    const forgotSource = readFrontendSource('src/views/Login/composables/useForgotPassword.ts')
+
+    expect(source).toContain('request.post<void, UserForgetPasswordParams>(`${ADMIN_API_PREFIX}/auth/forgot-password`, params)')
+    expect(source).not.toContain('legacyRequest')
+    expect(source).not.toContain('/api/Users/forgetPassword')
+    expect(forgotSource).toContain("UsersApi.sendCode({ account: forgotForm.account, scene: 'forget' })")
+    expect(forgotSource).toContain('pwd.length < 6 || pwd.length > 128')
   })
 
   it('keeps captcha as a shared component instead of a login-private widget', () => {

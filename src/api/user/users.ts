@@ -1,4 +1,4 @@
-import request, { legacyRequest } from '@/lib/http'
+import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { Id } from '@/types/common'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
@@ -143,7 +143,7 @@ export const UsersApi = {
     request.post<void, UserSendCodeParams>(`${ADMIN_API_PREFIX}/auth/send-code`, params),
 
   forgetPassword: (params: UserForgetPasswordParams) =>
-    legacyRequest.post<void>('/api/Users/forgetPassword', params),
+    request.post<void, UserForgetPasswordParams>(`${ADMIN_API_PREFIX}/auth/forgot-password`, params),
 
   initPersonal: (params?: { user_id?: number | string }) => {
     const rawUserID = params?.user_id

@@ -13,7 +13,6 @@ function requiredEnv(name: string, value: string | undefined): string {
   return value
 }
 
-const legacyBaseURL = requiredEnv('VITE_SOME_KEY', import.meta.env.VITE_SOME_KEY)
 const apiBaseURL = requiredEnv('VITE_GO_API_BASE_URL', import.meta.env.VITE_GO_API_BASE_URL)
 
 const notify = createDebouncedNotifier({
@@ -121,10 +120,6 @@ function extractServerMessage(data: unknown): string | undefined {
   return typeof msg === 'string' ? msg : undefined
 }
 
-const legacyClient = createHttpClient({
-  baseURL: legacyBaseURL,
-  refreshBaseURL: legacyBaseURL,
-})
 const apiClient = createHttpClient({
   baseURL: apiBaseURL,
   refreshBaseURL: apiBaseURL,
@@ -132,7 +127,5 @@ const apiClient = createHttpClient({
 
 const request = apiClient.request
 const service = apiClient.service
-const legacyRequest = legacyClient.request
-const legacyService = legacyClient.service
 
-export { request, service, legacyRequest, legacyService }
+export { request, service }

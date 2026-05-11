@@ -83,7 +83,7 @@ export function useForgotPassword() {
     if (forgotForm.newPassword !== forgotForm.confirmPassword) return ElMessage.warning('确认密码与新密码不一致')
 
     const pwd = forgotForm.newPassword
-    if (pwd.length < 6 || pwd.length > 20) return ElMessage.warning('密码长度必须在6到20个字符之间')
+    if (pwd.length < 6 || pwd.length > 128) return ElMessage.warning('密码长度必须在6到128个字符之间')
 
     isForgotSubmitting.value = true
     try {
