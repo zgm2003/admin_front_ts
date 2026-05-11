@@ -343,12 +343,12 @@ onMounted(() => {
         </template>
         <el-col :span="24">
           <el-form-item :label="t('upload.driver.form.endpoint')">
-            <el-input v-model="form.endpoint" clearable/>
+            <el-input v-model="form.endpoint" :placeholder="t('upload.driver.form.endpoint_placeholder')" clearable/>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item :label="t('upload.driver.form.bucket_domain')">
-            <el-input v-model="form.bucket_domain" clearable/>
+            <el-input v-model="form.bucket_domain" :placeholder="t('upload.driver.form.bucket_domain_placeholder')" clearable/>
           </el-form-item>
         </el-col>
       </el-row>
