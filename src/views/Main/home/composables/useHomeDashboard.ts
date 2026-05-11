@@ -4,12 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { CommonEnum } from '@/enums'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
-import { UsersApi } from '@/api/user/users'
 import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { onWsMessage } from '@/lib/realtime'
 import { useUserStore } from '@/store/user'
 import {
-  buildAddressLabel,
   HOME_QUICK_ENTRY_LIMIT,
   buildQuickEntryDraft,
   buildQuickEntryManagerOptions,
@@ -18,16 +16,6 @@ import {
   resolveHomeNavigationAction,
   type HomeQuickEntryDraftItem,
 } from './helpers'
-
-interface HomeProfileSummary {
-  sex: number
-  birthday: string
-  addressId: number
-  detail_address: string
-  addressTree: import('./helpers').AddressTreeNode[]
-  sexOptions: Array<{ label: string; value: number }>
-}
-
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
@@ -41,17 +29,12 @@ export function useHomeDashboard() {
   const { t } = useI18n()
 
   const notificationsLoading = ref(false)
-  const profileSummary = ref<HomeProfileSummary | null>(null)
   const notifications = ref<NotificationItem[]>([])
   const unreadCount = ref(0)
   const savingQuickEntries = ref(false)
   const quickEntryManagerVisible = ref(false)
   const selectedPermissionId = ref<number | ''>('')
   const quickEntryDraft = ref<HomeQuickEntryDraftItem[]>([])
-
-  const avatar = computed(() => userStore.avatar || '')
-  const displayName = computed(() => userStore.username || t('home.userFallback'))
-  const roleName = computed(() => userStore.role_name || t('home.roleFallback'))
 
   const quickEntryCards = computed(() =>
     buildQuickEntryDraft({
@@ -61,26 +44,6 @@ export function useHomeDashboard() {
     }),
   )
 
-  const profileItems = computed(() => {
-    if (!profileSummary.value) {
-      return []
-    }
-
-    const sexLabel = profileSummary.value.sexOptions.find((item) => item.value === profileSummary.value?.sex)?.label || '--'
-    const birthday = profileSummary.value.birthday || '--'
-    const address = profileSummary.value.addressId > 0
-      ? (buildAddressLabel(profileSummary.value.addressTree, profileSummary.value.addressId) || '--')
-      : '--'
-    const detailAddress = profileSummary.value.detail_address || '--'
-
-    return [
-      { key: 'sex', label: t('personal.form.sex'), value: sexLabel },
-      { key: 'birthday', label: t('personal.form.birthday'), value: birthday },
-      { key: 'address', label: t('personal.form.address'), value: address },
-      { key: 'detail_address', label: t('personal.form.detailAddress'), value: detailAddress },
-    ]
-  })
-
   const availableQuickEntryOptions = computed(() =>
     buildQuickEntryManagerOptions({
       routes: userStore.router,
@@ -89,25 +52,6 @@ export function useHomeDashboard() {
     }),
   )
   const quickEntryLimitReached = computed(() => isQuickEntryLimitReached(quickEntryDraft.value.length))
-
-  async function loadProfileSummary() {
-    const userId = Number(userStore.user_id)
-    if (!Number.isFinite(userId) || userId <= 0) {
-      profileSummary.value = null
-      return
-    }
-
-    const data = await UsersApi.initPersonal({ user_id: userId })
-    profileSummary.value = {
-      sex: data.profile.sex,
-      birthday: data.profile.birthday,
-      addressId: data.profile.address_id,
-      detail_address: data.profile.detail_address,
-      addressTree: data.dict.auth_address_tree as HomeProfileSummary['addressTree'],
-      sexOptions: data.dict.sexArr,
-    }
-  }
-
 
   async function loadNotificationSnapshot() {
     notificationsLoading.value = true
@@ -130,10 +74,7 @@ export function useHomeDashboard() {
   }
 
   async function loadHomeData() {
-    await Promise.allSettled([
-      loadProfileSummary(),
-      loadNotificationSnapshot(),
-    ])
+    await loadNotificationSnapshot()
   }
 
   function goTo(path: string) {
@@ -154,15 +95,6 @@ export function useHomeDashboard() {
 
     void router.push(target)
   }
-
-  function goToPersonal() {
-    const userId = Number(userStore.user_id)
-    router.push({
-      path: '/personal',
-      query: { user_id: Number.isFinite(userId) && userId > 0 ? userId : '' },
-    })
-  }
-
 
   function goToNotifications() {
     router.push('/notification')
@@ -291,10 +223,6 @@ export function useHomeDashboard() {
   return {
     savingQuickEntries,
     notificationsLoading,
-    avatar,
-    displayName,
-    roleName,
-    profileItems,
     notifications,
     unreadCount,
     localizedQuickEntryCards,
@@ -306,7 +234,6 @@ export function useHomeDashboard() {
     availableQuickEntryOptions,
     loadHomeData,
     goTo,
-    goToPersonal,
     goToNotifications,
     openNotification,
     openQuickEntryManager,

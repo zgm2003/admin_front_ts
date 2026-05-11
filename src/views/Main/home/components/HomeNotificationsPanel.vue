@@ -128,33 +128,18 @@ function formatRelativeTime(value: string) {
 
 <style scoped lang="scss">
 .dashboard-card {
-  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 251, 255, 0.96) 100%);
-  box-shadow:
-    0 22px 48px rgba(15, 23, 42, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  padding: 20px;
-}
-
-.dashboard-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(90deg, var(--el-color-primary), rgba(14, 165, 233, 0.4), transparent);
+  border: 1px solid var(--shell-line);
+  border-radius: 18px;
+  background: var(--shell-panel-strong);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+  padding: 18px;
 }
 
 .card-head {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -172,44 +157,39 @@ function formatRelativeTime(value: string) {
 }
 
 .card-title {
-  font-size: 19px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--shell-text-strong);
 }
 
 .card-count-badge {
   flex-shrink: 0;
-  min-width: 28px;
-  height: 26px;
-  padding: 0 10px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--el-color-primary) 12%, white);
-  color: color-mix(in srgb, var(--el-color-primary) 84%, #0f172a);
+  background: color-mix(in srgb, var(--el-color-primary) 8%, transparent);
+  color: var(--el-color-primary);
   font-size: 13px;
-  font-weight: 900;
-  line-height: 26px;
+  font-weight: 700;
+  line-height: 24px;
   text-align: center;
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
 }
 
 .card-subtitle {
   margin-top: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--shell-text-soft);
 }
 
 .notification-list {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   flex: 1 1 auto;
   min-height: 0;
-  padding-right: 2px;
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -222,50 +202,29 @@ function formatRelativeTime(value: string) {
 }
 
 .notification-item {
-  position: relative;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  overflow: hidden;
-  padding: 13px 14px 13px 16px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.035);
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--shell-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--shell-panel) 65%, var(--shell-panel-strong));
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 180ms ease,
-    background-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 12px auto 12px 0;
-    width: 3px;
-    border-radius: 999px;
-    background: transparent;
-  }
+    border-color var(--app-motion-fast) var(--app-ease-standard),
+    background-color var(--app-motion-fast) var(--app-ease-standard);
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--el-color-primary) 26%, rgba(148, 163, 184, 0.2));
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.06);
+    border-color: color-mix(in srgb, var(--el-color-primary) 26%, var(--shell-line));
+    background: var(--shell-panel-strong);
   }
 }
 
 .notification-item--unread {
-  border-color: color-mix(in srgb, var(--el-color-primary) 32%, rgba(148, 163, 184, 0.16));
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--el-color-primary) 9%, white), rgba(255, 255, 255, 0.86));
-
-  &::before {
-    background: linear-gradient(180deg, var(--el-color-primary), rgba(14, 165, 233, 0.34));
-  }
+  border-color: color-mix(in srgb, var(--el-color-primary) 24%, var(--shell-line));
+  background: color-mix(in srgb, var(--el-color-primary) 5%, var(--shell-panel-strong));
 }
 
 .notification-main {
@@ -282,14 +241,14 @@ function formatRelativeTime(value: string) {
 .notification-title {
   min-width: 0;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--shell-text-strong);
 }
 
 .notification-content {
   margin: 4px 0 0;
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--shell-text-soft);
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -302,16 +261,15 @@ function formatRelativeTime(value: string) {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
   font-size: 11px;
   color: var(--shell-text-soft);
 }
 
 .notification-level {
-  padding: 4px 9px;
+  padding: 4px 8px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.04);
-  font-weight: 700;
 }
 
 @media (max-width: 768px) {

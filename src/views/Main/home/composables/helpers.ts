@@ -2,12 +2,6 @@ import type { DynamicRouteItem, PermissionMenuItem, QuickEntryItem } from '@/typ
 
 export const HOME_QUICK_ENTRY_LIMIT = 6
 
-export interface HomeOverviewSignal {
-  key: 'notifications' | 'quickEntry' | 'user'
-  value: string
-  tone: 'danger' | 'primary' | 'success' | 'warning'
-}
-
 export interface HomeQuickEntryOption {
   permissionId: number
   label: string
@@ -45,59 +39,6 @@ export function resolveHomeNavigationAction(target?: string): HomeNavigationActi
     type: 'internal',
     value,
   }
-}
-
-export interface AddressTreeNode {
-  label?: string
-  value?: number
-  children?: AddressTreeNode[]
-}
-
-export function buildAddressLabel(tree: AddressTreeNode[], value: number): string {
-  return resolveAddressPath(tree, value).join(' / ')
-}
-
-function resolveAddressPath(tree: AddressTreeNode[], value: number): string[] {
-  for (const item of tree) {
-    if (item.value === value) {
-      return item.label ? [item.label] : []
-    }
-
-    if (item.children?.length) {
-      const childPath = resolveAddressPath(item.children, value)
-      if (childPath.length > 0) {
-        return item.label ? [item.label, ...childPath] : childPath
-      }
-    }
-  }
-
-  return []
-}
-
-export function buildHomeOverviewSignals(params: {
-  userId: number
-  unreadCount: number
-  quickEntryCount: number
-}): HomeOverviewSignal[] {
-  const { userId, unreadCount, quickEntryCount } = params
-
-  return [
-    {
-      key: 'notifications',
-      value: String(unreadCount),
-      tone: unreadCount > 0 ? 'danger' : 'primary',
-    },
-    {
-      key: 'quickEntry',
-      value: String(quickEntryCount),
-      tone: 'primary',
-    },
-    {
-      key: 'user',
-      value: userId > 0 ? `#${userId}` : '--',
-      tone: 'warning',
-    },
-  ]
 }
 
 function normalizePermissionOption(params: {
