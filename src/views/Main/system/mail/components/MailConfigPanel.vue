@@ -236,8 +236,23 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.mail-config {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .mail-config__notice {
   margin-bottom: 16px;
+}
+
+.mail-config__card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .mail-config__card + .mail-config__card {
@@ -258,7 +273,20 @@ onMounted(() => {
 }
 
 .mail-config__form {
+  width: 100%;
   max-width: 1120px;
+  min-width: 0;
+}
+
+.mail-config__form :deep(.el-row) {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.mail-config__form :deep(.el-col),
+.mail-config__form :deep(.el-form-item__content),
+.mail-config__test :deep(.el-form-item__content) {
+  min-width: 0;
 }
 
 .mail-config__actions {
@@ -268,7 +296,9 @@ onMounted(() => {
 }
 
 .mail-config__test {
+  width: 100%;
   max-width: 640px;
+  min-width: 0;
 }
 
 .mail-config__select {
@@ -277,5 +307,38 @@ onMounted(() => {
 
 .mail-config__meta {
   margin-top: 18px;
+}
+
+@media (max-width: 768px) {
+  .mail-config__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mail-config__actions {
+    flex-wrap: wrap;
+    padding-left: 0;
+  }
+
+  .mail-config__form :deep(.el-form-item),
+  .mail-config__test :deep(.el-form-item) {
+    display: block;
+  }
+
+  .mail-config__form :deep(.el-form-item__label),
+  .mail-config__test :deep(.el-form-item__label) {
+    justify-content: flex-start;
+    width: auto !important;
+    padding-right: 0;
+  }
+
+  .mail-config__form :deep(.el-form-item__content),
+  .mail-config__test :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+  }
+
+  .mail-config__meta :deep(.el-descriptions__table) {
+    table-layout: fixed;
+  }
 }
 </style>

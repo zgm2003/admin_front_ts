@@ -66,4 +66,18 @@ describe('mail api and page contract', () => {
     expect(templateSource).toContain("userStore.can('system_mail_templateDel')")
     expect(logSource).toContain("userStore.can('system_mail_logDel')")
   })
+
+  it('uses shared CRUD primitives for the mail log list', () => {
+    const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')
+
+    expect(logSource).toContain("import { Search } from '@/components/Search'")
+    expect(logSource).toContain("import { useCrudTable } from '@/hooks/useCrudTable'")
+    expect(logSource).toContain('useCrudTable<MailLogItem, MailLogListParams>')
+    expect(logSource).toContain('<Search')
+    expect(logSource).toContain('<AppTable')
+    expect(logSource).toContain('<AppDialog')
+    expect(logSource).not.toContain('<el-form')
+    expect(logSource).not.toContain('<el-table')
+    expect(logSource).not.toContain('<el-pagination')
+  })
 })

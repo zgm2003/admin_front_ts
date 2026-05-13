@@ -30,10 +30,28 @@ const MailLogPanel = defineAsyncComponent(() => import('./components/MailLogPane
 
 <style scoped>
 .mail-page {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 4px 0;
+  overflow-x: hidden;
 }
 
 .mail-page__tabs {
+  width: 100%;
+  max-width: 100%;
   min-height: 480px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.mail-page__tabs :deep(.el-tabs__content),
+.mail-page__tabs :deep(.el-tab-pane) {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 </style>

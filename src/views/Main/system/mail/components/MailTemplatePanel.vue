@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { AppTable } from '@/components/Table'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import {
@@ -54,6 +55,17 @@ const rules = computed<FormRules<MailTemplateFormState>>(() => ({
 }))
 
 const dialogTitle = computed(() => dialogMode.value === 'create' ? t('mail.template.createTitle') : t('mail.template.editTitle'))
+const columns = computed(() => [
+  { key: 'id', label: 'ID', width: 90 },
+  { key: 'scene', label: t('mail.template.scene'), minWidth: 150 },
+  { key: 'name', label: t('mail.template.name'), minWidth: 160 },
+  { key: 'subject', label: t('mail.template.subject'), minWidth: 200 },
+  { key: 'tencent_template_id', label: t('mail.template.tencentTemplateId'), width: 180 },
+  { key: 'variables', label: t('mail.template.variables'), minWidth: 220, overflowTooltip: false },
+  { key: 'status', label: t('mail.template.status'), width: 110 },
+  { key: 'updated_at', label: t('mail.common.updatedAt'), width: 180 },
+  { key: 'actions', label: t('common.actions.action'), width: 260, fixed: 'right', overflowTooltip: false },
+])
 
 function statusLabel(status: MailCommonStatus) {
   return dict.value.common_status_arr.find((item) => item.value === status)?.label || String(status)
@@ -250,55 +262,51 @@ onMounted(() => {
 
 <template>
   <div class="mail-template">
-    <div class="mail-template__toolbar">
-      <el-button v-if="userStore.can('system_mail_templateAdd')" type="success" @click="openCreate">
-        {{ t('common.actions.add') }}
-      </el-button>
-      <el-button @click="load">{{ t('common.actions.refresh') }}</el-button>
-    </div>
+    <AppTable
+      :columns="columns"
+      :data="templates"
+      :loading="loading"
+      row-key="id"
+      :fixed-footer="false"
+      @refresh="load"
+    >
+      <template #toolbar-left>
+        <el-button v-if="userStore.can('system_mail_templateAdd')" type="success" @click="openCreate">
+          {{ t('common.actions.add') }}
+        </el-button>
+      </template>
 
-    <el-table v-loading="loading" :data="templates" border row-key="id" class="mail-template__table">
-      <el-table-column prop="id" label="ID" width="90" />
-      <el-table-column :label="t('mail.template.scene')" min-width="150">
-        <template #default="{ row }">
-          {{ sceneLabel(row.scene) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="name" :label="t('mail.template.name')" min-width="160" show-overflow-tooltip />
-      <el-table-column prop="subject" :label="t('mail.template.subject')" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="tencent_template_id" :label="t('mail.template.tencentTemplateId')" width="180" />
-      <el-table-column :label="t('mail.template.variables')" min-width="220">
-        <template #default="{ row }">
-          <el-space wrap>
-            <el-tag v-for="item in row.variables" :key="item" size="small">{{ item }}</el-tag>
-          </el-space>
-        </template>
-      </el-table-column>
-      <el-table-column :label="t('mail.template.status')" width="110">
-        <template #default="{ row }">
-          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
-            {{ statusLabel(row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="updated_at" :label="t('mail.common.updatedAt')" width="180" />
-      <el-table-column :label="t('common.actions.action')" width="260" fixed="right">
-        <template #default="{ row }">
-          <el-button v-if="userStore.can('system_mail_templateEdit')" type="primary" text @click="openEdit(row)">
-            {{ t('common.actions.edit') }}
-          </el-button>
-          <el-button v-if="row.status === CommonEnum.NO && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.YES)">
-            {{ t('common.actions.enable') }}
-          </el-button>
-          <el-button v-if="row.status === CommonEnum.YES && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.NO)">
-            {{ t('common.actions.disable') }}
-          </el-button>
-          <el-button v-if="userStore.can('system_mail_templateDel')" type="danger" text @click="deleteTemplate(row)">
-            {{ t('common.actions.del') }}
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+      <template #cell-scene="{ row }">
+        {{ sceneLabel(row.scene) }}
+      </template>
+
+      <template #cell-variables="{ row }">
+        <el-space wrap class="mail-template__variables">
+          <el-tag v-for="item in row.variables" :key="item" size="small">{{ item }}</el-tag>
+        </el-space>
+      </template>
+
+      <template #cell-status="{ row }">
+        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+          {{ statusLabel(row.status) }}
+        </el-tag>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <el-button v-if="userStore.can('system_mail_templateEdit')" type="primary" text @click="openEdit(row)">
+          {{ t('common.actions.edit') }}
+        </el-button>
+        <el-button v-if="row.status === CommonEnum.NO && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.YES)">
+          {{ t('common.actions.enable') }}
+        </el-button>
+        <el-button v-if="row.status === CommonEnum.YES && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.NO)">
+          {{ t('common.actions.disable') }}
+        </el-button>
+        <el-button v-if="userStore.can('system_mail_templateDel')" type="danger" text @click="deleteTemplate(row)">
+          {{ t('common.actions.del') }}
+        </el-button>
+      </template>
+    </AppTable>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="720px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="160px">
@@ -352,14 +360,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.mail-template__toolbar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.mail-template__table {
+.mail-template__variables {
   width: 100%;
+  justify-content: center;
 }
 
 .mail-template__select,

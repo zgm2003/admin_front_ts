@@ -1,30 +1,38 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessageBox, ElNotification } from 'element-plus'
+import { AppDialog } from '@/components/AppDialog'
+import { Search } from '@/components/Search'
+import type { SearchField } from '@/components/Search/types'
+import { AppTable } from '@/components/Table'
+import { useCrudTable } from '@/hooks/useCrudTable'
 import { useUserStore } from '@/store/user'
 import {
   MailApi,
   type MailLogItem,
+  type MailLogListParams,
   type MailLogScene,
   type MailLogStatus,
   type MailPageInitResponse,
 } from '@/api/system/mail'
 
+interface MailLogSearchForm {
+  scene: MailLogScene | ''
+  status: MailLogStatus | ''
+  to_email: string
+  dateRange: string[]
+}
+
 const { t } = useI18n()
 const userStore = useUserStore()
-const loading = shallowRef(false)
 const detailLoading = shallowRef(false)
 const detailVisible = shallowRef(false)
-const logs = ref<MailLogItem[]>([])
-const selectedRows = ref<MailLogItem[]>([])
 const detail = ref<MailLogItem | null>(null)
-const dateRange = ref<[string, string] | []>([])
-const page = reactive({ current_page: 1, page_size: 20, total: 0 })
-const filters = reactive({
-  scene: '' as MailLogScene | '',
-  status: '' as MailLogStatus | '',
+const searchForm = ref<MailLogSearchForm>({
+  scene: '',
+  status: '',
   to_email: '',
+  dateRange: [],
 })
 const dict = ref<MailPageInitResponse['dict']>({
   common_status_arr: [],
@@ -35,7 +43,83 @@ const dict = ref<MailPageInitResponse['dict']>({
   default_endpoint: 'ses.tencentcloudapi.com',
 })
 
+const mailLogCrudApi = {
+  list: MailApi.logs,
+  del: MailApi.deleteLogs,
+}
+
 const canDelete = computed(() => userStore.can('system_mail_logDel'))
+const apiSearchForm = computed(() => {
+  const [start, end] = searchForm.value.dateRange
+
+  return {
+    scene: searchForm.value.scene,
+    status: searchForm.value.status,
+    to_email: searchForm.value.to_email,
+    created_at_start: start ?? '',
+    created_at_end: end ?? '',
+  }
+})
+
+const {
+  loading,
+  data: logs,
+  page,
+  selectedIds,
+  onPageChange,
+  onSelectionChange,
+  onSearch,
+  refresh,
+  batchDel,
+  confirmDel,
+} = useCrudTable<MailLogItem, MailLogListParams>({
+  api: mailLogCrudApi,
+  searchForm: apiSearchForm,
+  immediate: true,
+})
+
+const searchFields = computed<SearchField[]>(() => [
+  {
+    key: 'scene',
+    type: 'select-v2',
+    label: t('mail.log.scene'),
+    placeholder: t('mail.log.scene'),
+    options: dict.value.mail_log_scene_arr,
+    width: 160,
+  },
+  {
+    key: 'status',
+    type: 'select-v2',
+    label: t('mail.log.status'),
+    placeholder: t('mail.log.status'),
+    options: dict.value.mail_log_status_arr,
+    width: 140,
+  },
+  {
+    key: 'to_email',
+    type: 'input',
+    label: t('mail.log.toEmail'),
+    placeholder: t('mail.log.toEmail'),
+    width: 220,
+  },
+  {
+    key: 'dateRange',
+    type: 'slot',
+    label: t('mail.log.createdAt'),
+    width: 300,
+  },
+])
+const columns = computed(() => [
+  { key: 'id', label: 'ID', width: 90 },
+  { key: 'scene', label: t('mail.log.scene'), minWidth: 150 },
+  { key: 'to_email', label: t('mail.log.toEmail'), minWidth: 210 },
+  { key: 'subject', label: t('mail.log.subject'), minWidth: 180 },
+  { key: 'status', label: t('mail.log.status'), width: 120, overflowTooltip: false },
+  { key: 'error_code', label: t('mail.log.errorCode'), minWidth: 180 },
+  { key: 'duration_ms', label: t('mail.log.duration'), width: 120 },
+  { key: 'created_at', label: t('mail.log.createdAt'), width: 180 },
+  { key: 'actions', label: t('common.actions.action'), width: 160, fixed: 'right', overflowTooltip: false },
+])
 
 function sceneLabel(scene: MailLogScene) {
   return dict.value.mail_log_scene_arr.find((item) => item.value === scene)?.label || scene
@@ -55,59 +139,9 @@ function statusType(status: MailLogStatus) {
   return 'warning'
 }
 
-function buildQuery() {
-  const [start, end] = dateRange.value
-  return {
-    current_page: page.current_page,
-    page_size: page.page_size,
-    scene: filters.scene,
-    status: filters.status,
-    to_email: filters.to_email,
-    created_at_start: start,
-    created_at_end: end,
-  }
-}
-
-async function load() {
-  loading.value = true
-  try {
-    const [initData, listData] = await Promise.all([MailApi.pageInit(), MailApi.logs(buildQuery())])
-    dict.value = initData.dict
-    logs.value = listData.list
-    page.total = listData.page.total
-    page.current_page = listData.page.current_page
-    page.page_size = listData.page.page_size
-  } finally {
-    loading.value = false
-  }
-}
-
-function search() {
-  page.current_page = 1
-  void load()
-}
-
-function reset() {
-  filters.scene = ''
-  filters.status = ''
-  filters.to_email = ''
-  dateRange.value = []
-  search()
-}
-
-function pageChange(currentPage: number) {
-  page.current_page = currentPage
-  void load()
-}
-
-function sizeChange(pageSize: number) {
-  page.page_size = pageSize
-  page.current_page = 1
-  void load()
-}
-
-function selectionChange(rows: MailLogItem[]) {
-  selectedRows.value = rows
+async function loadDict() {
+  const initData = await MailApi.pageInit()
+  dict.value = initData.dict
 }
 
 async function openDetail(row: MailLogItem) {
@@ -120,103 +154,64 @@ async function openDetail(row: MailLogItem) {
   }
 }
 
-async function deleteRows(rows: MailLogItem[]) {
-  if (rows.length === 0) {
-    ElNotification.warning({ message: t('common.selectAtLeastOne') })
-    return
-  }
-  await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), { type: 'warning' })
-  await MailApi.deleteLogs({ id: rows.map((row) => row.id) })
-  ElNotification.success({ message: t('common.success.delete') })
-  selectedRows.value = []
-  await load()
-}
-
 onMounted(() => {
-  void load()
+  void loadDict()
 })
 </script>
 
 <template>
   <div class="mail-log">
-    <el-card shadow="never" class="mail-log__filter">
-      <el-form :model="filters" inline>
-        <el-form-item :label="t('mail.log.scene')">
-          <el-select v-model="filters.scene" clearable class="mail-log__select">
-            <el-option v-for="item in dict.mail_log_scene_arr" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('mail.log.status')">
-          <el-select v-model="filters.status" clearable class="mail-log__select">
-            <el-option v-for="item in dict.mail_log_status_arr" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('mail.log.toEmail')">
-          <el-input v-model="filters.to_email" clearable class="mail-log__input" />
-        </el-form-item>
-        <el-form-item :label="t('mail.log.createdAt')">
-          <el-date-picker
-            v-model="dateRange"
-            type="datetimerange"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            :start-placeholder="t('mail.log.startTime')"
-            :end-placeholder="t('mail.log.endTime')"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="search">{{ t('common.actions.query') }}</el-button>
-          <el-button @click="reset">{{ t('common.actions.reset') }}</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      :collapse-count="3"
+      @query="onSearch"
+      @reset="onSearch"
+    >
+      <template #dateRange="{ form }">
+        <el-date-picker
+          v-model="form.dateRange"
+          type="datetimerange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          :start-placeholder="t('mail.log.startTime')"
+          :end-placeholder="t('mail.log.endTime')"
+        />
+      </template>
+    </Search>
 
-    <div class="mail-log__toolbar">
-      <el-button v-if="canDelete" type="danger" :disabled="selectedRows.length === 0" @click="deleteRows(selectedRows)">
-        {{ t('common.actions.batchDelete') }}
-      </el-button>
-      <el-button @click="load">{{ t('common.actions.refresh') }}</el-button>
-    </div>
+    <AppTable
+      :columns="columns"
+      :data="logs"
+      :loading="loading"
+      :pagination="page"
+      row-key="id"
+      selectable
+      :fixed-footer="false"
+      @selection-change="onSelectionChange"
+      @update:pagination="onPageChange"
+      @refresh="refresh"
+    >
+      <template #toolbar-left>
+        <el-button v-if="canDelete" type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
+          {{ t('common.actions.batchDelete') }}
+        </el-button>
+      </template>
 
-    <el-table v-loading="loading" :data="logs" border row-key="id" @selection-change="selectionChange">
-      <el-table-column type="selection" width="48" />
-      <el-table-column prop="id" label="ID" width="90" />
-      <el-table-column :label="t('mail.log.scene')" min-width="150">
-        <template #default="{ row }">
-          {{ sceneLabel(row.scene) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="to_email" :label="t('mail.log.toEmail')" min-width="210" show-overflow-tooltip />
-      <el-table-column prop="subject" :label="t('mail.log.subject')" min-width="180" show-overflow-tooltip />
-      <el-table-column :label="t('mail.log.status')" width="120">
-        <template #default="{ row }">
-          <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="error_code" :label="t('mail.log.errorCode')" min-width="180" show-overflow-tooltip />
-      <el-table-column prop="duration_ms" :label="t('mail.log.duration')" width="120" />
-      <el-table-column prop="created_at" :label="t('mail.log.createdAt')" width="180" />
-      <el-table-column :label="t('common.actions.action')" width="160" fixed="right">
-        <template #default="{ row }">
-          <el-button type="primary" text @click="openDetail(row)">{{ t('common.actions.detail') }}</el-button>
-          <el-button v-if="canDelete" type="danger" text @click="deleteRows([row])">{{ t('common.actions.del') }}</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+      <template #cell-scene="{ row }">
+        {{ sceneLabel(row.scene) }}
+      </template>
 
-    <div class="mail-log__pagination">
-      <el-pagination
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="page.total"
-        :current-page="page.current_page"
-        :page-size="page.page_size"
-        :page-sizes="[10, 20, 50, 100]"
-        @current-change="pageChange"
-        @size-change="sizeChange"
-      />
-    </div>
+      <template #cell-status="{ row }">
+        <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+      </template>
 
-    <el-dialog v-model="detailVisible" :title="t('mail.log.detailTitle')" width="760px">
+      <template #cell-actions="{ row }">
+        <el-button type="primary" text @click="openDetail(row)">{{ t('common.actions.detail') }}</el-button>
+        <el-button v-if="canDelete" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+      </template>
+    </AppTable>
+
+    <AppDialog v-model="detailVisible" :title="t('mail.log.detailTitle')" width="760px">
       <el-skeleton v-if="detailLoading" :rows="6" animated />
       <el-descriptions v-else-if="detail" :column="2" border>
         <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
@@ -234,32 +229,14 @@ onMounted(() => {
         <el-descriptions-item :label="t('mail.log.sentAt')">{{ detail.sent_at || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('mail.common.createdAt')">{{ detail.created_at || '-' }}</el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 
 <style scoped>
-.mail-log__filter {
-  margin-bottom: 14px;
-}
-
-.mail-log__select {
-  width: 180px;
-}
-
-.mail-log__input {
-  width: 220px;
-}
-
-.mail-log__toolbar {
+.mail-log {
   display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.mail-log__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+  flex-direction: column;
+  gap: 14px;
 }
 </style>
