@@ -80,4 +80,17 @@ describe('mail api and page contract', () => {
     expect(logSource).not.toContain('<el-table')
     expect(logSource).not.toContain('<el-pagination')
   })
+
+  it('lazy-loads mail tabs and refreshes mail logs when the log tab is reactivated', () => {
+    const viewSource = readFrontendSource('src/views/Main/system/mail/index.vue')
+    const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')
+
+    expect(viewSource).toContain('name="config" lazy')
+    expect(viewSource).toContain('name="template" lazy')
+    expect(viewSource).toContain('name="log" lazy')
+    expect(viewSource).toContain('@tab-change="handleTabChange"')
+    expect(viewSource).toContain('ref="mailLogPanelRef"')
+    expect(viewSource).toContain('mailLogPanelRef.value?.refreshLogs()')
+    expect(logSource).toContain('defineExpose({ refreshLogs })')
+  })
 })

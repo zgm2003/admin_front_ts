@@ -70,6 +70,7 @@ const {
   onSelectionChange,
   onSearch,
   refresh,
+  getList,
   batchDel,
   confirmDel,
 } = useCrudTable<MailLogItem, MailLogListParams>({
@@ -77,6 +78,12 @@ const {
   searchForm: apiSearchForm,
   immediate: true,
 })
+
+async function refreshLogs() {
+  await getList()
+}
+
+defineExpose({ refreshLogs })
 
 const searchFields = computed<SearchField[]>(() => [
   {

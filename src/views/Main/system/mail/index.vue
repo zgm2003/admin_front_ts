@@ -1,20 +1,40 @@
 <script setup lang="ts">
-import { defineAsyncComponent, shallowRef } from 'vue'
+import { defineAsyncComponent, nextTick, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
 
+type MailTab = 'config' | 'template' | 'log'
+
+interface MailLogPanelExpose {
+  refreshLogs: () => Promise<void>
+}
+
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const activeTab = shallowRef('config')
+const activeTab = shallowRef<MailTab>('config')
+const mailLogPanelRef = shallowRef<MailLogPanelExpose | null>(null)
+const hasActivatedLogTab = shallowRef(false)
 
 const MailConfigPanel = defineAsyncComponent(() => import('./components/MailConfigPanel.vue'))
 const MailTemplatePanel = defineAsyncComponent(() => import('./components/MailTemplatePanel.vue'))
 const MailLogPanel = defineAsyncComponent(() => import('./components/MailLogPanel.vue'))
+
+async function handleTabChange(name: string | number) {
+  if (name !== 'log') {
+    return
+  }
+  if (!hasActivatedLogTab.value) {
+    hasActivatedLogTab.value = true
+    return
+  }
+  await nextTick()
+  await mailLogPanelRef.value?.refreshLogs()
+}
 </script>
 
 <template>
   <div class="mail-page">
-    <el-tabs v-model="activeTab" :stretch="isMobile" class="mail-page__tabs">
+    <el-tabs v-model="activeTab" :stretch="isMobile" class="mail-page__tabs" @tab-change="handleTabChange">
       <el-tab-pane :label="t('mail.tabs.config')" name="config" lazy>
         <MailConfigPanel />
       </el-tab-pane>
@@ -22,7 +42,7 @@ const MailLogPanel = defineAsyncComponent(() => import('./components/MailLogPane
         <MailTemplatePanel />
       </el-tab-pane>
       <el-tab-pane :label="t('mail.tabs.log')" name="log" lazy>
-        <MailLogPanel />
+        <MailLogPanel ref="mailLogPanelRef" />
       </el-tab-pane>
     </el-tabs>
   </div>
