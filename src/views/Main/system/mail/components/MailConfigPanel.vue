@@ -189,9 +189,21 @@ onMounted(() => {
             </el-form-item>
           </el-col>
           <el-col :span="24" :md="12">
-            <el-form-item :label="t('mail.config.verifyCodeTTLMinutes')" prop="verify_code_ttl_minutes">
-              <el-input-number v-model="form.verify_code_ttl_minutes" :min="1" :max="60" :precision="0" controls-position="right" />
-              <div class="mail-config__help">{{ t('mail.config.verifyCodeTTLHelp') }}</div>
+            <el-form-item :label="t('mail.config.verifyCodeTTLMinutes')" prop="verify_code_ttl_minutes" class="mail-config__form-item--ttl">
+              <div class="mail-config__field-stack">
+                <div class="mail-config__ttl-control">
+                  <el-input-number
+                    v-model="form.verify_code_ttl_minutes"
+                    class="mail-config__ttl-input"
+                    :min="1"
+                    :max="60"
+                    :precision="0"
+                    controls-position="right"
+                  />
+                  <span class="mail-config__ttl-unit">{{ t('mail.config.minutesUnit') }}</span>
+                </div>
+                <div class="mail-config__help">{{ t('mail.config.verifyCodeTTLHelp') }}</div>
+              </div>
             </el-form-item>
           </el-col>
           <el-col :span="24" :md="12">
@@ -313,6 +325,34 @@ onMounted(() => {
 
 .mail-config__select {
   width: 100%;
+}
+
+.mail-config__form-item--ttl :deep(.el-form-item__label) {
+  white-space: nowrap;
+}
+
+.mail-config__field-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.mail-config__ttl-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mail-config__ttl-input {
+  width: 180px;
+}
+
+.mail-config__ttl-unit {
+  flex: none;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
 }
 
 .mail-config__help {
