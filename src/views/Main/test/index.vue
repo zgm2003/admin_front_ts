@@ -2,19 +2,19 @@
   <el-card shadow="never">
     <template #header>
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:16px;font-weight:700;">主题切换</span>
+        <span style="font-size:16px;font-weight:700;">{{ t('devTest.themeSwitch') }}</span>
       </div>
     </template>
-    <el-switch v-model="isDark" active-text="暗黑" inactive-text="明亮" @change="toggleDarkMode"/>
+    <el-switch v-model="isDark" :active-text="t('devTest.dark')" :inactive-text="t('devTest.light')" @change="toggleDarkMode"/>
   </el-card>
 
   <el-card shadow="never" style="margin-top:16px;">
     <template #header>
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:16px;font-weight:700;">下载功能测试</span>
+        <span style="font-size:16px;font-weight:700;">{{ t('devTest.downloadTitle') }}</span>
         <el-button type="primary" size="small" @click="showManager = true">
           <el-icon><FolderOpened /></el-icon>
-          下载管理器
+          {{ t('devTest.downloadManager') }}
         </el-button>
       </div>
     </template>
@@ -22,25 +22,25 @@
     <el-space direction="vertical" :size="16" style="width:100%;">
       <!-- 测试 URL 输入 -->
       <el-form :inline="true">
-        <el-form-item label="下载 URL">
+        <el-form-item :label="t('devTest.downloadUrl')">
           <el-input
             v-model="testUrl"
-            placeholder="输入文件 URL"
+            :placeholder="t('devTest.downloadUrlPlaceholder')"
             style="width:400px;"
             clearable
           />
         </el-form-item>
-        <el-form-item label="文件名">
+        <el-form-item :label="t('devTest.filename')">
           <el-input
             v-model="testFilename"
-            placeholder="建议的文件名（可选）"
+            :placeholder="t('devTest.filenamePlaceholder')"
             style="width:200px;"
             clearable
           />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleDownloadWithProgress">
-            开始下载
+            {{ t('devTest.startDownload') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -48,27 +48,27 @@
       <!-- 快速测试 -->
       <div>
         <div style="margin-bottom:8px;color:var(--el-text-color-secondary);font-size:13px;">
-          快速测试：
+          {{ t('devTest.quickTest') }}
         </div>
         <el-space wrap>
           <el-button size="small" @click="downloadPreset('pdf')">
             <el-icon><Document /></el-icon>
-            PDF 文档
+            {{ t('devTest.pdf') }}
           </el-button>
           <el-button size="small" @click="downloadPreset('image')">
             <el-icon><Picture /></el-icon>
-            图片
+            {{ t('devTest.image') }}
           </el-button>
           <el-button size="small" @click="downloadPreset('video')">
             <el-icon><VideoPlay /></el-icon>
-            视频 (1MB)
+            {{ t('devTest.video') }}
           </el-button>
           <el-button size="small" @click="downloadPreset('large')">
             <el-icon><Download /></el-icon>
-            大文件 (10MB)
+            {{ t('devTest.largeFile') }}
           </el-button>
           <el-button size="small" type="warning" @click="handleMultipleDownloads">
-            批量下载 (3个)
+            {{ t('devTest.batchDownload') }}
           </el-button>
         </el-space>
       </div>
@@ -106,7 +106,7 @@
   <el-card shadow="never" style="margin-top:16px;">
     <template #header>
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:16px;font-weight:700;">富文本编辑器</span>
+        <span style="font-size:16px;font-weight:700;">{{ t('devTest.editor') }}</span>
       </div>
     </template>
     <RichEditor v-model="content" :height="350" @change="onEditorChange"/>
@@ -127,12 +127,14 @@ import {
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { downloadFile, downloadManager, type DownloadProgress } from '@/components/DownloadManager'
+import { useI18n } from 'vue-i18n'
 
 const RichEditor = defineAsyncComponent(() => import('@/views/Main/component/display/components/Editor.vue'))
 const DownloadManager = defineAsyncComponent(() => import('@/components/DownloadManager').then(m => m.DownloadManager))
+const { t } = useI18n()
 
 const isDark = ref(false)
-const content = ref('<p>欢迎使用富文本编辑器</p>')
+const content = ref(t('devTest.editorWelcome'))
 
 // 下载相关
 const testUrl = ref('https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-360p.mp4')
@@ -176,7 +178,7 @@ const formatSpeed = (bytesPerSecond: number) => downloadManager.formatSpeed(byte
 // 带进度的下载
 const handleDownloadWithProgress = async () => {
   if (!testUrl.value) {
-    ElMessage.warning('请输入下载 URL')
+    ElMessage.warning(t('devTest.downloadUrlRequired'))
     return
   }
 
@@ -188,13 +190,13 @@ const handleDownloadWithProgress = async () => {
         currentDownload.value = progress
       },
       onCompleted: (_savePath) => {
-        ElMessage.success(`下载完成`)
+        ElMessage.success(t('devTest.downloadDone'))
         setTimeout(() => {
           currentDownload.value = null
         }, 2000)
       },
       onFailed: (error) => {
-        ElMessage.error(`下载失败: ${error}`)
+        ElMessage.error(t('devTest.downloadFailed', { error }))
         currentDownload.value = null
       },
     })
@@ -204,7 +206,7 @@ const handleDownloadWithProgress = async () => {
       currentDownload.value = null
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '下载失败')
+    ElMessage.error(error.message || t('devTest.downloadFailed', { error: '' }))
     currentDownload.value = null
   }
 }
@@ -217,18 +219,18 @@ const handleMultipleDownloads = async () => {
     presetFiles.video,
   ]
 
-  ElMessage.info(`开始批量下载 ${files.length} 个文件`)
+  ElMessage.info(t('devTest.batchStart', { count: files.length }))
 
   for (const file of files) {
     try {
       await downloadFile(file.url, file.filename)
       await new Promise(resolve => setTimeout(resolve, 500))
     } catch (error) {
-      console.error('下载失败:', error)
+      console.error('download failed:', error)
     }
   }
 
-  ElMessage.success('批量下载已启动，请在下载管理器中查看')
+  ElMessage.success(t('devTest.batchStarted'))
   showManager.value = true
 }
 

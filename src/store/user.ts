@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { UsersApi } from '@/api/user/users'
 import { HOME_MENU_ITEM } from './menu'
+import i18n from '@/i18n'
 import type { DynamicRouteItem, PermissionMenuItem, QuickEntryItem } from '@/types/user'
 
 interface UserState {
@@ -54,7 +55,7 @@ export const useUserStore = defineStore('user', {
         const data = await UsersApi.me()
         this.user_id = data.user_id
         this.avatar = data.avatar
-        this.username = data.username.trim() === '' ? '未设置用户名' : data.username
+        this.username = data.username.trim() === '' ? i18n.global.t('user.fallback.username') : data.username
         this.role_name = data.role_name
         this.permissions = [HOME_MENU_ITEM, ...data.permissions]
         this.router = data.router

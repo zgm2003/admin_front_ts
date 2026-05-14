@@ -1,8 +1,10 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { HomeFilled, Back } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 const goHome = () => router.push('/')
 const goBack = () => router.back()
 </script>
@@ -11,16 +13,16 @@ const goBack = () => router.back()
   <div class="error-page">
     <div class="error-content">
       <div class="error-code">404</div>
-      <h1 class="error-title">页面未找到</h1>
-      <p class="error-desc">抱歉，您访问的页面不存在或已被移除</p>
+      <h1 class="error-title">{{ t('error.notFound.title') }}</h1>
+      <p class="error-desc">{{ t('error.notFound.description') }}</p>
       <div class="error-actions">
         <el-button @click="goBack">
           <el-icon><Back /></el-icon>
-          返回上页
+          {{ t('error.notFound.back') }}
         </el-button>
         <el-button type="primary" @click="goHome">
           <el-icon><HomeFilled /></el-icon>
-          返回首页
+          {{ t('error.notFound.home') }}
         </el-button>
       </div>
     </div>

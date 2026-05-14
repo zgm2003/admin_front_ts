@@ -4,6 +4,7 @@ import {
   type UploadTokenRequest,
   type UploadTokenResponse,
 } from '@/api/system/uploadToken'
+import i18n from '@/i18n'
 
 interface CosAuthorization {
   TmpSecretId: string
@@ -39,6 +40,7 @@ export interface LegacyUploadTokenRequest {
 export type UploadTokenParams = UploadTokenRequest | LegacyUploadTokenRequest
 
 const loadCOS = () => import('cos-js-sdk-v5').then(module => module.default as CosConstructor)
+const t = i18n.global.t
 
 export const getUploadToken = (params: UploadTokenParams): Promise<UploadTokenResponse> => {
   return UploadTokenApi.create(normalizeTokenRequest(params))
@@ -48,17 +50,17 @@ export const validateFile = (file: File, config: UploadConfig, type: UploadFileK
   const { max_size_mb, image_exts, file_exts } = config.rule
 
   if (max_size_mb && file.size > max_size_mb * 1024 * 1024) {
-    throw new Error(`文件大小不能超过 ${max_size_mb}MB`)
+    throw new Error(t('uploadRuntime.maxSize', { size: max_size_mb }))
   }
 
   const ext = file.name.split('.').pop()?.toLowerCase()
   if (!ext) {
-    throw new Error('文件类型不支持')
+    throw new Error(t('uploadRuntime.unsupportedType'))
   }
 
   const allowedExts = type === 'image' ? image_exts : file_exts
   if (allowedExts.length > 0 && !allowedExts.includes(ext)) {
-    throw new Error(`不支持的文件类型 .${ext}，仅支持: ${allowedExts.join(', ')}`)
+    throw new Error(t('uploadRuntime.unsupportedExt', { ext, exts: allowedExts.join(', ') }))
   }
 }
 
@@ -67,7 +69,7 @@ export const uploadFileToCloud = async (
   config: UploadConfig
 ): Promise<{ url: string; key: string }> => {
   if (config.provider !== 'cos') {
-    throw new Error('当前版本未启用 OSS 上传运行时，请安装可选扩展或切换为 COS')
+    throw new Error(t('uploadRuntime.ossUnsupported'))
   }
 
   return uploadToCos(file, config.key, config)

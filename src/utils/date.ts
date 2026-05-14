@@ -1,3 +1,17 @@
+import i18n from '@/i18n'
+
+const t = i18n.global.t
+
+function defaultTimeRangeLabels() {
+  return {
+    today: t('time.groups.today'),
+    yesterday: t('time.groups.yesterday'),
+    week: t('time.groups.week'),
+    month: t('time.groups.month'),
+    older: t('time.groups.older'),
+  }
+}
+
 /**
  * 格式化时间为相对时间（如：刚刚、5分钟前、1小时前）
  */
@@ -8,10 +22,10 @@ export function formatTimeAgo(dateStr: string): string {
   const now = new Date()
   const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
   
-  if (diff < 60) return '刚刚'
-  if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}天前`
+  if (diff < 60) return t('time.justNow')
+  if (diff < 3600) return t('time.minutesAgo', { count: Math.floor(diff / 60) })
+  if (diff < 86400) return t('time.hoursAgo', { count: Math.floor(diff / 3600) })
+  if (diff < 604800) return t('time.daysAgo', { count: Math.floor(diff / 86400) })
   
   // 超过7天显示具体日期
   const year = date.getFullYear()
@@ -30,7 +44,7 @@ export function formatTimeAgo(dateStr: string): string {
 export function groupByTimeRange<T>(
   items: T[],
   getDate: (item: T) => string,
-  labels = { today: '今天', yesterday: '昨天', week: '最近 7 天', month: '最近 30 天', older: '更早' }
+  labels = defaultTimeRangeLabels()
 ): { label: string; items: T[] }[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -84,7 +98,7 @@ export function formatChatTime(dateStr: string): string {
 
   const now = new Date()
   const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (diff < 60) return '刚刚'
+  if (diff < 60) return t('time.justNow')
 
   const hm = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 
@@ -95,12 +109,12 @@ export function formatChatTime(dateStr: string): string {
 
   const yesterdayStart = new Date(todayStart)
   yesterdayStart.setDate(yesterdayStart.getDate() - 1)
-  if (date >= yesterdayStart) return `昨天 ${hm}`
+  if (date >= yesterdayStart) return t('time.yesterday', { time: hm })
 
   const weekStart = new Date(todayStart)
   weekStart.setDate(weekStart.getDate() - 6)
   if (date >= weekStart) {
-    const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const days = i18n.global.tm('time.weekdays') as string[]
     return `${days[date.getDay()]} ${hm}`
   }
 

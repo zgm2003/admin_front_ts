@@ -524,6 +524,9 @@ export default {
     }
   },
   user: {
+    fallback: {
+      username: '未设置用户名'
+    },
     tabs: {
       userList: '用户列表',
       sessionList: '会话管理'
@@ -1407,7 +1410,89 @@ export default {
       videoPlaceholder: '或输入视频URL'
     }
   },
-  error: {notFound: '抱歉，您访问的页面不存在'},
+  error: {
+    notFound: {
+      title: '页面未找到',
+      description: '抱歉，您访问的页面不存在或已被移除',
+      back: '返回上页',
+      home: '返回首页'
+    }
+  },
+  uploadRuntime: {
+    maxSize: '文件大小不能超过 {size}MB',
+    unsupportedType: '文件类型不支持',
+    unsupportedExt: '不支持的文件类型 .{ext}，仅支持: {exts}',
+    ossUnsupported: '当前版本未启用 OSS 上传运行时，请安装可选扩展或切换为 COS'
+  },
+  time: {
+    justNow: '刚刚',
+    minutesAgo: '{count}分钟前',
+    hoursAgo: '{count}小时前',
+    daysAgo: '{count}天前',
+    yesterday: '昨天 {time}',
+    weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+    groups: {
+      today: '今天',
+      yesterday: '昨天',
+      week: '最近 7 天',
+      month: '最近 30 天',
+      older: '更早'
+    }
+  },
+  login: {
+    validation: {
+      accountRequired: '账号为必填项',
+      emailInvalid: '请输入正确的邮箱格式',
+      phoneInvalid: '请输入正确的手机号格式',
+      passwordRequired: '密码为必填项',
+      codeRequired: '验证码为必填项',
+      captchaLoadFailed: '验证码加载失败，请重试',
+      policyRequired: '请先阅读并同意服务条款和隐私政策',
+      passwordCaptchaConfigInvalid: '密码登录验证码配置异常',
+      loginSuccess: '登录成功',
+      termsHint: '请在系统设置页查看服务条款',
+      privacyHint: '请在系统设置页查看隐私政策'
+    }
+  },
+  forgotPassword: {
+    validation: {
+      accountRequired: '请输入邮箱或手机号',
+      accountInvalid: '请输入正确的邮箱或手机号',
+      codeSent: '验证码已发送',
+      sendFailed: '发送失败',
+      fullInfoRequired: '请填写完整信息',
+      passwordRequired: '请填写新密码',
+      passwordMismatch: '确认密码与新密码不一致',
+      passwordLength: '密码长度必须在6到128个字符之间',
+      resetSuccess: '密码重置成功，请登录',
+      resetFailed: '重置失败'
+    }
+  },
+  devTest: {
+    themeSwitch: '主题切换',
+    dark: '暗黑',
+    light: '明亮',
+    downloadTitle: '下载功能测试',
+    downloadManager: '下载管理器',
+    downloadUrl: '下载 URL',
+    downloadUrlPlaceholder: '输入文件 URL',
+    filename: '文件名',
+    filenamePlaceholder: '建议的文件名（可选）',
+    startDownload: '开始下载',
+    quickTest: '快速测试：',
+    pdf: 'PDF 文档',
+    image: '图片',
+    video: '视频 (1MB)',
+    largeFile: '大文件 (10MB)',
+    batchDownload: '批量下载 (3个)',
+    editor: '富文本编辑器',
+    downloadUrlRequired: '请输入下载 URL',
+    downloadDone: '下载完成',
+    downloadFailed: '下载失败: {error}',
+    batchStart: '开始批量下载 {count} 个文件',
+    batchStarted: '批量下载已启动，请在下载管理器中查看',
+    editorWelcome: '<p>欢迎使用富文本编辑器</p>'
+  },
   systemLog: {
     sidebar: { title: '日志文件', empty: '暂无日志文件', search: '搜索日志文件', noMatched: '没有匹配的日志文件' },
     toolbar: { keyword: '搜索关键字', level: '日志级别', query: '查询', refresh: '刷新', autoScroll: '自动滚底', lines: '行' },

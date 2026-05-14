@@ -6,6 +6,7 @@ import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/storage'
 import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
+import i18n from '@/i18n'
 import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from '@/types/captcha'
 import type {
   LoginConfigResponse,
@@ -25,6 +26,7 @@ const CAPTCHA_MIN_MOVE_OFFSET = 16
 
 export function useLoginForm() {
   const router = useRouter()
+  const t = i18n.global.t
   const formRef = ref<FormInstance>()
   const sendCodeRef = ref<SendCodeRef | null>(null)
   const loginTypes = ref<LoginTypeItem[]>([])
@@ -54,20 +56,20 @@ export function useLoginForm() {
   const isPasswordLogin = computed(() => activeAccountType.value === 'password')
 
   const rules = computed<FormRules>(() => {
-    const accountRules: FormItemRule[] = [{ required: true, message: '账号为必填项', trigger: 'blur' }]
+    const accountRules: FormItemRule[] = [{ required: true, message: t('login.validation.accountRequired'), trigger: 'blur' }]
 
     if (activeAccountType.value === 'email') {
-      accountRules.push({ type: 'email' as const, message: '请输入正确的邮箱格式', trigger: 'blur' })
+      accountRules.push({ type: 'email' as const, message: t('login.validation.emailInvalid'), trigger: 'blur' })
     } else if (activeAccountType.value === 'phone') {
-      accountRules.push({ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' })
+      accountRules.push({ pattern: /^1[3-9]\d{9}$/, message: t('login.validation.phoneInvalid'), trigger: 'blur' })
     }
 
     const baseRules: FormRules = { login_account: accountRules }
 
     if (isPasswordLogin.value) {
-      baseRules.password = [{ required: true, message: '密码为必填项', trigger: 'blur' }]
+      baseRules.password = [{ required: true, message: t('login.validation.passwordRequired'), trigger: 'blur' }]
     } else {
-      baseRules.code = [{ required: true, message: '验证码为必填项', trigger: 'blur' }]
+      baseRules.code = [{ required: true, message: t('login.validation.codeRequired'), trigger: 'blur' }]
     }
 
     return baseRules
@@ -178,7 +180,7 @@ export function useLoginForm() {
       rememberPwd()
       await handleLoginSuccess(data)
     } catch (error) {
-      console.error('登录失败:', error)
+      console.error('login failed:', error)
       if (options.refreshCaptchaOnFailure) {
         await refreshCaptcha()
       }
@@ -192,13 +194,13 @@ export function useLoginForm() {
     try {
       await refreshCaptcha()
     } catch (error) {
-      console.error('验证码加载失败:', error)
-      ElMessage.error('验证码加载失败，请重试')
+      console.error('captcha load failed:', error)
+      ElMessage.error(t('login.validation.captchaLoadFailed'))
     }
   }
 
   const handleSubmit = async () => {
-    if (!agreePolicy.value) return ElMessage.error('请先阅读并同意服务条款和隐私政策')
+    if (!agreePolicy.value) return ElMessage.error(t('login.validation.policyRequired'))
 
     const currentLoginType = loginType.value
     const fieldsToValidate = currentLoginType === 'password'
@@ -215,7 +217,7 @@ export function useLoginForm() {
     const account = loginForm.login_account.trim()
     if (currentLoginType === 'password') {
       if (!captchaEnabled.value) {
-        ElMessage.error('密码登录验证码配置异常')
+        ElMessage.error(t('login.validation.passwordCaptchaConfigInvalid'))
         triggerShake()
         return
       }
@@ -246,7 +248,7 @@ export function useLoginForm() {
 
   const handleLoginSuccess = async (data: UserLoginSession) => {
     isLoginSuccess.value = true
-    ElNotification.success('登录成功')
+    ElNotification.success(t('login.validation.loginSuccess'))
     clearAllCookies()
 
     if (loginForm.remember) {
@@ -316,12 +318,12 @@ export function useLoginForm() {
 
   const openService = () => {
     agreePolicy.value = true
-    ElMessage.info('请在系统设置页查看服务条款')
+    ElMessage.info(t('login.validation.termsHint'))
   }
 
   const openPolicy = () => {
     agreePolicy.value = true
-    ElMessage.info('请在系统设置页查看隐私政策')
+    ElMessage.info(t('login.validation.privacyHint'))
   }
 
   onMounted(async () => {

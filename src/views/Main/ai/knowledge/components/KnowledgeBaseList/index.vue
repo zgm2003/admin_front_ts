@@ -164,7 +164,7 @@ onMounted(() => {
           :disabled="!hasFilters"
           @click="resetSearch"
         >
-          {{ t('common.actions.resetBasic') }}
+          {{ t('common.actions.reset') }}
         </el-button>
       </div>
     </div>

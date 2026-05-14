@@ -524,6 +524,9 @@ export default {
     }
   },
   user: {
+    fallback: {
+      username: 'Username not set'
+    },
     tabs: {
       userList: 'User List',
       sessionList: 'Session Manager'
@@ -1292,7 +1295,89 @@ export default {
       videoPlaceholder: 'Or enter video URL'
     }
   },
-  error: {notFound: 'Sorry, the page you visited does not exist'},
+  error: {
+    notFound: {
+      title: 'Page not found',
+      description: 'Sorry, the page you visited does not exist or has been removed.',
+      back: 'Go back',
+      home: 'Go home'
+    }
+  },
+  uploadRuntime: {
+    maxSize: 'File size must not exceed {size}MB',
+    unsupportedType: 'Unsupported file type',
+    unsupportedExt: 'Unsupported file extension .{ext}. Allowed: {exts}',
+    ossUnsupported: 'OSS upload runtime is not enabled in this version. Install the optional extension or switch to COS.'
+  },
+  time: {
+    justNow: 'Just now',
+    minutesAgo: '{count} minutes ago',
+    hoursAgo: '{count} hours ago',
+    daysAgo: '{count} days ago',
+    yesterday: 'Yesterday {time}',
+    weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    groups: {
+      today: 'Today',
+      yesterday: 'Yesterday',
+      week: 'Last 7 days',
+      month: 'Last 30 days',
+      older: 'Older'
+    }
+  },
+  login: {
+    validation: {
+      accountRequired: 'Account is required',
+      emailInvalid: 'Enter a valid email address',
+      phoneInvalid: 'Enter a valid phone number',
+      passwordRequired: 'Password is required',
+      codeRequired: 'Verification code is required',
+      captchaLoadFailed: 'Failed to load captcha, please try again',
+      policyRequired: 'Please read and agree to the terms of service and privacy policy first',
+      passwordCaptchaConfigInvalid: 'Password-login captcha configuration is invalid',
+      loginSuccess: 'Signed in successfully',
+      termsHint: 'View the terms of service in system settings',
+      privacyHint: 'View the privacy policy in system settings'
+    }
+  },
+  forgotPassword: {
+    validation: {
+      accountRequired: 'Enter email or phone number',
+      accountInvalid: 'Enter a valid email or phone number',
+      codeSent: 'Verification code sent',
+      sendFailed: 'Send failed',
+      fullInfoRequired: 'Please complete all required information',
+      passwordRequired: 'Enter a new password',
+      passwordMismatch: 'The confirmation password does not match',
+      passwordLength: 'Password length must be 6 to 128 characters',
+      resetSuccess: 'Password reset successfully. Please sign in.',
+      resetFailed: 'Reset failed'
+    }
+  },
+  devTest: {
+    themeSwitch: 'Theme switch',
+    dark: 'Dark',
+    light: 'Light',
+    downloadTitle: 'Download test',
+    downloadManager: 'Download manager',
+    downloadUrl: 'Download URL',
+    downloadUrlPlaceholder: 'Enter file URL',
+    filename: 'File name',
+    filenamePlaceholder: 'Suggested file name (optional)',
+    startDownload: 'Start download',
+    quickTest: 'Quick test:',
+    pdf: 'PDF document',
+    image: 'Image',
+    video: 'Video (1MB)',
+    largeFile: 'Large file (10MB)',
+    batchDownload: 'Batch download (3 files)',
+    editor: 'Rich text editor',
+    downloadUrlRequired: 'Enter a download URL',
+    downloadDone: 'Download complete',
+    downloadFailed: 'Download failed: {error}',
+    batchStart: 'Starting batch download for {count} files',
+    batchStarted: 'Batch download started. Check the download manager.',
+    editorWelcome: '<p>Welcome to the rich text editor</p>'
+  },
   systemLog: {
     sidebar: { title: 'Log Files', empty: 'No log files', search: 'Search log files', noMatched: 'No matched log files' },
     toolbar: { keyword: 'Search keyword', level: 'Log level', query: 'Query', refresh: 'Refresh', autoScroll: 'Auto scroll', lines: 'lines' },
