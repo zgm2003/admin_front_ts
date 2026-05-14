@@ -96,6 +96,29 @@ describe('mail api and page contract', () => {
     expect(logSource).toContain("t('mail.log.securityNotice')")
   })
 
+  it('normalizes mail page-init dict before binding select-v2 options', () => {
+    const helperSource = readFrontendSource('src/views/Main/system/mail/mailDict.ts')
+    const configSource = readFrontendSource('src/views/Main/system/mail/components/MailConfigPanel.vue')
+    const templateSource = readFrontendSource('src/views/Main/system/mail/components/MailTemplatePanel.vue')
+    const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')
+
+    expect(helperSource).toContain('createDefaultMailDict')
+    expect(helperSource).toContain('normalizeMailDict')
+    expect(helperSource).toContain('mail_region_arr')
+    expect(helperSource).toContain('ap-guangzhou')
+    expect(helperSource).toContain('ap-hongkong')
+    expect(helperSource).toContain("label: '广州'")
+    expect(helperSource).toContain("label: '香港'")
+    expect(helperSource).toContain('ses.tencentcloudapi.com')
+
+    for (const source of [configSource, templateSource, logSource]) {
+      expect(source).toContain("import { createDefaultMailDict, normalizeMailDict } from '../mailDict'")
+      expect(source).toContain('createDefaultMailDict()')
+      expect(source).toContain('normalizeMailDict(initData.dict)')
+      expect(source).not.toContain('dict.value = initData.dict')
+    }
+  })
+
   it('lazy-loads mail tabs and refreshes mail logs when the log tab is reactivated', () => {
     const viewSource = readFrontendSource('src/views/Main/system/mail/index.vue')
     const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')

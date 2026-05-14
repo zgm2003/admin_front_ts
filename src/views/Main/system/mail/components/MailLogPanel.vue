@@ -13,8 +13,8 @@ import {
   type MailLogListParams,
   type MailLogScene,
   type MailLogStatus,
-  type MailPageInitResponse,
 } from '@/api/system/mail'
+import { createDefaultMailDict, normalizeMailDict } from '../mailDict'
 
 interface MailLogSearchForm {
   scene: MailLogScene | ''
@@ -34,15 +34,7 @@ const searchForm = ref<MailLogSearchForm>({
   to_email: '',
   dateRange: [],
 })
-const dict = ref<MailPageInitResponse['dict']>({
-  common_status_arr: [],
-  mail_scene_arr: [],
-  mail_log_scene_arr: [],
-  mail_log_status_arr: [],
-  mail_region_arr: [],
-  default_region: 'ap-guangzhou',
-  default_endpoint: 'ses.tencentcloudapi.com',
-})
+const dict = ref(createDefaultMailDict())
 
 const mailLogCrudApi = {
   list: MailApi.logs,
@@ -149,7 +141,7 @@ function statusType(status: MailLogStatus) {
 
 async function loadDict() {
   const initData = await MailApi.pageInit()
-  dict.value = initData.dict
+  dict.value = normalizeMailDict(initData.dict)
 }
 
 async function openDetail(row: MailLogItem) {

@@ -9,13 +9,13 @@ import { useUserStore } from '@/store/user'
 import {
   MailApi,
   type MailCommonStatus,
-  type MailPageInitResponse,
   type MailTemplateFormState,
   type MailTemplateItem,
   type MailTemplatePayload,
   type MailTemplateSampleVariableRow,
   type MailTemplateScene,
 } from '@/api/system/mail'
+import { createDefaultMailDict, normalizeMailDict } from '../mailDict'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -25,15 +25,7 @@ const dialogVisible = shallowRef(false)
 const dialogMode = shallowRef<'create' | 'edit'>('create')
 const formRef = ref<FormInstance | null>(null)
 const templates = ref<MailTemplateItem[]>([])
-const dict = ref<MailPageInitResponse['dict']>({
-  common_status_arr: [],
-  mail_scene_arr: [],
-  mail_log_scene_arr: [],
-  mail_log_status_arr: [],
-  mail_region_arr: [],
-  default_region: 'ap-guangzhou',
-  default_endpoint: 'ses.tencentcloudapi.com',
-})
+const dict = ref(createDefaultMailDict())
 
 const form = reactive<MailTemplateFormState>({
   id: null,
@@ -91,7 +83,7 @@ async function load() {
   loading.value = true
   try {
     const [initData, listData] = await Promise.all([MailApi.pageInit(), MailApi.templates()])
-    dict.value = initData.dict
+    dict.value = normalizeMailDict(initData.dict)
     templates.value = listData.list
   } finally {
     loading.value = false
