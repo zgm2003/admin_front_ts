@@ -26,6 +26,8 @@ const dialogMode = shallowRef<'create' | 'edit'>('create')
 const formRef = ref<FormInstance | null>(null)
 const templates = ref<MailTemplateItem[]>([])
 const dict = ref(createDefaultMailDict())
+const verifyCodeTemplateVariables = ['code', 'ttl_minutes']
+const verifyCodeSampleVariables: Record<string, string> = { code: '123456', ttl_minutes: '5' }
 
 const form = reactive<MailTemplateFormState>({
   id: null,
@@ -93,6 +95,8 @@ async function load() {
 function openCreate() {
   dialogMode.value = 'create'
   resetForm()
+  form.variables_text = verifyCodeTemplateVariables.join('\n')
+  form.sample_variables = toSampleRows(verifyCodeTemplateVariables, verifyCodeSampleVariables)
   dialogVisible.value = true
   requestAnimationFrame(() => formRef.value?.clearValidate())
 }
@@ -186,7 +190,14 @@ function buildPayload(): MailTemplatePayload {
   if (variables.length === 0) {
     throw new Error(t('mail.template.rules.variables'))
   }
+  if (variables.length !== 2 || variables[0] !== 'code' || variables[1] !== 'ttl_minutes') {
+    throw new Error(t('mail.template.rules.verifyCodeVariables'))
+  }
   const sampleVariables = buildSampleVariables(form.sample_variables)
+  const sampleKeys = Object.keys(sampleVariables).sort()
+  if (sampleKeys.length !== 2 || sampleKeys[0] !== 'code' || sampleKeys[1] !== 'ttl_minutes') {
+    throw new Error(t('mail.template.rules.verifyCodeSampleVariables'))
+  }
   const missing = variables.filter((key) => !(key in sampleVariables))
   if (missing.length > 0) {
     throw new Error(t('mail.template.rules.sampleMissing', { name: missing.join(', ') }))

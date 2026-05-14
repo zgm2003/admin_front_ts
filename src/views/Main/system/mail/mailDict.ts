@@ -12,6 +12,7 @@ export function createDefaultMailDict(): MailPageInitResponse['dict'] {
     ],
     default_region: 'ap-guangzhou',
     default_endpoint: 'ses.tencentcloudapi.com',
+    default_ttl_minutes: 5,
   }
 }
 

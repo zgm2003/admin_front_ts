@@ -17,6 +17,7 @@ export interface MailPageInitResponse {
     mail_region_arr: DictOption<MailRegion>[]
     default_region: string
     default_endpoint: string
+    default_ttl_minutes: number
   }
 }
 
@@ -31,6 +32,7 @@ export interface MailConfigItem {
   from_name: string
   reply_to: string
   status: MailCommonStatus
+  verify_code_ttl_minutes: number
   last_test_at: string | null
   last_test_error: string
   created_at: string | null
@@ -46,6 +48,7 @@ export interface MailConfigFormState {
   from_name: string
   reply_to: string
   status: MailCommonStatus
+  verify_code_ttl_minutes: number
 }
 
 export interface MailTestPayload {

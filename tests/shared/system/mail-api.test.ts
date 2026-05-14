@@ -41,9 +41,22 @@ describe('mail api and page contract', () => {
       expect(source).not.toContain('secret_key_enc')
       expect(source).not.toContain('template_data')
       expect(source).not.toContain('TemplateData')
-      expect(source).not.toContain('verify_code')
       expect(source).not.toMatch(forbiddenLooseTypePattern)
     }
+  })
+
+  it('exposes shared verify-code ttl on mail config without app_name template variables', () => {
+    const apiSource = readFrontendSource('src/api/system/mail.ts')
+    const configSource = readFrontendSource('src/views/Main/system/mail/components/MailConfigPanel.vue')
+    const templateSource = readFrontendSource('src/views/Main/system/mail/components/MailTemplatePanel.vue')
+
+    expect(apiSource).toContain('verify_code_ttl_minutes: number')
+    expect(configSource).toContain('form.verify_code_ttl_minutes = row.verify_code_ttl_minutes || dict.value.default_ttl_minutes')
+    expect(configSource).toContain('prop="verify_code_ttl_minutes"')
+    expect(configSource).toContain("t('mail.config.verifyCodeTTLMinutes')")
+    expect(configSource).toContain("t('mail.config.verifyCodeTTLHelp')")
+    expect(templateSource).toContain("const verifyCodeTemplateVariables = ['code', 'ttl_minutes']")
+    expect(templateSource).not.toContain('app_name')
   })
 
   it('keeps route view thin and splits mail feature panels by responsibility', () => {

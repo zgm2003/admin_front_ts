@@ -1322,6 +1322,8 @@ export default {
       endpoint: 'Endpoint',
       fromEmail: '发件邮箱',
       fromName: '发件名称',
+      verifyCodeTTLMinutes: '验证码有效期（分钟）',
+      verifyCodeTTLHelp: '邮件和短信验证码共用；模板变量 ttl_minutes 自动取这个值。',
       replyTo: '回复邮箱',
       status: '状态',
       testTitle: '测试发送',
@@ -1339,6 +1341,8 @@ export default {
         endpoint: 'Endpoint 为必填项',
         fromEmail: '请输入正确的发件邮箱',
         replyTo: '请输入正确的回复邮箱',
+        verifyCodeTTL: '请输入验证码有效期',
+        verifyCodeTTLRange: '验证码有效期必须在 1-60 分钟之间',
         status: '请选择状态',
         test: '请填写测试邮箱并选择模板场景'
       }
@@ -1370,6 +1374,8 @@ export default {
         sampleVariableKey: '测试变量名不能为空',
         sampleVariableDuplicate: '测试变量 {name} 重复',
         sampleMissing: '测试变量缺少 {name}',
+        verifyCodeVariables: '验证码模板变量必须且只能是 code、ttl_minutes',
+        verifyCodeSampleVariables: '验证码模板测试变量必须且只能是 code、ttl_minutes',
         status: '请选择状态'
       }
     },

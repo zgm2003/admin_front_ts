@@ -31,6 +31,7 @@ const form = reactive<MailConfigFormState>({
   from_name: '',
   reply_to: '',
   status: CommonEnum.YES,
+  verify_code_ttl_minutes: 5,
 })
 
 const testForm = reactive({
@@ -48,6 +49,10 @@ const rules = computed<FormRules<MailConfigFormState>>(() => ({
   from_email: [{ required: true, type: 'email', message: t('mail.config.rules.fromEmail'), trigger: 'blur' }],
   reply_to: [{ type: 'email', message: t('mail.config.rules.replyTo'), trigger: 'blur' }],
   status: [{ required: true, message: t('mail.config.rules.status'), trigger: 'change' }],
+  verify_code_ttl_minutes: [
+    { required: true, message: t('mail.config.rules.verifyCodeTTL'), trigger: 'blur' },
+    { type: 'number', min: 1, max: 60, message: t('mail.config.rules.verifyCodeTTLRange'), trigger: 'blur' },
+  ],
 }))
 
 function applyConfig(row: MailConfigItem) {
@@ -60,6 +65,7 @@ function applyConfig(row: MailConfigItem) {
   form.from_name = row.from_name
   form.reply_to = row.reply_to
   form.status = row.configured ? row.status : CommonEnum.YES
+  form.verify_code_ttl_minutes = row.verify_code_ttl_minutes || dict.value.default_ttl_minutes
 }
 
 async function load() {
@@ -183,6 +189,12 @@ onMounted(() => {
             </el-form-item>
           </el-col>
           <el-col :span="24" :md="12">
+            <el-form-item :label="t('mail.config.verifyCodeTTLMinutes')" prop="verify_code_ttl_minutes">
+              <el-input-number v-model="form.verify_code_ttl_minutes" :min="1" :max="60" :precision="0" controls-position="right" />
+              <div class="mail-config__help">{{ t('mail.config.verifyCodeTTLHelp') }}</div>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24" :md="12">
             <el-form-item :label="t('mail.config.replyTo')" prop="reply_to">
               <el-input v-model="form.reply_to" clearable />
             </el-form-item>
@@ -301,6 +313,14 @@ onMounted(() => {
 
 .mail-config__select {
   width: 100%;
+}
+
+.mail-config__help {
+  width: 100%;
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .mail-config__meta {

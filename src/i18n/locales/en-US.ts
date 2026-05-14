@@ -1207,6 +1207,8 @@ export default {
       endpoint: 'Endpoint',
       fromEmail: 'From Email',
       fromName: 'From Name',
+      verifyCodeTTLMinutes: 'Verification code TTL (minutes)',
+      verifyCodeTTLHelp: 'Shared by email and SMS verification. The ttl_minutes template variable uses this value.',
       replyTo: 'Reply To',
       status: 'Status',
       testTitle: 'Test Send',
@@ -1224,6 +1226,8 @@ export default {
         endpoint: 'Endpoint is required',
         fromEmail: 'Enter a valid from email',
         replyTo: 'Enter a valid reply email',
+        verifyCodeTTL: 'Enter verification code TTL',
+        verifyCodeTTLRange: 'Verification code TTL must be between 1 and 60 minutes',
         status: 'Select status',
         test: 'Enter recipient and select a template scene'
       }
@@ -1255,6 +1259,8 @@ export default {
         sampleVariableKey: 'Sample variable key is required',
         sampleVariableDuplicate: 'Sample variable {name} is duplicated',
         sampleMissing: 'Sample variables missing {name}',
+        verifyCodeVariables: 'Verification-code template variables must be exactly code and ttl_minutes',
+        verifyCodeSampleVariables: 'Verification-code sample variables must be exactly code and ttl_minutes',
         status: 'Select status'
       }
     },
