@@ -333,7 +333,7 @@ onMounted(() => {
           <el-input v-model="form.subject" clearable />
         </el-form-item>
         <el-form-item :label="t('mail.template.tencentTemplateId')" prop="tencent_template_id">
-          <el-input-number v-model="form.tencent_template_id" :min="1" :precision="0" class="mail-template__number" />
+          <el-input-number v-model="form.tencent_template_id" :min="1" :precision="0" class="mail-template__number" :controls="false" />
         </el-form-item>
         <el-form-item :label="t('mail.template.variables')" prop="variables_text">
           <el-input v-model="form.variables_text" type="textarea" :rows="4" :placeholder="t('mail.template.variablesPlaceholder')" />

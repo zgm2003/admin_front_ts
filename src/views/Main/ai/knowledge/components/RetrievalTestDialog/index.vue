@@ -104,17 +104,17 @@ watch(
         <el-row :gutter="12">
           <el-col :md="8" :span="24">
             <el-form-item label="TopK">
-              <el-input-number v-model="form.top_k" :min="1" :max="20" class="retrieval-test-dialog__number" />
+              <el-input-number v-model="form.top_k" :min="1" :max="20" class="retrieval-test-dialog__number" :controls="false" />
             </el-form-item>
           </el-col>
           <el-col :md="8" :span="24">
             <el-form-item :label="t('aiKnowledge.form.defaultMinScore')">
-              <el-input-number v-model="form.min_score" :min="0" :max="100" :step="0.01" class="retrieval-test-dialog__number" />
+              <el-input-number v-model="form.min_score" :min="0" :max="100" :step="0.01" class="retrieval-test-dialog__number" :controls="false" />
             </el-form-item>
           </el-col>
           <el-col :md="8" :span="24">
             <el-form-item :label="t('aiKnowledge.form.defaultContext')">
-              <el-input-number v-model="form.max_context_chars" :min="1000" :max="30000" :step="500" class="retrieval-test-dialog__number" />
+              <el-input-number v-model="form.max_context_chars" :min="1000" :max="30000" :step="500" class="retrieval-test-dialog__number" :controls="false" />
             </el-form-item>
           </el-col>
         </el-row>

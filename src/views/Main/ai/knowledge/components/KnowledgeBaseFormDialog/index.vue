@@ -163,27 +163,27 @@ watch(
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiKnowledge.form.chunkSize')" prop="chunk_size_chars" required>
-            <el-input-number v-model="form.chunk_size_chars" :min="300" :max="8000" :step="100" controls-position="right" class="knowledge-base-form__number" />
+            <el-input-number v-model="form.chunk_size_chars" :min="300" :max="8000" :step="100" controls-position="right" class="knowledge-base-form__number" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('aiKnowledge.form.chunkOverlap')" prop="chunk_overlap_chars">
-            <el-input-number v-model="form.chunk_overlap_chars" :min="0" :max="1000" :step="20" controls-position="right" class="knowledge-base-form__number" />
+            <el-input-number v-model="form.chunk_overlap_chars" :min="0" :max="1000" :step="20" controls-position="right" class="knowledge-base-form__number" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :md="8" :span="24">
           <el-form-item :label="t('aiKnowledge.form.defaultTopK')" prop="default_top_k" required>
-            <el-input-number v-model="form.default_top_k" :min="1" :max="20" controls-position="right" class="knowledge-base-form__number" />
+            <el-input-number v-model="form.default_top_k" :min="1" :max="20" controls-position="right" class="knowledge-base-form__number" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :md="8" :span="24">
           <el-form-item :label="t('aiKnowledge.form.defaultMinScore')" prop="default_min_score" required>
-            <el-input-number v-model="form.default_min_score" :min="0" :max="100" :step="0.01" controls-position="right" class="knowledge-base-form__number" />
+            <el-input-number v-model="form.default_min_score" :min="0" :max="100" :step="0.01" controls-position="right" class="knowledge-base-form__number" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :md="8" :span="24">
           <el-form-item :label="t('aiKnowledge.form.defaultContext')" prop="default_max_context_chars" required>
-            <el-input-number v-model="form.default_max_context_chars" :min="1000" :max="30000" :step="500" controls-position="right" class="knowledge-base-form__number" />
+            <el-input-number v-model="form.default_max_context_chars" :min="1000" :max="30000" :step="500" controls-position="right" class="knowledge-base-form__number" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :span="24">

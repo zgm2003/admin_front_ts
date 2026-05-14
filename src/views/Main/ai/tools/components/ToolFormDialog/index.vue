@@ -217,7 +217,7 @@ watch(
           </el-col>
           <el-col :md="12" :span="24">
             <el-form-item :label="t('aiTools.form.timeout')" prop="timeout_ms" required>
-              <el-input-number v-model="form.timeout_ms" :min="100" :max="30000" :step="100" style="width: 100%" />
+              <el-input-number v-model="form.timeout_ms" :min="100" :max="30000" :step="100" style="width: 100%" :controls="false" />
             </el-form-item>
           </el-col>
         </el-row>

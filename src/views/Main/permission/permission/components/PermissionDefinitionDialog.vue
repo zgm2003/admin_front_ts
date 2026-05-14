@@ -99,7 +99,7 @@ async function confirmSubmit() {
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="t('permission.form.sort')" prop="sort" required>
-          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1" />
+          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1" :controls="false" />
         </el-form-item>
         <el-form-item v-if="isMenuType" :label="t('permission.form.icon')">
           <el-input v-model="form.icon" style="width:80%" clearable />

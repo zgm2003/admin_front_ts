@@ -257,7 +257,7 @@ onMounted(() => {
         </el-col>
         <el-col :md="12" :span="24">
           <el-form-item :label="t('upload.rule.form.max_size_mb')" prop="max_size_mb" required>
-            <el-input-number v-model="form.max_size_mb" :min="1" :max="10240"/>
+            <el-input-number v-model="form.max_size_mb" :min="1" :max="10240" :controls="false" />
           </el-form-item>
         </el-col>
         <el-col :md="12" :span="24">

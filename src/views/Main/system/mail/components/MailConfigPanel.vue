@@ -199,6 +199,7 @@ onMounted(() => {
                     :max="60"
                     :precision="0"
                     controls-position="right"
+                  :controls="false"
                   />
                   <span class="mail-config__ttl-unit">{{ t('mail.config.minutesUnit') }}</span>
                 </div>
