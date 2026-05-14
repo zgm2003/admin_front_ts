@@ -50,28 +50,48 @@ async function handleTabChange(name: string | number) {
 
 <style scoped>
 .mail-page {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 100%;
   height: 100%;
+  min-height: 0;
   min-width: 0;
   box-sizing: border-box;
   padding: 4px 0;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .mail-page__tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   width: 100%;
   max-width: 100%;
-  min-height: 480px;
+  min-height: 0;
   min-width: 0;
   box-sizing: border-box;
 }
 
-.mail-page__tabs :deep(.el-tabs__content),
-.mail-page__tabs :deep(.el-tab-pane) {
+.mail-page__tabs :deep(.el-tabs__header) {
+  flex: 0 0 auto;
+}
+
+.mail-page__tabs :deep(.el-tabs__content) {
+  flex: 1 1 auto;
   max-width: 100%;
   min-width: 0;
+  min-height: 0;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
+}
+
+.mail-page__tabs :deep(.el-tab-pane) {
+  height: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: auto;
 }
 </style>

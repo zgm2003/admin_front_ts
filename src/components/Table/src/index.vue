@@ -82,11 +82,52 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
   </div>
 </template>
 <style scoped>
-.table-wrapper{display:flex;flex-direction:column}
-.table-wrapper.fixed-footer{height:100%;overflow:hidden}
-.table-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.toolbar-left,.toolbar-right{display:flex;align-items:center}
-.flex-table{flex:1;overflow:hidden}
-.table-footer{display:flex;justify-content:flex-end;margin-top:8px;flex-shrink:0}
-:deep(.el-table-column--selection .cell){display:flex;align-items:center;justify-content:center}
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.table-wrapper.fixed-footer {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.flex-table {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.table-footer {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+:deep(.el-table-column--selection .cell) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

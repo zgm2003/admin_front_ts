@@ -179,37 +179,38 @@ onMounted(() => {
       </template>
     </Search>
 
-    <AppTable
-      :columns="columns"
-      :data="logs"
-      :loading="loading"
-      :pagination="page"
-      row-key="id"
-      selectable
-      :fixed-footer="false"
-      @selection-change="onSelectionChange"
-      @update:pagination="onPageChange"
-      @refresh="refresh"
-    >
-      <template #toolbar-left>
-        <el-button v-if="canDelete" type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
-          {{ t('common.actions.batchDelete') }}
-        </el-button>
-      </template>
+    <div class="mail-log__table">
+      <AppTable
+        :columns="columns"
+        :data="logs"
+        :loading="loading"
+        :pagination="page"
+        row-key="id"
+        selectable
+        @selection-change="onSelectionChange"
+        @update:pagination="onPageChange"
+        @refresh="refresh"
+      >
+        <template #toolbar-left>
+          <el-button v-if="canDelete" type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
+            {{ t('common.actions.batchDelete') }}
+          </el-button>
+        </template>
 
-      <template #cell-scene="{ row }">
-        {{ sceneLabel(row.scene) }}
-      </template>
+        <template #cell-scene="{ row }">
+          {{ sceneLabel(row.scene) }}
+        </template>
 
-      <template #cell-status="{ row }">
-        <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
-      </template>
+        <template #cell-status="{ row }">
+          <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+        </template>
 
-      <template #cell-actions="{ row }">
-        <el-button type="primary" text @click="openDetail(row)">{{ t('common.actions.detail') }}</el-button>
-        <el-button v-if="canDelete" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
-      </template>
-    </AppTable>
+        <template #cell-actions="{ row }">
+          <el-button type="primary" text @click="openDetail(row)">{{ t('common.actions.detail') }}</el-button>
+          <el-button v-if="canDelete" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+        </template>
+      </AppTable>
+    </div>
 
     <AppDialog v-model="detailVisible" :title="t('mail.log.detailTitle')" width="760px">
       <el-skeleton v-if="detailLoading" :rows="6" animated />
@@ -251,7 +252,17 @@ onMounted(() => {
 .mail-log {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   gap: 14px;
+}
+
+.mail-log__table {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
 }
 
 .mail-log__notice,

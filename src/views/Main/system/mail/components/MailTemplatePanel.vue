@@ -50,6 +50,11 @@ const rules = computed<FormRules<MailTemplateFormState>>(() => ({
 }))
 
 const dialogTitle = computed(() => dialogMode.value === 'create' ? t('mail.template.createTitle') : t('mail.template.editTitle'))
+const templatePage = computed(() => ({
+  current_page: 1,
+  page_size: 20,
+  total: templates.value.length,
+}))
 const columns = computed(() => [
   { key: 'id', label: 'ID', width: 90 },
   { key: 'scene', label: t('mail.template.scene'), minWidth: 150 },
@@ -266,51 +271,53 @@ onMounted(() => {
 
 <template>
   <div class="mail-template">
-    <AppTable
-      :columns="columns"
-      :data="templates"
-      :loading="loading"
-      row-key="id"
-      :fixed-footer="false"
-      @refresh="load"
-    >
-      <template #toolbar-left>
-        <el-button v-if="userStore.can('system_mail_templateAdd')" type="success" @click="openCreate">
-          {{ t('common.actions.add') }}
-        </el-button>
-      </template>
+    <div class="mail-template__table">
+      <AppTable
+        :columns="columns"
+        :data="templates"
+        :loading="loading"
+        :pagination="templatePage"
+        row-key="id"
+        @refresh="load"
+      >
+        <template #toolbar-left>
+          <el-button v-if="userStore.can('system_mail_templateAdd')" type="success" @click="openCreate">
+            {{ t('common.actions.add') }}
+          </el-button>
+        </template>
 
-      <template #cell-scene="{ row }">
-        {{ sceneLabel(row.scene) }}
-      </template>
+        <template #cell-scene="{ row }">
+          {{ sceneLabel(row.scene) }}
+        </template>
 
-      <template #cell-variables="{ row }">
-        <el-space wrap class="mail-template__variables">
-          <el-tag v-for="item in row.variables" :key="item" size="small">{{ item }}</el-tag>
-        </el-space>
-      </template>
+        <template #cell-variables="{ row }">
+          <el-space wrap class="mail-template__variables">
+            <el-tag v-for="item in row.variables" :key="item" size="small">{{ item }}</el-tag>
+          </el-space>
+        </template>
 
-      <template #cell-status="{ row }">
-        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
-          {{ statusLabel(row.status) }}
-        </el-tag>
-      </template>
+        <template #cell-status="{ row }">
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+            {{ statusLabel(row.status) }}
+          </el-tag>
+        </template>
 
-      <template #cell-actions="{ row }">
-        <el-button v-if="userStore.can('system_mail_templateEdit')" type="primary" text @click="openEdit(row)">
-          {{ t('common.actions.edit') }}
-        </el-button>
-        <el-button v-if="row.status === CommonEnum.NO && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.YES)">
-          {{ t('common.actions.enable') }}
-        </el-button>
-        <el-button v-if="row.status === CommonEnum.YES && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.NO)">
-          {{ t('common.actions.disable') }}
-        </el-button>
-        <el-button v-if="userStore.can('system_mail_templateDel')" type="danger" text @click="deleteTemplate(row)">
-          {{ t('common.actions.del') }}
-        </el-button>
-      </template>
-    </AppTable>
+        <template #cell-actions="{ row }">
+          <el-button v-if="userStore.can('system_mail_templateEdit')" type="primary" text @click="openEdit(row)">
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button v-if="row.status === CommonEnum.NO && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.YES)">
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button v-if="row.status === CommonEnum.YES && userStore.can('system_mail_templateStatus')" type="warning" text @click="changeStatus(row, CommonEnum.NO)">
+            {{ t('common.actions.disable') }}
+          </el-button>
+          <el-button v-if="userStore.can('system_mail_templateDel')" type="danger" text @click="deleteTemplate(row)">
+            {{ t('common.actions.del') }}
+          </el-button>
+        </template>
+      </AppTable>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="720px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="160px">
@@ -364,6 +371,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.mail-template {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mail-template__table {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
 .mail-template__variables {
   width: 100%;
   justify-content: center;
