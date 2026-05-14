@@ -1272,7 +1272,11 @@ export default {
       requestId: 'RequestId',
       messageId: 'MessageId',
       sentAt: 'Sent At',
-      detailTitle: 'Mail Log Detail'
+      detailTitle: 'Mail Log Detail',
+      templateTitle: 'Send Template Context',
+      templateScene: 'Template Scene',
+      templateName: 'Template Name',
+      securityNotice: 'This system records only Tencent template ID, variable names, and delivery result. Mail body is maintained in Tencent Cloud, and plaintext verification codes or full TemplateData are not stored.'
     }
   },
   components: {

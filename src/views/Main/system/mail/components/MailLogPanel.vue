@@ -39,6 +39,7 @@ const dict = ref<MailPageInitResponse['dict']>({
   mail_scene_arr: [],
   mail_log_scene_arr: [],
   mail_log_status_arr: [],
+  mail_region_arr: [],
   default_region: 'ap-guangzhou',
   default_endpoint: 'ses.tencentcloudapi.com',
 })
@@ -220,22 +221,36 @@ onMounted(() => {
 
     <AppDialog v-model="detailVisible" :title="t('mail.log.detailTitle')" width="760px">
       <el-skeleton v-if="detailLoading" :rows="6" animated />
-      <el-descriptions v-else-if="detail" :column="2" border>
-        <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.scene')">{{ sceneLabel(detail.scene) }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.toEmail')">{{ detail.to_email }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.subject')">{{ detail.subject || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.status')">
-          <el-tag :type="statusType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.duration')">{{ detail.duration_ms }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.requestId')">{{ detail.tencent_request_id || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.messageId')">{{ detail.tencent_message_id || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.errorCode')">{{ detail.error_code || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.errorMessage')">{{ detail.error_message || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.log.sentAt')">{{ detail.sent_at || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('mail.common.createdAt')">{{ detail.created_at || '-' }}</el-descriptions-item>
-      </el-descriptions>
+      <template v-else-if="detail">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.scene')">{{ sceneLabel(detail.scene) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.toEmail')">{{ detail.to_email }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.subject')">{{ detail.subject || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.status')">
+            <el-tag :type="statusType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.duration')">{{ detail.duration_ms }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.requestId')">{{ detail.tencent_request_id || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.messageId')">{{ detail.tencent_message_id || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.errorCode')">{{ detail.error_code || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.errorMessage')">{{ detail.error_message || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.sentAt')">{{ detail.sent_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.common.createdAt')">{{ detail.created_at || '-' }}</el-descriptions-item>
+        </el-descriptions>
+
+        <el-alert class="mail-log__notice" type="info" :closable="false" :title="t('mail.log.securityNotice')" />
+        <el-descriptions v-if="detail.template" class="mail-log__template" :title="t('mail.log.templateTitle')" :column="2" border>
+          <el-descriptions-item :label="t('mail.log.templateScene')">{{ sceneLabel(detail.template.scene) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.templateName')">{{ detail.template.name || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.template.tencentTemplateId')">{{ detail.template.tencent_template_id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('mail.template.variables')">
+            <el-space wrap>
+              <el-tag v-for="item in detail.template.variables" :key="item" size="small">{{ item }}</el-tag>
+            </el-space>
+          </el-descriptions-item>
+        </el-descriptions>
+      </template>
     </AppDialog>
   </div>
 </template>
@@ -245,5 +260,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.mail-log__notice,
+.mail-log__template {
+  margin-top: 14px;
 }
 </style>

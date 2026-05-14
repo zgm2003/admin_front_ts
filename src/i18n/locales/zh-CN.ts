@@ -1387,7 +1387,11 @@ export default {
       requestId: 'RequestId',
       messageId: 'MessageId',
       sentAt: '发送时间',
-      detailTitle: '邮件日志详情'
+      detailTitle: '邮件日志详情',
+      templateTitle: '发送模板上下文',
+      templateScene: '模板场景',
+      templateName: '模板名称',
+      securityNotice: '本系统只记录腾讯模板 ID、变量名和发送结果；邮件正文在腾讯云模板里维护，验证码明文和完整 TemplateData 不入库。'
     }
   },
   components: {

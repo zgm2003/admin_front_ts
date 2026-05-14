@@ -6,6 +6,7 @@ export type MailCommonStatus = 1 | 2
 export type MailLogStatus = 1 | 2 | 3
 export type MailTemplateScene = 'login' | 'forget' | 'bind_email' | 'change_password'
 export type MailLogScene = MailTemplateScene | 'test'
+export type MailRegion = 'ap-guangzhou' | 'ap-hongkong'
 
 export interface MailPageInitResponse {
   dict: {
@@ -13,6 +14,7 @@ export interface MailPageInitResponse {
     mail_scene_arr: DictOption<MailTemplateScene>[]
     mail_log_scene_arr: DictOption<MailLogScene>[]
     mail_log_status_arr: DictOption<MailLogStatus>[]
+    mail_region_arr: DictOption<MailRegion>[]
     default_region: string
     default_endpoint: string
   }
@@ -129,6 +131,16 @@ export interface MailLogItem {
   sent_at: string | null
   created_at: string
   updated_at: string
+  template?: MailLogTemplate | null
+}
+
+export interface MailLogTemplate {
+  id: number
+  scene: MailTemplateScene
+  name: string
+  tencent_template_id: number
+  variables: string[]
+  status: MailCommonStatus
 }
 
 interface MailStatusPayload {

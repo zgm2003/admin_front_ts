@@ -21,6 +21,9 @@ describe('mail api and page contract', () => {
     expect(source).toContain('request.get<MailTemplateListResponse>(`${BASE}/templates`)')
     expect(source).toContain('request.get<PaginatedResponse<MailLogItem>>(`${BASE}/logs`, { params: normalizeLogParams(params) })')
     expect(source).toContain('request.delete<void, MailDeletePayload>(`${BASE}/logs`, { data: { ids } })')
+    expect(source).toContain('mail_region_arr: DictOption<MailRegion>[]')
+    expect(source).toContain("export type MailRegion = 'ap-guangzhou' | 'ap-hongkong'")
+    expect(source).toContain('export interface MailLogTemplate')
     expect(source).not.toContain('legacyRequest')
     expect(source).not.toContain('/api/admin/Mail')
   })
@@ -79,6 +82,18 @@ describe('mail api and page contract', () => {
     expect(logSource).not.toContain('<el-form')
     expect(logSource).not.toContain('<el-table')
     expect(logSource).not.toContain('<el-pagination')
+  })
+
+  it('uses constrained Tencent SES region options and explains log template context', () => {
+    const configSource = readFrontendSource('src/views/Main/system/mail/components/MailConfigPanel.vue')
+    const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')
+
+    expect(configSource).toContain('<el-select-v2')
+    expect(configSource).toContain(':options="dict.mail_region_arr"')
+    expect(configSource).not.toContain('<el-input v-model="form.region"')
+    expect(logSource).toContain('detail.template')
+    expect(logSource).toContain("t('mail.log.templateTitle')")
+    expect(logSource).toContain("t('mail.log.securityNotice')")
   })
 
   it('lazy-loads mail tabs and refreshes mail logs when the log tab is reactivated', () => {

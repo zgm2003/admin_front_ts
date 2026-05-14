@@ -30,6 +30,7 @@ const dict = ref<MailPageInitResponse['dict']>({
   mail_scene_arr: [],
   mail_log_scene_arr: [],
   mail_log_status_arr: [],
+  mail_region_arr: [],
   default_region: 'ap-guangzhou',
   default_endpoint: 'ses.tencentcloudapi.com',
 })

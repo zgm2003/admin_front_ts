@@ -25,6 +25,7 @@ const dict = ref<MailPageInitResponse['dict']>({
   mail_scene_arr: [],
   mail_log_scene_arr: [],
   mail_log_status_arr: [],
+  mail_region_arr: [],
   default_region: 'ap-guangzhou',
   default_endpoint: 'ses.tencentcloudapi.com',
 })
@@ -166,7 +167,12 @@ onMounted(() => {
           </el-col>
           <el-col :span="24" :md="12">
             <el-form-item :label="t('mail.config.region')" prop="region">
-              <el-input v-model="form.region" clearable />
+              <el-select-v2
+                v-model="form.region"
+                :options="dict.mail_region_arr"
+                class="mail-config__select"
+                :placeholder="t('mail.config.rules.region')"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24" :md="12">
