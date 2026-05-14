@@ -1,3 +1,4 @@
+import Cookies from 'js-cookie'
 import { getDeviceId } from './device'
 
 export function generateTraceId(): string {
@@ -17,9 +18,15 @@ export function getPlatform(): string {
     : 'admin'
 }
 
+export function getRequestLanguage(): 'zh-CN' | 'en-US' {
+  const lang = Cookies.get('lang')
+  return lang === 'en-US' ? 'en-US' : 'zh-CN'
+}
+
 export function buildCommonHeaders(token?: string): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept-Language': getRequestLanguage(),
     platform: getPlatform(),
     'device-id': getDeviceId(),
     'X-Trace-Id': generateTraceId(),
