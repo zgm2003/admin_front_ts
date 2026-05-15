@@ -9,12 +9,17 @@ import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
 import Footer from '@/views/Layout/components/Footer/index.vue'
 import { useMenuStore } from '@/store/menu'
+import { resolvePageLayout } from '@/views/Layout/utils/page-layout'
 
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
 
-const isPlainPage = computed(() => route.path === '/home')
+const pageLayout = computed(() => resolvePageLayout(route.meta))
+const layoutViewClass = computed(() => ({
+  'page-card': pageLayout.value === 'card',
+  'layout-view--centered': pageLayout.value === 'centered',
+}))
 
 useWebSocket()
 
@@ -66,12 +71,12 @@ watch(isMobile, (val) => {
             :name="menuStore.transitionName"
             mode="out-in"
           >
-            <div :key="route.fullPath + '::' + menuStore.refreshKey" class="layout-view" :class="{ 'page-card': !isPlainPage }">
+            <div :key="route.fullPath + '::' + menuStore.refreshKey" class="layout-view" :class="layoutViewClass">
               <component :is="Component" />
             </div>
           </transition>
 
-          <div v-else class="layout-view" :class="{ 'page-card': !isPlainPage }">
+          <div v-else class="layout-view" :class="layoutViewClass">
             <component :is="Component" :key="route.fullPath + '::' + menuStore.refreshKey" />
           </div>
         </router-view>
@@ -138,6 +143,13 @@ watch(isMobile, (val) => {
 .layout-view {
   min-height: 100%;
   height: 100%;
+}
+
+.layout-view--centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
 .page-card {
@@ -249,6 +261,11 @@ watch(isMobile, (val) => {
     -webkit-overflow-scrolling: touch;
   }
 
+  .layout-view--centered {
+    min-height: 100%;
+    padding: 16px;
+  }
+
   .page-card {
     height: auto;
     min-height: 100%;
@@ -263,6 +280,10 @@ watch(isMobile, (val) => {
   .layout-content,
   .page-card {
     padding: 10px;
+  }
+
+  .layout-view--centered {
+    padding: 12px;
   }
 
   .page-card {

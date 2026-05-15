@@ -1,4 +1,6 @@
-export type ViewModuleLoader = () => Promise<{ default: object }>
+import type { Component } from 'vue'
+
+export type ViewModuleLoader = () => Promise<{ default: Component }>
 export type ViewModuleMap = Record<string, ViewModuleLoader>
 
 export function buildViewModuleKey(viewKey: string): string | null {

@@ -1416,6 +1416,14 @@ export default {
       description: '抱歉，您访问的页面不存在或已被移除',
       back: '返回上页',
       home: '返回首页'
+    },
+    deadPage: {
+      title: '页面组件未找到',
+      description: '路由已经命中，但 view_key 没有解析到对应的页面组件。',
+      detailPath: '路由路径',
+      detailViewKey: 'view_key',
+      back: '返回上页',
+      home: '返回首页'
     }
   },
   uploadRuntime: {

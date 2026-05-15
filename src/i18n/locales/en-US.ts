@@ -1301,6 +1301,14 @@ export default {
       description: 'Sorry, the page you visited does not exist or has been removed.',
       back: 'Go back',
       home: 'Go home'
+    },
+    deadPage: {
+      title: 'Component not found',
+      description: 'The route matched, but the backend view_key did not resolve to a page component.',
+      detailPath: 'Route path',
+      detailViewKey: 'view_key',
+      back: 'Go back',
+      home: 'Go home'
     }
   },
   uploadRuntime: {

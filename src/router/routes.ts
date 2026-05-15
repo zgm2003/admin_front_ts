@@ -2,11 +2,21 @@ import type { RouteRecordRaw } from 'vue-router'
 
 export const publicRoutes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('@/views/Login/index.vue') },
-  { path: '/404', name: '404', component: () => import('@/views/Error/404.vue') },
 ]
 
 export const baseChildren: RouteRecordRaw[] = [
-  { path: '/home', name: 'home', component: () => import('@/views/Main/home/index.vue'), meta: { menuId: '0' } },
+  {
+    path: '/home',
+    name: 'home',
+    component: () => import('@/views/Main/home/index.vue'),
+    meta: { menuId: '0', pageLayout: 'plain' },
+  },
+  {
+    path: '/404',
+    name: '404',
+    component: () => import('@/views/Error/404.vue'),
+    meta: { pageLayout: 'centered', errorKind: 'not-found' },
+  },
 ]
 
 export function createMainRoute(children: RouteRecordRaw[] = [...baseChildren]): RouteRecordRaw {

@@ -2,19 +2,22 @@ import {createRouter, createWebHistory} from 'vue-router'
 import Cookies from 'js-cookie'
 import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
-import {ElNotification} from 'element-plus'
 import { baseChildren, createCatchAllRoute, createMainRoute, publicRoutes } from '@/router/routes'
 import type { DynamicRouteItem } from '@/types/user'
 import {
     registerRouterGuards,
 } from '@/router/guards'
 import { resolveCurrentRouteTarget, resolveRouteRestoreTarget } from '@/router/guard-helpers'
-import { resolveViewComponent, type ViewModuleMap } from '@/router/view-registry'
+import { type ViewModuleMap } from '@/router/view-registry'
+import { buildRuntimeRouteTree } from '@/router/runtime-route-tree'
 
 const mainRoute = createMainRoute()
-const router = createRouter({history: createWebHistory(), routes: [...publicRoutes]})
+const router = createRouter({history: createWebHistory(), routes: [...publicRoutes, mainRoute]})
 
 export async function setupDynamicRoutes() {
+    mainRoute.children = [...baseChildren]
+    router.addRoute(mainRoute)
+
     // 先检查是否有有效的认证信息
     const accessToken = Cookies.get('access_token')
     const refreshToken = Cookies.get('refresh_token')
@@ -30,21 +33,7 @@ export async function setupDynamicRoutes() {
     const storedRoutes: DynamicRouteItem[] = Array.isArray(userStore.router) ? userStore.router : []
     const componentPaths = import.meta.glob('../views/Main/**/*.vue') as ViewModuleMap
 
-    // Reset children to base
-    mainRoute.children = [...baseChildren]
-    const mainChildren = mainRoute.children ?? []
-    mainRoute.children = mainChildren
-
-    if (storedRoutes.length > 0) {
-        storedRoutes.forEach((route) => {
-            const component = resolveViewComponent(componentPaths, route.view_key)
-            if (component) {
-                mainChildren.push({path: route.path, name: route.name, component, meta: {...(route.meta || {})}})
-            } else {
-                ElNotification.error({message: `View not found for route ${route.path}: ${route.view_key}`})
-            }
-        })
-    }
+    mainRoute.children = [...baseChildren, ...buildRuntimeRouteTree(storedRoutes, componentPaths)]
     
     // Always add (replace) the route to ensure updates
     router.addRoute(mainRoute)

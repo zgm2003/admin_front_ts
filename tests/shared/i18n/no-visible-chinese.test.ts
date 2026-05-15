@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 const guardedFiles = [
   'src/views/Error/404.vue',
+  'src/views/Error/DeadPage.vue',
   'src/store/user.ts',
   'src/lib/upload/uploadClient.ts',
   'src/utils/date.ts',
