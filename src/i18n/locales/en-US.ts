@@ -292,6 +292,7 @@ export default {
     // Payment module
     payment: 'Payment',
     payment_config: 'Payment Config',
+    payment_order: 'Payment Orders',
   },
   personal: {
     title: 'Personal Info',

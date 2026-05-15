@@ -56,7 +56,7 @@ function clearMask() {
         <h2 class="composer-title">{{ t('aiImages.title') }}</h2>
         <p class="composer-subtitle">{{ t('aiImages.subtitle') }}</p>
       </div>
-      <el-tag type="success">gpt-image-2</el-tag>
+      <el-tag class="model-tag" type="success">gpt-image-2</el-tag>
     </div>
 
     <el-form label-position="top" class="composer-form">
@@ -147,7 +147,7 @@ function clearMask() {
 .image-composer {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -157,6 +157,7 @@ function clearMask() {
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
+  padding-bottom: 2px;
 }
 
 .composer-title-group {
@@ -164,27 +165,45 @@ function clearMask() {
 }
 
 .composer-title {
-  font-size: 20px;
-  line-height: 1.2;
+  color: var(--image-studio-text, var(--el-text-color-primary));
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
   margin: 0;
 }
 
 .composer-subtitle {
-  color: var(--el-text-color-secondary);
-  margin: 8px 0 0;
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
+  line-height: 1.65;
+  margin: 10px 0 0;
   overflow-wrap: anywhere;
+}
+
+.model-tag {
+  flex-shrink: 0;
+  border-radius: 999px;
+  font-weight: 650;
 }
 
 .composer-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+}
+
+.composer-form :deep(.el-textarea__inner) {
+  min-height: 188px !important;
+  padding: 14px 15px;
+  line-height: 1.7;
+  resize: vertical;
 }
 
 .param-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  column-gap: 14px;
+  row-gap: 2px;
 }
 
 .param-grid :deep(.el-input-number),
@@ -198,15 +217,18 @@ function clearMask() {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 10px;
   min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
 }
 
 .reference-hint {
-  color: var(--el-text-color-secondary);
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
   display: block;
   font-size: 12px;
-  margin-top: 4px;
+  line-height: 1.6;
+  margin-top: 6px;
 }
 
 .reference-actions {
@@ -221,8 +243,15 @@ function clearMask() {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 16px;
   min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
+}
+
+.composer-actions :deep(.el-button--large) {
+  min-width: 128px;
+  height: 44px;
 }
 
 @media (max-width: 640px) {

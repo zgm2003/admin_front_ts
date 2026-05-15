@@ -366,16 +366,27 @@ onMounted(() => {
 
 <style scoped>
 .ai-image-page {
+  --image-studio-bg: #f7f9fc;
+  --image-studio-surface: #ffffff;
+  --image-studio-surface-soft: #fbfcff;
+  --image-studio-line: #e5ebf3;
+  --image-studio-line-strong: #d6dfeb;
+  --image-studio-text: #172033;
+  --image-studio-muted: #7a8495;
+  --image-studio-primary-soft: color-mix(in srgb, var(--el-color-primary) 9%, transparent);
+  --image-studio-shadow: 0 14px 34px rgba(20, 42, 74, 0.06);
+  --image-studio-shadow-hover: 0 18px 42px rgba(20, 42, 74, 0.1);
   height: 100%;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+  color: var(--image-studio-text);
 }
 
 .image-workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: minmax(360px, 41%) minmax(0, 1fr);
+  gap: 20px;
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -386,10 +397,55 @@ onMounted(() => {
   min-height: 0;
   min-width: 0;
   overflow: auto;
-  padding: 16px;
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 14px;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(251, 252, 255, 0.9)),
+    radial-gradient(circle at 10% 0%, var(--image-studio-primary-soft), transparent 32%);
+  border: 1px solid var(--image-studio-line);
+  border-radius: 20px;
+  box-shadow: var(--image-studio-shadow);
+  scrollbar-gutter: stable;
+  transition:
+    border-color var(--app-motion-fast) var(--app-ease-standard),
+    box-shadow var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.image-panel:hover {
+  border-color: var(--image-studio-line-strong);
+  box-shadow: var(--image-studio-shadow-hover);
+}
+
+.image-panel :deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+.image-panel :deep(.el-form-item__label) {
+  padding-bottom: 8px;
+  color: var(--image-studio-text);
+  font-weight: 650;
+}
+
+.image-panel :deep(.el-input__wrapper),
+.image-panel :deep(.el-select__wrapper),
+.image-panel :deep(.el-textarea__inner) {
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--image-studio-line) inset;
+  transition:
+    box-shadow var(--app-motion-fast) var(--app-ease-standard),
+    background-color var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.image-panel :deep(.el-input__wrapper.is-focus),
+.image-panel :deep(.el-select__wrapper.is-focused),
+.image-panel :deep(.el-textarea__inner:focus) {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--el-color-primary) 52%, transparent) inset,
+    0 0 0 3px color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+}
+
+.image-panel :deep(.el-button) {
+  border-radius: 12px;
+  font-weight: 600;
 }
 
 @media (max-width: 1180px) {
@@ -405,6 +461,17 @@ onMounted(() => {
 
   .image-panel {
     overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .image-workspace {
+    gap: 14px;
+  }
+
+  .image-panel {
+    padding: 16px;
+    border-radius: 16px;
   }
 }
 </style>

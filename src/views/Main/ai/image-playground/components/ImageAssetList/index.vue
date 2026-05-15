@@ -63,44 +63,57 @@ const maskTargetName = computed(() => {
 .image-asset-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .asset-empty {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 12px;
-  color: var(--el-text-color-secondary);
-  padding: 18px;
+  border: 1px dashed var(--image-studio-line-strong, var(--el-border-color));
+  border-radius: 14px;
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
+  padding: 22px;
   text-align: center;
+  background: var(--image-studio-surface-soft, var(--el-fill-color-extra-light));
 }
 
 .asset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
 }
 
 .asset-card,
 .mask-card {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
+  border-radius: 14px;
   overflow: hidden;
-  background: var(--el-bg-color);
+  background: var(--image-studio-surface, var(--el-bg-color));
+  transition:
+    border-color var(--app-motion-fast) var(--app-ease-standard),
+    box-shadow var(--app-motion-fast) var(--app-ease-standard),
+    transform var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.asset-card:hover,
+.mask-card:hover {
+  border-color: color-mix(in srgb, var(--el-color-primary) 34%, var(--image-studio-line, var(--el-border-color)));
+  box-shadow: 0 12px 28px rgba(20, 42, 74, 0.08);
+  transform: translateY(-1px);
 }
 
 .asset-thumb {
   width: 100%;
-  height: 104px;
+  height: 112px;
   display: block;
+  background: var(--el-fill-color-light);
 }
 
 .asset-meta {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  color: var(--el-text-color-secondary);
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
   font-size: 12px;
-  padding: 8px 10px 0;
+  padding: 9px 10px 0;
 }
 
 .mask-card {
@@ -113,7 +126,7 @@ const maskTargetName = computed(() => {
 .mask-thumb {
   width: 76px;
   height: 76px;
-  border-radius: 10px;
+  border-radius: 12px;
   flex: none;
 }
 
@@ -123,6 +136,6 @@ const maskTargetName = computed(() => {
   min-width: 0;
   flex-direction: column;
   gap: 4px;
-  color: var(--el-text-color-regular);
+  color: var(--image-studio-text, var(--el-text-color-regular));
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { AppDialog } from '@/components/AppDialog'
 import type { AiImageAssetItem } from '@/api/ai/images'
 import type { UploadAssetRequest } from '../../types'
 
@@ -36,7 +37,7 @@ function beforeMaskUpload(file: File) {
 </script>
 
 <template>
-  <el-dialog v-model="visible" :title="t('aiImages.maskEdit')" width="720px">
+  <AppDialog v-model="visible" :title="t('aiImages.maskEdit')" width="720px" height="66vh" body-padding="20px">
     <div class="mask-dialog">
       <el-alert :title="t('aiImages.maskTip')" type="info" :closable="false" />
 
@@ -52,10 +53,16 @@ function beforeMaskUpload(file: File) {
       </el-form>
 
       <div class="target-preview">
-        <div v-for="asset in assets" :key="asset.id" :class="['target-card', { active: asset.id === targetAssetId }]" @click="targetAssetId = asset.id">
+        <button
+          v-for="asset in assets"
+          :key="asset.id"
+          type="button"
+          :class="['target-card', { active: asset.id === targetAssetId }]"
+          @click="targetAssetId = asset.id"
+        >
           <el-image class="target-image" :src="asset.storage_url" fit="cover" />
           <span>#{{ asset.id }}</span>
-        </div>
+        </button>
       </div>
 
       <el-upload accept="image/*" :show-file-list="false" :disabled="uploading || !targetAssetId" :before-upload="beforeMaskUpload">
@@ -64,40 +71,61 @@ function beforeMaskUpload(file: File) {
         </el-button>
       </el-upload>
     </div>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>
 .mask-dialog {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .target-preview {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+  gap: 14px;
 }
 
 .target-card {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
+  appearance: none;
+  border: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
+  border-radius: 14px;
+  background: var(--image-studio-surface, var(--el-bg-color));
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
   cursor: pointer;
   overflow: hidden;
-  padding: 6px;
+  padding: 7px;
+  text-align: left;
+  transition:
+    border-color var(--app-motion-fast) var(--app-ease-standard),
+    box-shadow var(--app-motion-fast) var(--app-ease-standard),
+    transform var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.target-card:hover {
+  border-color: color-mix(in srgb, var(--el-color-primary) 34%, var(--image-studio-line, var(--el-border-color)));
+  box-shadow: 0 12px 28px rgba(20, 42, 74, 0.08);
+  transform: translateY(-1px);
+}
+
+.target-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
 }
 
 .target-card.active {
   border-color: var(--el-color-primary);
-  box-shadow: 0 0 0 2px var(--el-color-primary-light-8);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--el-color-primary) 14%, transparent),
+    0 12px 28px rgba(20, 42, 74, 0.08);
 }
 
 .target-image {
   width: 100%;
-  height: 92px;
-  border-radius: 8px;
+  height: 100px;
+  border-radius: 10px;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 </style>
