@@ -127,6 +127,7 @@ async function init() {
     scene_arr: data.dict.scene_arr.length > 0 ? data.dict.scene_arr : [
       { label: t('aiAgents.scene.chat'), value: 'chat' },
       { label: t('aiAgents.scene.agentGenerate'), value: 'agent_generate' },
+      { label: t('aiAgents.scene.imageGenerate'), value: 'image_generate' },
     ],
   }
   modelOptions.value = buildModelOptions()

@@ -21,7 +21,7 @@ describe('router guards', () => {
   })
 
   it('restores the last visited path when the current route is root or login', () => {
-    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/payment/channel' })).toBe('/payment/channel')
+    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/payment/config' })).toBe('/payment/config')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/login' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '' })).toBe('/home')
     expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '/user/userManager' })).toBe('/user/userManager')

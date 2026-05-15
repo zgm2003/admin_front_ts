@@ -35,7 +35,7 @@ describe('AI agent api contract', () => {
 
   it('keeps strict MVP mutation types', () => {
     const source = readFrontendSource('src/api/ai/agents.ts')
-    expect(source).toContain("export type AiAgentScene = 'chat' | 'agent_generate'")
+    expect(source).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'image_generate'")
     expect(source).toContain('model_id: string')
     expect(source).toContain('scenes: AiAgentScene[]')
     expect(source).toContain('system_prompt?: string')
@@ -59,7 +59,9 @@ describe('AI agent api contract', () => {
     expect(source).toContain('<el-cascader')
     expect(source).toContain('scenes')
     expect(source).toContain("agentGenerate")
+    expect(source).toContain("imageGenerate")
     expect(source).toContain("value: 'agent_generate'")
+    expect(source).toContain("value: 'image_generate'")
     expect(source).toContain('system_prompt')
     expect(source).toContain('UpMedia')
     expect(source).toContain('<AgentToolDialog')
