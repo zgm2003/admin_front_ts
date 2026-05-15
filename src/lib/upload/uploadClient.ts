@@ -5,6 +5,7 @@ import {
   type UploadTokenResponse,
 } from '@/api/system/uploadToken'
 import i18n from '@/i18n'
+import { buildPublicFileURL } from './url'
 
 interface CosAuthorization {
   TmpSecretId: string
@@ -102,8 +103,7 @@ const uploadToCos = async (
         return
       }
 
-      const domain = config.bucket_domain || `${bucket}.cos.${region}.myqcloud.com`
-      const url = `https://${domain}/${encodeURI(key)}`
+      const url = buildPublicFileURL(config.bucket_domain, bucket, region, key)
       resolve({ url, key })
     })
   })
