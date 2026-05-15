@@ -293,6 +293,7 @@ export default {
     payment: 'Payment',
     payment_config: 'Payment Config',
     payment_order: 'Payment Orders',
+    payment_recharge: 'Recharge',
   },
   personal: {
     title: 'Personal Info',

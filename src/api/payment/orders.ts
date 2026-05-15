@@ -59,21 +59,6 @@ export interface PaymentOrderDetail extends PaymentOrderListItem {
   failure_reason: string
 }
 
-export interface PaymentOrderCreatePayload {
-  config_code: string
-  pay_method: PaymentOrderPayMethod
-  subject: string
-  amount_cents: number
-  return_url: string
-  expire_minutes: number
-}
-
-export interface PaymentOrderCreateResponse {
-  id: number
-  order_no: string
-  status: PaymentOrderStatus
-}
-
 export interface PaymentOrderPayResponse {
   id: number
   order_no: string
@@ -100,7 +85,6 @@ export const PaymentOrderApi = {
   init: () => request.get<PaymentOrderInitResponse>(`${ADMIN_API_PREFIX}/payment/orders/page-init`),
   list: (params: PaymentOrderListParams) => request.get<PaginatedResponse<PaymentOrderListItem>>(`${ADMIN_API_PREFIX}/payment/orders`, { params }),
   detail: (id: number) => request.get<PaymentOrderDetail>(`${ADMIN_API_PREFIX}/payment/orders/${positiveID(id)}`),
-  add: (payload: PaymentOrderCreatePayload) => request.post<PaymentOrderCreateResponse, PaymentOrderCreatePayload>(`${ADMIN_API_PREFIX}/payment/orders`, payload),
   pay: (id: number) => request.post<PaymentOrderPayResponse>(`${ADMIN_API_PREFIX}/payment/orders/${positiveID(id)}/pay`),
   sync: (id: number) => request.post<PaymentOrderStatusResponse>(`${ADMIN_API_PREFIX}/payment/orders/${positiveID(id)}/sync`),
   close: (id: number) => request.patch<PaymentOrderStatusResponse>(`${ADMIN_API_PREFIX}/payment/orders/${positiveID(id)}/close`),

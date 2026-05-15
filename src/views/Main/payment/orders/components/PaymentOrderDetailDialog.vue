@@ -55,9 +55,6 @@ function display(value: string | number | null | undefined): string | number {
         </el-link>
         <span v-else>-</span>
       </el-descriptions-item>
-      <el-descriptions-item label="同步返回地址" :span="2">
-        {{ display(detail.return_url) }}
-      </el-descriptions-item>
       <el-descriptions-item label="过期时间">
         {{ display(detail.expired_at) }}
       </el-descriptions-item>
@@ -86,3 +83,4 @@ function display(value: string | number | null | undefined): string | number {
   word-break: break-all;
 }
 </style>
+

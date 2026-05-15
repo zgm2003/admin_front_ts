@@ -293,6 +293,7 @@ export default {
     payment: '支付管理',
     payment_config: '支付配置',
     payment_order: '支付订单',
+    payment_recharge: '充值/记录',
   },
   personal: {
     title: '个人信息',

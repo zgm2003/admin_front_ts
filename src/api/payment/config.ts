@@ -42,6 +42,7 @@ export interface PaymentConfigListItem {
   environment_text: string
   enabled_methods: PaymentEnabledMethod[]
   enabled_methods_text: string
+  sort: number
   status: number
   status_text: string
   remark: string
@@ -62,6 +63,7 @@ export interface PaymentConfigMutationPayload {
   notify_url: string
   environment: PaymentEnvironment
   enabled_methods: PaymentEnabledMethod[]
+  sort: number
   status: number
   remark: string
 }

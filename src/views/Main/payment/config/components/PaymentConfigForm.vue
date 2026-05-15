@@ -135,6 +135,27 @@ defineExpose({
             />
           </el-form-item>
         </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            label="优先级"
+            prop="sort"
+            required
+          >
+            <el-input-number
+              v-model="form.sort"
+              :controls="false"
+              :max="9999"
+              :min="1"
+              style="width: 100%"
+            />
+            <div class="payment-config-help">
+              数字越小越优先。状态关闭时不会参与充值支付。
+            </div>
+          </el-form-item>
+        </el-col>
         <el-col :span="24">
           <el-form-item
             label="备注"
@@ -336,6 +357,13 @@ defineExpose({
   color: var(--el-text-color-secondary);
   font-size: 12px;
   line-height: 18px;
+}
+
+.payment-config-help {
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 </style>
 

@@ -51,6 +51,7 @@ export function usePaymentConfigPage() {
     { key: 'app_id', label: 'AppID', minWidth: 170 },
     { key: 'environment_text', label: '环境', width: 110 },
     { key: 'enabled_methods_text', label: '支付方式', minWidth: 130 },
+    { key: 'sort', label: '优先级', width: 90 },
     { key: 'status_text', label: '状态', width: 90 },
     { key: 'created_at', label: '创建时间', minWidth: 170 },
     { key: 'updated_at', label: '更新时间', minWidth: 170 },
@@ -84,6 +85,7 @@ export function usePaymentConfigPage() {
     ],
     environment: [{ required: true, message: '请选择环境', trigger: 'change' }],
     enabled_methods: [{ required: true, message: '请选择支付方式', trigger: 'change' }],
+    sort: [{ required: true, message: '请输入支付优先级', trigger: 'blur' }],
     status: [{ required: true, message: '请选择状态', trigger: 'change' }],
   }))
 
@@ -119,6 +121,7 @@ export function usePaymentConfigPage() {
       notify_url: row.notify_url,
       environment: row.environment,
       enabled_methods: [...row.enabled_methods],
+      sort: row.sort,
       status: row.status,
       remark: row.remark,
     }
@@ -243,6 +246,7 @@ function defaultForm(): PaymentConfigMutationPayload {
     notify_url: '',
     environment: 'sandbox',
     enabled_methods: ['web'],
+    sort: 100,
     status: CommonEnum.NO,
     remark: '',
   }

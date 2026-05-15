@@ -1,9 +1,7 @@
-import { computed, nextTick, onMounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import type { FormRules } from 'element-plus'
 import {
   PaymentOrderApi,
-  type PaymentOrderCreatePayload,
   type PaymentOrderDetail,
   type PaymentOrderInitResponse,
   type PaymentOrderListItem,
@@ -11,15 +9,6 @@ import {
 } from '@/api/payment/orders'
 import { useTable } from '@/components/Table'
 import type { SearchField } from '@/components/Search/types'
-
-export type PaymentOrderFormModel = Omit<PaymentOrderCreatePayload, 'amount_cents'> & {
-  amount_yuan: string
-}
-
-export type PaymentOrderFormRef = {
-  validate: () => Promise<boolean>
-  clearValidate: () => void
-}
 
 type PaymentOrderSearchForm = PaymentOrderListParams & {
   dateRange: string[]
@@ -79,24 +68,11 @@ export function usePaymentOrderPage() {
     { key: 'status', type: 'select-v2', label: '订单状态', placeholder: '订单状态', width: 130, options: dict.value.order_status_arr },
     { key: 'dateRange', type: 'date-range', label: '创建日期', width: 260 },
   ])
-  const formDialogVisible = ref(false)
   const detailDialogVisible = ref(false)
-  const formRef = ref<PaymentOrderFormRef | null>(null)
-  const form = ref<PaymentOrderFormModel>(defaultForm())
   const detail = ref<PaymentOrderDetail | null>(null)
   const detailLoading = ref(false)
 
-  const rules = computed<FormRules>(() => ({
-    config_code: [{ required: true, message: '请选择支付配置', trigger: 'change' }],
-    pay_method: [{ required: true, message: '请选择支付方式', trigger: 'change' }],
-    subject: [{ required: true, message: '请输入订单标题', trigger: 'blur' }],
-    amount_yuan: [
-      { required: true, message: '请输入订单金额', trigger: 'blur' },
-      { validator: validateAmountYuan, trigger: 'blur' },
-    ],
-    return_url: [{ validator: validateOptionalHTTPURL, trigger: 'blur' }],
-    expire_minutes: [{ required: true, message: '请输入过期分钟数', trigger: 'blur' }],
-  }))
+
 
   async function init() {
     const res = await PaymentOrderApi.init()
@@ -111,25 +87,6 @@ export function usePaymentOrderPage() {
   function onSearch() {
     table.resetPage()
     void table.getList()
-  }
-
-  function openCreateDialog() {
-    form.value = defaultForm()
-    formDialogVisible.value = true
-    void nextTick(() => formRef.value?.clearValidate())
-  }
-
-  async function confirmCreate() {
-    if (!formRef.value) return
-    try {
-      await formRef.value.validate()
-    } catch {
-      return
-    }
-    await PaymentOrderApi.add(buildCreatePayload(form.value))
-    ElNotification.success({ message: '操作成功' })
-    formDialogVisible.value = false
-    await table.getList()
   }
 
   async function openDetailDialog(row: PaymentOrderListItem) {
@@ -197,18 +154,12 @@ export function usePaymentOrderPage() {
     columns,
     searchFields,
     searchForm,
-    formDialogVisible,
     detailDialogVisible,
-    formRef,
-    form,
-    rules,
     detail,
     detailLoading,
     init,
     refresh,
     onSearch,
-    openCreateDialog,
-    confirmCreate,
     openDetailDialog,
     payOrder,
     syncOrder,
@@ -216,53 +167,6 @@ export function usePaymentOrderPage() {
     canPay,
     canClose,
   }
-}
-
-function defaultForm(): PaymentOrderFormModel {
-  return {
-    config_code: '',
-    pay_method: 'web',
-    subject: '',
-    amount_yuan: '',
-    return_url: '',
-    expire_minutes: 30,
-  }
-}
-
-function buildCreatePayload(model: PaymentOrderFormModel): PaymentOrderCreatePayload {
-  return {
-    config_code: model.config_code,
-    pay_method: model.pay_method,
-    subject: model.subject.trim(),
-    amount_cents: yuanToCents(model.amount_yuan),
-    return_url: model.return_url.trim(),
-    expire_minutes: Number(model.expire_minutes),
-  }
-}
-
-function yuanToCents(value: string): number {
-  const normalized = value.trim()
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return 0
-  const [yuan, cents = ''] = normalized.split('.')
-  return Number(yuan) * 100 + Number(cents.padEnd(2, '0'))
-}
-
-function validateAmountYuan(_rule: unknown, value: string, callback: (error?: Error) => void) {
-  const cents = yuanToCents(value)
-  if (cents > 0) {
-    callback()
-    return
-  }
-  callback(new Error('金额必须大于0，最多两位小数'))
-}
-
-function validateOptionalHTTPURL(_rule: unknown, value: string, callback: (error?: Error) => void) {
-  const url = value.trim()
-  if (!url || url.startsWith('http://') || url.startsWith('https://')) {
-    callback()
-    return
-  }
-  callback(new Error('地址必须以 http:// 或 https:// 开头'))
 }
 
 function openPayURL(url: string) {

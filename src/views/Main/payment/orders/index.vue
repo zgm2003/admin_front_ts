@@ -5,17 +5,11 @@ import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
-import PaymentOrderFormDialog from './components/PaymentOrderFormDialog.vue'
 import PaymentOrderDetailDialog from './components/PaymentOrderDetailDialog.vue'
-import { usePaymentOrderPage, type PaymentOrderFormRef } from './composables/usePaymentOrderPage'
+import { usePaymentOrderPage } from './composables/usePaymentOrderPage'
 
 const userStore = useUserStore()
 const isMobile = useIsMobile()
-const dialogLayout = computed(() => ({
-  width: isMobile.value ? '94vw' : '860px',
-  height: isMobile.value ? '72vh' : '68vh',
-  top: isMobile.value ? '3vh' : '4vh',
-}))
 const detailDialogLayout = computed(() => ({
   width: isMobile.value ? '94vw' : '960px',
   height: isMobile.value ? '76vh' : '72vh',
@@ -32,17 +26,9 @@ const {
   searchForm,
   searchFields,
   onSearch,
-  dict,
-  configOptions,
-  formDialogVisible,
   detailDialogVisible,
-  formRef,
-  form,
-  rules,
   detail,
   detailLoading,
-  openCreateDialog,
-  confirmCreate,
   openDetailDialog,
   payOrder,
   syncOrder,
@@ -51,16 +37,6 @@ const {
   canClose,
 } = usePaymentOrderPage()
 
-function setFormRef(instance: unknown) {
-  formRef.value = isPaymentOrderFormRef(instance) ? instance : null
-}
-
-function isPaymentOrderFormRef(instance: unknown): instance is PaymentOrderFormRef {
-  return typeof instance === 'object'
-    && instance !== null
-    && 'validate' in instance
-    && 'clearValidate' in instance
-}
 </script>
 
 <template>
@@ -82,13 +58,7 @@ function isPaymentOrderFormRef(instance: unknown): instance is PaymentOrderFormR
       @update:pagination="onPageChange"
     >
       <template #toolbar-left>
-        <el-button
-          v-if="userStore.can('payment_order_add')"
-          type="success"
-          @click="openCreateDialog"
-        >
-          新增订单
-        </el-button>
+        <el-text type="info">底层支付订单只保留查询、继续支付、同步和关闭能力。</el-text>
       </template>
       <template #cell-status_text="{ row }">
         <el-tag :type="row.status === 'paid' ? 'success' : row.status === 'failed' ? 'danger' : row.status === 'closed' ? 'info' : 'warning'">
@@ -130,33 +100,6 @@ function isPaymentOrderFormRef(instance: unknown): instance is PaymentOrderFormR
       </template>
     </AppTable>
   </div>
-
-  <AppDialog
-    v-model="formDialogVisible"
-    :height="dialogLayout.height"
-    :top="dialogLayout.top"
-    :width="dialogLayout.width"
-    draggable
-  >
-    <template #header>
-      新增支付订单
-    </template>
-    <PaymentOrderFormDialog
-      :ref="setFormRef"
-      v-model="form"
-      :config-options="configOptions"
-      :dict="dict"
-      :rules="rules"
-    />
-    <template #footer>
-      <el-button @click="formDialogVisible = false">
-        取消
-      </el-button>
-      <el-button type="primary" @click="confirmCreate">
-        确认
-      </el-button>
-    </template>
-  </AppDialog>
 
   <AppDialog
     v-model="detailDialogVisible"
