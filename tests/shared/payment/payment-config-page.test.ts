@@ -20,6 +20,8 @@ describe('payment config page', () => {
     expect(page).toContain("userStore.can('payment_config_test')")
     expect(page).toContain('PaymentConfigForm')
     expect(page).toContain(':upload-cert="uploadCert"')
+    expect(page).toContain(':height="dialogLayout.height"')
+    expect(page).toContain(':top="dialogLayout.top"')
     expect(`${page}\n${form}`).not.toContain('payment_channel_')
     expect(`${page}\n${form}`).not.toContain('merchant_id')
     expect(form).toContain('readonly')

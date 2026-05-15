@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
 import { AppDialog } from '@/components/AppDialog'
-import type { AiImageAssetItem, AiImageDetailResponse } from '@/api/ai/images'
+import type { AiImageAssetItem, AiImageDetailResponse, AiImageTaskStatus } from '@/api/ai/images'
 import ImageAssetList from '../ImageAssetList/index.vue'
 
 interface Props {
@@ -32,6 +32,13 @@ const maskTargetId = computed(() => props.detail?.mask?.related_asset_id ?? '')
 const nextFavoriteValue = computed(() => (task.value?.is_favorite === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES))
 const favoriteText = computed(() => (task.value?.is_favorite === CommonEnum.YES ? t('aiImages.unfavorite') : t('aiImages.favorite')))
 
+function statusType(value: AiImageTaskStatus) {
+  if (value === 'success') return 'success'
+  if (value === 'failed') return 'danger'
+  if (value === 'running') return 'warning'
+  return 'info'
+}
+
 function downloadAsset(asset: AiImageAssetItem) {
   const link = document.createElement('a')
   link.href = asset.storage_url
@@ -57,7 +64,7 @@ function downloadAsset(asset: AiImageAssetItem) {
       <template v-else>
         <div class="detail-header">
           <div>
-            <el-tag>{{ task.status_name || task.status }}</el-tag>
+            <el-tag :type="statusType(task.status)">{{ task.status_name || task.status }}</el-tag>
             <h3 class="detail-title">#{{ task.id }} · {{ task.agent_name_snapshot }}</h3>
             <p class="detail-meta">{{ task.model_id_snapshot }} · {{ task.size }} · {{ task.quality }} · {{ task.n }}</p>
           </div>

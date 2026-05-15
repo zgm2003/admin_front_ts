@@ -1,13 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { AppDialog } from '@/components/AppDialog'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { CommonEnum } from '@/enums'
+import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import PaymentConfigForm from './components/PaymentConfigForm.vue'
 import { usePaymentConfigPage, type PaymentConfigFormRef } from './composables/usePaymentConfigPage'
 
 const userStore = useUserStore()
+const isMobile = useIsMobile()
+const dialogLayout = computed(() => ({
+  width: isMobile.value ? '94vw' : '920px',
+  height: isMobile.value ? '72vh' : '70vh',
+  top: isMobile.value ? '3vh' : '4vh',
+}))
 const {
   columns,
   data,
@@ -121,7 +129,9 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
 
   <AppDialog
     v-model="dialogVisible"
-    :width="'920px'"
+    :height="dialogLayout.height"
+    :top="dialogLayout.top"
+    :width="dialogLayout.width"
     draggable
   >
     <template #header>

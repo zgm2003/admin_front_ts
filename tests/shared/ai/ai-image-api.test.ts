@@ -49,6 +49,8 @@ describe('AI image playground contract', () => {
     expect(composer).toContain("emit('uploadAsset'")
     expect(history).toContain("defineModel<AiImageTaskStatus | ''>('status'")
     expect(detail).toContain("emit('reuse'")
+    expect(detail).toContain("import type { AiImageAssetItem, AiImageDetailResponse, AiImageTaskStatus } from '@/api/ai/images'")
+    expect(detail).toContain(':type="statusType(task.status)"')
     expect(mask).toContain("source_type: 'mask'")
     expect(combined).not.toContain('provider_id?:')
     expect(combined).not.toContain('api_key')
