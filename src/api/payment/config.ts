@@ -38,7 +38,6 @@ export interface PaymentConfigListItem {
   platform_cert_path: string
   root_cert_path: string
   notify_url: string
-  return_url: string
   environment: PaymentEnvironment
   environment_text: string
   enabled_methods: PaymentEnabledMethod[]
@@ -61,7 +60,6 @@ export interface PaymentConfigMutationPayload {
   platform_cert_path: string
   root_cert_path: string
   notify_url: string
-  return_url: string
   environment: PaymentEnvironment
   enabled_methods: PaymentEnabledMethod[]
   status: number

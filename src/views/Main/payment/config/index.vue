@@ -33,6 +33,7 @@ const {
   form,
   rules,
   uploadLoading,
+  editingPrivateKeyHint,
   changeStatus,
   openAddDialog,
   openEditDialog,
@@ -143,6 +144,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
       :can-upload="userStore.can('payment_config_upload_cert')"
       :dialog-mode="dialogMode"
       :dict="dict"
+      :private-key-hint="editingPrivateKeyHint"
       :rules="rules"
       :upload-cert="uploadCert"
       :upload-loading="uploadLoading"

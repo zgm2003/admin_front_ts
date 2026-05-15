@@ -53,6 +53,7 @@ export function usePaymentConfigPage() {
     { key: 'enabled_methods_text', label: '支付方式', minWidth: 130 },
     { key: 'status_text', label: '状态', width: 90 },
     { key: 'created_at', label: '创建时间', minWidth: 170 },
+    { key: 'updated_at', label: '更新时间', minWidth: 170 },
     { key: 'actions', label: '操作', width: 280, fixed: 'right' },
   ])
   const searchFields = computed<SearchField[]>(() => [
@@ -66,6 +67,7 @@ export function usePaymentConfigPage() {
   const formRef = ref<PaymentConfigFormRef | null>(null)
   const form = ref<PaymentConfigMutationPayload>(defaultForm())
   const uploadLoading = shallowRef<PaymentCertificateType | ''>('')
+  const editingPrivateKeyHint = shallowRef('')
 
   const rules = computed<FormRules>(() => ({
     provider: [{ required: true, message: '请选择支付渠道', trigger: 'change' }],
@@ -80,7 +82,6 @@ export function usePaymentConfigPage() {
       { required: true, message: '请输入异步通知地址', trigger: 'blur' },
       { validator: validateHTTPURL, trigger: 'blur' },
     ],
-    return_url: [{ validator: validateOptionalHTTPURL, trigger: 'blur' }],
     environment: [{ required: true, message: '请选择环境', trigger: 'change' }],
     enabled_methods: [{ required: true, message: '请选择支付方式', trigger: 'change' }],
     status: [{ required: true, message: '请选择状态', trigger: 'change' }],
@@ -98,6 +99,7 @@ export function usePaymentConfigPage() {
   function openAddDialog() {
     dialogMode.value = 'add'
     form.value = defaultForm()
+    editingPrivateKeyHint.value = ''
     dialogVisible.value = true
     void nextTick(() => formRef.value?.clearValidate())
   }
@@ -115,12 +117,12 @@ export function usePaymentConfigPage() {
       platform_cert_path: row.platform_cert_path,
       root_cert_path: row.root_cert_path,
       notify_url: row.notify_url,
-      return_url: row.return_url,
       environment: row.environment,
       enabled_methods: [...row.enabled_methods],
       status: row.status,
       remark: row.remark,
     }
+    editingPrivateKeyHint.value = row.private_key_hint
     dialogVisible.value = true
     void nextTick(() => formRef.value?.clearValidate())
   }
@@ -214,6 +216,7 @@ export function usePaymentConfigPage() {
     form,
     rules,
     uploadLoading,
+    editingPrivateKeyHint,
     init,
     refresh,
     onSearch,
@@ -238,7 +241,6 @@ function defaultForm(): PaymentConfigMutationPayload {
     platform_cert_path: '',
     root_cert_path: '',
     notify_url: '',
-    return_url: '',
     environment: 'sandbox',
     enabled_methods: ['web'],
     status: CommonEnum.NO,
@@ -248,14 +250,6 @@ function defaultForm(): PaymentConfigMutationPayload {
 
 function validateHTTPURL(_rule: unknown, value: string, callback: (error?: Error) => void) {
   if (value.startsWith('http://') || value.startsWith('https://')) {
-    callback()
-    return
-  }
-  callback(new Error('地址必须以 http:// 或 https:// 开头'))
-}
-
-function validateOptionalHTTPURL(_rule: unknown, value: string, callback: (error?: Error) => void) {
-  if (!value || value.startsWith('http://') || value.startsWith('https://')) {
     callback()
     return
   }

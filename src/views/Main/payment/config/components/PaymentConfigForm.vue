@@ -12,6 +12,7 @@ const props = defineProps<{
   dict: PaymentConfigInitResponse['dict']
   dialogMode: PaymentConfigDialogMode
   rules: FormRules
+  privateKeyHint: string
   uploadLoading: PaymentCertificateType | ''
   canUpload: boolean
   uploadCert: (certType: PaymentCertificateType, options: UploadRequestOptions) => Promise<void>
@@ -202,6 +203,12 @@ defineExpose({
               clearable
               :placeholder="props.dialogMode === 'edit' ? '不填则保留原私钥' : '请输入应用私钥'"
             />
+            <div
+              v-if="props.dialogMode === 'edit' && props.privateKeyHint"
+              class="payment-config-key-hint"
+            >
+              当前已配置私钥：{{ props.privateKeyHint }}。不填写新私钥时会继续保留。
+            </div>
           </el-form-item>
         </el-col>
         <el-col :span="24">
@@ -214,18 +221,6 @@ defineExpose({
               v-model="form.notify_url"
               clearable
               placeholder="https://your-domain.example/pay/alipay/notify"
-            />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item
-            label="同步返回地址"
-            prop="return_url"
-          >
-            <el-input
-              v-model="form.return_url"
-              clearable
-              placeholder="https://example.com/pay/result"
             />
           </el-form-item>
         </el-col>
@@ -334,6 +329,13 @@ defineExpose({
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   width: 100%;
+}
+
+.payment-config-key-hint {
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 18px;
 }
 </style>
 

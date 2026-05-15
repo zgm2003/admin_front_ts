@@ -19,6 +19,7 @@ describe('payment config api', () => {
     expect(source).toContain('provider: PaymentProvider')
     expect(source).toContain('private_key_hint: string')
     expect(source).not.toContain('app_private_key_hint')
+    expect(source).not.toContain('return_url')
     expect(source).not.toContain('merchant_id')
     expect(source).not.toContain('sign_type')
     expect(source).not.toContain('extra_config')
