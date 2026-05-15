@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios'
 
 const cookieGet = vi.hoisted(() => vi.fn<(key: string) => string | undefined>())
 
@@ -31,5 +32,21 @@ describe('HTTP common language header', () => {
     const { buildCommonHeaders } = await import('../../src/lib/http/platform')
     const headers = buildCommonHeaders()
     expect(headers['Accept-Language']).toBe('zh-CN')
+  })
+
+  it('does not force JSON content type for FormData uploads', async () => {
+    cookieGet.mockImplementation((key: string) => key === 'access_token' ? 'token' : undefined)
+
+    const { applyCommonHeaders } = await import('../../src/lib/http/headers')
+    const config = {
+      data: new FormData(),
+      headers: new AxiosHeaders(),
+    } as InternalAxiosRequestConfig<FormData>
+
+    applyCommonHeaders(config)
+
+    const headers = config.headers as AxiosHeaders
+    expect(headers.get('Content-Type')).toBeUndefined()
+    expect(headers.get('Authorization')).toBe('Bearer token')
   })
 })

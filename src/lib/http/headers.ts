@@ -27,11 +27,50 @@ export function setHeader(
   }
 }
 
+function deleteHeader(
+  config: AxiosRequestConfig<unknown> | InternalAxiosRequestConfig<unknown>,
+  name: string
+) {
+  const headers = config.headers
+  if (!headers) {
+    return
+  }
+
+  if (typeof (headers as AxiosHeaders).delete === 'function') {
+    ;(headers as AxiosHeaders).delete(name)
+    return
+  }
+
+  const lowerName = name.toLowerCase()
+  const plainHeaders = headers as Record<string, unknown>
+  const existingName = Object.keys(plainHeaders).find((key) => key.toLowerCase() === lowerName)
+  if (existingName) {
+    delete plainHeaders[existingName]
+  }
+}
+
+function isFormDataPayload(data: unknown): boolean {
+  if (typeof FormData !== 'undefined' && data instanceof FormData) {
+    return true
+  }
+
+  return Object.prototype.toString.call(data) === '[object FormData]'
+}
+
 export function applyCommonHeaders(config: InternalAxiosRequestConfig<unknown>) {
   const token = Cookies.get('access_token')
   const headers = buildCommonHeaders(token)
+  const hasFormDataPayload = isFormDataPayload(config.data)
+
+  if (hasFormDataPayload) {
+    deleteHeader(config, 'Content-Type')
+  }
 
   Object.entries(headers).forEach(([name, value]) => {
+    if (hasFormDataPayload && name.toLowerCase() === 'content-type') {
+      return
+    }
+
     setHeader(config, name, value)
   })
 
