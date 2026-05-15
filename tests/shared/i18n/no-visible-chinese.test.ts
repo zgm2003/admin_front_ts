@@ -11,6 +11,10 @@ const guardedFiles = [
   'src/views/Login/composables/useLoginForm.ts',
   'src/views/Login/composables/useForgotPassword.ts',
   'src/views/Main/test/index.vue',
+  'src/views/Main/ai/image-playground/index.vue',
+  'src/views/Main/ai/image-playground/components/ImageComposer/index.vue',
+  'src/views/Main/ai/image-playground/components/ImageHistoryGrid/index.vue',
+  'src/views/Main/ai/image-playground/components/ImageTaskDetailDialog/index.vue',
 ]
 
 function stripComments(source: string) {

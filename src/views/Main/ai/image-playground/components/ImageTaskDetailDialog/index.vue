@@ -11,6 +11,7 @@ interface Props {
   loading: boolean
   canFavorite: boolean
   canDelete: boolean
+  statusOptions: { label: string; value: AiImageTaskStatus }[]
 }
 
 interface Emits {
@@ -31,12 +32,19 @@ const maskAsset = computed(() => props.detail?.mask ?? null)
 const maskTargetId = computed(() => props.detail?.mask?.related_asset_id ?? '')
 const nextFavoriteValue = computed(() => (task.value?.is_favorite === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES))
 const favoriteText = computed(() => (task.value?.is_favorite === CommonEnum.YES ? t('aiImages.unfavorite') : t('aiImages.favorite')))
+const statusLabelMap = computed(() => {
+  return new Map(props.statusOptions.map((item) => [item.value, item.label]))
+})
 
 function statusType(value: AiImageTaskStatus) {
   if (value === 'success') return 'success'
   if (value === 'failed') return 'danger'
   if (value === 'running') return 'warning'
   return 'info'
+}
+
+function statusLabel(value: AiImageTaskStatus) {
+  return statusLabelMap.value.get(value) ?? value
 }
 
 function downloadAsset(asset: AiImageAssetItem) {
@@ -64,7 +72,7 @@ function downloadAsset(asset: AiImageAssetItem) {
       <template v-else>
         <div class="detail-header">
           <div>
-            <el-tag :type="statusType(task.status)">{{ task.status_name || task.status }}</el-tag>
+            <el-tag :type="statusType(task.status)">{{ statusLabel(task.status) }}</el-tag>
             <h3 class="detail-title">#{{ task.id }} · {{ task.agent_name_snapshot }}</h3>
             <p class="detail-meta">{{ task.model_id_snapshot }} · {{ task.size }} · {{ task.quality }} · {{ task.n }}</p>
           </div>

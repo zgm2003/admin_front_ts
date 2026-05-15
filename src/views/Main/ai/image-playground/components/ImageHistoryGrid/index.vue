@@ -24,12 +24,19 @@ const favorite = defineModel<number | ''>('favorite', { required: true })
 const { t } = useI18n()
 
 const hasRows = computed(() => props.tasks.length > 0)
+const statusLabelMap = computed(() => {
+  return new Map(props.dict.status_arr.map((item) => [item.value, item.label]))
+})
 
 function statusType(value: AiImageTaskStatus) {
   if (value === 'success') return 'success'
   if (value === 'failed') return 'danger'
   if (value === 'running') return 'warning'
   return 'info'
+}
+
+function statusLabel(value: AiImageTaskStatus) {
+  return statusLabelMap.value.get(value) ?? value
 }
 
 function updatePage(currentPage: number) {
@@ -39,24 +46,17 @@ function updatePage(currentPage: number) {
 
 <template>
   <div class="history-grid" v-loading="loading">
-    <div class="history-header">
-      <div class="history-title-group">
-        <h3 class="history-title">{{ t('aiImages.history') }}</h3>
-        <p class="history-subtitle">{{ t('aiImages.historyTip') }}</p>
-      </div>
-      <el-button @click="emit('refresh')">{{ t('common.actions.refresh') }}</el-button>
-    </div>
-
-    <div class="history-filters">
+    <div class="history-toolbar">
       <el-select-v2 v-model="status" :options="dict.status_arr" :placeholder="t('aiImages.status')" clearable />
       <el-select-v2 v-model="favorite" :options="dict.favorite_arr" :placeholder="t('aiImages.favorite')" clearable />
+      <el-button class="history-refresh" @click="emit('refresh')">{{ t('common.actions.refresh') }}</el-button>
     </div>
 
     <el-empty v-if="!hasRows" :description="t('aiImages.emptyHistory')" />
     <div v-else class="task-grid">
       <button v-for="task in tasks" :key="task.id" class="task-card" type="button" @click="emit('detail', task)">
         <div class="task-card-head">
-          <el-tag :type="statusType(task.status)">{{ task.status_name || task.status }}</el-tag>
+          <el-tag :type="statusType(task.status)">{{ statusLabel(task.status) }}</el-tag>
           <span class="task-time">{{ task.created_at }}</span>
         </div>
         <div class="task-prompt">{{ task.prompt }}</div>
@@ -84,47 +84,24 @@ function updatePage(currentPage: number) {
 .history-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-.history-header {
-  align-items: flex-start;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-}
-
-.history-title-group {
-  min-width: 0;
-}
-
-.history-title {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  font-size: 22px;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  line-height: 1.18;
-  margin: 0;
-}
-
-.history-subtitle {
-  color: var(--image-studio-muted, var(--el-text-color-secondary));
-  line-height: 1.65;
-  margin: 8px 0 0;
-  overflow-wrap: anywhere;
-}
-
-.history-filters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  min-width: 0;
 }
 
-.history-filters :deep(.el-select),
-.history-filters :deep(.el-select-v2) {
+.history-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.history-toolbar :deep(.el-select),
+.history-toolbar :deep(.el-select-v2) {
   width: 100%;
+}
+
+.history-refresh {
+  min-width: 76px;
 }
 
 .task-grid {
@@ -208,13 +185,12 @@ function updatePage(currentPage: number) {
 }
 
 @media (max-width: 640px) {
-  .history-header {
-    align-items: stretch;
-    flex-direction: column;
+  .history-toolbar {
+    grid-template-columns: 1fr;
   }
 
-  .history-filters {
-    grid-template-columns: 1fr;
+  .history-refresh {
+    width: 100%;
   }
 
   .history-pagination {

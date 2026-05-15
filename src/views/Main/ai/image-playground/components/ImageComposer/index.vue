@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Picture, Promotion } from '@element-plus/icons-vue'
 import type { AiImageAgentOption, AiImageAssetItem, AiImageInitResponse } from '@/api/ai/images'
 import ImageAssetList from '../ImageAssetList/index.vue'
 import type { ImageComposerState, UploadAssetRequest } from '../../types'
@@ -26,6 +27,7 @@ const form = defineModel<ImageComposerState>({ required: true })
 const { t } = useI18n()
 
 const canUploadMore = computed(() => form.value.input_assets.length < 10)
+const agentSelectOptions = computed(() => props.agentOptions.map((agent) => ({ label: agent.name, value: agent.id })))
 const submitDisabled = computed(() => {
   return props.submitting || !props.canCreateTask || !form.value.agent_id || form.value.prompt.trim() === ''
 })
@@ -51,63 +53,18 @@ function clearMask() {
 
 <template>
   <div class="image-composer">
-    <div class="composer-header">
-      <div class="composer-title-group">
-        <h2 class="composer-title">{{ t('aiImages.title') }}</h2>
-        <p class="composer-subtitle">{{ t('aiImages.subtitle') }}</p>
-      </div>
-      <el-tag class="model-tag" type="success">gpt-image-2</el-tag>
-    </div>
-
     <el-form label-position="top" class="composer-form">
-      <el-form-item :label="t('aiImages.agent')">
-        <el-select-v2
-          v-model="form.agent_id"
-          :options="agentOptions.map((agent) => ({ label: agent.name, value: agent.id }))"
-          :placeholder="t('aiImages.agentPlaceholder')"
-          filterable
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item :label="t('aiImages.prompt')">
+      <div class="prompt-row">
         <el-input
           v-model="form.prompt"
+          class="prompt-input"
           type="textarea"
-          :rows="7"
+          :autosize="{ minRows: 1, maxRows: 4 }"
           maxlength="20000"
           show-word-limit
           :placeholder="t('aiImages.promptPlaceholder')"
         />
-      </el-form-item>
-
-      <div class="param-grid">
-        <el-form-item :label="t('aiImages.size')">
-          <el-select-v2 v-model="form.size" :options="dict.size_arr" />
-        </el-form-item>
-        <el-form-item :label="t('aiImages.quality')">
-          <el-select-v2 v-model="form.quality" :options="dict.quality_arr" />
-        </el-form-item>
-        <el-form-item :label="t('aiImages.outputFormat')">
-          <el-select-v2 v-model="form.output_format" :options="dict.output_format_arr" />
-        </el-form-item>
-        <el-form-item :label="t('aiImages.n')">
-          <el-input-number v-model="form.n" :min="1" :max="4" />
-        </el-form-item>
-        <el-form-item :label="t('aiImages.moderation')">
-          <el-select-v2 v-model="form.moderation" :options="dict.moderation_arr" />
-        </el-form-item>
-        <el-form-item :label="t('aiImages.outputCompression')">
-          <el-input-number v-model="form.output_compression" :min="0" :max="100" :placeholder="t('aiImages.optional')" />
-        </el-form-item>
-      </div>
-
-      <div class="reference-toolbar">
-        <div>
-          <strong>{{ t('aiImages.referenceImages') }}</strong>
-          <span class="reference-hint">{{ t('aiImages.referenceHint') }}</span>
-        </div>
-        <div class="reference-actions">
+        <div class="prompt-actions">
           <el-upload
             multiple
             accept="image/*"
@@ -115,29 +72,93 @@ function clearMask() {
             :disabled="uploading || !canAddAsset || !canUploadMore"
             :before-upload="beforeReferenceUpload"
           >
-            <el-button type="primary" :loading="uploading" :disabled="!canAddAsset || !canUploadMore">
-              {{ t('aiImages.uploadReference') }}
-            </el-button>
+            <el-button
+              :icon="Picture"
+              circle
+              :title="t('aiImages.uploadReference')"
+              :aria-label="t('aiImages.uploadReference')"
+              :loading="uploading"
+              :disabled="!canAddAsset || !canUploadMore"
+            />
           </el-upload>
-          <el-button :disabled="form.input_assets.length === 0" @click="emit('openMask')">
+          <el-button
+            type="success"
+            :icon="Promotion"
+            circle
+            :title="t('aiImages.generate')"
+            :aria-label="t('aiImages.generate')"
+            :loading="submitting"
+            :disabled="submitDisabled"
+            @click="emit('submit')"
+          />
+        </div>
+      </div>
+
+      <div class="dock-controls">
+        <label class="dock-field dock-field--agent">
+          <span>{{ t('aiImages.agent') }}</span>
+          <el-select-v2
+            v-model="form.agent_id"
+            :options="agentSelectOptions"
+            :placeholder="t('aiImages.agentPlaceholder')"
+            filterable
+            clearable
+          />
+        </label>
+
+        <label class="dock-field">
+          <span>{{ t('aiImages.size') }}</span>
+          <el-select-v2 v-model="form.size" :options="dict.size_arr" />
+        </label>
+        <label class="dock-field">
+          <span>{{ t('aiImages.quality') }}</span>
+          <el-select-v2 v-model="form.quality" :options="dict.quality_arr" />
+        </label>
+        <label class="dock-field">
+          <span>{{ t('aiImages.outputFormat') }}</span>
+          <el-select-v2 v-model="form.output_format" :options="dict.output_format_arr" />
+        </label>
+        <label class="dock-field">
+          <span>{{ t('aiImages.outputCompression') }}</span>
+          <el-input-number
+            v-model="form.output_compression"
+            :min="0"
+            :max="100"
+            :controls="false"
+            :placeholder="t('aiImages.optional')"
+          />
+        </label>
+        <label class="dock-field">
+          <span>{{ t('aiImages.moderation') }}</span>
+          <el-select-v2 v-model="form.moderation" :options="dict.moderation_arr" />
+        </label>
+        <label class="dock-field dock-field--number">
+          <span>{{ t('aiImages.n') }}</span>
+          <el-input-number v-model="form.n" :min="1" :max="4" :controls="false" />
+        </label>
+
+        <div class="mask-action">
+          <el-button link :disabled="form.input_assets.length === 0" @click="emit('openMask')">
             {{ t('aiImages.maskEdit') }}
           </el-button>
         </div>
       </div>
 
-      <ImageAssetList
-        :assets="form.input_assets"
-        :mask="form.mask_asset"
-        :mask-target-id="form.mask_target_asset_id"
-        @remove="removeAsset"
-        @clear-mask="clearMask"
-      />
-
-      <div class="composer-actions">
+      <div v-if="form.input_assets.length > 0 || form.mask_asset || agentOptions.length === 0" class="dock-bottom">
+        <div v-if="form.input_assets.length > 0 || form.mask_asset" class="dock-assets">
+          <div class="reference-summary">
+            <strong>{{ t('aiImages.referenceImages') }}</strong>
+            <span>{{ t('aiImages.referenceHint') }}</span>
+          </div>
+          <ImageAssetList
+            :assets="form.input_assets"
+            :mask="form.mask_asset"
+            :mask-target-id="form.mask_target_asset_id"
+            @remove="removeAsset"
+            @clear-mask="clearMask"
+          />
+        </div>
         <el-alert v-if="agentOptions.length === 0" :title="t('aiImages.noAgentTip')" type="warning" :closable="false" />
-        <el-button type="success" size="large" :loading="submitting" :disabled="submitDisabled" @click="emit('submit')">
-          {{ t('aiImages.generate') }}
-        </el-button>
       </div>
     </el-form>
   </div>
@@ -147,124 +168,194 @@ function clearMask() {
 .image-composer {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 0;
   min-width: 0;
-}
-
-.composer-header {
-  align-items: flex-start;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-  padding-bottom: 2px;
-}
-
-.composer-title-group {
-  min-width: 0;
-}
-
-.composer-title {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  font-size: 22px;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  line-height: 1.18;
-  margin: 0;
-}
-
-.composer-subtitle {
-  color: var(--image-studio-muted, var(--el-text-color-secondary));
-  line-height: 1.65;
-  margin: 10px 0 0;
-  overflow-wrap: anywhere;
-}
-
-.model-tag {
-  flex-shrink: 0;
-  border-radius: 999px;
-  font-weight: 650;
 }
 
 .composer-form {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
 }
 
-.composer-form :deep(.el-textarea__inner) {
-  min-height: 188px !important;
-  padding: 14px 15px;
-  line-height: 1.7;
-  resize: vertical;
-}
-
-.param-grid {
+.prompt-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 14px;
-  row-gap: 2px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
 }
 
-.param-grid :deep(.el-input-number),
-.param-grid :deep(.el-select),
-.param-grid :deep(.el-select-v2) {
+.prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.prompt-actions :deep(.el-button.is-circle) {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.prompt-input :deep(.el-textarea__inner) {
+  min-height: 44px !important;
+  padding: 11px 14px;
+  border-radius: 14px;
+  line-height: 1.5;
+  resize: none;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.dock-controls {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.35fr)
+    repeat(5, minmax(96px, 1fr))
+    minmax(82px, 0.72fr)
+    minmax(72px, auto);
+  gap: 8px;
+  align-items: end;
+}
+
+.dock-field--number {
+  max-width: 96px;
+}
+
+.dock-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dock-field span {
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.dock-field :deep(.el-input-number),
+.dock-field :deep(.el-select),
+.dock-field :deep(.el-select-v2) {
   width: 100%;
 }
 
-.reference-toolbar {
-  align-items: center;
+.mask-action {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
-  min-width: 0;
-  padding-top: 16px;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 32px;
+  white-space: nowrap;
+}
+
+.mask-action :deep(.el-button) {
+  padding-inline: 0;
+}
+
+.dock-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
   border-top: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
 }
 
-.reference-hint {
-  color: var(--image-studio-muted, var(--el-text-color-secondary));
+.dock-assets {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.reference-summary {
+  width: 160px;
+  flex: 0 0 160px;
+  color: var(--image-studio-text, var(--el-text-color-primary));
+}
+
+.reference-summary strong,
+.reference-summary span {
   display: block;
+}
+
+.reference-summary span {
+  margin-top: 5px;
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
   font-size: 12px;
-  line-height: 1.6;
-  margin-top: 6px;
+  line-height: 1.5;
 }
 
-.reference-actions {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.composer-actions {
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
+.dock-assets :deep(.image-asset-list) {
+  flex: 1;
   min-width: 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
 }
 
-.composer-actions :deep(.el-button--large) {
-  min-width: 128px;
-  height: 44px;
+.dock-assets :deep(.asset-grid) {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 118px));
 }
 
-@media (max-width: 640px) {
-  .param-grid,
-  .reference-toolbar,
-  .composer-actions {
+.dock-assets :deep(.asset-thumb) {
+  height: 78px;
+}
+
+@media (max-width: 1360px) {
+  .composer-form {
+    gap: 12px;
+  }
+
+  .dock-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .dock-field--agent {
+    grid-column: span 2;
+  }
+
+  .mask-action {
+    grid-column: 1 / -1;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .dock-field--number {
+    max-width: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .prompt-row {
     grid-template-columns: 1fr;
   }
 
-  .reference-toolbar,
-  .composer-actions {
+  .prompt-actions {
+    justify-content: flex-end;
+  }
+
+  .dock-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .dock-field--agent {
+    grid-column: auto;
+  }
+
+  .dock-assets {
     align-items: stretch;
     flex-direction: column;
+    min-width: 0;
+  }
+
+  .reference-summary {
+    width: auto;
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .prompt-actions {
+    justify-content: flex-end;
   }
 }
 </style>

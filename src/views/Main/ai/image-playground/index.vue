@@ -5,7 +5,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { CommonEnum } from '@/enums'
 import { getUploadToken, uploadFileToCloud, validateFile } from '@/lib/upload'
 import { useUserStore } from '@/store/user'
-import type { PageInfo } from '@/types/common'
+import type { DictOption, PageInfo } from '@/types/common'
 import {
   AiImageApi,
   type AiImageAgentOption,
@@ -54,6 +54,38 @@ const canAddAsset = computed(() => userStore.can('ai_image_asset_add'))
 const canCreateTask = computed(() => userStore.can('ai_image_task_add'))
 const canFavorite = computed(() => userStore.can('ai_image_task_favorite'))
 const canDelete = computed(() => userStore.can('ai_image_task_del'))
+
+const localizedDict = computed<AiImageInitResponse['dict']>(() => {
+  const source = dict.value
+  return {
+    size_arr: localizeOptions(source.size_arr, {
+      auto: t('aiImages.auto'),
+      '1024x1024': '1024×1024',
+      '1536x1024': '1536×1024',
+      '1024x1536': '1024×1536',
+    }),
+    quality_arr: localizeOptions(source.quality_arr, {
+      auto: t('aiImages.auto'),
+      low: t('aiImages.qualityLow'),
+      medium: t('aiImages.qualityMedium'),
+      high: t('aiImages.qualityHigh'),
+    }),
+    output_format_arr: localizeOptions(source.output_format_arr, {
+      png: 'PNG',
+      jpeg: 'JPEG',
+      webp: 'WebP',
+    }),
+    moderation_arr: localizeOptions(source.moderation_arr, {
+      auto: t('aiImages.auto'),
+      low: t('aiImages.moderationLow'),
+    }),
+    status_arr: localizeOptions(source.status_arr.length > 0 ? source.status_arr : defaultStatusOptions(), statusLabelMap()),
+    favorite_arr: [
+      { label: t('aiImages.favorite'), value: CommonEnum.YES },
+      { label: t('aiImages.unfavorite'), value: CommonEnum.NO },
+    ],
+  }
+})
 
 async function loadInit() {
   initLoading.value = true
@@ -251,12 +283,35 @@ function defaultDict(): AiImageInitResponse['dict'] {
       { label: t('aiImages.auto'), value: 'auto' },
       { label: t('aiImages.moderationLow'), value: 'low' },
     ],
-    status_arr: [],
+    status_arr: defaultStatusOptions(),
     favorite_arr: [
       { label: t('aiImages.favorite'), value: CommonEnum.YES },
       { label: t('aiImages.unfavorite'), value: CommonEnum.NO },
     ],
   }
+}
+
+function defaultStatusOptions(): DictOption<AiImageTaskStatus>[] {
+  return (['pending', 'running', 'success', 'failed'] satisfies AiImageTaskStatus[]).map((value) => ({
+    label: statusLabelMap()[value],
+    value,
+  }))
+}
+
+function statusLabelMap() {
+  return {
+    pending: t('aiImages.statusPending'),
+    running: t('aiImages.statusRunning'),
+    success: t('aiImages.statusSuccess'),
+    failed: t('aiImages.statusFailed'),
+  } satisfies Record<AiImageTaskStatus, string>
+}
+
+function localizeOptions<T extends string | number>(options: DictOption<T>[], labels: Record<string, string>): DictOption<T>[] {
+  return options.map((item) => ({
+    ...item,
+    label: labels[String(item.value)] ?? item.label,
+  }))
 }
 
 function defaultComposer(): ImageComposerState {
@@ -314,10 +369,24 @@ onMounted(() => {
 <template>
   <div class="ai-image-page" v-loading="initLoading">
     <div class="image-workspace">
+      <section class="image-panel image-panel--history">
+        <ImageHistoryGrid
+          v-model:status="statusFilter"
+          v-model:favorite="favoriteFilter"
+          :tasks="tasks"
+          :page="page"
+          :dict="localizedDict"
+          :loading="listLoading"
+          @refresh="refreshList"
+          @detail="openDetail"
+          @page-change="updatePage"
+        />
+      </section>
+
       <section class="image-panel image-panel--composer">
         <ImageComposer
           v-model="composer"
-          :dict="dict"
+          :dict="localizedDict"
           :agent-options="agentOptions"
           :uploading="uploading"
           :submitting="submitting"
@@ -326,20 +395,6 @@ onMounted(() => {
           @upload-asset="uploadAsset"
           @open-mask="maskVisible = true"
           @submit="submitTask"
-        />
-      </section>
-
-      <section class="image-panel image-panel--history">
-        <ImageHistoryGrid
-          v-model:status="statusFilter"
-          v-model:favorite="favoriteFilter"
-          :tasks="tasks"
-          :page="page"
-          :dict="dict"
-          :loading="listLoading"
-          @refresh="refreshList"
-          @detail="openDetail"
-          @page-change="updatePage"
         />
       </section>
     </div>
@@ -357,6 +412,7 @@ onMounted(() => {
       :loading="detailLoading"
       :can-favorite="canFavorite"
       :can-delete="canDelete"
+      :status-options="localizedDict.status_arr"
       @favorite="toggleFavorite"
       @delete="deleteTask"
       @reuse="reuseTask"
@@ -381,12 +437,13 @@ onMounted(() => {
   min-width: 0;
   overflow: hidden;
   color: var(--image-studio-text);
+  padding: 0;
 }
 
 .image-workspace {
-  display: grid;
-  grid-template-columns: minmax(360px, 41%) minmax(0, 1fr);
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -408,6 +465,21 @@ onMounted(() => {
   transition:
     border-color var(--app-motion-fast) var(--app-ease-standard),
     box-shadow var(--app-motion-fast) var(--app-ease-standard);
+}
+
+.image-panel--history {
+  flex: 1 1 0;
+  min-height: 360px;
+}
+
+.image-panel--composer {
+  flex: 0 0 auto;
+  max-height: min(260px, 34vh);
+  overflow: auto;
+  padding: 14px 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.94)),
+    radial-gradient(circle at 50% 0%, var(--image-studio-primary-soft), transparent 34%);
 }
 
 .image-panel:hover {
@@ -448,29 +520,46 @@ onMounted(() => {
   font-weight: 600;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1360px) {
   .ai-image-page {
-    overflow: auto;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
   }
 
   .image-workspace {
     height: auto;
-    grid-template-columns: 1fr;
     overflow: visible;
   }
 
   .image-panel {
     overflow: visible;
+  }
+
+  .image-panel--history,
+  .image-panel--composer {
+    flex: none;
+  }
+
+  .image-panel--history {
+    order: 2;
+    min-height: 0;
+  }
+
+  .image-panel--composer {
+    order: 1;
+    max-height: none;
+    padding: 18px 20px;
   }
 }
 
 @media (max-width: 640px) {
   .image-workspace {
-    gap: 14px;
+    gap: 12px;
   }
 
   .image-panel {
-    padding: 16px;
+    padding: 14px;
     border-radius: 16px;
   }
 }
