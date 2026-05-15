@@ -56,4 +56,30 @@ describe('AI image playground contract', () => {
     expect(combined).not.toContain('localStorage')
     expect(combined).not.toMatch(forbiddenLooseTypePattern)
   })
+
+  it('keeps the image playground inside the outer layout card instead of nesting overflow-prone cards', () => {
+    const page = readFrontendSource('src/views/Main/ai/image-playground/index.vue')
+    const composer = readFrontendSource('src/views/Main/ai/image-playground/components/ImageComposer/index.vue')
+    const history = readFrontendSource('src/views/Main/ai/image-playground/components/ImageHistoryGrid/index.vue')
+
+    expect(page).toContain('class="image-workspace"')
+    expect(page).toContain('class="image-panel image-panel--composer"')
+    expect(page).toContain('class="image-panel image-panel--history"')
+    expect(page).toContain('overflow: hidden;')
+    expect(page).toContain('min-width: 0;')
+    expect(composer).not.toContain('<el-card')
+    expect(history).not.toContain('<el-card')
+  })
+
+  it('uses the shared AppDialog wrapper for image task details with internal scrolling', () => {
+    const detail = readFrontendSource('src/views/Main/ai/image-playground/components/ImageTaskDetailDialog/index.vue')
+
+    expect(detail).toContain("import { AppDialog } from '@/components/AppDialog'")
+    expect(detail).toContain('<AppDialog')
+    expect(detail).toContain(':height="')
+    expect(detail).toContain(':body-padding="')
+    expect(detail).not.toContain('<el-dialog')
+    expect(detail).not.toContain('</el-dialog>')
+  })
+
 })

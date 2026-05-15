@@ -5,9 +5,11 @@ import type { DictOption, PaginatedResponse } from '@/types/common'
 export type PaymentEnvironment = 'sandbox' | 'production'
 export type PaymentEnabledMethod = 'web' | 'h5'
 export type PaymentCertificateType = 'app_cert' | 'alipay_cert' | 'alipay_root_cert'
+export type PaymentProvider = 'alipay'
 
 export interface PaymentConfigInitResponse {
   dict: {
+    provider_arr: DictOption<PaymentProvider>[]
     environment_arr: DictOption<PaymentEnvironment>[]
     common_status_arr: DictOption<number>[]
     enabled_method_arr: DictOption<PaymentEnabledMethod>[]
@@ -19,19 +21,22 @@ export interface PaymentConfigListParams {
   current_page: number
   page_size: number
   name?: string
+  provider?: PaymentProvider | ''
   environment?: PaymentEnvironment | ''
   status?: number | ''
 }
 
 export interface PaymentConfigListItem {
   id: number
+  provider: PaymentProvider
+  provider_text: string
   code: string
   name: string
   app_id: string
-  app_private_key_hint: string
+  private_key_hint: string
   app_cert_path: string
-  alipay_cert_path: string
-  alipay_root_cert_path: string
+  platform_cert_path: string
+  root_cert_path: string
   notify_url: string
   return_url: string
   environment: PaymentEnvironment
@@ -47,13 +52,14 @@ export interface PaymentConfigListItem {
 
 export interface PaymentConfigMutationPayload {
   id?: number
+  provider: PaymentProvider
   code: string
   name: string
   app_id: string
   app_private_key?: string
   app_cert_path: string
-  alipay_cert_path: string
-  alipay_root_cert_path: string
+  platform_cert_path: string
+  root_cert_path: string
   notify_url: string
   return_url: string
   environment: PaymentEnvironment

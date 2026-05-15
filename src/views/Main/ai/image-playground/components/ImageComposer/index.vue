@@ -50,16 +50,14 @@ function clearMask() {
 </script>
 
 <template>
-  <el-card class="image-composer" shadow="never">
-    <template #header>
-      <div class="composer-header">
-        <div>
-          <h2 class="composer-title">{{ t('aiImages.title') }}</h2>
-          <p class="composer-subtitle">{{ t('aiImages.subtitle') }}</p>
-        </div>
-        <el-tag type="success">gpt-image-2</el-tag>
+  <div class="image-composer">
+    <div class="composer-header">
+      <div class="composer-title-group">
+        <h2 class="composer-title">{{ t('aiImages.title') }}</h2>
+        <p class="composer-subtitle">{{ t('aiImages.subtitle') }}</p>
       </div>
-    </template>
+      <el-tag type="success">gpt-image-2</el-tag>
+    </div>
 
     <el-form label-position="top" class="composer-form">
       <el-form-item :label="t('aiImages.agent')">
@@ -142,11 +140,14 @@ function clearMask() {
         </el-button>
       </div>
     </el-form>
-  </el-card>
+  </div>
 </template>
 
 <style scoped>
 .image-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -155,6 +156,11 @@ function clearMask() {
   display: flex;
   justify-content: space-between;
   gap: 16px;
+  min-width: 0;
+}
+
+.composer-title-group {
+  min-width: 0;
 }
 
 .composer-title {
@@ -166,6 +172,7 @@ function clearMask() {
 .composer-subtitle {
   color: var(--el-text-color-secondary);
   margin: 8px 0 0;
+  overflow-wrap: anywhere;
 }
 
 .composer-form {
@@ -176,8 +183,14 @@ function clearMask() {
 
 .param-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.param-grid :deep(.el-input-number),
+.param-grid :deep(.el-select),
+.param-grid :deep(.el-select-v2) {
+  width: 100%;
 }
 
 .reference-toolbar {
@@ -186,6 +199,7 @@ function clearMask() {
   justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
+  min-width: 0;
 }
 
 .reference-hint {
@@ -208,12 +222,7 @@ function clearMask() {
   justify-content: space-between;
   gap: 12px;
   margin-top: 12px;
-}
-
-@media (max-width: 960px) {
-  .param-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  min-width: 0;
 }
 
 @media (max-width: 640px) {

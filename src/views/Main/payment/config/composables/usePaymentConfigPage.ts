@@ -14,7 +14,7 @@ import { useTable } from '@/components/Table'
 import type { SearchField } from '@/components/Search/types'
 
 export type PaymentConfigDialogMode = 'add' | 'edit'
-type CertificateField = 'app_cert_path' | 'alipay_cert_path' | 'alipay_root_cert_path'
+type CertificateField = 'app_cert_path' | 'platform_cert_path' | 'root_cert_path'
 type UploadError = Parameters<UploadRequestOptions['onError']>[0]
 export type PaymentConfigFormRef = {
   validate: () => Promise<boolean>
@@ -23,12 +23,13 @@ export type PaymentConfigFormRef = {
 
 const certificateFieldMap: { [key in PaymentCertificateType]: CertificateField } = {
   app_cert: 'app_cert_path',
-  alipay_cert: 'alipay_cert_path',
-  alipay_root_cert: 'alipay_root_cert_path',
+  alipay_cert: 'platform_cert_path',
+  alipay_root_cert: 'root_cert_path',
 }
 
 export function usePaymentConfigPage() {
   const dict = shallowRef<PaymentConfigInitResponse['dict']>({
+    provider_arr: [],
     environment_arr: [],
     common_status_arr: [],
     enabled_method_arr: [],
@@ -38,11 +39,13 @@ export function usePaymentConfigPage() {
     current_page: 1,
     page_size: 20,
     name: '',
+    provider: '',
     environment: '',
     status: '',
   })
   const table = useTable<PaymentConfigListItem, PaymentConfigListParams>({ api: PaymentConfigApi, searchForm })
   const columns = computed(() => [
+    { key: 'provider_text', label: '支付渠道', width: 110 },
     { key: 'name', label: '配置名称', minWidth: 150 },
     { key: 'code', label: '配置编码', minWidth: 150 },
     { key: 'app_id', label: 'AppID', minWidth: 170 },
@@ -54,6 +57,7 @@ export function usePaymentConfigPage() {
   ])
   const searchFields = computed<SearchField[]>(() => [
     { key: 'name', type: 'input', label: '配置名称', placeholder: '名称/编码/AppID', width: 190 },
+    { key: 'provider', type: 'select-v2', label: '支付渠道', placeholder: '支付渠道', width: 130, options: dict.value.provider_arr },
     { key: 'environment', type: 'select-v2', label: '环境', placeholder: '环境', width: 130, options: dict.value.environment_arr },
     { key: 'status', type: 'select-v2', label: '状态', placeholder: '状态', width: 120, options: dict.value.common_status_arr },
   ])
@@ -64,13 +68,14 @@ export function usePaymentConfigPage() {
   const uploadLoading = shallowRef<PaymentCertificateType | ''>('')
 
   const rules = computed<FormRules>(() => ({
+    provider: [{ required: true, message: '请选择支付渠道', trigger: 'change' }],
     code: [{ required: true, message: '请输入配置编码', trigger: 'blur' }],
     name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
     app_id: [{ required: true, message: '请输入支付宝AppID', trigger: 'blur' }],
     app_private_key: [{ required: dialogMode.value === 'add', message: '请输入应用私钥', trigger: 'blur' }],
     app_cert_path: [{ required: true, message: '请上传应用公钥证书', trigger: 'change' }],
-    alipay_cert_path: [{ required: true, message: '请上传支付宝公钥证书', trigger: 'change' }],
-    alipay_root_cert_path: [{ required: true, message: '请上传支付宝根证书', trigger: 'change' }],
+    platform_cert_path: [{ required: true, message: '请上传支付宝公钥证书', trigger: 'change' }],
+    root_cert_path: [{ required: true, message: '请上传支付宝根证书', trigger: 'change' }],
     notify_url: [
       { required: true, message: '请输入异步通知地址', trigger: 'blur' },
       { validator: validateHTTPURL, trigger: 'blur' },
@@ -101,13 +106,14 @@ export function usePaymentConfigPage() {
     dialogMode.value = 'edit'
     form.value = {
       id: row.id,
+      provider: row.provider,
       code: row.code,
       name: row.name,
       app_id: row.app_id,
       app_private_key: '',
       app_cert_path: row.app_cert_path,
-      alipay_cert_path: row.alipay_cert_path,
-      alipay_root_cert_path: row.alipay_root_cert_path,
+      platform_cert_path: row.platform_cert_path,
+      root_cert_path: row.root_cert_path,
       notify_url: row.notify_url,
       return_url: row.return_url,
       environment: row.environment,
@@ -223,13 +229,14 @@ export function usePaymentConfigPage() {
 
 function defaultForm(): PaymentConfigMutationPayload {
   return {
+    provider: 'alipay',
     code: '',
     name: '',
     app_id: '',
     app_private_key: '',
     app_cert_path: '',
-    alipay_cert_path: '',
-    alipay_root_cert_path: '',
+    platform_cert_path: '',
+    root_cert_path: '',
     notify_url: '',
     return_url: '',
     environment: 'sandbox',

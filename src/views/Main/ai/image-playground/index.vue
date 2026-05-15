@@ -313,30 +313,36 @@ onMounted(() => {
 
 <template>
   <div class="ai-image-page" v-loading="initLoading">
-    <ImageComposer
-      v-model="composer"
-      :dict="dict"
-      :agent-options="agentOptions"
-      :uploading="uploading"
-      :submitting="submitting"
-      :can-add-asset="canAddAsset"
-      :can-create-task="canCreateTask"
-      @upload-asset="uploadAsset"
-      @open-mask="maskVisible = true"
-      @submit="submitTask"
-    />
+    <div class="image-workspace">
+      <section class="image-panel image-panel--composer">
+        <ImageComposer
+          v-model="composer"
+          :dict="dict"
+          :agent-options="agentOptions"
+          :uploading="uploading"
+          :submitting="submitting"
+          :can-add-asset="canAddAsset"
+          :can-create-task="canCreateTask"
+          @upload-asset="uploadAsset"
+          @open-mask="maskVisible = true"
+          @submit="submitTask"
+        />
+      </section>
 
-    <ImageHistoryGrid
-      v-model:status="statusFilter"
-      v-model:favorite="favoriteFilter"
-      :tasks="tasks"
-      :page="page"
-      :dict="dict"
-      :loading="listLoading"
-      @refresh="refreshList"
-      @detail="openDetail"
-      @page-change="updatePage"
-    />
+      <section class="image-panel image-panel--history">
+        <ImageHistoryGrid
+          v-model:status="statusFilter"
+          v-model:favorite="favoriteFilter"
+          :tasks="tasks"
+          :page="page"
+          :dict="dict"
+          :loading="listLoading"
+          @refresh="refreshList"
+          @detail="openDetail"
+          @page-change="updatePage"
+        />
+      </section>
+    </div>
 
     <ImageMaskDialog
       v-model="maskVisible"
@@ -360,15 +366,45 @@ onMounted(() => {
 
 <style scoped>
 .ai-image-page {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.image-workspace {
   display: grid;
-  grid-template-columns: minmax(360px, 520px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
   gap: 16px;
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.image-panel {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 14px;
 }
 
 @media (max-width: 1180px) {
   .ai-image-page {
+    overflow: auto;
+  }
+
+  .image-workspace {
+    height: auto;
     grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .image-panel {
+    overflow: visible;
   }
 }
 </style>

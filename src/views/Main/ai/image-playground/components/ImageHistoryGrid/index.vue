@@ -38,16 +38,14 @@ function updatePage(currentPage: number) {
 </script>
 
 <template>
-  <el-card class="history-grid" shadow="never" v-loading="loading">
-    <template #header>
-      <div class="history-header">
-        <div>
-          <h3 class="history-title">{{ t('aiImages.history') }}</h3>
-          <p class="history-subtitle">{{ t('aiImages.historyTip') }}</p>
-        </div>
-        <el-button @click="emit('refresh')">{{ t('common.actions.refresh') }}</el-button>
+  <div class="history-grid" v-loading="loading">
+    <div class="history-header">
+      <div class="history-title-group">
+        <h3 class="history-title">{{ t('aiImages.history') }}</h3>
+        <p class="history-subtitle">{{ t('aiImages.historyTip') }}</p>
       </div>
-    </template>
+      <el-button @click="emit('refresh')">{{ t('common.actions.refresh') }}</el-button>
+    </div>
 
     <div class="history-filters">
       <el-select-v2 v-model="status" :options="dict.status_arr" :placeholder="t('aiImages.status')" clearable />
@@ -79,11 +77,14 @@ function updatePage(currentPage: number) {
         @current-change="updatePage"
       />
     </div>
-  </el-card>
+  </div>
 </template>
 
 <style scoped>
 .history-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -92,6 +93,11 @@ function updatePage(currentPage: number) {
   display: flex;
   justify-content: space-between;
   gap: 16px;
+  min-width: 0;
+}
+
+.history-title-group {
+  min-width: 0;
 }
 
 .history-title {
@@ -102,19 +108,25 @@ function updatePage(currentPage: number) {
 .history-subtitle {
   color: var(--el-text-color-secondary);
   margin: 6px 0 0;
+  overflow-wrap: anywhere;
 }
 
 .history-filters {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 14px;
+}
+
+.history-filters :deep(.el-select),
+.history-filters :deep(.el-select-v2) {
+  width: 100%;
 }
 
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
+  min-width: 0;
 }
 
 .task-card {
@@ -127,6 +139,7 @@ function updatePage(currentPage: number) {
   flex-direction: column;
   gap: 10px;
   min-height: 150px;
+  min-width: 0;
   padding: 14px;
   text-align: left;
 }
@@ -141,12 +154,20 @@ function updatePage(currentPage: number) {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .task-time,
 .task-meta {
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+
+.task-time,
+.task-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-prompt {
@@ -161,6 +182,22 @@ function updatePage(currentPage: number) {
 .history-pagination {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .history-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .history-pagination {
+    justify-content: flex-start;
+  }
 }
 </style>

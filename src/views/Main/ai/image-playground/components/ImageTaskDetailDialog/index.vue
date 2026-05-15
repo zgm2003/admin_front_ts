@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
+import { AppDialog } from '@/components/AppDialog'
 import type { AiImageAssetItem, AiImageDetailResponse } from '@/api/ai/images'
 import ImageAssetList from '../ImageAssetList/index.vue'
 
@@ -42,7 +43,15 @@ function downloadAsset(asset: AiImageAssetItem) {
 </script>
 
 <template>
-  <el-dialog v-model="visible" :title="t('aiImages.detail')" width="980px">
+  <AppDialog
+    v-model="visible"
+    :width="'980px'"
+    :height="'72vh'"
+    :body-padding="'20px'"
+  >
+    <template #header>
+      {{ t('aiImages.detail') }}
+    </template>
     <div v-loading="loading" class="detail-dialog">
       <el-empty v-if="!detail || !task" :description="t('aiImages.emptyDetail')" />
       <template v-else>
@@ -93,7 +102,7 @@ function downloadAsset(asset: AiImageAssetItem) {
         </section>
       </template>
     </div>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

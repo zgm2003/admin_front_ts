@@ -108,7 +108,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           测试配置
         </el-button>
         <el-button
-          v-if="userStore.can('payment_config_delete')"
+          v-if="userStore.can('payment_config_del')"
           type="danger"
           text
           @click="confirmDel(row)"

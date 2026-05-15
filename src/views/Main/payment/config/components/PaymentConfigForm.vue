@@ -90,6 +90,23 @@ defineExpose({
           :span="24"
         >
           <el-form-item
+            label="支付渠道"
+            prop="provider"
+            required
+          >
+            <el-select-v2
+              v-model="form.provider"
+              :disabled="true"
+              :options="props.dict.provider_arr"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
             label="环境"
             prop="environment"
             required
@@ -248,12 +265,12 @@ defineExpose({
         <el-col :span="24">
           <el-form-item
             label="支付宝公钥证书"
-            prop="alipay_cert_path"
+            prop="platform_cert_path"
             required
           >
             <div class="payment-config-cert-row">
               <el-input
-                v-model="form.alipay_cert_path"
+                v-model="form.platform_cert_path"
                 readonly
                 placeholder="上传后自动填入私有证书路径"
               />
@@ -273,12 +290,12 @@ defineExpose({
         <el-col :span="24">
           <el-form-item
             label="支付宝根证书"
-            prop="alipay_root_cert_path"
+            prop="root_cert_path"
             required
           >
             <div class="payment-config-cert-row">
               <el-input
-                v-model="form.alipay_root_cert_path"
+                v-model="form.root_cert_path"
                 readonly
                 placeholder="上传后自动填入私有证书路径"
               />
