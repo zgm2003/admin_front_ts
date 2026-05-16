@@ -34,6 +34,18 @@ function uploadRequest(certType: PaymentCertificateType, options: UploadRequestO
   return props.uploadCert(certType, options)
 }
 
+function uploadAppCert(options: UploadRequestOptions) {
+  return uploadRequest('app_cert', options)
+}
+
+function uploadAlipayCert(options: UploadRequestOptions) {
+  return uploadRequest('alipay_cert', options)
+}
+
+function uploadAlipayRootCert(options: UploadRequestOptions) {
+  return uploadRequest('alipay_root_cert', options)
+}
+
 defineExpose({
   validate,
   clearValidate,
@@ -269,7 +281,7 @@ defineExpose({
                 v-if="props.canUpload"
                 accept=".crt,.pem"
                 :show-file-list="false"
-                :http-request="(options) => uploadRequest('app_cert', options)"
+                :http-request="uploadAppCert"
               >
                 <el-button :loading="props.uploadLoading === 'app_cert'">
                   上传证书
@@ -294,7 +306,7 @@ defineExpose({
                 v-if="props.canUpload"
                 accept=".crt,.pem"
                 :show-file-list="false"
-                :http-request="(options) => uploadRequest('alipay_cert', options)"
+                :http-request="uploadAlipayCert"
               >
                 <el-button :loading="props.uploadLoading === 'alipay_cert'">
                   上传证书
@@ -319,7 +331,7 @@ defineExpose({
                 v-if="props.canUpload"
                 accept=".crt,.pem"
                 :show-file-list="false"
-                :http-request="(options) => uploadRequest('alipay_root_cert', options)"
+                :http-request="uploadAlipayRootCert"
               >
                 <el-button :loading="props.uploadLoading === 'alipay_root_cert'">
                   上传证书
@@ -366,4 +378,3 @@ defineExpose({
   line-height: 1.5;
 }
 </style>
-
