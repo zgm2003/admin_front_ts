@@ -420,6 +420,16 @@ onMounted(() => {
   </div>
 </template>
 
+<style>
+@media (max-width: 1360px) {
+  .el-main.layout-content .layout-view.page-card:has(.ai-image-page) {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+}
+</style>
+
 <style scoped>
 .ai-image-page {
   --image-studio-bg: #f7f9fc;
