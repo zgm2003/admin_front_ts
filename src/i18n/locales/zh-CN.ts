@@ -1590,7 +1590,7 @@ export default {
     maxSize: '文件大小不能超过 {size}MB',
     unsupportedType: '文件类型不支持',
     unsupportedExt: '不支持的文件类型 .{ext}，仅支持: {exts}',
-    ossUnsupported: '当前版本未启用 OSS 上传运行时，请安装可选扩展或切换为 COS'
+    ossUnsupported: '当前版本仅支持腾讯云 COS，历史或非 COS 配置不可用，请重新配置 COS'
   },
   time: {
     justNow: '刚刚',

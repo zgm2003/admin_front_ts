@@ -1475,7 +1475,7 @@ export default {
     maxSize: 'File size must not exceed {size}MB',
     unsupportedType: 'Unsupported file type',
     unsupportedExt: 'Unsupported file extension .{ext}. Allowed: {exts}',
-    ossUnsupported: 'OSS upload runtime is not enabled in this version. Install the optional extension or switch to COS.'
+    ossUnsupported: 'Only Tencent COS is supported currently. Historical or non-COS configuration is unavailable; configure COS again.'
   },
   time: {
     justNow: 'Just now',
