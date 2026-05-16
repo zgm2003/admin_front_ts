@@ -58,17 +58,6 @@ const {
                 :selected-code="selectedPackageCode"
                 @select="selectPackage"
               />
-              <div class="payment-recharge-page__recent">
-                <RechargeRecentRecords
-                  :records="recent"
-                  :can-pay="canPay"
-                  :can-sync="canSync"
-                  :can-close="canClose"
-                  @pay="payRecharge"
-                  @sync="syncRecharge"
-                  @close="closeRecharge"
-                />
-              </div>
             </div>
             <div class="payment-recharge-page__side">
               <RechargeCheckoutPanel
@@ -79,6 +68,17 @@ const {
                 :submitting="submitting"
                 :can-submit="canSubmit"
                 @submit="createRecharge"
+              />
+            </div>
+            <div class="payment-recharge-page__recent">
+              <RechargeRecentRecords
+                :records="recent"
+                :can-pay="canPay"
+                :can-sync="canSync"
+                :can-close="canClose"
+                @pay="payRecharge"
+                @sync="syncRecharge"
+                @close="closeRecharge"
               />
             </div>
           </div>
@@ -173,6 +173,9 @@ const {
   display: grid;
   flex: 0 0 auto;
   grid-template-columns: minmax(0, 1fr) clamp(320px, 25vw, 390px);
+  grid-template-areas:
+    "main side"
+    "recent side";
   gap: 16px;
   align-items: start;
   min-width: 0;
@@ -186,16 +189,18 @@ const {
 }
 
 .payment-recharge-page__main {
-  gap: 14px;
+  grid-area: main;
 }
 
 .payment-recharge-page__side {
+  grid-area: side;
   position: sticky;
   top: 0;
 }
 
 .payment-recharge-page__recent {
   flex: 0 0 auto;
+  grid-area: recent;
   min-width: 0;
 }
 
@@ -216,6 +221,10 @@ const {
 
   .payment-recharge-page__workbench {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "side"
+      "recent";
   }
 
   .payment-recharge-page__side {

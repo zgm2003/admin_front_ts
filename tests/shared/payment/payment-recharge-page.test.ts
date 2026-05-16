@@ -85,8 +85,11 @@ describe('payment recharge page', () => {
 
     expect(page).toContain('payment-recharge-page__workbench')
     expect(page).toContain('payment-recharge-page__recent')
-    expect(page).toMatch(/<div class="payment-recharge-page__main">[\s\S]*<RechargePackageGrid[\s\S]*<div class="payment-recharge-page__recent">[\s\S]*<RechargeRecentRecords[\s\S]*<\/div>\s*<\/div>\s*<div class="payment-recharge-page__side">[\s\S]*<RechargeCheckoutPanel/)
+    expect(page).toMatch(/<div class="payment-recharge-page__main">[\s\S]*<RechargePackageGrid[\s\S]*<\/div>\s*<div class="payment-recharge-page__side">[\s\S]*<RechargeCheckoutPanel[\s\S]*<\/div>\s*<div class="payment-recharge-page__recent">[\s\S]*<RechargeRecentRecords/)
     expect(page).toMatch(/\.payment-recharge-page__workbench[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+    expect(page).toContain('"main side"')
+    expect(page).toContain('"recent side"')
+    expect(page).toContain('"main"\n      "side"\n      "recent"')
     expect(checkout).toContain('flex: 0 0 auto;')
     expect(checkout).not.toContain('overflow: hidden;')
     expect(packages).toMatch(/min-height:\s*104px;/)
