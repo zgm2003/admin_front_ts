@@ -7,7 +7,7 @@ describe('upload client public URL builder', () => {
     expect(buildPublicFileURL('http://cos.example.com/', 'bucket', 'ap-nanjing', 'avatars/a.png')).toBe('http://cos.example.com/avatars/a.png')
   })
 
-  it('keeps the existing no-scheme bucket domain contract for COS upload tokens', () => {
+  it('builds HTTPS public URLs from the host-only COS bucket domain contract', () => {
     expect(buildPublicFileURL('cos.example.com', 'bucket', 'ap-nanjing', 'avatars/a.png')).toBe('https://cos.example.com/avatars/a.png')
     expect(buildPublicFileURL(null, 'bucket', 'ap-nanjing', 'avatars/a.png')).toBe('https://bucket.cos.ap-nanjing.myqcloud.com/avatars/a.png')
   })
