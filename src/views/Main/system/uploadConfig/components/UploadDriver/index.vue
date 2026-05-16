@@ -84,12 +84,11 @@ const dialogMode = ref<'add' | 'edit'>('add')
 
 const form = ref<UploadDriverFormState>({
   id: '',
-  driver: '',
+  driver: 'cos',
   secret_id: '',
   secret_key: '',
   bucket: '',
   region: '',
-  role_arn: '',
   appid: '',
   endpoint: '',
   bucket_domain: ''
@@ -122,15 +121,6 @@ const rules = computed<FormRules>(() => ({
   ],
   bucket: [{required: true, message: requiredMsg(t('upload.driver.form.bucket')), trigger: 'blur'}],
   region: [{required: true, message: requiredMsg(t('upload.driver.form.region')), trigger: 'blur'}],
-  role_arn: [
-    {
-      validator: (_rule, _value, callback) => {
-        if (form.value.driver === 'oss' && !form.value.role_arn) callback(new Error(requiredMsg(t('upload.driver.form.role_arn'))))
-        else callback()
-      },
-      trigger: 'blur'
-    }
-  ],
   appid: [
     {
       validator: (_rule, _value, callback) => {
@@ -148,12 +138,11 @@ const add = () => {
   dialogMode.value = 'add'
   form.value = {
     id: '',
-    driver: '',
+    driver: 'cos',
     secret_id: '',
     secret_key: '',
     bucket: '',
     region: '',
-    role_arn: '',
     appid: '',
     endpoint: '',
     bucket_domain: ''
@@ -173,7 +162,6 @@ const edit = (row: UploadDriverItem) => {
     secret_key: '', // 编辑时留空，后端不返回明文
     bucket: row.bucket,
     region: row.region,
-    role_arn: row.role_arn ?? '',
     appid: row.appid ?? '',
     endpoint: row.endpoint ?? '',
     bucket_domain: row.bucket_domain ?? ''
@@ -203,8 +191,8 @@ const confirmSubmit = async () => {
 }
 
 const requireDriverType = (value: UploadDriverFormState['driver']): UploadDriverType => {
-  if (value !== 'cos' && value !== 'oss') {
-    throw new Error('upload driver must be selected')
+  if (value !== 'cos') {
+    throw new Error(t('upload.driver.form.cos_only'))
   }
   return value
 }
@@ -215,7 +203,6 @@ const buildAddPayload = (state: UploadDriverFormState): UploadDriverAddPayload =
   secret_key: state.secret_key,
   bucket: state.bucket,
   region: state.region,
-  role_arn: state.role_arn,
   appid: state.appid,
   endpoint: state.endpoint,
   bucket_domain: state.bucket_domain,
@@ -231,7 +218,6 @@ const buildEditPayload = (state: UploadDriverFormState): UploadDriverEditPayload
     driver: requireDriverType(state.driver),
     bucket: state.bucket,
     region: state.region,
-    role_arn: state.role_arn,
     appid: state.appid,
     endpoint: state.endpoint,
     bucket_domain: state.bucket_domain,
@@ -331,13 +317,6 @@ onMounted(() => {
           <el-col :span="24">
           <el-form-item :label="t('upload.driver.form.appid')" prop="appid" required>
               <el-input v-model="form.appid" clearable/>
-            </el-form-item>
-          </el-col>
-        </template>
-        <template v-else-if="form.driver==='oss'">
-          <el-col :span="24">
-            <el-form-item :label="t('upload.driver.form.role_arn')" prop="role_arn" required>
-              <el-input v-model="form.role_arn" clearable/>
             </el-form-item>
           </el-col>
         </template>
