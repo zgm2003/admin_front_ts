@@ -29,13 +29,30 @@ function tagType(status: PaymentRechargeListItem['status']) {
       <span>只展示最近 5 条</span>
     </div>
 
-    <el-empty v-if="props.records.length === 0" description="暂无充值记录" :image-size="84" />
-    <div v-else class="recharge-recent-records__list">
-      <article v-for="row in props.records" :key="row.id" class="recharge-recent-records__item">
+    <el-empty
+      v-if="props.records.length === 0"
+      description="暂无充值记录"
+      :image-size="84"
+    />
+    <div
+      v-else
+      class="recharge-recent-records__list"
+    >
+      <article
+        v-for="row in props.records"
+        :key="row.id"
+        class="recharge-recent-records__item"
+      >
         <div class="recharge-recent-records__main">
           <div class="recharge-recent-records__title">
             <b>{{ row.package_name }}</b>
-            <el-tag :type="tagType(row.status)" size="small" effect="light">{{ row.status_text }}</el-tag>
+            <el-tag
+              :type="tagType(row.status)"
+              size="small"
+              effect="light"
+            >
+              {{ row.status_text }}
+            </el-tag>
           </div>
           <div class="recharge-recent-records__meta">
             {{ row.recharge_no }} · {{ row.created_at }}
@@ -44,9 +61,33 @@ function tagType(status: PaymentRechargeListItem['status']) {
         <div class="recharge-recent-records__side">
           <strong>{{ row.amount_text }}</strong>
           <div class="recharge-recent-records__actions">
-            <el-button v-if="props.canPay(row)" type="primary" text size="small" @click="emit('pay', row)">继续支付</el-button>
-            <el-button v-if="props.canSync(row)" type="warning" text size="small" @click="emit('sync', row)">同步</el-button>
-            <el-button v-if="props.canClose(row)" type="danger" text size="small" @click="emit('close', row)">关闭</el-button>
+            <el-button
+              v-if="props.canPay(row)"
+              type="primary"
+              text
+              size="small"
+              @click="emit('pay', row)"
+            >
+              继续支付
+            </el-button>
+            <el-button
+              v-if="props.canSync(row)"
+              type="warning"
+              text
+              size="small"
+              @click="emit('sync', row)"
+            >
+              同步
+            </el-button>
+            <el-button
+              v-if="props.canClose(row)"
+              type="danger"
+              text
+              size="small"
+              @click="emit('close', row)"
+            >
+              关闭
+            </el-button>
           </div>
         </div>
       </article>
@@ -56,11 +97,10 @@ function tagType(status: PaymentRechargeListItem['status']) {
 
 <style scoped>
 .recharge-recent-records {
-  padding: 18px;
-  margin-top: 14px;
+  padding: 16px;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .recharge-recent-records__head {
@@ -86,17 +126,24 @@ function tagType(status: PaymentRechargeListItem['status']) {
 
 .recharge-recent-records__list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .recharge-recent-records__item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px;
+  min-width: 0;
+  padding: 12px 14px;
   background: var(--el-fill-color-extra-light);
+  border: 1px solid transparent;
   border-radius: 12px;
+}
+
+.recharge-recent-records__main {
+  min-width: 0;
 }
 
 .recharge-recent-records__title {
@@ -121,5 +168,11 @@ function tagType(status: PaymentRechargeListItem['status']) {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+@media (max-width: 1080px) {
+  .recharge-recent-records__list {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -15,14 +15,27 @@ const emit = defineEmits<{
   <section class="recharge-package-grid">
     <div class="recharge-package-grid__head">
       <div>
-        <div class="recharge-package-grid__eyebrow">充值套餐</div>
-        <h3 class="recharge-package-grid__title">选择充值金额</h3>
+        <div class="recharge-package-grid__eyebrow">
+          充值套餐
+        </div>
+        <h3 class="recharge-package-grid__title">
+          选择充值金额
+        </h3>
       </div>
-      <el-tag type="info" effect="plain">余额充值</el-tag>
+      <div class="recharge-package-grid__hint">
+        选中后右侧实时计算
+      </div>
     </div>
 
-    <el-empty v-if="props.packages.length === 0" description="暂无可用充值套餐" :image-size="96" />
-    <div v-else class="recharge-package-grid__cards">
+    <el-empty
+      v-if="props.packages.length === 0"
+      description="暂无可用充值套餐"
+      :image-size="96"
+    />
+    <div
+      v-else
+      class="recharge-package-grid__cards"
+    >
       <button
         v-for="item in props.packages"
         :key="item.code"
@@ -31,9 +44,16 @@ const emit = defineEmits<{
         type="button"
         @click="emit('select', item.code)"
       >
-        <span v-if="item.badge" class="recharge-package-grid__badge">{{ item.badge }}</span>
-        <span class="recharge-package-grid__name">{{ item.name }}</span>
-        <span class="recharge-package-grid__amount">{{ item.amount_text }}</span>
+        <span
+          v-if="item.badge"
+          class="recharge-package-grid__badge"
+        >{{ item.badge }}</span>
+        <span class="recharge-package-grid__amount">{{ item.name }}</span>
+        <span class="recharge-package-grid__name">应付 {{ item.amount_text }} 元</span>
+        <span
+          v-if="item.code === props.selectedCode"
+          class="recharge-package-grid__selected"
+        >已选</span>
       </button>
     </div>
   </section>
@@ -41,10 +61,10 @@ const emit = defineEmits<{
 
 <style scoped>
 .recharge-package-grid {
-  padding: 18px;
+  padding: 16px;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 .recharge-package-grid__head {
@@ -52,7 +72,7 @@ const emit = defineEmits<{
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .recharge-package-grid__eyebrow {
@@ -65,8 +85,18 @@ const emit = defineEmits<{
 .recharge-package-grid__title {
   margin: 0;
   color: var(--el-text-color-primary);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 650;
+}
+
+.recharge-package-grid__hint {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 999px;
 }
 
 .recharge-package-grid__cards {
@@ -80,32 +110,33 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 96px;
-  padding: 16px;
+  min-height: 104px;
+  padding: 14px;
   text-align: left;
   cursor: pointer;
-  background: linear-gradient(180deg, var(--el-fill-color-blank), var(--el-fill-color-extra-light));
+  background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 14px;
-  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  border-radius: 15px;
+  box-shadow: 0 8px 18px rgb(31 45 61 / 3%);
+  transition:
+    color .18s ease,
+    background .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
 }
 
-.recharge-package-grid__card:hover,
-.recharge-package-grid__card.is-active {
+.recharge-package-grid__card:hover {
   border-color: var(--el-color-primary);
   box-shadow: 0 10px 24px rgb(64 158 255 / 12%);
   transform: translateY(-1px);
 }
 
-.recharge-package-grid__card.is-active::after {
-  position: absolute;
-  right: 14px;
-  bottom: 12px;
-  width: 8px;
-  height: 8px;
-  content: '';
-  background: var(--el-color-primary);
-  border-radius: 999px;
+.recharge-package-grid__card.is-active {
+  color: var(--el-color-primary);
+  background: linear-gradient(180deg, rgb(64 158 255 / 10%), rgb(64 158 255 / 4%));
+  border-color: var(--el-color-primary);
+  box-shadow: 0 12px 26px rgb(64 158 255 / 14%);
 }
 
 .recharge-package-grid__badge {
@@ -120,16 +151,43 @@ const emit = defineEmits<{
   border-radius: 999px;
 }
 
+.recharge-package-grid__card.is-active .recharge-package-grid__badge {
+  color: var(--el-color-primary);
+  background: var(--el-bg-color);
+}
+
 .recharge-package-grid__name {
-  color: var(--el-text-color-primary);
-  font-size: 20px;
-  font-weight: 700;
+  margin-top: 8px;
+  color: currentcolor;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: .76;
 }
 
 .recharge-package-grid__amount {
-  margin-top: 8px;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
+  margin-top: auto;
+  color: var(--el-text-color-primary);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.recharge-package-grid__card.is-active .recharge-package-grid__amount {
+  color: var(--el-color-primary);
+}
+
+.recharge-package-grid__selected {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 2px 8px;
+  color: var(--el-color-primary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 18px;
+  background: var(--el-bg-color);
+  border: 1px solid rgb(64 158 255 / 18%);
+  border-radius: 999px;
 }
 
 @media (max-width: 1080px) {
