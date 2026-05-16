@@ -2,7 +2,7 @@ import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse } from '@/types/common'
 
-export type UploadDriverType = 'cos' | 'oss'
+export type UploadDriverType = 'cos'
 export type UploadCommonStatus = 1 | 2
 
 export interface UploadDriverInitResponse {
@@ -189,10 +189,8 @@ function normalizeDriverListParams(params: UploadDriverListParams): UploadDriver
     page_size: params.page_size,
   }
 
-  if (params.driver) {
-    if (params.driver === 'cos' || params.driver === 'oss') {
-      query.driver = params.driver
-    }
+  if (params.driver === 'cos') {
+    query.driver = params.driver
   }
 
   return query
@@ -318,3 +316,4 @@ export const UploadSettingApi = {
     return request.patch<void, StatusPayload>(`${SETTING_BASE}/${ids[0]}/status`, body)
   },
 }
+
