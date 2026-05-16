@@ -6,20 +6,22 @@ function readFrontendSource(relativePath: string) {
   return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
 }
 
-function sliceSection(source: string, startMarker: string, endMarker: string) {
+function sliceTopLevelSection(source: string, section: string) {
+  const startMarker = `  ${section}: {`
   const start = source.indexOf(startMarker)
-  const end = source.indexOf(endMarker, start)
-
   expect(start).toBeGreaterThanOrEqual(0)
-  expect(end).toBeGreaterThan(start)
 
-  return source.slice(start, end)
+  const nextSection = /\n  [a-zA-Z0-9_]+: \{/g
+  nextSection.lastIndex = start + startMarker.length
+  const next = nextSection.exec(source)
+
+  return source.slice(start, next?.index ?? source.length)
 }
 
 describe('upload config form copy', () => {
   it('explains COS endpoint and bucket domain instead of exposing raw Endpoint wording', () => {
     const zh = readFrontendSource('src/i18n/locales/zh-CN.ts')
-    const uploadCopy = sliceSection(zh, '  upload: {', '\n  mail: {')
+    const uploadCopy = sliceTopLevelSection(zh, 'upload')
     const view = readFrontendSource('src/views/Main/system/uploadConfig/components/UploadDriver/index.vue')
 
     expect(uploadCopy).toContain("endpoint: 'COS 写入端点（可留空）'")
