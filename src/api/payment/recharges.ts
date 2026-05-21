@@ -11,6 +11,8 @@ export interface WalletSummary {
   balance_text: string
   total_recharge_cents: number
   total_recharge_text: string
+  total_consume_cents: number
+  total_consume_text: string
 }
 
 export interface RechargePackageItem {

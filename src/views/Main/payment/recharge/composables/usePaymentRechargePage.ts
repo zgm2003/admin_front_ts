@@ -309,5 +309,7 @@ function emptyWallet(): PaymentRechargeInitResponse['wallet'] {
     balance_text: '¥0.00',
     total_recharge_cents: 0,
     total_recharge_text: '¥0.00',
+    total_consume_cents: 0,
+    total_consume_text: '¥0.00',
   }
 }
