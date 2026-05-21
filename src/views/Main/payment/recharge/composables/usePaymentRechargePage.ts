@@ -10,6 +10,7 @@ import {
   type PaymentRechargePayMethod,
 } from '@/api/payment/recharges'
 import { useTable } from '@/components/Table'
+import { useUserStore } from '@/store/user'
 import type { SearchField, SearchFormModel } from '@/components/Search/types'
 
 export type PaymentRechargeSearchForm = PaymentRechargeListParams & SearchFormModel & {
@@ -19,6 +20,7 @@ export type PaymentRechargeSearchForm = PaymentRechargeListParams & SearchFormMo
 export function usePaymentRechargePage() {
   const route = useRoute()
   const router = useRouter()
+  const userStore = useUserStore()
   const activeTab = ref('cashier')
   const pageLoading = ref(false)
   const submitting = ref(false)
@@ -33,6 +35,7 @@ export function usePaymentRechargePage() {
   const recent = shallowRef<PaymentRechargeListItem[]>([])
   const selectedPackageCode = ref('')
   const syncedReturnRechargeNo = shallowRef('')
+  const autoSyncedRechargeIDs = shallowRef(new Set<number>())
   const searchForm = ref<PaymentRechargeSearchForm>({
     current_page: 1,
     page_size: 10,
@@ -102,6 +105,7 @@ export function usePaymentRechargePage() {
   async function refreshAll() {
     await init()
     await table.getList()
+    await autoSyncVisiblePayingRecharges()
   }
 
   function selectPackage(code: string) {
@@ -177,24 +181,52 @@ export function usePaymentRechargePage() {
     return row.status === 'pending' || row.status === 'failed' || row.status === 'paying'
   }
 
+  async function autoSyncVisiblePayingRecharges() {
+    if (!userStore.can('payment_recharge_sync')) return
+    const candidates = table.data.value
+      .filter((item) => item.status === 'paying' && !autoSyncedRechargeIDs.value.has(item.id))
+      .slice(0, 3)
+    if (candidates.length === 0) return
+
+    let changed = false
+    for (const row of candidates) {
+      autoSyncedRechargeIDs.value.add(row.id)
+      try {
+        const result = await PaymentRechargeApi.sync(row.id)
+        wallet.value = result.wallet
+        changed = true
+      } catch {
+        ElNotification.warning({ message: '部分支付中充值单自动同步失败，可稍后手动同步' })
+      }
+    }
+    if (changed) {
+      await init()
+      await table.getList()
+    }
+  }
 
   async function syncReturnRecharge(rechargeNo: string) {
     const normalized = rechargeNo.trim()
     if (!normalized || syncedReturnRechargeNo.value === normalized) return
     syncedReturnRechargeNo.value = normalized
-    const result = await PaymentRechargeApi.list({
-      current_page: 1,
-      page_size: 1,
-      keyword: normalized,
-    })
-    const row = result.list.find((item) => item.recharge_no === normalized)
-    if (!row) {
+    try {
+      const result = await PaymentRechargeApi.list({
+        current_page: 1,
+        page_size: 1,
+        keyword: normalized,
+      })
+      const row = result.list.find((item) => item.recharge_no === normalized)
+      if (!row) {
+        await table.getList()
+        return
+      }
+      const status = await PaymentRechargeApi.sync(row.id)
+      wallet.value = status.wallet
+      await refreshAll()
+    } catch {
+      ElNotification.warning({ message: '支付结果自动同步失败，可稍后在充值记录中手动同步' })
       await table.getList()
-      return
     }
-    const status = await PaymentRechargeApi.sync(row.id)
-    wallet.value = status.wallet
-    await refreshAll()
   }
 
   function buildCreatePayload(packageCode: string): PaymentRechargeCreatePayload {
@@ -254,6 +286,7 @@ export function usePaymentRechargePage() {
     canPay,
     canSync,
     canClose,
+    autoSyncVisiblePayingRecharges,
     syncReturnRecharge,
     buildCreatePayload,
     rechargeReturnURL,

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { PaymentRechargeListItem } from '@/api/payment/recharges'
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
 
 const props = defineProps<{
   records: PaymentRechargeListItem[]
@@ -62,7 +65,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
           <strong>{{ row.amount_text }}</strong>
           <div class="recharge-recent-records__actions">
             <el-button
-              v-if="props.canPay(row)"
+              v-if="userStore.can('payment_recharge_pay') && props.canPay(row)"
               type="primary"
               text
               size="small"
@@ -71,7 +74,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
               继续支付
             </el-button>
             <el-button
-              v-if="props.canSync(row)"
+              v-if="userStore.can('payment_recharge_sync') && props.canSync(row)"
               type="warning"
               text
               size="small"
@@ -80,7 +83,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
               同步
             </el-button>
             <el-button
-              v-if="props.canClose(row)"
+              v-if="userStore.can('payment_recharge_close') && props.canClose(row)"
               type="danger"
               text
               size="small"

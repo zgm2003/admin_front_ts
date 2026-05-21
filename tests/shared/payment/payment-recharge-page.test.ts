@@ -95,4 +95,21 @@ describe('payment recharge page', () => {
     expect(packages).toMatch(/min-height:\s*104px;/)
     expect(recent).toMatch(/grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/)
   })
+
+  it('auto syncs at most three visible paying recharges on reopen with permission guard', () => {
+    const composable = read('src/views/Main/payment/recharge/composables/usePaymentRechargePage.ts')
+    const recent = read('src/views/Main/payment/recharge/components/RechargeRecentRecords.vue')
+
+    expect(composable).toContain("import { useUserStore } from '@/store/user'")
+    expect(composable).toContain('const userStore = useUserStore()')
+    expect(composable).toContain('const autoSyncedRechargeIDs = shallowRef(new Set<number>())')
+    expect(composable).toContain('async function autoSyncVisiblePayingRecharges()')
+    expect(composable).toContain("userStore.can('payment_recharge_sync')")
+    expect(composable).toContain("item.status === 'paying'")
+    expect(composable).toContain('.slice(0, 3)')
+    expect(composable).toContain('autoSyncedRechargeIDs.value.add(row.id)')
+    expect(composable).toContain('await autoSyncVisiblePayingRecharges()')
+    expect(composable).toContain('ElNotification.warning')
+    expect(recent).toContain("userStore.can('payment_recharge_sync')")
+  })
 })
