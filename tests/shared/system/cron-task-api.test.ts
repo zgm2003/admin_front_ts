@@ -34,6 +34,31 @@ describe('cron task API REST contract', () => {
     }
   })
 
+  it('treats cron tasks as fully Go-owned without registry status compatibility fields', () => {
+    const apiSource = readFrontendSource('src/api/system/cronTask.ts')
+    const viewSource = readFrontendSource('src/views/Main/system/cronTask/index.vue')
+    const zhSource = readFrontendSource('src/i18n/locales/zh-CN.ts')
+    const enSource = readFrontendSource('src/i18n/locales/en-US.ts')
+
+    for (const source of [apiSource, viewSource]) {
+      expect(source).not.toContain('CronTaskRegistryStatus')
+      expect(source).not.toContain('registry_status')
+      expect(source).not.toContain('registry_status_text')
+      expect(source).not.toContain('registry_task_type')
+      expect(source).not.toContain('registry_description')
+    }
+
+    expect(viewSource).not.toContain("label: '接入状态'")
+    expect(viewSource).not.toContain('registryTagType')
+    expect(viewSource).not.toContain('displayTaskTypeLabel')
+    expect(zhSource).not.toContain('Go任务')
+    expect(zhSource).not.toContain('旧处理器')
+    expect(zhSource).not.toContain('任务类型/旧处理器')
+    expect(enSource).not.toContain('Go Task')
+    expect(enSource).not.toContain('Legacy')
+    expect(enSource).not.toContain('Task Type / Legacy Handler')
+  })
+
   it('keeps cron log list on a list-only composable instead of a CRUD hook in the route view', () => {
     const viewSource = readFrontendSource('src/views/Main/system/cronTask/index.vue')
     const logsComposableSource = readFrontendSource('src/views/Main/system/cronTask/composables/useCronTaskLogs.ts')

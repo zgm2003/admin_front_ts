@@ -3,13 +3,11 @@ import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export type CronPresetItem = DictOption<string>
-export type CronTaskRegistryStatus = 'registered' | 'missing' | 'disabled' | 'invalid_cron'
 
 export interface CronTaskInitResponse {
   dict: {
     cron_preset_arr: CronPresetItem[]
     cron_task_status_arr: DictOption<number>[]
-    cron_task_registry_status_arr: DictOption<CronTaskRegistryStatus>[]
     cron_task_log_status_arr: DictOption<number>[]
   }
 }
@@ -20,7 +18,6 @@ export interface CronTaskListParams {
   title?: string
   name?: string
   status?: number
-  registry_status?: CronTaskRegistryStatus
 }
 
 export interface CronTaskItem {
@@ -34,10 +31,6 @@ export interface CronTaskItem {
   status: number
   status_name: string
   next_run_time: string
-  registry_status: CronTaskRegistryStatus
-  registry_status_text: string
-  registry_task_type: string
-  registry_description: string
   created_at: string
   updated_at: string
 }

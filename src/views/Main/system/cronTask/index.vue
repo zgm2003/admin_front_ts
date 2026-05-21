@@ -10,7 +10,6 @@ import {
   type CronPresetItem,
   type CronTaskForm,
   type CronTaskItem,
-  type CronTaskRegistryStatus,
 } from '@/api/system/cronTask'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
@@ -48,7 +47,6 @@ const columns = computed(() => [
   { key: 'description', label: t('cronTask.description'), minWidth: 200, overflowTooltip: true },
   { key: 'cron', label: t('cronTask.cronExpr'), width: 140 },
   { key: 'next_run_time', label: t('cronTask.nextRunTime'), width: 180 },
-  { key: 'registry_status', label: '接入状态', width: 110 },
   { key: 'status', label: t('cronTask.status'), width: 100 },
   { key: 'handler', label: t('cronTask.handler'), minWidth: 220 },
   { key: 'actions', label: t('common.actions.action'), width: 340 }
@@ -139,19 +137,10 @@ const logColumns = computed(() => [
   { key: 'error_msg', label: t('cronTask.log.errorMsg'), minWidth: 150, overflowTooltip: true }
 ])
 
-const REGISTRY_STATUS_TYPE: Record<CronTaskRegistryStatus, 'success' | 'warning' | 'danger' | 'info'> = {
-  registered: 'success',
-  missing: 'warning',
-  disabled: 'info',
-  invalid_cron: 'danger',
-}
-
 const LOG_STATUS_TYPE: Record<number, 'success' | 'danger' | 'warning' | 'info'> = { 1: 'success', 2: 'danger', 3: 'warning' }
 
-const registryTagType = (status: CronTaskRegistryStatus) => REGISTRY_STATUS_TYPE[status]
 const logStatusType = (status: number) => LOG_STATUS_TYPE[status] ?? 'info'
-const displayTaskType = (row: CronTaskItem) => row.registry_task_type || row.handler || '-'
-const displayTaskTypeLabel = (row: CronTaskItem) => row.registry_task_type ? t('cronTask.goTaskType') : t('cronTask.legacyHandler')
+const displayTaskType = (row: CronTaskItem) => row.handler || '-'
 
 onMounted(() => init())
 </script>
@@ -174,11 +163,6 @@ onMounted(() => init())
           <el-tag size="small" type="info">{{ row.cron_readable || row.cron }}</el-tag>
         </el-tooltip>
       </template>
-      <template #cell-registry_status="{ row }">
-        <el-tag :type="registryTagType(row.registry_status)" size="small">
-          {{ row.registry_status_text }}
-        </el-tag>
-      </template>
       <template #cell-status="{ row }">
         <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'" size="small">
           {{ row.status === CommonEnum.YES ? t('cronTask.statusEnabled') : t('cronTask.statusDisabled') }}
@@ -186,7 +170,6 @@ onMounted(() => init())
       </template>
       <template #cell-handler="{ row }">
         <div class="task-type-cell">
-          <el-tag :type="row.registry_task_type ? 'success' : 'info'" size="small">{{ displayTaskTypeLabel(row) }}</el-tag>
           <code class="handler-code">{{ displayTaskType(row) }}</code>
         </div>
       </template>
