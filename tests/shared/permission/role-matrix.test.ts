@@ -44,6 +44,10 @@ describe('role permission matrix', () => {
       { id: 4, code: 'user_userManager_edit', label: '编辑' },
     ],
   }
+  const createMatrixRow = (overrides: Partial<typeof userManagerRow> = {}) => ({
+    ...userManagerRow,
+    ...overrides,
+  })
 
   it('builds matrix rows from page nodes and button children', () => {
     expect(buildRolePermissionMatrix(tree, PlatformEnum.ADMIN)).toEqual([{
@@ -120,6 +124,36 @@ describe('role permission matrix', () => {
     expect(toggleMatrixRowAction([], userManagerRow, 3, true)).toEqual([2, 3])
     expect(toggleMatrixRowAction([2, 3], userManagerRow, 3, false)).toEqual([2])
     expect(toggleMatrixPage([2, 3, 4], userManagerRow, false)).toEqual([])
+  })
+
+  it('selecting an action includes the parent PAGE permission id', () => {
+    const row = createMatrixRow({ pagePermissionId: 20, actions: [{ id: 21, code: 'edit', label: 'Edit' }] })
+    const selected = toggleMatrixRowAction([], row, 21, true)
+    expect(selected.sort((a, b) => a - b)).toEqual([20, 21])
+  })
+
+  it('selecting PAGE only does not select all action ids', () => {
+    const row = createMatrixRow({
+      pagePermissionId: 20,
+      actions: [
+        { id: 21, code: 'edit', label: 'Edit' },
+        { id: 22, code: 'delete', label: 'Delete' },
+      ],
+    })
+    const selected = toggleMatrixPage([], row, true)
+    expect(selected.sort((a, b) => a - b)).toEqual([20])
+  })
+
+  it('clearing PAGE also clears action ids on that page', () => {
+    const row = createMatrixRow({
+      pagePermissionId: 20,
+      actions: [
+        { id: 21, code: 'edit', label: 'Edit' },
+        { id: 22, code: 'delete', label: 'Delete' },
+      ],
+    })
+    const selected = toggleMatrixPage([20, 21, 22, 99], row, false)
+    expect(selected.sort((a, b) => a - b)).toEqual([99])
   })
 
   it('toggles whole directory groups without storing the directory id', () => {

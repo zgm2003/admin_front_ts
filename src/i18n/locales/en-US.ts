@@ -636,9 +636,10 @@ export default {
       selected: 'Selected',
       pages: 'Pages',
       actions: 'Actions',
+      pageAccess: 'Page access',
       clearGroup: 'Clear Group',
       clearPlatform: 'Clear Current Platform',
-      emptyActions: 'No actions; page access only'
+      emptyActions: 'No actions; controls page access only'
     },
     confirmSetDefault: 'Set as default role?',
     actions: { setDefault: 'Set Default' }

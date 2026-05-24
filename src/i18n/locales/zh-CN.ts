@@ -632,13 +632,14 @@ export default {
     form: { permission: '权限' },
     permissionGroup: { rootPages: '未分组页面', rootButtons: '根级按钮' },
     permissionMatrix: {
-      helper: '目录只负责分组展示；入库只保存页面查看和按钮操作。勾选按钮会自动拥有页面查看。',
+      helper: '目录只负责分组展示；入库只保存页面访问和页面动作。勾选动作会自动拥有页面访问。',
       selected: '已选',
       pages: '页面',
-      actions: '按钮',
+      actions: '动作',
+      pageAccess: '页面访问',
       clearGroup: '清空本组',
       clearPlatform: '清空当前平台',
-      emptyActions: '无按钮，仅控制页面查看'
+      emptyActions: '无动作，仅控制页面访问'
     },
     confirmSetDefault: '确定设置为默认角色吗？',
     actions: { setDefault: '设为默认' }

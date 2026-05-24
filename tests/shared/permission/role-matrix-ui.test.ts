@@ -47,4 +47,16 @@ describe('role permission matrix UI contract', () => {
     expect(diff).toContain('addedLabels')
     expect(diff).toContain('removedLabels')
   })
+
+  it('uses PAGE access wording instead of generic view wording', () => {
+    const rolePage = readFrontendSource('src/views/Main/permission/role/index.vue')
+    const zhCN = readFrontendSource('src/i18n/locales/zh-CN.ts')
+    const enUS = readFrontendSource('src/i18n/locales/en-US.ts')
+
+    expect(rolePage).toContain(":page-access-label=\"t('role.permissionMatrix.pageAccess')\"")
+    expect(rolePage).not.toContain(":page-access-label=\"t('common.actions.view')\"")
+    expect(zhCN).toContain("pageAccess: '页面访问'")
+    expect(zhCN).not.toContain('页面查看')
+    expect(enUS).toContain("pageAccess: 'Page access'")
+  })
 })
