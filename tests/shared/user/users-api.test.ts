@@ -30,6 +30,10 @@ function readAuthSessionSource() {
   return readFrontendSource('src/lib/http/auth-session.ts')
 }
 
+function legacyUsersPath(action: string) {
+  return `/${['api', 'Users', action].join('/')}`
+}
+
 describe('users api auth contract', () => {
   it('does not expose a standalone register api anymore', () => {
     const source = readUsersApiSource()
@@ -37,7 +41,7 @@ describe('users api auth contract', () => {
 
     expect(source).not.toContain('export interface UserRegisterParams')
     expect(source).not.toContain('register: (params:')
-    expect(source).not.toContain('/api/Users/register')
+    expect(source).not.toContain(legacyUsersPath('register'))
     expect(source).toContain('`${ADMIN_API_PREFIX}/auth/login`')
     expect(typeSource).not.toContain("| 'register'")
   })
@@ -51,7 +55,7 @@ describe('users api auth contract', () => {
     expect(source).toContain('me: fetchCurrentUser')
     expect(source).toContain('init: fetchCurrentUser')
     expect(source).not.toContain('goRequest')
-    expect(source).not.toContain("legacyRequest.post<UserInitResponse>('/api/Users/init', {})")
+    expect(source).not.toContain(`legacyRequest.post<UserInitResponse>('${legacyUsersPath('init')}', {})`)
   })
 
   it('uses the REST auth refresh endpoint', () => {
@@ -62,9 +66,9 @@ describe('users api auth contract', () => {
     expect(source).toContain('const REFRESH_PATH = ADMIN_AUTH_REFRESH_PATH')
     expect(source).toContain('`${baseURL}${REFRESH_PATH}`')
     expect(source).toContain('originalRequest.url?.includes(REFRESH_PATH)')
-    expect(source).not.toContain('/api/Users/refresh')
+    expect(source).not.toContain(legacyUsersPath('refresh'))
     expect(usersApiSource).toContain('request.post<UserLoginSession>(`${ADMIN_API_PREFIX}/auth/refresh`, params)')
-    expect(usersApiSource).not.toContain("legacyRequest.post<UserLoginSession>('/api/Users/refresh', params)")
+    expect(usersApiSource).not.toContain(`legacyRequest.post<UserLoginSession>('${legacyUsersPath('refresh')}', params)`)
   })
 
   it('uses the REST password login plus go-captcha contract', () => {
@@ -75,7 +79,7 @@ describe('users api auth contract', () => {
     expect(source).toContain('request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`)')
     expect(source).toContain('request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`)')
     expect(source).toContain('request.post<UserLoginSession, UserLoginParams>(`${ADMIN_API_PREFIX}/auth/login`, params)')
-    expect(source).not.toContain('/api/Users/login')
+    expect(source).not.toContain(legacyUsersPath('login'))
 
     expect(typeSource).toContain("import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from './captcha'")
     expect(typeSource).toContain('export type UserCaptchaAnswer = SlideCaptchaAnswer')
@@ -93,7 +97,7 @@ describe('users api auth contract', () => {
 
     expect(source).toContain('request.post<void, UserForgetPasswordParams>(`${ADMIN_API_PREFIX}/auth/forgot-password`, params)')
     expect(source).not.toContain('legacyRequest')
-    expect(source).not.toContain('/api/Users/forgetPassword')
+    expect(source).not.toContain(legacyUsersPath('forgetPassword'))
     expect(forgotSource).toContain("UsersApi.sendCode({ account: forgotForm.account, scene: 'forget' })")
     expect(forgotSource).toContain('pwd.length < 6 || pwd.length > 128')
   })
@@ -165,4 +169,3 @@ describe('users api auth contract', () => {
     expect(source).not.toContain('/api/admin/UsersLoginLog')
   })
 })
-
