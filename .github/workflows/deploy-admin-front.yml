@@ -34,12 +34,23 @@ jobs:
 
       - name: Upload dist to server
         env:
-          SSH_HOST: 118.126.104.244
-          SSH_PORT: 22
-          SSH_USER: root
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || '22' }}
+          SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
         run: |
           set -euo pipefail
+
+          : "${SSH_HOST:?SSH_HOST GitHub secret or variable is required}"
+          : "${SSH_PORT:?SSH_PORT GitHub secret or variable is required}"
+          : "${SSH_USER:?SSH_USER GitHub secret or variable is required}"
+          : "${SSH_PRIVATE_KEY:?SSH_PRIVATE_KEY GitHub secret is required}"
+          : "${DEPLOY_PATH:?DEPLOY_PATH GitHub secret or variable is required}"
+          if [ "$DEPLOY_PATH" = "/" ]; then
+            echo "DEPLOY_PATH must not be /"
+            exit 1
+          fi
 
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -48,10 +59,9 @@ jobs:
 
           scp -P "$SSH_PORT" dist.tar.gz "$SSH_USER@$SSH_HOST:/tmp/admin_front_ts_dist.tar.gz"
 
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash -s" <<'EOF'
+          REMOTE_DEPLOY_PATH="$(printf '%q' "$DEPLOY_PATH")"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "DEPLOY_PATH=$REMOTE_DEPLOY_PATH bash -s" <<'EOF'
           set -euo pipefail
-
-          DEPLOY_PATH="/www/wwwroot/zgm2003.cn"
 
           mkdir -p "$DEPLOY_PATH"
           find "$DEPLOY_PATH" -mindepth 1 -maxdepth 1 \
