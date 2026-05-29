@@ -6,6 +6,7 @@ const guardedFiles = [
   'src/views/Error/404.vue',
   'src/views/Error/DeadPage.vue',
   'src/store/user.ts',
+  'src/lib/http/client.ts',
   'src/lib/upload/uploadClient.ts',
   'src/utils/date.ts',
   'src/views/Login/composables/useLoginForm.ts',

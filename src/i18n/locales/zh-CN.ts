@@ -49,6 +49,10 @@ export default {
       toEdit: '记得原来密码'
     }
   },
+  http: {
+    requestFailed: '请求失败',
+    unauthorized: '未授权'
+  },
   common: {
     back: '返回',
     index: '序号',

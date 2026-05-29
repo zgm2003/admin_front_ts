@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
 import { ElNotification } from 'element-plus'
+import i18n from '@/i18n'
 import { createDebouncedNotifier } from './notifier'
 import { applyCommonHeaders } from './headers'
 import { createAuthSessionManager } from './auth-session'
@@ -14,6 +15,7 @@ function requiredEnv(name: string, value: string | undefined): string {
 }
 
 const apiBaseURL = requiredEnv('VITE_GO_API_BASE_URL', import.meta.env.VITE_GO_API_BASE_URL)
+const t = i18n.global.t
 
 const notify = createDebouncedNotifier({
   notify(message) {
@@ -61,7 +63,7 @@ function createHttpClient(params: {
             return authSession.handle401(response.config, payload.msg)
           }
 
-          const message = payload.msg || '请求失败'
+          const message = payload.msg || t('http.requestFailed')
           notify(message)
           return Promise.reject(createRequestError({
             message,
@@ -81,10 +83,10 @@ function createHttpClient(params: {
       const status = response?.status
 
       if (status === 401 && error.config) {
-        return authSession.handle401(error.config, extractServerMessage(response?.data) || '未授权')
+        return authSession.handle401(error.config, extractServerMessage(response?.data) || t('http.unauthorized'))
       }
 
-      const message = extractServerMessage(response?.data) || error.message || '请求失败'
+      const message = extractServerMessage(response?.data) || error.message || t('http.requestFailed')
       notify(message)
       return Promise.reject(error)
     }

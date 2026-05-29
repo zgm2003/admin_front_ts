@@ -49,6 +49,10 @@ export default {
       toEdit: 'I remember old password'
     }
   },
+  http: {
+    requestFailed: 'Request failed',
+    unauthorized: 'Unauthorized'
+  },
   common: {
     back: 'Back',
     index: 'Index',
