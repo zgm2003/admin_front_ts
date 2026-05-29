@@ -14,6 +14,16 @@
 
 ## 本地开发
 
+当前 runtime env 由 Vite `.env.*` 文件提供，`VITE_GO_API_BASE_URL` 是必填项。HTTP client 会在请求 path 前拼接 `/api/admin/v1`，所以这里填写 Go API origin，不要带 `/api/admin/v1` 后缀。
+
+```env
+# .env.development 默认值
+VITE_GO_API_BASE_URL=http://localhost:8080
+# 可选显式覆盖；不填时会从 VITE_GO_API_BASE_URL 推导 /api/admin/v1/realtime/ws
+VITE_WEB_SOCKET_URL=ws://localhost:8080/api/admin/v1/realtime/ws
+VITE_PLATFORM=admin
+```
+
 ```bash
 # 安装依赖
 npm install
@@ -46,96 +56,31 @@ src/
 
 ## 生产部署
 
-### Nginx 配置示例
+前端长期部署 runbook 只维护在 root repo，避免 `admin_front_ts` 复制第二份生产真相：
+
+```text
+E:/admin_go/docs/deployment/frontend-github-actions-scp.md
+E:/admin_go/docs/deployment/docker-first-backend.md
+```
+
+当前边界：
+
+```text
+zgm2003.cn       Vue 静态站点
+www.zgm2003.cn   Go API / WebSocket 后端入口
+HTTP API         https://www.zgm2003.cn/api/admin/v1/...
+Realtime WS      wss://www.zgm2003.cn/api/admin/v1/realtime/ws
+```
+
+生产 Nginx 只需要保证 Vue history fallback：
 
 ```nginx
-server {
-    listen 80;
-    listen 443 ssl;
-    listen 443 quic;
-    listen [::]:443 ssl;
-    listen [::]:443 quic;
-    http2 on;
-    listen [::]:80;
-    
-    server_name your-domain.com;
-    
-    # 前端项目入口
-    index index.html;
-    root /www/wwwroot/admin_front_ts/dist;
-
-    # SSL 配置
-    ssl_certificate     /path/to/fullchain.pem;
-    ssl_certificate_key /path/to/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers EECDH+CHACHA20:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    
-    # HSTS + HTTP/3
-    add_header Strict-Transport-Security "max-age=31536000";
-    add_header Alt-Svc 'h3=":443"; h3-29=":443"';
-    
-    error_page 497 https://$host$request_uri;
-    error_page 404 /404.html;
-
-    # ========== 流式 API 代理（AI 聊天等） ==========
-    location /api/admin/AiChat/stream {
-        proxy_pass http://127.0.0.1:8788;
-        
-        # 流式响应关键配置
-        proxy_buffering off;
-        proxy_cache off;
-        proxy_set_header Connection '';
-        proxy_http_version 1.1;
-        chunked_transfer_encoding on;
-        
-        # 传递客户端信息
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # 超时配置（适配长连接）
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 300s;
-        proxy_read_timeout 300s;
-    }
-
-    # ========== SPA 核心配置 ==========
-    location / {
-        try_files $uri $uri/ /index.html;
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
-    }
-
-    # 禁止访问敏感文件
-    location ~ ^/(\.user.ini|\.htaccess|\.git|\.env|\.svn|LICENSE|README.md) {
-        return 404;
-    }
-
-    # 静态资源缓存
-    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$ {
-        expires 30d;
-        access_log off;
-    }
-
-    location ~ .*\.(js|css)?$ {
-        expires 12h;
-        access_log off;
-    }
-
-    access_log  /www/wwwlogs/frontend.log;
-    error_log   /www/wwwlogs/frontend.error.log;
+location / {
+    try_files $uri $uri/ /index.html;
 }
 ```
 
-### 部署步骤
-
-1. 构建项目：`npm run build`
-2. 上传 `dist` 目录到服务器
-3. 配置 Nginx 指向 `dist` 目录
-4. 重载 Nginx：`nginx -s reload`
+不要再使用旧 `/api/admin/AiChat/stream`、`127.0.0.1:8788`、`/wss` 或 `/api/admin/WebSocket/bind` 文档示例。AI conversation events 走 Go WebSocket envelope；取消走 REST `POST /api/admin/v1/ai-conversations/:id/messages/cancel`。
 
 ## 相关项目
 
