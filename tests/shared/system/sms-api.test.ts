@@ -51,10 +51,12 @@ describe('sms api and page contract', () => {
     }
   })
 
-  it('exposes shared verify-code ttl without app_name or SMS body fields', () => {
+  it('exposes channel verify-code ttl without app_name or SMS body fields', () => {
     const apiSource = readFrontendSource('src/api/system/sms.ts')
     const configSource = readFrontendSource('src/views/Main/system/sms/components/SmsConfigPanel.vue')
     const templateSource = readFrontendSource('src/views/Main/system/sms/components/SmsTemplatePanel.vue')
+    const zhSource = readFrontendSource('src/i18n/locales/zh-CN.ts')
+    const enSource = readFrontendSource('src/i18n/locales/en-US.ts')
 
     expect(apiSource).toContain('verify_code_ttl_minutes: number')
     expect(configSource).toContain('form.verify_code_ttl_minutes = row.verify_code_ttl_minutes || dict.value.default_ttl_minutes')
@@ -64,6 +66,10 @@ describe('sms api and page contract', () => {
     expect(templateSource).not.toContain('app_name')
     expect(apiSource).not.toContain('template_content')
     expect(apiSource).not.toContain('body')
+    expect(zhSource).toContain('短信验证码有效期；模板变量 ttl_minutes 自动取这个值。')
+    expect(enSource).toContain('SMS verification-code TTL. The ttl_minutes template variable uses this value.')
+    expect(zhSource).not.toContain('邮件和短信验证码共用')
+    expect(enSource).not.toContain('Shared by email and SMS')
   })
 
   it('keeps route view thin and splits SMS feature panels by responsibility', () => {

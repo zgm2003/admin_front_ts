@@ -45,10 +45,12 @@ describe('mail api and page contract', () => {
     }
   })
 
-  it('exposes shared verify-code ttl on mail config without app_name template variables', () => {
+  it('exposes channel verify-code ttl on mail config without app_name template variables', () => {
     const apiSource = readFrontendSource('src/api/system/mail.ts')
     const configSource = readFrontendSource('src/views/Main/system/mail/components/MailConfigPanel.vue')
     const templateSource = readFrontendSource('src/views/Main/system/mail/components/MailTemplatePanel.vue')
+    const zhSource = readFrontendSource('src/i18n/locales/zh-CN.ts')
+    const enSource = readFrontendSource('src/i18n/locales/en-US.ts')
 
     expect(apiSource).toContain('verify_code_ttl_minutes: number')
     expect(configSource).toContain('form.verify_code_ttl_minutes = row.verify_code_ttl_minutes || dict.value.default_ttl_minutes')
@@ -57,6 +59,10 @@ describe('mail api and page contract', () => {
     expect(configSource).toContain("t('mail.config.verifyCodeTTLHelp')")
     expect(templateSource).toContain("const verifyCodeTemplateVariables = ['code', 'ttl_minutes']")
     expect(templateSource).not.toContain('app_name')
+    expect(zhSource).toContain('邮件验证码有效期；模板变量 ttl_minutes 自动取这个值。')
+    expect(enSource).toContain('Email verification-code TTL. The ttl_minutes template variable uses this value.')
+    expect(zhSource).not.toContain('邮件和短信验证码共用')
+    expect(enSource).not.toContain('Shared by email and SMS')
   })
 
   it('keeps route view thin and splits mail feature panels by responsibility', () => {
