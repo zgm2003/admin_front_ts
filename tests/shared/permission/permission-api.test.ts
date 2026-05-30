@@ -48,7 +48,7 @@ describe('permission api REST contract', () => {
     expect(clientSource).not.toMatch(forbiddenLooseTypePattern)
     expect(envDevelopment).toMatch(/^VITE_GO_API_BASE_URL=http:\/\/localhost:8080$/m)
     expect(envProduction).toMatch(/^VITE_GO_API_BASE_URL=https:\/\/www\.zgm2003\.cn$/m)
-    expect(envProduction).toMatch(/^VITE_WEB_SOCKET_URL=wss:\/\/zgm2003\.cn\/api\/admin\/v1\/realtime\/ws$/m)
+    expect(envProduction).toMatch(/^VITE_WEB_SOCKET_URL=wss:\/\/www\.zgm2003\.cn\/api\/admin\/v1\/realtime\/ws$/m)
     expect(envProduction).not.toContain('api.example.com')
     expect(envProduction).not.toContain('admin.example.com')
   })

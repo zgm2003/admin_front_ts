@@ -17,8 +17,8 @@ describe('websocket-client helpers', () => {
   it('uses an explicit websocket URL when configured', () => {
     expect(buildWebSocketURL({
       apiBaseURL: 'https://www.zgm2003.cn',
-      explicitURL: 'wss://zgm2003.cn/api/admin/v1/realtime/ws',
-    })).toBe('wss://zgm2003.cn/api/admin/v1/realtime/ws')
+      explicitURL: 'wss://www.zgm2003.cn/api/admin/v1/realtime/ws',
+    })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
   })
 
   it('builds identity topics only from server connected payload', () => {

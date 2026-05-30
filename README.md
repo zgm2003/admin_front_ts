@@ -69,7 +69,7 @@ E:/admin_go/docs/deployment/docker-first-backend.md
 <frontend-domain>  Vue 静态站点
 <api-domain>       Go REST API 后端入口
 HTTP API           https://<api-domain>/api/admin/v1/...
-Realtime WS        wss://<frontend-domain>/api/admin/v1/realtime/ws
+Realtime WS        wss://<api-domain>/api/admin/v1/realtime/ws
 ```
 
 GitHub Actions 生产构建仍必须从 Repository secrets / variables 注入 `VITE_GO_API_BASE_URL` 和 `VITE_WEB_SOCKET_URL`；仓库里的 `.env.production` 同步当前线上默认值，供手工/本地 production build 使用，不准改回 `example.com` 占位。
@@ -82,7 +82,7 @@ location / {
 }
 ```
 
-如果 `VITE_WEB_SOCKET_URL` 使用前端同域地址，前端站点还必须把 `/api/admin/v1/realtime/ws` 精确反代到 Go 后端；不要让它落到 Vue history fallback。
+`VITE_WEB_SOCKET_URL` 默认指向后端域名 `<api-domain>`。如果临时改成前端同域地址，前端站点必须把 `/api/admin/v1/realtime/ws` 精确反代到 Go 后端；不要让它落到 Vue history fallback。
 
 不要再使用旧 `/api/admin/AiChat/stream`、`127.0.0.1:8788`、`/wss` 或 `/api/admin/WebSocket/bind` 文档示例。AI conversation events 走 Go WebSocket envelope；取消走 REST `POST /api/admin/v1/ai-conversations/:id/messages/cancel`。
 

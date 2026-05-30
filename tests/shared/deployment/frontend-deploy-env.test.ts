@@ -11,7 +11,7 @@ describe('frontend production deploy env', () => {
     const env = readFrontendSource('.env.production')
 
     expect(env).toContain('VITE_GO_API_BASE_URL=https://www.zgm2003.cn')
-    expect(env).toContain('VITE_WEB_SOCKET_URL=wss://zgm2003.cn/api/admin/v1/realtime/ws')
+    expect(env).toContain('VITE_WEB_SOCKET_URL=wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
     expect(env).not.toContain('api.example.com')
     expect(env).not.toContain('admin.example.com')
   })

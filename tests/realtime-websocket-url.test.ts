@@ -5,9 +5,9 @@ import { isLoopbackHost } from '@/lib/network/loopback'
 describe('buildWebSocketURL', () => {
   it('keeps explicit non-loopback websocket URL unchanged', () => {
     expect(buildWebSocketURL({
-      explicitURL: 'wss://zgm2003.cn/api/admin/v1/realtime/ws',
+      explicitURL: 'wss://www.zgm2003.cn/api/admin/v1/realtime/ws',
       currentHostname: '127.0.0.1',
-    })).toBe('wss://zgm2003.cn/api/admin/v1/realtime/ws')
+    })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
   })
 
   it('normalizes explicit loopback websocket host to current browser host', () => {
@@ -36,6 +36,6 @@ describe('isLoopbackHost', () => {
   it('detects loopback hosts only', () => {
     expect(isLoopbackHost('localhost')).toBe(true)
     expect(isLoopbackHost('127.0.0.1')).toBe(true)
-    expect(isLoopbackHost('zgm2003.cn')).toBe(false)
+    expect(isLoopbackHost('www.zgm2003.cn')).toBe(false)
   })
 })
