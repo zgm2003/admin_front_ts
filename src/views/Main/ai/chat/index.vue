@@ -267,9 +267,9 @@ async function handleStopGeneration() {
   const requestId = activeRequestId.value
   if (!conversationId || !requestId) return
 
-  sessions.cancel(conversationId, requestId)
   try {
     await AiChatApi.cancel({ conversation_id: conversationId, request_id: requestId })
+    sessions.cancel(conversationId, requestId)
   } catch (error) {
     ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.stopFailed') })
   }

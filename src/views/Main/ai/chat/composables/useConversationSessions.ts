@@ -264,7 +264,7 @@ export function useConversationSessions() {
 
   function cancel(conversationId: number, requestId: string, messageText = '') {
     const current = getOrCreate(conversationId)
-    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
+    if (current.pendingRequestId !== requestId) return
 
     const messages = current.messages.map((message, index) => {
       const isLast = index === current.messages.length - 1
