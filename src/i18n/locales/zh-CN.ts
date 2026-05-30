@@ -256,6 +256,7 @@ export default {
     devTools: '开发工具',
     // 独立页面
     personal: '个人资料',
+    myWallet: '我的钱包',
     notification: '通知中心',
     test: '测试页',
     // 用户模块
@@ -297,8 +298,9 @@ export default {
     // 支付管理模块
     payment: '支付管理',
     payment_config: '支付配置',
-    payment_order: '支付订单',
     payment_recharge: '充值/记录',
+    payment_ledger: '收支明细',
+    payment_wallets: '用户钱包',
     wallet_center: '钱包中心',
     wallet_transaction: '资金明细',
     wallet_manage: '钱包管理',
@@ -417,8 +419,6 @@ export default {
     actions: {
       detail: '详情',
       pay: '发起支付',
-      sync: '同步',
-      close: '关闭',
     },
     runtimeNotice: '底层支付订单只保留查询、继续支付、同步和关闭能力。',
     detail: {
@@ -472,8 +472,6 @@ export default {
     },
     actions: {
       continuePay: '继续支付',
-      sync: '同步',
-      close: '关闭',
     },
     packages: {
       eyebrow: '充值套餐',
@@ -512,11 +510,6 @@ export default {
     },
     messages: {
       created: '充值单已创建',
-      syncSuccess: '同步成功',
-      closeConfirm: '确认关闭该充值单？',
-      closeSuccess: '关闭成功',
-      autoSyncPartialFailed: '部分支付中充值单自动同步失败，可稍后手动同步',
-      returnSyncFailed: '支付结果自动同步失败，可稍后在充值记录中手动同步',
     },
   },
 
@@ -537,7 +530,9 @@ export default {
     directionOut: '支出',
     sourceType: '来源类型',
     sourceRecharge: '充值',
-    sourceConsume: '消费',
+    sourceAiGenerate: 'AI 生成',
+    sourceAiRefund: 'AI 退款',
+    recharge: '充值',
     dateRange: '日期范围',
     transactionNo: '流水号',
     userId: '用户ID',
@@ -662,6 +657,7 @@ export default {
     cancel: '取消',
     ok: '确定',
     personal: '个人资料',
+    myWallet: '我的钱包',
     logout: '退出登录',
     layoutSingle: '单列模式',
     layoutDouble: '双列模式',
@@ -1072,6 +1068,50 @@ export default {
     },
     addTitle: '新增 AI 智能体',
     editTitle: '编辑 AI 智能体'
+  },
+  aiBilling: {
+    actions: { config: '计费规则配置' },
+    dialog: { title: 'AI 计费规则' },
+    columns: {
+      scene: '场景',
+      unit: '计费单位',
+      unitPrice: '单价（分）',
+      status: '状态',
+      updatedAt: '更新时间'
+    },
+    form: {
+      scene: '场景',
+      scenePlaceholder: '请选择计费场景',
+      unit: '计费单位',
+      unitPlaceholder: '请选择计费单位',
+      unitPriceCents: '单价（分）',
+      status: '状态'
+    },
+    validation: {
+      sceneRequired: '请选择计费场景',
+      unitRequired: '请选择计费单位',
+      unitPricePositive: '单价必须是大于 0 的整数',
+      statusRequired: '请选择状态'
+    },
+    messages: {
+      deleteConfirm: '确定删除该计费规则吗？'
+    },
+    scenes: {
+      adminImageGenerate: '后台图片生成',
+      canvasTextGenerate: '画布文本生成',
+      canvasImageGenerate: '画布图片生成',
+      canvasVideoGenerate: '画布视频生成'
+    },
+    units: {
+      request: '按请求',
+      image: '按图片',
+      second: '按秒'
+    },
+    config: '计费规则配置',
+    unitPricePositive: '单价必须是大于 0 的整数',
+    canvasTextGenerate: '画布文本生成',
+    canvasImageGenerate: '画布图片生成',
+    canvasVideoGenerate: '画布视频生成'
   },
   aiImages: {
     title: 'AI 图片工作台',

@@ -9,14 +9,10 @@ const { t } = useI18n()
 const props = defineProps<{
   records: PaymentRechargeListItem[]
   canPay: (row: PaymentRechargeListItem) => boolean
-  canSync: (row: PaymentRechargeListItem) => boolean
-  canClose: (row: PaymentRechargeListItem) => boolean
 }>()
 
 const emit = defineEmits<{
   pay: [row: PaymentRechargeListItem]
-  sync: [row: PaymentRechargeListItem]
-  close: [row: PaymentRechargeListItem]
 }>()
 
 function tagType(status: PaymentRechargeListItem['status']) {
@@ -75,24 +71,6 @@ function tagType(status: PaymentRechargeListItem['status']) {
               @click="emit('pay', row)"
             >
               {{ t('paymentRecharge.actions.continuePay') }}
-            </el-button>
-            <el-button
-              v-if="userStore.can('payment_recharge_sync') && props.canSync(row)"
-              type="warning"
-              text
-              size="small"
-              @click="emit('sync', row)"
-            >
-              {{ t('paymentRecharge.actions.sync') }}
-            </el-button>
-            <el-button
-              v-if="userStore.can('payment_recharge_close') && props.canClose(row)"
-              type="danger"
-              text
-              size="small"
-              @click="emit('close', row)"
-            >
-              {{ t('paymentRecharge.actions.close') }}
             </el-button>
           </div>
         </div>

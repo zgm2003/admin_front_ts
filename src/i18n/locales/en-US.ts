@@ -256,6 +256,7 @@ export default {
     devTools: 'Dev Tools',
     // Standalone pages
     personal: 'Personal',
+    myWallet: 'My Wallet',
     notification: 'Notifications',
     test: 'Test',
     // User module
@@ -297,8 +298,9 @@ export default {
     // Payment module
     payment: 'Payment',
     payment_config: 'Payment Config',
-    payment_order: 'Payment Orders',
     payment_recharge: 'Recharge',
+    payment_ledger: 'Ledger',
+    payment_wallets: 'User Wallets',
     wallet_center: 'Wallet Center',
     wallet_transaction: 'Funds Detail',
     wallet_manage: 'Wallet Management',
@@ -417,8 +419,6 @@ export default {
     actions: {
       detail: 'Detail',
       pay: 'Pay',
-      sync: 'Sync',
-      close: 'Close',
     },
     runtimeNotice: 'Low-level payment orders only keep query, continue pay, sync, and close capabilities.',
     detail: {
@@ -472,8 +472,6 @@ export default {
     },
     actions: {
       continuePay: 'Continue Pay',
-      sync: 'Sync',
-      close: 'Close',
     },
     packages: {
       eyebrow: 'Recharge Packages',
@@ -512,11 +510,6 @@ export default {
     },
     messages: {
       created: 'Recharge created',
-      syncSuccess: 'Synced successfully',
-      closeConfirm: 'Close this recharge?',
-      closeSuccess: 'Closed successfully',
-      autoSyncPartialFailed: 'Some paying recharges failed to auto-sync; try manual sync later',
-      returnSyncFailed: 'Payment result auto-sync failed; try manual sync in recharge records later',
     },
   },
 
@@ -537,7 +530,9 @@ export default {
     directionOut: 'Expense',
     sourceType: 'Source Type',
     sourceRecharge: 'Recharge',
-    sourceConsume: 'Consume',
+    sourceAiGenerate: 'AI Generate',
+    sourceAiRefund: 'AI Refund',
+    recharge: 'Recharge',
     dateRange: 'Date Range',
     transactionNo: 'Transaction No',
     userId: 'User ID',
@@ -662,6 +657,7 @@ export default {
     cancel: 'Cancel',
     ok: 'OK',
     personal: 'Personal',
+    myWallet: 'My Wallet',
     logout: 'Logout',
     layoutSingle: 'Single Column',
     layoutDouble: 'Double Column',
@@ -1053,6 +1049,50 @@ export default {
     knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
     addTitle: 'Add AI Agent',
     editTitle: 'Edit AI Agent'
+  },
+  aiBilling: {
+    actions: { config: 'Billing Rules' },
+    dialog: { title: 'AI Billing Rules' },
+    columns: {
+      scene: 'Scene',
+      unit: 'Billing Unit',
+      unitPrice: 'Unit Price (cents)',
+      status: 'Status',
+      updatedAt: 'Updated At'
+    },
+    form: {
+      scene: 'Scene',
+      scenePlaceholder: 'Select billing scene',
+      unit: 'Billing Unit',
+      unitPlaceholder: 'Select billing unit',
+      unitPriceCents: 'Unit Price (cents)',
+      status: 'Status'
+    },
+    validation: {
+      sceneRequired: 'Select billing scene',
+      unitRequired: 'Select billing unit',
+      unitPricePositive: 'Unit price must be an integer greater than 0',
+      statusRequired: 'Select status'
+    },
+    messages: {
+      deleteConfirm: 'Delete this billing rule?'
+    },
+    scenes: {
+      adminImageGenerate: 'Admin Image Generation',
+      canvasTextGenerate: 'Canvas Text Generation',
+      canvasImageGenerate: 'Canvas Image Generation',
+      canvasVideoGenerate: 'Canvas Video Generation'
+    },
+    units: {
+      request: 'Per Request',
+      image: 'Per Image',
+      second: 'Per Second'
+    },
+    config: 'Billing Rules',
+    unitPricePositive: 'Unit price must be an integer greater than 0',
+    canvasTextGenerate: 'Canvas Text Generation',
+    canvasImageGenerate: 'Canvas Image Generation',
+    canvasVideoGenerate: 'Canvas Video Generation'
   },
   aiImages: {
     title: 'AI Image Playground',

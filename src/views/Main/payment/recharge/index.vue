@@ -32,11 +32,7 @@ const {
   selectPackage,
   createRecharge,
   payRecharge,
-  syncRecharge,
-  closeRecharge,
   canPay,
-  canSync,
-  canClose,
 } = usePaymentRechargePage()
 </script>
 
@@ -78,11 +74,7 @@ const {
               <RechargeRecentRecords
                 :records="recent"
                 :can-pay="canPay"
-                :can-sync="canSync"
-                :can-close="canClose"
                 @pay="payRecharge"
-                @sync="syncRecharge"
-                @close="closeRecharge"
               />
             </div>
           </div>
@@ -100,14 +92,10 @@ const {
           :page="page"
           :search-fields="searchFields"
           :can-pay="canPay"
-          :can-sync="canSync"
-          :can-close="canClose"
           @search="onSearch"
           @refresh="refresh"
           @page-change="onPageChange"
           @pay="payRecharge"
-          @sync="syncRecharge"
-          @close="closeRecharge"
         />
       </el-tab-pane>
     </el-tabs>

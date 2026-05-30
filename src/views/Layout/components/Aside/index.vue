@@ -32,6 +32,7 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="personal"><el-icon><User /></el-icon>{{ t('header.personal') }}</el-dropdown-item>
+            <el-dropdown-item command="wallet"><el-icon><Wallet /></el-icon>{{ t('header.myWallet') }}</el-dropdown-item>
             <el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon>{{ t('header.logout') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -59,7 +60,7 @@ import { useMenuStore } from '@/store/menu'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { ArrowUp, User, SwitchButton, Warning } from '@element-plus/icons-vue'
+import { ArrowUp, User, Wallet, SwitchButton, Warning } from '@element-plus/icons-vue'
 import { clearAllCookies } from '@/utils/storage.ts'
 import { UsersApi } from '@/api/user/users'
 import MenuItem from './components/MenuItem.vue'
@@ -75,6 +76,7 @@ const defaultRoleName = '\u6210\u5458'
 
 const handleUserCommand = (cmd: string) => {
   if (cmd === 'personal') router.push({ path: '/personal', query: { user_id: userStore.user_id } })
+  else if (cmd === 'wallet') router.push({ path: '/profile/wallet' })
   else if (cmd === 'logout') logoutVisible.value = true
 }
 

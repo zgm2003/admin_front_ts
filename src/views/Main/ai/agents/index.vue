@@ -20,6 +20,7 @@ import {
 } from '@/api/ai/agents'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
 import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
+import AgentBillingDialog from './components/AgentBillingDialog/index.vue'
 
 type ModelPath = [number, string]
 
@@ -75,6 +76,7 @@ const toolDialogVisible = ref(false)
 const toolAgent = shallowRef<AiAgentItem | null>(null)
 const knowledgeDialogVisible = ref(false)
 const knowledgeAgent = shallowRef<AiAgentItem | null>(null)
+const billingDialogVisible = ref(false)
 
 function defaultForm(): AgentForm {
   return {
@@ -261,6 +263,7 @@ onMounted(() => {
       >
         <template #toolbar-left>
           <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button type="primary" plain @click="billingDialogVisible = true">{{ t('aiBilling.actions.config') }}</el-button>
         </template>
         <template #cell-avatar="{ row }">
           <el-avatar :src="row.avatar || undefined" :size="36">{{ row.name?.charAt(0) || '?' }}</el-avatar>
@@ -348,6 +351,8 @@ onMounted(() => {
     :agent="knowledgeAgent"
     @saved="getList"
   />
+
+  <AgentBillingDialog v-model="billingDialogVisible" />
 </template>
 
 <style scoped>

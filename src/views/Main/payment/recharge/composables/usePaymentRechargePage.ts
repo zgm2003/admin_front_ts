@@ -1,7 +1,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ElMessageBox, ElNotification } from 'element-plus'
+import { ElNotification } from 'element-plus'
 import {
   PaymentRechargeApi,
   type PaymentRechargeCreatePayload,
@@ -36,9 +36,6 @@ export function usePaymentRechargePage() {
   const dict = shallowRef<PaymentRechargeInitResponse['dict']>({ status_arr: [] })
   const recent = shallowRef<PaymentRechargeListItem[]>([])
   const selectedPackageCode = ref('')
-  const syncedReturnRechargeNo = shallowRef('')
-  const syncingReturnRechargeNo = shallowRef('')
-  const autoSyncedRechargeIDs = shallowRef(new Set<number>())
   const searchForm = ref<PaymentRechargeSearchForm>({
     current_page: 1,
     page_size: 10,
@@ -109,7 +106,6 @@ export function usePaymentRechargePage() {
   async function refreshAll() {
     await init()
     await table.getList()
-    await autoSyncVisiblePayingRecharges()
   }
 
   function selectPackage(code: string) {
@@ -145,29 +141,6 @@ export function usePaymentRechargePage() {
     await refreshAll()
   }
 
-  async function syncRecharge(row: PaymentRechargeListItem) {
-    const result = await PaymentRechargeApi.sync(row.id)
-    wallet.value = result.wallet
-    ElNotification.success({ message: t('paymentRecharge.messages.syncSuccess') })
-    await refreshAll()
-  }
-
-  async function closeRecharge(row: PaymentRechargeListItem) {
-    try {
-      await ElMessageBox.confirm(t('paymentRecharge.messages.closeConfirm'), t('common.confirmTitle'), {
-        type: 'warning',
-        confirmButtonText: t('paymentRecharge.actions.close'),
-        cancelButtonText: t('common.actions.cancel'),
-      })
-    } catch {
-      return
-    }
-    const result = await PaymentRechargeApi.close(row.id)
-    wallet.value = result.wallet
-    ElNotification.success({ message: t('paymentRecharge.messages.closeSuccess') })
-    await refreshAll()
-  }
-
   function onSearch() {
     table.resetPage()
     void table.getList()
@@ -175,71 +148,6 @@ export function usePaymentRechargePage() {
 
   function canPay(row: PaymentRechargeListItem) {
     return row.status === 'pending' || row.status === 'failed' || (row.status === 'paying' && row.pay_url !== '')
-  }
-
-  function canSync(row: PaymentRechargeListItem) {
-    return row.status === 'paying' || row.status === 'paid'
-  }
-
-  function canClose(row: PaymentRechargeListItem) {
-    return row.status === 'pending' || row.status === 'failed' || row.status === 'paying'
-  }
-
-  async function autoSyncVisiblePayingRecharges() {
-    if (!userStore.can('payment_recharge_sync')) return
-    const candidates = table.data.value
-      .filter((item) => item.status === 'paying' && !autoSyncedRechargeIDs.value.has(item.id))
-      .slice(0, 3)
-    if (candidates.length === 0) return
-
-    let changed = false
-    for (const row of candidates) {
-      try {
-        const result = await PaymentRechargeApi.sync(row.id)
-        if (result.status !== 'paying') {
-          autoSyncedRechargeIDs.value.add(row.id)
-        }
-        wallet.value = result.wallet
-        changed = true
-      } catch {
-        ElNotification.warning({ message: t('paymentRecharge.messages.autoSyncPartialFailed') })
-      }
-    }
-    if (changed) {
-      await init()
-      await table.getList()
-    }
-  }
-
-  async function syncReturnRecharge(rechargeNo: string) {
-    const normalized = rechargeNo.trim()
-    if (!normalized || syncedReturnRechargeNo.value === normalized || syncingReturnRechargeNo.value === normalized) return
-    syncingReturnRechargeNo.value = normalized
-    try {
-      const result = await PaymentRechargeApi.list({
-        current_page: 1,
-        page_size: 1,
-        keyword: normalized,
-      })
-      const row = result.list.find((item) => item.recharge_no === normalized)
-      if (!row) {
-        await table.getList()
-        return
-      }
-      const status = await PaymentRechargeApi.sync(row.id)
-      wallet.value = status.wallet
-      if (status.status !== 'paying') {
-        syncedReturnRechargeNo.value = normalized
-      }
-      await refreshAll()
-    } catch {
-      ElNotification.warning({ message: t('paymentRecharge.messages.returnSyncFailed') })
-      await table.getList()
-    } finally {
-      if (syncingReturnRechargeNo.value === normalized) {
-        syncingReturnRechargeNo.value = ''
-      }
-    }
   }
 
   function buildCreatePayload(packageCode: string): PaymentRechargeCreatePayload {
@@ -260,9 +168,6 @@ export function usePaymentRechargePage() {
     (query) => {
       if (query.tab === 'records') {
         activeTab.value = 'records'
-      }
-      if (typeof query.recharge_no === 'string' && query.recharge_no !== '') {
-        void syncReturnRecharge(query.recharge_no)
       }
     },
     { immediate: true },
@@ -294,14 +199,8 @@ export function usePaymentRechargePage() {
     selectPackage,
     createRecharge,
     payRecharge,
-    syncRecharge,
-    closeRecharge,
     onSearch,
     canPay,
-    canSync,
-    canClose,
-    autoSyncVisiblePayingRecharges,
-    syncReturnRecharge,
     buildCreatePayload,
     rechargeReturnURL,
   }

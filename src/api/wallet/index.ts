@@ -3,7 +3,7 @@ import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, PaginatedResponse } from '@/types/common'
 
 export type WalletDirection = 'in' | 'out'
-export type WalletSourceType = 'recharge' | 'consume'
+export type WalletSourceType = 'recharge' | 'ai_generate' | 'ai_refund'
 
 export interface WalletSummaryResponse {
   balance_cents: number
@@ -79,23 +79,11 @@ export interface WalletUsersPageInitResponse {}
 
 export interface WalletLedgerPageInitResponse extends WalletDictResponse {}
 
-export interface WalletConsumePayload {
-  amount_cents: number
-  source_id: number
-  remark?: string
-}
-
-export interface WalletConsumeResponse {
-  transaction: WalletTransactionItem
-  wallet: WalletSummaryResponse
-}
-
 export const WalletApi = {
   summary: () => request.get<WalletSummaryResponse>(`${ADMIN_API_PREFIX}/wallet/summary`),
   transactions: (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet/transactions`, { params }),
-  consume: (payload: WalletConsumePayload) => request.post<WalletConsumeResponse, WalletConsumePayload>(`${ADMIN_API_PREFIX}/wallet/consumptions`, payload),
-  usersInit: () => request.get<WalletUsersPageInitResponse>(`${ADMIN_API_PREFIX}/wallet/users/page-init`),
-  users: (params: WalletUserListParams) => request.get<PaginatedResponse<WalletUserItem>>(`${ADMIN_API_PREFIX}/wallet/users`, { params }),
-  ledgerInit: () => request.get<WalletLedgerPageInitResponse>(`${ADMIN_API_PREFIX}/wallet/ledger/page-init`),
-  ledger: (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet/ledger`, { params }),
+  usersInit: () => request.get<WalletUsersPageInitResponse>(`${ADMIN_API_PREFIX}/payment/wallets/page-init`),
+  users: (params: WalletUserListParams) => request.get<PaginatedResponse<WalletUserItem>>(`${ADMIN_API_PREFIX}/payment/wallets`, { params }),
+  ledgerInit: () => request.get<WalletLedgerPageInitResponse>(`${ADMIN_API_PREFIX}/payment/ledger/page-init`),
+  ledger: (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/payment/ledger`, { params }),
 }

@@ -41,7 +41,8 @@ const directionOptions = computed<DictOption<WalletDirection>[]>(() => (
 const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => (
   dict.value.source_type_arr.length > 0 ? dict.value.source_type_arr : [
     { label: t('wallet.sourceRecharge'), value: 'recharge' },
-    { label: t('wallet.sourceConsume'), value: 'consume' },
+    { label: t('wallet.sourceAiGenerate'), value: 'ai_generate' },
+    { label: t('wallet.sourceAiRefund'), value: 'ai_refund' },
   ]
 ))
 

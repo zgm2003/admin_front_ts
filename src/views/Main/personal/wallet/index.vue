@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
@@ -13,7 +14,8 @@ type WalletTransactionSearchForm = WalletTransactionListParams & SearchFormModel
 }
 
 const { t } = useI18n()
-
+const router = useRouter()
+const activeTab = shallowRef('wallet')
 const summary = ref<WalletSummaryResponse>(emptySummary())
 const searchForm = ref<WalletTransactionSearchForm>({
   current_page: 1,
@@ -58,13 +60,14 @@ const directionOptions = computed<DictOption<WalletDirection>[]>(() => [
 
 const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => [
   { label: t('wallet.sourceRecharge'), value: 'recharge' },
-  { label: t('wallet.sourceConsume'), value: 'consume' },
+  { label: t('wallet.sourceAiGenerate'), value: 'ai_generate' },
+  { label: t('wallet.sourceAiRefund'), value: 'ai_refund' },
 ])
 
 const searchFields = computed<SearchField[]>(() => [
   { key: 'keyword', type: 'input', label: t('wallet.keyword'), placeholder: t('wallet.keywordPlaceholder'), width: 210 },
   { key: 'direction', type: 'select-v2', label: t('wallet.direction'), placeholder: t('wallet.direction'), width: 130, options: directionOptions.value },
-  { key: 'source_type', type: 'select-v2', label: t('wallet.sourceType'), placeholder: t('wallet.sourceType'), width: 130, options: sourceTypeOptions.value },
+  { key: 'source_type', type: 'select-v2', label: t('wallet.sourceType'), placeholder: t('wallet.sourceType'), width: 150, options: sourceTypeOptions.value },
   { key: 'dateRange', type: 'date-range', label: t('wallet.dateRange'), width: 260 },
 ])
 
@@ -74,7 +77,7 @@ const columns = computed(() => [
   { key: 'amount_text', label: t('wallet.amount'), width: 110 },
   { key: 'balance_before_text', label: t('wallet.balanceBefore'), minWidth: 130 },
   { key: 'balance_after_text', label: t('wallet.balanceAfter'), minWidth: 130 },
-  { key: 'source_type_text', label: t('wallet.sourceType'), width: 110 },
+  { key: 'source_type_text', label: t('wallet.sourceType'), width: 120 },
   { key: 'remark', label: t('wallet.remark'), minWidth: 160 },
   { key: 'created_at', label: t('wallet.createdAt'), minWidth: 170 },
 ])
@@ -90,9 +93,12 @@ function tagType(direction: WalletDirection) {
   return direction === 'in' ? 'success' : 'warning'
 }
 
+function goRecharge() {
+  void router.push({ path: '/payment/recharge' })
+}
+
 async function refreshAll() {
-  const result = await WalletApi.summary()
-  summary.value = result
+  summary.value = await WalletApi.summary()
   await getList()
 }
 
@@ -103,103 +109,136 @@ onMounted(() => {
 function emptySummary(): WalletSummaryResponse {
   return {
     balance_cents: 0,
-    balance_text: '0.00',
+    balance_text: '¥0.00',
     total_recharge_cents: 0,
-    total_recharge_text: '0.00',
+    total_recharge_text: '¥0.00',
     total_consume_cents: 0,
-    total_consume_text: '0.00',
+    total_consume_text: '¥0.00',
   }
 }
 </script>
 
 <template>
-  <div class="wallet-transactions-page">
-    <div class="wallet-transactions-page__summary">
-      <div
-        v-for="item in summaryCards"
-        :key="item.key"
-        class="wallet-transactions-page__summary-card"
-      >
-        <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
-      </div>
-    </div>
+  <div class="personal-wallet-page">
+    <el-tabs v-model="activeTab" class="personal-wallet-page__tabs">
+      <el-tab-pane :label="t('wallet.summary')" name="wallet">
+        <section class="personal-wallet-page__summary">
+          <div
+            v-for="item in summaryCards"
+            :key="item.key"
+            class="personal-wallet-page__summary-card"
+          >
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+        </section>
+        <div class="personal-wallet-page__actions">
+          <el-button type="primary" @click="goRecharge">
+            {{ t('wallet.recharge') }}
+          </el-button>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane :label="t('wallet.fundsDetail')" name="transactions">
+        <section class="personal-wallet-page__transactions">
+          <Search
+            v-model="searchForm"
+            :fields="searchFields"
+            :collapse-count="2"
+            @query="onSearch"
+            @reset="onSearch"
+          />
 
-    <Search
-      v-model="searchForm"
-      :fields="searchFields"
-      :collapse-count="2"
-      @query="onSearch"
-      @reset="onSearch"
-    />
-
-    <div class="wallet-transactions-page__table">
-      <AppTable
-        :columns="columns"
-        :data="data"
-        :loading="loading"
-        :pagination="page"
-        :table-props="tableProps"
-        row-key="id"
-        @refresh="refresh"
-        @update:pagination="onPageChange"
-      >
-        <template #cell-direction_text="{ row }">
-          <el-tag :type="tagType(row.direction)" effect="light">
-            {{ row.direction_text }}
-          </el-tag>
-        </template>
-      </AppTable>
-    </div>
+          <div class="personal-wallet-page__table">
+            <AppTable
+              :columns="columns"
+              :data="data"
+              :loading="loading"
+              :pagination="page"
+              :table-props="tableProps"
+              row-key="id"
+              @refresh="refresh"
+              @update:pagination="onPageChange"
+            >
+              <template #cell-direction_text="{ row }">
+                <el-tag :type="tagType(row.direction)" effect="light">
+                  {{ row.direction_text }}
+                </el-tag>
+              </template>
+            </AppTable>
+          </div>
+        </section>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <style scoped>
-.wallet-transactions-page {
+.personal-wallet-page,
+.personal-wallet-page__tabs,
+.personal-wallet-page__transactions {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.personal-wallet-page__tabs :deep(.el-tabs__header) {
+  flex-shrink: 0;
+}
+
+.personal-wallet-page__tabs :deep(.el-tabs__content) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.personal-wallet-page__tabs :deep(.el-tab-pane) {
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
-.wallet-transactions-page__summary {
+.personal-wallet-page__summary {
   display: grid;
-  flex-shrink: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 12px;
 }
 
-.wallet-transactions-page__summary-card {
+.personal-wallet-page__summary-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--el-bg-color);
 }
 
-.wallet-transactions-page__summary-card span {
+.personal-wallet-page__summary-card span {
   color: var(--el-text-color-secondary);
   font-size: 13px;
 }
 
-.wallet-transactions-page__summary-card strong {
+.personal-wallet-page__summary-card strong {
   color: var(--el-text-color-primary);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
 }
 
-.wallet-transactions-page__table {
+.personal-wallet-page__actions {
+  margin-top: 16px;
+}
+
+.personal-wallet-page__table {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
 
 @media (max-width: 768px) {
-  .wallet-transactions-page__summary {
+  .personal-wallet-page__summary {
     grid-template-columns: 1fr;
   }
 }

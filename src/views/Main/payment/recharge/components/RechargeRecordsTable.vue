@@ -16,8 +16,6 @@ const props = defineProps<{
   page: PageState
   searchFields: SearchField[]
   canPay: (row: PaymentRechargeListItem) => boolean
-  canSync: (row: PaymentRechargeListItem) => boolean
-  canClose: (row: PaymentRechargeListItem) => boolean
 }>()
 
 const searchForm = defineModel<PaymentRechargeSearchForm>('searchForm', { required: true })
@@ -26,8 +24,6 @@ const emit = defineEmits<{
   refresh: []
   pageChange: [page: PageState]
   pay: [row: PaymentRechargeListItem]
-  sync: [row: PaymentRechargeListItem]
-  close: [row: PaymentRechargeListItem]
 }>()
 
 const userStore = useUserStore()
@@ -74,22 +70,6 @@ function tagType(status: PaymentRechargeListItem['status']) {
             @click="emit('pay', row)"
           >
             {{ t('paymentRecharge.actions.continuePay') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('payment_recharge_sync') && props.canSync(row)"
-            type="warning"
-            text
-            @click="emit('sync', row)"
-          >
-            {{ t('paymentRecharge.actions.sync') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('payment_recharge_close') && props.canClose(row)"
-            type="danger"
-            text
-            @click="emit('close', row)"
-          >
-            {{ t('paymentRecharge.actions.close') }}
           </el-button>
         </div>
       </template>
