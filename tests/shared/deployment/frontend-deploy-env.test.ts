@@ -27,10 +27,19 @@ describe('frontend production deploy env', () => {
     expect(workflow).not.toContain('zgm2003.cn')
   })
 
-  it('keeps disabled legacy deploy workflow from deriving API origin from frontend domain', () => {
+  it('keeps disabled legacy deploy workflow from deriving API or WebSocket origin from frontend domain', () => {
     const workflow = readFrontendSource('.github/workflows/deploy-frontend.yml.disabled')
 
     expect(workflow).not.toContain('API_BASE_URL="${VITE_GO_API_BASE_URL:-https://${FRONTEND_DOMAIN}}"')
+    expect(workflow).not.toContain('WS_URL="${VITE_WEB_SOCKET_URL:-wss://${FRONTEND_DOMAIN}/api/admin/v1/realtime/ws}"')
     expect(workflow).toContain(': "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL secret is required}"')
+    expect(workflow).toContain(': "${VITE_WEB_SOCKET_URL:?VITE_WEB_SOCKET_URL secret is required}"')
+  })
+
+  it('keeps Tauri CSP from allowing the root frontend domain as a WebSocket endpoint', () => {
+    const tauriConfig = readFrontendSource('src-tauri/tauri.conf.json')
+
+    expect(tauriConfig).toContain('wss://www.zgm2003.cn')
+    expect(tauriConfig).not.toMatch(/\bwss:\/\/zgm2003\.cn(?:\s|[";])/)
   })
 })
