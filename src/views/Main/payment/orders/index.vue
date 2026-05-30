@@ -36,6 +36,7 @@ const {
   syncOrder,
   closeOrder,
   canPay,
+  canSync,
   canClose,
 } = usePaymentOrderPage()
 
@@ -60,7 +61,9 @@ const {
       @update:pagination="onPageChange"
     >
       <template #toolbar-left>
-        <el-text type="info">{{ t('paymentOrder.runtimeNotice') }}</el-text>
+        <el-text type="info">
+          {{ t('paymentOrder.runtimeNotice') }}
+        </el-text>
       </template>
       <template #cell-status_text="{ row }">
         <el-tag :type="row.status === 'paid' ? 'success' : row.status === 'failed' ? 'danger' : row.status === 'closed' ? 'info' : 'warning'">
@@ -84,7 +87,7 @@ const {
           {{ t('paymentOrder.actions.pay') }}
         </el-button>
         <el-button
-          v-if="userStore.can('payment_order_sync')"
+          v-if="userStore.can('payment_order_sync') && canSync(row)"
           type="warning"
           text
           @click="syncOrder(row)"

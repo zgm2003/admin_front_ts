@@ -37,6 +37,7 @@ export function usePaymentRechargePage() {
   const recent = shallowRef<PaymentRechargeListItem[]>([])
   const selectedPackageCode = ref('')
   const syncedReturnRechargeNo = shallowRef('')
+  const syncingReturnRechargeNo = shallowRef('')
   const autoSyncedRechargeIDs = shallowRef(new Set<number>())
   const searchForm = ref<PaymentRechargeSearchForm>({
     current_page: 1,
@@ -193,9 +194,9 @@ export function usePaymentRechargePage() {
 
     let changed = false
     for (const row of candidates) {
-      autoSyncedRechargeIDs.value.add(row.id)
       try {
         const result = await PaymentRechargeApi.sync(row.id)
+        autoSyncedRechargeIDs.value.add(row.id)
         wallet.value = result.wallet
         changed = true
       } catch {
@@ -210,8 +211,8 @@ export function usePaymentRechargePage() {
 
   async function syncReturnRecharge(rechargeNo: string) {
     const normalized = rechargeNo.trim()
-    if (!normalized || syncedReturnRechargeNo.value === normalized) return
-    syncedReturnRechargeNo.value = normalized
+    if (!normalized || syncedReturnRechargeNo.value === normalized || syncingReturnRechargeNo.value === normalized) return
+    syncingReturnRechargeNo.value = normalized
     try {
       const result = await PaymentRechargeApi.list({
         current_page: 1,
@@ -225,10 +226,15 @@ export function usePaymentRechargePage() {
       }
       const status = await PaymentRechargeApi.sync(row.id)
       wallet.value = status.wallet
+      syncedReturnRechargeNo.value = normalized
       await refreshAll()
     } catch {
       ElNotification.warning({ message: t('paymentRecharge.messages.returnSyncFailed') })
       await table.getList()
+    } finally {
+      if (syncingReturnRechargeNo.value === normalized) {
+        syncingReturnRechargeNo.value = ''
+      }
     }
   }
 

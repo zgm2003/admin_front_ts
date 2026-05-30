@@ -140,6 +140,10 @@ export function usePaymentOrderPage() {
     return row.status === 'pending' || row.status === 'failed' || (row.status === 'paying' && row.pay_url !== '')
   }
 
+  function canSync(row: PaymentOrderListItem) {
+    return row.status === 'paying'
+  }
+
   function canClose(row: PaymentOrderListItem) {
     return row.status === 'pending' || row.status === 'failed' || row.status === 'paying'
   }
@@ -167,6 +171,7 @@ export function usePaymentOrderPage() {
     syncOrder,
     closeOrder,
     canPay,
+    canSync,
     canClose,
   }
 }

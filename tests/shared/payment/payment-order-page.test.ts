@@ -40,6 +40,10 @@ describe('payment order page', () => {
     expect(composable).not.toContain('PaymentOrderApi.add(buildCreatePayload')
     expect(composable).not.toContain('amount_cents: yuanToCents(model.amount_yuan)')
     expect(composable).toContain("row.status === 'pending' || row.status === 'failed' || (row.status === 'paying' && row.pay_url !== '')")
+    expect(composable).toContain("function canSync(row: PaymentOrderListItem)")
+    expect(composable).toContain("return row.status === 'paying'")
+    expect(page).toContain('canSync,')
+    expect(page).toContain("v-if=\"userStore.can('payment_order_sync') && canSync(row)\"")
     expect(composable).toContain("row.status === 'pending' || row.status === 'failed' || row.status === 'paying'")
 
     expect(detail).toContain('pay_url')
