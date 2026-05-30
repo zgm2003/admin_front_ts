@@ -35,7 +35,8 @@ const { t } = useI18n()
 const tableProps = computed(() => ({ height: '100%' }))
 
 function tagType(status: PaymentRechargeListItem['status']) {
-  if (status === 'credited' || status === 'paid') return 'success'
+  if (status === 'credited') return 'success'
+  if (status === 'paid') return 'warning'
   if (status === 'failed') return 'danger'
   if (status === 'closed') return 'info'
   return 'warning'

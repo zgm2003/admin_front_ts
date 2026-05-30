@@ -486,6 +486,7 @@ export default {
     checkout: {
       channelUnavailable: '支付通道不可用',
       selectAmountFirst: '先选择金额',
+      noCreatePermission: '无创建充值权限',
       confirmPay: '确认支付',
       methodAvailable: '可用',
       methodUnavailable: '不可用',

@@ -37,9 +37,13 @@ describe('payment recharge page', () => {
     expect(records).toContain("userStore.can('payment_recharge_close')")
     expect(records).toContain("import { Search } from '@/components/Search'")
     expect(records).toContain("import { AppTable } from '@/components/Table'")
+    expect(composable).toContain("const canCreateRecharge = computed(() => userStore.can('payment_recharge_add'))")
+    expect(composable).toContain('canCreateRecharge.value')
+    expect(composable).toMatch(/async function createRecharge\(\)[\s\S]*if \(!canSubmit\.value\) return/)
     expect(composable).toContain('PaymentRechargeApi.add')
     expect(composable).toContain('return_url: rechargeReturnURL()')
     expect(composable).toContain('syncReturnRecharge')
+    expect(page).toContain(':can-create="canCreateRecharge"')
     expect(combined).not.toContain('config_code')
     expect(combined).not.toContain('amount_yuan')
     expect(combined).not.toContain('同步返回地址')
@@ -58,6 +62,19 @@ describe('payment recharge page', () => {
     expect(checkout).toContain('recharge-checkout-panel__method')
     expect(checkout).toContain('props.paymentMethod.label')
     expect(checkout).toContain('props.paymentMethod.enabled')
+    expect(checkout).toContain('canCreate: boolean')
+    expect(checkout).toContain('paymentRecharge.checkout.noCreatePermission')
+  })
+
+  it('does not show paid-but-uncredited recharge as final success', () => {
+    const recent = read('src/views/Main/payment/recharge/components/RechargeRecentRecords.vue')
+    const records = read('src/views/Main/payment/recharge/components/RechargeRecordsTable.vue')
+
+    for (const source of [recent, records]) {
+      expect(source).toContain("if (status === 'credited') return 'success'")
+      expect(source).toContain("if (status === 'paid') return 'warning'")
+      expect(source).not.toContain("status === 'credited' || status === 'paid'")
+    }
   })
 
   it('adds locale menu labels for recharge', () => {

@@ -64,11 +64,12 @@ export function usePaymentRechargePage() {
     initPage: { page_size: 10 },
   })
   const selectedPackage = computed(() => packages.value.find((item) => item.code === selectedPackageCode.value))
+  const canCreateRecharge = computed(() => userStore.can('payment_recharge_add'))
   const balanceAfterText = computed(() => {
     const amount = selectedPackage.value?.amount_cents ?? 0
     return centsText(wallet.value.balance_cents + amount)
   })
-  const canSubmit = computed(() => Boolean(selectedPackage.value && paymentMethod.value.enabled && !submitting.value))
+  const canSubmit = computed(() => Boolean(canCreateRecharge.value && selectedPackage.value && paymentMethod.value.enabled && !submitting.value))
   const columns = computed(() => [
     { key: 'recharge_no', label: t('paymentRecharge.columns.rechargeNo'), minWidth: 190 },
     { key: 'payment_order_no', label: t('paymentRecharge.columns.paymentOrderNo'), minWidth: 190 },
@@ -115,10 +116,10 @@ export function usePaymentRechargePage() {
   }
 
   async function createRecharge() {
-    if (!selectedPackage.value) return
+    if (!canSubmit.value) return
     submitting.value = true
     try {
-      const result = await PaymentRechargeApi.add(buildCreatePayload(selectedPackage.value.code))
+      const result = await PaymentRechargeApi.add(buildCreatePayload(selectedPackage.value!.code))
       if (result.pay_url) {
         window.location.href = result.pay_url
         return
@@ -272,6 +273,7 @@ export function usePaymentRechargePage() {
     recent,
     selectedPackageCode,
     selectedPackage,
+    canCreateRecharge,
     balanceAfterText,
     canSubmit,
     columns,

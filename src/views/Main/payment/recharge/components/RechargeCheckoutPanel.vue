@@ -7,6 +7,7 @@ const props = defineProps<{
   wallet: WalletSummary
   paymentMethod: RechargePaymentMethod
   selectedPackage?: RechargePackageItem
+  canCreate: boolean
   balanceAfterText: string
   submitting: boolean
   canSubmit: boolean
@@ -18,6 +19,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const submitText = computed(() => {
+  if (!props.canCreate) return t('paymentRecharge.checkout.noCreatePermission')
   if (!props.paymentMethod.enabled) return t('paymentRecharge.checkout.channelUnavailable')
   if (!props.selectedPackage) return t('paymentRecharge.checkout.selectAmountFirst')
   return t('paymentRecharge.checkout.confirmPay')

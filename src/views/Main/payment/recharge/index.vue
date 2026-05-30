@@ -17,6 +17,7 @@ const {
   recent,
   selectedPackageCode,
   selectedPackage,
+  canCreateRecharge,
   balanceAfterText,
   canSubmit,
   columns,
@@ -66,6 +67,7 @@ const {
                 :wallet="wallet"
                 :payment-method="paymentMethod"
                 :selected-package="selectedPackage"
+                :can-create="canCreateRecharge"
                 :balance-after-text="balanceAfterText"
                 :submitting="submitting"
                 :can-submit="canSubmit"

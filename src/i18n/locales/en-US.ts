@@ -486,6 +486,7 @@ export default {
     checkout: {
       channelUnavailable: 'Payment channel unavailable',
       selectAmountFirst: 'Select an amount first',
+      noCreatePermission: 'No recharge create permission',
       confirmPay: 'Confirm Payment',
       methodAvailable: 'Available',
       methodUnavailable: 'Unavailable',
