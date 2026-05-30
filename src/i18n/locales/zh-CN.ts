@@ -306,6 +306,67 @@ export default {
     wallet_ledger: '资金流水',
   },
 
+  paymentOrder: {
+    columns: {
+      orderNo: '订单号',
+      configCode: '配置编码',
+      provider: '支付渠道',
+      payMethod: '支付方式',
+      subject: '订单标题',
+      amount: '金额',
+      status: '状态',
+      expiredAt: '过期时间',
+      createdAt: '创建时间',
+      actions: '操作',
+    },
+    filters: {
+      keyword: '关键词',
+      keywordPlaceholder: '订单号/标题',
+      configCode: '支付配置',
+      provider: '支付渠道',
+      payMethod: '支付方式',
+      status: '订单状态',
+      dateRange: '创建日期',
+    },
+    actions: { close: '关闭' },
+    messages: {
+      payLinkGenerated: '支付链接已生成',
+      syncSuccess: '同步成功',
+      closeConfirm: '确认关闭该支付订单？',
+      closeSuccess: '关闭成功',
+    },
+  },
+
+  paymentRecharge: {
+    provider: { alipay: '支付宝' },
+    columns: {
+      rechargeNo: '充值单号',
+      paymentOrderNo: '支付订单号',
+      package: '套餐',
+      amount: '金额',
+      status: '状态',
+      paidAt: '支付时间',
+      creditedAt: '入账时间',
+      createdAt: '创建时间',
+      actions: '操作',
+    },
+    filters: {
+      keyword: '关键词',
+      keywordPlaceholder: '充值单号/支付订单号',
+      status: '状态',
+      dateRange: '创建日期',
+    },
+    actions: { close: '关闭' },
+    messages: {
+      created: '充值单已创建',
+      syncSuccess: '同步成功',
+      closeConfirm: '确认关闭该充值单？',
+      closeSuccess: '关闭成功',
+      autoSyncPartialFailed: '部分支付中充值单自动同步失败，可稍后手动同步',
+      returnSyncFailed: '支付结果自动同步失败，可稍后在充值记录中手动同步',
+    },
+  },
+
   wallet: {
     summary: '钱包概览',
     balance: '当前余额',

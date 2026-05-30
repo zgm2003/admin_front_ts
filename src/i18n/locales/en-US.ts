@@ -306,6 +306,67 @@ export default {
     wallet_ledger: 'Funds Ledger',
   },
 
+  paymentOrder: {
+    columns: {
+      orderNo: 'Order No',
+      configCode: 'Config Code',
+      provider: 'Provider',
+      payMethod: 'Pay Method',
+      subject: 'Subject',
+      amount: 'Amount',
+      status: 'Status',
+      expiredAt: 'Expired At',
+      createdAt: 'Created At',
+      actions: 'Actions',
+    },
+    filters: {
+      keyword: 'Keyword',
+      keywordPlaceholder: 'Order No / Subject',
+      configCode: 'Payment Config',
+      provider: 'Provider',
+      payMethod: 'Pay Method',
+      status: 'Order Status',
+      dateRange: 'Created Date',
+    },
+    actions: { close: 'Close' },
+    messages: {
+      payLinkGenerated: 'Payment link generated',
+      syncSuccess: 'Synced successfully',
+      closeConfirm: 'Close this payment order?',
+      closeSuccess: 'Closed successfully',
+    },
+  },
+
+  paymentRecharge: {
+    provider: { alipay: 'Alipay' },
+    columns: {
+      rechargeNo: 'Recharge No',
+      paymentOrderNo: 'Payment Order No',
+      package: 'Package',
+      amount: 'Amount',
+      status: 'Status',
+      paidAt: 'Paid At',
+      creditedAt: 'Credited At',
+      createdAt: 'Created At',
+      actions: 'Actions',
+    },
+    filters: {
+      keyword: 'Keyword',
+      keywordPlaceholder: 'Recharge No / Payment Order No',
+      status: 'Status',
+      dateRange: 'Created Date',
+    },
+    actions: { close: 'Close' },
+    messages: {
+      created: 'Recharge created',
+      syncSuccess: 'Synced successfully',
+      closeConfirm: 'Close this recharge?',
+      closeSuccess: 'Closed successfully',
+      autoSyncPartialFailed: 'Some paying recharges failed to auto-sync; try manual sync later',
+      returnSyncFailed: 'Payment result auto-sync failed; try manual sync in recharge records later',
+    },
+  },
+
   wallet: {
     summary: 'Wallet Summary',
     balance: 'Balance',

@@ -68,6 +68,14 @@ describe('payment recharge page', () => {
     expect(en).toContain("payment_recharge: 'Recharge'")
   })
 
+  it('keeps payment recharge composable visible copy behind vue-i18n', () => {
+    const composable = read('src/views/Main/payment/recharge/composables/usePaymentRechargePage.ts')
+
+    expect(composable).toContain("import { useI18n } from 'vue-i18n'")
+    expect(composable).toContain('const { t } = useI18n()')
+    expect(composable).not.toMatch(/[\u4e00-\u9fff]/)
+  })
+
   it('keeps the cashier layout inside the outer page card without nested horizontal scrollbars', () => {
     const page = read('src/views/Main/payment/recharge/index.vue')
 

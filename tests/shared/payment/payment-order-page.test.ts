@@ -67,4 +67,12 @@ describe('payment order page', () => {
     expect(zh).toContain("payment_order: '支付订单'")
     expect(en).toContain("payment_order: 'Payment Orders'")
   })
+
+  it('keeps payment order composable visible copy behind vue-i18n', () => {
+    const composable = read('src/views/Main/payment/orders/composables/usePaymentOrderPage.ts')
+
+    expect(composable).toContain("import { useI18n } from 'vue-i18n'")
+    expect(composable).toContain('const { t } = useI18n()')
+    expect(composable).not.toMatch(/[\u4e00-\u9fff]/)
+  })
 })

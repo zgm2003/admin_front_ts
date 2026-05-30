@@ -1,5 +1,6 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import {
   PaymentRechargeApi,
@@ -21,6 +22,7 @@ export function usePaymentRechargePage() {
   const route = useRoute()
   const router = useRouter()
   const userStore = useUserStore()
+  const { t } = useI18n()
   const activeTab = ref('cashier')
   const pageLoading = ref(false)
   const submitting = ref(false)
@@ -28,7 +30,7 @@ export function usePaymentRechargePage() {
   const packages = shallowRef<PaymentRechargeInitResponse['packages']>([])
   const paymentMethod = shallowRef<PaymentRechargeInitResponse['payment_method']>({
     provider: 'alipay',
-    label: '支付宝',
+    label: t('paymentRecharge.provider.alipay'),
     enabled: false,
   })
   const dict = shallowRef<PaymentRechargeInitResponse['dict']>({ status_arr: [] })
@@ -68,20 +70,20 @@ export function usePaymentRechargePage() {
   })
   const canSubmit = computed(() => Boolean(selectedPackage.value && paymentMethod.value.enabled && !submitting.value))
   const columns = computed(() => [
-    { key: 'recharge_no', label: '充值单号', minWidth: 190 },
-    { key: 'payment_order_no', label: '支付订单号', minWidth: 190 },
-    { key: 'package_name', label: '套餐', minWidth: 100 },
-    { key: 'amount_text', label: '金额', width: 110 },
-    { key: 'status_text', label: '状态', width: 110 },
-    { key: 'paid_at', label: '支付时间', minWidth: 170 },
-    { key: 'credited_at', label: '入账时间', minWidth: 170 },
-    { key: 'created_at', label: '创建时间', minWidth: 170 },
-    { key: 'actions', label: '操作', width: 240, fixed: 'right' },
+    { key: 'recharge_no', label: t('paymentRecharge.columns.rechargeNo'), minWidth: 190 },
+    { key: 'payment_order_no', label: t('paymentRecharge.columns.paymentOrderNo'), minWidth: 190 },
+    { key: 'package_name', label: t('paymentRecharge.columns.package'), minWidth: 100 },
+    { key: 'amount_text', label: t('paymentRecharge.columns.amount'), width: 110 },
+    { key: 'status_text', label: t('paymentRecharge.columns.status'), width: 110 },
+    { key: 'paid_at', label: t('paymentRecharge.columns.paidAt'), minWidth: 170 },
+    { key: 'credited_at', label: t('paymentRecharge.columns.creditedAt'), minWidth: 170 },
+    { key: 'created_at', label: t('paymentRecharge.columns.createdAt'), minWidth: 170 },
+    { key: 'actions', label: t('paymentRecharge.columns.actions'), width: 240, fixed: 'right' },
   ])
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'keyword', type: 'input', label: '关键词', placeholder: '充值单号/支付订单号', width: 210 },
-    { key: 'status', type: 'select-v2', label: '状态', placeholder: '状态', width: 130, options: dict.value.status_arr },
-    { key: 'dateRange', type: 'date-range', label: '创建日期', width: 260 },
+    { key: 'keyword', type: 'input', label: t('paymentRecharge.filters.keyword'), placeholder: t('paymentRecharge.filters.keywordPlaceholder'), width: 210 },
+    { key: 'status', type: 'select-v2', label: t('paymentRecharge.filters.status'), placeholder: t('paymentRecharge.filters.status'), width: 130, options: dict.value.status_arr },
+    { key: 'dateRange', type: 'date-range', label: t('paymentRecharge.filters.dateRange'), width: 260 },
   ])
 
   async function init() {
@@ -121,7 +123,7 @@ export function usePaymentRechargePage() {
         window.location.href = result.pay_url
         return
       }
-      ElNotification.success({ message: '充值单已创建' })
+      ElNotification.success({ message: t('paymentRecharge.messages.created') })
       await refreshAll()
     } finally {
       submitting.value = false
@@ -144,23 +146,23 @@ export function usePaymentRechargePage() {
   async function syncRecharge(row: PaymentRechargeListItem) {
     const result = await PaymentRechargeApi.sync(row.id)
     wallet.value = result.wallet
-    ElNotification.success({ message: '同步成功' })
+    ElNotification.success({ message: t('paymentRecharge.messages.syncSuccess') })
     await refreshAll()
   }
 
   async function closeRecharge(row: PaymentRechargeListItem) {
     try {
-      await ElMessageBox.confirm('确认关闭该充值单？', '提示', {
+      await ElMessageBox.confirm(t('paymentRecharge.messages.closeConfirm'), t('common.confirmTitle'), {
         type: 'warning',
-        confirmButtonText: '关闭',
-        cancelButtonText: '取消',
+        confirmButtonText: t('paymentRecharge.actions.close'),
+        cancelButtonText: t('common.actions.cancel'),
       })
     } catch {
       return
     }
     const result = await PaymentRechargeApi.close(row.id)
     wallet.value = result.wallet
-    ElNotification.success({ message: '关闭成功' })
+    ElNotification.success({ message: t('paymentRecharge.messages.closeSuccess') })
     await refreshAll()
   }
 
@@ -196,7 +198,7 @@ export function usePaymentRechargePage() {
         wallet.value = result.wallet
         changed = true
       } catch {
-        ElNotification.warning({ message: '部分支付中充值单自动同步失败，可稍后手动同步' })
+        ElNotification.warning({ message: t('paymentRecharge.messages.autoSyncPartialFailed') })
       }
     }
     if (changed) {
@@ -224,7 +226,7 @@ export function usePaymentRechargePage() {
       wallet.value = status.wallet
       await refreshAll()
     } catch {
-      ElNotification.warning({ message: '支付结果自动同步失败，可稍后在充值记录中手动同步' })
+      ElNotification.warning({ message: t('paymentRecharge.messages.returnSyncFailed') })
       await table.getList()
     }
   }

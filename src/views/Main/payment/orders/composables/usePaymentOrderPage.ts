@@ -1,4 +1,5 @@
 import { computed, onMounted, ref, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import {
   PaymentOrderApi,
@@ -15,6 +16,7 @@ type PaymentOrderSearchForm = PaymentOrderListParams & {
 }
 
 export function usePaymentOrderPage() {
+  const { t } = useI18n()
   const dict = shallowRef<PaymentOrderInitResponse['dict']>({
     provider_arr: [],
     pay_method_arr: [],
@@ -49,24 +51,24 @@ export function usePaymentOrderPage() {
   })
   const table = useTable<PaymentOrderListItem, PaymentOrderListParams>({ api: PaymentOrderApi, searchForm: apiSearchForm })
   const columns = computed(() => [
-    { key: 'order_no', label: '订单号', minWidth: 190 },
-    { key: 'config_code', label: '配置编码', minWidth: 140 },
-    { key: 'provider_text', label: '支付渠道', width: 110 },
-    { key: 'pay_method_text', label: '支付方式', width: 110 },
-    { key: 'subject', label: '订单标题', minWidth: 180 },
-    { key: 'amount_text', label: '金额', width: 110 },
-    { key: 'status_text', label: '状态', width: 110 },
-    { key: 'expired_at', label: '过期时间', minWidth: 170 },
-    { key: 'created_at', label: '创建时间', minWidth: 170 },
-    { key: 'actions', label: '操作', width: 260, fixed: 'right' },
+    { key: 'order_no', label: t('paymentOrder.columns.orderNo'), minWidth: 190 },
+    { key: 'config_code', label: t('paymentOrder.columns.configCode'), minWidth: 140 },
+    { key: 'provider_text', label: t('paymentOrder.columns.provider'), width: 110 },
+    { key: 'pay_method_text', label: t('paymentOrder.columns.payMethod'), width: 110 },
+    { key: 'subject', label: t('paymentOrder.columns.subject'), minWidth: 180 },
+    { key: 'amount_text', label: t('paymentOrder.columns.amount'), width: 110 },
+    { key: 'status_text', label: t('paymentOrder.columns.status'), width: 110 },
+    { key: 'expired_at', label: t('paymentOrder.columns.expiredAt'), minWidth: 170 },
+    { key: 'created_at', label: t('paymentOrder.columns.createdAt'), minWidth: 170 },
+    { key: 'actions', label: t('paymentOrder.columns.actions'), width: 260, fixed: 'right' },
   ])
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'keyword', type: 'input', label: '关键词', placeholder: '订单号/标题', width: 190 },
-    { key: 'config_code', type: 'select-v2', label: '支付配置', placeholder: '支付配置', width: 180, options: configOptions.value },
-    { key: 'provider', type: 'select-v2', label: '支付渠道', placeholder: '支付渠道', width: 130, options: dict.value.provider_arr },
-    { key: 'pay_method', type: 'select-v2', label: '支付方式', placeholder: '支付方式', width: 130, options: dict.value.pay_method_arr },
-    { key: 'status', type: 'select-v2', label: '订单状态', placeholder: '订单状态', width: 130, options: dict.value.order_status_arr },
-    { key: 'dateRange', type: 'date-range', label: '创建日期', width: 260 },
+    { key: 'keyword', type: 'input', label: t('paymentOrder.filters.keyword'), placeholder: t('paymentOrder.filters.keywordPlaceholder'), width: 190 },
+    { key: 'config_code', type: 'select-v2', label: t('paymentOrder.filters.configCode'), placeholder: t('paymentOrder.filters.configCode'), width: 180, options: configOptions.value },
+    { key: 'provider', type: 'select-v2', label: t('paymentOrder.filters.provider'), placeholder: t('paymentOrder.filters.provider'), width: 130, options: dict.value.provider_arr },
+    { key: 'pay_method', type: 'select-v2', label: t('paymentOrder.filters.payMethod'), placeholder: t('paymentOrder.filters.payMethod'), width: 130, options: dict.value.pay_method_arr },
+    { key: 'status', type: 'select-v2', label: t('paymentOrder.filters.status'), placeholder: t('paymentOrder.filters.status'), width: 130, options: dict.value.order_status_arr },
+    { key: 'dateRange', type: 'date-range', label: t('paymentOrder.filters.dateRange'), width: 260 },
   ])
   const detailDialogVisible = ref(false)
   const detail = ref<PaymentOrderDetail | null>(null)
@@ -106,7 +108,7 @@ export function usePaymentOrderPage() {
       return
     }
     const result = await PaymentOrderApi.pay(row.id)
-    ElNotification.success({ message: result.pay_url ? '支付链接已生成' : '操作成功' })
+    ElNotification.success({ message: result.pay_url ? t('paymentOrder.messages.payLinkGenerated') : t('common.success.operation') })
     if (result.pay_url) {
       openPayURL(result.pay_url)
     }
@@ -115,22 +117,22 @@ export function usePaymentOrderPage() {
 
   async function syncOrder(row: PaymentOrderListItem) {
     await PaymentOrderApi.sync(row.id)
-    ElNotification.success({ message: '同步成功' })
+    ElNotification.success({ message: t('paymentOrder.messages.syncSuccess') })
     await table.getList()
   }
 
   async function closeOrder(row: PaymentOrderListItem) {
     try {
-      await ElMessageBox.confirm('确认关闭该支付订单？', '提示', {
+      await ElMessageBox.confirm(t('paymentOrder.messages.closeConfirm'), t('common.confirmTitle'), {
         type: 'warning',
-        confirmButtonText: '关闭',
-        cancelButtonText: '取消',
+        confirmButtonText: t('paymentOrder.actions.close'),
+        cancelButtonText: t('common.actions.cancel'),
       })
     } catch {
       return
     }
     await PaymentOrderApi.close(row.id)
-    ElNotification.success({ message: '关闭成功' })
+    ElNotification.success({ message: t('paymentOrder.messages.closeSuccess') })
     await table.getList()
   }
 
