@@ -1,4 +1,5 @@
 import { computed, nextTick, onMounted, ref, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import type { FormRules, UploadRequestOptions } from 'element-plus'
 import { CommonEnum } from '@/enums'
@@ -28,6 +29,7 @@ const certificateFieldMap: { [key in PaymentCertificateType]: CertificateField }
 }
 
 export function usePaymentConfigPage() {
+  const { t } = useI18n()
   const dict = shallowRef<PaymentConfigInitResponse['dict']>({
     provider_arr: [],
     environment_arr: [],
@@ -45,23 +47,23 @@ export function usePaymentConfigPage() {
   })
   const table = useTable<PaymentConfigListItem, PaymentConfigListParams>({ api: PaymentConfigApi, searchForm })
   const columns = computed(() => [
-    { key: 'provider_text', label: '支付渠道', width: 110 },
-    { key: 'name', label: '配置名称', minWidth: 150 },
-    { key: 'code', label: '配置编码', minWidth: 150 },
+    { key: 'provider_text', label: t('paymentConfig.columns.provider'), width: 110 },
+    { key: 'name', label: t('paymentConfig.columns.name'), minWidth: 150 },
+    { key: 'code', label: t('paymentConfig.columns.code'), minWidth: 150 },
     { key: 'app_id', label: 'AppID', minWidth: 170 },
-    { key: 'environment_text', label: '环境', width: 110 },
-    { key: 'enabled_methods_text', label: '支付方式', minWidth: 130 },
-    { key: 'sort', label: '优先级', width: 90 },
-    { key: 'status_text', label: '状态', width: 90 },
-    { key: 'created_at', label: '创建时间', minWidth: 170 },
-    { key: 'updated_at', label: '更新时间', minWidth: 170 },
-    { key: 'actions', label: '操作', width: 280, fixed: 'right' },
+    { key: 'environment_text', label: t('paymentConfig.columns.environment'), width: 110 },
+    { key: 'enabled_methods_text', label: t('paymentConfig.columns.enabledMethods'), minWidth: 130 },
+    { key: 'sort', label: t('paymentConfig.columns.sort'), width: 90 },
+    { key: 'status_text', label: t('paymentConfig.columns.status'), width: 90 },
+    { key: 'created_at', label: t('paymentConfig.columns.createdAt'), minWidth: 170 },
+    { key: 'updated_at', label: t('paymentConfig.columns.updatedAt'), minWidth: 170 },
+    { key: 'actions', label: t('paymentConfig.columns.actions'), width: 280, fixed: 'right' },
   ])
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'name', type: 'input', label: '配置名称', placeholder: '名称/编码/AppID', width: 190 },
-    { key: 'provider', type: 'select-v2', label: '支付渠道', placeholder: '支付渠道', width: 130, options: dict.value.provider_arr },
-    { key: 'environment', type: 'select-v2', label: '环境', placeholder: '环境', width: 130, options: dict.value.environment_arr },
-    { key: 'status', type: 'select-v2', label: '状态', placeholder: '状态', width: 120, options: dict.value.common_status_arr },
+    { key: 'name', type: 'input', label: t('paymentConfig.filters.name'), placeholder: t('paymentConfig.filters.namePlaceholder'), width: 190 },
+    { key: 'provider', type: 'select-v2', label: t('paymentConfig.filters.provider'), placeholder: t('paymentConfig.filters.provider'), width: 130, options: dict.value.provider_arr },
+    { key: 'environment', type: 'select-v2', label: t('paymentConfig.filters.environment'), placeholder: t('paymentConfig.filters.environment'), width: 130, options: dict.value.environment_arr },
+    { key: 'status', type: 'select-v2', label: t('paymentConfig.filters.status'), placeholder: t('paymentConfig.filters.status'), width: 120, options: dict.value.common_status_arr },
   ])
   const dialogVisible = ref(false)
   const dialogMode = shallowRef<PaymentConfigDialogMode>('add')
@@ -71,22 +73,22 @@ export function usePaymentConfigPage() {
   const editingPrivateKeyHint = shallowRef('')
 
   const rules = computed<FormRules>(() => ({
-    provider: [{ required: true, message: '请选择支付渠道', trigger: 'change' }],
-    code: [{ required: true, message: '请输入配置编码', trigger: 'blur' }],
-    name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-    app_id: [{ required: true, message: '请输入支付宝AppID', trigger: 'blur' }],
-    app_private_key: [{ required: dialogMode.value === 'add', message: '请输入应用私钥', trigger: 'blur' }],
-    app_cert_path: [{ required: true, message: '请上传应用公钥证书', trigger: 'change' }],
-    platform_cert_path: [{ required: true, message: '请上传支付宝公钥证书', trigger: 'change' }],
-    root_cert_path: [{ required: true, message: '请上传支付宝根证书', trigger: 'change' }],
+    provider: [{ required: true, message: t('paymentConfig.validation.providerRequired'), trigger: 'change' }],
+    code: [{ required: true, message: t('paymentConfig.validation.codeRequired'), trigger: 'blur' }],
+    name: [{ required: true, message: t('paymentConfig.validation.nameRequired'), trigger: 'blur' }],
+    app_id: [{ required: true, message: t('paymentConfig.validation.appIdRequired'), trigger: 'blur' }],
+    app_private_key: [{ required: dialogMode.value === 'add', message: t('paymentConfig.validation.privateKeyRequired'), trigger: 'blur' }],
+    app_cert_path: [{ required: true, message: t('paymentConfig.validation.appCertRequired'), trigger: 'change' }],
+    platform_cert_path: [{ required: true, message: t('paymentConfig.validation.alipayCertRequired'), trigger: 'change' }],
+    root_cert_path: [{ required: true, message: t('paymentConfig.validation.rootCertRequired'), trigger: 'change' }],
     notify_url: [
-      { required: true, message: '请输入异步通知地址', trigger: 'blur' },
-      { validator: validateHTTPURL, trigger: 'blur' },
+      { required: true, message: t('paymentConfig.validation.notifyURLRequired'), trigger: 'blur' },
+      { validator: validateHTTPURL(t('paymentConfig.validation.httpURL')), trigger: 'blur' },
     ],
-    environment: [{ required: true, message: '请选择环境', trigger: 'change' }],
-    enabled_methods: [{ required: true, message: '请选择支付方式', trigger: 'change' }],
-    sort: [{ required: true, message: '请输入支付优先级', trigger: 'blur' }],
-    status: [{ required: true, message: '请选择状态', trigger: 'change' }],
+    environment: [{ required: true, message: t('paymentConfig.validation.environmentRequired'), trigger: 'change' }],
+    enabled_methods: [{ required: true, message: t('paymentConfig.validation.enabledMethodsRequired'), trigger: 'change' }],
+    sort: [{ required: true, message: t('paymentConfig.validation.sortRequired'), trigger: 'blur' }],
+    status: [{ required: true, message: t('paymentConfig.validation.statusRequired'), trigger: 'change' }],
   }))
 
   async function init() {
@@ -142,7 +144,7 @@ export function usePaymentConfigPage() {
     } else {
       await PaymentConfigApi.edit(form.value)
     }
-    ElNotification.success({ message: '操作成功' })
+    ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
     await table.getList()
   }
@@ -150,29 +152,29 @@ export function usePaymentConfigPage() {
   async function changeStatus(row: PaymentConfigListItem) {
     const nextStatus = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES
     await PaymentConfigApi.status(row.id, nextStatus)
-    ElNotification.success({ message: '操作成功' })
+    ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
   }
 
   async function confirmDel(row: PaymentConfigListItem) {
     try {
-      await ElMessageBox.confirm('确认删除该支付配置？', '提示', {
+      await ElMessageBox.confirm(t('paymentConfig.messages.deleteConfirm'), t('common.confirmTitle'), {
         type: 'warning',
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
       })
     } catch {
       return
     }
     await PaymentConfigApi.del(row.id)
-    ElNotification.success({ message: '操作成功' })
+    ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
   }
 
   async function uploadCert(certType: PaymentCertificateType, options: UploadRequestOptions) {
     const configCode = form.value.code.trim()
     if (!configCode) {
-      options.onError(uploadAjaxError('请先填写配置编码'))
+      options.onError(uploadAjaxError(t('paymentConfig.messages.codeRequiredBeforeUpload')))
       return
     }
     uploadLoading.value = certType
@@ -184,9 +186,9 @@ export function usePaymentConfigPage() {
       const result = await PaymentConfigApi.uploadCertificate(payload)
       form.value[certificateFieldMap[certType]] = result.path
       options.onSuccess(result)
-      ElNotification.success({ message: '证书上传成功' })
+      ElNotification.success({ message: t('paymentConfig.messages.certificateUploadSuccess') })
     } catch (error) {
-      options.onError(uploadAjaxError(error instanceof Error ? error.message : '证书上传失败'))
+      options.onError(uploadAjaxError(error instanceof Error ? error.message : t('paymentConfig.messages.certificateUploadFailed')))
     } finally {
       uploadLoading.value = ''
     }
@@ -194,7 +196,7 @@ export function usePaymentConfigPage() {
 
   async function testConfig(row: PaymentConfigListItem) {
     const result = await PaymentConfigApi.test(row.id)
-    ElNotification.success({ message: result.message || '支付宝配置测试通过' })
+    ElNotification.success({ message: result.message || t('paymentConfig.messages.alipayTestPassed') })
   }
 
   function onSearch() {
@@ -252,12 +254,14 @@ function defaultForm(): PaymentConfigMutationPayload {
   }
 }
 
-function validateHTTPURL(_rule: unknown, value: string, callback: (error?: Error) => void) {
-  if (value.startsWith('http://') || value.startsWith('https://')) {
-    callback()
-    return
+function validateHTTPURL(message: string) {
+  return (_rule: unknown, value: string, callback: (error?: Error) => void) => {
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      callback()
+      return
+    }
+    callback(new Error(message))
   }
-  callback(new Error('地址必须以 http:// 或 https:// 开头'))
 }
 
 function uploadAjaxError(message: string): UploadError {

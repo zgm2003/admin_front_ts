@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules, UploadRequestOptions } from 'element-plus'
 import type {
   PaymentCertificateType,
@@ -20,6 +21,7 @@ const props = defineProps<{
 
 const form = defineModel<PaymentConfigMutationPayload>({ required: true })
 const formRef = ref<FormInstance | null>(null)
+const { t } = useI18n()
 
 async function validate(): Promise<boolean> {
   if (!formRef.value) return false
@@ -62,7 +64,7 @@ defineExpose({
   >
     <section class="payment-config-section">
       <div class="payment-config-section__title">
-        基础信息
+        {{ t('paymentConfig.form.sections.basic') }}
       </div>
       <el-row :gutter="12">
         <el-col
@@ -70,7 +72,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="配置编码"
+            :label="t('paymentConfig.form.fields.code')"
             prop="code"
             required
           >
@@ -78,7 +80,7 @@ defineExpose({
               v-model="form.code"
               :disabled="props.dialogMode === 'edit'"
               clearable
-              placeholder="如 alipay_default"
+              :placeholder="t('paymentConfig.form.placeholders.code')"
             />
           </el-form-item>
         </el-col>
@@ -87,14 +89,14 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="配置名称"
+            :label="t('paymentConfig.form.fields.name')"
             prop="name"
             required
           >
             <el-input
               v-model="form.name"
               clearable
-              placeholder="如 支付宝默认配置"
+              :placeholder="t('paymentConfig.form.placeholders.name')"
             />
           </el-form-item>
         </el-col>
@@ -103,7 +105,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="支付渠道"
+            :label="t('paymentConfig.form.fields.provider')"
             prop="provider"
             required
           >
@@ -120,7 +122,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="环境"
+            :label="t('paymentConfig.form.fields.environment')"
             prop="environment"
             required
           >
@@ -136,7 +138,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="状态"
+            :label="t('paymentConfig.form.fields.status')"
             prop="status"
             required
           >
@@ -152,7 +154,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="优先级"
+            :label="t('paymentConfig.form.fields.sort')"
             prop="sort"
             required
           >
@@ -164,13 +166,13 @@ defineExpose({
               style="width: 100%"
             />
             <div class="payment-config-help">
-              数字越小越优先。状态关闭时不会参与充值支付。
+              {{ t('paymentConfig.form.help.sort') }}
             </div>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item
-            label="备注"
+            :label="t('paymentConfig.form.fields.remark')"
             prop="remark"
           >
             <el-input
@@ -186,7 +188,7 @@ defineExpose({
 
     <section class="payment-config-section">
       <div class="payment-config-section__title">
-        支付宝参数
+        {{ t('paymentConfig.form.sections.alipay') }}
       </div>
       <el-row :gutter="12">
         <el-col
@@ -209,7 +211,7 @@ defineExpose({
           :span="24"
         >
           <el-form-item
-            label="支付方式"
+            :label="t('paymentConfig.form.fields.enabledMethods')"
             prop="enabled_methods"
             required
           >
@@ -225,7 +227,7 @@ defineExpose({
         </el-col>
         <el-col :span="24">
           <el-form-item
-            label="应用私钥"
+            :label="t('paymentConfig.form.fields.privateKey')"
             prop="app_private_key"
             :required="props.dialogMode === 'add'"
           >
@@ -234,19 +236,19 @@ defineExpose({
               type="textarea"
               :rows="4"
               clearable
-              :placeholder="props.dialogMode === 'edit' ? '不填则保留原私钥' : '请输入应用私钥'"
+              :placeholder="props.dialogMode === 'edit' ? t('paymentConfig.form.placeholders.privateKeyEdit') : t('paymentConfig.form.placeholders.privateKeyAdd')"
             />
             <div
               v-if="props.dialogMode === 'edit' && props.privateKeyHint"
               class="payment-config-key-hint"
             >
-              当前已配置私钥：{{ props.privateKeyHint }}。不填写新私钥时会继续保留。
+              {{ t('paymentConfig.form.help.privateKeyHint', { hint: props.privateKeyHint }) }}
             </div>
           </el-form-item>
         </el-col>
         <el-col :span="24">
           <el-form-item
-            label="异步通知地址"
+            :label="t('paymentConfig.form.fields.notifyURL')"
             prop="notify_url"
             required
           >
@@ -262,12 +264,12 @@ defineExpose({
 
     <section class="payment-config-section">
       <div class="payment-config-section__title">
-        证书上传
+        {{ t('paymentConfig.form.sections.certificates') }}
       </div>
       <el-row :gutter="12">
         <el-col :span="24">
           <el-form-item
-            label="应用公钥证书"
+            :label="t('paymentConfig.form.fields.appCert')"
             prop="app_cert_path"
             required
           >
@@ -275,7 +277,7 @@ defineExpose({
               <el-input
                 v-model="form.app_cert_path"
                 readonly
-                placeholder="上传后自动填入私有证书路径"
+                :placeholder="t('paymentConfig.form.placeholders.certificatePath')"
               />
               <el-upload
                 v-if="props.canUpload"
@@ -284,7 +286,7 @@ defineExpose({
                 :http-request="uploadAppCert"
               >
                 <el-button :loading="props.uploadLoading === 'app_cert'">
-                  上传证书
+                  {{ t('paymentConfig.actions.uploadCertificate') }}
                 </el-button>
               </el-upload>
             </div>
@@ -292,7 +294,7 @@ defineExpose({
         </el-col>
         <el-col :span="24">
           <el-form-item
-            label="支付宝公钥证书"
+            :label="t('paymentConfig.form.fields.alipayCert')"
             prop="platform_cert_path"
             required
           >
@@ -300,7 +302,7 @@ defineExpose({
               <el-input
                 v-model="form.platform_cert_path"
                 readonly
-                placeholder="上传后自动填入私有证书路径"
+                :placeholder="t('paymentConfig.form.placeholders.certificatePath')"
               />
               <el-upload
                 v-if="props.canUpload"
@@ -309,7 +311,7 @@ defineExpose({
                 :http-request="uploadAlipayCert"
               >
                 <el-button :loading="props.uploadLoading === 'alipay_cert'">
-                  上传证书
+                  {{ t('paymentConfig.actions.uploadCertificate') }}
                 </el-button>
               </el-upload>
             </div>
@@ -317,7 +319,7 @@ defineExpose({
         </el-col>
         <el-col :span="24">
           <el-form-item
-            label="支付宝根证书"
+            :label="t('paymentConfig.form.fields.rootCert')"
             prop="root_cert_path"
             required
           >
@@ -325,7 +327,7 @@ defineExpose({
               <el-input
                 v-model="form.root_cert_path"
                 readonly
-                placeholder="上传后自动填入私有证书路径"
+                :placeholder="t('paymentConfig.form.placeholders.certificatePath')"
               />
               <el-upload
                 v-if="props.canUpload"
@@ -334,7 +336,7 @@ defineExpose({
                 :http-request="uploadAlipayRootCert"
               >
                 <el-button :loading="props.uploadLoading === 'alipay_root_cert'">
-                  上传证书
+                  {{ t('paymentConfig.actions.uploadCertificate') }}
                 </el-button>
               </el-upload>
             </div>

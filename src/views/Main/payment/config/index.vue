@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AppDialog } from '@/components/AppDialog'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
@@ -11,6 +12,7 @@ import { usePaymentConfigPage, type PaymentConfigFormRef } from './composables/u
 
 const userStore = useUserStore()
 const isMobile = useIsMobile()
+const { t } = useI18n()
 const dialogLayout = computed(() => ({
   width: isMobile.value ? '94vw' : '920px',
   height: isMobile.value ? '72vh' : '70vh',
@@ -78,7 +80,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           type="success"
           @click="openAddDialog"
         >
-          新增
+          {{ t('common.actions.add') }}
         </el-button>
       </template>
       <template #cell-environment_text="{ row }">
@@ -98,7 +100,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           text
           @click="openEditDialog(row)"
         >
-          编辑
+          {{ t('common.actions.edit') }}
         </el-button>
         <el-button
           v-if="userStore.can('payment_config_status')"
@@ -106,7 +108,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           text
           @click="changeStatus(row)"
         >
-          {{ row.status === CommonEnum.YES ? '禁用' : '启用' }}
+          {{ row.status === CommonEnum.YES ? t('common.actions.disable') : t('common.actions.enable') }}
         </el-button>
         <el-button
           v-if="userStore.can('payment_config_test')"
@@ -114,7 +116,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           text
           @click="testConfig(row)"
         >
-          测试配置
+          {{ t('paymentConfig.actions.testConfig') }}
         </el-button>
         <el-button
           v-if="userStore.can('payment_config_del')"
@@ -122,7 +124,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
           text
           @click="confirmDel(row)"
         >
-          删除
+          {{ t('common.actions.del') }}
         </el-button>
       </template>
     </AppTable>
@@ -136,7 +138,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
     draggable
   >
     <template #header>
-      {{ dialogMode === 'edit' ? '编辑支付配置' : '新增支付配置' }}
+      {{ dialogMode === 'edit' ? t('paymentConfig.dialog.editTitle') : t('paymentConfig.dialog.addTitle') }}
     </template>
     <PaymentConfigForm
       :ref="setFormRef"
@@ -151,13 +153,13 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
     />
     <template #footer>
       <el-button @click="dialogVisible = false">
-        取消
+        {{ t('common.actions.cancel') }}
       </el-button>
       <el-button
         type="primary"
         @click="confirmSubmit"
       >
-        确认
+        {{ t('common.actions.confirm') }}
       </el-button>
     </template>
   </AppDialog>
