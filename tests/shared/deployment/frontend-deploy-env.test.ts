@@ -7,6 +7,15 @@ function readFrontendSource(relativePath: string) {
 }
 
 describe('frontend production deploy env', () => {
+  it('keeps repository production env aligned with current production domains', () => {
+    const env = readFrontendSource('.env.production')
+
+    expect(env).toContain('VITE_GO_API_BASE_URL=https://www.zgm2003.cn')
+    expect(env).toContain('VITE_WEB_SOCKET_URL=wss://zgm2003.cn/api/admin/v1/realtime/ws')
+    expect(env).not.toContain('api.example.com')
+    expect(env).not.toContain('admin.example.com')
+  })
+
   it('injects Vite runtime endpoints from GitHub Actions configuration before build', () => {
     const workflow = readFrontendSource('.github/workflows/deploy-admin-front.yml')
 

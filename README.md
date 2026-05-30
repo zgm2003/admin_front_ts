@@ -72,7 +72,7 @@ HTTP API           https://<api-domain>/api/admin/v1/...
 Realtime WS        wss://<frontend-domain>/api/admin/v1/realtime/ws
 ```
 
-GitHub Actions 生产构建必须从 Repository secrets / variables 注入 `VITE_GO_API_BASE_URL` 和 `VITE_WEB_SOCKET_URL`。仓库里的 `.env.production` 只保留 example fallback，不承载真实生产域名。
+GitHub Actions 生产构建仍必须从 Repository secrets / variables 注入 `VITE_GO_API_BASE_URL` 和 `VITE_WEB_SOCKET_URL`；仓库里的 `.env.production` 同步当前线上默认值，供手工/本地 production build 使用，不准改回 `example.com` 占位。
 
 生产前端 Nginx 至少需要保证 Vue history fallback：
 
