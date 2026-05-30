@@ -63,22 +63,24 @@ E:/admin_go/docs/deployment/frontend-github-actions-scp.md
 E:/admin_go/docs/deployment/docker-first-backend.md
 ```
 
-当前边界：
+通用生产边界：
 
 ```text
-zgm2003.cn       Vue 静态站点
-www.zgm2003.cn   Go API / WebSocket 后端入口
-HTTP API         https://www.zgm2003.cn/api/admin/v1/...
-Realtime WS      wss://www.zgm2003.cn/api/admin/v1/realtime/ws
+<frontend-domain>  Vue 静态站点
+<api-domain>       Go REST API 后端入口
+HTTP API           https://<api-domain>/api/admin/v1/...
+Realtime WS        wss://<frontend-domain>/api/admin/v1/realtime/ws
 ```
 
-生产 Nginx 只需要保证 Vue history fallback：
+生产前端 Nginx 至少需要保证 Vue history fallback：
 
 ```nginx
 location / {
     try_files $uri $uri/ /index.html;
 }
 ```
+
+如果 `VITE_WEB_SOCKET_URL` 使用前端同域地址，前端站点还必须把 `/api/admin/v1/realtime/ws` 精确反代到 Go 后端；不要让它落到 Vue history fallback。
 
 不要再使用旧 `/api/admin/AiChat/stream`、`127.0.0.1:8788`、`/wss` 或 `/api/admin/WebSocket/bind` 文档示例。AI conversation events 走 Go WebSocket envelope；取消走 REST `POST /api/admin/v1/ai-conversations/:id/messages/cancel`。
 
