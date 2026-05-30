@@ -17,4 +17,11 @@ describe('frontend production deploy env', () => {
     expect(workflow).not.toContain('www.zgm2003.cn')
     expect(workflow).not.toContain('zgm2003.cn')
   })
+
+  it('keeps disabled legacy deploy workflow from deriving API origin from frontend domain', () => {
+    const workflow = readFrontendSource('.github/workflows/deploy-frontend.yml.disabled')
+
+    expect(workflow).not.toContain('API_BASE_URL="${VITE_GO_API_BASE_URL:-https://${FRONTEND_DOMAIN}}"')
+    expect(workflow).toContain(': "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL secret is required}"')
+  })
 })
