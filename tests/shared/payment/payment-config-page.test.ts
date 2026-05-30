@@ -51,4 +51,11 @@ describe('payment config page', () => {
     expect(zh).toContain('paymentConfig: {')
     expect(en).toContain('paymentConfig: {')
   })
+
+  it('shows the canonical public Alipay callback URL in notify-url guidance', () => {
+    const form = read('src/views/Main/payment/config/components/PaymentConfigForm.vue')
+
+    expect(form).toContain('https://www.zgm2003.cn/api/payment/callbacks/alipay')
+    expect(form).not.toContain('/pay/alipay/notify')
+  })
 })

@@ -196,7 +196,9 @@ export function usePaymentRechargePage() {
     for (const row of candidates) {
       try {
         const result = await PaymentRechargeApi.sync(row.id)
-        autoSyncedRechargeIDs.value.add(row.id)
+        if (result.status !== 'paying') {
+          autoSyncedRechargeIDs.value.add(row.id)
+        }
         wallet.value = result.wallet
         changed = true
       } catch {
@@ -226,7 +228,9 @@ export function usePaymentRechargePage() {
       }
       const status = await PaymentRechargeApi.sync(row.id)
       wallet.value = status.wallet
-      syncedReturnRechargeNo.value = normalized
+      if (status.status !== 'paying') {
+        syncedReturnRechargeNo.value = normalized
+      }
       await refreshAll()
     } catch {
       ElNotification.warning({ message: t('paymentRecharge.messages.returnSyncFailed') })

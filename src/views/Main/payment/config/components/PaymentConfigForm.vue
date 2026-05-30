@@ -255,7 +255,7 @@ defineExpose({
             <el-input
               v-model="form.notify_url"
               clearable
-              placeholder="https://your-domain.example/pay/alipay/notify"
+              placeholder="https://www.zgm2003.cn/api/payment/callbacks/alipay"
             />
           </el-form-item>
         </el-col>

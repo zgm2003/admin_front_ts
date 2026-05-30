@@ -105,6 +105,22 @@ describe('payment recharge auto sync', () => {
     expect(mocks.warning).toHaveBeenCalledTimes(1)
   })
 
+  it('retries visible auto-sync when previous successful sync is still paying', async () => {
+    mocks.tableData.value = [rechargeRow(42, 'paying')]
+    mocks.sync
+      .mockResolvedValueOnce({ ...statusResponse(42), status: 'paying' })
+      .mockResolvedValueOnce({ ...statusResponse(42), status: 'credited' })
+
+    const page = usePaymentRechargePage()
+
+    await page.autoSyncVisiblePayingRecharges()
+    await page.autoSyncVisiblePayingRecharges()
+
+    expect(mocks.sync).toHaveBeenCalledTimes(2)
+    expect(mocks.sync).toHaveBeenNthCalledWith(1, 42)
+    expect(mocks.sync).toHaveBeenNthCalledWith(2, 42)
+  })
+
   it('retries return-url recharge sync after a transient lookup failure', async () => {
     mocks.list
       .mockRejectedValueOnce(new Error('temporary list failure'))
@@ -122,6 +138,25 @@ describe('payment recharge auto sync', () => {
     expect(mocks.list).toHaveBeenCalledTimes(2)
     expect(mocks.sync).toHaveBeenCalledTimes(1)
     expect(mocks.sync).toHaveBeenCalledWith(43)
+  })
+
+  it('retries return-url sync when previous successful sync is still paying', async () => {
+    mocks.list.mockResolvedValue({
+      list: [rechargeRow(43, 'paying')],
+      page: { current_page: 1, page_size: 1, total: 1 },
+    })
+    mocks.sync
+      .mockResolvedValueOnce({ ...statusResponse(43), status: 'paying' })
+      .mockResolvedValueOnce({ ...statusResponse(43), status: 'credited' })
+
+    const page = usePaymentRechargePage()
+
+    await page.syncReturnRecharge('R43')
+    await page.syncReturnRecharge('R43')
+
+    expect(mocks.sync).toHaveBeenCalledTimes(2)
+    expect(mocks.sync).toHaveBeenNthCalledWith(1, 43)
+    expect(mocks.sync).toHaveBeenNthCalledWith(2, 43)
   })
 })
 
