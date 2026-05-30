@@ -27,6 +27,32 @@ function nowText() {
   return new Date().toISOString()
 }
 
+function lastAssistantMessage(session: ConversationSession) {
+  for (let i = session.messages.length - 1; i >= 0; i--) {
+    const message = session.messages[i]
+    if (message?.role === AiRoleEnum.ASSISTANT) return message
+  }
+  return undefined
+}
+
+function hasPendingUserMessage(session: ConversationSession, requestId: string) {
+  return session.messages.some((message) => message.request_id === requestId && message.role === AiRoleEnum.USER && message.id < 0)
+}
+
+function canApplyUserMessageEvent(session: ConversationSession, requestId: string) {
+  if (session.canceledRequestIds.includes(requestId)) return false
+  if (session.pendingRequestId && session.pendingRequestId !== requestId) return false
+  return hasPendingUserMessage(session, requestId)
+}
+
+function canApplyAssistantStreamEvent(session: ConversationSession, requestId: string) {
+  if (session.canceledRequestIds.includes(requestId)) return false
+  if (session.pendingRequestId) return session.pendingRequestId === requestId
+
+  const assistantMessage = lastAssistantMessage(session)
+  return assistantMessage?.request_id === requestId && assistantMessage.isStreaming === true
+}
+
 function commitSession(sessions: Map<number, ConversationSession>, conversationId: number, session: ConversationSession) {
   sessions.set(conversationId, session)
 }
@@ -156,7 +182,7 @@ export function useConversationSessions() {
 
   function markUserMessage(conversationId: number, requestId: string, userMessageId: number) {
     const current = getOrCreate(conversationId)
-    if (current.canceledRequestIds.includes(requestId)) return
+    if (!canApplyUserMessageEvent(current, requestId)) return
     const session: ConversationSession = {
       ...current,
       messages: current.messages.map((message) => {
@@ -174,8 +200,7 @@ export function useConversationSessions() {
 
   function appendDelta(conversationId: number, requestId: string, delta: string) {
     const current = getOrCreate(conversationId)
-    if (current.canceledRequestIds.includes(requestId)) return
-    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
+    if (!canApplyAssistantStreamEvent(current, requestId)) return
 
     const streamingContent = current.streamingContent + delta
     const messages = current.messages.map((message, index) => {
@@ -200,8 +225,7 @@ export function useConversationSessions() {
 
   function complete(conversationId: number, requestId: string, assistantMessageId: number) {
     const current = getOrCreate(conversationId)
-    if (current.canceledRequestIds.includes(requestId)) return
-    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
+    if (!canApplyAssistantStreamEvent(current, requestId)) return
 
     const messages = current.messages.map((message, index) => {
       const isLast = index === current.messages.length - 1
@@ -224,7 +248,6 @@ export function useConversationSessions() {
       sending: false,
       isStreaming: false,
       streamingContent: '',
-      canceledRequestIds: [],
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
@@ -233,8 +256,7 @@ export function useConversationSessions() {
 
   function fail(conversationId: number, requestId: string, messageText: string) {
     const current = getOrCreate(conversationId)
-    if (current.canceledRequestIds.includes(requestId)) return
-    if (current.pendingRequestId && current.pendingRequestId !== requestId) return
+    if (!canApplyAssistantStreamEvent(current, requestId)) return
 
     const messages = current.messages.map((message, index) => {
       const isLast = index === current.messages.length - 1
