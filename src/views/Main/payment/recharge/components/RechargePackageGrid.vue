@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { RechargePackageItem } from '@/api/payment/recharges'
 
 const props = defineProps<{
@@ -9,6 +10,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [code: string]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -16,20 +19,20 @@ const emit = defineEmits<{
     <div class="recharge-package-grid__head">
       <div>
         <div class="recharge-package-grid__eyebrow">
-          充值套餐
+          {{ t('paymentRecharge.packages.eyebrow') }}
         </div>
         <h3 class="recharge-package-grid__title">
-          选择充值金额
+          {{ t('paymentRecharge.packages.title') }}
         </h3>
       </div>
       <div class="recharge-package-grid__hint">
-        选中后右侧实时计算
+        {{ t('paymentRecharge.packages.hint') }}
       </div>
     </div>
 
     <el-empty
       v-if="props.packages.length === 0"
-      description="暂无可用充值套餐"
+      :description="t('paymentRecharge.packages.empty')"
       :image-size="96"
     />
     <div
@@ -49,11 +52,11 @@ const emit = defineEmits<{
           class="recharge-package-grid__badge"
         >{{ item.badge }}</span>
         <span class="recharge-package-grid__amount">{{ item.name }}</span>
-        <span class="recharge-package-grid__name">应付 {{ item.amount_text }} 元</span>
+        <span class="recharge-package-grid__name">{{ t('paymentRecharge.packages.payableAmount', { amount: item.amount_text }) }}</span>
         <span
           v-if="item.code === props.selectedCode"
           class="recharge-package-grid__selected"
-        >已选</span>
+        >{{ t('paymentRecharge.packages.selected') }}</span>
       </button>
     </div>
   </section>

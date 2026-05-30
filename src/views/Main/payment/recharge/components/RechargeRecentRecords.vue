@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { PaymentRechargeListItem } from '@/api/payment/recharges'
 import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
+const { t } = useI18n()
 
 const props = defineProps<{
   records: PaymentRechargeListItem[]
@@ -28,13 +30,13 @@ function tagType(status: PaymentRechargeListItem['status']) {
 <template>
   <section class="recharge-recent-records">
     <div class="recharge-recent-records__head">
-      <h3>最近充值</h3>
-      <span>只展示最近 5 条</span>
+      <h3>{{ t('paymentRecharge.recent.title') }}</h3>
+      <span>{{ t('paymentRecharge.recent.limitHint') }}</span>
     </div>
 
     <el-empty
       v-if="props.records.length === 0"
-      description="暂无充值记录"
+      :description="t('paymentRecharge.recent.empty')"
       :image-size="84"
     />
     <div
@@ -71,7 +73,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
               size="small"
               @click="emit('pay', row)"
             >
-              继续支付
+              {{ t('paymentRecharge.actions.continuePay') }}
             </el-button>
             <el-button
               v-if="userStore.can('payment_recharge_sync') && props.canSync(row)"
@@ -80,7 +82,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
               size="small"
               @click="emit('sync', row)"
             >
-              同步
+              {{ t('paymentRecharge.actions.sync') }}
             </el-button>
             <el-button
               v-if="userStore.can('payment_recharge_close') && props.canClose(row)"
@@ -89,7 +91,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
               size="small"
               @click="emit('close', row)"
             >
-              关闭
+              {{ t('paymentRecharge.actions.close') }}
             </el-button>
           </div>
         </div>

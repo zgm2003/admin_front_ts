@@ -75,4 +75,21 @@ describe('payment order page', () => {
     expect(composable).toContain('const { t } = useI18n()')
     expect(composable).not.toMatch(/[\u4e00-\u9fff]/)
   })
+
+  it('keeps payment order page and detail visible copy behind vue-i18n', () => {
+    const files = [
+      'src/views/Main/payment/orders/index.vue',
+      'src/views/Main/payment/orders/components/PaymentOrderDetailDialog.vue',
+    ]
+    const zh = read('src/i18n/locales/zh-CN.ts')
+    const en = read('src/i18n/locales/en-US.ts')
+
+    for (const file of files) {
+      const source = read(file)
+      expect(source).toContain("import { useI18n } from 'vue-i18n'")
+      expect(source).not.toMatch(/[\u4e00-\u9fff]/)
+    }
+    expect(zh).toContain('runtimeNotice')
+    expect(en).toContain('runtimeNotice')
+  })
 })

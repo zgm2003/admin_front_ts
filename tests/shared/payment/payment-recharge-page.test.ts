@@ -76,6 +76,26 @@ describe('payment recharge page', () => {
     expect(composable).not.toMatch(/[\u4e00-\u9fff]/)
   })
 
+  it('keeps payment recharge page and component visible copy behind vue-i18n', () => {
+    const files = [
+      'src/views/Main/payment/recharge/index.vue',
+      'src/views/Main/payment/recharge/components/RechargePackageGrid.vue',
+      'src/views/Main/payment/recharge/components/RechargeCheckoutPanel.vue',
+      'src/views/Main/payment/recharge/components/RechargeRecentRecords.vue',
+      'src/views/Main/payment/recharge/components/RechargeRecordsTable.vue',
+    ]
+    const zh = read('src/i18n/locales/zh-CN.ts')
+    const en = read('src/i18n/locales/en-US.ts')
+
+    for (const file of files) {
+      const source = read(file)
+      expect(source).toContain("import { useI18n } from 'vue-i18n'")
+      expect(source).not.toMatch(/[\u4e00-\u9fff]/)
+    }
+    expect(zh).toContain('checkout: {')
+    expect(en).toContain('checkout: {')
+  })
+
   it('keeps the cashier layout inside the outer page card without nested horizontal scrollbars', () => {
     const page = read('src/views/Main/payment/recharge/index.vue')
 

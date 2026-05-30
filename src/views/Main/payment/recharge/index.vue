@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import RechargeCheckoutPanel from './components/RechargeCheckoutPanel.vue'
 import RechargePackageGrid from './components/RechargePackageGrid.vue'
 import RechargeRecentRecords from './components/RechargeRecentRecords.vue'
 import RechargeRecordsTable from './components/RechargeRecordsTable.vue'
 import { usePaymentRechargePage } from './composables/usePaymentRechargePage'
 
+const { t } = useI18n()
 const {
   activeTab,
   pageLoading,
@@ -47,7 +49,7 @@ const {
       class="payment-recharge-page__tabs"
     >
       <el-tab-pane
-        label="充值"
+        :label="t('paymentRecharge.tabs.cashier')"
         name="cashier"
       >
         <div class="payment-recharge-page__cashier">
@@ -85,7 +87,7 @@ const {
         </div>
       </el-tab-pane>
       <el-tab-pane
-        label="充值记录"
+        :label="t('paymentRecharge.tabs.records')"
         name="records"
       >
         <RechargeRecordsTable

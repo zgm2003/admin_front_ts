@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useUserStore } from '@/store/user'
@@ -30,6 +31,7 @@ const emit = defineEmits<{
 }>()
 
 const userStore = useUserStore()
+const { t } = useI18n()
 const tableProps = computed(() => ({ height: '100%' }))
 
 function tagType(status: PaymentRechargeListItem['status']) {
@@ -70,7 +72,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
             text
             @click="emit('pay', row)"
           >
-            继续支付
+            {{ t('paymentRecharge.actions.continuePay') }}
           </el-button>
           <el-button
             v-if="userStore.can('payment_recharge_sync') && props.canSync(row)"
@@ -78,7 +80,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
             text
             @click="emit('sync', row)"
           >
-            同步
+            {{ t('paymentRecharge.actions.sync') }}
           </el-button>
           <el-button
             v-if="userStore.can('payment_recharge_close') && props.canClose(row)"
@@ -86,7 +88,7 @@ function tagType(status: PaymentRechargeListItem['status']) {
             text
             @click="emit('close', row)"
           >
-            关闭
+            {{ t('paymentRecharge.actions.close') }}
           </el-button>
         </div>
       </template>

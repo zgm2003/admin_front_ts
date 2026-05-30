@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { RechargePackageItem, RechargePaymentMethod, WalletSummary } from '@/api/payment/recharges'
 
 const props = defineProps<{
@@ -15,17 +16,22 @@ const emit = defineEmits<{
   submit: []
 }>()
 
+const { t } = useI18n()
 const submitText = computed(() => {
-  if (!props.paymentMethod.enabled) return '支付通道不可用'
-  if (!props.selectedPackage) return '先选择金额'
-  return '确认支付'
+  if (!props.paymentMethod.enabled) return t('paymentRecharge.checkout.channelUnavailable')
+  if (!props.selectedPackage) return t('paymentRecharge.checkout.selectAmountFirst')
+  return t('paymentRecharge.checkout.confirmPay')
 })
-const methodStatusText = computed(() => (props.paymentMethod.enabled ? '可用' : '不可用'))
+const methodStatusText = computed(() => (
+  props.paymentMethod.enabled
+    ? t('paymentRecharge.checkout.methodAvailable')
+    : t('paymentRecharge.checkout.methodUnavailable')
+))
 const methodTagType = computed(() => (props.paymentMethod.enabled ? 'success' : 'danger'))
 const hintText = computed(() => (
   props.paymentMethod.enabled
-    ? '点击后将在当前窗口跳转支付宝；支付完成会回到充值记录页。'
-    : '请先到支付配置启用支付宝，再创建充值单。'
+    ? t('paymentRecharge.checkout.enabledHint')
+    : t('paymentRecharge.checkout.disabledHint')
 ))
 </script>
 
@@ -34,22 +40,22 @@ const hintText = computed(() => (
     <div class="recharge-checkout-panel__header">
       <div>
         <div class="recharge-checkout-panel__eyebrow">
-          收银台
+          {{ t('paymentRecharge.checkout.eyebrow') }}
         </div>
         <h3 class="recharge-checkout-panel__title">
-          确认充值
+          {{ t('paymentRecharge.checkout.title') }}
         </h3>
       </div>
-      <span class="recharge-checkout-panel__status">安全收银台</span>
+      <span class="recharge-checkout-panel__status">{{ t('paymentRecharge.checkout.secureStatus') }}</span>
     </div>
 
     <div class="recharge-checkout-panel__amount-card">
-      <span class="recharge-checkout-panel__label">应付金额</span>
+      <span class="recharge-checkout-panel__label">{{ t('paymentRecharge.checkout.payableAmount') }}</span>
       <strong>
-        <span>{{ props.selectedPackage?.amount_text || '请选择套餐' }}</span>
-        <em v-if="props.selectedPackage">元</em>
+        <span>{{ props.selectedPackage?.amount_text || t('paymentRecharge.checkout.selectPackage') }}</span>
+        <em v-if="props.selectedPackage">{{ t('paymentRecharge.checkout.yuanUnit') }}</em>
       </strong>
-      <small>充值完成后自动入账到钱包余额</small>
+      <small>{{ t('paymentRecharge.checkout.walletCreditHint') }}</small>
     </div>
 
     <div
@@ -57,10 +63,10 @@ const hintText = computed(() => (
       :class="{ 'is-disabled': !props.paymentMethod.enabled }"
     >
       <div class="recharge-checkout-panel__method-icon">
-        支
+        {{ t('paymentRecharge.checkout.methodIcon') }}
       </div>
       <div class="recharge-checkout-panel__method-body">
-        <span>支付方式</span>
+        <span>{{ t('paymentRecharge.checkout.payMethod') }}</span>
         <b>{{ props.paymentMethod.label }}</b>
       </div>
       <el-tag
@@ -74,15 +80,15 @@ const hintText = computed(() => (
 
     <div class="recharge-checkout-panel__summary">
       <div class="recharge-checkout-panel__row">
-        <span>当前余额</span>
+        <span>{{ t('paymentRecharge.checkout.currentBalance') }}</span>
         <b>{{ props.wallet.balance_text }}</b>
       </div>
       <div class="recharge-checkout-panel__row">
-        <span>预计充值后</span>
+        <span>{{ t('paymentRecharge.checkout.balanceAfter') }}</span>
         <b>{{ props.selectedPackage ? props.balanceAfterText : '-' }}</b>
       </div>
       <div class="recharge-checkout-panel__row">
-        <span>累计充值</span>
+        <span>{{ t('paymentRecharge.checkout.totalRecharge') }}</span>
         <b>{{ props.wallet.total_recharge_text }}</b>
       </div>
     </div>
