@@ -11,14 +11,14 @@ const {
 describe('websocket-client helpers', () => {
   it('builds the Go realtime WebSocket URL from the Go API base URL', () => {
     expect(buildWebSocketURL({ apiBaseURL: 'http://localhost:8080' })).toBe('ws://localhost:8080/api/admin/v1/realtime/ws')
-    expect(buildWebSocketURL({ apiBaseURL: 'https://api.example.com/base' })).toBe('wss://api.example.com/api/admin/v1/realtime/ws')
+    expect(buildWebSocketURL({ apiBaseURL: 'https://www.zgm2003.cn/base' })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
   })
 
   it('uses an explicit websocket URL when configured', () => {
     expect(buildWebSocketURL({
-      apiBaseURL: 'http://localhost:8080',
-      explicitURL: 'ws://localhost:8080/api/admin/v1/realtime/ws',
-    })).toBe('ws://localhost:8080/api/admin/v1/realtime/ws')
+      apiBaseURL: 'https://www.zgm2003.cn',
+      explicitURL: 'wss://zgm2003.cn/api/admin/v1/realtime/ws',
+    })).toBe('wss://zgm2003.cn/api/admin/v1/realtime/ws')
   })
 
   it('builds identity topics only from server connected payload', () => {
