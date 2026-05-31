@@ -92,20 +92,28 @@ function normalizeIds(id: Id | Id[]): number[] {
 
 const BASE = `${ADMIN_API_PREFIX}/operation-logs`
 
+const pageInit = () => request.get<OperationLogInitResponse>(`${BASE}/page-init`)
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeIds(params.id)[0]}`)
+const deleteBatch = (params: { ids: Id[] }) => request.delete<void, { ids: number[] }>(BASE, { data: { ids: normalizeIds(params.ids) } })
+const del = (params: { id: Id | Id[] }) => {
+  const ids = normalizeIds(params.id)
+  if (ids.length === 0) {
+    return Promise.resolve()
+  }
+  if (ids.length === 1 && ids[0] !== undefined) {
+    return deleteOne({ id: ids[0] })
+  }
+  return deleteBatch({ ids })
+}
+
 export const OperationLogApi = {
-  init: () => request.get<OperationLogInitResponse>(`${BASE}/init`),
+  pageInit,
   list: (params: OperationLogListParams) =>
     request.get<OperationLogListResponse>(BASE, { params: normalizeOperationLogListParams(params) }),
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizeIds(params.id)
-    if (ids.length === 0) {
-      return Promise.resolve()
-    }
-    if (ids.length === 1) {
-      return request.delete<void>(`${BASE}/${ids[0]}`)
-    }
-    return request.delete<void, { ids: number[] }>(BASE, { data: { ids } })
-  },
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  del,
 }
 
 export type OperationLogApiType = typeof OperationLogApi

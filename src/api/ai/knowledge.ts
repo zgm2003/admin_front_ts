@@ -258,27 +258,47 @@ function deleteBase(id: Id): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(id, 'AI knowledge base id')}`)
 }
 
+const pageInit = () => request.get<AiKnowledgeInitResponse>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/page-init`)
+const create = (params: AiKnowledgeBaseMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases`, baseBody(params))
+const update = (params: AiKnowledgeBaseMutationParams) => {
+  const id = positiveID(params.id ?? 0, 'AI knowledge base id')
+  return request.put<void, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${id}`, baseBody(params))
+}
+const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.id, 'AI knowledge base id')}/status`, { status: params.status })
+const deleteOne = (params: { id: Id }) => deleteBase(params.id)
+const deleteBatch = async (params: { ids: Id[] }) => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }) => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+const createDocument = (params: AiKnowledgeDocumentMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id ?? 0, 'AI knowledge base id')}/documents`, documentBody(params))
+const updateDocument = (params: AiKnowledgeDocumentMutationParams) => {
+  const id = positiveID(params.id ?? 0, 'AI knowledge document id')
+  return request.put<void, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${id}`, documentBody(params))
+}
+
 export const AiKnowledgeApi = {
-  init: () => request.get<AiKnowledgeInitResponse>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/page-init`),
+  pageInit,
   list: (params: AiKnowledgeListParams) => request.get<PaginatedResponse<AiKnowledgeBaseItem>>(`${ADMIN_API_PREFIX}/ai-knowledge-bases`, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiKnowledgeBaseItem>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.id, 'AI knowledge base id')}`),
-  add: (params: AiKnowledgeBaseMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases`, baseBody(params)),
-  edit: (params: AiKnowledgeBaseMutationParams) => {
-    const id = positiveID(params.id ?? 0, 'AI knowledge base id')
-    return request.put<void, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${id}`, baseBody(params))
-  },
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.id, 'AI knowledge base id')}/status`, { status: params.status }),
-  del: async (params: { id: Id | Id[] }) => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteBase(item)))
-  },
+  create,
+  update,
+  changeStatus,
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  add: create,
+  edit: update,
+  status: changeStatus,
+  del,
   documents: (params: { knowledge_base_id: Id } & AiKnowledgeDocumentListParams) => request.get<PaginatedResponse<AiKnowledgeDocumentItem>>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id, 'AI knowledge base id')}/documents`, { params: normalizeDocumentListParams(params) }),
   documentDetail: (params: { id: Id }) => request.get<AiKnowledgeDocumentDetail>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}`),
-  addDocument: (params: AiKnowledgeDocumentMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id ?? 0, 'AI knowledge base id')}/documents`, documentBody(params)),
-  editDocument: (params: AiKnowledgeDocumentMutationParams) => {
-    const id = positiveID(params.id ?? 0, 'AI knowledge document id')
-    return request.put<void, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${id}`, documentBody(params))
-  },
+  createDocument,
+  updateDocument,
+  addDocument: createDocument,
+  editDocument: updateDocument,
   documentStatus: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}/status`, { status: params.status }),
   deleteDocument: (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}`),
   reindexDocument: (params: { id: Id }) => request.post<void>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}/reindex`),

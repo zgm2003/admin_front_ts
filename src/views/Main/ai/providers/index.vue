@@ -77,7 +77,7 @@ function stateTagType(status?: AiProviderHealthStatus) {
 }
 
 async function init() {
-  const data = await AiProviderApi.init()
+  const data = await AiProviderApi.pageInit()
   dict.value = data.dict
 }
 

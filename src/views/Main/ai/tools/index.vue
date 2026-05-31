@@ -23,7 +23,7 @@ const editingTool = shallowRef<AiToolItem | null>(null)
 const generatedDraft = shallowRef<AiToolGeneratedDraft | null>(null)
 
 async function loadInit() {
-  const initData = await AiToolApi.init()
+  const initData = await AiToolApi.pageInit()
   dict.value = initData.dict
 }
 

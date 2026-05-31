@@ -107,7 +107,7 @@ async function confirmSubmit() {
     ElNotification.warning({ message: t('aiProviders.form.apiKey') + t('common.required') })
     return
   }
-  const api = props.mode === 'add' ? AiProviderApi.add : AiProviderApi.edit
+  const api = props.mode === 'add' ? AiProviderApi.create : AiProviderApi.update
   await api(buildPayload())
   ElNotification.success({ message: t('common.success.operation') })
   visible.value = false

@@ -84,7 +84,7 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  AuthPlatformApi.init().then((data) => {
+  AuthPlatformApi.pageInit().then((data) => {
     dict.value = data.dict
   })
 }
@@ -131,7 +131,7 @@ const confirmSubmit = async (submittedForm: AuthPlatformForm) => {
       max_sessions: submittedForm.max_sessions,
       allow_register: submittedForm.allow_register,
     }
-    await AuthPlatformApi.add(addPayload)
+    await AuthPlatformApi.create(addPayload)
   } else {
     const editPayload: AuthPlatformEditPayload = {
       id: Number(submittedForm.id),
@@ -147,7 +147,7 @@ const confirmSubmit = async (submittedForm: AuthPlatformForm) => {
       max_sessions: submittedForm.max_sessions,
       allow_register: submittedForm.allow_register,
     }
-    await AuthPlatformApi.edit(editPayload)
+    await AuthPlatformApi.update(editPayload)
   }
 
   ElNotification.success({ message: t('common.success.operation') })

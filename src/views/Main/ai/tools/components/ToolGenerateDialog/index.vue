@@ -67,7 +67,7 @@ function resetState() {
 async function loadGenerateInit() {
   loadingAgents.value = true
   try {
-    const data = await AiToolApi.generateInit()
+    const data = await AiToolApi.generatePageInit()
     agentOptions.value = data.agent_options
     const firstAgent = data.agent_options[0]
     if (form.value.agent_id === '' && firstAgent) {

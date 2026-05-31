@@ -90,7 +90,7 @@ const localizedDict = computed<AiImageInitResponse['dict']>(() => {
 async function loadInit() {
   initLoading.value = true
   try {
-    const data = await AiImageApi.init()
+    const data = await AiImageApi.pageInit()
     dict.value = data.dict
     agentOptions.value = data.agent_options
     const firstAgent = data.agent_options[0]
@@ -147,7 +147,7 @@ async function uploadAsset(request: UploadAssetRequest) {
       uploadFileToCloud(request.file, config),
       readImageDimensions(request.file),
     ])
-    const asset = await AiImageApi.addAsset({
+    const asset = await AiImageApi.createAsset({
       storage_provider: 'cos',
       storage_key: uploaded.key,
       storage_url: uploaded.url,
@@ -183,7 +183,7 @@ async function submitTask() {
   }
   submitting.value = true
   try {
-    await AiImageApi.addTask({
+    await AiImageApi.createTask({
       agent_id: composer.value.agent_id,
       prompt: composer.value.prompt,
       size: composer.value.size,
@@ -222,7 +222,7 @@ async function toggleFavorite(taskId: number, isFavorite: number) {
 async function deleteTask(taskId: number) {
   try {
     await ElMessageBox.confirm(t('aiImages.confirmDelete'), t('common.confirmTitle'), { type: 'warning' })
-    await AiImageApi.del({ id: taskId })
+    await AiImageApi.deleteOne({ id: taskId })
     detailVisible.value = false
     detail.value = null
     await loadList()

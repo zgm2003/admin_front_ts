@@ -155,19 +155,37 @@ function deleteTool(id: number): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-tools/${id}`)
 }
 
+const pageInit = () => request.get<AiToolInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/page-init`)
+const generatePageInit = () => request.get<AiToolGenerateInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/generate/page-init`)
+const create = (params: AiToolMutationParams) => request.post<AiToolCreateResponse, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools`, mutationBody(params))
+const update = (params: AiToolMutationParams) => {
+  const id = positiveID(params.id ?? 0, 'AI tool id')
+  return request.put<void, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools/${id}`, mutationBody(params))
+}
+const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-tools/${positiveID(params.id, 'AI tool id')}/status`, { status: params.status })
+const deleteOne = (params: { id: Id }) => deleteTool(positiveID(params.id, 'AI tool id'))
+const deleteBatch = async (params: { ids: Id[] }) => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }) => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+
 export const AiToolApi = {
-  init: () => request.get<AiToolInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/page-init`),
-  generateInit: () => request.get<AiToolGenerateInitResponse>(`${ADMIN_API_PREFIX}/ai-tools/generate/page-init`),
+  pageInit,
+  generatePageInit,
   generateDraft: (params: AiToolGenerateDraftParams) => request.post<AiToolGenerateDraftResponse, AiToolGenerateDraftBody>(`${ADMIN_API_PREFIX}/ai-tools/generate-draft`, generateDraftBody(params)),
   list: (params: AiToolListParams) => request.get<PaginatedResponse<AiToolItem>>(`${ADMIN_API_PREFIX}/ai-tools`, { params: normalizeListParams(params) }),
-  add: (params: AiToolMutationParams) => request.post<AiToolCreateResponse, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools`, mutationBody(params)),
-  edit: (params: AiToolMutationParams) => {
-    const id = positiveID(params.id ?? 0, 'AI tool id')
-    return request.put<void, AiToolMutationBody>(`${ADMIN_API_PREFIX}/ai-tools/${id}`, mutationBody(params))
-  },
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-tools/${positiveID(params.id, 'AI tool id')}/status`, { status: params.status }),
-  del: async (params: { id: Id | Id[] }) => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteTool(positiveID(item, 'AI tool id'))))
-  },
+  create,
+  update,
+  changeStatus,
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  generateInit: generatePageInit,
+  add: create,
+  edit: update,
+  status: changeStatus,
+  del,
 }

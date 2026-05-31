@@ -96,7 +96,7 @@ const handleDetail = (link?: string) => {
 }
 
 onMounted(() => {
-  NotificationApi.init().then((data) => {
+  NotificationApi.pageInit().then((data) => {
     dict.value = data.dict
   })
   getList()

@@ -82,7 +82,7 @@ const validateJson = (): boolean => {
 }
 
 const init = () => {
-  SystemSettingApi.init().then((data) => {
+  SystemSettingApi.pageInit().then((data) => {
     dict.value = data.dict
   })
 }
@@ -131,8 +131,8 @@ const confirmSubmit = async () => {
   
   const v = form.value
   const request = dialogMode.value === 'edit'
-    ? SystemSettingApi.edit({ id: Number(form.value.id), value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingEditParams)
-    : SystemSettingApi.add({ key: v.key, value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingAddParams)
+    ? SystemSettingApi.update({ id: Number(form.value.id), value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingEditParams)
+    : SystemSettingApi.create({ key: v.key, value: v.value, type: v.type, remark: v.remark } satisfies SystemSettingAddParams)
 
   request.then(() => {
     ElNotification.success({message: t('common.success.operation')})

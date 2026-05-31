@@ -279,41 +279,76 @@ function deleteResource(base: string, params: { id: Id | Id[] }, label: string) 
   return request.delete<void, BatchDeletePayload>(base, { data: body })
 }
 
+const driverPageInit = () => request.get<UploadDriverInitResponse>(`${DRIVER_BASE}/page-init`)
+const createDriver = (params: UploadDriverAddPayload) => request.post<{ id: number }, UploadDriverAddPayload>(DRIVER_BASE, params)
+const updateDriver = (params: UploadDriverEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, Omit<UploadDriverEditPayload, 'id'>>(`${DRIVER_BASE}/${id}`, body)
+}
+const deleteDriverOne = (params: { id: Id }) => deleteResource(DRIVER_BASE, params, 'upload driver')
+const deleteDriverBatch = (params: { ids: Id[] }) => deleteResource(DRIVER_BASE, { id: params.ids }, 'upload driver')
+
 export const UploadDriverApi = {
-  init: () => request.get<UploadDriverInitResponse>(`${DRIVER_BASE}/init`),
+  pageInit: driverPageInit,
   list: (params: UploadDriverListParams) => request.get<PaginatedResponse<UploadDriverItem>>(DRIVER_BASE, { params: normalizeDriverListParams(params) }),
-  add: (params: UploadDriverAddPayload) => request.post<{ id: number }, UploadDriverAddPayload>(DRIVER_BASE, params),
-  edit: (params: UploadDriverEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, Omit<UploadDriverEditPayload, 'id'>>(`${DRIVER_BASE}/${id}`, body)
-  },
+  create: createDriver,
+  update: updateDriver,
+  deleteOne: deleteDriverOne,
+  deleteBatch: deleteDriverBatch,
+  init: driverPageInit,
+  add: createDriver,
+  edit: updateDriver,
   del: (params: { id: Id | Id[] }) => deleteResource(DRIVER_BASE, params, 'upload driver'),
 }
 
+const rulePageInit = () => request.get<UploadRuleInitResponse>(`${RULE_BASE}/page-init`)
+const createRule = (params: UploadRuleAddPayload) => request.post<{ id: number }, UploadRuleAddPayload>(RULE_BASE, params)
+const updateRule = (params: UploadRuleEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, UploadRuleAddPayload>(`${RULE_BASE}/${id}`, body)
+}
+const deleteRuleOne = (params: { id: Id }) => deleteResource(RULE_BASE, params, 'upload rule')
+const deleteRuleBatch = (params: { ids: Id[] }) => deleteResource(RULE_BASE, { id: params.ids }, 'upload rule')
+
 export const UploadRuleApi = {
-  init: () => request.get<UploadRuleInitResponse>(`${RULE_BASE}/init`),
+  pageInit: rulePageInit,
   list: (params: UploadRuleListParams) => request.get<PaginatedResponse<UploadRuleItem>>(RULE_BASE, { params: normalizeRuleListParams(params) }),
-  add: (params: UploadRuleAddPayload) => request.post<{ id: number }, UploadRuleAddPayload>(RULE_BASE, params),
-  edit: (params: UploadRuleEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, UploadRuleAddPayload>(`${RULE_BASE}/${id}`, body)
-  },
+  create: createRule,
+  update: updateRule,
+  deleteOne: deleteRuleOne,
+  deleteBatch: deleteRuleBatch,
+  init: rulePageInit,
+  add: createRule,
+  edit: updateRule,
   del: (params: { id: Id | Id[] }) => deleteResource(RULE_BASE, params, 'upload rule'),
 }
 
+const settingPageInit = () => request.get<UploadSettingInitResponse>(`${SETTING_BASE}/page-init`)
+const createSetting = (params: UploadSettingAddPayload) => request.post<{ id: number }, UploadSettingAddPayload>(SETTING_BASE, params)
+const updateSetting = (params: UploadSettingEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, UploadSettingAddPayload>(`${SETTING_BASE}/${id}`, body)
+}
+const deleteSettingOne = (params: { id: Id }) => deleteResource(SETTING_BASE, params, 'upload setting')
+const deleteSettingBatch = (params: { ids: Id[] }) => deleteResource(SETTING_BASE, { id: params.ids }, 'upload setting')
+const changeSettingStatus = (params: { id: Id; status: UploadCommonStatus }) => {
+  const ids = normalizeIDs(params.id, 'upload setting')
+  const body: StatusPayload = { status: params.status }
+  return request.patch<void, StatusPayload>(`${SETTING_BASE}/${ids[0]}/status`, body)
+}
+
 export const UploadSettingApi = {
-  init: () => request.get<UploadSettingInitResponse>(`${SETTING_BASE}/init`),
+  pageInit: settingPageInit,
   list: (params: UploadSettingListParams) => request.get<PaginatedResponse<UploadSettingItem>>(SETTING_BASE, { params: normalizeSettingListParams(params) }),
-  add: (params: UploadSettingAddPayload) => request.post<{ id: number }, UploadSettingAddPayload>(SETTING_BASE, params),
-  edit: (params: UploadSettingEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, UploadSettingAddPayload>(`${SETTING_BASE}/${id}`, body)
-  },
+  create: createSetting,
+  update: updateSetting,
+  deleteOne: deleteSettingOne,
+  deleteBatch: deleteSettingBatch,
+  changeStatus: changeSettingStatus,
+  init: settingPageInit,
+  add: createSetting,
+  edit: updateSetting,
   del: (params: { id: Id | Id[] }) => deleteResource(SETTING_BASE, params, 'upload setting'),
-  status: (params: { id: Id; status: UploadCommonStatus }) => {
-    const ids = normalizeIDs(params.id, 'upload setting')
-    const body: StatusPayload = { status: params.status }
-    return request.patch<void, StatusPayload>(`${SETTING_BASE}/${ids[0]}/status`, body)
-  },
+  status: changeSettingStatus,
 }
 

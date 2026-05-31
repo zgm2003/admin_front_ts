@@ -123,7 +123,7 @@ watch(
 )
 
 async function init() {
-  const data = await AiAgentApi.init()
+  const data = await AiAgentApi.pageInit()
   dict.value = {
     ...data.dict,
     scene_arr: data.dict.scene_arr.length > 0 ? data.dict.scene_arr : [
@@ -229,7 +229,7 @@ async function confirmSubmit() {
     system_prompt: form.value.system_prompt,
     avatar: form.value.avatar,
   }
-  const api = dialogMode.value === 'add' ? AiAgentApi.add : AiAgentApi.edit
+  const api = dialogMode.value === 'add' ? AiAgentApi.create : AiAgentApi.update
   await api(payload)
   ElNotification.success({ message: t('common.success.operation') })
   dialogVisible.value = false

@@ -70,7 +70,7 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  UploadDriverApi.init()
+  UploadDriverApi.pageInit()
       .then((data) => {
         dict.value = data.dict
       })
@@ -180,8 +180,8 @@ const confirmSubmit = async () => {
   }
 
   const request = dialogMode.value === 'add'
-    ? UploadDriverApi.add(buildAddPayload(form.value))
-    : UploadDriverApi.edit(buildEditPayload(form.value))
+    ? UploadDriverApi.create(buildAddPayload(form.value))
+    : UploadDriverApi.update(buildEditPayload(form.value))
 
   request.then(() => {
     ElNotification.success({message: t('common.success.operation')})

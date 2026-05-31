@@ -62,6 +62,28 @@ describe('AI provider api contract', () => {
     expect(source).not.toContain('engine' + 'Connections')
     expect(source).not.toContain('ai-engine' + '-connections')
   })
+
+  it('exposes standard RESTful wrapper names with legacy aliases', () => {
+    const source = readFrontendSource('src/api/ai/providers.ts')
+    expect(source).toContain('const pageInit = () => request.get<AiProviderInitResponse>')
+    expect(source).toContain('const create = (params: AiProviderMutationParams)')
+    expect(source).toContain('const update = (params: AiProviderMutationParams)')
+    expect(source).toContain('const changeStatus = (params: { id: Id; status: number })')
+    expect(source).toContain('const deleteOne = (params: { id: Id })')
+    expect(source).toContain('const deleteBatch = async (params: { ids: Id[] })')
+    expect(source).toContain('pageInit,')
+    expect(source).toContain('create,')
+    expect(source).toContain('update,')
+    expect(source).toContain('changeStatus,')
+    expect(source).toContain('deleteOne,')
+    expect(source).toContain('deleteBatch,')
+    expect(source).toContain('init: pageInit')
+    expect(source).toContain('add: create')
+    expect(source).toContain('edit: update')
+    expect(source).toContain('status: changeStatus')
+    expect(source).toContain('del,')
+  })
+
 })
 
 

@@ -60,7 +60,7 @@ const hasFilters = computed(() => Boolean(searchForm.value.name || searchForm.va
 const totalText = computed(() => t('aiKnowledge.nav.total', { count: page.value.total }))
 
 async function loadInit() {
-  const data = await AiKnowledgeApi.init()
+  const data = await AiKnowledgeApi.pageInit()
   dict.value = data.dict
 }
 

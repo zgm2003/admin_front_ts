@@ -151,7 +151,7 @@ export function usePermissionDefinitionPage() {
   })
 
   async function init() {
-    const data = await PermissionApi.init()
+    const data = await PermissionApi.pageInit()
     permissionTree.value = data.dict.permission_tree
     permissionTypeArr.value = data.dict.permission_type_arr
     platformOptions.value = data.dict.permission_platform_arr
@@ -241,7 +241,7 @@ export function usePermissionDefinitionPage() {
     }
 
     if (dialogMode.value === 'add') {
-      await PermissionApi.add(payload)
+      await PermissionApi.create(payload)
     } else {
       if (form.value.id === '') {
         ElNotification.error({ message: '权限ID缺失' })
@@ -252,7 +252,7 @@ export function usePermissionDefinitionPage() {
         ...payload,
         id: form.value.id,
       }
-      await PermissionApi.edit(editPayload)
+      await PermissionApi.update(editPayload)
     }
 
     ElNotification.success({ message: t('common.success.operation') })
@@ -280,7 +280,7 @@ export function usePermissionDefinitionPage() {
       return
     }
 
-    await PermissionApi.delBatch({ ids: selectedIds.value })
+    await PermissionApi.deleteBatch({ ids: selectedIds.value })
     ElNotification.success({ message: t('common.success.operation') })
     selectedIds.value = []
     await getList()
@@ -307,7 +307,7 @@ export function usePermissionDefinitionPage() {
     }
 
     try {
-      await PermissionApi.status({ id: row.id, status: row.status })
+      await PermissionApi.changeStatus({ id: row.id, status: row.status })
       ElNotification.success({ message: t('common.success.operation') })
     } catch {
       row.status = toggleStatusValue(row.status)

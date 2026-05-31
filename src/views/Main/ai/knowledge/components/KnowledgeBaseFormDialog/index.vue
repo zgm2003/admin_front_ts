@@ -121,7 +121,7 @@ async function submit() {
   }
   saving.value = true
   try {
-    const api = props.mode === 'add' ? AiKnowledgeApi.add : AiKnowledgeApi.edit
+    const api = props.mode === 'add' ? AiKnowledgeApi.create : AiKnowledgeApi.update
     await api(mutationPayload())
     ElNotification.success({ message: t('common.success.operation') })
     visible.value = false

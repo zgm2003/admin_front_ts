@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 const confirm = vi.fn()
@@ -26,6 +26,10 @@ vi.mock('@/i18n', () => ({
 const { useCrudTable } = await import('../../../src/hooks/useCrudTable')
 
 describe('useCrudTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('supports standard list pages even when delete and status actions are absent', async () => {
     const list = vi.fn().mockResolvedValue({
       list: [{ id: 1 }],
@@ -48,6 +52,36 @@ describe('useCrudTable', () => {
     })
     expect(table).toHaveProperty('confirmDel')
     expect(table).toHaveProperty('toggleStatus')
+  })
+
+  it('prefers standard deleteOne, deleteBatch, and changeStatus methods', async () => {
+    const list = vi.fn().mockResolvedValue({
+      list: [{ id: 1, status: 1 }],
+      page: { current_page: 1, page_size: 20, total: 1 },
+    })
+    const deleteOne = vi.fn().mockResolvedValue(undefined)
+    const deleteBatch = vi.fn().mockResolvedValue(undefined)
+    const changeStatus = vi.fn().mockResolvedValue(undefined)
+    const del = vi.fn().mockResolvedValue(undefined)
+    const status = vi.fn().mockResolvedValue(undefined)
+    confirm.mockResolvedValue(undefined)
+
+    const table = useCrudTable({
+      api: { list, deleteOne, deleteBatch, changeStatus, del, status },
+      searchForm: ref({ keyword: 'demo' }),
+    })
+
+    table.onSelectionChange([{ id: 1, status: 1 }])
+    await table.confirmDel({ id: 1, status: 1 })
+    await table.batchDel()
+    await table.toggleStatus({ id: 1, status: 1 }, 2)
+
+    expect(deleteOne).toHaveBeenCalledWith({ id: 1 })
+    expect(deleteBatch).toHaveBeenCalledWith({ ids: [1] })
+    expect(changeStatus).toHaveBeenCalledWith({ id: 1, status: 2 })
+    expect(del).not.toHaveBeenCalled()
+    expect(status).not.toHaveBeenCalled()
+    expect(success).toHaveBeenCalledTimes(3)
   })
 
   it('preserves delete and status actions for legacy crud pages', async () => {

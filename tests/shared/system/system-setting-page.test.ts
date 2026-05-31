@@ -19,4 +19,25 @@ describe('system setting page', () => {
     expect(en).not.toContain('captchaTitle')
     expect(en).not.toContain('captchaDescription')
   })
+
+  it('uses standard system setting API method names with temporary aliases', () => {
+    const source = read('src/api/system/setting.ts')
+    const page = read('src/views/Main/system/setting/index.vue')
+
+    expect(source).toContain('pageInit')
+    expect(source).toContain('create')
+    expect(source).toContain('update')
+    expect(source).toContain('changeStatus')
+    expect(source).toContain('deleteOne')
+    expect(source).toContain('deleteBatch')
+    expect(source).toContain('init: pageInit')
+    expect(source).toContain('add: create')
+    expect(source).toContain('edit: update')
+    expect(source).toContain('status: changeStatus')
+    expect(source).toContain('del,')
+    expect(page).toContain('SystemSettingApi.pageInit()')
+    expect(page).toContain('SystemSettingApi.create(')
+    expect(page).toContain('SystemSettingApi.update(')
+  })
+
 })

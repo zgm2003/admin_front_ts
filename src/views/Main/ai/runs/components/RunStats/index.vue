@@ -26,7 +26,7 @@ const dict = ref<AiRunInitResponse['dict']>({
 })
 const loadDict = async () => {
   try {
-    const res = await AiRunApi.init()
+    const res = await AiRunApi.pageInit()
     dict.value = res.dict
   } catch { /* ignore */ }
 }

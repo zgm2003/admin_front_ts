@@ -14,12 +14,18 @@ describe('operation log api and page REST contract', () => {
 
     expect(source).toContain("import request from '@/lib/http'")
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
-    expect(source).toContain('request.get<OperationLogInitResponse>(`${BASE}/init`)')
+    expect(source).toContain('request.get<OperationLogInitResponse>(`${BASE}/page-init`)')
     expect(source).toContain('request.get<OperationLogListResponse>(BASE, { params: normalizeOperationLogListParams(params) })')
-    expect(source).toContain('request.delete<void>(`${BASE}/${ids[0]}`)')
-    expect(source).toContain('request.delete<void, { ids: number[] }>(BASE, { data: { ids } })')
+    expect(source).toContain('request.delete<void>(`${BASE}/${normalizeIds(params.id)[0]}`)')
+    expect(source).toContain('request.delete<void, { ids: number[] }>(BASE, { data: { ids: normalizeIds(params.ids) } })')
     expect(source).not.toContain('legacyRequest')
     expect(source).not.toContain('/api/admin/OperationLog/')
+
+    expect(source).toContain('pageInit')
+    expect(source).toContain('deleteOne')
+    expect(source).toContain('deleteBatch')
+    expect(source).toContain('init: pageInit')
+    expect(source).toContain('del,')
   })
 
   it('keeps the system operation log page typed and delete-aware', () => {

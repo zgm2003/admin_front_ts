@@ -43,8 +43,10 @@ export interface SystemLogLinesResponse {
 
 const BASE = `${ADMIN_API_PREFIX}/system-logs`
 
+const pageInit = () => request.get<SystemLogInitResponse>(`${BASE}/page-init`)
+
 export const SystemLogApi = {
-  init: () => request.get<SystemLogInitResponse>(`${BASE}/init`),
+  pageInit,
   files: () => request.get<SystemLogFilesResponse>(`${BASE}/files`),
   lines: ({ filename, keyword, level, tail }: SystemLogLinesParams) => request.get<SystemLogLinesResponse>(`${BASE}/files/${encodeURIComponent(filename)}/lines`, {
     params: {
@@ -53,4 +55,5 @@ export const SystemLogApi = {
       tail,
     },
   }),
+  init: pageInit,
 }

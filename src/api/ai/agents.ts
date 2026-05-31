@@ -228,8 +228,24 @@ function deleteAgent(id: number): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-agents/${id}`)
 }
 
+const pageInit = () => request.get<AiAgentInitResponse>(`${ADMIN_API_PREFIX}/ai-agents/page-init`)
+const create = (params: AiAgentMutationParams) => request.post<AiAgentCreateResponse, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params))
+const update = (params: AiAgentMutationParams) => {
+  const id = positiveID(params.id ?? 0, 'AI agent id')
+  return request.put<void, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents/${id}`, mutationBody(params))
+}
+const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}/status`, { status: params.status })
+const deleteOne = (params: { id: Id }) => deleteAgent(positiveID(params.id, 'AI agent id'))
+const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }): Promise<void> => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+
 export const AiAgentApi = {
-  init: () => request.get<AiAgentInitResponse>(`${ADMIN_API_PREFIX}/ai-agents/page-init`),
+  pageInit,
   list: (params: AiAgentListParams) => request.get<PaginatedResponse<AiAgentItem>>(`${ADMIN_API_PREFIX}/ai-agents`, { params: normalizeListParams(params) }),
   options: () => listOptions(),
   models: (params: { provider_id: Id }) => request.get<{ list: AiProviderModelItem[] }>(`${ADMIN_API_PREFIX}/ai-agents/provider-models/${positiveID(params.provider_id, 'AI provider id')}`),
@@ -238,14 +254,14 @@ export const AiAgentApi = {
   updateTools: (params: AiAgentUpdateToolsParams) => request.put<void, AiAgentUpdateToolsBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`, updateToolsBody(params)),
   knowledgeBases: (params: { agent_id: Id }) => request.get<AiAgentKnowledgeBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`),
   updateKnowledgeBases: (params: AiAgentUpdateKnowledgeBasesParams) => request.put<void, AiAgentUpdateKnowledgeBasesBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`, updateKnowledgeBasesBody(params)),
-  add: (params: AiAgentMutationParams) => request.post<AiAgentCreateResponse, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params)),
-  edit: (params: AiAgentMutationParams) => {
-    const id = positiveID(params.id ?? 0, 'AI agent id')
-    return request.put<void, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents/${id}`, mutationBody(params))
-  },
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}/status`, { status: params.status }),
-  del: async (params: { id: Id | Id[] }): Promise<void> => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteAgent(positiveID(item, 'AI agent id'))))
-  },
+  create,
+  update,
+  changeStatus,
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  add: create,
+  edit: update,
+  status: changeStatus,
+  del,
 }

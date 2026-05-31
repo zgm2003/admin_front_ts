@@ -9,6 +9,9 @@ interface CrudApiModule<
   T extends Identifiable,
   P extends PaginationParams = PaginationParams,
 > extends TableApiModule<T, P> {
+  deleteOne?(params: { id: Id }): Promise<unknown>
+  deleteBatch?(params: { ids: Id[] }): Promise<unknown>
+  changeStatus?(params: { id: Id; status: number }): Promise<unknown>
   del?(params: { id: Id | Id[] }): Promise<unknown>
   status?(params: { id: Id; status: number }): Promise<unknown>
 }
@@ -38,8 +41,9 @@ export function useCrudTable<
   }
 
   async function confirmDel(row: T) {
-    if (!api.del) {
-      console.warn('useCrudTable: api.del not provided')
+    const deleteAction = api.deleteOne ?? api.del
+    if (!deleteAction) {
+      console.warn('useCrudTable: api.deleteOne/api.del not provided')
       return
     }
 
@@ -53,15 +57,15 @@ export function useCrudTable<
       return
     }
 
-    await api.del({ id: row.id })
+    await deleteAction({ id: row.id })
     ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
     afterDel?.()
   }
 
   async function batchDel() {
-    if (!api.del) {
-      console.warn('useCrudTable: api.del not provided')
+    if (!api.deleteBatch && !api.del) {
+      console.warn('useCrudTable: api.deleteBatch/api.del not provided')
       return
     }
 
@@ -80,7 +84,12 @@ export function useCrudTable<
       return
     }
 
-    await api.del({ id: table.selectedIds.value })
+    const ids = table.selectedIds.value as Id[]
+    if (api.deleteBatch) {
+      await api.deleteBatch({ ids })
+    } else {
+      await api.del?.({ id: ids })
+    }
     ElNotification.success({ message: t('common.success.operation') })
     table.clearSelection()
     await table.getList()
@@ -88,8 +97,9 @@ export function useCrudTable<
   }
 
   async function toggleStatus(row: T, newStatus: number) {
-    if (!api.status) {
-      console.warn('useCrudTable: api.status not provided')
+    const statusAction = api.changeStatus ?? api.status
+    if (!statusAction) {
+      console.warn('useCrudTable: api.changeStatus/api.status not provided')
       return
     }
 
@@ -103,7 +113,7 @@ export function useCrudTable<
       return
     }
 
-    await api.status({ id: row.id, status: newStatus })
+    await statusAction({ id: row.id, status: newStatus })
     ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
   }

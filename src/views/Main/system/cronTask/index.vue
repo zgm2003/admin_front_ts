@@ -25,7 +25,7 @@ const isMobile = useIsMobile()
 // 初始化数据
 const cronPresets = ref<CronPresetItem[]>([])
 const init = () => {
-  CronTaskApi.init().then((res) => {
+  CronTaskApi.pageInit().then((res) => {
     cronPresets.value = res.dict.cron_preset_arr
   })
 }
@@ -93,9 +93,9 @@ const confirmSubmit = async () => {
   try { await formRef.value.validate() } catch { return }
 
   if (dialogMode.value === 'add') {
-    await CronTaskApi.add(form.value)
+    await CronTaskApi.create(form.value)
   } else if (form.value.id != null) {
-    await CronTaskApi.edit({ ...form.value, id: form.value.id })
+    await CronTaskApi.update({ ...form.value, id: form.value.id })
   }
 
   ElNotification.success({ message: t('common.success.operation') })

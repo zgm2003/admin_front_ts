@@ -122,10 +122,24 @@ function normalizeNotificationIDs(id: Id | Id[]): number[] {
   return ids
 }
 
+const pageInit = () => request.get<NotificationInitResponse>(`${ADMIN_API_PREFIX}/notifications/page-init`)
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/notifications/${normalizeNotificationIDs(params.id)[0]}`)
+const deleteBatch = (params: { ids: Id[] }) => {
+  const body: NotificationBatchPayload = { ids: normalizeNotificationIDs(params.ids) }
+  return request.delete<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications`, { data: body })
+}
+const del = (params: NotificationDelParams) => {
+  const ids = normalizeNotificationIDs(params.id)
+  if (ids.length === 1 && ids[0] !== undefined) {
+    return deleteOne({ id: ids[0] })
+  }
+
+  return deleteBatch({ ids })
+}
+
 export const NotificationApi = {
   /** 初始化（字典） */
-  init: () => request.get<NotificationInitResponse>(`${ADMIN_API_PREFIX}/notifications/init`),
-
+  pageInit,
   /** 获取通知列表（普通分页） */
   list: (params: NotificationListParams) =>
     request.get<PaginatedResponse<NotificationItem>>(`${ADMIN_API_PREFIX}/notifications`, { params: normalizeListParams(params) }),
@@ -149,13 +163,8 @@ export const NotificationApi = {
   },
 
   /** 删除通知（支持单个/批量） */
-  del: (params: NotificationDelParams) => {
-    const ids = normalizeNotificationIDs(params.id)
-    if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/notifications/${ids[0]}`)
-    }
-
-    const body: NotificationBatchPayload = { ids }
-    return request.delete<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications`, { data: body })
-  },
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  del,
 }

@@ -38,6 +38,10 @@ export interface RoleBatchDeletePayload {
   ids: number[]
 }
 
+export interface RoleDeleteOnePayload {
+  id: Id
+}
+
 function normalizeRoleIDs(id: Id | Id[]): number[] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
@@ -57,22 +61,37 @@ function normalizeRoleIDs(id: Id | Id[]): number[] {
   return ids
 }
 
+const pageInit = () => request.get<RoleInitResponse>(`${ADMIN_API_PREFIX}/roles/page-init`)
+const create = (params: RoleAddPayload) => request.post<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles`, params)
+const update = (params: RoleEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles/${id}`, body)
+}
+const deleteOne = (params: RoleDeleteOnePayload) => request.delete<void>(`${ADMIN_API_PREFIX}/roles/${normalizeRoleIDs(params.id)[0]}`)
+const deleteBatch = (params: RoleBatchDeletePayload) => {
+  const ids = normalizeRoleIDs(params.ids)
+  const body: RoleBatchDeletePayload = { ids }
+  return request.delete<void, RoleBatchDeletePayload>(`${ADMIN_API_PREFIX}/roles`, { data: body })
+}
+const del = (params: { id: Id | Id[] }) => {
+  const ids = normalizeRoleIDs(params.id)
+  if (ids.length === 1 && ids[0] !== undefined) {
+    return deleteOne({ id: ids[0] })
+  }
+  return deleteBatch({ ids })
+}
+
 export const RoleApi = {
-  init: () => request.get<RoleInitResponse>(`${ADMIN_API_PREFIX}/roles/init`),
+  pageInit,
   list: (params: RoleListParams) => request.get<PaginatedResponse<RoleListItem>>(`${ADMIN_API_PREFIX}/roles`, { params }),
-  add: (params: RoleAddPayload) => request.post<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles`, params),
-  edit: (params: RoleEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles/${id}`, body)
-  },
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizeRoleIDs(params.id)
-    if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/roles/${ids[0]}`)
-    }
-    const body: RoleBatchDeletePayload = { ids }
-    return request.delete<void, RoleBatchDeletePayload>(`${ADMIN_API_PREFIX}/roles`, { data: body })
-  },
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  add: create,
+  edit: update,
+  del,
   default: (params: { id: number }) =>
     request.patch<void>(`${ADMIN_API_PREFIX}/roles/${params.id}/default`),
 }

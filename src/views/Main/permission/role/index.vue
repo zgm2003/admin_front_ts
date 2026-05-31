@@ -62,7 +62,7 @@ const permissionLabelMap = computed(() => {
 })
 
 const init = async () => {
-  const data = await RoleApi.init()
+  const data = await RoleApi.pageInit()
   permissionTree.value = data.dict.permission_tree
   platformOptions.value = data.dict.permission_platform_arr
   if (!platformOptions.value.some((item) => item.value === activePlatform.value)) {
@@ -139,9 +139,9 @@ const submitRole = async () => {
   const editPayload: RoleEditPayload = { id: Number(form.value.id), name: form.value.name, permission_id: form.value.permission_id }
 
   if (dialogMode.value === 'add') {
-    await RoleApi.add(addPayload)
+    await RoleApi.create(addPayload)
   } else {
-    await RoleApi.edit(editPayload)
+    await RoleApi.update(editPayload)
   }
 
   ElNotification.success({ message: t('common.success.operation') })

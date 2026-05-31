@@ -17,7 +17,7 @@ const searchForm = ref<WalletUserSearchForm>({
   keyword: '',
 })
 
-const walletUserApi = { list: WalletApi.users }
+const walletUserApi = { list: WalletApi.walletUsersList }
 const { loading, data, page, onPageChange, refresh, resetPage, getList } = useTable<WalletUserItem, WalletUserListParams>({
   api: walletUserApi,
   searchForm,
@@ -45,7 +45,7 @@ function onSearch() {
 }
 
 async function refreshAll() {
-  await WalletApi.usersInit()
+  await WalletApi.walletUsersPageInit()
   await getList()
 }
 

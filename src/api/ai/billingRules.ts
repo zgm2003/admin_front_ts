@@ -70,11 +70,25 @@ function updateBody(params: AiBillingRuleMutationParams): AiBillingRuleUpdateBod
   }
 }
 
+const pageInit = () => request.get<AiBillingRulePageInitResponse>(`${ADMIN_API_PREFIX}/ai-billing-rules/page-init`)
+const list = () => request.get<PaginatedResponse<AiBillingRuleItem>>(`${ADMIN_API_PREFIX}/ai-billing-rules`, { params: { current_page: 1, page_size: 50 } })
+const create = (params: AiBillingRuleMutationParams) => request.post<{ id: number }, AiBillingRuleCreateBody>(`${ADMIN_API_PREFIX}/ai-billing-rules`, createBody(params))
+const update = (params: AiBillingRuleMutationParams) => request.put<void, AiBillingRuleUpdateBody>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id ?? 0, 'AI billing rule id')}`, updateBody(params))
+const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id, 'AI billing rule id')}/status`, { status: params.status })
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id, 'AI billing rule id')}`)
+
 export const AiBillingRuleApi = {
-  init: () => request.get<AiBillingRulePageInitResponse>(`${ADMIN_API_PREFIX}/ai-billing-rules/page-init`),
-  list: () => request.get<PaginatedResponse<AiBillingRuleItem>>(`${ADMIN_API_PREFIX}/ai-billing-rules`, { params: { current_page: 1, page_size: 50 } }),
-  add: (params: AiBillingRuleMutationParams) => request.post<{ id: number }, AiBillingRuleCreateBody>(`${ADMIN_API_PREFIX}/ai-billing-rules`, createBody(params)),
-  edit: (params: AiBillingRuleMutationParams) => request.put<void, AiBillingRuleUpdateBody>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id ?? 0, 'AI billing rule id')}`, updateBody(params)),
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id, 'AI billing rule id')}/status`, { status: params.status }),
-  del: (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/ai-billing-rules/${positiveID(params.id, 'AI billing rule id')}`),
+  pageInit,
+  list,
+  create,
+  update,
+  changeStatus,
+  deleteOne,
+
+  // Temporary aliases for existing callers during RESTful naming migration.
+  init: pageInit,
+  add: create,
+  edit: update,
+  status: changeStatus,
+  del: deleteOne,
 }

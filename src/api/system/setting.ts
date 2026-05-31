@@ -107,27 +107,43 @@ function normalizeSystemSettingIDs(id: Id | Id[]): number[] {
 
 const BASE = `${ADMIN_API_PREFIX}/system-settings`
 
-export const SystemSettingApi = {
-  init: () => request.get<SystemSettingInitResponse>(`${BASE}/init`),
-  list: (params: SystemSettingListParams) => request.get<PaginatedResponse<SystemSettingItem>>(BASE, { params: normalizeListParams(params) }),
-  add: (params: SystemSettingAddParams) => request.post<SystemSettingCreateResponse, SystemSettingAddParams>(BASE, params),
-  edit: (params: SystemSettingEditParams) => {
-    const { id, ...body } = params
-    return request.put<void, Omit<SystemSettingEditParams, 'id'>>(`${BASE}/${id}`, body)
-  },
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizeSystemSettingIDs(params.id)
-    if (ids.length === 1) {
-      return request.delete<void>(`${BASE}/${ids[0]}`)
-    }
-    const body: SystemSettingBatchDeletePayload = { ids }
-    return request.delete<void, SystemSettingBatchDeletePayload>(BASE, { data: body })
-  },
-  status: (params: SystemSettingStatusPayload) => {
+const pageInit = () => request.get<SystemSettingInitResponse>(`${BASE}/page-init`)
+const create = (params: SystemSettingAddParams) => request.post<SystemSettingCreateResponse, SystemSettingAddParams>(BASE, params)
+const update = (params: SystemSettingEditParams) => {
+  const { id, ...body } = params
+  return request.put<void, Omit<SystemSettingEditParams, 'id'>>(`${BASE}/${id}`, body)
+}
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeSystemSettingIDs(params.id)[0]}`)
+const deleteBatch = (params: SystemSettingBatchDeletePayload) => {
+  const body: SystemSettingBatchDeletePayload = { ids: normalizeSystemSettingIDs(params.ids) }
+  return request.delete<void, SystemSettingBatchDeletePayload>(BASE, { data: body })
+}
+const del = (params: { id: Id | Id[] }) => {
+  const ids = normalizeSystemSettingIDs(params.id)
+  if (ids.length === 1 && ids[0] !== undefined) {
+    return deleteOne({ id: ids[0] })
+  }
+  return deleteBatch({ ids })
+}
+const changeStatus = (params: SystemSettingStatusPayload) => {
     if (typeof params.id !== 'number' || !Number.isInteger(params.id) || params.id <= 0) {
       throw new Error('system setting id must be a positive integer')
     }
     const body: SystemSettingStatusBody = { status: params.status }
     return request.patch<void, SystemSettingStatusBody>(`${BASE}/${params.id}/status`, body)
-  },
+}
+
+export const SystemSettingApi = {
+  pageInit,
+  list: (params: SystemSettingListParams) => request.get<PaginatedResponse<SystemSettingItem>>(BASE, { params: normalizeListParams(params) }),
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  changeStatus,
+  init: pageInit,
+  add: create,
+  edit: update,
+  del,
+  status: changeStatus,
 }

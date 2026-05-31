@@ -94,7 +94,7 @@ const columns = computed(() => [
 ])
 
 const init = () => {
-  UploadSettingApi.init().then((data) => {
+  UploadSettingApi.pageInit().then((data) => {
     dict.value = data.dict
   })
 }
@@ -158,8 +158,8 @@ const confirmSubmit = async () => {
   }
 
   const request = dialogMode.value === 'add'
-    ? UploadSettingApi.add(buildAddPayload(form.value))
-    : UploadSettingApi.edit(buildEditPayload(form.value))
+    ? UploadSettingApi.create(buildAddPayload(form.value))
+    : UploadSettingApi.update(buildEditPayload(form.value))
 
   request.then(() => {
     ElNotification.success({message: t('common.success.operation')})

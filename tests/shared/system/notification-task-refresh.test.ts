@@ -16,4 +16,19 @@ describe('notification task table refresh', () => {
     expect(source).toContain('@refresh="handleRefresh"')
     expect(source).not.toContain('@refresh="refresh"')
   })
+
+  it('uses standard notification task API method names with temporary aliases', () => {
+    const source = readFrontendSource('src/api/system/notificationTask.ts')
+    const page = readFrontendSource('src/views/Main/system/notificationTask/index.vue')
+
+    expect(source).toContain('pageInit')
+    expect(source).toContain('create')
+    expect(source).toContain('deleteOne')
+    expect(source).toContain('init: pageInit')
+    expect(source).toContain('add: create')
+    expect(source).toContain('del: deleteOne')
+    expect(page).toContain('NotificationTaskApi.pageInit()')
+    expect(page).toContain('NotificationTaskApi.create(')
+  })
+
 })

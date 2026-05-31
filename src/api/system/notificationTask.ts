@@ -102,14 +102,21 @@ function normalizeTaskID(id: Id): number {
 
 const BASE = `${ADMIN_API_PREFIX}/notification-tasks`
 
+const pageInit = () => request.get<NotificationTaskInitResponse>(`${BASE}/page-init`)
+const create = (params: NotificationTaskAddParams) =>
+  request.post<NotificationTaskCreateResponse, NotificationTaskAddParams>(BASE, params)
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeTaskID(params.id)}`)
+
 export const NotificationTaskApi = {
-  init: () => request.get<NotificationTaskInitResponse>(`${BASE}/init`),
+  pageInit,
   statusCount: (params: Pick<NotificationTaskListParams, 'title'>) =>
     request.get<NotificationTaskStatusItem[]>(`${BASE}/status-count`, { params }),
   list: (params: NotificationTaskListParams) =>
     request.get<PaginatedResponse<NotificationTaskItem>>(BASE, { params: normalizeListParams(params) }),
-  add: (params: NotificationTaskAddParams) =>
-    request.post<NotificationTaskCreateResponse, NotificationTaskAddParams>(BASE, params),
-  del: (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeTaskID(params.id)}`),
+  create,
+  deleteOne,
   cancel: (params: { id: Id }) => request.patch<void>(`${BASE}/${normalizeTaskID(params.id)}/cancel`),
+  init: pageInit,
+  add: create,
+  del: deleteOne,
 }

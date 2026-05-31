@@ -60,7 +60,7 @@ const {
 })
 
 const init = () => {
-  AiRunApi.init().then((data) => {
+  AiRunApi.pageInit().then((data) => {
     dict.value = data.dict
   })
 }

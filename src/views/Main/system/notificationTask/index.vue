@@ -133,7 +133,7 @@ const handleSubmit = async () => {
   }
   submitLoading.value = true
   try {
-    await NotificationTaskApi.add(form.value)
+    await NotificationTaskApi.create(form.value)
     ElNotification.success({message: t('common.success.operation')})
     dialogVisible.value = false
     await loadStatusCount()
@@ -160,7 +160,7 @@ const handleCancel = async (row: Pick<NotificationTaskItem, 'id'>) => {
 }
 
 onMounted(async () => {
-  const data = await NotificationTaskApi.init()
+  const data = await NotificationTaskApi.pageInit()
   typeArr.value = data.dict.notification_type_arr
   levelArr.value = data.dict.notification_level_arr
   targetTypeArr.value = data.dict.notification_target_type_arr

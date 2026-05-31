@@ -163,7 +163,7 @@ export const useSystemLog = (t: Translate) => {
 
   const loadInit = async () => {
     try {
-      const res = await SystemLogApi.init()
+      const res = await SystemLogApi.pageInit()
       dict.value = res.dict
     } catch (error: unknown) {
       ElNotification.error({ message: getErrorMessage(error, t('systemLog.error.loadContent')) })

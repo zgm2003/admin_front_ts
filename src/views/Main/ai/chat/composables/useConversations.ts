@@ -66,7 +66,7 @@ export function useConversations() {
   }
 
   async function create(agentId: number, title = '') {
-    const response = await AiConversationApi.add({ agent_id: agentId, title })
+    const response = await AiConversationApi.create({ agent_id: agentId, title })
     await loadConversations(agentId)
     return response.id
   }
@@ -82,7 +82,7 @@ export function useConversations() {
       return false
     }
 
-    await AiConversationApi.del({ id })
+    await AiConversationApi.deleteOne({ id })
     conversations.value = conversations.value.filter((conversation) => conversation.id !== id)
     ElNotification.success({ message: t('common.success.operation') })
     return true
@@ -108,7 +108,7 @@ export function useConversations() {
   async function rename(id: number, title: string) {
     const normalized = title.trim()
     if (!normalized) return false
-    await AiConversationApi.edit({ id, title: normalized })
+    await AiConversationApi.update({ id, title: normalized })
     touchConversation(id, { title: normalized, updated_at: new Date().toISOString() })
     ElNotification.success({ message: t('common.success.operation') })
     return true

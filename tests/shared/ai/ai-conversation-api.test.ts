@@ -48,4 +48,20 @@ describe('AI conversation api REST contract', () => {
     expect(chatView).not.toContain('useChatSession' + 'Manager')
     expect(chatView).not.toContain('app' + '_id')
   })
+
+  it('exposes standard current-user conversation mutation names with legacy aliases', () => {
+    const source = readFrontendSource('src/api/ai/conversations.ts')
+    expect(source).toContain('const create = (params: { agent_id: number; title?: string })')
+    expect(source).toContain('const update = (params: { id: Id; title: string })')
+    expect(source).toContain('const deleteOne = (params: { id: Id })')
+    expect(source).toContain('const deleteBatch = async (params: { ids: Id[] })')
+    expect(source).toContain('create,')
+    expect(source).toContain('update,')
+    expect(source).toContain('deleteOne,')
+    expect(source).toContain('deleteBatch,')
+    expect(source).toContain('add: create')
+    expect(source).toContain('edit: update')
+    expect(source).toContain('del,')
+  })
+
 })

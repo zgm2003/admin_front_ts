@@ -66,13 +66,25 @@ function deleteConversation(id: number): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-conversations/${id}`)
 }
 
+const create = (params: { agent_id: number; title?: string }) => request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`, params)
+const update = (params: { id: Id; title: string }) => request.put<void, AiConversationEditBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`, { title: params.title })
+const deleteOne = (params: { id: Id }) => deleteConversation(positiveID(params.id))
+const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }): Promise<void> => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+
 export const AiConversationApi = {
   list: (params: AiConversationListParams = {}) => request.get<AiConversationListResponse>(`${ADMIN_API_PREFIX}/ai-conversations`, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiConversationDetailResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`),
-  add: (params: { agent_id: number; title?: string }) => request.post<{ id: number }, AiConversationCreateBody>(`${ADMIN_API_PREFIX}/ai-conversations`, params),
-  edit: (params: { id: Id; title: string }) => request.put<void, AiConversationEditBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.id)}`, { title: params.title }),
-  del: async (params: { id: Id | Id[] }): Promise<void> => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteConversation(positiveID(item))))
-  },
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  add: create,
+  edit: update,
+  del,
 }

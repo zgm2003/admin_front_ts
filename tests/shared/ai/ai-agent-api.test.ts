@@ -81,4 +81,26 @@ describe('AI agent api contract', () => {
     expect(combined).not.toMatch(forbiddenLooseTypePattern)
   })
 
+
+  it('exposes standard RESTful wrapper names with legacy aliases', () => {
+    const source = readFrontendSource('src/api/ai/agents.ts')
+    expect(source).toContain('const pageInit = () => request.get<AiAgentInitResponse>')
+    expect(source).toContain('const create = (params: AiAgentMutationParams)')
+    expect(source).toContain('const update = (params: AiAgentMutationParams)')
+    expect(source).toContain('const changeStatus = (params: { id: Id; status: number })')
+    expect(source).toContain('const deleteOne = (params: { id: Id })')
+    expect(source).toContain('const deleteBatch = async (params: { ids: Id[] })')
+    expect(source).toContain('pageInit,')
+    expect(source).toContain('create,')
+    expect(source).toContain('update,')
+    expect(source).toContain('changeStatus,')
+    expect(source).toContain('deleteOne,')
+    expect(source).toContain('deleteBatch,')
+    expect(source).toContain('init: pageInit')
+    expect(source).toContain('add: create')
+    expect(source).toContain('edit: update')
+    expect(source).toContain('status: changeStatus')
+    expect(source).toContain('del,')
+  })
+
 })

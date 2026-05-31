@@ -148,7 +148,7 @@ async function confirmSubmit() {
     timeout_ms: form.value.timeout_ms,
     status: form.value.status,
   }
-  const api = props.mode === 'add' ? AiToolApi.add : AiToolApi.edit
+  const api = props.mode === 'add' ? AiToolApi.create : AiToolApi.update
   await api(payload)
   ElNotification.success({ message: t('common.success.operation') })
   visible.value = false

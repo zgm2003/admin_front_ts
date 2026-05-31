@@ -85,18 +85,32 @@ export interface PermissionStatusBody {
   status: number
 }
 
+const pageInit = () => request.get<PermissionInitResponse>(`${ADMIN_API_PREFIX}/permissions/page-init`)
+const create = (params: PermissionMutationPayload) => request.post<PermissionCreateResponse, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions`, params)
+const update = (params: PermissionEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions/${id}`, body)
+}
+const deleteOne = (params: PermissionDeleteOnePayload) => request.delete<void>(`${ADMIN_API_PREFIX}/permissions/${params.id}`)
+const deleteBatch = (params: PermissionBatchDeletePayload) => request.delete<void, PermissionBatchDeletePayload>(`${ADMIN_API_PREFIX}/permissions`, { data: params })
+const changeStatus = (params: PermissionStatusPayload) => {
+  const body: PermissionStatusBody = { status: params.status }
+  return request.patch<void, PermissionStatusBody>(`${ADMIN_API_PREFIX}/permissions/${params.id}/status`, body)
+}
+
 export const PermissionApi = {
-  init: () => request.get<PermissionInitResponse>(`${ADMIN_API_PREFIX}/permissions/init`),
+  pageInit,
   list: (params: PermissionListParams) => request.get<PermissionListItem[]>(`${ADMIN_API_PREFIX}/permissions`, { params }),
-  add: (params: PermissionMutationPayload) => request.post<PermissionCreateResponse, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions`, params),
-  edit: (params: PermissionEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions/${id}`, body)
-  },
-  delOne: (params: PermissionDeleteOnePayload) => request.delete<void>(`${ADMIN_API_PREFIX}/permissions/${params.id}`),
-  delBatch: (params: PermissionBatchDeletePayload) => request.delete<void, PermissionBatchDeletePayload>(`${ADMIN_API_PREFIX}/permissions`, { data: params }),
-  status: (params: PermissionStatusPayload) => {
-    const body: PermissionStatusBody = { status: params.status }
-    return request.patch<void, PermissionStatusBody>(`${ADMIN_API_PREFIX}/permissions/${params.id}/status`, body)
-  },
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  changeStatus,
+  init: pageInit,
+  add: create,
+  edit: update,
+  delOne: deleteOne,
+  delBatch: deleteBatch,
+  del: deleteOne,
+  status: changeStatus,
 }

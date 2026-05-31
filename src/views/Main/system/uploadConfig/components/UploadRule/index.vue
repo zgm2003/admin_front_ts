@@ -96,7 +96,7 @@ const rules = computed<FormRules>(() => ({
 }))
 
 const init = () => {
-  UploadRuleApi.init()
+  UploadRuleApi.pageInit()
       .then((data) => {
         dict.value = data.dict
       })
@@ -159,8 +159,8 @@ const confirmSubmit = async () => {
   }
   
   const request = dialogMode.value === 'add'
-    ? UploadRuleApi.add(buildAddPayload(form.value))
-    : UploadRuleApi.edit(buildEditPayload(form.value))
+    ? UploadRuleApi.create(buildAddPayload(form.value))
+    : UploadRuleApi.update(buildEditPayload(form.value))
 
   request.then(() => {
     ElNotification.success({message: t('common.success.operation')});

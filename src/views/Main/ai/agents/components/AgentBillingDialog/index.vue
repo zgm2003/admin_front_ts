@@ -111,7 +111,7 @@ async function loadData() {
   loading.value = true
   try {
     const [initData, listData] = await Promise.all([
-      AiBillingRuleApi.init(),
+      AiBillingRuleApi.pageInit(),
       AiBillingRuleApi.list(),
     ])
     dict.value = initData.dict
@@ -158,9 +158,9 @@ async function confirmSubmit() {
   saving.value = true
   try {
     if (dialogMode.value === 'add') {
-      await AiBillingRuleApi.add(payload)
+      await AiBillingRuleApi.create(payload)
     } else {
-      await AiBillingRuleApi.edit(payload)
+      await AiBillingRuleApi.update(payload)
     }
     ElNotification.success({ message: t('common.success.operation') })
     resetToAdd()
@@ -172,14 +172,14 @@ async function confirmSubmit() {
 
 async function changeStatus(row: AiBillingRuleItem) {
   const nextStatus = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES
-  await AiBillingRuleApi.status({ id: row.id, status: nextStatus })
+  await AiBillingRuleApi.changeStatus({ id: row.id, status: nextStatus })
   ElNotification.success({ message: t('common.success.operation') })
   await loadList()
 }
 
 async function confirmDelete(row: AiBillingRuleItem) {
   await ElMessageBox.confirm(t('aiBilling.messages.deleteConfirm'), t('common.confirmTitle'), { type: 'warning' })
-  await AiBillingRuleApi.del({ id: row.id })
+  await AiBillingRuleApi.deleteOne({ id: row.id })
   ElNotification.success({ message: t('common.success.delete') })
   resetToAdd()
   await loadList()

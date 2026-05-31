@@ -79,11 +79,24 @@ export interface WalletUsersPageInitResponse {}
 
 export interface WalletLedgerPageInitResponse extends WalletDictResponse {}
 
+const summary = () => request.get<WalletSummaryResponse>(`${ADMIN_API_PREFIX}/wallet/summary`)
+const transactions = (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet/transactions`, { params })
+const walletUsersPageInit = () => request.get<WalletUsersPageInitResponse>(`${ADMIN_API_PREFIX}/payment/wallets/page-init`)
+const walletUsersList = (params: WalletUserListParams) => request.get<PaginatedResponse<WalletUserItem>>(`${ADMIN_API_PREFIX}/payment/wallets`, { params })
+const ledgerPageInit = () => request.get<WalletLedgerPageInitResponse>(`${ADMIN_API_PREFIX}/payment/ledger/page-init`)
+const ledgerList = (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/payment/ledger`, { params })
+
 export const WalletApi = {
-  summary: () => request.get<WalletSummaryResponse>(`${ADMIN_API_PREFIX}/wallet/summary`),
-  transactions: (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet/transactions`, { params }),
-  usersInit: () => request.get<WalletUsersPageInitResponse>(`${ADMIN_API_PREFIX}/payment/wallets/page-init`),
-  users: (params: WalletUserListParams) => request.get<PaginatedResponse<WalletUserItem>>(`${ADMIN_API_PREFIX}/payment/wallets`, { params }),
-  ledgerInit: () => request.get<WalletLedgerPageInitResponse>(`${ADMIN_API_PREFIX}/payment/ledger/page-init`),
-  ledger: (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/payment/ledger`, { params }),
+  summary,
+  transactions,
+  walletUsersPageInit,
+  walletUsersList,
+  ledgerPageInit,
+  ledgerList,
+
+  // Temporary aliases for existing callers during RESTful naming migration.
+  usersInit: walletUsersPageInit,
+  users: walletUsersList,
+  ledgerInit: ledgerPageInit,
+  ledger: ledgerList,
 }

@@ -120,24 +120,41 @@ function normalizeAuthPlatformIDs(id: Id | Id[]): number[] {
   return ids
 }
 
+const pageInit = () => request.get<AuthPlatformInitResponse>(`${ADMIN_API_PREFIX}/auth-platforms/page-init`)
+const create = (params: AuthPlatformAddPayload) => request.post<AuthPlatformCreateResponse, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`, params)
+const update = (params: AuthPlatformEditPayload) => {
+  const { id, ...body } = params
+  return request.put<void, AuthPlatformUpdatePayload>(`${ADMIN_API_PREFIX}/auth-platforms/${id}`, body)
+}
+const deleteOne = (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/auth-platforms/${normalizeAuthPlatformIDs(params.id)[0]}`)
+const deleteBatch = (params: AuthPlatformBatchDeletePayload) => {
+  const ids = normalizeAuthPlatformIDs(params.ids)
+  const body: AuthPlatformBatchDeletePayload = { ids }
+  return request.delete<void, AuthPlatformBatchDeletePayload>(`${ADMIN_API_PREFIX}/auth-platforms`, { data: body })
+}
+const changeStatus = (params: AuthPlatformStatusPayload) => {
+  const body: AuthPlatformStatusBody = { status: params.status }
+  return request.patch<void, AuthPlatformStatusBody>(`${ADMIN_API_PREFIX}/auth-platforms/${params.id}/status`, body)
+}
+const del = (params: { id: Id | Id[] }) => {
+  const ids = normalizeAuthPlatformIDs(params.id)
+  if (ids.length === 1 && ids[0] !== undefined) {
+    return deleteOne({ id: ids[0] })
+  }
+  return deleteBatch({ ids })
+}
+
 export const AuthPlatformApi = {
-  init: () => request.get<AuthPlatformInitResponse>(`${ADMIN_API_PREFIX}/auth-platforms/init`),
+  pageInit,
   list: (params: AuthPlatformListParams) => request.get<PaginatedResponse<AuthPlatformItem>>(`${ADMIN_API_PREFIX}/auth-platforms`, { params: normalizeListParams(params) }),
-  add: (params: AuthPlatformAddPayload) => request.post<AuthPlatformCreateResponse, AuthPlatformAddPayload>(`${ADMIN_API_PREFIX}/auth-platforms`, params),
-  edit: (params: AuthPlatformEditPayload) => {
-    const { id, ...body } = params
-    return request.put<void, AuthPlatformUpdatePayload>(`${ADMIN_API_PREFIX}/auth-platforms/${id}`, body)
-  },
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizeAuthPlatformIDs(params.id)
-    if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/auth-platforms/${ids[0]}`)
-    }
-    const body: AuthPlatformBatchDeletePayload = { ids }
-    return request.delete<void, AuthPlatformBatchDeletePayload>(`${ADMIN_API_PREFIX}/auth-platforms`, { data: body })
-  },
-  status: (params: AuthPlatformStatusPayload) => {
-    const body: AuthPlatformStatusBody = { status: params.status }
-    return request.patch<void, AuthPlatformStatusBody>(`${ADMIN_API_PREFIX}/auth-platforms/${params.id}/status`, body)
-  },
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  changeStatus,
+  init: pageInit,
+  add: create,
+  edit: update,
+  del,
+  status: changeStatus,
 }

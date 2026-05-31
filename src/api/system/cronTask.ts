@@ -73,14 +73,26 @@ export interface CronTaskLogItem {
   created_at: string
 }
 
+const pageInit = () => request.get<CronTaskInitResponse>(`${ADMIN_API_PREFIX}/cron-tasks/page-init`)
+const create = (params: CronTaskForm) => request.post<CronTaskItem, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks`, params)
+const update = (params: CronTaskForm & { id: number }) => request.put<void, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`, params)
+const deleteOne = (params: { id: number }) => request.delete<void>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`)
+const deleteBatch = (params: { ids: number[] }) => request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/cron-tasks`, { data: { ids: params.ids } })
+const del = (params: { id: number | number[] }) => Array.isArray(params.id) ? deleteBatch({ ids: params.id }) : deleteOne({ id: params.id })
+const changeStatus = (params: { id: number; status: number }) => request.patch<void, CronTaskStatusBody>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}/status`, { status: params.status })
+
 export const CronTaskApi = {
-  init: () => request.get<CronTaskInitResponse>(`${ADMIN_API_PREFIX}/cron-tasks/init`),
+  pageInit,
   list: (params?: CronTaskListParams) => request.get<PaginatedResponse<CronTaskItem>>(`${ADMIN_API_PREFIX}/cron-tasks`, { params }),
-  add: (params: CronTaskForm) => request.post<CronTaskItem, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks`, params),
-  edit: (params: CronTaskForm & { id: number }) => request.put<void, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`, params),
-  del: (params: { id: number | number[] }) => Array.isArray(params.id)
-    ? request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/cron-tasks`, { data: { ids: params.id } })
-    : request.delete<void>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`),
-  status: (params: { id: number; status: number }) => request.patch<void, CronTaskStatusBody>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}/status`, { status: params.status }),
+  create,
+  update,
+  deleteOne,
+  deleteBatch,
+  changeStatus,
   logs: (params: CronTaskLogListParams) => request.get<PaginatedResponse<CronTaskLogItem>>(`${ADMIN_API_PREFIX}/cron-tasks/${params.task_id}/logs`, { params }),
+  init: pageInit,
+  add: create,
+  edit: update,
+  del,
+  status: changeStatus,
 }

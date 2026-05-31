@@ -71,7 +71,7 @@ function indexStatusType(status: AiKnowledgeIndexStatus) {
 }
 
 async function loadInit() {
-  const data = await AiKnowledgeApi.init()
+  const data = await AiKnowledgeApi.pageInit()
   dict.value = data.dict
 }
 

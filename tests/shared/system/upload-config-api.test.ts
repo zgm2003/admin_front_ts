@@ -14,4 +14,24 @@ describe('upload config api contract', () => {
     expect(source).not.toContain("'cos' | 'oss'")
     expect(source).not.toContain("params.driver === 'oss'")
   })
+
+  it('uses standard upload config API method names with temporary aliases', () => {
+    const source = readFrontendSource('src/api/system/uploadConfig.ts')
+
+    for (const apiName of ['UploadDriverApi', 'UploadRuleApi', 'UploadSettingApi']) {
+      expect(source).toContain(`export const ${apiName} = {`)
+    }
+    expect(source).toContain('pageInit')
+    expect(source).toContain('create')
+    expect(source).toContain('update')
+    expect(source).toContain('deleteOne')
+    expect(source).toContain('deleteBatch')
+    expect(source).toContain('init:')
+    expect(source).toContain('add:')
+    expect(source).toContain('edit:')
+    expect(source).toContain('del:')
+    expect(source).toContain('changeStatus')
+    expect(source).toContain('status: changeSettingStatus')
+  })
+
 })

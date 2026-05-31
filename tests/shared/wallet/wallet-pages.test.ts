@@ -37,6 +37,18 @@ describe('wallet pages', () => {
       expect(source).not.toContain(' as any')
     }
 
+    const ledgerPage = read('src/views/Main/payment/ledger/index.vue')
+    const walletsPage = read('src/views/Main/payment/wallets/index.vue')
+    const personalWalletPage = read('src/views/Main/personal/wallet/index.vue')
+
+    expect(ledgerPage).toContain('WalletApi.ledgerList')
+    expect(ledgerPage).toContain('WalletApi.ledgerPageInit()')
+    expect(ledgerPage).not.toContain('WalletApi.ledgerInit()')
+    expect(walletsPage).toContain('WalletApi.walletUsersList')
+    expect(walletsPage).toContain('WalletApi.walletUsersPageInit()')
+    expect(walletsPage).not.toContain('WalletApi.usersInit()')
+    expect(personalWalletPage).toContain('WalletApi.transactions')
+
     const profileWrapper = read('src/views/Main/profile/wallet/index.vue')
     expect(profileWrapper).toContain("import PersonalWallet from '@/views/Main/personal/wallet/index.vue'")
   })

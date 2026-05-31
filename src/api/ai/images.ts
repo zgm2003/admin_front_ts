@@ -161,15 +161,29 @@ function deleteTask(id: number): Promise<void> {
   return request.delete<void>(`${BASE}/${id}`)
 }
 
+const pageInit = () => request.get<AiImageInitResponse>(`${BASE}/page-init`)
+const createAsset = (payload: AiImageAssetCreatePayload) => request.post<AiImageAssetItem, AiImageAssetCreatePayload>(`${BASE}/assets`, payload)
+const createTask = (payload: AiImageTaskCreatePayload) => request.post<AiImageCreateTaskResponse, AiImageTaskCreatePayload>(BASE, normalizeTaskPayload(payload))
+const deleteOne = (params: { id: Id }) => deleteTask(positiveID(params.id, 'AI image task id'))
+const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }): Promise<void> => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+
 export const AiImageApi = {
-  init: () => request.get<AiImageInitResponse>(`${BASE}/page-init`),
+  pageInit,
   list: (params: AiImageListParams) => request.get<PaginatedResponse<AiImageTaskItem>>(BASE, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiImageDetailResponse>(`${BASE}/${positiveID(params.id, 'AI image task id')}`),
-  addAsset: (payload: AiImageAssetCreatePayload) => request.post<AiImageAssetItem, AiImageAssetCreatePayload>(`${BASE}/assets`, payload),
-  addTask: (payload: AiImageTaskCreatePayload) => request.post<AiImageCreateTaskResponse, AiImageTaskCreatePayload>(BASE, normalizeTaskPayload(payload)),
+  createAsset,
+  createTask,
   favorite: (params: { id: Id; is_favorite: number }) => request.patch<AiImageTaskItem, { is_favorite: number }>(`${BASE}/${positiveID(params.id, 'AI image task id')}/favorite`, { is_favorite: params.is_favorite }),
-  del: async (params: { id: Id | Id[] }): Promise<void> => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteTask(positiveID(item, 'AI image task id'))))
-  },
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  addAsset: createAsset,
+  addTask: createTask,
+  del,
 }

@@ -194,17 +194,30 @@ function deleteProvider(id: number): Promise<void> {
   return request.delete<void>(`${ADMIN_API_PREFIX}/ai-providers/${id}`)
 }
 
+const pageInit = () => request.get<AiProviderInitResponse>(`${ADMIN_API_PREFIX}/ai-providers/page-init`)
+const create = (params: AiProviderMutationParams) => request.post<AiProviderCreateResponse, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers`, mutationBody(params))
+const update = (params: AiProviderMutationParams) => {
+  const id = positiveID(params.id ?? 0, 'AI provider id')
+  return request.put<void, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers/${id}`, mutationBody(params))
+}
+const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/status`, { status: params.status })
+const deleteOne = (params: { id: Id }) => deleteProvider(positiveID(params.id, 'AI provider id'))
+const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+}
+const del = async (params: { id: Id | Id[] }): Promise<void> => {
+  const ids = Array.isArray(params.id) ? params.id : [params.id]
+  await deleteBatch({ ids })
+}
+
 export const AiProviderApi = {
-  init: () => request.get<AiProviderInitResponse>(`${ADMIN_API_PREFIX}/ai-providers/page-init`),
+  pageInit,
   list: (params: AiProviderListParams) => request.get<PaginatedResponse<AiProviderItem>>(`${ADMIN_API_PREFIX}/ai-providers`, { params: normalizeListParams(params) }),
   previewModels: (params: AiModelOptionsParams) => request.post<AiModelOptionsResponse, AiModelOptionsBody>(`${ADMIN_API_PREFIX}/ai-providers/model-options`, modelOptionsBody(params)),
   previewStoredModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/model-options`),
-  add: (params: AiProviderMutationParams) => request.post<AiProviderCreateResponse, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers`, mutationBody(params)),
-  edit: (params: AiProviderMutationParams) => {
-    const id = positiveID(params.id ?? 0, 'AI provider id')
-    return request.put<void, AiProviderMutationBody>(`${ADMIN_API_PREFIX}/ai-providers/${id}`, mutationBody(params))
-  },
-  status: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/status`, { status: params.status }),
+  create,
+  update,
+  changeStatus,
   test: (params: { id: Id }) => request.post<AiProviderTestResult>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/test`),
   syncModels: (params: { id: Id }) => request.post<AiModelOptionsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/sync-models`),
   models: (params: { id: Id }) => request.get<AiProviderModelsResponse>(`${ADMIN_API_PREFIX}/ai-providers/${positiveID(params.id, 'AI provider id')}/models`),
@@ -212,9 +225,12 @@ export const AiProviderApi = {
     const id = positiveID(params.id, 'AI provider id')
     return request.put<void, AiProviderModelsUpdateBody>(`${ADMIN_API_PREFIX}/ai-providers/${id}/models`, updateModelsBody(params))
   },
-  del: async (params: { id: Id | Id[] }): Promise<void> => {
-    const ids = Array.isArray(params.id) ? params.id : [params.id]
-    await Promise.all(ids.map((item) => deleteProvider(positiveID(item, 'AI provider id'))))
-  },
+  deleteOne,
+  deleteBatch,
+  init: pageInit,
+  add: create,
+  edit: update,
+  status: changeStatus,
+  del,
 }
 

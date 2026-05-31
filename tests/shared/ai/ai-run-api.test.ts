@@ -104,4 +104,12 @@ describe('AI run api REST contract', () => {
     expect(statsSource).not.toContain('statsByUser')
     expect(statsSource).not.toContain('loadMore')
   })
+
+  it('exposes pageInit for run page dictionaries with init alias', () => {
+    const source = readFrontendSource('src/api/ai/runs.ts')
+    expect(source).toContain('const pageInit = () => request.get<AiRunInitResponse>')
+    expect(source).toContain('pageInit,')
+    expect(source).toContain('init: pageInit')
+  })
+
 })

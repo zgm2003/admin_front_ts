@@ -60,7 +60,7 @@ const apiSearchForm = computed<WalletTransactionListParams>(() => {
   }
 })
 
-const ledgerApi = { list: WalletApi.ledger }
+const ledgerApi = { list: WalletApi.ledgerList }
 const { loading, data, page, onPageChange, refresh, resetPage, getList } = useTable<WalletTransactionItem, WalletTransactionListParams>({
   api: ledgerApi,
   searchForm: apiSearchForm,
@@ -105,7 +105,7 @@ function parsePositiveID(value: string) {
 }
 
 async function refreshAll() {
-  const result = await WalletApi.ledgerInit()
+  const result = await WalletApi.ledgerPageInit()
   dict.value = result.dict
   await getList()
 }
