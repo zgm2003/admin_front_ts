@@ -169,14 +169,11 @@ export function useLoginForm() {
 
   const submitLogin = async (
     params: UserLoginParams,
-    options: { closeCaptchaOnSuccess?: boolean; refreshCaptchaOnFailure?: boolean } = {},
+    options: { closeCaptchaAfterAttempt?: boolean; refreshCaptchaOnFailure?: boolean } = {},
   ) => {
     isSubmitting.value = true
     try {
       const data = await UsersApi.login(params)
-      if (options.closeCaptchaOnSuccess) {
-        captchaDialogVisible.value = false
-      }
       rememberPwd()
       await handleLoginSuccess(data)
     } catch (error) {
@@ -185,6 +182,9 @@ export function useLoginForm() {
         await refreshCaptcha()
       }
     } finally {
+      if (options.closeCaptchaAfterAttempt) {
+        captchaDialogVisible.value = false
+      }
       isSubmitting.value = false
     }
   }
@@ -242,7 +242,7 @@ export function useLoginForm() {
         captcha_id: captchaPayload.captcha_id,
         captcha_answer: captchaPayload.captcha_answer,
       },
-      { closeCaptchaOnSuccess: true, refreshCaptchaOnFailure: true },
+      { closeCaptchaAfterAttempt: true, refreshCaptchaOnFailure: true },
     )
   }
 
