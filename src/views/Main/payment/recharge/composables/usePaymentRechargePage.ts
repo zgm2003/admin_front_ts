@@ -88,7 +88,7 @@ export function usePaymentRechargePage() {
   async function init() {
     pageLoading.value = true
     try {
-      const result = await PaymentRechargeApi.init()
+      const result = await PaymentRechargeApi.pageInit()
       wallet.value = result.wallet
       packages.value = result.packages
       paymentMethod.value = result.payment_method
@@ -116,7 +116,7 @@ export function usePaymentRechargePage() {
     if (!canSubmit.value) return
     submitting.value = true
     try {
-      const result = await PaymentRechargeApi.add(buildCreatePayload(selectedPackage.value!.code))
+      const result = await PaymentRechargeApi.create(buildCreatePayload(selectedPackage.value!.code))
       if (result.pay_url) {
         window.location.href = result.pay_url
         return

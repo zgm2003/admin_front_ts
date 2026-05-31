@@ -128,14 +128,6 @@ const deleteBatch = (params: { ids: Id[] }) => {
   const body: NotificationBatchPayload = { ids: normalizeNotificationIDs(params.ids) }
   return request.delete<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications`, { data: body })
 }
-const del = (params: NotificationDelParams) => {
-  const ids = normalizeNotificationIDs(params.id)
-  if (ids.length === 1 && ids[0] !== undefined) {
-    return deleteOne({ id: ids[0] })
-  }
-
-  return deleteBatch({ ids })
-}
 
 export const NotificationApi = {
   /** 初始化（字典） */
@@ -165,6 +157,4 @@ export const NotificationApi = {
   /** 删除通知（支持单个/批量） */
   deleteOne,
   deleteBatch,
-  init: pageInit,
-  del,
 }

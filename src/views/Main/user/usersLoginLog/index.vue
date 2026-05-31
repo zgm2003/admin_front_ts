@@ -39,7 +39,7 @@ const {
 } = useUsersLoginLogTable(searchForm)
 
 const init = async () => {
-  const response: UserLoginLogInitResponse = await UsersLoginLogApi.init()
+  const response: UserLoginLogInitResponse = await UsersLoginLogApi.pageInit()
   platformArr.value = response.dict.platformArr
   loginTypeArr.value = response.dict.login_type_arr
 }

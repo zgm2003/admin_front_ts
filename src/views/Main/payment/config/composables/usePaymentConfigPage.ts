@@ -92,7 +92,7 @@ export function usePaymentConfigPage() {
   }))
 
   async function init() {
-    const res = await PaymentConfigApi.init()
+    const res = await PaymentConfigApi.pageInit()
     dict.value = res.dict
   }
 
@@ -140,9 +140,9 @@ export function usePaymentConfigPage() {
       return
     }
     if (dialogMode.value === 'add') {
-      await PaymentConfigApi.add(form.value)
+      await PaymentConfigApi.create(form.value)
     } else {
-      await PaymentConfigApi.edit(form.value)
+      await PaymentConfigApi.update(form.value)
     }
     ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
@@ -151,7 +151,7 @@ export function usePaymentConfigPage() {
 
   async function changeStatus(row: PaymentConfigListItem) {
     const nextStatus = row.status === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES
-    await PaymentConfigApi.status(row.id, nextStatus)
+    await PaymentConfigApi.changeStatus(row.id, nextStatus)
     ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
   }
@@ -166,7 +166,7 @@ export function usePaymentConfigPage() {
     } catch {
       return
     }
-    await PaymentConfigApi.del(row.id)
+    await PaymentConfigApi.deleteOne(row.id)
     ElNotification.success({ message: t('common.success.operation') })
     await table.getList()
   }

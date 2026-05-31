@@ -20,8 +20,6 @@ describe('export task api REST contract', () => {
     expect(source).toContain('deleteOne: (params: { id: Id }) => {')
     expect(source).toContain('deleteBatch: (params: { ids: Id[] }) => {')
     expect(source).toContain('request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids: normalizedIDs } })')
-    expect(source).toContain('return ExportTaskApi.deleteOne({ id: firstID })')
-    expect(source).toContain('return ExportTaskApi.deleteBatch({ ids })')
     expect(source).not.toContain('legacyRequest')
     expect(source).not.toContain('/api/admin/ExportTask/statusCount')
     expect(source).not.toContain('/api/admin/ExportTask/list')

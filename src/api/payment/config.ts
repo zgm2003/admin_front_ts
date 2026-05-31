@@ -91,12 +91,12 @@ function positiveID(value: number): number {
 }
 
 export const PaymentConfigApi = {
-  init: () => request.get<PaymentConfigInitResponse>(`${ADMIN_API_PREFIX}/payment/configs/page-init`),
+  pageInit: () => request.get<PaymentConfigInitResponse>(`${ADMIN_API_PREFIX}/payment/configs/page-init`),
   list: (params: PaymentConfigListParams) => request.get<PaginatedResponse<PaymentConfigListItem>>(`${ADMIN_API_PREFIX}/payment/configs`, { params }),
-  add: (payload: PaymentConfigMutationPayload) => request.post<PaymentConfigCreateResponse, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs`, payload),
-  edit: (payload: PaymentConfigMutationPayload) => request.put<void, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(payload.id ?? 0)}`, payload),
-  status: (id: number, status: number) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/status`, { status }),
-  del: (id: number) => request.delete<void>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}`),
+  create: (payload: PaymentConfigMutationPayload) => request.post<PaymentConfigCreateResponse, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs`, payload),
+  update: (payload: PaymentConfigMutationPayload) => request.put<void, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(payload.id ?? 0)}`, payload),
+  changeStatus: (id: number, status: number) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/status`, { status }),
+  deleteOne: (id: number) => request.delete<void>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}`),
   uploadCertificate: (payload: FormData) => request.post<PaymentCertificateUploadResponse, FormData>(`${ADMIN_API_PREFIX}/payment/certificates`, payload),
   test: (id: number) => request.post<PaymentConfigTestResponse>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/test`),
 }

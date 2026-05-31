@@ -168,10 +168,6 @@ const deleteOne = (params: { id: Id }) => deleteTask(positiveID(params.id, 'AI i
 const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
   await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
 }
-const del = async (params: { id: Id | Id[] }): Promise<void> => {
-  const ids = Array.isArray(params.id) ? params.id : [params.id]
-  await deleteBatch({ ids })
-}
 
 export const AiImageApi = {
   pageInit,
@@ -182,8 +178,6 @@ export const AiImageApi = {
   favorite: (params: { id: Id; is_favorite: number }) => request.patch<AiImageTaskItem, { is_favorite: number }>(`${BASE}/${positiveID(params.id, 'AI image task id')}/favorite`, { is_favorite: params.is_favorite }),
   deleteOne,
   deleteBatch,
-  init: pageInit,
   addAsset: createAsset,
   addTask: createTask,
-  del,
 }

@@ -137,14 +137,13 @@ function assertSingleID(id: Id | Id[]): number {
 const BASE = `${ADMIN_API_PREFIX}/client-versions`
 
 export const ClientVersionApi = {
-  init: () => request.get<ClientVersionPageInitResponse>(`${BASE}/page-init`),
+  pageInit: () => request.get<ClientVersionPageInitResponse>(`${BASE}/page-init`),
   list: (params: ClientVersionListParams) => request.get<PaginatedResponse<ClientVersionItem>>(BASE, { params: normalizeListParams(params) }),
-  add: (params: ClientVersionForm) => request.post<ClientVersionCreateResponse, ClientVersionSaveBody>(BASE, toSaveBody(params)),
-  edit: (params: ClientVersionForm & { id: number }) => request.put<void, ClientVersionSaveBody>(`${BASE}/${assertPositiveID(params.id, 'client version id')}`, toSaveBody(params)),
+  create: (params: ClientVersionForm) => request.post<ClientVersionCreateResponse, ClientVersionSaveBody>(BASE, toSaveBody(params)),
+  update: (params: ClientVersionForm & { id: number }) => request.put<void, ClientVersionSaveBody>(`${BASE}/${assertPositiveID(params.id, 'client version id')}`, toSaveBody(params)),
   setLatest: (params: { id: Id }) => request.patch<void>(`${BASE}/${assertPositiveID(params.id, 'client version id')}/latest`),
-  del: (params: { id: Id | Id[] }) => request.delete<void>(`${BASE}/${assertSingleID(params.id)}`),
+  deleteOne: (params: { id: Id | Id[] }) => request.delete<void>(`${BASE}/${assertSingleID(params.id)}`),
   updateJson: (params: { platform?: ClientPlatform | '' }) => request.get<ClientVersionUpdateJsonResponse>(`${BASE}/update-json`, { params: params.platform ? { platform: params.platform } : undefined }),
   forceUpdate: (params: { id: Id; force_update: CommonYesNo }) => request.patch<void, ClientVersionForceUpdateBody>(`${BASE}/${assertPositiveID(params.id, 'client version id')}/force-update`, { force_update: params.force_update }),
   currentCheck: (params: { version: string; platform?: ClientPlatform | '' }) => request.get<ClientVersionCurrentCheckResponse>(`${BASE}/current-check`, { params: params.platform ? params : { version: params.version } }),
 }
-

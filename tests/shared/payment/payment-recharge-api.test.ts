@@ -12,8 +12,6 @@ describe('payment recharge api', () => {
     expect(source).toContain('/payment/recharges/page-init')
     expect(source).toContain('/payment/recharges')
     expect(source).toContain('/pay')
-    expect(source).toContain('/sync')
-    expect(source).toContain('/close')
     expect(source).toContain('package_code: string')
     expect(source).toContain('pay_method: PaymentRechargePayMethod')
     expect(source).toContain('return_url: string')

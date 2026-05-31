@@ -167,10 +167,6 @@ const deleteOne = (params: { id: Id }) => deleteTool(positiveID(params.id, 'AI t
 const deleteBatch = async (params: { ids: Id[] }) => {
   await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
 }
-const del = async (params: { id: Id | Id[] }) => {
-  const ids = Array.isArray(params.id) ? params.id : [params.id]
-  await deleteBatch({ ids })
-}
 
 export const AiToolApi = {
   pageInit,
@@ -182,10 +178,5 @@ export const AiToolApi = {
   changeStatus,
   deleteOne,
   deleteBatch,
-  init: pageInit,
   generateInit: generatePageInit,
-  add: create,
-  edit: update,
-  status: changeStatus,
-  del,
 }

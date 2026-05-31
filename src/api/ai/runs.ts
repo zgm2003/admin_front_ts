@@ -275,7 +275,6 @@ const pageInit = () => request.get<AiRunInitResponse>(`${ADMIN_API_PREFIX}/ai-ru
 
 export const AiRunApi = {
   pageInit,
-  init: pageInit,
   list: (params: AiRunListParams) => request.get<PaginatedResponse<AiRunItem>>(`${ADMIN_API_PREFIX}/ai-runs`, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiRunDetailResponse>(`${ADMIN_API_PREFIX}/ai-runs/${positiveID(params.id)}`),
   stats: (params?: RequestPayload) => request.get<AiRunStatsSummaryResponse>(`${ADMIN_API_PREFIX}/ai-runs/stats`, { params: normalizeStatsParams(params) }),

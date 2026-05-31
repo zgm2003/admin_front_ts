@@ -84,15 +84,16 @@ export interface PaymentRechargePayResponse {
   pay_url: string
 }
 
+
 function positiveID(value: number): number {
   if (!Number.isInteger(value) || value <= 0) throw new Error('payment recharge id must be positive')
   return value
 }
 
 export const PaymentRechargeApi = {
-  init: () => request.get<PaymentRechargeInitResponse>(`${ADMIN_API_PREFIX}/payment/recharges/page-init`),
+  pageInit: () => request.get<PaymentRechargeInitResponse>(`${ADMIN_API_PREFIX}/payment/recharges/page-init`),
   list: (params: PaymentRechargeListParams) => request.get<PaginatedResponse<PaymentRechargeListItem>>(`${ADMIN_API_PREFIX}/payment/recharges`, { params }),
   detail: (id: number) => request.get<PaymentRechargeDetail>(`${ADMIN_API_PREFIX}/payment/recharges/${positiveID(id)}`),
-  add: (payload: PaymentRechargeCreatePayload) => request.post<PaymentRechargePayResponse, PaymentRechargeCreatePayload>(`${ADMIN_API_PREFIX}/payment/recharges`, payload),
+  create: (payload: PaymentRechargeCreatePayload) => request.post<PaymentRechargePayResponse, PaymentRechargeCreatePayload>(`${ADMIN_API_PREFIX}/payment/recharges`, payload),
   pay: (id: number) => request.post<PaymentRechargePayResponse>(`${ADMIN_API_PREFIX}/payment/recharges/${positiveID(id)}/pay`),
 }

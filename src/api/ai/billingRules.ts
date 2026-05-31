@@ -86,9 +86,4 @@ export const AiBillingRuleApi = {
   deleteOne,
 
   // Temporary aliases for existing callers during RESTful naming migration.
-  init: pageInit,
-  add: create,
-  edit: update,
-  status: changeStatus,
-  del: deleteOne,
 }

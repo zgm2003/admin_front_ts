@@ -41,7 +41,7 @@ function normalizeLoginLogListParams(params: UserLoginLogListParams): UserLoginL
 }
 
 export const UsersLoginLogApi = {
-  init: () =>
+  pageInit: () =>
     request.get<UserLoginLogInitResponse>(`${ADMIN_API_PREFIX}/users/login-logs/page-init`),
 
   list: (params: UserLoginLogListParams) =>

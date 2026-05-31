@@ -15,7 +15,7 @@ describe('payment order page retirement', () => {
 ${rechargeComposable}`
 
     expect(combined).toContain("from '@/api/payment/recharges'")
-    expect(combined).toContain('PaymentRechargeApi.add')
+    expect(combined).toContain('PaymentRechargeApi.create')
     expect(combined).toContain('PaymentRechargeApi.pay')
     expect(combined).not.toContain('PaymentOrderApi')
     expect(combined).not.toContain('PaymentRechargeApi.sync')

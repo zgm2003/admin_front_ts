@@ -72,16 +72,4 @@ export const ExportTaskApi = {
     const normalizedIDs = normalizePositiveIDs(params.ids, 'export task')
     return request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids: normalizedIDs } })
   },
-
-  del: (params: { id: Id | Id[] }) => {
-    const ids = normalizePositiveIDs(params.id, 'export task')
-    if (ids.length === 1) {
-      const [firstID] = ids
-      if (typeof firstID !== 'number') {
-        throw new Error('export task id must be a positive integer')
-      }
-      return ExportTaskApi.deleteOne({ id: firstID })
-    }
-    return ExportTaskApi.deleteBatch({ ids })
-  },
 }

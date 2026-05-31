@@ -12,8 +12,6 @@ interface CrudApiModule<
   deleteOne?(params: { id: Id }): Promise<unknown>
   deleteBatch?(params: { ids: Id[] }): Promise<unknown>
   changeStatus?(params: { id: Id; status: number }): Promise<unknown>
-  del?(params: { id: Id | Id[] }): Promise<unknown>
-  status?(params: { id: Id; status: number }): Promise<unknown>
 }
 
 interface UseCrudTableOptions<
@@ -41,9 +39,9 @@ export function useCrudTable<
   }
 
   async function confirmDel(row: T) {
-    const deleteAction = api.deleteOne ?? api.del
+    const deleteAction = api.deleteOne
     if (!deleteAction) {
-      console.warn('useCrudTable: api.deleteOne/api.del not provided')
+      console.warn('useCrudTable: api.deleteOne not provided')
       return
     }
 
@@ -64,8 +62,8 @@ export function useCrudTable<
   }
 
   async function batchDel() {
-    if (!api.deleteBatch && !api.del) {
-      console.warn('useCrudTable: api.deleteBatch/api.del not provided')
+    if (!api.deleteBatch) {
+      console.warn('useCrudTable: api.deleteBatch not provided')
       return
     }
 
@@ -85,11 +83,7 @@ export function useCrudTable<
     }
 
     const ids = table.selectedIds.value as Id[]
-    if (api.deleteBatch) {
-      await api.deleteBatch({ ids })
-    } else {
-      await api.del?.({ id: ids })
-    }
+    await api.deleteBatch({ ids })
     ElNotification.success({ message: t('common.success.operation') })
     table.clearSelection()
     await table.getList()
@@ -97,9 +91,9 @@ export function useCrudTable<
   }
 
   async function toggleStatus(row: T, newStatus: number) {
-    const statusAction = api.changeStatus ?? api.status
+    const statusAction = api.changeStatus
     if (!statusAction) {
-      console.warn('useCrudTable: api.changeStatus/api.status not provided')
+      console.warn('useCrudTable: api.changeStatus not provided')
       return
     }
 

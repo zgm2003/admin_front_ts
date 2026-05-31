@@ -72,10 +72,6 @@ const deleteOne = (params: { id: Id }) => deleteConversation(positiveID(params.i
 const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
   await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
 }
-const del = async (params: { id: Id | Id[] }): Promise<void> => {
-  const ids = Array.isArray(params.id) ? params.id : [params.id]
-  await deleteBatch({ ids })
-}
 
 export const AiConversationApi = {
   list: (params: AiConversationListParams = {}) => request.get<AiConversationListResponse>(`${ADMIN_API_PREFIX}/ai-conversations`, { params: normalizeListParams(params) }),
@@ -84,7 +80,4 @@ export const AiConversationApi = {
   update,
   deleteOne,
   deleteBatch,
-  add: create,
-  edit: update,
-  del,
 }

@@ -59,9 +59,9 @@ describe('AI conversation api REST contract', () => {
     expect(source).toContain('update,')
     expect(source).toContain('deleteOne,')
     expect(source).toContain('deleteBatch,')
-    expect(source).toContain('add: create')
-    expect(source).toContain('edit: update')
-    expect(source).toContain('del,')
+    expect(source).toContain('create')
+    expect(source).toContain('update')
+    expect(source).toContain('deleteOne')
   })
 
 })

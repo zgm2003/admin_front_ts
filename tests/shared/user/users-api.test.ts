@@ -143,7 +143,7 @@ describe('users api auth contract', () => {
     expect(source).not.toContain("legacyRequest.post<void>('/api/admin/UserSession/kick', params)")
     expect(source).not.toContain("legacyRequest.post<{ count: number }>('/api/admin/UserSession/batchKick', params)")
     expect(sessionListSource).toContain('const data = await UserSessionApi.pageInit()')
-    expect(sessionListSource).not.toContain('const data = await UsersListApi.init()')
+    expect(sessionListSource).not.toContain('const data = await UsersListApi.pageInit()')
   })
 
   it('uses Go REST for current-user quick-entry save', () => {

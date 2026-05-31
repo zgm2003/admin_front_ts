@@ -118,19 +118,9 @@ const deleteBatch = (params: SystemSettingBatchDeletePayload) => {
   const body: SystemSettingBatchDeletePayload = { ids: normalizeSystemSettingIDs(params.ids) }
   return request.delete<void, SystemSettingBatchDeletePayload>(BASE, { data: body })
 }
-const del = (params: { id: Id | Id[] }) => {
-  const ids = normalizeSystemSettingIDs(params.id)
-  if (ids.length === 1 && ids[0] !== undefined) {
-    return deleteOne({ id: ids[0] })
-  }
-  return deleteBatch({ ids })
-}
 const changeStatus = (params: SystemSettingStatusPayload) => {
-    if (typeof params.id !== 'number' || !Number.isInteger(params.id) || params.id <= 0) {
-      throw new Error('system setting id must be a positive integer')
-    }
-    const body: SystemSettingStatusBody = { status: params.status }
-    return request.patch<void, SystemSettingStatusBody>(`${BASE}/${params.id}/status`, body)
+  const body: SystemSettingStatusBody = { status: params.status }
+  return request.patch<void, SystemSettingStatusBody>(`${BASE}/${normalizeSystemSettingIDs(params.id)[0]}/status`, body)
 }
 
 export const SystemSettingApi = {
@@ -141,9 +131,4 @@ export const SystemSettingApi = {
   deleteOne,
   deleteBatch,
   changeStatus,
-  init: pageInit,
-  add: create,
-  edit: update,
-  del,
-  status: changeStatus,
 }

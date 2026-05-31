@@ -24,8 +24,8 @@ describe('operation log api and page REST contract', () => {
     expect(source).toContain('pageInit')
     expect(source).toContain('deleteOne')
     expect(source).toContain('deleteBatch')
-    expect(source).toContain('init: pageInit')
-    expect(source).toContain('del,')
+    expect(source).toContain('pageInit')
+    expect(source).toContain('deleteOne')
   })
 
   it('keeps the system operation log page typed and delete-aware', () => {

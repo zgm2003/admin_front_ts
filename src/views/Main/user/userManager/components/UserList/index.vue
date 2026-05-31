@@ -36,7 +36,7 @@ const roleArr = ref<DictOption<number>[]>([])
 
 const initList = async () => {
   try {
-    const data = await UsersListApi.init()
+    const data = await UsersListApi.pageInit()
     sexArr.value = data.dict.sexArr
     roleArr.value = data.dict.roleArr
     addressTree.value = data.dict.auth_address_tree
@@ -136,7 +136,7 @@ const confirmEdit = async () => {
     bio: editForm.value.bio,
   }
 
-  await UsersListApi.edit(payload)
+  await UsersListApi.update(payload)
   ElNotification.success({ message: t('common.success.operation') })
   editBoxShow.value = false
   await getList()

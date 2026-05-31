@@ -205,10 +205,6 @@ const deleteOne = (params: { id: Id }) => deleteProvider(positiveID(params.id, '
 const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
   await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
 }
-const del = async (params: { id: Id | Id[] }): Promise<void> => {
-  const ids = Array.isArray(params.id) ? params.id : [params.id]
-  await deleteBatch({ ids })
-}
 
 export const AiProviderApi = {
   pageInit,
@@ -227,10 +223,4 @@ export const AiProviderApi = {
   },
   deleteOne,
   deleteBatch,
-  init: pageInit,
-  add: create,
-  edit: update,
-  status: changeStatus,
-  del,
 }
-

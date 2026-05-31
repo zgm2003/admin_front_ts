@@ -116,7 +116,4 @@ export const NotificationTaskApi = {
   create,
   deleteOne,
   cancel: (params: { id: Id }) => request.patch<void>(`${BASE}/${normalizeTaskID(params.id)}/cancel`),
-  init: pageInit,
-  add: create,
-  del: deleteOne,
 }

@@ -95,16 +95,6 @@ const BASE = `${ADMIN_API_PREFIX}/operation-logs`
 const pageInit = () => request.get<OperationLogInitResponse>(`${BASE}/page-init`)
 const deleteOne = (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeIds(params.id)[0]}`)
 const deleteBatch = (params: { ids: Id[] }) => request.delete<void, { ids: number[] }>(BASE, { data: { ids: normalizeIds(params.ids) } })
-const del = (params: { id: Id | Id[] }) => {
-  const ids = normalizeIds(params.id)
-  if (ids.length === 0) {
-    return Promise.resolve()
-  }
-  if (ids.length === 1 && ids[0] !== undefined) {
-    return deleteOne({ id: ids[0] })
-  }
-  return deleteBatch({ ids })
-}
 
 export const OperationLogApi = {
   pageInit,
@@ -112,8 +102,6 @@ export const OperationLogApi = {
     request.get<OperationLogListResponse>(BASE, { params: normalizeOperationLogListParams(params) }),
   deleteOne,
   deleteBatch,
-  init: pageInit,
-  del,
 }
 
 export type OperationLogApiType = typeof OperationLogApi

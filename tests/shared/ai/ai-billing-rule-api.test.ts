@@ -33,11 +33,11 @@ describe('AI billing rule API contract', () => {
     expect(source).toContain('update,')
     expect(source).toContain('changeStatus,')
     expect(source).toContain('deleteOne,')
-    expect(source).toContain('init: pageInit')
-    expect(source).toContain('add: create')
-    expect(source).toContain('edit: update')
-    expect(source).toContain('status: changeStatus')
-    expect(source).toContain('del: deleteOne')
+    expect(source).toContain('pageInit')
+    expect(source).toContain('create')
+    expect(source).toContain('update')
+    expect(source).toContain('changeStatus')
+    expect(source).toContain('deleteOne')
   })
 
   it('validates mutation ids and keeps update body aligned with backend contract', () => {

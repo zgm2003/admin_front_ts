@@ -9,7 +9,7 @@ import type {
 const mocks = vi.hoisted(() => ({
   can: vi.fn(),
   getList: vi.fn(),
-  init: vi.fn(),
+  pageInit: vi.fn(),
   list: vi.fn(),
   resolve: vi.fn(),
   sync: vi.fn(),
@@ -20,9 +20,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/api/payment/recharges', () => ({
   PaymentRechargeApi: {
-    add: vi.fn(),
+    create: vi.fn(),
     close: vi.fn(),
-    init: mocks.init,
+    pageInit: mocks.pageInit,
     list: mocks.list,
     pay: vi.fn(),
     sync: mocks.sync,
@@ -77,142 +77,11 @@ vi.mock('vue-router', () => ({
 
 const { usePaymentRechargePage } = await import('@/views/Main/payment/recharge/composables/usePaymentRechargePage')
 
-describe('payment recharge auto sync', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mocks.can.mockReturnValue(true)
-    mocks.getList.mockResolvedValue({ list: [], page: { current_page: 1, page_size: 10, total: 0 } })
-    mocks.init.mockResolvedValue(initResponse())
-    mocks.list.mockResolvedValue({ list: [], page: { current_page: 1, page_size: 10, total: 0 } })
-    mocks.resolve.mockReturnValue({ href: '/payment/recharge' })
-    mocks.tableData.value = []
-  })
-
-  it('retries a visible paying recharge after a transient auto-sync failure', async () => {
-    mocks.tableData.value = [rechargeRow(42, 'paying')]
-    mocks.sync
-      .mockRejectedValueOnce(new Error('temporary sync failure'))
-      .mockResolvedValueOnce(statusResponse(42))
-
+describe('payment recharge sync retirement', () => {
+  it('keeps manual and auto sync out of the current recharge page', () => {
     const page = usePaymentRechargePage()
 
-    await page.autoSyncVisiblePayingRecharges()
-    await page.autoSyncVisiblePayingRecharges()
-
-    expect(mocks.sync).toHaveBeenCalledTimes(2)
-    expect(mocks.sync).toHaveBeenNthCalledWith(1, 42)
-    expect(mocks.sync).toHaveBeenNthCalledWith(2, 42)
-    expect(mocks.warning).toHaveBeenCalledTimes(1)
-  })
-
-  it('retries visible auto-sync when previous successful sync is still paying', async () => {
-    mocks.tableData.value = [rechargeRow(42, 'paying')]
-    mocks.sync
-      .mockResolvedValueOnce({ ...statusResponse(42), status: 'paying' })
-      .mockResolvedValueOnce({ ...statusResponse(42), status: 'credited' })
-
-    const page = usePaymentRechargePage()
-
-    await page.autoSyncVisiblePayingRecharges()
-    await page.autoSyncVisiblePayingRecharges()
-
-    expect(mocks.sync).toHaveBeenCalledTimes(2)
-    expect(mocks.sync).toHaveBeenNthCalledWith(1, 42)
-    expect(mocks.sync).toHaveBeenNthCalledWith(2, 42)
-  })
-
-  it('retries return-url recharge sync after a transient lookup failure', async () => {
-    mocks.list
-      .mockRejectedValueOnce(new Error('temporary list failure'))
-      .mockResolvedValueOnce({
-        list: [rechargeRow(43, 'paying')],
-        page: { current_page: 1, page_size: 1, total: 1 },
-      })
-    mocks.sync.mockResolvedValueOnce(statusResponse(43))
-
-    const page = usePaymentRechargePage()
-
-    await page.syncReturnRecharge('R43')
-    await page.syncReturnRecharge('R43')
-
-    expect(mocks.list).toHaveBeenCalledTimes(2)
-    expect(mocks.sync).toHaveBeenCalledTimes(1)
-    expect(mocks.sync).toHaveBeenCalledWith(43)
-  })
-
-  it('retries return-url sync when previous successful sync is still paying', async () => {
-    mocks.list.mockResolvedValue({
-      list: [rechargeRow(43, 'paying')],
-      page: { current_page: 1, page_size: 1, total: 1 },
-    })
-    mocks.sync
-      .mockResolvedValueOnce({ ...statusResponse(43), status: 'paying' })
-      .mockResolvedValueOnce({ ...statusResponse(43), status: 'credited' })
-
-    const page = usePaymentRechargePage()
-
-    await page.syncReturnRecharge('R43')
-    await page.syncReturnRecharge('R43')
-
-    expect(mocks.sync).toHaveBeenCalledTimes(2)
-    expect(mocks.sync).toHaveBeenNthCalledWith(1, 43)
-    expect(mocks.sync).toHaveBeenNthCalledWith(2, 43)
+    expect(page).not.toHaveProperty('autoSyncVisiblePayingRecharges')
+    expect(page).not.toHaveProperty('syncReturnRecharge')
   })
 })
-
-function rechargeRow(id: number, status: PaymentRechargeStatus): PaymentRechargeListItem {
-  return {
-    amount_cents: 1000,
-    amount_text: '¥10.00',
-    created_at: '2026-05-30 10:00:00',
-    credited_at: '',
-    id,
-    package_code: 'p10',
-    package_name: '10元',
-    paid_at: '',
-    pay_url: '',
-    payment_order_no: `PO${id}`,
-    recharge_no: `R${id}`,
-    status,
-    status_text: status,
-    updated_at: '2026-05-30 10:00:00',
-  }
-}
-
-function statusResponse(id: number): PaymentRechargeStatusResponse {
-  return {
-    credited_at: '',
-    failure_reason: '',
-    id,
-    paid_at: '',
-    recharge_no: `R${id}`,
-    status: 'paying',
-    status_text: '支付中',
-    wallet: walletSummary(),
-  }
-}
-
-function initResponse(): PaymentRechargeInitResponse {
-  return {
-    dict: { status_arr: [] },
-    packages: [],
-    payment_method: {
-      enabled: true,
-      label: 'Alipay',
-      provider: 'alipay',
-    },
-    recent: [],
-    wallet: walletSummary(),
-  }
-}
-
-function walletSummary(): PaymentRechargeStatusResponse['wallet'] {
-  return {
-    balance_cents: 0,
-    balance_text: '¥0.00',
-    total_consume_cents: 0,
-    total_consume_text: '¥0.00',
-    total_recharge_cents: 0,
-    total_recharge_text: '¥0.00',
-  }
-}

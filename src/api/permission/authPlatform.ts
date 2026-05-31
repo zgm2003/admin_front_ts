@@ -136,13 +136,6 @@ const changeStatus = (params: AuthPlatformStatusPayload) => {
   const body: AuthPlatformStatusBody = { status: params.status }
   return request.patch<void, AuthPlatformStatusBody>(`${ADMIN_API_PREFIX}/auth-platforms/${params.id}/status`, body)
 }
-const del = (params: { id: Id | Id[] }) => {
-  const ids = normalizeAuthPlatformIDs(params.id)
-  if (ids.length === 1 && ids[0] !== undefined) {
-    return deleteOne({ id: ids[0] })
-  }
-  return deleteBatch({ ids })
-}
 
 export const AuthPlatformApi = {
   pageInit,
@@ -152,9 +145,4 @@ export const AuthPlatformApi = {
   deleteOne,
   deleteBatch,
   changeStatus,
-  init: pageInit,
-  add: create,
-  edit: update,
-  del,
-  status: changeStatus,
 }

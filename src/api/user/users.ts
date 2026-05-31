@@ -168,13 +168,13 @@ export const UsersApi = {
 }
 
 export const UsersListApi = {
-  init: () =>
+  pageInit: () =>
     request.get<UserListInitResponse>(`${ADMIN_API_PREFIX}/users/page-init`),
 
   list: (params: UsersListParams) =>
     request.get<UserListResponse>(`${ADMIN_API_PREFIX}/users`, { params: normalizeUsersListParams(params) }),
 
-  edit: (params: UserEditParams) => {
+  update: (params: UserEditParams) => {
     const { id, ...body } = params
     return request.put<void, UserEditBody>(`${ADMIN_API_PREFIX}/users/${id}`, body)
   },
@@ -182,7 +182,7 @@ export const UsersListApi = {
   batchEdit: (params: UserBatchEditParams) =>
     request.patch<void, UserBatchEditParams>(`${ADMIN_API_PREFIX}/users`, params),
 
-  del: (params: { id: Id | Id[] }) => {
+  deleteOne: (params: { id: Id | Id[] }) => {
     const ids = normalizePositiveIDs(params.id, 'user')
     if (ids.length === 1) {
       return request.delete<void>(`${ADMIN_API_PREFIX}/users/${ids[0]}`)

@@ -78,7 +78,6 @@ const create = (params: CronTaskForm) => request.post<CronTaskItem, CronTaskForm
 const update = (params: CronTaskForm & { id: number }) => request.put<void, CronTaskForm>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`, params)
 const deleteOne = (params: { id: number }) => request.delete<void>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}`)
 const deleteBatch = (params: { ids: number[] }) => request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/cron-tasks`, { data: { ids: params.ids } })
-const del = (params: { id: number | number[] }) => Array.isArray(params.id) ? deleteBatch({ ids: params.id }) : deleteOne({ id: params.id })
 const changeStatus = (params: { id: number; status: number }) => request.patch<void, CronTaskStatusBody>(`${ADMIN_API_PREFIX}/cron-tasks/${params.id}/status`, { status: params.status })
 
 export const CronTaskApi = {
@@ -90,9 +89,4 @@ export const CronTaskApi = {
   deleteBatch,
   changeStatus,
   logs: (params: CronTaskLogListParams) => request.get<PaginatedResponse<CronTaskLogItem>>(`${ADMIN_API_PREFIX}/cron-tasks/${params.task_id}/logs`, { params }),
-  init: pageInit,
-  add: create,
-  edit: update,
-  del,
-  status: changeStatus,
 }

@@ -55,5 +55,4 @@ export const SystemLogApi = {
       tail,
     },
   }),
-  init: pageInit,
 }

@@ -106,11 +106,4 @@ export const PermissionApi = {
   deleteOne,
   deleteBatch,
   changeStatus,
-  init: pageInit,
-  add: create,
-  edit: update,
-  delOne: deleteOne,
-  delBatch: deleteBatch,
-  del: deleteOne,
-  status: changeStatus,
 }

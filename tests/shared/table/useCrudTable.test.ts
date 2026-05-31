@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
@@ -54,7 +56,7 @@ describe('useCrudTable', () => {
     expect(table).toHaveProperty('toggleStatus')
   })
 
-  it('prefers standard deleteOne, deleteBatch, and changeStatus methods', async () => {
+  it('uses only standard deleteOne, deleteBatch, and changeStatus methods', async () => {
     const list = vi.fn().mockResolvedValue({
       list: [{ id: 1, status: 1 }],
       page: { current_page: 1, page_size: 20, total: 1 },
@@ -62,12 +64,10 @@ describe('useCrudTable', () => {
     const deleteOne = vi.fn().mockResolvedValue(undefined)
     const deleteBatch = vi.fn().mockResolvedValue(undefined)
     const changeStatus = vi.fn().mockResolvedValue(undefined)
-    const del = vi.fn().mockResolvedValue(undefined)
-    const status = vi.fn().mockResolvedValue(undefined)
     confirm.mockResolvedValue(undefined)
 
     const table = useCrudTable({
-      api: { list, deleteOne, deleteBatch, changeStatus, del, status },
+      api: { list, deleteOne, deleteBatch, changeStatus },
       searchForm: ref({ keyword: 'demo' }),
     })
 
@@ -79,35 +79,15 @@ describe('useCrudTable', () => {
     expect(deleteOne).toHaveBeenCalledWith({ id: 1 })
     expect(deleteBatch).toHaveBeenCalledWith({ ids: [1] })
     expect(changeStatus).toHaveBeenCalledWith({ id: 1, status: 2 })
-    expect(del).not.toHaveBeenCalled()
-    expect(status).not.toHaveBeenCalled()
     expect(success).toHaveBeenCalledTimes(3)
   })
 
-  it('preserves delete and status actions for legacy crud pages', async () => {
-    const list = vi.fn().mockResolvedValue({
-      list: [{ id: 1, status: 1 }],
-      page: { current_page: 2, page_size: 20, total: 1 },
-    })
-    const del = vi.fn().mockResolvedValue(undefined)
-    const status = vi.fn().mockResolvedValue(undefined)
-    confirm.mockResolvedValue(undefined)
+  it('does not keep legacy del/status fallback source paths', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/hooks/useCrudTable.ts'), 'utf8')
 
-    const table = useCrudTable({
-      api: { list, del, status },
-      searchForm: ref({ keyword: 'demo' }),
-    })
-
-    expect(table).toHaveProperty('onSearch')
-
-    table.onSelectionChange([{ id: 1, status: 1 }])
-    await table.confirmDel({ id: 1, status: 1 })
-    await table.batchDel()
-    await table.toggleStatus({ id: 1, status: 1 }, 2)
-
-    expect(del).toHaveBeenNthCalledWith(1, { id: 1 })
-    expect(del).toHaveBeenNthCalledWith(2, { id: [1] })
-    expect(status).toHaveBeenCalledWith({ id: 1, status: 2 })
-    expect(success).toHaveBeenCalledTimes(3)
+    expect(source).not.toMatch(/\bapi\.del\b/)
+    expect(source).not.toMatch(/\bapi\.status\b/)
+    expect(source).not.toContain('api.deleteOne/api.del')
+    expect(source).not.toContain('api.changeStatus/api.status')
   })
 })

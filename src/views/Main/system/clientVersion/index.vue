@@ -33,7 +33,7 @@ const platformOptions = ref<Array<{ label: string; value: ClientPlatform }>>([])
 // 平台映射表，O(1) 查找替代 find 遍历
 const platformMap = computed(() => new Map(platformOptions.value.map(p => [p.value, p.label])))
 const init = () => {
-  ClientVersionApi.init().then((res: ClientVersionPageInitResponse) => {
+  ClientVersionApi.pageInit().then((res: ClientVersionPageInitResponse) => {
     const arr = res.dict.client_version_platform_arr
     platformOptions.value = arr.map((item) => ({ value: item.value, label: item.label }))
   })
@@ -95,8 +95,8 @@ const confirmSubmit = async () => {
   try { await formRef.value.validate() } catch { return }
   const payload = { ...form.value, id: Number(form.value.id) }
   const request = dialogMode.value === 'add'
-    ? ClientVersionApi.add(payload)
-    : ClientVersionApi.edit({ ...payload, id: payload.id })
+    ? ClientVersionApi.create(payload)
+    : ClientVersionApi.update({ ...payload, id: payload.id })
   request.then(() => {
     ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false

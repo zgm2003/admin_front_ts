@@ -295,10 +295,6 @@ export const UploadDriverApi = {
   update: updateDriver,
   deleteOne: deleteDriverOne,
   deleteBatch: deleteDriverBatch,
-  init: driverPageInit,
-  add: createDriver,
-  edit: updateDriver,
-  del: (params: { id: Id | Id[] }) => deleteResource(DRIVER_BASE, params, 'upload driver'),
 }
 
 const rulePageInit = () => request.get<UploadRuleInitResponse>(`${RULE_BASE}/page-init`)
@@ -317,10 +313,6 @@ export const UploadRuleApi = {
   update: updateRule,
   deleteOne: deleteRuleOne,
   deleteBatch: deleteRuleBatch,
-  init: rulePageInit,
-  add: createRule,
-  edit: updateRule,
-  del: (params: { id: Id | Id[] }) => deleteResource(RULE_BASE, params, 'upload rule'),
 }
 
 const settingPageInit = () => request.get<UploadSettingInitResponse>(`${SETTING_BASE}/page-init`)
@@ -345,10 +337,4 @@ export const UploadSettingApi = {
   deleteOne: deleteSettingOne,
   deleteBatch: deleteSettingBatch,
   changeStatus: changeSettingStatus,
-  init: settingPageInit,
-  add: createSetting,
-  edit: updateSetting,
-  del: (params: { id: Id | Id[] }) => deleteResource(SETTING_BASE, params, 'upload setting'),
-  status: changeSettingStatus,
 }
-

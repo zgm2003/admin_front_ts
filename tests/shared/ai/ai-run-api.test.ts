@@ -109,7 +109,7 @@ describe('AI run api REST contract', () => {
     const source = readFrontendSource('src/api/ai/runs.ts')
     expect(source).toContain('const pageInit = () => request.get<AiRunInitResponse>')
     expect(source).toContain('pageInit,')
-    expect(source).toContain('init: pageInit')
+    expect(source).toContain('pageInit')
   })
 
 })

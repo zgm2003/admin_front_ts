@@ -73,13 +73,6 @@ const deleteBatch = (params: RoleBatchDeletePayload) => {
   const body: RoleBatchDeletePayload = { ids }
   return request.delete<void, RoleBatchDeletePayload>(`${ADMIN_API_PREFIX}/roles`, { data: body })
 }
-const del = (params: { id: Id | Id[] }) => {
-  const ids = normalizeRoleIDs(params.id)
-  if (ids.length === 1 && ids[0] !== undefined) {
-    return deleteOne({ id: ids[0] })
-  }
-  return deleteBatch({ ids })
-}
 
 export const RoleApi = {
   pageInit,
@@ -88,10 +81,6 @@ export const RoleApi = {
   update,
   deleteOne,
   deleteBatch,
-  init: pageInit,
-  add: create,
-  edit: update,
-  del,
   default: (params: { id: number }) =>
     request.patch<void>(`${ADMIN_API_PREFIX}/roles/${params.id}/default`),
 }
