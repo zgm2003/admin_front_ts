@@ -12,12 +12,15 @@ export interface ExportTaskListParams extends RequestPayload {
   current_page?: number
   page_size?: number
   status?: number | ''
+  kind?: string
   title?: string
   file_name?: string
 }
 
 export interface ExportTaskItem {
   id: number
+  kind: string
+  kind_text: string
   title: string
   file_name?: string | null
   file_url?: string | null
@@ -50,17 +53,35 @@ function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
 }
 
 export const ExportTaskApi = {
-  statusCount: (params: Pick<ExportTaskListParams, 'title' | 'file_name'>) =>
+  statusCount: (params: Pick<ExportTaskListParams, 'kind' | 'title' | 'file_name'>) =>
     request.get<ExportTaskStatusItem[]>(`${ADMIN_API_PREFIX}/export-tasks/status-count`, { params }),
 
   list: (params: ExportTaskListParams) =>
     request.get<PaginatedResponse<ExportTaskItem>>(`${ADMIN_API_PREFIX}/export-tasks`, { params }),
 
+  deleteOne: (id: Id) => {
+    const ids = normalizePositiveIDs(id, 'export task')
+    const [firstID] = ids
+    if (typeof firstID !== 'number') {
+      throw new Error('export task id must be a positive integer')
+    }
+    return request.delete<void>(`${ADMIN_API_PREFIX}/export-tasks/${firstID}`)
+  },
+
+  deleteBatch: (ids: Id[]) => {
+    const normalizedIDs = normalizePositiveIDs(ids, 'export task')
+    return request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids: normalizedIDs } })
+  },
+
   del: (params: { id: Id | Id[] }) => {
     const ids = normalizePositiveIDs(params.id, 'export task')
     if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/export-tasks/${ids[0]}`)
+      const [firstID] = ids
+      if (typeof firstID !== 'number') {
+        throw new Error('export task id must be a positive integer')
+      }
+      return ExportTaskApi.deleteOne(firstID)
     }
-    return request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids } })
+    return ExportTaskApi.deleteBatch(ids)
   },
 }
