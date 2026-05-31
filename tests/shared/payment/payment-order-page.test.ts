@@ -1,99 +1,35 @@
-import { readFileSync } from 'node:fs'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8')
-const loose = new RegExp(`\b${'an'}${'y'}\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
-const oldPageKey = `payment_${'order'}_${'page'}`
-const oldCreateKey = `payment_${'order'}_${'create'}`
-const oldPrefix = `payment_${'orders'}_`
 
-describe('payment order page', () => {
-  it('keeps raw order page read/operation-only and removes manual create UX', () => {
-    const page = read('src/views/Main/payment/orders/index.vue')
-    const composable = read('src/views/Main/payment/orders/composables/usePaymentOrderPage.ts')
-    const detail = read('src/views/Main/payment/orders/components/PaymentOrderDetailDialog.vue')
-    const combined = `${page}\n${composable}\n${detail}`
+describe('payment order page retirement', () => {
+  it('removes the visible payment order page and keeps recharge as the only user payment flow', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/views/Main/payment/orders/index.vue'))).toBe(false)
+    expect(existsSync(resolve(process.cwd(), 'src/views/Main/payment/orders'))).toBe(false)
 
-    expect(page).toContain('class="payment-order-page"')
-    expect(page).toContain("import { Search } from '@/components/Search'")
-    expect(page).toContain("import { AppTable } from '@/components/Table'")
-    expect(page).toContain("import { AppDialog } from '@/components/AppDialog'")
-    expect(page).toContain(':height="detailDialogLayout.height"')
-    expect(page).toContain(':top="detailDialogLayout.top"')
-    expect(page).toContain("userStore.can('payment_order_pay')")
-    expect(page).toContain("userStore.can('payment_order_sync')")
-    expect(page).toContain("userStore.can('payment_order_close')")
-    expect(page).not.toContain("userStore.can('payment_order_add')")
-    expect(page).not.toContain('PaymentOrderFormDialog')
-    expect(page).not.toContain('新增订单')
-    expect(page).not.toContain('<el-dialog')
-    expect(existsSync(resolve(process.cwd(), 'src/views/Main/payment/orders/components/PaymentOrderFormDialog.vue'))).toBe(false)
+    const rechargePage = read('src/views/Main/payment/recharge/index.vue')
+    const rechargeComposable = read('src/views/Main/payment/recharge/composables/usePaymentRechargePage.ts')
+    const combined = `${rechargePage}
+${rechargeComposable}`
 
-    expect(composable).toContain("from '@/api/payment/orders'")
-    expect(composable).toContain('PaymentOrderApi.init()')
-    expect(composable).toContain('PaymentOrderApi.detail(row.id)')
-    expect(composable).toContain('PaymentOrderApi.pay(row.id)')
-    expect(composable).toContain('PaymentOrderApi.sync(row.id)')
-    expect(composable).toContain('PaymentOrderApi.close(row.id)')
-    expect(composable).not.toContain('PaymentOrderApi.add(buildCreatePayload')
-    expect(composable).not.toContain('amount_cents: yuanToCents(model.amount_yuan)')
-    expect(composable).toContain("row.status === 'pending' || row.status === 'failed' || (row.status === 'paying' && row.pay_url !== '')")
-    expect(composable).toContain("function canSync(row: PaymentOrderListItem)")
-    expect(composable).toContain("return row.status === 'paying'")
-    expect(page).toContain('canSync,')
-    expect(page).toContain("v-if=\"userStore.can('payment_order_sync') && canSync(row)\"")
-    expect(composable).toContain("row.status === 'pending' || row.status === 'failed' || row.status === 'paying'")
-
-    expect(detail).toContain('pay_url')
-    expect(detail).toContain('alipay_trade_no')
-    expect(detail).toContain('expired_at')
-    expect(detail).toContain('paid_at')
-    expect(detail).toContain('closed_at')
-    expect(detail).toContain('failure_reason')
-
-    expect(combined).not.toMatch(loose)
-    expect(combined).not.toContain(oldPageKey)
-    expect(combined).not.toContain(oldCreateKey)
-    expect(combined).not.toContain(oldPrefix)
-    expect(combined).not.toContain('amount_yuan')
-    expect(combined).not.toContain('同步返回地址')
-    expect(combined).not.toContain(`business_`)
-    expect(combined).not.toContain(`refund_`)
-    expect(combined).not.toContain(`extra_`)
+    expect(combined).toContain("from '@/api/payment/recharges'")
+    expect(combined).toContain('PaymentRechargeApi.add')
+    expect(combined).toContain('PaymentRechargeApi.pay')
+    expect(combined).not.toContain('PaymentOrderApi')
+    expect(combined).not.toContain('PaymentRechargeApi.sync')
+    expect(combined).not.toContain('PaymentRechargeApi.close')
+    expect(combined).not.toContain('manualSync')
   })
 
-  it('keeps locale menu labels for payment orders', () => {
+  it('removes stale payment order locale keys', () => {
     const zh = read('src/i18n/locales/zh-CN.ts')
     const en = read('src/i18n/locales/en-US.ts')
 
-    expect(zh).toContain("payment_order: '支付订单'")
-    expect(en).toContain("payment_order: 'Payment Orders'")
-  })
-
-  it('keeps payment order composable visible copy behind vue-i18n', () => {
-    const composable = read('src/views/Main/payment/orders/composables/usePaymentOrderPage.ts')
-
-    expect(composable).toContain("import { useI18n } from 'vue-i18n'")
-    expect(composable).toContain('const { t } = useI18n()')
-    expect(composable).not.toMatch(/[\u4e00-\u9fff]/)
-  })
-
-  it('keeps payment order page and detail visible copy behind vue-i18n', () => {
-    const files = [
-      'src/views/Main/payment/orders/index.vue',
-      'src/views/Main/payment/orders/components/PaymentOrderDetailDialog.vue',
-    ]
-    const zh = read('src/i18n/locales/zh-CN.ts')
-    const en = read('src/i18n/locales/en-US.ts')
-
-    for (const file of files) {
-      const source = read(file)
-      expect(source).toContain("import { useI18n } from 'vue-i18n'")
-      expect(source).not.toMatch(/[\u4e00-\u9fff]/)
-    }
-    expect(zh).toContain('runtimeNotice')
-    expect(en).toContain('runtimeNotice')
+    expect(zh).not.toContain("payment_order: '支付订单'")
+    expect(en).not.toContain("payment_order: 'Payment Orders'")
+    expect(zh).not.toContain('paymentOrder:')
+    expect(en).not.toContain('paymentOrder:')
   })
 })
