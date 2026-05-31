@@ -38,7 +38,8 @@ const dict = ref(createDefaultSmsDict())
 
 const smsLogCrudApi = {
   list: SmsApi.logs,
-  del: SmsApi.deleteLogs,
+  deleteOne: SmsApi.deleteLogs,
+  deleteBatch: ({ ids }: { ids: number[] }) => SmsApi.deleteLogs({ id: ids }),
 }
 
 const canDelete = computed(() => userStore.can('system_sms_logDel'))

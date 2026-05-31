@@ -3,9 +3,11 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const apiRoot = join(process.cwd(), 'src', 'api')
+const srcRoot = join(process.cwd(), 'src')
 const legacyCrudNames = ['init', 'add', 'edit', 'del', 'status'] as const
 const legacyPropertyPattern = new RegExp(`(^|\\n)(\\s*)(${legacyCrudNames.join('|')})\\s*:`, 'g')
-const apiObjectPattern = /export\\s+const\\s+\\w+Api\\s*=\\s*\\{/g
+const apiObjectPattern = /export\s+const\s+\w+Api\s*=\s*\{/g
+const localCrudApiObjectPattern = /const\s+\w*CrudApi\s*=\s*\{/g
 
 function walkTsFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -88,6 +90,19 @@ describe('RESTful frontend API naming guard', () => {
     const violations = walkTsFiles(apiRoot).flatMap((file) => {
       const source = read(file)
       return apiObjectRanges(source).flatMap((range) => {
+        const objectSource = source.slice(range.start, range.end)
+        const matches = [...objectSource.matchAll(legacyPropertyPattern)]
+        return matches.map((match) => `${relative(process.cwd(), file)}:${lineNumber(source, range.start + (match.index ?? 0))}:${match[3]}`)
+      })
+    })
+
+    expect(violations).toEqual([])
+  })
+
+  it('does not pass legacy CRUD method names into local useCrudTable api objects', () => {
+    const violations = walkTsFiles(srcRoot).flatMap((file) => {
+      const source = read(file)
+      return apiObjectRanges(source, localCrudApiObjectPattern).flatMap((range) => {
         const objectSource = source.slice(range.start, range.end)
         const matches = [...objectSource.matchAll(legacyPropertyPattern)]
         return matches.map((match) => `${relative(process.cwd(), file)}:${lineNumber(source, range.start + (match.index ?? 0))}:${match[3]}`)

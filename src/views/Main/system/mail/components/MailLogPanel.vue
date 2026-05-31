@@ -38,7 +38,8 @@ const dict = ref(createDefaultMailDict())
 
 const mailLogCrudApi = {
   list: MailApi.logs,
-  del: MailApi.deleteLogs,
+  deleteOne: MailApi.deleteLogs,
+  deleteBatch: ({ ids }: { ids: number[] }) => MailApi.deleteLogs({ id: ids }),
 }
 
 const canDelete = computed(() => userStore.can('system_mail_logDel'))

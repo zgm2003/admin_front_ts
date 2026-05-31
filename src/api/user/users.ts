@@ -122,7 +122,6 @@ const fetchCurrentUser = () =>
 
 export const UsersApi = {
   me: fetchCurrentUser,
-  init: fetchCurrentUser,
 
   getLoginConfig: () =>
     request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`),

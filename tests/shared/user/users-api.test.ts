@@ -53,7 +53,7 @@ describe('users api auth contract', () => {
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)')
     expect(source).toContain('me: fetchCurrentUser')
-    expect(source).toContain('init: fetchCurrentUser')
+    expect(source).not.toContain('init: fetchCurrentUser')
     expect(source).not.toContain('goRequest')
     expect(source).not.toContain(`legacyRequest.post<UserInitResponse>('${legacyUsersPath('init')}', {})`)
   })
