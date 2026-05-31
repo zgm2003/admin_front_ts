@@ -10,6 +10,7 @@ import { AppTable } from '@/components/Table'
 import { UpMedia } from '@/components/UpMedia'
 import { UsersListApi } from '@/api/user/users'
 import { useCrudTable } from '@/hooks/useCrudTable'
+import { useExportSubmit } from '@/hooks/useExportSubmit'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
@@ -25,6 +26,9 @@ const userStore = useUserStore()
 const { t } = useI18n()
 const router = useRouter()
 const isMobile = useIsMobile()
+const { submitSelectedExport } = useExportSubmit({
+  submit: (ids) => UsersListApi.export({ ids }),
+})
 
 const sexArr = ref<DictOption<number>[]>([])
 const addressTree = ref<AddressTreeNode[]>([])
@@ -209,13 +213,7 @@ const goToPersonal = (row: UserListItem) => {
 }
 
 const exportExcel = async () => {
-  if (selectedIds.value.length === 0) {
-    ElNotification.error({ message: t('common.selectAtLeastOne') })
-    return
-  }
-
-  const data = await UsersListApi.export({ ids: [...selectedIds.value] })
-  ElNotification.success({ message: data.message || t('common.export.submitted') })
+  await submitSelectedExport(selectedIds.value)
 }
 
 onMounted(() => {
