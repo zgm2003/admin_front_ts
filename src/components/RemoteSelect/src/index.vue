@@ -33,6 +33,34 @@
   </div>
 </template>
 
+<script lang="ts">
+import type { RemoteListResponse } from '@/types/common'
+
+export const remoteSelectContractErrors = {
+  list: 'remote select response list must be an array',
+  total: 'remote select response page.total must be a number',
+} as const
+
+export const normalizeRemoteSelectResponse = <Item extends object>(
+  response: unknown
+): { list: Item[]; total: number } => {
+  const value = response as Partial<RemoteListResponse<Item>> | null
+
+  if (!value || !Array.isArray(value.list)) {
+    throw new Error(remoteSelectContractErrors.list)
+  }
+
+  if (!value.page || typeof value.page.total !== 'number') {
+    throw new Error(remoteSelectContractErrors.total)
+  }
+
+  return {
+    list: value.list,
+    total: value.page.total,
+  }
+}
+</script>
+
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -161,12 +189,20 @@ const fetchData = async (append = false) => {
       ...props.extraParams,
     })
 
-    const list = response.list ?? []
+    const { list, total: responseTotal } = normalizeRemoteSelectResponse<OptionItem>(response)
     lastFetchCount.value = list.length
     options.value = append ? [...options.value, ...list] : list
-    total.value = response.page?.total ?? response.total ?? 0
+    total.value = responseTotal
     loaded.value = true
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === remoteSelectContractErrors.list ||
+        error.message === remoteSelectContractErrors.total)
+    ) {
+      throw error
+    }
+
     if (!append) {
       options.value = []
     }

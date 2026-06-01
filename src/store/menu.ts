@@ -28,6 +28,10 @@ export const HOME_MENU_ITEM: MenuItem = {
   path: '/home',
   icon: 'HomeFilled',
   i18n_key: 'menu.home',
+  show_menu: 1,
+  sort: 0,
+  parent_id: 0,
+  children: [],
 }
 
 /** Keys that are persisted as simple strings via $subscribe */

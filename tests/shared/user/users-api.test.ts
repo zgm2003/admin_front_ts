@@ -153,6 +153,14 @@ describe('users api auth contract', () => {
     expect(typeSource).not.toContain('quickEntry')
   })
 
+  it('permission tree traversal uses the required children array instead of optional-chain fallback', () => {
+    const typeSource = readUserTypeSource()
+    const storeSource = readFrontendSource('src/store/user.ts')
+
+    expect(typeSource).toContain('children: PermissionMenuItem[]')
+    expect(storeSource).not.toContain('children?.')
+  })
+
   it('uses Go REST for user login log init/list and normalizes date range', () => {
     const source = readUsersLoginLogSource()
 

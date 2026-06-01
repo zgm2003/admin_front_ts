@@ -16,10 +16,12 @@ export interface PermissionMenuItem {
   index: string
   label: string
   path: string
-  icon?: string
-  i18n_key?: string
-  show_menu?: number | boolean
-  children?: PermissionMenuItem[]
+  icon: string
+  i18n_key: string
+  show_menu: number
+  sort: number
+  parent_id: number
+  children: PermissionMenuItem[]
 }
 
 export interface DynamicRouteItem {

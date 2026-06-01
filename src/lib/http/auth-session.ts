@@ -4,7 +4,7 @@ import router from '@/router'
 import { useMenuStore } from '@/store/menu'
 import { clearAllCookies } from '@/utils/storage'
 import type { ApiEnvelope } from '@/types/common'
-import { createRequestError, type RequestError } from './envelope'
+import { createRequestError, requireApiMessage, type RequestError } from './envelope'
 import { getPlatform } from './platform'
 import { getDeviceId } from './device'
 import { setHeader } from './headers'
@@ -12,6 +12,9 @@ import { setHeader } from './headers'
 import { ADMIN_AUTH_REFRESH_PATH } from './api-prefix'
 
 const REFRESH_PATH = ADMIN_AUTH_REFRESH_PATH
+const NO_REFRESH_TOKEN_MESSAGE = 'No refresh token'
+const SESSION_EXPIRED_MESSAGE = '登录过期，请重新登录'
+const REFRESH_NETWORK_ERROR_MESSAGE = '网络错误，请重新登录'
 
 export type RetryableRequestConfig = InternalAxiosRequestConfig<unknown> & {
   _retry?: boolean
@@ -21,6 +24,14 @@ interface QueuedRequest {
   resolve: (value: unknown) => void
   reject: (reason?: unknown) => void
   config: RetryableRequestConfig
+}
+
+function resolveSessionExpiredMessage(messageFromServer?: string): string {
+  if (messageFromServer === undefined) {
+    return SESSION_EXPIRED_MESSAGE
+  }
+
+  return requireApiMessage({ msg: messageFromServer })
 }
 
 export function createAuthSessionManager(params: {
@@ -50,17 +61,17 @@ export function createAuthSessionManager(params: {
     requestsQueue = []
   }
 
-  function logoutAndRedirect() {
+  function logoutAndRedirect(queueError: Error = new Error('Unauthorized')) {
     useMenuStore().reset()
     clearAllCookies()
     router.push('/login')
-    processQueue(new Error('Unauthorized'))
+    processQueue(queueError)
   }
 
   async function refreshToken() {
     const refreshToken = Cookies.get('refresh_token')
     if (!refreshToken) {
-      throw new Error('No refresh token')
+      throw new Error(NO_REFRESH_TOKEN_MESSAGE)
     }
 
     const refreshResponse = await axios.post<ApiEnvelope<{
@@ -85,9 +96,22 @@ export function createAuthSessionManager(params: {
   function handle401(originalRequest: RetryableRequestConfig, messageFromServer?: string) {
     if (originalRequest.url?.includes(REFRESH_PATH) || originalRequest._retry) {
       isRefreshing = false
-      notify(messageFromServer || '登录过期，请重新登录')
-      logoutAndRedirect()
-      return Promise.reject(new Error('Unauthorized'))
+      let message: string
+      try {
+        message = resolveSessionExpiredMessage(messageFromServer)
+      } catch (error) {
+        const contractError = error instanceof Error
+          ? error
+          : new Error('api envelope msg must be a non-empty string')
+        notify(contractError.message)
+        logoutAndRedirect(contractError)
+        return Promise.reject(contractError)
+      }
+
+      notify(message)
+      const unauthorizedError = new Error('Unauthorized')
+      logoutAndRedirect(unauthorizedError)
+      return Promise.reject(unauthorizedError)
     }
 
     originalRequest._retry = true
@@ -121,15 +145,28 @@ export function createAuthSessionManager(params: {
             return
           }
 
+          let message: string
+          try {
+            message = requireApiMessage(payload)
+          } catch (error) {
+            const contractError = error instanceof Error
+              ? error
+              : new Error('api envelope msg must be a non-empty string')
+            isRefreshing = false
+            notify(contractError.message)
+            logoutAndRedirect(contractError)
+            return
+          }
+
           isRefreshing = false
-          notify(payload.msg || '登录过期，请重新登录')
+          notify(message)
           logoutAndRedirect()
         })
         .catch((error) => {
           isRefreshing = false
-          notify(error instanceof Error && error.message === 'No refresh token'
-            ? '登录过期，请重新登录'
-            : '网络错误，请重新登录')
+          notify(error instanceof Error && error.message === NO_REFRESH_TOKEN_MESSAGE
+            ? SESSION_EXPIRED_MESSAGE
+            : REFRESH_NETWORK_ERROR_MESSAGE)
           logoutAndRedirect()
         })
     }

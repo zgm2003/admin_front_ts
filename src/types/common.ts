@@ -23,8 +23,7 @@ export interface PaginatedResponse<T> {
 
 export interface RemoteListResponse<T> {
   list: T[]
-  total?: number
-  page?: Pick<PageInfo, 'total'> & Partial<PageInfo>
+  page: Pick<PageInfo, 'total'> & Partial<PageInfo>
 }
 
 export interface Identifiable {

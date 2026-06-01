@@ -35,7 +35,7 @@ export const useUserStore = defineStore('user', {
       const traverse = (items: PermissionMenuItem[]) => {
         items.forEach((item) => {
           map.set(String(item.index), item)
-          if (item.children?.length) {
+          if (item.children.length > 0) {
             traverse(item.children)
           }
         })

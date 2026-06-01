@@ -4,7 +4,7 @@ import i18n from '@/i18n'
 import { createDebouncedNotifier } from './notifier'
 import { applyCommonHeaders } from './headers'
 import { createAuthSessionManager } from './auth-session'
-import { createRequestError, isApiEnvelope } from './envelope'
+import { createRequestError, isApiEnvelope, requireApiMessage } from './envelope'
 
 function requiredEnv(name: string, value: string | undefined): string {
   if (!value) {
@@ -60,10 +60,11 @@ function createHttpClient(params: {
       if (isApiEnvelope(payload)) {
         if (payload.code !== 0) {
           if (payload.code === 401) {
-            return authSession.handle401(response.config, payload.msg)
+            const message = requireApiMessage(payload)
+            return authSession.handle401(response.config, message)
           }
 
-          const message = payload.msg || t('http.requestFailed')
+          const message = requireApiMessage(payload)
           notify(message)
           return Promise.reject(createRequestError({
             message,
@@ -83,10 +84,10 @@ function createHttpClient(params: {
       const status = response?.status
 
       if (status === 401 && error.config) {
-        return authSession.handle401(error.config, extractServerMessage(response?.data) || t('http.unauthorized'))
+        return authSession.handle401(error.config, resolveUnauthorizedMessage(response?.data))
       }
 
-      const message = extractServerMessage(response?.data) || error.message || t('http.requestFailed')
+      const message = resolveRequestErrorMessage(error)
       notify(message)
       return Promise.reject(error)
     }
@@ -114,12 +115,48 @@ function createHttpClient(params: {
 }
 
 function extractServerMessage(data: unknown): string | undefined {
+  if (isApiEnvelope(data)) {
+    return requireApiMessage(data)
+  }
+
   if (typeof data !== 'object' || data === null || !('msg' in data)) {
     return undefined
   }
 
-  const msg = data.msg
-  return typeof msg === 'string' ? msg : undefined
+  const { msg } = data as { msg: unknown }
+  if (typeof msg !== 'string') {
+    return undefined
+  }
+
+  const message = msg.trim()
+  if (!message) {
+    return undefined
+  }
+
+  return message
+}
+
+function resolveUnauthorizedMessage(data: unknown): string {
+  const serverMessage = extractServerMessage(data)
+  if (serverMessage !== undefined) {
+    return serverMessage
+  }
+
+  return t('http.unauthorized')
+}
+
+function resolveRequestErrorMessage(error: AxiosError): string {
+  const serverMessage = extractServerMessage(error.response?.data)
+  if (serverMessage !== undefined) {
+    return serverMessage
+  }
+
+  const axiosMessage = error.message.trim()
+  if (axiosMessage) {
+    return axiosMessage
+  }
+
+  return t('http.requestFailed')
 }
 
 const apiClient = createHttpClient({
