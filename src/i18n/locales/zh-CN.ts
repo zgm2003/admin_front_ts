@@ -126,7 +126,6 @@ export default {
       selectAll: '全选',
       refresh: '刷新'
     },
-    quickEntry: '快速入口',
     welcomeBack: '欢迎回来',
     welcomeSubtitle: '今天也是充满效率的一天',
     personalSettings: '个人设置',
@@ -216,10 +215,6 @@ export default {
     }
   },
   home: {
-    quickEntry: '快捷入口',
-    quickEntrySetting: '快捷入口设置',
-    noQuickEntry: '点击设置添加快捷入口',
-    addQuickEntry: '添加快捷入口',
     userFallback: '当前用户',
     roleFallback: '未分配角色',
     notificationsTitle: '我的通知',
@@ -227,16 +222,8 @@ export default {
     unreadNotifications: '未读通知',
     notificationsEmpty: '当前没有新的通知',
     viewAllNotifications: '查看全部通知',
-    quickEntryTitle: '常用页面',
-    quickEntrySubtitle: '保留你最常进入的后台页面，减少层级跳转。',
-    manageQuickEntry: '管理快捷入口',
-    quickEntryManageTitle: '管理快捷入口',
-    selectedQuickEntry: '当前已选快捷入口',
-    quickEntrySaved: '快捷入口已更新',
-    quickEntryLimitHint: '最多保留 {count} 个快捷入口',
     signal: {
       notifications: '待处理通知',
-      quickEntry: '快捷入口',
       user: '用户ID',
     },
     security: {

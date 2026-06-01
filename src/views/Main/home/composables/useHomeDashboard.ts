@@ -1,57 +1,16 @@
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
 import { CommonEnum } from '@/enums'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
-import { UsersQuickEntryApi } from '@/api/user/usersQuickEntry'
 import { onWsMessage } from '@/lib/realtime'
-import { useUserStore } from '@/store/user'
-import {
-  HOME_QUICK_ENTRY_LIMIT,
-  buildQuickEntryDraft,
-  buildQuickEntryManagerOptions,
-  isQuickEntryLimitReached,
-  moveQuickEntryDraftItem,
-  resolveHomeNavigationAction,
-  type HomeQuickEntryDraftItem,
-} from './helpers'
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
-    ? error.message
-    : fallback
-}
+import { resolveHomeNavigationAction } from './helpers'
 
 export function useHomeDashboard() {
   const router = useRouter()
-  const userStore = useUserStore()
-  const { t } = useI18n()
 
   const notificationsLoading = ref(false)
   const notifications = ref<NotificationItem[]>([])
   const unreadCount = ref(0)
-  const savingQuickEntries = ref(false)
-  const quickEntryManagerVisible = ref(false)
-  const selectedPermissionId = ref<number | ''>('')
-  const quickEntryDraft = ref<HomeQuickEntryDraftItem[]>([])
-
-  const quickEntryCards = computed(() =>
-    buildQuickEntryDraft({
-      quickEntries: userStore.quickEntry,
-      routes: userStore.router,
-      permissionMap: userStore.permissionMap,
-    }),
-  )
-
-  const availableQuickEntryOptions = computed(() =>
-    buildQuickEntryManagerOptions({
-      routes: userStore.router,
-      permissionMap: userStore.permissionMap,
-      selectedPermissionIds: new Set(quickEntryDraft.value.map((item) => item.permissionId)),
-    }),
-  )
-  const quickEntryLimitReached = computed(() => isQuickEntryLimitReached(quickEntryDraft.value.length))
 
   async function loadNotificationSnapshot() {
     notificationsLoading.value = true
@@ -84,7 +43,7 @@ export function useHomeDashboard() {
     }
 
     const target = action.value
-    if (!target) {
+    if (target === undefined || target === '') {
       return
     }
 
@@ -114,99 +73,9 @@ export function useHomeDashboard() {
       })
     }
 
-    goTo(item.link || '/notification')
+    const target = item.link.trim() === '' ? '/notification' : item.link
+    goTo(target)
   }
-
-  function openQuickEntryManager() {
-    quickEntryDraft.value = [...quickEntryCards.value]
-    selectedPermissionId.value = ''
-    quickEntryManagerVisible.value = true
-  }
-
-  function addQuickEntryDraft() {
-    if (quickEntryLimitReached.value) {
-      return
-    }
-
-    const permissionId = Number(selectedPermissionId.value)
-    if (!Number.isFinite(permissionId) || permissionId <= 0) {
-      return
-    }
-
-    const option = availableQuickEntryOptions.value.find((item) => item.permissionId === permissionId)
-    if (!option) {
-      return
-    }
-
-    quickEntryDraft.value = [
-      ...quickEntryDraft.value,
-      {
-        ...option,
-        id: null,
-      },
-    ]
-    selectedPermissionId.value = ''
-  }
-
-  function removeQuickEntryDraft(permissionId: number) {
-    quickEntryDraft.value = quickEntryDraft.value.filter((item) => item.permissionId !== permissionId)
-  }
-
-  function moveQuickEntry(index: number, delta: -1 | 1) {
-    quickEntryDraft.value = moveQuickEntryDraftItem(quickEntryDraft.value, index, delta)
-  }
-
-  async function saveQuickEntryDraft() {
-    const originalDraft = quickEntryCards.value
-    const originalPermissionIds = originalDraft.map((item) => item.permissionId)
-    const draftPermissionIds = quickEntryDraft.value.map((item) => item.permissionId)
-
-    const unchanged = draftPermissionIds.length === originalPermissionIds.length
-      && draftPermissionIds.every((permissionId, index) => permissionId === originalPermissionIds[index])
-
-    if (unchanged) {
-      quickEntryManagerVisible.value = false
-      return
-    }
-
-    savingQuickEntries.value = true
-    try {
-      const response = await UsersQuickEntryApi.save({
-        permission_ids: draftPermissionIds,
-      })
-
-      userStore.quickEntry = response.quick_entry
-      quickEntryManagerVisible.value = false
-      ElMessage.success(t('home.quickEntrySaved'))
-    } catch (error) {
-      await userStore.fetchUserInfo()
-      quickEntryDraft.value = [...quickEntryCards.value]
-      ElMessage.error(getErrorMessage(error, t('common.fail.operation')))
-    } finally {
-      savingQuickEntries.value = false
-    }
-  }
-
-  function resolveEntryLabel(entry: { label: string; i18n_key?: string }) {
-    if (entry.i18n_key) {
-      const translated = t(entry.i18n_key)
-      if (translated && translated !== entry.i18n_key) {
-        return translated
-      }
-    }
-
-    return entry.label
-  }
-
-  const localizedQuickEntryCards = computed(() =>
-    quickEntryCards.value.map((item) => ({
-      ...item,
-      label: resolveEntryLabel({
-        label: item.label,
-        i18n_key: userStore.permissionMap.get(String(item.permissionId))?.i18n_key,
-      }),
-    })),
-  )
 
   let unsubscribe: (() => void) | null = null
 
@@ -221,25 +90,12 @@ export function useHomeDashboard() {
   })
 
   return {
-    savingQuickEntries,
     notificationsLoading,
     notifications,
     unreadCount,
-    localizedQuickEntryCards,
-    quickEntryManagerVisible,
-    quickEntryDraft,
-    quickEntryLimitReached,
-    quickEntryLimit: HOME_QUICK_ENTRY_LIMIT,
-    selectedPermissionId,
-    availableQuickEntryOptions,
     loadHomeData,
     goTo,
     goToNotifications,
     openNotification,
-    openQuickEntryManager,
-    addQuickEntryDraft,
-    removeQuickEntryDraft,
-    moveQuickEntry,
-    saveQuickEntryDraft,
   }
 }

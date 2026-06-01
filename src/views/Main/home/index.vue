@@ -1,30 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import HomeNotificationsPanel from './components/HomeNotificationsPanel.vue'
-import HomeQuickEntryPanel from './components/HomeQuickEntryPanel.vue'
 import { useHomeDashboard } from './composables/useHomeDashboard'
 
 const {
-  savingQuickEntries,
   notificationsLoading,
   notifications,
   unreadCount,
-  localizedQuickEntryCards,
-  quickEntryManagerVisible,
-  quickEntryDraft,
-  quickEntryLimitReached,
-  quickEntryLimit,
-  selectedPermissionId,
-  availableQuickEntryOptions,
   loadHomeData,
-  goTo,
   goToNotifications,
   openNotification,
-  openQuickEntryManager,
-  addQuickEntryDraft,
-  removeQuickEntryDraft,
-  moveQuickEntry,
-  saveQuickEntryDraft,
 } = useHomeDashboard()
 
 onMounted(() => {
@@ -35,27 +20,6 @@ onMounted(() => {
 <template>
   <div class="home-dashboard">
     <div class="home-dashboard__grid">
-      <div class="home-dashboard__card home-dashboard__card--quick-entry">
-        <HomeQuickEntryPanel
-          :entries="localizedQuickEntryCards"
-          :model-value="quickEntryManagerVisible"
-          :draft="quickEntryDraft"
-          :options="availableQuickEntryOptions"
-          :limit="quickEntryLimit"
-          :limit-reached="quickEntryLimitReached"
-          :selected-permission-id="selectedPermissionId"
-          :saving="savingQuickEntries"
-          @navigate="goTo"
-          @manage="openQuickEntryManager"
-          @update:model-value="quickEntryManagerVisible = $event"
-          @update:selected-permission-id="selectedPermissionId = $event"
-          @add="addQuickEntryDraft"
-          @remove="removeQuickEntryDraft"
-          @move="moveQuickEntry"
-          @save="saveQuickEntryDraft"
-        />
-      </div>
-
       <HomeNotificationsPanel
         class="home-dashboard__card home-dashboard__card--notifications"
         :loading="notificationsLoading"
@@ -83,7 +47,7 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   gap: 14px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
 }
@@ -93,13 +57,8 @@ onMounted(() => {
   height: 100%;
 }
 
-.home-dashboard__card--quick-entry {
-  grid-column: 1;
-  grid-row: 1;
-}
-
 .home-dashboard__card--notifications {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
 }
 
@@ -111,12 +70,10 @@ onMounted(() => {
 
   .home-dashboard__grid {
     flex: none;
-    grid-template-columns: 1fr;
     grid-template-rows: none;
   }
 
-  .home-dashboard__card--notifications,
-  .home-dashboard__card--quick-entry {
+  .home-dashboard__card--notifications {
     grid-column: auto;
     grid-row: auto;
   }

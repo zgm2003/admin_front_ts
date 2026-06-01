@@ -32,12 +32,6 @@ export interface DynamicRouteItem {
   }
 }
 
-export interface QuickEntryItem {
-  id: number
-  permission_id: number
-  sort?: number
-}
-
 export interface UserInitResponse {
   user_id: number
   username: string
@@ -46,7 +40,6 @@ export interface UserInitResponse {
   permissions: PermissionMenuItem[]
   router: DynamicRouteItem[]
   buttonCodes: string[]
-  quick_entry: QuickEntryItem[]
 }
 
 export interface UserLoginSession {

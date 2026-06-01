@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -8,10 +8,6 @@ function readFrontendSource(relativePath: string) {
 
 function readUsersApiSource() {
   return readFrontendSource('src/api/user/users.ts')
-}
-
-function readUsersQuickEntrySource() {
-  return readFrontendSource('src/api/user/usersQuickEntry.ts')
 }
 
 function readUsersLoginLogSource() {
@@ -53,6 +49,8 @@ describe('users api auth contract', () => {
     expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
     expect(source).toContain('request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)')
     expect(source).toContain('me: fetchCurrentUser')
+    expect(source).not.toContain('/users/init')
+    expect(source).not.toContain('UsersApi.init')
     expect(source).not.toContain('init: fetchCurrentUser')
     expect(source).not.toContain('goRequest')
     expect(source).not.toContain(`legacyRequest.post<UserInitResponse>('${legacyUsersPath('init')}', {})`)
@@ -146,14 +144,13 @@ describe('users api auth contract', () => {
     expect(sessionListSource).not.toContain('const data = await UsersListApi.pageInit()')
   })
 
-  it('uses Go REST for current-user quick-entry save', () => {
-    const source = readUsersQuickEntrySource()
+  it('removes the current-user quick-entry API and DTO field', () => {
+    const typeSource = readUserTypeSource()
 
-    expect(source).toContain("import request from '@/lib/http'")
-    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
-    expect(source).toContain('request.put<{ quick_entry: QuickEntryItem[] }, { permission_ids: number[] }>(`${ADMIN_API_PREFIX}/users/me/quick-entries`, params)')
-    expect(source).not.toContain('legacyRequest')
-    expect(source).not.toContain('/api/admin/UsersQuickEntry/save')
+    expect(existsSync(resolve(process.cwd(), 'src/api/user/usersQuickEntry.ts'))).toBe(false)
+    expect(typeSource).not.toContain('QuickEntryItem')
+    expect(typeSource).not.toContain('quick_entry')
+    expect(typeSource).not.toContain('quickEntry')
   })
 
   it('uses Go REST for user login log init/list and normalizes date range', () => {

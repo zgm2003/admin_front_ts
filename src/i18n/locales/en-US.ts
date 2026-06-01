@@ -126,7 +126,6 @@ export default {
       selectAll: 'Select All',
       refresh: 'Refresh'
     },
-    quickEntry: 'Quick Entry',
     welcomeBack: 'Welcome back',
     welcomeSubtitle: 'Another productive day ahead',
     personalSettings: 'Settings',
@@ -216,10 +215,6 @@ export default {
     }
   },
   home: {
-    quickEntry: 'Quick Entry',
-    quickEntrySetting: 'Quick Entry Settings',
-    noQuickEntry: 'Click settings to add quick entries',
-    addQuickEntry: 'Add Quick Entry',
     userFallback: 'Current User',
     roleFallback: 'No Role Assigned',
     notificationsTitle: 'My Notifications',
@@ -227,16 +222,8 @@ export default {
     unreadNotifications: 'Unread Notifications',
     notificationsEmpty: 'No new notifications right now',
     viewAllNotifications: 'View All Notifications',
-    quickEntryTitle: 'Frequent Pages',
-    quickEntrySubtitle: 'Keep your most-used admin pages close at hand and cut down navigation depth.',
-    manageQuickEntry: 'Manage Quick Entry',
-    quickEntryManageTitle: 'Manage Quick Entry',
-    selectedQuickEntry: 'Current Quick Entry',
-    quickEntrySaved: 'Quick entry updated',
-    quickEntryLimitHint: 'Up to {count} quick entries',
     signal: {
       notifications: 'Pending Notifications',
-      quickEntry: 'Quick Entry',
       user: 'User ID',
     },
     security: {
