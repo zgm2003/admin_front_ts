@@ -977,7 +977,7 @@ export default {
     filter: { name: '智能体名称', scene: '场景', provider: '供应商', status: '状态' },
     table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
     form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
-    scene: { chat: '对话', agentGenerate: '智能体生成', imageGenerate: '图片生成' },
+    scene: { chat: '对话', agentGenerate: '智能体生成', imageGenerate: '图片生成', canvasTextGenerate: '画布文本生成', canvasImageGenerate: '画布图片生成', canvasVideoGenerate: '画布视频生成' },
     actions: { tools: '工具配置', knowledge: '知识库' },
     tools: {
       title: '配置智能体工具',
@@ -1002,50 +1002,6 @@ export default {
     },
     addTitle: '新增 AI 智能体',
     editTitle: '编辑 AI 智能体'
-  },
-  aiBilling: {
-    actions: { config: '计费规则配置' },
-    dialog: { title: 'AI 计费规则' },
-    columns: {
-      scene: '场景',
-      unit: '计费单位',
-      unitPrice: '单价（分）',
-      status: '状态',
-      updatedAt: '更新时间'
-    },
-    form: {
-      scene: '场景',
-      scenePlaceholder: '请选择计费场景',
-      unit: '计费单位',
-      unitPlaceholder: '请选择计费单位',
-      unitPriceCents: '单价（分）',
-      status: '状态'
-    },
-    validation: {
-      sceneRequired: '请选择计费场景',
-      unitRequired: '请选择计费单位',
-      unitPricePositive: '单价必须是大于 0 的整数',
-      statusRequired: '请选择状态'
-    },
-    messages: {
-      deleteConfirm: '确定删除该计费规则吗？'
-    },
-    scenes: {
-      adminImageGenerate: '后台图片生成',
-      canvasTextGenerate: '画布文本生成',
-      canvasImageGenerate: '画布图片生成',
-      canvasVideoGenerate: '画布视频生成'
-    },
-    units: {
-      request: '按请求',
-      image: '按图片',
-      second: '按秒'
-    },
-    config: '计费规则配置',
-    unitPricePositive: '单价必须是大于 0 的整数',
-    canvasTextGenerate: '画布文本生成',
-    canvasImageGenerate: '画布图片生成',
-    canvasVideoGenerate: '画布视频生成'
   },
   aiImages: {
     title: 'AI 图片工作台',

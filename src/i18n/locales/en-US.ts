@@ -977,56 +977,12 @@ export default {
     filter: { name: 'Agent Name', scene: 'Scene', provider: 'Provider', status: 'Status' },
     table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
     form: { name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
-    scene: { chat: 'Chat', agentGenerate: 'Agent Generation', imageGenerate: 'Image Generation' },
+    scene: { chat: 'Chat', agentGenerate: 'Agent Generation', imageGenerate: 'Image Generation', canvasTextGenerate: 'Canvas Text Generation', canvasImageGenerate: 'Canvas Image Generation', canvasVideoGenerate: 'Canvas Video Generation' },
     actions: { tools: 'Tool Config', knowledge: 'Knowledge' },
     tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
     knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
     addTitle: 'Add AI Agent',
     editTitle: 'Edit AI Agent'
-  },
-  aiBilling: {
-    actions: { config: 'Billing Rules' },
-    dialog: { title: 'AI Billing Rules' },
-    columns: {
-      scene: 'Scene',
-      unit: 'Billing Unit',
-      unitPrice: 'Unit Price (cents)',
-      status: 'Status',
-      updatedAt: 'Updated At'
-    },
-    form: {
-      scene: 'Scene',
-      scenePlaceholder: 'Select billing scene',
-      unit: 'Billing Unit',
-      unitPlaceholder: 'Select billing unit',
-      unitPriceCents: 'Unit Price (cents)',
-      status: 'Status'
-    },
-    validation: {
-      sceneRequired: 'Select billing scene',
-      unitRequired: 'Select billing unit',
-      unitPricePositive: 'Unit price must be an integer greater than 0',
-      statusRequired: 'Select status'
-    },
-    messages: {
-      deleteConfirm: 'Delete this billing rule?'
-    },
-    scenes: {
-      adminImageGenerate: 'Admin Image Generation',
-      canvasTextGenerate: 'Canvas Text Generation',
-      canvasImageGenerate: 'Canvas Image Generation',
-      canvasVideoGenerate: 'Canvas Video Generation'
-    },
-    units: {
-      request: 'Per Request',
-      image: 'Per Image',
-      second: 'Per Second'
-    },
-    config: 'Billing Rules',
-    unitPricePositive: 'Unit price must be an integer greater than 0',
-    canvasTextGenerate: 'Canvas Text Generation',
-    canvasImageGenerate: 'Canvas Image Generation',
-    canvasVideoGenerate: 'Canvas Video Generation'
   },
   aiImages: {
     title: 'AI Image Playground',
