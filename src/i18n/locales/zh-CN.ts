@@ -977,7 +977,7 @@ export default {
     filter: { name: '智能体名称', scene: '场景', provider: '供应商', status: '状态' },
     table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
     form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
-    scene: { chat: '对话', agentGenerate: '智能体生成', imageGenerate: '图片生成', canvasTextGenerate: '无限画布-文本', canvasImageGenerate: '无限画布-图片', canvasVideoGenerate: '无限画布-视频' },
+    scene: { chat: '对话', agentGenerate: '工具生成', imageGenerate: '图片生成', canvasTextGenerate: '无限画布-文本', canvasImageGenerate: '无限画布-图片', canvasVideoGenerate: '无限画布-视频' },
     actions: { tools: '工具配置', knowledge: '知识库' },
     tools: {
       title: '配置智能体工具',
@@ -1200,7 +1200,7 @@ export default {
     generate: {
       title: 'AI生成工具草稿',
       agent: '生成智能体',
-      agentPlaceholder: '请选择智能体生成场景',
+      agentPlaceholder: '请选择工具生成场景',
       requirement: '工具需求',
       requirementPlaceholder: '说明这个工具要查询或执行什么、需要哪些入参、返回哪些字段、边界是什么。例如：查询当前后台用户数量，只返回总数、启用数、禁用数。',
       codeHint: '工具编码提示',
