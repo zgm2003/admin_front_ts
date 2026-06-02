@@ -71,29 +71,56 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT || vars.SSH_PORT || '22' }}
           SSH_USER: ${{ secrets.SSH_USER || vars.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
         run: |
           set -euo pipefail
 
-          : "${SSH_HOST:?SSH_HOST GitHub secret or variable is required}"
-          : "${SSH_PORT:?SSH_PORT GitHub secret or variable is required}"
-          : "${SSH_USER:?SSH_USER GitHub secret or variable is required}"
-          : "${SSH_PRIVATE_KEY:?SSH_PRIVATE_KEY GitHub secret is required}"
-          : "${DEPLOY_PATH:?DEPLOY_PATH GitHub secret or variable is required}"
+          require_deploy_env() {
+            local key="$1"
+            local value
+            value="$(printenv "$key" || true)"
+            if [ -n "$value" ]; then
+              return
+            fi
+            echo "::error title=Missing deploy config::${key} GitHub secret or variable is required"
+            exit 1
+          }
+
+          require_deploy_env SSH_HOST
+          require_deploy_env SSH_PORT
+          require_deploy_env SSH_USER
+          require_deploy_env DEPLOY_PATH
+
+          if [ -z "${SSH_PRIVATE_KEY:-}" ] && [ -z "${SSH_PASSWORD:-}" ]; then
+            echo "::error title=Missing deploy credential::SSH_PRIVATE_KEY or SSH_PASSWORD GitHub secret is required"
+            exit 1
+          fi
           if [ "$DEPLOY_PATH" = "/" ]; then
-            echo "DEPLOY_PATH must not be /"
+            echo "::error title=Invalid deploy path::DEPLOY_PATH must not be /"
             exit 1
           fi
 
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
 
-          scp -P "$SSH_PORT" dist.tar.gz "$SSH_USER@$SSH_HOST:/tmp/admin_front_ts_dist.tar.gz"
+          SSH_PREFIX=()
+          SSH_OPTIONS=(-o StrictHostKeyChecking=yes)
+          if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
+            printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            SSH_OPTIONS+=(-i ~/.ssh/id_rsa)
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sshpass
+            export SSHPASS="$SSH_PASSWORD"
+            SSH_PREFIX=(sshpass -e)
+          fi
+
+          "${SSH_PREFIX[@]}" scp "${SSH_OPTIONS[@]}" -P "$SSH_PORT" dist.tar.gz "$SSH_USER@$SSH_HOST:/tmp/admin_front_ts_dist.tar.gz"
 
           REMOTE_DEPLOY_PATH="$(printf '%q' "$DEPLOY_PATH")"
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "DEPLOY_PATH=$REMOTE_DEPLOY_PATH bash -s" <<'EOF'
+          "${SSH_PREFIX[@]}" ssh "${SSH_OPTIONS[@]}" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "DEPLOY_PATH=$REMOTE_DEPLOY_PATH bash -s" <<'EOF'
           set -euo pipefail
 
           mkdir -p "$DEPLOY_PATH"

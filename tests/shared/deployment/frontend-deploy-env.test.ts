@@ -31,6 +31,20 @@ describe('frontend production deploy env', () => {
     expect(workflow).not.toContain('zgm2003.cn')
   })
 
+  it('requires explicit deploy target config and supports key or password SSH credentials', () => {
+    const workflow = readFrontendSource('.github/workflows/deploy-admin-front.yml')
+
+    expect(workflow).toContain('SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}')
+    expect(workflow).toContain('SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}')
+    expect(workflow).toContain('require_deploy_env SSH_HOST')
+    expect(workflow).toContain('require_deploy_env SSH_USER')
+    expect(workflow).toContain('require_deploy_env DEPLOY_PATH')
+    expect(workflow).toContain('SSH_PRIVATE_KEY or SSH_PASSWORD GitHub secret is required')
+    expect(workflow).toContain('sshpass -e')
+    expect(workflow).not.toContain('118.126.104.244')
+    expect(workflow).not.toContain('200304155313')
+  })
+
   it('keeps disabled legacy deploy workflow from deriving API or WebSocket origin from frontend domain', () => {
     const workflow = readFrontendSource('.github/workflows/deploy-frontend.yml.disabled')
 
