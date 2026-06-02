@@ -16,13 +16,17 @@ describe('frontend production deploy env', () => {
     expect(env).not.toContain('admin.example.com')
   })
 
-  it('injects Vite runtime endpoints from GitHub Actions configuration before build', () => {
+  it('uses GitHub Actions runtime endpoints first and falls back to repository production defaults', () => {
     const workflow = readFrontendSource('.github/workflows/deploy-admin-front.yml')
 
     expect(workflow).toContain('VITE_GO_API_BASE_URL: ${{ secrets.VITE_GO_API_BASE_URL || vars.VITE_GO_API_BASE_URL }}')
     expect(workflow).toContain('VITE_WEB_SOCKET_URL: ${{ secrets.VITE_WEB_SOCKET_URL || vars.VITE_WEB_SOCKET_URL }}')
-    expect(workflow).toContain(': "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL GitHub secret or variable is required}"')
-    expect(workflow).toContain(': "${VITE_WEB_SOCKET_URL:?VITE_WEB_SOCKET_URL GitHub secret or variable is required}"')
+    expect(workflow).toContain('load_production_default VITE_GO_API_BASE_URL')
+    expect(workflow).toContain('load_production_default VITE_WEB_SOCKET_URL')
+    expect(workflow).toContain('current="$(printenv "$key" || true)"')
+    expect(workflow).not.toContain('${!key:-}')
+    expect(workflow).toContain(': "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL GitHub secret/variable or .env.production value is required}"')
+    expect(workflow).toContain(': "${VITE_WEB_SOCKET_URL:?VITE_WEB_SOCKET_URL GitHub secret/variable or .env.production value is required}"')
     expect(workflow).not.toContain('www.zgm2003.cn')
     expect(workflow).not.toContain('zgm2003.cn')
   })

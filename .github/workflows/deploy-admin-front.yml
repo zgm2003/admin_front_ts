@@ -36,8 +36,30 @@ jobs:
         run: |
           set -euo pipefail
 
-          : "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL GitHub secret or variable is required}"
-          : "${VITE_WEB_SOCKET_URL:?VITE_WEB_SOCKET_URL GitHub secret or variable is required}"
+          load_production_default() {
+            local key="$1"
+            local current
+            current="$(printenv "$key" || true)"
+            if [ -n "$current" ]; then
+              return
+            fi
+            if [ ! -f .env.production ]; then
+              return
+            fi
+
+            local value
+            value="$(grep -E "^${key}=" .env.production | tail -n 1 | cut -d= -f2-)"
+            if [ -n "$value" ]; then
+              export "$key=$value"
+            fi
+          }
+
+          load_production_default VITE_GO_API_BASE_URL
+          load_production_default VITE_WEB_SOCKET_URL
+          export VITE_PLATFORM="${VITE_PLATFORM:-admin}"
+
+          : "${VITE_GO_API_BASE_URL:?VITE_GO_API_BASE_URL GitHub secret/variable or .env.production value is required}"
+          : "${VITE_WEB_SOCKET_URL:?VITE_WEB_SOCKET_URL GitHub secret/variable or .env.production value is required}"
 
           npm run build
 
