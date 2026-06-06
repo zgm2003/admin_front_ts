@@ -1,16 +1,21 @@
-import type { RemoteListFetchMethod } from '@/types/common'
+import type { RemoteListFetchMethod, RemoteListParams } from '@/types/common'
+import type { CascaderOption } from 'element-plus/es/components/cascader-panel/src/types'
+import type { OptionType } from 'element-plus/es/components/select-v2/src/select.types'
 
 type SearchLabelResolver<Item extends object = object> = {
   bivarianceHack(item: Item): string
 }['bivarianceHack']
 
-export type SearchFormModel = Record<string, unknown>
+export type SearchFormValue = string | number | string[] | number[] | Date | Date[] | null | undefined
+export type SearchFormModel = Record<string, SearchFormValue>
 
 interface SearchFieldBase {
   key: string
   label?: string
   placeholder?: string
   width?: number | string
+  disabled?: boolean
+  clearable?: boolean
   [key: string]: unknown
 }
 
@@ -18,14 +23,14 @@ interface InputSearchField extends SearchFieldBase {
   type: 'input'
 }
 
-interface SelectSearchField<Option = unknown> extends SearchFieldBase {
+interface SelectSearchField<Option extends OptionType = OptionType> extends SearchFieldBase {
   type: 'select-v2'
-  options?: Option[]
+  options: Option[]
 }
 
-interface CascaderSearchField<Option = unknown> extends SearchFieldBase {
+interface CascaderSearchField<Option extends CascaderOption = CascaderOption> extends SearchFieldBase {
   type: 'cascader'
-  options?: Option[]
+  options: Option[]
   cascaderProps?: Record<string, unknown>
 }
 
@@ -43,17 +48,19 @@ interface SlotSearchField extends SearchFieldBase {
 
 export interface RemoteSelectSearchField<
   Item extends object = object,
+  Params extends RemoteListParams = RemoteListParams,
 > extends SearchFieldBase {
   type: 'remote-select'
-  fetchMethod: RemoteListFetchMethod<Item>
+  fetchMethod: RemoteListFetchMethod<Item, Params>
   labelField?: string | SearchLabelResolver<Item>
   valueField?: string
   keywordField?: string
 }
 
 export type SearchField<
-  Option = unknown,
+  Option extends OptionType = OptionType,
   Item extends object = object,
+  Params extends RemoteListParams = RemoteListParams,
 > =
   | InputSearchField
   | SelectSearchField<Option>
@@ -61,4 +68,4 @@ export type SearchField<
   | DateRangeSearchField
   | DateSearchField
   | SlotSearchField
-  | RemoteSelectSearchField<Item>
+  | RemoteSelectSearchField<Item, Params>

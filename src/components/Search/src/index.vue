@@ -5,10 +5,10 @@ import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { useResizeObserver } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { RemoteSelect } from '@/components/RemoteSelect'
-import type { RemoteSelectSearchField, SearchField, SearchFormModel } from '@/components/Search/types'
+import type { RemoteSelectSearchField, SearchField, SearchFormModel, SearchFormValue } from '@/components/Search/types'
 import { useIsMobile } from '@/hooks/useResponsive'
 
-const { locale, t } = useI18n()
+const { t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
@@ -31,18 +31,26 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<FormInstance>()
-const form = reactive<Record<string, any>>({ ...props.modelValue })
+const form = reactive<SearchFormModel>({ ...props.modelValue })
 const isMobile = useIsMobile()
+
+function assignSearchForm(value: SearchFormModel) {
+  for (const key of Object.keys(form)) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      delete form[key]
+    }
+  }
+
+  Object.assign(form, value)
+}
 
 watch(
   () => props.modelValue,
   (value) => {
-    Object.assign(form, value || {})
+    assignSearchForm(value)
   },
   { deep: true }
 )
-
-const resetText = computed(() => (locale.value === 'en-US' ? 'Reset' : '重置'))
 
 const onQuery = () => {
   const value = { ...form } as SearchFormModel
@@ -61,6 +69,38 @@ const onReset = async () => {
   const value = { ...form } as SearchFormModel
   emit('update:modelValue', value)
   emit('reset', value)
+}
+
+const setSearchValue = (key: string, value: SearchFormValue) => {
+  form[key] = value
+}
+
+const inputModelValue = (key: string): string | number | null | undefined => {
+  const value = form[key]
+  if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
+    return value
+  }
+
+  throw new Error(`Search input field ${key} must be string or number`)
+}
+
+const isStringArray = (value: SearchFormValue): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === 'string')
+
+const isNumberArray = (value: SearchFormValue): value is number[] =>
+  Array.isArray(value) && value.every((item) => typeof item === 'number')
+
+const remoteSelectModelValue = (key: string): string | number | string[] | number[] | null | undefined => {
+  const value = form[key]
+  if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
+    return value
+  }
+
+  if (isStringArray(value) || isNumberArray(value)) {
+    return value
+  }
+
+  throw new Error(`Search remote-select field ${key} must be string, number, or an array of them`)
 }
 
 const collapsed = ref(false)
@@ -152,7 +192,8 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
       >
         <template v-if="field.type === 'input'">
           <el-input
-            v-model="form[field.key]"
+            :model-value="inputModelValue(field.key)"
+            @update:model-value="setSearchValue(field.key, $event)"
             :placeholder="field.placeholder"
             clearable
             :style="{ width: resolveWidth(field.width, 150) }"
@@ -163,7 +204,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
         <template v-else-if="field.type === 'select-v2'">
           <el-select-v2
             v-model="form[field.key]"
-            :options="(field.options ?? []) as any[]"
+            :options="field.options"
             filterable
             clearable
             :placeholder="field.placeholder"
@@ -175,7 +216,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
         <template v-else-if="field.type === 'cascader'">
           <el-cascader
             v-model="form[field.key]"
-            :options="(field.options ?? []) as any[]"
+            :options="field.options"
             :props="field.cascaderProps"
             clearable
             filterable
@@ -189,9 +230,9 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
           <el-date-picker
             v-model="form[field.key]"
             type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            :range-separator="t('common.to')"
+            :start-placeholder="t('common.startDate')"
+            :end-placeholder="t('common.endDate')"
             value-format="YYYY-MM-DD"
             clearable
             :style="{ width: resolveWidth(field.width, 300) }"
@@ -213,7 +254,8 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="isRemoteSelectField(field)">
           <RemoteSelect
-            v-model="form[field.key]"
+            :model-value="remoteSelectModelValue(field.key)"
+            @update:model-value="setSearchValue(field.key, $event)"
             :fetch-method="field.fetchMethod"
             :label-field="field.labelField || 'label'"
             :value-field="field.valueField || 'value'"
@@ -231,10 +273,10 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
       <el-form-item>
         <el-button type="primary" native-type="submit">{{ t('common.actions.query') }}</el-button>
-        <el-button @click="onReset">{{ resetText }}</el-button>
+        <el-button @click="onReset">{{ t('common.actions.reset') }}</el-button>
         <el-button v-if="showToggle" text @click="toggleCollapsed">
           <el-icon style="margin-right: 4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
-          {{ collapsed ? '展开' : '收起' }}
+          {{ collapsed ? t('common.actions.expand') : t('common.actions.collapse') }}
         </el-button>
       </el-form-item>
     </el-form>

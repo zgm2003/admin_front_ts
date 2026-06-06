@@ -124,7 +124,8 @@ export default {
       expand: 'Expand',
       collapse: 'Collapse',
       selectAll: 'Select All',
-      refresh: 'Refresh'
+      refresh: 'Refresh',
+      columnSetting: 'Column settings'
     },
     welcomeBack: 'Welcome back',
     welcomeSubtitle: 'Another productive day ahead',

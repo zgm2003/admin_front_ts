@@ -71,7 +71,7 @@ defineOptions({ inheritAttrs: false })
 const { t } = useI18n()
 
 type RemoteSelectValue = string | number
-type SelectableValue = RemoteSelectValue | RemoteSelectValue[]
+type SelectableValue = RemoteSelectValue | string[] | number[] | null
 type OptionItem = object
 type LabelResolver<Item extends object = OptionItem> = {
   bivarianceHack(item: Item): string

@@ -124,7 +124,8 @@ export default {
       expand: '展开',
       collapse: '收起',
       selectAll: '全选',
-      refresh: '刷新'
+      refresh: '刷新',
+      columnSetting: '列设置'
     },
     welcomeBack: '欢迎回来',
     welcomeSubtitle: '今天也是充满效率的一天',

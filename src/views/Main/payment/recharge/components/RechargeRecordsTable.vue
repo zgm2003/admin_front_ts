@@ -4,13 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useUserStore } from '@/store/user'
-import type { PageState } from '@/components/Table'
+import type { PageState, TableColumn } from '@/components/Table'
 import type { SearchField } from '@/components/Search/types'
 import type { PaymentRechargeListItem } from '@/api/payment/recharges'
 import type { PaymentRechargeSearchForm } from '../composables/usePaymentRechargePage'
 
 const props = defineProps<{
-  columns: unknown[]
+  columns: TableColumn[]
   data: PaymentRechargeListItem[]
   loading: boolean
   page: PageState

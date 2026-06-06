@@ -34,6 +34,11 @@ export type Id = Identifiable['id']
 
 export type RequestPayload = Record<string, unknown>
 
-export type RemoteListFetchMethod<Item = object> = {
-  bivarianceHack(params: any): Promise<RemoteListResponse<Item>>
+export type RemoteListParams = object
+
+export type RemoteListFetchMethod<
+  Item = object,
+  Params extends RemoteListParams = RemoteListParams,
+> = {
+  bivarianceHack(params: Params): Promise<RemoteListResponse<Item>>
 }['bivarianceHack']

@@ -5,3 +5,8 @@ export type {
   TableApiModule,
   UseTableOptions,
 } from './src/useTable'
+export type {
+  TableColumn,
+  TablePaginationState,
+  TableRow,
+} from './src/types'
