@@ -186,6 +186,10 @@ async function uploadComposerFile(request: UploadImageFileRequest) {
 }
 
 async function submitTask() {
+  if (!canCreateTask.value) {
+    ElMessage.warning(t('aiImages.createPermissionRequired'))
+    return
+  }
   const agentID = composer.value.agent_id
   if (agentID === '') {
     ElMessage.warning(t('aiImages.agentRequired'))
@@ -219,6 +223,10 @@ async function submitTask() {
 }
 
 async function retry(source: AiImageDetailResponse) {
+  if (!canCreateTask.value) {
+    ElMessage.warning(t('aiImages.createPermissionRequired'))
+    return
+  }
   reuseTaskFields(source)
   await submitTask()
 }
@@ -450,6 +458,7 @@ onMounted(() => {
           :loading="detailLoading"
           :can-save-asset="canSaveAsset"
           :can-add-reference="canAddReference"
+          :can-retry="canCreateTask"
           :add-reference-disabled-reason="referenceLimitReachedMessage"
           @save-asset="saveAsset"
           @add-reference="addReference"

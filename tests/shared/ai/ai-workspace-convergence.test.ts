@@ -165,6 +165,23 @@ describe('AI image workspace convergence with Canvas interactions', () => {
     expect(assetPicker).toContain('assetUrlMissing')
   })
 
+  it('fails closed when retrying image tasks without create permission', () => {
+    const page = readRequired('src/views/Main/ai/image-playground/index.vue')
+    const result = readRequired('src/views/Main/ai/image-playground/components/ImageResultPanel/index.vue')
+    const zhCN = readRequired('src/i18n/locales/zh-CN.ts')
+    const enUS = readRequired('src/i18n/locales/en-US.ts')
+
+    expect(result).toContain('canRetry: boolean')
+    expect(result).toContain('if (!props.canRetry) return')
+    expect(result).toContain(':disabled="!canRetry"')
+
+    expect(page).toContain(':can-retry="canCreateTask"')
+    expect(page).toMatch(/async function submitTask\(\) \{[\s\S]*?if \(!canCreateTask\.value\) \{[\s\S]*?t\('aiImages\.createPermissionRequired'\)[\s\S]*?return[\s\S]*?const agentID/)
+    expect(page).toMatch(/async function retry\(source: AiImageDetailResponse\) \{[\s\S]*?if \(!canCreateTask\.value\) \{[\s\S]*?t\('aiImages\.createPermissionRequired'\)[\s\S]*?return[\s\S]*?reuseTaskFields\(source\)/)
+    expect(zhCN).toContain('createPermissionRequired')
+    expect(enUS).toContain('createPermissionRequired')
+  })
+
   it('rejects the 11th reference image without mutating existing files', () => {
     const existingFiles = Array.from({ length: IMAGE_REFERENCE_LIMIT }, (_, index) => makeReferenceFile(index + 1))
     const originalSnapshot = structuredClone(existingFiles)

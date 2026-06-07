@@ -1063,6 +1063,7 @@ export default {
     clearMask: 'Clear Mask',
     generate: 'Generate Image',
     noAgentTip: 'Create an image_generate agent using gpt-image-2 in AI agent settings first.',
+    createPermissionRequired: 'You do not have permission to create image tasks',
     agentRequired: 'Select an image generation agent',
     promptRequired: 'Enter a prompt',
     taskSubmitted: 'Image task submitted. Refresh history later.',

@@ -9,6 +9,7 @@ interface Props {
   loading: boolean
   canSaveAsset: boolean
   canAddReference: boolean
+  canRetry: boolean
   addReferenceDisabledReason: string
 }
 
@@ -58,6 +59,7 @@ function formatDuration(value: number) {
 }
 
 function retry() {
+  if (!props.canRetry) return
   const currentDetail = props.detail
   if (currentDetail === null) {
     throw new Error('AI image result detail should not be empty when retrying')
@@ -109,9 +111,13 @@ function downloadFile(file: AiImageFileItem) {
     <section v-else-if="task.status === 'failed'" class="result-state result-state--failed">
       <strong>{{ t('aiImages.resultFailed') }}</strong>
       <el-text type="danger">{{ task.error_message }}</el-text>
-      <el-button type="primary" :icon="RefreshRight" @click="retry">
-        {{ t('aiImages.retry') }}
-      </el-button>
+      <el-tooltip :disabled="canRetry" :content="t('aiImages.createPermissionRequired')">
+        <span class="output-action-tooltip">
+          <el-button type="primary" :icon="RefreshRight" :disabled="!canRetry" @click="retry">
+            {{ t('aiImages.retry') }}
+          </el-button>
+        </span>
+      </el-tooltip>
     </section>
 
     <section v-else class="result-stage">

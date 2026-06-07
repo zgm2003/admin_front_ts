@@ -1082,6 +1082,7 @@ export default {
     clearMask: '清除遮罩',
     generate: '生成图片',
     noAgentTip: '请先在智能体配置里创建 image_generate 场景且模型为 gpt-image-2 的智能体。',
+    createPermissionRequired: '暂无创建图片任务权限',
     agentRequired: '请选择图片生成智能体',
     promptRequired: '请输入提示词',
     taskSubmitted: '图片任务已提交，请稍后刷新历史',
