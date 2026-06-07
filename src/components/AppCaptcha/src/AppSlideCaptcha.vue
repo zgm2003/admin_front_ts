@@ -14,6 +14,7 @@ interface SlideConfig {
   showTheme?: boolean
   title?: string
   iconSize?: number
+  scope?: boolean
 }
 
 interface SlideData {
@@ -53,30 +54,34 @@ const emit = defineEmits<{
   (e: 'complete', value: number): void
 }>()
 
+const slideThemeConfig = {
+  showTheme: true,
+  verticalPadding: 12,
+  horizontalPadding: 16,
+  iconSize: 22,
+  scope: true,
+} satisfies Pick<SlideConfig, 'showTheme' | 'verticalPadding' | 'horizontalPadding' | 'iconSize' | 'scope'>
+
 const captchaConfig = computed<SlideConfig>(() => {
   const challenge = props.challenge
   if (!challenge) {
     return {
+      ...slideThemeConfig,
       width: 300,
       height: 220,
       thumbWidth: 44,
       thumbHeight: 44,
-      showTheme: true,
       title: props.title,
-      iconSize: 18,
     }
   }
 
   return {
+    ...slideThemeConfig,
     width: challenge.image_width,
     height: challenge.image_height,
     thumbWidth: challenge.tile_width,
     thumbHeight: challenge.tile_height,
-    showTheme: true,
     title: props.title,
-    iconSize: 18,
-    verticalPadding: 0,
-    horizontalPadding: 0,
   }
 })
 
