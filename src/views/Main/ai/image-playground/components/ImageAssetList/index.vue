@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { AiImageAssetItem } from '@/api/ai/images'
+import type { ImageComposerFile, ImageDisplayFile, ImageDisplayMaskFile } from '../../types'
 
 interface Props {
-  assets: AiImageAssetItem[]
-  mask: AiImageAssetItem | null
-  maskTargetId: number | ''
+  files: ImageDisplayFile[]
+  maskFile: ImageDisplayMaskFile | null
+  maskTargetSortOrder: number | ''
   removable?: boolean
 }
 
 interface Emits {
-  remove: [asset: AiImageAssetItem]
+  remove: [file: ImageComposerFile]
   clearMask: []
 }
 
@@ -22,35 +22,55 @@ const emit = defineEmits<Emits>()
 const { t } = useI18n()
 
 const maskTargetName = computed(() => {
-  if (!props.mask || !props.maskTargetId) return ''
-  const target = props.assets.find((asset) => asset.id === props.maskTargetId)
-  return target ? `#${target.id}` : ''
+  if (!props.maskFile || !props.maskTargetSortOrder) return ''
+  const target = props.files.find((file) => file.sort_order === props.maskTargetSortOrder)
+  return target ? fileLabel(target) : ''
 })
+const displayMaskTargetName = computed(() => (maskTargetName.value === '' ? '-' : maskTargetName.value))
+
+function isComposerFile(file: ImageDisplayFile): file is ImageComposerFile {
+  return 'client_id' in file
+}
+
+function fileKey(file: ImageDisplayFile): string {
+  return isComposerFile(file) ? file.client_id : `stored-${file.id}`
+}
+
+function fileLabel(file: ImageDisplayFile): string {
+  return isComposerFile(file) ? `#${file.sort_order}` : `#${file.id}`
+}
+
+function removeFile(file: ImageDisplayFile) {
+  if (!isComposerFile(file)) {
+    throw new Error('Only composer image files can be removed from this list')
+  }
+  emit('remove', file)
+}
 </script>
 
 <template>
   <div class="image-asset-list">
-    <div v-if="assets.length === 0" class="asset-empty">
+    <div v-if="files.length === 0" class="asset-empty">
       {{ t('aiImages.emptyAssets') }}
     </div>
     <div v-else class="asset-grid">
-      <div v-for="asset in assets" :key="asset.id" class="asset-card">
-        <el-image class="asset-thumb" :src="asset.storage_url" fit="cover" :preview-src-list="[asset.storage_url]" />
+      <div v-for="file in files" :key="fileKey(file)" class="asset-card">
+        <el-image class="asset-thumb" :src="file.storage_url" fit="cover" :preview-src-list="[file.storage_url]" />
         <div class="asset-meta">
-          <span>#{{ asset.id }}</span>
-          <span>{{ asset.width }}×{{ asset.height }}</span>
+          <span>{{ fileLabel(file) }}</span>
+          <span>{{ file.width }}×{{ file.height }}</span>
         </div>
-        <el-button v-if="removable" type="danger" text size="small" @click="emit('remove', asset)">
+        <el-button v-if="removable" type="danger" text size="small" @click="removeFile(file)">
           {{ t('common.actions.del') }}
         </el-button>
       </div>
     </div>
 
-    <div v-if="mask" class="mask-card">
-      <el-image class="mask-thumb" :src="mask.storage_url" fit="cover" :preview-src-list="[mask.storage_url]" />
+    <div v-if="maskFile" class="mask-card">
+      <el-image class="mask-thumb" :src="maskFile.storage_url" fit="cover" :preview-src-list="[maskFile.storage_url]" />
       <div class="mask-info">
         <strong>{{ t('aiImages.mask') }}</strong>
-        <span>{{ t('aiImages.maskTarget') }} {{ maskTargetName || '-' }}</span>
+        <span>{{ t('aiImages.maskTarget') }} {{ displayMaskTargetName }}</span>
       </div>
       <el-button v-if="removable" type="danger" text size="small" @click="emit('clearMask')">
         {{ t('aiImages.clearMask') }}

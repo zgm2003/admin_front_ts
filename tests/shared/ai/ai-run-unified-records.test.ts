@@ -20,6 +20,9 @@ describe('unified AI run records frontend contract', () => {
     expect(source).toContain("export type AiRunPlatform = 'admin' | 'app' | 'canvas'")
     expect(source).toContain("export type AiRunModality = 'chat' | 'text' | 'image' | 'video'")
     expect(source).toContain("export type AiRunSourceType = 'ai_chat_message' | 'ai_text_task' | 'ai_image_task' | 'canvas_video_task'")
+    expect(source).toContain("value === 'ai_image_task'")
+    expect(source).not.toContain('admin_ai_image_task')
+    expect(source).not.toContain('canvas_image_task')
     expect(source).toContain("export type AiRunUsageStatus = 'pending' | 'reported' | 'unavailable'")
 
     expect(source).toContain('platform_arr: DictOption<AiRunPlatform>[]')

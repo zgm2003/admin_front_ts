@@ -2,36 +2,35 @@
 import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppDialog } from '@/components/AppDialog'
-import type { AiImageAssetItem } from '@/api/ai/images'
-import type { UploadAssetRequest } from '../../types'
+import type { ImageComposerFile, UploadImageFileRequest } from '../../types'
 
 interface Props {
-  assets: AiImageAssetItem[]
+  files: ImageComposerFile[]
   uploading: boolean
 }
 
 interface Emits {
-  uploadMask: [request: UploadAssetRequest]
+  uploadMaskFile: [request: UploadImageFileRequest]
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const visible = defineModel<boolean>({ required: true })
 const { t } = useI18n()
-const targetAssetId = shallowRef<number | ''>('')
+const targetSortOrder = shallowRef<number | ''>('')
 
 watch(
-  () => [visible.value, props.assets] as const,
+  () => [visible.value, props.files] as const,
   () => {
     if (!visible.value) return
-    targetAssetId.value = props.assets[0]?.id ?? ''
+    targetSortOrder.value = props.files[0]?.sort_order ?? ''
   },
   { immediate: true }
 )
 
 function beforeMaskUpload(file: File) {
-  if (!targetAssetId.value) return false
-  emit('uploadMask', { file, source_type: 'mask', mask_target_asset_id: targetAssetId.value })
+  if (!targetSortOrder.value) return false
+  emit('uploadMaskFile', { file, source_type: 'mask', mask_target_sort_order: targetSortOrder.value })
   return false
 }
 </script>
@@ -44,8 +43,8 @@ function beforeMaskUpload(file: File) {
       <el-form label-position="top">
         <el-form-item :label="t('aiImages.maskTarget')">
           <el-select-v2
-            v-model="targetAssetId"
-            :options="assets.map((asset) => ({ label: `#${asset.id} ${asset.width}×${asset.height}`, value: asset.id }))"
+            v-model="targetSortOrder"
+            :options="files.map((file) => ({ label: `#${file.sort_order} ${file.width}×${file.height}`, value: file.sort_order }))"
             :placeholder="t('aiImages.maskTargetPlaceholder')"
             filterable
           />
@@ -54,19 +53,19 @@ function beforeMaskUpload(file: File) {
 
       <div class="target-preview">
         <button
-          v-for="asset in assets"
-          :key="asset.id"
+          v-for="file in files"
+          :key="file.client_id"
           type="button"
-          :class="['target-card', { active: asset.id === targetAssetId }]"
-          @click="targetAssetId = asset.id"
+          :class="['target-card', { active: file.sort_order === targetSortOrder }]"
+          @click="targetSortOrder = file.sort_order"
         >
-          <el-image class="target-image" :src="asset.storage_url" fit="cover" />
-          <span>#{{ asset.id }}</span>
+          <el-image class="target-image" :src="file.storage_url" fit="cover" />
+          <span>#{{ file.sort_order }}</span>
         </button>
       </div>
 
-      <el-upload accept="image/*" :show-file-list="false" :disabled="uploading || !targetAssetId" :before-upload="beforeMaskUpload">
-        <el-button type="primary" :loading="uploading" :disabled="!targetAssetId">
+      <el-upload accept="image/*" :show-file-list="false" :disabled="uploading || !targetSortOrder" :before-upload="beforeMaskUpload">
+        <el-button type="primary" :loading="uploading" :disabled="!targetSortOrder">
           {{ t('aiImages.uploadMask') }}
         </el-button>
       </el-upload>

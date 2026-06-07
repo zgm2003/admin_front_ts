@@ -8,7 +8,7 @@ export type AiImageQuality = 'auto' | 'low' | 'medium' | 'high'
 export type AiImageOutputFormat = 'png' | 'jpeg' | 'webp'
 export type AiImageModeration = 'auto' | 'low'
 export type AiImageStorageProvider = 'cos' | 'remote_url'
-export type AiImageAssetSource = 'upload' | 'mask' | 'generated'
+export type AiImageFileRole = 'input' | 'mask' | 'output'
 
 export interface AiImageAgentOption {
   id: number
@@ -54,8 +54,11 @@ export interface AiImageTaskItem {
   updated_at: string
 }
 
-export interface AiImageAssetItem {
+export interface AiImageFileItem {
   id: number
+  task_id: number
+  role: AiImageFileRole
+  sort_order: number
   storage_provider: AiImageStorageProvider
   storage_key: string
   storage_url: string
@@ -63,20 +66,16 @@ export interface AiImageAssetItem {
   width: number
   height: number
   size_bytes: number
-  source_type: AiImageAssetSource
-  role?: string
-  sort_order?: number
-  related_asset_id?: number | null
+  related_file_id?: number | null
   revised_prompt?: string
-  actual_params_json?: Record<string, unknown>
   created_at: string
 }
 
 export interface AiImageDetailResponse {
   task: AiImageTaskItem
-  inputs: AiImageAssetItem[]
-  mask?: AiImageAssetItem | null
-  outputs: AiImageAssetItem[]
+  inputs: AiImageFileItem[]
+  mask?: AiImageFileItem | null
+  outputs: AiImageFileItem[]
 }
 
 export interface AiImageListParams {
@@ -86,7 +85,7 @@ export interface AiImageListParams {
   is_favorite?: number | ''
 }
 
-export interface AiImageAssetCreatePayload {
+export interface AiImageFileInput {
   storage_provider: AiImageStorageProvider
   storage_key: string
   storage_url: string
@@ -94,7 +93,10 @@ export interface AiImageAssetCreatePayload {
   width: number
   height: number
   size_bytes: number
-  source_type: Extract<AiImageAssetSource, 'upload' | 'mask'>
+}
+
+export type AiImageMaskFileInput = AiImageFileInput & {
+  related_sort_order: number
 }
 
 export interface AiImageTaskCreatePayload {
@@ -106,9 +108,8 @@ export interface AiImageTaskCreatePayload {
   output_compression?: number | null
   moderation?: AiImageModeration | ''
   n?: number
-  input_asset_ids?: number[]
-  mask_asset_id?: number
-  mask_target_asset_id?: number
+  input_files?: AiImageFileInput[]
+  mask_file?: AiImageMaskFileInput | null
 }
 
 export interface AiImageCreateTaskResponse {
@@ -140,13 +141,6 @@ function optionalImageEnum<T extends string>(value: T | '' | undefined): T | und
   return value
 }
 
-function optionalPositiveID(value: number | undefined, label: string): number | undefined {
-  if (value === undefined) {
-    return undefined
-  }
-  return positiveID(value, label)
-}
-
 function normalizeListParams(params: AiImageListParams): AiImageListQueryParams {
   const query: AiImageListQueryParams = {
     current_page: params.current_page,
@@ -167,9 +161,8 @@ function normalizeTaskPayload(payload: AiImageTaskCreatePayload): AiImageTaskCre
     output_compression: typeof payload.output_compression === 'number' ? payload.output_compression : undefined,
     moderation: optionalImageEnum(payload.moderation),
     n: payload.n,
-    input_asset_ids: payload.input_asset_ids,
-    mask_asset_id: optionalPositiveID(payload.mask_asset_id, 'AI image mask asset id'),
-    mask_target_asset_id: optionalPositiveID(payload.mask_target_asset_id, 'AI image mask target asset id'),
+    input_files: payload.input_files,
+    mask_file: payload.mask_file,
   }
   return body
 }
@@ -179,7 +172,6 @@ function deleteTask(id: number): Promise<void> {
 }
 
 const pageInit = () => request.get<AiImageInitResponse>(`${BASE}/page-init`)
-const createAsset = (payload: AiImageAssetCreatePayload) => request.post<AiImageAssetItem, AiImageAssetCreatePayload>(`${BASE}/assets`, payload)
 const createTask = (payload: AiImageTaskCreatePayload) => request.post<AiImageCreateTaskResponse, AiImageTaskCreatePayload>(BASE, normalizeTaskPayload(payload))
 const deleteOne = (params: { id: Id }) => deleteTask(positiveID(params.id, 'AI image task id'))
 const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
@@ -190,11 +182,9 @@ export const AiImageApi = {
   pageInit,
   list: (params: AiImageListParams) => request.get<PaginatedResponse<AiImageTaskItem>>(BASE, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiImageDetailResponse>(`${BASE}/${positiveID(params.id, 'AI image task id')}`),
-  createAsset,
   createTask,
   favorite: (params: { id: Id; is_favorite: number }) => request.patch<AiImageTaskItem, { is_favorite: number }>(`${BASE}/${positiveID(params.id, 'AI image task id')}/favorite`, { is_favorite: params.is_favorite }),
   deleteOne,
   deleteBatch,
-  addAsset: createAsset,
   addTask: createTask,
 }

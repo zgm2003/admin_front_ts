@@ -17,7 +17,7 @@ const guardedFiles = [
   'src/views/Main/ai/image-playground/index.vue',
   'src/views/Main/ai/image-playground/components/ImageComposer/index.vue',
   'src/views/Main/ai/image-playground/components/ImageHistoryGrid/index.vue',
-  'src/views/Main/ai/image-playground/components/ImageTaskDetailDialog/index.vue',
+  'src/views/Main/ai/image-playground/components/ImageResultPanel/index.vue',
 ]
 
 function stripComments(source: string) {

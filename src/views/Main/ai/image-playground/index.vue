@@ -10,6 +10,8 @@ import {
   AiImageApi,
   type AiImageAgentOption,
   type AiImageDetailResponse,
+  type AiImageFileInput,
+  type AiImageFileItem,
   type AiImageInitResponse,
   type AiImageModeration,
   type AiImageOutputFormat,
@@ -21,8 +23,8 @@ import {
 import ImageComposer from './components/ImageComposer/index.vue'
 import ImageHistoryGrid from './components/ImageHistoryGrid/index.vue'
 import ImageMaskDialog from './components/ImageMaskDialog/index.vue'
-import ImageTaskDetailDialog from './components/ImageTaskDetailDialog/index.vue'
-import type { ImageComposerState, UploadAssetRequest } from './types'
+import ImageResultPanel from './components/ImageResultPanel/index.vue'
+import type { ImageComposerFile, ImageComposerMaskFile, ImageComposerState, UploadImageFileRequest } from './types'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -42,18 +44,19 @@ const page = reactive<PageInfo>({
 
 const statusFilter = shallowRef<AiImageTaskStatus | ''>('')
 const favoriteFilter = shallowRef<number | ''>('')
+const selectedTaskId = shallowRef<number | null>(null)
 const listLoading = shallowRef(false)
 const initLoading = shallowRef(false)
 const detailLoading = shallowRef(false)
 const uploading = shallowRef(false)
 const submitting = shallowRef(false)
-const detailVisible = shallowRef(false)
 const maskVisible = shallowRef(false)
 
-const canAddAsset = computed(() => userStore.can('ai_image_asset_add'))
 const canCreateTask = computed(() => userStore.can('ai_image_task_add'))
+const canUploadFile = computed(() => canCreateTask.value)
 const canFavorite = computed(() => userStore.can('ai_image_task_favorite'))
 const canDelete = computed(() => userStore.can('ai_image_task_del'))
+let draftFileSequence = 0
 
 const localizedDict = computed<AiImageInitResponse['dict']>(() => {
   const source = dict.value
@@ -122,7 +125,7 @@ async function loadList() {
 }
 
 async function openDetail(task: AiImageTaskItem) {
-  detailVisible.value = true
+  selectedTaskId.value = task.id
   detailLoading.value = true
   try {
     detail.value = await AiImageApi.detail({ id: task.id })
@@ -133,7 +136,7 @@ async function openDetail(task: AiImageTaskItem) {
   }
 }
 
-async function uploadAsset(request: UploadAssetRequest) {
+async function uploadComposerFile(request: UploadImageFileRequest) {
   uploading.value = true
   try {
     const config = await getUploadToken({
@@ -147,22 +150,25 @@ async function uploadAsset(request: UploadAssetRequest) {
       uploadFileToCloud(request.file, config),
       readImageDimensions(request.file),
     ])
-    const asset = await AiImageApi.createAsset({
+    const file = createComposerFile({
       storage_provider: 'cos',
       storage_key: uploaded.key,
       storage_url: uploaded.url,
-      mime_type: request.file.type || 'image/png',
+      mime_type: requireImageMimeType(request.file),
       width: dimensions.width,
       height: dimensions.height,
       size_bytes: request.file.size,
-      source_type: request.source_type,
     })
     if (request.source_type === 'mask') {
-      composer.value.mask_asset = asset
-      composer.value.mask_target_asset_id = request.mask_target_asset_id ?? ''
+      const relatedSortOrder = request.mask_target_sort_order
+      if (relatedSortOrder === undefined) {
+        throw new Error(t('aiImages.maskTargetRequired'))
+      }
+      composer.value.mask_file = { ...file, related_sort_order: relatedSortOrder }
+      composer.value.mask_target_sort_order = relatedSortOrder
       maskVisible.value = false
     } else {
-      composer.value.input_assets = [...composer.value.input_assets, asset]
+      composer.value.input_files = [...composer.value.input_files, file]
     }
     ElMessage.success(t('aiImages.uploadDone'))
   } catch (error: unknown) {
@@ -173,7 +179,8 @@ async function uploadAsset(request: UploadAssetRequest) {
 }
 
 async function submitTask() {
-  if (!composer.value.agent_id) {
+  const agentID = composer.value.agent_id
+  if (agentID === '') {
     ElMessage.warning(t('aiImages.agentRequired'))
     return
   }
@@ -183,8 +190,9 @@ async function submitTask() {
   }
   submitting.value = true
   try {
-    await AiImageApi.createTask({
-      agent_id: composer.value.agent_id,
+    const maskFile = composer.value.mask_file
+    const created = await AiImageApi.createTask({
+      agent_id: agentID,
       prompt: composer.value.prompt,
       size: composer.value.size,
       quality: composer.value.quality,
@@ -192,13 +200,13 @@ async function submitTask() {
       output_compression: composer.value.output_compression,
       moderation: composer.value.moderation,
       n: composer.value.n,
-      input_asset_ids: composer.value.input_assets.map((asset) => asset.id),
-      mask_asset_id: composer.value.mask_asset?.id,
-      mask_target_asset_id: composer.value.mask_target_asset_id || undefined,
+      input_files: composer.value.input_files.map(toImageFileInput),
+      mask_file: maskFile === null ? null : { ...toImageFileInput(maskFile), related_sort_order: maskFile.related_sort_order },
     })
     ElMessage.success(t('aiImages.taskSubmitted'))
     page.current_page = 1
     await loadList()
+    await openDetail(created.task)
   } catch (error: unknown) {
     notifyError(error, t('aiImages.submitFailed'))
   } finally {
@@ -223,8 +231,10 @@ async function deleteTask(taskId: number) {
   try {
     await ElMessageBox.confirm(t('aiImages.confirmDelete'), t('common.confirmTitle'), { type: 'warning' })
     await AiImageApi.deleteOne({ id: taskId })
-    detailVisible.value = false
-    detail.value = null
+    if (selectedTaskId.value === taskId) {
+      selectedTaskId.value = null
+      detail.value = null
+    }
     await loadList()
     ElMessage.success(t('common.success.delete'))
   } catch (error: unknown) {
@@ -234,6 +244,8 @@ async function deleteTask(taskId: number) {
 }
 
 function reuseTask(source: AiImageDetailResponse) {
+  const inputFiles = source.inputs.map(toComposerFile)
+  const maskFile = source.mask === null || source.mask === undefined ? null : toComposerMaskFile(source.mask, inputFiles)
   composer.value = {
     agent_id: source.task.agent_id,
     prompt: source.task.prompt,
@@ -243,12 +255,22 @@ function reuseTask(source: AiImageDetailResponse) {
     output_compression: source.task.output_compression ?? null,
     moderation: source.task.moderation as AiImageModeration,
     n: source.task.n,
-    input_assets: source.inputs,
-    mask_asset: source.mask ?? null,
-    mask_target_asset_id: source.mask?.related_asset_id ?? '',
+    input_files: inputFiles,
+    mask_file: maskFile,
+    mask_target_sort_order: maskFile === null ? '' : maskFile.related_sort_order,
   }
-  detailVisible.value = false
   ElMessage.success(t('aiImages.reuseDone'))
+}
+
+function resetComposer() {
+  const next = defaultComposer()
+  const firstAgent = agentOptions.value[0]
+  if (firstAgent) {
+    next.agent_id = firstAgent.id
+  }
+  composer.value = next
+  detail.value = null
+  selectedTaskId.value = null
 }
 
 function updatePage(next: PageInfo) {
@@ -324,10 +346,73 @@ function defaultComposer(): ImageComposerState {
     output_compression: null,
     moderation: 'auto',
     n: 1,
-    input_assets: [],
-    mask_asset: null,
-    mask_target_asset_id: '',
+    input_files: [],
+    mask_file: null,
+    mask_target_sort_order: '',
   }
+}
+
+function createComposerFile(input: AiImageFileInput): ImageComposerFile {
+  return {
+    ...input,
+    client_id: `draft-${++draftFileSequence}`,
+    sort_order: composer.value.input_files.length + 1,
+    stored_file_id: null,
+  }
+}
+
+function toComposerFile(file: AiImageFileItem): ImageComposerFile {
+  return {
+    storage_provider: file.storage_provider,
+    storage_key: file.storage_key,
+    storage_url: file.storage_url,
+    mime_type: file.mime_type,
+    width: file.width,
+    height: file.height,
+    size_bytes: file.size_bytes,
+    client_id: `stored-${file.id}`,
+    sort_order: file.sort_order,
+    stored_file_id: file.id,
+  }
+}
+
+function toComposerMaskFile(file: AiImageFileItem, inputs: ImageComposerFile[]): ImageComposerMaskFile {
+  const relatedSortOrder = relatedSortOrderForMask(file, inputs)
+  return {
+    ...toComposerFile(file),
+    related_sort_order: relatedSortOrder,
+  }
+}
+
+function relatedSortOrderForMask(mask: AiImageFileItem, inputs: ImageComposerFile[]): number {
+  if (mask.related_file_id === null || mask.related_file_id === undefined) {
+    throw new Error('AI image mask related_file_id should not be empty')
+  }
+  const target = inputs.find((file) => file.stored_file_id === mask.related_file_id)
+  if (!target) {
+    throw new Error('AI image mask related_file_id should point to an input file')
+  }
+  return target.sort_order
+}
+
+function toImageFileInput(file: ImageComposerFile): AiImageFileInput {
+  return {
+    storage_provider: file.storage_provider,
+    storage_key: file.storage_key,
+    storage_url: file.storage_url,
+    mime_type: file.mime_type,
+    width: file.width,
+    height: file.height,
+    size_bytes: file.size_bytes,
+  }
+}
+
+function requireImageMimeType(file: File): string {
+  const mimeType = file.type.trim()
+  if (mimeType === '' || !mimeType.startsWith('image/')) {
+    throw new Error(t('aiImages.imageMimeRequired'))
+  }
+  return mimeType
 }
 
 function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
@@ -356,6 +441,8 @@ function isCancelError(error: unknown) {
 
 watch([statusFilter, favoriteFilter], () => {
   page.current_page = 1
+  detail.value = null
+  selectedTaskId.value = null
   void loadList()
 })
 
@@ -368,8 +455,8 @@ onMounted(() => {
 
 <template>
   <div class="ai-image-page" v-loading="initLoading">
-    <div class="image-workspace">
-      <section class="image-panel image-panel--history">
+    <div class="image-workspace image-workspace--three-panel">
+      <section class="image-panel image-panel--records">
         <ImageHistoryGrid
           v-model:status="statusFilter"
           v-model:favorite="favoriteFilter"
@@ -377,6 +464,8 @@ onMounted(() => {
           :page="page"
           :dict="localizedDict"
           :loading="listLoading"
+          :selected-task-id="selectedTaskId"
+          @create="resetComposer"
           @refresh="refreshList"
           @detail="openDetail"
           @page-change="updatePage"
@@ -390,32 +479,33 @@ onMounted(() => {
           :agent-options="agentOptions"
           :uploading="uploading"
           :submitting="submitting"
-          :can-add-asset="canAddAsset"
+          :can-upload-file="canUploadFile"
           :can-create-task="canCreateTask"
-          @upload-asset="uploadAsset"
+          @upload-file="uploadComposerFile"
           @open-mask="maskVisible = true"
           @submit="submitTask"
+        />
+      </section>
+
+      <section class="image-panel image-panel--result">
+        <ImageResultPanel
+          :detail="detail"
+          :loading="detailLoading"
+          :can-favorite="canFavorite"
+          :can-delete="canDelete"
+          :status-options="localizedDict.status_arr"
+          @favorite="toggleFavorite"
+          @delete="deleteTask"
+          @reuse="reuseTask"
         />
       </section>
     </div>
 
     <ImageMaskDialog
       v-model="maskVisible"
-      :assets="composer.input_assets"
+      :files="composer.input_files"
       :uploading="uploading"
-      @upload-mask="uploadAsset"
-    />
-
-    <ImageTaskDetailDialog
-      v-model="detailVisible"
-      :detail="detail"
-      :loading="detailLoading"
-      :can-favorite="canFavorite"
-      :can-delete="canDelete"
-      :status-options="localizedDict.status_arr"
-      @favorite="toggleFavorite"
-      @delete="deleteTask"
-      @reuse="reuseTask"
+      @upload-mask-file="uploadComposerFile"
     />
   </div>
 </template>
@@ -432,7 +522,7 @@ onMounted(() => {
 
 <style scoped>
 .ai-image-page {
-  --image-studio-bg: #f7f9fc;
+  --image-studio-bg: #f6f8fc;
   --image-studio-surface: #ffffff;
   --image-studio-surface-soft: #fbfcff;
   --image-studio-line: #e5ebf3;
@@ -450,9 +540,9 @@ onMounted(() => {
   padding: 0;
 }
 
-.image-workspace {
-  display: flex;
-  flex-direction: column;
+.image-workspace--three-panel {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(360px, 1fr) minmax(430px, 1.45fr);
   gap: 16px;
   height: 100%;
   min-height: 0;
@@ -464,10 +554,10 @@ onMounted(() => {
   min-height: 0;
   min-width: 0;
   overflow: auto;
-  padding: 20px;
+  padding: 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(251, 252, 255, 0.9)),
-    radial-gradient(circle at 10% 0%, var(--image-studio-primary-soft), transparent 32%);
+    radial-gradient(circle at 12% 0%, var(--image-studio-primary-soft), transparent 34%);
   border: 1px solid var(--image-studio-line);
   border-radius: 20px;
   box-shadow: var(--image-studio-shadow);
@@ -477,16 +567,13 @@ onMounted(() => {
     box-shadow var(--app-motion-fast) var(--app-ease-standard);
 }
 
-.image-panel--history {
-  flex: 1 1 0;
-  min-height: 360px;
+.image-panel--records,
+.image-panel--result {
+  height: 100%;
 }
 
 .image-panel--composer {
-  flex: 0 0 auto;
-  max-height: min(260px, 34vh);
-  overflow: auto;
-  padding: 14px 16px;
+  height: 100%;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.94)),
     radial-gradient(circle at 50% 0%, var(--image-studio-primary-soft), transparent 34%);
@@ -495,16 +582,6 @@ onMounted(() => {
 .image-panel:hover {
   border-color: var(--image-studio-line-strong);
   box-shadow: var(--image-studio-shadow-hover);
-}
-
-.image-panel :deep(.el-form-item) {
-  margin-bottom: 18px;
-}
-
-.image-panel :deep(.el-form-item__label) {
-  padding-bottom: 8px;
-  color: var(--image-studio-text);
-  font-weight: 650;
 }
 
 .image-panel :deep(.el-input__wrapper),
@@ -537,7 +614,8 @@ onMounted(() => {
     overflow: visible;
   }
 
-  .image-workspace {
+  .image-workspace--three-panel {
+    grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
   }
@@ -546,25 +624,19 @@ onMounted(() => {
     overflow: visible;
   }
 
-  .image-panel--history,
-  .image-panel--composer {
-    flex: none;
+  .image-panel--records,
+  .image-panel--composer,
+  .image-panel--result {
+    height: auto;
   }
 
-  .image-panel--history {
-    order: 2;
-    min-height: 0;
-  }
-
-  .image-panel--composer {
-    order: 1;
-    max-height: none;
-    padding: 18px 20px;
+  .image-panel--records {
+    min-height: 360px;
   }
 }
 
 @media (max-width: 640px) {
-  .image-workspace {
+  .image-workspace--three-panel {
     gap: 12px;
   }
 
