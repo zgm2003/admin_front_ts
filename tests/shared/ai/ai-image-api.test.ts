@@ -110,4 +110,20 @@ describe('AI image playground contract', () => {
     expect(page).not.toContain('AiImageApi.addTask')
   })
 
+  it('normalizes optional create-task payload fields without logical-or fallbacks', () => {
+    const source = readFrontendSource('src/api/ai/images.ts')
+
+    expect(source).not.toContain('payload.size || undefined')
+    expect(source).not.toContain('payload.quality || undefined')
+    expect(source).not.toContain('payload.output_format || undefined')
+    expect(source).not.toContain('payload.moderation || undefined')
+    expect(source).not.toContain('if (payload.mask_asset_id)')
+    expect(source).not.toContain('if (payload.mask_target_asset_id)')
+
+    expect(source).toContain("function optionalImageEnum")
+    expect(source).toContain("function optionalPositiveID")
+    expect(source).toContain("size: optionalImageEnum(payload.size),")
+    expect(source).toContain("mask_asset_id: optionalPositiveID(payload.mask_asset_id, 'AI image mask asset id'),")
+  })
+
 })

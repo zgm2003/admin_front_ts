@@ -130,6 +130,23 @@ function positiveID(value: Id | number, label: string): number {
   return id
 }
 
+function optionalImageEnum<T extends string>(value: T | '' | undefined): T | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  if (value === '') {
+    return undefined
+  }
+  return value
+}
+
+function optionalPositiveID(value: number | undefined, label: string): number | undefined {
+  if (value === undefined) {
+    return undefined
+  }
+  return positiveID(value, label)
+}
+
 function normalizeListParams(params: AiImageListParams): AiImageListQueryParams {
   const query: AiImageListQueryParams = {
     current_page: params.current_page,
@@ -144,16 +161,16 @@ function normalizeTaskPayload(payload: AiImageTaskCreatePayload): AiImageTaskCre
   const body: AiImageTaskCreatePayload = {
     agent_id: positiveID(payload.agent_id, 'AI image agent id'),
     prompt: payload.prompt.trim(),
-    size: payload.size || undefined,
-    quality: payload.quality || undefined,
-    output_format: payload.output_format || undefined,
+    size: optionalImageEnum(payload.size),
+    quality: optionalImageEnum(payload.quality),
+    output_format: optionalImageEnum(payload.output_format),
     output_compression: typeof payload.output_compression === 'number' ? payload.output_compression : undefined,
-    moderation: payload.moderation || undefined,
+    moderation: optionalImageEnum(payload.moderation),
     n: payload.n,
     input_asset_ids: payload.input_asset_ids,
+    mask_asset_id: optionalPositiveID(payload.mask_asset_id, 'AI image mask asset id'),
+    mask_target_asset_id: optionalPositiveID(payload.mask_target_asset_id, 'AI image mask target asset id'),
   }
-  if (payload.mask_asset_id) body.mask_asset_id = positiveID(payload.mask_asset_id, 'AI image mask asset id')
-  if (payload.mask_target_asset_id) body.mask_target_asset_id = positiveID(payload.mask_target_asset_id, 'AI image mask target asset id')
   return body
 }
 
