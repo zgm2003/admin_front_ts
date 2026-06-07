@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { AiAssetApi, type AiAssetItem } from '@/api/ai/assets'
 import type { PageInfo } from '@/types/common'
+import { assetBlockedReasonKey, isImageAssetSelectable } from './asset-selectable'
 
 interface Emits {
   selectAsset: [asset: AiAssetItem]
@@ -77,13 +78,12 @@ function errorMessage(error: unknown, fallback: string) {
 }
 
 function isAssetSelectable(asset: AiAssetItem) {
-  return asset.type === 'image' && asset.url.trim() !== ''
+  return isImageAssetSelectable(asset)
 }
 
 function assetBlockedReason(asset: AiAssetItem) {
-  if (asset.type !== 'image') return t('aiImages.assetTypeRequired')
-  if (asset.url.trim() === '') return t('aiImages.assetUrlMissing')
-  return ''
+  const reasonKey = assetBlockedReasonKey(asset)
+  return reasonKey === null ? '' : t(reasonKey)
 }
 
 function selectAsset(asset: AiAssetItem) {

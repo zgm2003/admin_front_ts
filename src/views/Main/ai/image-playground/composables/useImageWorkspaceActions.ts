@@ -5,8 +5,13 @@ import { CommonEnum } from '@/enums'
 import { AiAssetApi, type AiAssetItem, type AiAssetMutationParams } from '@/api/ai/assets'
 import { AiImageApi, type AiImageDetailResponse, type AiImageFileInput, type AiImageFileItem } from '@/api/ai/images'
 import type { ImageComposerFile, ImageComposerState } from '../types'
+import {
+  IMAGE_REFERENCE_LIMIT,
+  fulfilledDeletedIDs,
+  nextReferenceFiles,
+} from './workspace-action-helpers'
 
-export const IMAGE_REFERENCE_LIMIT = 10
+export { IMAGE_REFERENCE_LIMIT } from './workspace-action-helpers'
 
 interface UseImageWorkspaceActionsOptions {
   composer: Ref<ImageComposerState>
@@ -30,11 +35,15 @@ export function useImageWorkspaceActions(options: UseImageWorkspaceActionsOption
   }
 
   function appendReference(input: AiImageFileInput): boolean {
-    if (!ensureReferenceCapacity()) return false
-    options.composer.value.input_files = [
-      ...options.composer.value.input_files,
-      options.createComposerFile(input),
-    ]
+    const result = nextReferenceFiles(
+      options.composer.value.input_files,
+      () => options.createComposerFile(input),
+    )
+    if (!result.appended) {
+      ElMessage.warning(referenceLimitReachedMessage.value)
+      return false
+    }
+    options.composer.value.input_files = result.files
     return true
   }
 
@@ -124,19 +133,11 @@ export function useImageWorkspaceActions(options: UseImageWorkspaceActionsOption
       await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), { type: 'warning' })
       confirmed = true
       const results = await Promise.allSettled(ids.map((id) => AiImageApi.deleteOne({ id })))
-      deletedIDs = results.reduce<number[]>((list, result, index) => {
-        if (result.status !== 'fulfilled') return list
-        const id = ids[index]
-        if (id === undefined) {
-          throw new Error('AI image delete result should map to an input id')
-        }
-        list.push(id)
-        return list
-      }, [])
+      deletedIDs = fulfilledDeletedIDs(ids, results)
 
       clearDetailForDeletedIDs(deletedIDs)
 
-      const failedCount = results.length - deletedIDs.length
+      const failedCount = ids.length - deletedIDs.length
       if (failedCount > 0) {
         throw new Error(t('aiImages.deletePartialFailed', { count: failedCount }))
       }

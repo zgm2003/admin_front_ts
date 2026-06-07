@@ -1,6 +1,18 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import type { AiAssetItem } from '@/api/ai/assets'
+import type { AiImageFileInput } from '@/api/ai/images'
+import {
+  IMAGE_REFERENCE_LIMIT,
+  fulfilledDeletedIDs,
+  nextReferenceFiles,
+} from '@/views/Main/ai/image-playground/composables/workspace-action-helpers'
+import type { ImageComposerFile } from '@/views/Main/ai/image-playground/types'
+import {
+  assetBlockedReasonKey,
+  isImageAssetSelectable,
+} from '@/views/Main/ai/image-playground/components/ImageAssetPicker/asset-selectable'
 
 const workspaceFiles = [
   'src/api/ai/images.ts',
@@ -46,6 +58,46 @@ function readRequired(relativePath: string) {
   return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
 }
 
+function makeImageInput(index: number): AiImageFileInput {
+  return {
+    storage_provider: 'remote_url',
+    storage_key: `https://example.test/reference-${index}.png`,
+    storage_url: `https://example.test/reference-${index}.png`,
+    mime_type: 'image/png',
+    width: 1024,
+    height: 1024,
+    size_bytes: index,
+  }
+}
+
+function makeReferenceFile(index: number): ImageComposerFile {
+  return {
+    ...makeImageInput(index),
+    client_id: `draft-${index}`,
+    sort_order: index,
+    stored_file_id: null,
+  }
+}
+
+function makeAsset(overrides: Partial<AiAssetItem> = {}): AiAssetItem {
+  return {
+    id: 1,
+    slug: 'asset-1',
+    type: 'image',
+    category: 'reference',
+    title: 'Reference asset',
+    cover_url: 'https://example.test/asset.png',
+    description: 'Reference image',
+    content: '',
+    url: 'https://example.test/asset.png',
+    tags_json: '[]',
+    status: 1,
+    created_at: '2026-06-07T00:00:00Z',
+    updated_at: '2026-06-07T00:00:00Z',
+    ...overrides,
+  }
+}
+
 describe('AI image workspace convergence with Canvas interactions', () => {
   it('uses Canvas-style prompt and asset workspace actions', () => {
     const missingFiles = workspaceFiles.filter((file) => !existsSync(resolve(process.cwd(), file)))
@@ -74,12 +126,15 @@ describe('AI image workspace convergence with Canvas interactions', () => {
   it('moves side-effect-heavy workspace actions into a guarded composable', () => {
     const page = readRequired('src/views/Main/ai/image-playground/index.vue')
     const actions = readRequired('src/views/Main/ai/image-playground/composables/useImageWorkspaceActions.ts')
+    const helpers = readRequired('src/views/Main/ai/image-playground/composables/workspace-action-helpers.ts')
 
     expect(page).toContain("import { IMAGE_REFERENCE_LIMIT, useImageWorkspaceActions } from './composables/useImageWorkspaceActions'")
     expect(page).toContain('useImageWorkspaceActions({')
-    expect(actions).toContain('export const IMAGE_REFERENCE_LIMIT = 10')
+    expect(helpers).toContain('export const IMAGE_REFERENCE_LIMIT = 10')
     expect(actions).toContain('CommonEnum.YES')
     expect(actions).toContain('function ensureReferenceCapacity')
+    expect(actions).toContain('nextReferenceFiles')
+    expect(actions).toContain('fulfilledDeletedIDs')
     expect(actions).toContain('Promise.allSettled')
     expect(actions).toContain('finally')
     expect(actions).toContain('await refreshList()')
@@ -108,5 +163,58 @@ describe('AI image workspace convergence with Canvas interactions', () => {
     expect(assetPicker).toContain('isAssetSelectable')
     expect(assetPicker).toContain(':disabled="!isAssetSelectable(asset)"')
     expect(assetPicker).toContain('assetUrlMissing')
+  })
+
+  it('rejects the 11th reference image without mutating existing files', () => {
+    const existingFiles = Array.from({ length: IMAGE_REFERENCE_LIMIT }, (_, index) => makeReferenceFile(index + 1))
+    const originalSnapshot = structuredClone(existingFiles)
+    let createCalls = 0
+
+    const result = nextReferenceFiles(existingFiles, () => {
+      createCalls += 1
+      return makeReferenceFile(IMAGE_REFERENCE_LIMIT + 1)
+    })
+
+    expect(result.appended).toBe(false)
+    expect(result.files).toEqual(originalSnapshot)
+    expect(existingFiles).toEqual(originalSnapshot)
+    expect(createCalls).toBe(0)
+  })
+
+  it('appends the 10th reference image when only 9 references exist', () => {
+    const existingFiles = Array.from({ length: IMAGE_REFERENCE_LIMIT - 1 }, (_, index) => makeReferenceFile(index + 1))
+    const nextInput = makeImageInput(IMAGE_REFERENCE_LIMIT)
+    const nextFile = makeReferenceFile(IMAGE_REFERENCE_LIMIT)
+
+    const result = nextReferenceFiles(existingFiles, () => nextFile)
+
+    expect(result.appended).toBe(true)
+    expect(result.files).toEqual([...existingFiles, nextFile])
+    expect(result.files.at(-1)).toMatchObject(nextInput)
+    expect(existingFiles).toHaveLength(IMAGE_REFERENCE_LIMIT - 1)
+  })
+
+  it('returns only fulfilled deleted ids and fails closed when result counts drift', () => {
+    const results: PromiseSettledResult<void>[] = [
+      { status: 'fulfilled', value: undefined },
+      { status: 'rejected', reason: new Error('delete failed') },
+      { status: 'fulfilled', value: undefined },
+    ]
+
+    expect(fulfilledDeletedIDs([101, 102, 103], results)).toEqual([101, 103])
+    expect(fulfilledDeletedIDs([101, 102, 103], results.slice(0, 2))).toEqual([])
+  })
+
+  it('blocks non-image or URL-less assets from being selected', () => {
+    const selectable = makeAsset()
+    const nonImage = makeAsset({ type: 'text' })
+    const missingURL = makeAsset({ url: '   ' })
+
+    expect(isImageAssetSelectable(nonImage)).toBe(false)
+    expect(assetBlockedReasonKey(nonImage)).toBe('aiImages.assetTypeRequired')
+    expect(isImageAssetSelectable(missingURL)).toBe(false)
+    expect(assetBlockedReasonKey(missingURL)).toBe('aiImages.assetUrlMissing')
+    expect(isImageAssetSelectable(selectable)).toBe(true)
+    expect(assetBlockedReasonKey(selectable)).toBeNull()
   })
 })
