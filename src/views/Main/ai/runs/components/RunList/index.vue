@@ -72,10 +72,21 @@ const {
   searchForm: apiSearchForm
 })
 
-const init = () => {
-  AiRunApi.pageInit().then((data) => {
+function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'detail'): string {
+  if (!(error instanceof Error) || error.message.trim() === '') {
+    throw new Error(`AI run ${operation} failed with non-Error reason`)
+  }
+
+  return error.message
+}
+
+const init = async () => {
+  try {
+    const data = await AiRunApi.pageInit()
     dict.value = data.dict
-  })
+  } catch (e: unknown) {
+    ElNotification.error({message: requireRunListErrorMessage(e, 'page init')})
+  }
 }
 
 const searchFields = computed<SearchField[]>(() => [
@@ -214,7 +225,7 @@ const showDetail = async (row: AiRunItem) => {
     const data = await AiRunApi.detail({id: row.id})
     detailData.value = data
   } catch (e: unknown) {
-    ElNotification.error({message: e instanceof Error ? e.message : t('aiRuns.detail.fetchFailed')})
+    ElNotification.error({message: requireRunListErrorMessage(e, 'detail')})
   } finally {
     detailLoading.value = false
   }

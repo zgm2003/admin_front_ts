@@ -107,9 +107,30 @@ describe('AI run api REST contract', () => {
 
   it('exposes pageInit for run page dictionaries with init alias', () => {
     const source = readFrontendSource('src/api/ai/runs.ts')
-    expect(source).toContain('const pageInit = () => request.get<AiRunInitResponse>')
+    expect(source).toContain('const pageInit = async () => normalizeAiRunInitResponse(')
     expect(source).toContain('pageInit,')
     expect(source).toContain('pageInit')
+  })
+
+  it('validates run monitor page-init dictionaries before rendering select-v2 filters', () => {
+    const source = readFrontendSource('src/api/ai/runs.ts')
+
+    for (const key of [
+      'status_arr',
+      'platform_arr',
+      'modality_arr',
+      'source_type_arr',
+      'usage_status_arr',
+      'agentArr',
+      'providerArr',
+    ]) {
+      expect(source).toMatch(new RegExp(`requireAiRunOptionArray<[^>]+>\\(response\\.dict\\.${key}, 'ai-runs\\.page-init\\.dict\\.${key}'\\)`))
+    }
+
+    expect(source).toContain('function normalizeAiRunInitResponse(response: AiRunInitResponse): AiRunInitResponse')
+    expect(source).toContain('function requireAiRunOptionArray<T extends string | number>')
+    expect(source).not.toContain('dict.value = data.dict')
+    expect(source).not.toContain('?? []')
   })
 
 })

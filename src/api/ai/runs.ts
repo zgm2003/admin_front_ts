@@ -324,7 +324,35 @@ function isAiRunSourceType(value: unknown): value is AiRunSourceType {
   return value === 'ai_chat_message' || value === 'ai_text_task' || value === 'ai_image_task' || value === 'canvas_video_task'
 }
 
-const pageInit = () => request.get<AiRunInitResponse>(`${ADMIN_API_PREFIX}/ai-runs/page-init`)
+function requireAiRunOptionArray<T extends string | number>(value: unknown, field: string): DictOption<T>[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`${field} must be an array`)
+  }
+
+  return value as DictOption<T>[]
+}
+
+function normalizeAiRunInitResponse(response: AiRunInitResponse): AiRunInitResponse {
+  if (!response.dict || typeof response.dict !== 'object') {
+    throw new Error('ai-runs.page-init.dict must be an object')
+  }
+
+  return {
+    dict: {
+      status_arr: requireAiRunOptionArray<AiRunStatus>(response.dict.status_arr, 'ai-runs.page-init.dict.status_arr'),
+      platform_arr: requireAiRunOptionArray<AiRunPlatform>(response.dict.platform_arr, 'ai-runs.page-init.dict.platform_arr'),
+      modality_arr: requireAiRunOptionArray<AiRunModality>(response.dict.modality_arr, 'ai-runs.page-init.dict.modality_arr'),
+      source_type_arr: requireAiRunOptionArray<AiRunSourceType>(response.dict.source_type_arr, 'ai-runs.page-init.dict.source_type_arr'),
+      usage_status_arr: requireAiRunOptionArray<AiRunUsageStatus>(response.dict.usage_status_arr, 'ai-runs.page-init.dict.usage_status_arr'),
+      agentArr: requireAiRunOptionArray<number>(response.dict.agentArr, 'ai-runs.page-init.dict.agentArr'),
+      providerArr: requireAiRunOptionArray<number>(response.dict.providerArr, 'ai-runs.page-init.dict.providerArr'),
+    },
+  }
+}
+
+const pageInit = async () => normalizeAiRunInitResponse(
+  await request.get<AiRunInitResponse>(`${ADMIN_API_PREFIX}/ai-runs/page-init`)
+)
 
 export const AiRunApi = {
   pageInit,
