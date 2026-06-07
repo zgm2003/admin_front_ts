@@ -1299,6 +1299,10 @@ export default {
   },
   aiRuns: {
     filter: {
+      platform: '平台',
+      modality: '类型',
+      sourceType: '来源类型',
+      usageStatus: '用量状态',
       status: '状态',
       agent: 'AI 智能体',
       provider: '供应商',
@@ -1310,6 +1314,10 @@ export default {
     },
     table: {
       request_id: 'Request ID',
+      platform: '平台',
+      modality: '类型',
+      source: '来源',
+      usageStatus: '用量状态',
       agent: 'AI 智能体',
       provider: '供应商',
       conversation: '会话',
@@ -1322,6 +1330,13 @@ export default {
     },
     detail: {
       title: '运行详情',
+      platform: '平台',
+      modality: '类型',
+      source: '来源',
+      sourceType: '来源类型',
+      sourceId: '来源ID',
+      inputSnapshot: '输入快照',
+      usageStatus: '用量状态',
       user: '用户',
       agent: 'AI 智能体',
       provider: '供应商',

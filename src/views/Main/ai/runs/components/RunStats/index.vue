@@ -21,6 +21,10 @@ const TOP_LIMIT = 10
 // 字典数据
 const dict = ref<AiRunInitResponse['dict']>({
   status_arr: [],
+  platform_arr: [],
+  modality_arr: [],
+  source_type_arr: [],
+  usage_status_arr: [],
   agentArr: [],
   providerArr: [],
 })

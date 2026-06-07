@@ -7,7 +7,11 @@ import {
   type AiRunInitResponse,
   type AiRunItem,
   type AiRunMessageMeta,
+  type AiRunModality,
+  type AiRunPlatform,
+  type AiRunSourceType,
   type AiRunStatus,
+  type AiRunUsageStatus,
 } from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
@@ -26,11 +30,19 @@ const isMobile = useIsMobile()
 const {copy} = useCopy()
 const dict = ref<AiRunInitResponse['dict']>({
   status_arr: [],
+  platform_arr: [],
+  modality_arr: [],
+  source_type_arr: [],
+  usage_status_arr: [],
   agentArr: [],
   providerArr: [],
 })
 
 const searchForm = ref({
+  platform: '' as AiRunPlatform | '',
+  modality: '' as AiRunModality | '',
+  source_type: '' as AiRunSourceType | '',
+  usage_status: '' as AiRunUsageStatus | '',
   status: '' as AiRunStatus | '',
   user_id: '' as number | '',
   request_id: '',
@@ -42,8 +54,9 @@ const searchForm = ref({
 // useTable 会 unref 并展开 searchForm，需要转换 dateRange → date_start/date_end
 const apiSearchForm = computed(() => {
   const {dateRange, ...rest} = searchForm.value
+  if (dateRange.length === 0) return rest
   const [date_start, date_end] = dateRange
-  return {...rest, date_start: date_start ?? '', date_end: date_end ?? ''}
+  return {...rest, date_start, date_end}
 })
 
 const {
@@ -66,6 +79,42 @@ const init = () => {
 }
 
 const searchFields = computed<SearchField[]>(() => [
+  {
+    key: 'platform',
+    type: 'select-v2',
+    label: t('aiRuns.filter.platform'),
+    placeholder: t('aiRuns.filter.platform'),
+    width: 120,
+    options: dict.value.platform_arr,
+    clearable: true
+  },
+  {
+    key: 'modality',
+    type: 'select-v2',
+    label: t('aiRuns.filter.modality'),
+    placeholder: t('aiRuns.filter.modality'),
+    width: 120,
+    options: dict.value.modality_arr,
+    clearable: true
+  },
+  {
+    key: 'source_type',
+    type: 'select-v2',
+    label: t('aiRuns.filter.sourceType'),
+    placeholder: t('aiRuns.filter.sourceType'),
+    width: 180,
+    options: dict.value.source_type_arr,
+    clearable: true
+  },
+  {
+    key: 'usage_status',
+    type: 'select-v2',
+    label: t('aiRuns.filter.usageStatus'),
+    placeholder: t('aiRuns.filter.usageStatus'),
+    width: 140,
+    options: dict.value.usage_status_arr,
+    clearable: true
+  },
   {
     key: 'status',
     type: 'select-v2',
@@ -118,6 +167,10 @@ const searchFields = computed<SearchField[]>(() => [
 
 const columns = computed(() => [
   {key: 'request_id', label: t('aiRuns.table.request_id'), width: 240},
+  {key: 'platform', label: t('aiRuns.table.platform'), width: 100},
+  {key: 'modality', label: t('aiRuns.table.modality'), width: 100},
+  {key: 'source_type', label: t('aiRuns.table.source'), width: 170, overflowTooltip: true},
+  {key: 'usage_status', label: t('aiRuns.table.usageStatus'), width: 120},
   {key: 'agent_name', label: t('aiRuns.table.agent'), width: 140},
   {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160, overflowTooltip: true},
@@ -168,14 +221,19 @@ const showDetail = async (row: AiRunItem) => {
 }
 
 const getAttachmentPreviewUrls = (detail: AiRunDetailResponse) =>
-  detail.user_message?.meta_json?.attachments?.map((attachment) => attachment.url) ?? []
+  {
+    if (detail.user_message === null) return []
+    if (!detail.user_message.meta_json) return []
+    if (!detail.user_message.meta_json.attachments) return []
+    return detail.user_message.meta_json.attachments.map((attachment) => attachment.url)
+  }
 
-const hasAssistantMeta = (meta?: AiRunMessageMeta | null) =>
-  Boolean(meta?.run_request_id || meta?.provider_request_id)
+const hasAssistantMeta = (meta: AiRunMessageMeta) =>
+  Boolean(meta.run_request_id || meta.provider_request_id)
 
 const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 
-const formatTokens = (value: number) => value ? value.toLocaleString() : '-'
+const formatTokens = (value: number) => value.toLocaleString()
 
 const prettyJSON = (value: unknown) => {
   if (value === null || value === undefined) return '-'
@@ -253,12 +311,23 @@ onMounted(() => {
             <el-button :icon="CopyDocument" size="small" text @click.stop="copy(row.request_id)"/>
           </div>
         </template>
+        <template #cell-platform="{row}">
+          <el-tag size="small" type="info">{{ row.platform }}</el-tag>
+        </template>
+        <template #cell-modality="{row}">
+          <el-tag size="small">{{ row.modality }}</el-tag>
+        </template>
+        <template #cell-source_type="{row}">
+          <span>{{ row.source_type }} #{{ row.source_id }}</span>
+        </template>
+        <template #cell-usage_status="{row}">
+          <el-tag size="small" type="info">{{ row.usage_status }}</el-tag>
+        </template>
         <template #cell-status="{row}">
           <el-tag :type="getStatusType(row.status)" size="small">{{ row.status_name }}</el-tag>
         </template>
         <template #cell-total_tokens="{row}">
-          <span v-if="row.total_tokens">{{ row.total_tokens.toLocaleString() }}</span>
-          <span v-else>-</span>
+          <span>{{ row.total_tokens.toLocaleString() }}</span>
         </template>
         <template #cell-error_message="{row}">
           <el-text v-if="row.error_message" type="danger" truncated>{{ row.error_message }}</el-text>
@@ -286,6 +355,11 @@ onMounted(() => {
         <el-descriptions :column="isMobile ? 1 : 2" border>
           <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
           <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.platform')">{{ detailData.platform }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.modality')">{{ detailData.modality }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.sourceType')">{{ detailData.source_type }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.sourceId')">{{ detailData.source_id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.usageStatus')">{{ detailData.usage_status }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.agent')">{{ detailData.agent_name }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.provider')">{{ detailData.provider_name }}</el-descriptions-item>
@@ -296,25 +370,28 @@ onMounted(() => {
           <el-descriptions-item :label="t('aiRuns.detail.status')">
             <el-tag :type="getStatusType(detailData.status)" size="small">{{ detailData.status_name }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_display_name || detailData.model_id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_display_name }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{
-              detailData.prompt_tokens ?? '-'
+              detailData.prompt_tokens
             }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">{{
-              detailData.completion_tokens ?? '-'
+              detailData.completion_tokens
             }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">{{
-              detailData.total_tokens ?? '-'
+              detailData.total_tokens
             }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.duration_text }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.startedAt')">{{ detailData.started_at || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.finishedAt')">{{ detailData.finished_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.startedAt')">{{ detailData.started_at }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.finishedAt')">{{ detailData.finished_at }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">{{ detailData.updated_at }}</el-descriptions-item>
         </el-descriptions>
+
+        <el-divider content-position="left">{{ t('aiRuns.detail.inputSnapshot') }}</el-divider>
+        <div class="input-snapshot">{{ detailData.input_snapshot }}</div>
 
         <!-- 错误信息 -->
         <template v-if="detailData.error_message">
@@ -518,6 +595,16 @@ onMounted(() => {
 
 .run-detail {
   width: 100%;
+}
+
+.input-snapshot {
+  padding: 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  background: var(--el-fill-color-lighter);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
 }
 
 .message-box {

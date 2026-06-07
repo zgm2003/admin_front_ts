@@ -1184,6 +1184,10 @@ export default {
   },
   aiRuns: {
     filter: {
+      platform: 'Platform',
+      modality: 'Modality',
+      sourceType: 'Source Type',
+      usageStatus: 'Usage Status',
       status: 'Status',
       agent: 'AI Agent',
       provider: 'Provider',
@@ -1195,6 +1199,10 @@ export default {
     },
     table: {
       request_id: 'Request ID',
+      platform: 'Platform',
+      modality: 'Modality',
+      source: 'Source',
+      usageStatus: 'Usage Status',
       agent: 'AI Agent',
       provider: 'Provider',
       conversation: 'Conversation',
@@ -1207,6 +1215,13 @@ export default {
     },
     detail: {
       title: 'Run Detail',
+      platform: 'Platform',
+      modality: 'Modality',
+      source: 'Source',
+      sourceType: 'Source Type',
+      sourceId: 'Source ID',
+      inputSnapshot: 'Input Snapshot',
+      usageStatus: 'Usage Status',
       user: 'User',
       agent: 'AI Agent',
       provider: 'Provider',

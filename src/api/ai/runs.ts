@@ -18,11 +18,19 @@ export interface AiRunMessageMeta {
 }
 
 export type AiRunStatus = 'running' | 'success' | 'failed' | 'canceled' | 'timeout'
+export type AiRunPlatform = 'admin' | 'app' | 'canvas'
+export type AiRunModality = 'chat' | 'text' | 'image' | 'video'
+export type AiRunSourceType = 'ai_chat_message' | 'ai_text_task' | 'ai_image_task' | 'canvas_video_task'
+export type AiRunUsageStatus = 'pending' | 'reported' | 'unavailable'
 export type AiRunToolCallStatus = 'running' | 'success' | 'failed' | 'timeout'
 
 export interface AiRunInitResponse {
   dict: {
     status_arr: DictOption<AiRunStatus>[]
+    platform_arr: DictOption<AiRunPlatform>[]
+    modality_arr: DictOption<AiRunModality>[]
+    source_type_arr: DictOption<AiRunSourceType>[]
+    usage_status_arr: DictOption<AiRunUsageStatus>[]
     agentArr: DictOption<number>[]
     providerArr: DictOption<number>[]
   }
@@ -31,6 +39,10 @@ export interface AiRunInitResponse {
 export interface AiRunListParams extends RequestPayload {
   current_page?: number
   page_size?: number
+  platform?: AiRunPlatform | ''
+  modality?: AiRunModality | ''
+  source_type?: AiRunSourceType | ''
+  usage_status?: AiRunUsageStatus | ''
   status?: AiRunStatus | ''
   user_id?: number | ''
   request_id?: string
@@ -48,7 +60,13 @@ export interface AiRunItem {
   agent_name: string
   provider_id: number
   provider_name: string
-  conversation_id: number
+  platform: AiRunPlatform
+  modality: AiRunModality
+  source_type: AiRunSourceType
+  source_id: number
+  input_snapshot: string
+  usage_status: AiRunUsageStatus
+  conversation_id: number | null
   conversation_title: string
   status: AiRunStatus
   status_name: string
@@ -126,7 +144,13 @@ export interface AiRunDetailResponse {
   agent_name: string
   provider_id: number
   provider_name: string
-  conversation_id: number
+  platform: AiRunPlatform
+  modality: AiRunModality
+  source_type: AiRunSourceType
+  source_id: number
+  input_snapshot: string
+  usage_status: AiRunUsageStatus
+  conversation_id: number | null
   conversation_title: string
   status: AiRunStatus
   status_name: string
@@ -138,8 +162,8 @@ export interface AiRunDetailResponse {
   duration_ms?: number | null
   duration_text: string
   error_message: string
-  user_message?: AiRunMessageSummary | null
-  assistant_message?: AiRunMessageSummary | null
+  user_message: AiRunMessageSummary | null
+  assistant_message: AiRunMessageSummary | null
   events: AiRunEventItem[]
   knowledge_retrievals: AiRunKnowledgeRetrievalItem[]
   tool_calls: AiRunToolCallItem[]
@@ -202,6 +226,9 @@ export interface AiRunStatsListParams extends RequestPayload {
   page_size: number
   date_start?: string
   date_end?: string
+  platform?: AiRunPlatform | ''
+  modality?: AiRunModality | ''
+  source_type?: AiRunSourceType | ''
   agent_id?: number | ''
   provider_id?: number | ''
   user_id?: number | ''
@@ -210,6 +237,10 @@ export interface AiRunStatsListParams extends RequestPayload {
 interface AiRunListQueryParams {
   current_page?: number
   page_size?: number
+  platform?: AiRunPlatform
+  modality?: AiRunModality
+  source_type?: AiRunSourceType
+  usage_status?: AiRunUsageStatus
   status?: AiRunStatus
   user_id?: number
   request_id?: string
@@ -222,6 +253,9 @@ interface AiRunListQueryParams {
 interface AiRunStatsQueryParams {
   date_start?: string
   date_end?: string
+  platform?: AiRunPlatform
+  modality?: AiRunModality
+  source_type?: AiRunSourceType
   agent_id?: number
   provider_id?: number
   user_id?: number
@@ -242,6 +276,10 @@ function normalizeListParams(params: AiRunListParams): AiRunListQueryParams {
   const query: AiRunListQueryParams = {}
   if (typeof params.current_page === 'number') query.current_page = params.current_page
   if (typeof params.page_size === 'number') query.page_size = params.page_size
+  if (params.platform) query.platform = params.platform
+  if (params.modality) query.modality = params.modality
+  if (params.source_type) query.source_type = params.source_type
+  if (params.usage_status) query.usage_status = params.usage_status
   if (params.status) query.status = params.status
   if (typeof params.user_id === 'number') query.user_id = params.user_id
   if (params.request_id) query.request_id = params.request_id
@@ -257,6 +295,9 @@ function normalizeStatsParams(params?: RequestPayload): AiRunStatsQueryParams {
   if (!params) return query
   if (typeof params.date_start === 'string' && params.date_start) query.date_start = params.date_start
   if (typeof params.date_end === 'string' && params.date_end) query.date_end = params.date_end
+  if (isAiRunPlatform(params.platform)) query.platform = params.platform
+  if (isAiRunModality(params.modality)) query.modality = params.modality
+  if (isAiRunSourceType(params.source_type)) query.source_type = params.source_type
   if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
   if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
   if (typeof params.user_id === 'number') query.user_id = params.user_id
@@ -269,6 +310,18 @@ function normalizeStatsListParams(params: AiRunStatsListParams): AiRunStatsListQ
     current_page: params.current_page,
     page_size: params.page_size,
   }
+}
+
+function isAiRunPlatform(value: unknown): value is AiRunPlatform {
+  return value === 'admin' || value === 'app' || value === 'canvas'
+}
+
+function isAiRunModality(value: unknown): value is AiRunModality {
+  return value === 'chat' || value === 'text' || value === 'image' || value === 'video'
+}
+
+function isAiRunSourceType(value: unknown): value is AiRunSourceType {
+  return value === 'ai_chat_message' || value === 'ai_text_task' || value === 'ai_image_task' || value === 'canvas_video_task'
 }
 
 const pageInit = () => request.get<AiRunInitResponse>(`${ADMIN_API_PREFIX}/ai-runs/page-init`)
