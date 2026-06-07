@@ -6,6 +6,7 @@ const workspaceFiles = [
   'src/api/ai/images.ts',
   'src/views/Main/ai/image-playground/index.vue',
   'src/views/Main/ai/image-playground/types.ts',
+  'src/views/Main/ai/image-playground/composables/useImageWorkspaceActions.ts',
   'src/views/Main/ai/image-playground/components/ImageHistoryGrid/index.vue',
   'src/views/Main/ai/image-playground/components/ImageComposer/index.vue',
   'src/views/Main/ai/image-playground/components/ImageResultPanel/index.vue',
@@ -68,5 +69,44 @@ describe('AI image workspace convergence with Canvas interactions', () => {
     for (const term of forbiddenWorkspaceTerms) {
       expect(workspaceSource).not.toContain(term)
     }
+  })
+
+  it('moves side-effect-heavy workspace actions into a guarded composable', () => {
+    const page = readRequired('src/views/Main/ai/image-playground/index.vue')
+    const actions = readRequired('src/views/Main/ai/image-playground/composables/useImageWorkspaceActions.ts')
+
+    expect(page).toContain("import { IMAGE_REFERENCE_LIMIT, useImageWorkspaceActions } from './composables/useImageWorkspaceActions'")
+    expect(page).toContain('useImageWorkspaceActions({')
+    expect(actions).toContain('export const IMAGE_REFERENCE_LIMIT = 10')
+    expect(actions).toContain('CommonEnum.YES')
+    expect(actions).toContain('function ensureReferenceCapacity')
+    expect(actions).toContain('Promise.allSettled')
+    expect(actions).toContain('finally')
+    expect(actions).toContain('await refreshList()')
+    expect(actions).toContain('async function saveAsset')
+    expect(actions).toContain('async function deleteSelected')
+  })
+
+  it('handles dialog async load errors and disables invalid reference insertion paths', () => {
+    const page = readRequired('src/views/Main/ai/image-playground/index.vue')
+    const result = readRequired('src/views/Main/ai/image-playground/components/ImageResultPanel/index.vue')
+    const promptDialog = readRequired('src/views/Main/ai/image-playground/components/ImagePromptDialog/index.vue')
+    const assetPicker = readRequired('src/views/Main/ai/image-playground/components/ImageAssetPicker/index.vue')
+
+    expect(promptDialog).not.toContain('void loadPrompts(1)')
+    expect(promptDialog).toContain('loadPromptsSafely')
+    expect(promptDialog).toContain('.catch(handlePromptLoadError)')
+    expect(promptDialog).toContain('loadError')
+    expect(assetPicker).not.toContain('void loadAssets(1)')
+    expect(assetPicker).toContain('loadAssetsSafely')
+    expect(assetPicker).toContain('.catch(handleAssetLoadError)')
+    expect(assetPicker).toContain('loadError')
+
+    expect(page).toContain(':can-add-reference="canAddReference"')
+    expect(result).toContain('canAddReference: boolean')
+    expect(result).toContain(':disabled="!canAddReference"')
+    expect(assetPicker).toContain('isAssetSelectable')
+    expect(assetPicker).toContain(':disabled="!isAssetSelectable(asset)"')
+    expect(assetPicker).toContain('assetUrlMissing')
   })
 })

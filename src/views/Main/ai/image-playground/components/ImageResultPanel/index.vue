@@ -8,6 +8,8 @@ interface Props {
   detail: AiImageDetailResponse | null
   loading: boolean
   canSaveAsset: boolean
+  canAddReference: boolean
+  addReferenceDisabledReason: string
 }
 
 interface Emits {
@@ -71,6 +73,11 @@ function saveAsset(file: AiImageFileItem) {
   emit('saveAsset', file, currentDetail)
 }
 
+function addReference(file: AiImageFileItem) {
+  if (!props.canAddReference) return
+  emit('addReference', file)
+}
+
 function downloadFile(file: AiImageFileItem) {
   const link = document.createElement('a')
   link.href = file.storage_url
@@ -123,9 +130,13 @@ function downloadFile(file: AiImageFileItem) {
               <el-button :icon="Star" :disabled="!canSaveAsset" @click="saveAsset(file)">
                 {{ t('aiImages.addToAssets') }}
               </el-button>
-              <el-button :icon="FolderAdd" @click="emit('addReference', file)">
-                {{ t('aiImages.addToReferences') }}
-              </el-button>
+              <el-tooltip :disabled="canAddReference" :content="addReferenceDisabledReason">
+                <span class="output-action-tooltip">
+                  <el-button :icon="FolderAdd" :disabled="!canAddReference" @click="addReference(file)">
+                    {{ t('aiImages.addToReferences') }}
+                  </el-button>
+                </span>
+              </el-tooltip>
               <el-button type="primary" :icon="Download" @click="downloadFile(file)">
                 {{ t('aiImages.download') }}
               </el-button>
@@ -246,6 +257,10 @@ function downloadFile(file: AiImageFileItem) {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.output-action-tooltip {
+  display: inline-flex;
 }
 
 .output-meta {

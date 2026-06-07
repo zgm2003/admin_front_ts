@@ -13,6 +13,7 @@ interface Props {
   submitting: boolean
   canUploadFile: boolean
   canCreateTask: boolean
+  referenceLimit: number
 }
 
 interface Emits {
@@ -29,12 +30,13 @@ const emit = defineEmits<Emits>()
 const form = defineModel<ImageComposerState>({ required: true })
 const { t } = useI18n()
 
-const canUploadMore = computed(() => form.value.input_files.length < 10)
+const canUploadMore = computed(() => form.value.input_files.length < props.referenceLimit)
 const agentSelectOptions = computed(() => props.agentOptions.map((agent) => ({ label: agent.name, value: agent.id })))
 const submitDisabled = computed(() => {
   return props.submitting || !props.canCreateTask || !form.value.agent_id || form.value.prompt.trim() === ''
 })
-const referenceSummary = computed(() => t('aiImages.referenceCount', { count: form.value.input_files.length }))
+const referenceSummary = computed(() => t('aiImages.referenceCount', { count: form.value.input_files.length, max: props.referenceLimit }))
+const referenceLimitReachedTip = computed(() => t('aiImages.referenceLimitReached', { max: props.referenceLimit }))
 
 function beforeReferenceUpload(file: File) {
   if (!props.canUploadFile || !canUploadMore.value) return false
@@ -99,23 +101,35 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
             <p>{{ referenceSummary }}</p>
           </div>
           <div class="section-actions">
-            <el-button :icon="FolderOpened" plain :disabled="!canUploadMore" @click="emit('openAssetLibrary')">
-              {{ t('aiImages.assetLibrary') }}
-            </el-button>
-            <el-button :icon="Picture" plain :disabled="!canUploadMore" @click="emit('addClipboardReference')">
-              {{ t('aiImages.clipboardReference') }}
-            </el-button>
-            <el-upload
-              multiple
-              accept="image/*"
-              :show-file-list="false"
-              :disabled="uploading || !canUploadFile || !canUploadMore"
-              :before-upload="beforeReferenceUpload"
-            >
-              <el-button :icon="Upload" plain :loading="uploading" :disabled="!canUploadFile || !canUploadMore">
-                {{ t('aiImages.uploadReference') }}
-              </el-button>
-            </el-upload>
+            <el-tooltip :disabled="canUploadMore" :content="referenceLimitReachedTip">
+              <span class="composer-action-tooltip">
+                <el-button :icon="FolderOpened" plain :disabled="!canUploadMore" @click="emit('openAssetLibrary')">
+                  {{ t('aiImages.assetLibrary') }}
+                </el-button>
+              </span>
+            </el-tooltip>
+            <el-tooltip :disabled="canUploadMore" :content="referenceLimitReachedTip">
+              <span class="composer-action-tooltip">
+                <el-button :icon="Picture" plain :disabled="!canUploadMore" @click="emit('addClipboardReference')">
+                  {{ t('aiImages.clipboardReference') }}
+                </el-button>
+              </span>
+            </el-tooltip>
+            <el-tooltip :disabled="canUploadMore" :content="referenceLimitReachedTip">
+              <span class="composer-action-tooltip">
+                <el-upload
+                  multiple
+                  accept="image/*"
+                  :show-file-list="false"
+                  :disabled="uploading || !canUploadFile || !canUploadMore"
+                  :before-upload="beforeReferenceUpload"
+                >
+                  <el-button :icon="Upload" plain :loading="uploading" :disabled="!canUploadFile || !canUploadMore">
+                    {{ t('aiImages.uploadReference') }}
+                  </el-button>
+                </el-upload>
+              </span>
+            </el-tooltip>
             <el-button plain :disabled="form.input_files.length === 0" @click="emit('openMask')">
               {{ t('aiImages.maskEdit') }}
             </el-button>
@@ -229,6 +243,10 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.composer-action-tooltip {
+  display: inline-flex;
 }
 
 .studio-prompt-input {

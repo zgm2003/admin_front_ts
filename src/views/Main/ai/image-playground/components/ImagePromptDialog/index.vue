@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { AiPromptApi, type AiPromptItem } from '@/api/ai/prompts'
 import type { PageInfo } from '@/types/common'
@@ -15,6 +16,7 @@ const { t } = useI18n()
 
 const loading = shallowRef(false)
 const keyword = shallowRef('')
+const loadError = shallowRef('')
 const prompts = shallowRef<AiPromptItem[]>([])
 const page = shallowRef<PageInfo>({
   current_page: 1,
@@ -22,11 +24,17 @@ const page = shallowRef<PageInfo>({
   total_page: 0,
   total: 0,
 })
+const emptyDescription = computed(() => (loadError.value === '' ? t('aiImages.emptyPromptLibrary') : loadError.value))
 
 watch(visible, (nextVisible) => {
   if (!nextVisible) return
-  void loadPrompts(1)
+  loadPromptsSafely(1)
 })
+
+function loadPromptsSafely(currentPage: number) {
+  loadError.value = ''
+  void loadPrompts(currentPage).catch(handlePromptLoadError)
+}
 
 async function loadPrompts(currentPage: number) {
   loading.value = true
@@ -44,7 +52,27 @@ async function loadPrompts(currentPage: number) {
 }
 
 function searchPrompts() {
-  void loadPrompts(1)
+  loadPromptsSafely(1)
+}
+
+function handlePromptLoadError(error: unknown) {
+  prompts.value = []
+  page.value = emptyPage(page.value.page_size)
+  loadError.value = errorMessage(error, t('aiImages.promptLoadFailed'))
+  ElMessage.error(loadError.value)
+}
+
+function emptyPage(pageSize: number): PageInfo {
+  return {
+    current_page: 1,
+    page_size: pageSize,
+    total_page: 0,
+    total: 0,
+  }
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
 }
 
 function selectPrompt(prompt: AiPromptItem) {
@@ -62,7 +90,7 @@ function selectPrompt(prompt: AiPromptItem) {
       </div>
 
       <div class="prompt-list">
-        <el-empty v-if="prompts.length === 0" :description="t('aiImages.emptyPromptLibrary')" />
+        <el-empty v-if="prompts.length === 0" :description="emptyDescription" />
         <button v-for="prompt in prompts" v-else :key="prompt.id" class="prompt-card" type="button" @click="selectPrompt(prompt)">
           <strong>{{ prompt.title }}</strong>
           <span>{{ prompt.category }}</span>
@@ -77,7 +105,7 @@ function selectPrompt(prompt: AiPromptItem) {
         :page-size="page.page_size"
         :current-page="page.current_page"
         :total="page.total"
-        @current-change="loadPrompts"
+        @current-change="loadPromptsSafely"
       />
     </div>
   </AppDialog>

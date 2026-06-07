@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { AiAssetApi, type AiAssetItem } from '@/api/ai/assets'
 import type { PageInfo } from '@/types/common'
@@ -15,6 +16,7 @@ const { t } = useI18n()
 
 const loading = shallowRef(false)
 const keyword = shallowRef('')
+const loadError = shallowRef('')
 const assets = shallowRef<AiAssetItem[]>([])
 const page = shallowRef<PageInfo>({
   current_page: 1,
@@ -22,11 +24,17 @@ const page = shallowRef<PageInfo>({
   total_page: 0,
   total: 0,
 })
+const emptyDescription = computed(() => (loadError.value === '' ? t('aiImages.emptyAssetLibrary') : loadError.value))
 
 watch(visible, (nextVisible) => {
   if (!nextVisible) return
-  void loadAssets(1)
+  loadAssetsSafely(1)
 })
+
+function loadAssetsSafely(currentPage: number) {
+  loadError.value = ''
+  void loadAssets(currentPage).catch(handleAssetLoadError)
+}
 
 async function loadAssets(currentPage: number) {
   loading.value = true
@@ -45,10 +53,41 @@ async function loadAssets(currentPage: number) {
 }
 
 function searchAssets() {
-  void loadAssets(1)
+  loadAssetsSafely(1)
+}
+
+function handleAssetLoadError(error: unknown) {
+  assets.value = []
+  page.value = emptyPage(page.value.page_size)
+  loadError.value = errorMessage(error, t('aiImages.assetLoadFailed'))
+  ElMessage.error(loadError.value)
+}
+
+function emptyPage(pageSize: number): PageInfo {
+  return {
+    current_page: 1,
+    page_size: pageSize,
+    total_page: 0,
+    total: 0,
+  }
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
+}
+
+function isAssetSelectable(asset: AiAssetItem) {
+  return asset.type === 'image' && asset.url.trim() !== ''
+}
+
+function assetBlockedReason(asset: AiAssetItem) {
+  if (asset.type !== 'image') return t('aiImages.assetTypeRequired')
+  if (asset.url.trim() === '') return t('aiImages.assetUrlMissing')
+  return ''
 }
 
 function selectAsset(asset: AiAssetItem) {
+  if (!isAssetSelectable(asset)) return
   emit('selectAsset', asset)
   visible.value = false
 }
@@ -63,15 +102,22 @@ function selectAsset(asset: AiAssetItem) {
       </div>
 
       <div class="asset-picker-grid">
-        <el-empty v-if="assets.length === 0" :description="t('aiImages.emptyAssetLibrary')" />
-        <button v-for="asset in assets" v-else :key="asset.id" class="asset-picker-card" type="button" @click="selectAsset(asset)">
-          <el-image v-if="asset.url" class="asset-picker-image" :src="asset.url" fit="cover" />
-          <div class="asset-picker-body">
-            <strong>{{ asset.title }}</strong>
-            <span>{{ asset.category }}</span>
-            <p>{{ asset.description }}</p>
-          </div>
-        </button>
+        <el-empty v-if="assets.length === 0" :description="emptyDescription" />
+        <template v-else>
+          <el-tooltip v-for="asset in assets" :key="asset.id" :disabled="isAssetSelectable(asset)" :content="assetBlockedReason(asset)">
+            <span class="asset-picker-card-shell">
+              <button class="asset-picker-card" type="button" :disabled="!isAssetSelectable(asset)" @click="selectAsset(asset)">
+                <el-image v-if="asset.url.trim() !== ''" class="asset-picker-image" :src="asset.url.trim()" fit="cover" />
+                <div v-else class="asset-picker-missing-url">{{ t('aiImages.assetUrlMissing') }}</div>
+                <div class="asset-picker-body">
+                  <strong>{{ asset.title }}</strong>
+                  <span>{{ asset.category }}</span>
+                  <p>{{ asset.description }}</p>
+                </div>
+              </button>
+            </span>
+          </el-tooltip>
+        </template>
       </div>
 
       <el-pagination
@@ -81,7 +127,7 @@ function selectAsset(asset: AiAssetItem) {
         :page-size="page.page_size"
         :current-page="page.current_page"
         :total="page.total"
-        @current-change="loadAssets"
+        @current-change="loadAssetsSafely"
       />
     </div>
   </AppDialog>
@@ -113,6 +159,11 @@ function selectAsset(asset: AiAssetItem) {
   padding: 12px;
 }
 
+.asset-picker-card-shell {
+  display: block;
+  min-width: 0;
+}
+
 .asset-picker-card {
   border: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
   border-radius: 14px;
@@ -123,6 +174,12 @@ function selectAsset(asset: AiAssetItem) {
   overflow: hidden;
   padding: 0;
   text-align: left;
+  width: 100%;
+}
+
+.asset-picker-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
 }
 
 .asset-picker-image {
@@ -130,6 +187,18 @@ function selectAsset(asset: AiAssetItem) {
   height: 128px;
   display: block;
   background: var(--el-fill-color-light);
+}
+
+.asset-picker-missing-url {
+  align-items: center;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  display: flex;
+  font-size: 12px;
+  height: 128px;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
 }
 
 .asset-picker-body {
