@@ -1,4 +1,4 @@
-import { ref, reactive, watch } from 'vue'
+import { reactive, shallowRef, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UsersApi } from '@/api/user/users'
 import i18n from '@/i18n'
@@ -6,14 +6,27 @@ import i18n from '@/i18n'
 const isValidEmail = (str: string) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(str)
 const isValidPhone = (str: string) => /^1[3-9]\d{9}$/.test(str)
 
+function requireRequestErrorMessage(error: unknown, operation: 'send code' | 'reset'): string {
+  if (!(error instanceof Error)) {
+    throw new Error(`forgot password ${operation} failed with non-Error reason`)
+  }
+
+  const message = error.message.trim()
+  if (message.length === 0) {
+    throw new Error(`forgot password ${operation} error message must be non-empty`)
+  }
+
+  return message
+}
+
 export function useForgotPassword() {
   const t = i18n.global.t
-  const forgotVisible = ref(false)
-  const forgotStep = ref(1)
-  const forgotCountdown = ref(0)
-  const isForgotSubmitting = ref(false)
-  const isSendingCode = ref(false)
-  const forgotTimer = ref<ReturnType<typeof setInterval> | null>(null)
+  const forgotVisible = shallowRef(false)
+  const forgotStep = shallowRef(1)
+  const forgotCountdown = shallowRef(0)
+  const isForgotSubmitting = shallowRef(false)
+  const isSendingCode = shallowRef(false)
+  const forgotTimer = shallowRef<ReturnType<typeof setInterval> | null>(null)
 
   const forgotForm = reactive({
     account: '',
@@ -68,8 +81,8 @@ export function useForgotPassword() {
       await UsersApi.sendCode({ account: forgotForm.account, scene: 'forget' })
       ElMessage.success(t('forgotPassword.validation.codeSent'))
       startForgotCountdown()
-    } catch (error: any) {
-      ElMessage.error(error?.message || t('forgotPassword.validation.sendFailed'))
+    } catch (error: unknown) {
+      ElMessage.error(requireRequestErrorMessage(error, 'send code'))
     } finally {
       isSendingCode.value = false
     }
@@ -97,8 +110,8 @@ export function useForgotPassword() {
       })
       ElMessage.success(t('forgotPassword.validation.resetSuccess'))
       forgotVisible.value = false
-    } catch (error: any) {
-      ElMessage.error(error?.message || t('forgotPassword.validation.resetFailed'))
+    } catch (error: unknown) {
+      ElMessage.error(requireRequestErrorMessage(error, 'reset'))
     } finally {
       isForgotSubmitting.value = false
     }

@@ -44,7 +44,7 @@
         <div v-for="(it, index) in filtered" :key="it.path" :class="['result-item', { active: index === activeIndex }]"
              @click="go(it)" @mouseenter="activeIndex = index">
           <div class="row">
-            <DIcon :icon="it.icon || 'Menu'" :size="20" class="left-icon" />
+            <DIcon :icon="it.icon" :size="20" class="left-icon" />
             <div class="content">
               <div class="title">{{ resolveMenuLabel(t, it) }}</div>
               <div class="sub">{{ it.path }}</div>
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue'
+import {computed, onMounted, onBeforeUnmount, shallowRef, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useUserStore} from '@/store/user'
 import {Top, Bottom, Right, Close, Search} from '@element-plus/icons-vue'
@@ -72,36 +72,58 @@ import { AppDialog } from '@/components/AppDialog'
 import {resolveMenuLabel} from '@/views/Layout/utils/menuLabel'
 import {DIcon} from '@/components/DIcon'
 import { resolveSearchDialogLayout } from './search-dialog'
+import type { PermissionMenuItem } from '@/types/user'
 
 const props = defineProps<{ modelValue: boolean }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 const show = computed({get: () => props.modelValue, set: (v: boolean) => emit('update:modelValue', v)})
 const router = useRouter()
 const userStore = useUserStore()
-const keyword = ref('')
-const activeIndex = ref(0)
+const keyword = shallowRef('')
+const activeIndex = shallowRef(0)
 const isMobile = useIsMobile()
 const {t} = useI18n()
 const dialogLayout = computed(() => resolveSearchDialogLayout(isMobile.value))
 
-type Item = { label: string; path: string; icon?: any; i18n_key?: string; name?: string }
-const list = computed<Item[]>(() => {
-  const res: Item[] = []
-  const walk = (nodes: any[]) => {
-    if (!nodes) return
-    nodes.forEach(n => {
-      if (n.path) res.push({label: n.label || '', path: n.path, icon: n.icon, i18n_key: n.i18n_key, name: n.name})
-      if (n.children && n.children.length) walk(n.children)
-    })
-  }
-  walk(userStore.permissions as any[])
-  return res
+const SEARCH_RESULT_DEFAULT_ICON = 'Menu'
+
+type SearchMenuNode = PermissionMenuItem & { name?: string }
+type SearchResultItem = Pick<SearchMenuNode, 'label' | 'path' | 'icon' | 'i18n_key' | 'name'>
+
+const toSearchResultItem = (node: SearchMenuNode): SearchResultItem => ({
+  label: node.label,
+  path: node.path,
+  icon: node.icon ? node.icon : SEARCH_RESULT_DEFAULT_ICON,
+  i18n_key: node.i18n_key,
+  name: node.name,
+})
+
+const collectSearchItems = (nodes: SearchMenuNode[], result: SearchResultItem[]) => {
+  nodes.forEach(node => {
+    if (node.path) {
+      result.push(toSearchResultItem(node))
+    }
+    if (node.children.length > 0) {
+      collectSearchItems(node.children, result)
+    }
+  })
+}
+
+const list = computed<SearchResultItem[]>(() => {
+  const result: SearchResultItem[] = []
+  collectSearchItems(userStore.permissions, result)
+  return result
 })
 
 const filtered = computed(() => {
-  const q = keyword.value.trim().toLowerCase()
-  if (!q) return list.value
-  return list.value.filter(it => (it.label || '').toLowerCase().includes(q) || (it.path || '').toLowerCase().includes(q))
+  const query = keyword.value.trim().toLowerCase()
+  if (!query) {
+    return list.value
+  }
+
+  return list.value.filter(item =>
+    item.label.toLowerCase().includes(query) || item.path.toLowerCase().includes(query)
+  )
 })
 
 watch(keyword, () => {
@@ -114,8 +136,8 @@ watch(show, (v) => {
   }
 })
 
-const go = (it: Item) => {
-  show.value = false;
+const go = (it: SearchResultItem) => {
+  show.value = false
   router.push(it.path)
 }
 
@@ -312,5 +334,3 @@ kbd {
   .result-item { padding: 10px 12px; }
 }
 </style>
-
-

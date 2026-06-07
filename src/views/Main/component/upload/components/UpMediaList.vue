@@ -6,17 +6,12 @@ import { Plus } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { uploadFileToCloud, getUploadToken, validateFile } from '@/lib/upload'
 import { useIsMobile } from '@/hooks/useResponsive'
+import type { UploadMediaItem } from './media'
 
 const isMobile = useIsMobile()
 
-interface MediaItem {
-  name: string
-  url: string
-  uid: number
-}
-
 const props = withDefaults(defineProps<{
-  modelValue?: MediaItem[]
+  modelValue?: UploadMediaItem[]
   folderName?: string
   type?: 'image' | 'video'
 }>(), {
@@ -25,7 +20,7 @@ const props = withDefaults(defineProps<{
   type: 'image',
 })
 const emits = defineEmits<{
-  'update:modelValue': [value: MediaItem[]]
+  'update:modelValue': [value: UploadMediaItem[]]
 }>()
 
 const mediaList = ref<UploadUserFile[]>([...props.modelValue])
@@ -34,7 +29,7 @@ const loading = ref(false)
 const acceptType = computed(() => props.type === 'video' ? 'video/*' : 'image/*')
 const listType = computed(() => props.type === 'video' ? 'text' : 'picture-card')
 
-watch(() => props.modelValue, (newValue: MediaItem[]) => { mediaList.value = [...newValue] })
+watch(() => props.modelValue, (newValue: UploadMediaItem[]) => { mediaList.value = [...newValue] })
 
 const beforeUpload = async (file: File) => {
   loading.value = true
@@ -70,7 +65,7 @@ const handlePreview = (file: UploadFile) => {
   dialogVisible.value = true 
 }
 
-function toMediaItems(values: UploadUserFile[]): MediaItem[] {
+function toMediaItems(values: UploadUserFile[]): UploadMediaItem[] {
   return values.flatMap((item) => {
     if (!item.url || typeof item.uid !== 'number') {
       return []

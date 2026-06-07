@@ -1,14 +1,52 @@
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, computed, nextTick, ref, watch, shallowRef} from 'vue'
-import {Editor, Toolbar} from '@wangeditor/editor-for-vue'
-import {ElMessage} from 'element-plus'
-import {getUploadToken, uploadFileToCloud} from '@/lib/upload'
+import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { Boot, type IDomEditor, type IEditorConfig, type IModuleConf } from '@wangeditor/editor'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { ElMessage } from 'element-plus'
+import { getUploadToken, uploadFileToCloud } from '@/lib/upload'
 
 let editorRegisterPromise: Promise<void> | null = null
 type PrismWindow = Window & {
   Prism?: {
     languages?: Record<string, unknown>
   }
+}
+type EditorAlertType = Parameters<IEditorConfig['customAlert']>[1]
+type ImageInsertFn = (src: string, alt: string, href: string) => void
+type VideoInsertFn = (src: string, poster: string) => void
+type MarkdownModule = { default: Partial<IModuleConf> }
+
+interface EditorUploadImageConfig {
+  customUpload?: (file: File, insertFn: ImageInsertFn) => Promise<void> | void
+}
+
+interface EditorUploadVideoConfig {
+  customUpload?: (file: File, insertFn: VideoInsertFn) => Promise<void> | void
+}
+
+type WangEditorMenuConfig = NonNullable<IEditorConfig['MENU_CONF']>
+type EditorMenuConfig = WangEditorMenuConfig & {
+  uploadImage?: EditorUploadImageConfig
+  uploadVideo?: EditorUploadVideoConfig
+}
+
+interface AdminEditorConfig extends Partial<Omit<IEditorConfig, 'MENU_CONF'>> {
+  MENU_CONF?: EditorMenuConfig
+  uploadImgShowBase64?: boolean
+}
+
+interface Props {
+  editorId?: string
+  height?: number | string
+  editorConfig?: AdminEditorConfig
+  modelValue?: string
+  uploadFolder?: string
+  useCosUpload?: boolean
+}
+
+interface Emits {
+  change: [editor: IDomEditor]
+  'update:modelValue': [value: string]
 }
 
 const ensurePrismMarkupTemplatingRegistered = async () => {
@@ -22,71 +60,78 @@ const ensurePrismMarkupTemplatingRegistered = async () => {
 const ensureEditorRegistered = () => {
   if (editorRegisterPromise) return editorRegisterPromise
   editorRegisterPromise = (async () => {
-    const editorModule = await import('@wangeditor/editor')
     await ensurePrismMarkupTemplatingRegistered()
-    const markdownModule = await import('@wangeditor/plugin-md')
-    const Boot = (editorModule as any).Boot
-    Boot.registerModule(markdownModule.default || markdownModule)
+    const markdownModule: MarkdownModule = await import('@wangeditor/plugin-md')
+    Boot.registerModule(markdownModule.default)
   })()
   return editorRegisterPromise
 }
 
-const props = defineProps({
-  editorId: {type: String, default: 'wangeditor-1'},
-  height: {type: [Number, String], default: '500px'},
-  editorConfig: {type: Object, default: () => undefined},
-  modelValue: {type: String, default: ''},
-  uploadFolder: {type: String, default: 'article'},
-  useCosUpload: {type: Boolean, default: true}
+const props = withDefaults(defineProps<Props>(), {
+  editorId: 'wangeditor-1',
+  height: '500px',
+  modelValue: '',
+  uploadFolder: 'article',
+  useCosUpload: true,
 })
-const emit = defineEmits(['change', 'update:modelValue'])
-const editorRef = shallowRef()
-const valueHtml = ref('')
-const editorReady = ref(false)
+const emit = defineEmits<Emits>()
+const editorRef = shallowRef<IDomEditor | null>(null)
+const valueHtml = shallowRef('')
+const editorReady = shallowRef(false)
+
 watch(() => props.modelValue, (val) => {
-  if (val === valueHtml.value) return;
-  valueHtml.value = val || ''
-}, {immediate: true})
+  if (val === valueHtml.value) return
+  valueHtml.value = val
+}, { immediate: true })
+
 watch(() => valueHtml.value, (val) => emit('update:modelValue', val))
-const handleCreated = (editor: any) => {
+
+const handleCreated = (editor: IDomEditor) => {
   editorRef.value = editor
 }
 
-const cfg = computed(() => {
-  const base: any = {
-    readOnly: false, customAlert: (s: string, t: string) => {
-      if (t === 'success') ElMessage.success(s); else if (t === 'info') ElMessage.info(s); else if (t === 'warning') ElMessage.warning(s); else if (t === 'error') ElMessage.error(s); else ElMessage.info(s)
-    }, autoFocus: false, scroll: true, uploadImgShowBase64: true
-  }
-  const user: any = props.editorConfig || {}
-  const menu: any = Object.assign({}, user.MENU_CONF || {})
+const cfg = computed<AdminEditorConfig>(() => {
+  const userConfig = props.editorConfig
+  const menu = cloneMenuConfig(userConfig?.MENU_CONF)
+
   if (props.useCosUpload) {
-    if (!menu.uploadImage) menu.uploadImage = {}
-    if (!menu.uploadImage.customUpload) menu.uploadImage.customUpload = async (file: File, insertFn: any) => {
-      const tokenResponse = await getUploadToken({folderName: props.uploadFolder, fileName: file.name, fileSize: file.size, fileKind: 'image'});
-      const result = await uploadFileToCloud(file, tokenResponse);
-      insertFn(result.url || '', '', '')
-    }
-    if (!menu.uploadVideo) menu.uploadVideo = {}
-    if (!menu.uploadVideo.customUpload) menu.uploadVideo.customUpload = async (file: File, insertFn: any) => {
-      const tokenResponse = await getUploadToken({folderName: props.uploadFolder, fileName: file.name, fileSize: file.size, fileKind: 'file'});
-      const result = await uploadFileToCloud(file, tokenResponse);
-      insertFn(result.url || '')
-    }
+    installCosUploadHandlers(menu)
   }
-  const merged: any = Object.assign({}, base, user);
-  merged.MENU_CONF = menu;
+
+  const merged: AdminEditorConfig = {
+    readOnly: false,
+    customAlert: showEditorAlert,
+    autoFocus: false,
+    scroll: true,
+    uploadImgShowBase64: true,
+  }
+
+  if (userConfig !== undefined) {
+    Object.assign(merged, userConfig)
+  }
+  merged.MENU_CONF = menu
+
   return merged
 })
-const editorStyle = computed(() => ({height: typeof props.height === 'number' ? `${props.height}px` : props.height}))
-const handleChange = (editor: any) => emit('change', editor)
-onBeforeUnmount(() => {
-  editorRef.value?.destroy()
+
+const toolbarEditor = computed<IDomEditor | undefined>(() => {
+  if (editorRef.value === null) return undefined
+  return editorRef.value
 })
-const getEditorRef = async () => {
-  await nextTick();
+const editorStyle = computed(() => ({ height: typeof props.height === 'number' ? `${props.height}px` : props.height }))
+const handleChange = (editor: IDomEditor) => emit('change', editor)
+
+onBeforeUnmount(() => {
+  if (editorRef.value !== null) {
+    editorRef.value.destroy()
+  }
+})
+
+const getEditorRef = async (): Promise<IDomEditor | null> => {
+  await nextTick()
   return editorRef.value
 }
+
 defineExpose({getEditorRef})
 
 onMounted(async () => {
@@ -96,11 +141,98 @@ onMounted(async () => {
     editorReady.value = true
   }
 })
+
+function showEditorAlert(info: string, type: EditorAlertType) {
+  switch (type) {
+    case 'success':
+      ElMessage.success(info)
+      return
+    case 'info':
+      ElMessage.info(info)
+      return
+    case 'warning':
+      ElMessage.warning(info)
+      return
+    case 'error':
+      ElMessage.error(info)
+      return
+  }
+
+  const unreachable: never = type
+  throw new Error(`Unsupported wangEditor alert type: ${unreachable}`)
+}
+
+function cloneMenuConfig(menuConfig: AdminEditorConfig['MENU_CONF']): EditorMenuConfig {
+  const menu: EditorMenuConfig = {}
+
+  if (menuConfig !== undefined) {
+    Object.assign(menu, menuConfig)
+  }
+
+  return menu
+}
+
+function installCosUploadHandlers(menu: EditorMenuConfig) {
+  const uploadImage = ensureUploadImageConfig(menu)
+  const uploadVideo = ensureUploadVideoConfig(menu)
+
+  if (uploadImage.customUpload === undefined) {
+    uploadImage.customUpload = async (file: File, insertFn: ImageInsertFn) => {
+      const tokenResponse = await getUploadToken({
+        folderName: props.uploadFolder,
+        fileName: file.name,
+        fileSize: file.size,
+        fileKind: 'image',
+      })
+      const result = await uploadFileToCloud(file, tokenResponse)
+      const uploadURL = requireUploadURL(result.url)
+      insertFn(uploadURL, '', '')
+    }
+  }
+
+  if (uploadVideo.customUpload === undefined) {
+    uploadVideo.customUpload = async (file: File, insertFn: VideoInsertFn) => {
+      const tokenResponse = await getUploadToken({
+        folderName: props.uploadFolder,
+        fileName: file.name,
+        fileSize: file.size,
+        fileKind: 'file',
+      })
+      const result = await uploadFileToCloud(file, tokenResponse)
+      const uploadURL = requireUploadURL(result.url)
+      insertFn(uploadURL, '')
+    }
+  }
+}
+
+function ensureUploadImageConfig(menu: EditorMenuConfig): EditorUploadImageConfig {
+  if (menu.uploadImage === undefined) {
+    menu.uploadImage = {}
+  }
+
+  return menu.uploadImage
+}
+
+function ensureUploadVideoConfig(menu: EditorMenuConfig): EditorUploadVideoConfig {
+  if (menu.uploadVideo === undefined) {
+    menu.uploadVideo = {}
+  }
+
+  return menu.uploadVideo
+}
+
+function requireUploadURL(url: string): string {
+  if (url.trim().length === 0) {
+    throw new Error('wangEditor upload returned empty URL')
+  }
+
+  return url
+}
 </script>
 <template>
   <el-skeleton v-if="!editorReady" :rows="10" animated />
   <div v-else class="editor-wrap">
-    <Toolbar :editor="editorRef" :editorId="props.editorId" class="toolbar"/>
+    <Toolbar :editor="toolbarEditor" :editorId="props.editorId" class="toolbar"/>
     <Editor v-model="valueHtml" :editorId="props.editorId" :defaultConfig="cfg" :style="editorStyle"
             @on-change="handleChange" @on-created="handleCreated"/>
   </div>

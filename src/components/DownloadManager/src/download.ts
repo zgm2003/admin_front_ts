@@ -6,13 +6,49 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ElMessage, ElNotification } from 'element-plus'
 import { isTauri } from '@/platform/tauri'
 import i18n from '@/i18n'
+import { isDownloadUserCancelled, requireDownloadError } from './errors'
 
 const t = i18n.global.t
+const DEFAULT_DOWNLOAD_FILENAME = 'download'
 
 // 动态导入 Tauri API，避免 Web 环境加载失败
 const tauriCore = () => import('@tauri-apps/api/core')
 const tauriEvent = () => import('@tauri-apps/api/event')
 const tauriDialog = () => import('@tauri-apps/plugin-dialog')
+
+function filenameFromURL(url: string): string | null {
+  const lastPathSegment = url.split('/').pop()
+  if (lastPathSegment === undefined) return null
+
+  const queryIndex = lastPathSegment.indexOf('?')
+  const filename = (queryIndex === -1 ? lastPathSegment : lastPathSegment.slice(0, queryIndex)).trim()
+  if (filename.length === 0) return null
+
+  return filename
+}
+
+function resolveSuggestedDownloadFilename(url: string, filename?: string): string {
+  const requestedFilename = filename?.trim()
+  if (requestedFilename !== undefined && requestedFilename.length > 0) {
+    return requestedFilename
+  }
+
+  const urlFilename = filenameFromURL(url)
+  if (urlFilename !== null) {
+    return urlFilename
+  }
+
+  return DEFAULT_DOWNLOAD_FILENAME
+}
+
+function resolveSavePathFilename(savePath: string, suggestedFilename: string): string {
+  const savePathFilename = savePath.split(/[/\\]/).pop()?.trim()
+  if (savePathFilename !== undefined && savePathFilename.length > 0) {
+    return savePathFilename
+  }
+
+  return suggestedFilename
+}
 
 // ==================== 类型定义 ====================
 
@@ -104,8 +140,7 @@ class DownloadManager {
 
     const { save } = await tauriDialog()
     const { invoke } = await tauriCore()
-    const urlFilename = options.url.split('/').pop()?.split('?')[0] || 'download'
-    const suggestedFilename = options.filename || urlFilename
+    const suggestedFilename = resolveSuggestedDownloadFilename(options.url, options.filename)
 
     const savePath = await save({
       defaultPath: suggestedFilename,
@@ -121,7 +156,7 @@ class DownloadManager {
       onFailed: options.onFailed,
     })
 
-    const filename = savePath.split(/[/\\]/).pop() || suggestedFilename
+    const filename = resolveSavePathFilename(savePath, suggestedFilename)
     await invoke('start_download', { id, url: options.url, savePath, filename })
 
     // 通知 Header 等组件有新下载开始，触发 badge 更新
@@ -231,14 +266,15 @@ export const downloadFile = async (
   if (isTauri()) {
     try {
       return await downloadManager.download({ url, filename, ...options })
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 用户取消下载，直接返回，不做任何操作
-      if (error.message === t('download.userCancelled')) {
+      if (isDownloadUserCancelled(error, t('download.userCancelled'))) {
         return undefined
       }
       // 其他错误，记录日志并抛出
-      console.error('[download] Error:', error)
-      throw error
+      const downloadError = requireDownloadError(error, 'download')
+      console.error('[download] Error:', downloadError)
+      throw downloadError
     }
   }
 
@@ -250,15 +286,15 @@ export const downloadFile = async (
     const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = blobUrl
-    link.download = filename || url.split('/').pop()?.split('?')[0] || 'download'
+    link.download = resolveSuggestedDownloadFilename(url, filename)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(blobUrl)
-  } catch (err: any) {
-    console.error('[downloadFile] Web fetch error:', err)
-    // 兜底：直接打开
-    window.open(url, '_blank')
+  } catch (error: unknown) {
+    const downloadError = requireDownloadError(error, 'web download')
+    console.error('[downloadFile] Web fetch error:', downloadError)
+    throw downloadError
   }
   return undefined
 }

@@ -4,11 +4,28 @@ import {Search} from '@/components/Search'
 import { SendCode } from '@/components/SendCode'
 import IconSelect from '@/views/Main/permission/permission/components/IconSelect.vue'
 import { RemoteSelect } from '@/components/RemoteSelect'
+import type { SearchFormModel } from '@/components/Search/types'
+import type { RemoteListFetchMethod } from '@/types/common'
 
 const activeTab = ref('Search')
 
+interface IconSelectExpose {
+  show(): void
+}
+
+interface MockRemoteSelectOption {
+  label: string
+  value: number
+}
+
+interface MockRemoteSelectParams {
+  keyword?: string
+  current_page?: number
+  page_size?: number
+}
+
 // Search 演示
-const searchForm = ref({keyword: '', status: ''})
+const searchForm = ref<SearchFormModel>({keyword: '', status: ''})
 const searchFields = computed(() => [
   {key: 'keyword', type: 'input' as const, label: '关键词', placeholder: '请输入关键词', width: 200},
   {
@@ -20,7 +37,7 @@ const searchFields = computed(() => [
     options: [{value: 1, label: '启用'}, {value: 0, label: '禁用'}]
   }
 ])
-const handleQuery = (form: any) => {
+const handleQuery = (form: SearchFormModel) => {
   console.log('查询:', form)
 }
 
@@ -29,7 +46,7 @@ const code = ref('')
 const testEmail = ref('test@example.com')
 
 // IconSelect 演示
-const iconSelectRef = ref<any>(null)
+const iconSelectRef = ref<IconSelectExpose | null>(null)
 const selectedIcon = ref('')
 const handleIconSelect = (name: string) => {
   selectedIcon.value = name
@@ -37,16 +54,19 @@ const handleIconSelect = (name: string) => {
 
 // RemoteSelect 演示
 const remoteValue = ref('')
-const mockFetch = async (params: any) => {
+const mockFetch: RemoteListFetchMethod<MockRemoteSelectOption, MockRemoteSelectParams> = async (params) => {
   // 模拟接口
-  await new Promise(r => setTimeout(r, 500))
+  await new Promise<void>((resolve) => setTimeout(resolve, 500))
   const allData = Array.from({ length: 100 }, (_, i) => ({ label: `用户${i + 1}`, value: i + 1 }))
-  const filtered = params.keyword 
-    ? allData.filter(d => d.label.includes(params.keyword))
+  const keyword = params.keyword
+  const filtered = keyword
+    ? allData.filter(d => d.label.includes(keyword))
     : allData
-  const start = ((params.current_page || 1) - 1) * (params.page_size || 20)
+  const currentPage = params.current_page === undefined ? 1 : params.current_page
+  const pageSize = params.page_size === undefined ? 20 : params.page_size
+  const start = (currentPage - 1) * pageSize
   return {
-    list: filtered.slice(start, start + (params.page_size || 20)),
+    list: filtered.slice(start, start + pageSize),
     page: { total: filtered.length }
   }
 }
@@ -75,7 +95,7 @@ const fieldProps = [
   {name: 'fetchMethod', type: 'Function', required: '', desc: 'remote-select 远程搜索方法，返回 { list, total }'},
   {name: 'labelField', type: 'String', required: '', desc: 'remote-select 选项标签字段，默认 label'},
   {name: 'valueField', type: 'String', required: '', desc: 'remote-select 选项值字段，默认 value'},
-  {name: '...rest', type: 'any', required: '', desc: '其他属性透传给对应表单组件'}
+  {name: '...rest', type: 'Record<string, unknown>', required: '', desc: '其他属性透传给对应表单组件'}
 ]
 
 const sendCodeProps = [

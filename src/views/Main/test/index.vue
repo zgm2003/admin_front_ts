@@ -175,6 +175,24 @@ const formatSize = (bytes: number) => downloadManager.formatSize(bytes)
 // 格式化速度
 const formatSpeed = (bytesPerSecond: number) => downloadManager.formatSpeed(bytesPerSecond)
 
+function requireDevTestDownloadErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    throw new Error('dev test download failed with non-Error reason')
+  }
+
+  const message = error.message.trim()
+  if (message.length === 0) {
+    throw new Error('dev test download error message must be non-empty')
+  }
+
+  return message
+}
+
+function optionalDownloadFilename(filename: string): string | undefined {
+  const trimmed = filename.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
 // 带进度的下载
 const handleDownloadWithProgress = async () => {
   if (!testUrl.value) {
@@ -185,7 +203,7 @@ const handleDownloadWithProgress = async () => {
   try {
     currentDownload.value = null
     
-    const downloadId = await downloadFile(testUrl.value, testFilename.value || undefined, {
+    const downloadId = await downloadFile(testUrl.value, optionalDownloadFilename(testFilename.value), {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
@@ -205,8 +223,8 @@ const handleDownloadWithProgress = async () => {
     if (!downloadId) {
       currentDownload.value = null
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || t('devTest.downloadFailed', { error: '' }))
+  } catch (error: unknown) {
+    ElMessage.error(t('devTest.downloadFailed', { error: requireDevTestDownloadErrorMessage(error) }))
     currentDownload.value = null
   }
 }
@@ -225,8 +243,9 @@ const handleMultipleDownloads = async () => {
     try {
       await downloadFile(file.url, file.filename)
       await new Promise(resolve => setTimeout(resolve, 500))
-    } catch (error) {
-      console.error('download failed:', error)
+    } catch (error: unknown) {
+      ElMessage.error(t('devTest.downloadFailed', { error: requireDevTestDownloadErrorMessage(error) }))
+      return
     }
   }
 

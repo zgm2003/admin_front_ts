@@ -3,6 +3,7 @@ import {ref} from 'vue'
 import { UpMedia } from '@/components/UpMedia'
 import UpMediaList from './components/UpMediaList.vue'
 import { UpFile } from '@/components/UpFile'
+import type { UploadMediaItem } from './components/media'
 
 const activeTab = ref('UpMedia')
 
@@ -16,7 +17,7 @@ const videoUrl = ref('')
 const videoUrlWithInput = ref('')
 
 // UpMediaList 演示
-const imgList = ref<any[]>([])
+const imgList = ref<UploadMediaItem[]>([])
 
 // UpFile 演示
 const fileUrl = ref('')

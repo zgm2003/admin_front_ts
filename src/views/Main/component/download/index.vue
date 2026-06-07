@@ -66,6 +66,24 @@ const presetFiles = [
 const formatSize = (bytes: number) => downloadManager.formatSize(bytes)
 const formatSpeed = (bytesPerSecond: number) => downloadManager.formatSpeed(bytesPerSecond)
 
+function requireDownloadDemoErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    throw new Error('download demo failed with non-Error reason')
+  }
+
+  const message = error.message.trim()
+  if (message.length === 0) {
+    throw new Error('download demo error message must be non-empty')
+  }
+
+  return message
+}
+
+function optionalDownloadFilename(filename: string): string | undefined {
+  const trimmed = filename.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
 // 简单下载
 const handleSimpleDownload = async () => {
   if (!testUrl.value) {
@@ -74,13 +92,13 @@ const handleSimpleDownload = async () => {
   }
   
   try {
-    const downloadId = await downloadFile(testUrl.value, testFilename.value || undefined)
+    const downloadId = await downloadFile(testUrl.value, optionalDownloadFilename(testFilename.value))
     // 只有成功开始下载时才显示消息（用户取消时返回 undefined）
     if (downloadId) {
       ElMessage.success('下载已开始')
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '下载失败')
+  } catch (error: unknown) {
+    ElMessage.error(requireDownloadDemoErrorMessage(error))
   }
 }
 
@@ -94,7 +112,7 @@ const handleDownloadWithProgress = async () => {
   try {
     currentDownload.value = null
     
-    const downloadId = await downloadFile(testUrl.value, testFilename.value || undefined, {
+    const downloadId = await downloadFile(testUrl.value, optionalDownloadFilename(testFilename.value), {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
@@ -114,8 +132,8 @@ const handleDownloadWithProgress = async () => {
     if (!downloadId) {
       currentDownload.value = null
     }
-  } catch (error: any) {
-    ElMessage.error(error.message || '下载失败')
+  } catch (error: unknown) {
+    ElMessage.error(requireDownloadDemoErrorMessage(error))
     currentDownload.value = null
   }
 }
@@ -128,8 +146,9 @@ const handleBatchDownload = async () => {
     try {
       await downloadFile(file.url, file.filename)
       await new Promise(resolve => setTimeout(resolve, 500))
-    } catch (error) {
-      console.error('下载失败:', error)
+    } catch (error: unknown) {
+      ElMessage.error(requireDownloadDemoErrorMessage(error))
+      return
     }
   }
   
@@ -274,9 +293,9 @@ try {
   if (downloadId) {
     ElMessage.success('下载已开始')
   }
-} catch (error: any) {
+} catch (error: unknown) {
   // 只有真正的错误才会到这里
-  ElMessage.error(error.message || '下载失败')
+  ElMessage.error(requireDownloadDemoErrorMessage(error))
 }`
   }
 ]

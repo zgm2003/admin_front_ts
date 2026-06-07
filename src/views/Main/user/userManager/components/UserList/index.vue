@@ -14,6 +14,7 @@ import { useExportSubmit } from '@/hooks/useExportSubmit'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
+import { CommonEnum } from '@/enums'
 import type { DictOption } from '@/types/common'
 import type { AddressTreeNode, UserBatchEditParams, UserEditParams, UserListItem } from '@/types/user'
 
@@ -66,6 +67,7 @@ const {
   onSelectionChange,
   confirmDel,
   batchDel,
+  toggleStatus,
 } = useCrudTable<UserListItem>({
   api: UsersListApi,
   searchForm,
@@ -242,6 +244,7 @@ onMounted(() => {
           { key: 'role_name', label: t('user.table.role'), width: 150 },
           { key: 'address_show', label: t('user.table.address'), width: 180, overflowTooltip: true },
           { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
+          { key: 'status', label: t('user.table.status'), width: 110 },
           { key: 'actions', label: t('common.actions.action'), width: 180 },
         ]"
         :data="listData"
@@ -306,6 +309,11 @@ onMounted(() => {
         <template #cell-bio="{ row }">
           <el-text>{{ row.bio }}</el-text>
         </template>
+        <template #cell-status="{ row }">
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+            {{ row.status === CommonEnum.YES ? t('common.status.enabled') : t('common.status.disabled') }}
+          </el-tag>
+        </template>
         <template #cell-actions="{ row }">
           <el-button
             v-if="userStore.can('user_userManager_edit')"
@@ -314,6 +322,22 @@ onMounted(() => {
             @click="edit(row)"
           >
             {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.NO"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.YES)"
+          >
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.YES"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.NO)"
+          >
+            {{ t('common.actions.disable') }}
           </el-button>
           <el-button
             v-if="userStore.can('user_userManager_del')"

@@ -28,4 +28,24 @@ describe('user list page contract', () => {
     expect(typeSource).toContain('id: number')
     expect(typeSource).toContain('message: string')
   })
+
+  it('uses the dedicated Go REST status route for user enable and disable', () => {
+    const apiSource = readFrontendSource('src/api/user/users.ts')
+    const pageSource = readUserListSource()
+
+    expect(apiSource).toContain('type UserStatusBody = { status: number }')
+    expect(apiSource).toContain('changeStatus: (params: { id: Id; status: number }) => {')
+    expect(apiSource).toContain('request.patch<void, UserStatusBody>(`${ADMIN_API_PREFIX}/users/${ids[0]}/status`, body)')
+    expect(apiSource).not.toContain('batchEdit: (params: UserBatchEditParams & { status')
+
+    expect(pageSource).toContain("import { CommonEnum } from '@/enums'")
+    expect(pageSource).toContain('toggleStatus,')
+    expect(pageSource).toContain("{ key: 'status', label: t('user.table.status'), width: 110 }")
+    expect(pageSource).toContain('<template #cell-status="{ row }">')
+    expect(pageSource).toContain("row.status === CommonEnum.YES ? 'success' : 'danger'")
+    expect(pageSource).toContain("userStore.can('user_userManager_edit') && row.status === CommonEnum.NO")
+    expect(pageSource).toContain('@click="toggleStatus(row, CommonEnum.YES)"')
+    expect(pageSource).toContain("userStore.can('user_userManager_edit') && row.status === CommonEnum.YES")
+    expect(pageSource).toContain('@click="toggleStatus(row, CommonEnum.NO)"')
+  })
 })

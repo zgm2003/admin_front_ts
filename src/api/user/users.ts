@@ -36,6 +36,7 @@ type UserListQueryParams = Omit<UsersListParams, 'address_id' | 'date'> & {
   date?: string
 }
 
+type UserStatusBody = { status: number }
 type UserEditBody = Omit<UserEditParams, 'id'>
 type UserBatchDeletePayload = { ids: number[] }
 type UserSessionBatchKickPayload = { ids: number[] }
@@ -180,6 +181,12 @@ export const UsersListApi = {
 
   batchEdit: (params: UserBatchEditParams) =>
     request.patch<void, UserBatchEditParams>(`${ADMIN_API_PREFIX}/users`, params),
+
+  changeStatus: (params: { id: Id; status: number }) => {
+    const ids = normalizePositiveIDs(params.id, 'user')
+    const body: UserStatusBody = { status: params.status }
+    return request.patch<void, UserStatusBody>(`${ADMIN_API_PREFIX}/users/${ids[0]}/status`, body)
+  },
 
   deleteOne: (params: { id: Id | Id[] }) => {
     const ids = normalizePositiveIDs(params.id, 'user')

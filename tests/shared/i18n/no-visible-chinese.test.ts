@@ -9,6 +9,8 @@ const guardedFiles = [
   'src/lib/http/client.ts',
   'src/lib/upload/uploadClient.ts',
   'src/utils/date.ts',
+  'src/components/Table/src/components/TableActions.vue',
+  'src/components/JsonEditor/src/index.vue',
   'src/views/Login/composables/useLoginForm.ts',
   'src/views/Login/composables/useForgotPassword.ts',
   'src/views/Main/test/index.vue',

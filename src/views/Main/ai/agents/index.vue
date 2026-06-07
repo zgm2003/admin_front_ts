@@ -11,6 +11,7 @@ import { UpMedia } from '@/components/UpMedia'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
+import { useUserStore } from '@/store/user'
 import {
   AiAgentApi,
   type AiAgentInitResponse,
@@ -35,6 +36,7 @@ interface AgentForm {
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
+const userStore = useUserStore()
 
 const dict = shallowRef<AiAgentInitResponse['dict']>({
   scene_arr: [],
@@ -109,7 +111,7 @@ const columns = computed(() => [
   { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
   { key: 'status', label: t('aiAgents.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
-  { key: 'actions', label: t('common.actions.action'), width: 410 },
+  { key: 'actions', label: t('common.actions.action'), width: 490 },
 ])
 
 watch(
@@ -206,6 +208,11 @@ function openKnowledge(row: AiAgentItem) {
   knowledgeDialogVisible.value = true
 }
 
+async function testConnection(row: AiAgentItem) {
+  await AiAgentApi.test({ id: row.id })
+  ElNotification.success({ message: t('aiAgents.testDone') })
+}
+
 async function confirmSubmit() {
   if (!formRef.value) return
   try {
@@ -279,6 +286,14 @@ onMounted(() => {
         </template>
         <template #cell-actions="{ row }">
           <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+          <el-button
+            v-if="userStore.can('ai_agent_test') && row.status === CommonEnum.YES"
+            type="success"
+            text
+            @click="testConnection(row)"
+          >
+            {{ t('aiAgents.actions.test') }}
+          </el-button>
           <el-button type="primary" text @click="openTools(row)">{{ t('aiAgents.actions.tools') }}</el-button>
           <el-button type="success" text @click="openKnowledge(row)">{{ t('aiAgents.actions.knowledge') }}</el-button>
           <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>

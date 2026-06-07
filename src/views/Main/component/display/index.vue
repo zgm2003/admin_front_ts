@@ -54,7 +54,7 @@ const columnProps = [
   {name: 'align', type: 'String', required: '', desc: '对齐方式（默认 center，可设 left/right）'},
   {name: 'hidden', type: 'Boolean', required: '', desc: '是否默认隐藏'},
   {name: 'overflowTooltip', type: 'Boolean', required: '', desc: '超出显示 tooltip'},
-  {name: '...rest', type: 'any', required: '', desc: '其他属性透传给 ElTableColumn（width/fixed/sortable等）'}
+  {name: '...rest', type: 'Record<string, unknown>', required: '', desc: '其他属性透传给 ElTableColumn（width/fixed/sortable等）'}
 ]
 
 const tableEvents = [

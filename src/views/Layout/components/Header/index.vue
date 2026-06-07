@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, shallowRef } from 'vue'
 import Cookies from 'js-cookie'
 import { Expand, Fold } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
@@ -70,6 +70,7 @@ import { isTauri } from '@/platform/tauri'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/hooks/useTheme'
 import { resolveMenuLabel } from '@/views/Layout/utils/menuLabel'
+import type { PermissionMenuItem } from '@/types/user'
 import SearchDialog from './components/SearchDialog.vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import WindowControls from './components/WindowControls.vue'
@@ -79,35 +80,40 @@ const userStore = useUserStore()
 const isMobile = useIsMobile()
 const { t, locale } = useI18n()
 
-const isDark = ref(false)
-const drawer = ref(false)
-const searchOpen = ref(false)
-const showDownloadManager = ref(false)
-const downloadCount = ref(0)
+const isDark = shallowRef(false)
+const drawer = shallowRef(false)
+const searchOpen = shallowRef(false)
+const showDownloadManager = shallowRef(false)
+const downloadCount = shallowRef(0)
+
+function findBreadcrumbPath(items: PermissionMenuItem[], target: string): PermissionMenuItem[] | null {
+  for (const item of items) {
+    if (item.index === target) return [item]
+
+    if (item.children.length > 0) {
+      const childPath = findBreadcrumbPath(item.children, target)
+      if (childPath !== null) return [item, ...childPath]
+    }
+  }
+
+  return null
+}
 
 const breadcrumbs = computed(() => {
   const selectedIndex = menuStore.selectedMenu
-  if (!selectedIndex || selectedIndex === '0') {
+  if ([HOME_MENU_ITEM.index, ''].includes(selectedIndex)) {
     return [HOME_MENU_ITEM]
   }
 
-  const getPath = (items: any[], target: string): any[] | null => {
-    for (const item of items) {
-      if (String(item.index) === target) return [item]
-      if (item.children?.length) {
-        const childPath = getPath(item.children, target)
-        if (childPath) return [item, ...childPath]
-      }
-    }
-    return null
-  }
+  const matchedPath = findBreadcrumbPath(userStore.permissions, selectedIndex)
+  if (matchedPath !== null) return matchedPath
 
-  return getPath(userStore.permissions, selectedIndex) || []
+  return []
 })
 
 let downloadTimer: number | null = null
 
-function getBreadcrumbLabel(item: any) {
+function getBreadcrumbLabel(item: PermissionMenuItem) {
   return resolveMenuLabel(t, item)
 }
 

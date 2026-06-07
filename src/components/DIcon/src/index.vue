@@ -33,20 +33,30 @@ const iconStyle = computed(() => ({
 
 const resolvedEpIcon = shallowRef<Component | null>(null)
 
-let epIconsModulePromise: Promise<Record<string, Component>> | null = null
+type ElementPlusIconsModule = typeof import('@element-plus/icons-vue')
+type ElementPlusIconName = keyof ElementPlusIconsModule
+
+let epIconsModulePromise: Promise<ElementPlusIconsModule> | null = null
 const epIconCache = new Map<string, Component | null>()
+
+function hasElementPlusIcon(
+  mod: ElementPlusIconsModule,
+  name: string
+): name is ElementPlusIconName {
+  return Object.prototype.hasOwnProperty.call(mod, name)
+}
 
 async function resolveElementPlusIcon(name: string): Promise<Component | null> {
   if (!name) return null
   if (epIconCache.has(name)) return epIconCache.get(name) ?? null
 
   if (!epIconsModulePromise) {
-    epIconsModulePromise = import('@element-plus/icons-vue') as unknown as Promise<Record<string, Component>>
+    epIconsModulePromise = import('@element-plus/icons-vue')
   }
 
   try {
     const mod = await epIconsModulePromise
-    const comp = (mod as any)[name] as Component | undefined
+    const comp = hasElementPlusIcon(mod, name) ? mod[name] : undefined
     const value = comp ?? null
     epIconCache.set(name, value)
     return value

@@ -90,6 +90,14 @@ export interface AiAgentCreateResponse {
   id: number
 }
 
+export interface AiAgentTestResult {
+  ok: boolean
+  status?: string
+  latency_ms?: number
+  message?: string
+  model_count?: number
+}
+
 export interface AiAgentToolBindingResponse {
   agent_id: number
   tool_ids: number[]
@@ -253,6 +261,7 @@ export const AiAgentApi = {
   create,
   update,
   changeStatus,
+  test: (params: { id: Id }) => request.post<AiAgentTestResult>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}/test`),
   deleteOne,
   deleteBatch,
 }

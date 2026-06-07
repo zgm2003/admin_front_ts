@@ -53,6 +53,12 @@ export default {
     requestFailed: '请求失败',
     unauthorized: '未授权'
   },
+  jsonEditor: {
+    invalidJson: 'JSON 格式错误：{message}',
+    formatted: '已格式化 JSON',
+    format: '格式化',
+    validate: '校验'
+  },
   common: {
     back: '返回',
     index: '序号',
@@ -736,6 +742,7 @@ export default {
       role: '角色',
       address: '地址',
       desc: '个人简介',
+      status: '状态',
       expires_in: 'token过期时间',
       is_expired: 'token是否过期'
     },
@@ -979,7 +986,7 @@ export default {
     table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', status: '状态', updatedAt: '更新时间' },
     form: { name: '智能体名称', provider: '供应商', model: '关联模型', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
     scene: { chat: '对话', agentGenerate: '工具生成', imageGenerate: '图片生成', canvasTextGenerate: '无限画布-文本', canvasImageGenerate: '无限画布-图片', canvasVideoGenerate: '无限画布-视频' },
-    actions: { tools: '工具配置', knowledge: '知识库' },
+    actions: { test: '测试连接', tools: '工具配置', knowledge: '知识库' },
     tools: {
       title: '配置智能体工具',
       agent: '当前智能体',
@@ -1002,7 +1009,8 @@ export default {
       saveNoPermission: '没有保存知识库绑定权限'
     },
     addTitle: '新增 AI 智能体',
-    editTitle: '编辑 AI 智能体'
+    editTitle: '编辑 AI 智能体',
+    testDone: '智能体连接测试完成'
   },
   aiImages: {
     title: 'AI 图片工作台',
