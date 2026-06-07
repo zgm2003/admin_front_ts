@@ -252,7 +252,7 @@ onMounted(async () => {
     </div>
 
     <!-- 按日期统计 -->
-    <div class="stats-section" v-if="dateLoader.state.value.data.length || dateLoader.state.value.loading">
+    <div class="stats-section">
       <h3 class="section-title">{{ t('aiRuns.stats.recentDates') }}</h3>
       <el-table :data="dateLoader.state.value.data" v-loading="dateLoader.state.value.loading" stripe size="small">
         <el-table-column v-for="col in statsColumns('date', t('aiRuns.stats.date'))" :key="col.prop"
@@ -261,7 +261,7 @@ onMounted(async () => {
     </div>
 
     <!-- 按智能体统计 -->
-    <div class="stats-section" v-if="agentLoader.state.value.data.length || agentLoader.state.value.loading">
+    <div class="stats-section">
       <h3 class="section-title">{{ t('aiRuns.stats.topAgents') }}</h3>
       <el-table :data="agentLoader.state.value.data" v-loading="agentLoader.state.value.loading" stripe size="small">
         <el-table-column v-for="col in statsColumns('agent_name', t('aiRuns.stats.agent'))" :key="col.prop"

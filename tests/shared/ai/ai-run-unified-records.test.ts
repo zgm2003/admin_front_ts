@@ -7,7 +7,9 @@ function readFrontendSource(relativePath: string) {
 }
 
 const runsApi = () => readFrontendSource('src/api/ai/runs.ts')
+const runPage = () => readFrontendSource('src/views/Main/ai/runs/index.vue')
 const runList = () => readFrontendSource('src/views/Main/ai/runs/components/RunList/index.vue')
+const runStats = () => readFrontendSource('src/views/Main/ai/runs/components/RunStats/index.vue')
 const zhLocale = () => readFrontendSource('src/i18n/locales/zh-CN.ts')
 const enLocale = () => readFrontendSource('src/i18n/locales/en-US.ts')
 
@@ -94,5 +96,18 @@ describe('unified AI run records frontend contract', () => {
       expect(zh).toContain(key)
       expect(en).toContain(key)
     }
+  })
+
+  it('keeps run monitor tab and empty stats tables on stable component lifecycles', () => {
+    const page = runPage()
+    const stats = runStats()
+
+    expect(page).toContain('<RunStats/>')
+    expect(page).not.toContain('v-if="activeTab ===')
+
+    expect(stats).not.toContain('v-if="dateLoader.state.value.data.length || dateLoader.state.value.loading"')
+    expect(stats).not.toContain('v-if="agentLoader.state.value.data.length || agentLoader.state.value.loading"')
+    expect(stats).toContain(':data="dateLoader.state.value.data"')
+    expect(stats).toContain(':data="agentLoader.state.value.data"')
   })
 })

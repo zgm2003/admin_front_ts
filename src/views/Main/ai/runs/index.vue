@@ -15,7 +15,7 @@ const activeTab = ref('list')
         <RunList/>
       </el-tab-pane>
       <el-tab-pane :label="t('aiRuns.tabs.stats')" name="stats" lazy>
-        <RunStats v-if="activeTab === 'stats'"/>
+        <RunStats/>
       </el-tab-pane>
     </el-tabs>
   </div>
