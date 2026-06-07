@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Plus, Refresh } from '@element-plus/icons-vue'
+import { Check, Close, Delete, Plus, Refresh } from '@element-plus/icons-vue'
 import type { PageInfo } from '@/types/common'
-import type { AiImageInitResponse, AiImageTaskItem, AiImageTaskStatus } from '@/api/ai/images'
+import type { AiImageTaskItem, AiImageTaskStatus } from '@/api/ai/images'
 
 interface Props {
   tasks: AiImageTaskItem[]
   page: PageInfo
-  dict: AiImageInitResponse['dict']
   loading: boolean
   selectedTaskId: number | null
+  canDelete: boolean
 }
 
 interface Emits {
@@ -18,17 +18,32 @@ interface Emits {
   refresh: []
   detail: [task: AiImageTaskItem]
   pageChange: [page: PageInfo]
+  deleteSelected: [ids: number[]]
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
-const status = defineModel<AiImageTaskStatus | ''>('status', { required: true })
-const favorite = defineModel<number | ''>('favorite', { required: true })
 const { t } = useI18n()
 
+const selecting = shallowRef(false)
+const selectedIds = shallowRef<number[]>([])
+
 const hasRows = computed(() => props.tasks.length > 0)
+const hasSelection = computed(() => selectedIds.value.length > 0)
+const allSelected = computed(() => props.tasks.length > 0 && selectedIds.value.length === props.tasks.length)
+const selectedSet = computed(() => new Set(selectedIds.value))
 const totalText = computed(() => t('aiImages.recordsCount', { count: props.page.total }))
-const statusLabelMap = computed(() => new Map(props.dict.status_arr.map((item) => [item.value, item.label])))
+
+watch(
+  () => props.tasks.map((task) => task.id),
+  (visibleIds) => {
+    const visibleSet = new Set(visibleIds)
+    selectedIds.value = selectedIds.value.filter((id) => visibleSet.has(id))
+    if (visibleIds.length === 0) {
+      selecting.value = false
+    }
+  }
+)
 
 function statusType(value: AiImageTaskStatus) {
   if (value === 'success') return 'success'
@@ -38,18 +53,60 @@ function statusType(value: AiImageTaskStatus) {
 }
 
 function statusLabel(value: AiImageTaskStatus) {
-  return statusLabelMap.value.get(value) ?? value
+  const labels = {
+    pending: t('aiImages.statusPending'),
+    running: t('aiImages.statusRunning'),
+    success: t('aiImages.statusSuccess'),
+    failed: t('aiImages.statusFailed'),
+  } satisfies Record<AiImageTaskStatus, string>
+  return labels[value]
 }
 
 function taskCardClass(task: AiImageTaskItem) {
   return {
     'record-card': true,
     'record-card--active': props.selectedTaskId === task.id,
+    'record-card--checked': selectedSet.value.has(task.id),
   }
 }
 
 function updatePage(currentPage: number) {
   emit('pageChange', { ...props.page, current_page: currentPage })
+}
+
+function startSelecting() {
+  selecting.value = true
+  selectedIds.value = []
+}
+
+function cancelSelecting() {
+  selecting.value = false
+  selectedIds.value = []
+}
+
+function selectAll() {
+  selectedIds.value = props.tasks.map((task) => task.id)
+}
+
+function toggleSelected(taskId: number) {
+  if (selectedSet.value.has(taskId)) {
+    selectedIds.value = selectedIds.value.filter((id) => id !== taskId)
+    return
+  }
+  selectedIds.value = [...selectedIds.value, taskId]
+}
+
+function handleRecordClick(task: AiImageTaskItem) {
+  if (selecting.value) {
+    toggleSelected(task.id)
+    return
+  }
+  emit('detail', task)
+}
+
+function deleteSelected() {
+  if (!hasSelection.value) return
+  emit('deleteSelected', selectedIds.value)
 }
 </script>
 
@@ -64,14 +121,32 @@ function updatePage(currentPage: number) {
     </header>
 
     <div class="records-actions">
-      <el-select-v2 v-model="status" :options="dict.status_arr" :placeholder="t('aiImages.status')" clearable />
-      <el-select-v2 v-model="favorite" :options="dict.favorite_arr" :placeholder="t('aiImages.favorite')" clearable />
-      <el-button :icon="Refresh" circle :title="t('common.actions.refresh')" :aria-label="t('common.actions.refresh')" @click="emit('refresh')" />
+      <template v-if="selecting">
+        <el-button :icon="Check" :disabled="!hasRows || allSelected" @click="selectAll">
+          {{ t('aiImages.selectAll') }}
+        </el-button>
+        <el-button :icon="Close" @click="cancelSelecting">{{ t('aiImages.cancelSelection') }}</el-button>
+        <el-button type="danger" :icon="Delete" :disabled="!canDelete || !hasSelection" @click="deleteSelected">
+          {{ t('aiImages.deleteSelected') }}
+        </el-button>
+      </template>
+      <template v-else>
+        <el-button :disabled="!hasRows" @click="startSelecting">{{ t('aiImages.selectRecords') }}</el-button>
+        <el-button :icon="Refresh" circle :title="t('common.actions.refresh')" :aria-label="t('common.actions.refresh')" @click="emit('refresh')" />
+      </template>
     </div>
 
     <div class="records-list">
       <el-empty v-if="!hasRows" :description="t('aiImages.emptyHistory')" />
-      <button v-for="task in tasks" v-else :key="task.id" :class="taskCardClass(task)" type="button" @click="emit('detail', task)">
+      <div v-for="task in tasks" v-else :key="task.id" :class="taskCardClass(task)" role="button" tabindex="0" @click="handleRecordClick(task)" @keydown.enter.prevent="handleRecordClick(task)">
+        <el-checkbox
+          v-if="selecting"
+          class="record-check"
+          :model-value="selectedSet.has(task.id)"
+          :aria-label="t('aiImages.selectRecord')"
+          @click.stop
+          @change="toggleSelected(task.id)"
+        />
         <span class="record-status-line">
           <el-tag :type="statusType(task.status)">{{ statusLabel(task.status) }}</el-tag>
           <span class="record-time">{{ task.created_at }}</span>
@@ -81,7 +156,7 @@ function updatePage(currentPage: number) {
           <span>{{ task.agent_name_snapshot }}</span>
           <span>{{ task.size }} · {{ task.quality }} · {{ task.n }}</span>
         </span>
-      </button>
+      </div>
     </div>
 
     <div class="records-pagination">
@@ -130,15 +205,10 @@ function updatePage(currentPage: number) {
 }
 
 .records-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-}
-
-.records-actions :deep(.el-select),
-.records-actions :deep(.el-select-v2) {
-  width: 100%;
 }
 
 .records-list {
@@ -152,6 +222,7 @@ function updatePage(currentPage: number) {
 }
 
 .record-card {
+  position: relative;
   width: 100%;
   border: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
   border-radius: 14px;
@@ -173,15 +244,24 @@ function updatePage(currentPage: number) {
 }
 
 .record-card:hover,
-.record-card--active {
+.record-card--active,
+.record-card--checked {
   border-color: color-mix(in srgb, var(--el-color-primary) 48%, var(--image-studio-line, var(--el-border-color)));
   box-shadow: 0 14px 32px rgba(20, 42, 74, 0.09);
   transform: translateY(-1px);
 }
 
-.record-card--active {
+.record-card--active,
+.record-card--checked {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--el-color-primary) 8%, var(--image-studio-surface, var(--el-bg-color))), var(--image-studio-surface-soft, var(--el-fill-color-extra-light)));
+}
+
+.record-check {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 1;
 }
 
 .record-status-line,
@@ -225,7 +305,8 @@ function updatePage(currentPage: number) {
 
 @media (max-width: 760px) {
   .records-actions {
-    grid-template-columns: 1fr;
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 </style>

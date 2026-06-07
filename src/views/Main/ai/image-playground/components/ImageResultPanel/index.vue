@@ -1,22 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CommonEnum } from '@/enums'
+import { Download, FolderAdd, RefreshRight, Star } from '@element-plus/icons-vue'
 import type { AiImageDetailResponse, AiImageFileItem, AiImageTaskStatus } from '@/api/ai/images'
-import ImageAssetList from '../ImageAssetList/index.vue'
 
 interface Props {
   detail: AiImageDetailResponse | null
   loading: boolean
-  canFavorite: boolean
-  canDelete: boolean
-  statusOptions: { label: string; value: AiImageTaskStatus }[]
+  canSaveAsset: boolean
 }
 
 interface Emits {
-  favorite: [taskId: number, isFavorite: number]
-  delete: [taskId: number]
-  reuse: [detail: AiImageDetailResponse]
+  saveAsset: [file: AiImageFileItem, detail: AiImageDetailResponse]
+  addReference: [file: AiImageFileItem]
+  retry: [detail: AiImageDetailResponse]
 }
 
 const props = defineProps<Props>()
@@ -25,39 +22,53 @@ const { t } = useI18n()
 
 const task = computed(() => props.detail?.task ?? null)
 const outputFiles = computed(() => props.detail?.outputs ?? [])
-const inputFiles = computed(() => props.detail?.inputs ?? [])
-const maskFile = computed(() => props.detail?.mask ?? null)
-const hasOutputs = computed(() => outputFiles.value.length > 0)
-const maskTargetSortOrder = computed(() => {
-  const mask = maskFile.value
-  if (mask === null || mask === undefined) return ''
-  if (mask.related_file_id === null || mask.related_file_id === undefined) {
-    throw new Error('AI image mask related_file_id should not be empty')
-  }
-  const target = inputFiles.value.find((file) => file.id === mask.related_file_id)
-  if (!target) {
-    throw new Error('AI image mask related_file_id should point to an input file')
-  }
-  return target.sort_order
+const previewSources = computed(() => outputFiles.value.map((item) => item.storage_url))
+const resultState = computed<AiImageTaskStatus | 'empty'>(() => task.value?.status ?? 'empty')
+const durationText = computed(() => {
+  const currentTask = task.value
+  if (currentTask === null) return ''
+  return formatDuration(currentTask.elapsed_ms)
 })
-const nextFavoriteValue = computed(() => (task.value?.is_favorite === CommonEnum.YES ? CommonEnum.NO : CommonEnum.YES))
-const favoriteText = computed(() => (task.value?.is_favorite === CommonEnum.YES ? t('aiImages.unfavorite') : t('aiImages.favorite')))
-const statusLabelMap = computed(() => new Map(props.statusOptions.map((item) => [item.value, item.label])))
 
-function statusType(value: AiImageTaskStatus) {
+function statusType(value: AiImageTaskStatus | 'empty') {
   if (value === 'success') return 'success'
   if (value === 'failed') return 'danger'
   if (value === 'running') return 'warning'
   return 'info'
 }
 
-function statusLabel(value: AiImageTaskStatus) {
-  return statusLabelMap.value.get(value) ?? value
+function statusLabel(value: AiImageTaskStatus | 'empty') {
+  if (value === 'pending' || value === 'running') return t('aiImages.resultPending')
+  if (value === 'success') return t('aiImages.statusSuccess')
+  if (value === 'failed') return t('aiImages.statusFailed')
+  return t('aiImages.emptyResultPanel')
 }
 
-function optionalDisplay(value: string | undefined) {
-  if (value === undefined || value === '') return '-'
-  return value
+function formatBytes(value: number) {
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
+  return `${(value / 1024 / 1024).toFixed(1)} MB`
+}
+
+function formatDuration(value: number) {
+  if (value < 1000) return `${value} ms`
+  return `${(value / 1000).toFixed(1)} s`
+}
+
+function retry() {
+  const currentDetail = props.detail
+  if (currentDetail === null) {
+    throw new Error('AI image result detail should not be empty when retrying')
+  }
+  emit('retry', currentDetail)
+}
+
+function saveAsset(file: AiImageFileItem) {
+  const currentDetail = props.detail
+  if (currentDetail === null) {
+    throw new Error('AI image result detail should not be empty when saving output')
+  }
+  emit('saveAsset', file, currentDetail)
 }
 
 function downloadFile(file: AiImageFileItem) {
@@ -77,55 +88,52 @@ function downloadFile(file: AiImageFileItem) {
         <h2 class="result-title">{{ t('aiImages.outputs') }}</h2>
         <p class="result-subtitle">{{ t('aiImages.resultSubtitle') }}</p>
       </div>
-      <el-tag v-if="task" :type="statusType(task.status)">{{ statusLabel(task.status) }}</el-tag>
+      <el-tag :type="statusType(resultState)">{{ statusLabel(resultState) }}</el-tag>
     </header>
 
     <el-empty v-if="!detail || !task" class="result-empty" :description="t('aiImages.emptyResultPanel')" />
-    <template v-else>
-      <section class="result-stage">
-        <div v-if="hasOutputs" class="output-grid">
-          <article v-for="file in outputFiles" :key="file.id" class="output-card">
-            <el-image class="output-image" :src="file.storage_url" fit="contain" :preview-src-list="outputFiles.map((item) => item.storage_url)" />
-            <div class="output-toolbar">
-              <span>#{{ file.id }}</span>
-              <el-button type="primary" text @click="downloadFile(file)">{{ t('aiImages.download') }}</el-button>
+
+    <section v-else-if="task.status === 'pending' || task.status === 'running'" class="result-state result-state--pending">
+      <el-icon class="result-spinner"><RefreshRight /></el-icon>
+      <strong>{{ t('aiImages.resultPending') }}</strong>
+      <span>{{ t('aiImages.resultPendingTip') }}</span>
+    </section>
+
+    <section v-else-if="task.status === 'failed'" class="result-state result-state--failed">
+      <strong>{{ t('aiImages.resultFailed') }}</strong>
+      <el-text type="danger">{{ task.error_message }}</el-text>
+      <el-button type="primary" :icon="RefreshRight" @click="retry">
+        {{ t('aiImages.retry') }}
+      </el-button>
+    </section>
+
+    <section v-else class="result-stage">
+      <el-empty v-if="outputFiles.length === 0" class="result-empty" :description="t('aiImages.emptyOutputs')" />
+      <div v-else class="output-grid">
+        <article v-for="file in outputFiles" :key="file.id" class="output-card">
+          <el-image class="output-image" :src="file.storage_url" fit="contain" :preview-src-list="previewSources" />
+          <div class="output-body">
+            <div class="output-meta">
+              <span>{{ file.width }}×{{ file.height }}</span>
+              <span>{{ formatBytes(file.size_bytes) }}</span>
+              <span>{{ durationText }}</span>
             </div>
             <p v-if="file.revised_prompt" class="revised-prompt">{{ file.revised_prompt }}</p>
-          </article>
-        </div>
-        <el-empty v-else class="result-empty" :description="t('aiImages.emptyOutputs')" />
-      </section>
-
-      <section class="result-detail-card">
-        <div class="task-title-line">
-          <strong>#{{ task.id }} · {{ task.agent_name_snapshot }}</strong>
-          <span>{{ task.created_at }}</span>
-        </div>
-        <p class="task-prompt">{{ task.prompt }}</p>
-        <div class="task-meta-grid">
-          <span>{{ t('aiImages.provider') }}</span>
-          <strong>{{ task.provider_name_snapshot }}</strong>
-          <span>{{ t('aiImages.size') }}</span>
-          <strong>{{ task.size }}</strong>
-          <span>{{ t('aiImages.quality') }}</span>
-          <strong>{{ task.quality }}</strong>
-          <span>{{ t('aiImages.finishedAt') }}</span>
-          <strong>{{ optionalDisplay(task.finished_at) }}</strong>
-        </div>
-        <el-text v-if="task.error_message" type="danger">{{ task.error_message }}</el-text>
-      </section>
-
-      <section class="result-actions">
-        <el-button @click="emit('reuse', detail)">{{ t('aiImages.reuse') }}</el-button>
-        <el-button :disabled="!canFavorite" @click="emit('favorite', task.id, nextFavoriteValue)">{{ favoriteText }}</el-button>
-        <el-button type="danger" :disabled="!canDelete" @click="emit('delete', task.id)">{{ t('common.actions.del') }}</el-button>
-      </section>
-
-      <section class="result-detail-card">
-        <h3>{{ t('aiImages.referenceImages') }}</h3>
-        <ImageAssetList :files="inputFiles" :mask-file="maskFile" :mask-target-sort-order="maskTargetSortOrder" :removable="false" />
-      </section>
-    </template>
+            <div class="output-actions">
+              <el-button :icon="Star" :disabled="!canSaveAsset" @click="saveAsset(file)">
+                {{ t('aiImages.addToAssets') }}
+              </el-button>
+              <el-button :icon="FolderAdd" @click="emit('addReference', file)">
+                {{ t('aiImages.addToReferences') }}
+              </el-button>
+              <el-button type="primary" :icon="Download" @click="downloadFile(file)">
+                {{ t('aiImages.download') }}
+              </el-button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -162,7 +170,8 @@ function downloadFile(file: AiImageFileItem) {
   margin: 8px 0 0;
 }
 
-.result-stage {
+.result-stage,
+.result-state {
   border: 1px dashed var(--image-studio-line-strong, var(--el-border-color));
   border-radius: 18px;
   display: flex;
@@ -174,6 +183,30 @@ function downloadFile(file: AiImageFileItem) {
   scrollbar-gutter: stable;
 }
 
+.result-state {
+  align-items: center;
+  color: var(--image-studio-muted, var(--el-text-color-secondary));
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.result-state strong {
+  color: var(--image-studio-text, var(--el-text-color-primary));
+  font-size: 18px;
+  margin-top: 12px;
+}
+
+.result-state--failed {
+  gap: 12px;
+}
+
+.result-spinner {
+  color: var(--el-color-primary);
+  font-size: 34px;
+  animation: image-result-spin 1.2s linear infinite;
+}
+
 .result-empty {
   width: 100%;
   align-self: center;
@@ -181,13 +214,12 @@ function downloadFile(file: AiImageFileItem) {
 
 .output-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
   width: 100%;
 }
 
-.output-card,
-.result-detail-card {
+.output-card {
   border: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
   border-radius: 16px;
   background: var(--image-studio-surface, var(--el-bg-color));
@@ -201,95 +233,46 @@ function downloadFile(file: AiImageFileItem) {
   background: var(--el-fill-color-light);
 }
 
-.output-toolbar,
-.task-title-line,
-.result-actions {
+.output-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.output-meta,
+.output-actions {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
-.output-toolbar,
-.task-title-line {
-  justify-content: space-between;
-}
-
-.output-toolbar {
+.output-meta {
   color: var(--image-studio-muted, var(--el-text-color-secondary));
   font-size: 12px;
-  padding: 10px 12px;
 }
 
 .revised-prompt {
-  border-top: 1px solid var(--image-studio-line, var(--el-border-color-lighter));
   color: var(--image-studio-muted, var(--el-text-color-secondary));
   font-size: 12px;
   line-height: 1.65;
   margin: 0;
-  padding: 10px 12px;
 }
 
-.result-detail-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-}
+@keyframes image-result-spin {
+  from {
+    transform: rotate(0deg);
+  }
 
-.result-detail-card h3 {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  font-size: 15px;
-  font-weight: 760;
-  margin: 0;
-}
-
-.task-title-line strong {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-title-line span {
-  color: var(--image-studio-muted, var(--el-text-color-secondary));
-  flex: none;
-  font-size: 12px;
-}
-
-.task-prompt {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  line-height: 1.7;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.task-meta-grid {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px 14px;
-  font-size: 12px;
-}
-
-.task-meta-grid span {
-  color: var(--image-studio-muted, var(--el-text-color-secondary));
-}
-
-.task-meta-grid strong {
-  color: var(--image-studio-text, var(--el-text-color-primary));
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.result-actions {
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 760px) {
-  .result-stage {
+  .result-stage,
+  .result-state {
     min-height: 220px;
   }
 

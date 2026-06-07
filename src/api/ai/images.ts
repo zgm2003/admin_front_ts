@@ -5,8 +5,6 @@ import type { DictOption, Id, PaginatedResponse } from '@/types/common'
 export type AiImageTaskStatus = 'pending' | 'running' | 'success' | 'failed'
 export type AiImageSize = 'auto' | '1024x1024' | '1536x1024' | '1024x1536'
 export type AiImageQuality = 'auto' | 'low' | 'medium' | 'high'
-export type AiImageOutputFormat = 'png' | 'jpeg' | 'webp'
-export type AiImageModeration = 'auto' | 'low'
 export type AiImageStorageProvider = 'cos' | 'remote_url'
 export type AiImageFileRole = 'input' | 'mask' | 'output'
 
@@ -20,10 +18,7 @@ export interface AiImageInitResponse {
   dict: {
     size_arr: DictOption<AiImageSize>[]
     quality_arr: DictOption<AiImageQuality>[]
-    output_format_arr: DictOption<AiImageOutputFormat>[]
-    moderation_arr: DictOption<AiImageModeration>[]
     status_arr: DictOption<AiImageTaskStatus>[]
-    favorite_arr: DictOption<number>[]
   }
   agent_options: AiImageAgentOption[]
 }
@@ -39,15 +34,11 @@ export interface AiImageTaskItem {
   prompt: string
   size: AiImageSize | string
   quality: AiImageQuality | string
-  output_format: AiImageOutputFormat | string
-  output_compression?: number | null
-  moderation: AiImageModeration | string
   n: number
   status: AiImageTaskStatus
   status_name?: string
   error_message?: string
   actual_params_json?: Record<string, unknown>
-  is_favorite: number
   finished_at?: string
   elapsed_ms: number
   created_at: string
@@ -82,7 +73,6 @@ export interface AiImageListParams {
   current_page: number
   page_size: number
   status?: AiImageTaskStatus | ''
-  is_favorite?: number | ''
 }
 
 export interface AiImageFileInput {
@@ -104,9 +94,6 @@ export interface AiImageTaskCreatePayload {
   prompt: string
   size?: AiImageSize | ''
   quality?: AiImageQuality | ''
-  output_format?: AiImageOutputFormat | ''
-  output_compression?: number | null
-  moderation?: AiImageModeration | ''
   n?: number
   input_files?: AiImageFileInput[]
   mask_file?: AiImageMaskFileInput | null
@@ -120,7 +107,6 @@ interface AiImageListQueryParams {
   current_page: number
   page_size: number
   status?: AiImageTaskStatus
-  is_favorite?: number
 }
 
 const BASE = `${ADMIN_API_PREFIX}/ai-images`
@@ -147,7 +133,6 @@ function normalizeListParams(params: AiImageListParams): AiImageListQueryParams 
     page_size: params.page_size,
   }
   if (params.status) query.status = params.status
-  if (typeof params.is_favorite === 'number') query.is_favorite = params.is_favorite
   return query
 }
 
@@ -157,9 +142,6 @@ function normalizeTaskPayload(payload: AiImageTaskCreatePayload): AiImageTaskCre
     prompt: payload.prompt.trim(),
     size: optionalImageEnum(payload.size),
     quality: optionalImageEnum(payload.quality),
-    output_format: optionalImageEnum(payload.output_format),
-    output_compression: typeof payload.output_compression === 'number' ? payload.output_compression : undefined,
-    moderation: optionalImageEnum(payload.moderation),
     n: payload.n,
     input_files: payload.input_files,
     mask_file: payload.mask_file,
@@ -183,7 +165,6 @@ export const AiImageApi = {
   list: (params: AiImageListParams) => request.get<PaginatedResponse<AiImageTaskItem>>(BASE, { params: normalizeListParams(params) }),
   detail: (params: { id: Id }) => request.get<AiImageDetailResponse>(`${BASE}/${positiveID(params.id, 'AI image task id')}`),
   createTask,
-  favorite: (params: { id: Id; is_favorite: number }) => request.patch<AiImageTaskItem, { is_favorite: number }>(`${BASE}/${positiveID(params.id, 'AI image task id')}/favorite`, { is_favorite: params.is_favorite }),
   deleteOne,
   deleteBatch,
   addTask: createTask,

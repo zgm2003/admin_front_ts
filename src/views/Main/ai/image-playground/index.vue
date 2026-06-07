@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue'
+import { computed, onMounted, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
-import { CommonEnum } from '@/enums'
 import { getUploadToken, uploadFileToCloud, validateFile } from '@/lib/upload'
 import { useUserStore } from '@/store/user'
 import type { DictOption, PageInfo } from '@/types/common'
+import { AiAssetApi, type AiAssetItem, type AiAssetMutationParams, type AiCommonStatus as AiAssetCommonStatus } from '@/api/ai/assets'
+import type { AiPromptItem } from '@/api/ai/prompts'
 import {
   AiImageApi,
   type AiImageAgentOption,
@@ -13,16 +14,16 @@ import {
   type AiImageFileInput,
   type AiImageFileItem,
   type AiImageInitResponse,
-  type AiImageModeration,
-  type AiImageOutputFormat,
   type AiImageQuality,
   type AiImageSize,
   type AiImageTaskItem,
   type AiImageTaskStatus,
 } from '@/api/ai/images'
+import ImageAssetPicker from './components/ImageAssetPicker/index.vue'
 import ImageComposer from './components/ImageComposer/index.vue'
 import ImageHistoryGrid from './components/ImageHistoryGrid/index.vue'
 import ImageMaskDialog from './components/ImageMaskDialog/index.vue'
+import ImagePromptDialog from './components/ImagePromptDialog/index.vue'
 import ImageResultPanel from './components/ImageResultPanel/index.vue'
 import type { ImageComposerFile, ImageComposerMaskFile, ImageComposerState, UploadImageFileRequest } from './types'
 
@@ -42,8 +43,6 @@ const page = reactive<PageInfo>({
   total: 0,
 })
 
-const statusFilter = shallowRef<AiImageTaskStatus | ''>('')
-const favoriteFilter = shallowRef<number | ''>('')
 const selectedTaskId = shallowRef<number | null>(null)
 const listLoading = shallowRef(false)
 const initLoading = shallowRef(false)
@@ -51,11 +50,13 @@ const detailLoading = shallowRef(false)
 const uploading = shallowRef(false)
 const submitting = shallowRef(false)
 const maskVisible = shallowRef(false)
+const promptDialogVisible = shallowRef(false)
+const assetPickerVisible = shallowRef(false)
 
 const canCreateTask = computed(() => userStore.can('ai_image_task_add'))
 const canUploadFile = computed(() => canCreateTask.value)
-const canFavorite = computed(() => userStore.can('ai_image_task_favorite'))
 const canDelete = computed(() => userStore.can('ai_image_task_del'))
+const canSaveAsset = computed(() => userStore.can('ai_asset_add'))
 let draftFileSequence = 0
 
 const localizedDict = computed<AiImageInitResponse['dict']>(() => {
@@ -73,20 +74,7 @@ const localizedDict = computed<AiImageInitResponse['dict']>(() => {
       medium: t('aiImages.qualityMedium'),
       high: t('aiImages.qualityHigh'),
     }),
-    output_format_arr: localizeOptions(source.output_format_arr, {
-      png: 'PNG',
-      jpeg: 'JPEG',
-      webp: 'WebP',
-    }),
-    moderation_arr: localizeOptions(source.moderation_arr, {
-      auto: t('aiImages.auto'),
-      low: t('aiImages.moderationLow'),
-    }),
     status_arr: localizeOptions(source.status_arr.length > 0 ? source.status_arr : defaultStatusOptions(), statusLabelMap()),
-    favorite_arr: [
-      { label: t('aiImages.favorite'), value: CommonEnum.YES },
-      { label: t('aiImages.unfavorite'), value: CommonEnum.NO },
-    ],
   }
 })
 
@@ -111,8 +99,6 @@ async function loadList() {
     const data = await AiImageApi.list({
       current_page: page.current_page,
       page_size: page.page_size,
-      status: statusFilter.value,
-      is_favorite: favoriteFilter.value,
     })
     tasks.value = data.list
     page.current_page = data.page.current_page
@@ -196,9 +182,6 @@ async function submitTask() {
       prompt: composer.value.prompt,
       size: composer.value.size,
       quality: composer.value.quality,
-      output_format: composer.value.output_format,
-      output_compression: composer.value.output_compression,
-      moderation: composer.value.moderation,
       n: composer.value.n,
       input_files: composer.value.input_files.map(toImageFileInput),
       mask_file: maskFile === null ? null : { ...toImageFileInput(maskFile), related_sort_order: maskFile.related_sort_order },
@@ -214,27 +197,16 @@ async function submitTask() {
   }
 }
 
-async function toggleFavorite(taskId: number, isFavorite: number) {
-  try {
-    const updated = await AiImageApi.favorite({ id: taskId, is_favorite: isFavorite })
-    const currentDetail = detail.value
-    if (currentDetail && currentDetail.task.id === updated.id) {
-      detail.value = { ...currentDetail, task: updated }
-    }
-    await loadList()
-  } catch (error: unknown) {
-    notifyError(error, t('aiImages.favoriteFailed'))
-  }
+async function retry(source: AiImageDetailResponse) {
+  reuseTaskFields(source)
+  await submitTask()
 }
 
-async function deleteTask(taskId: number) {
+async function deleteSelected(ids: number[]) {
   try {
-    await ElMessageBox.confirm(t('aiImages.confirmDelete'), t('common.confirmTitle'), { type: 'warning' })
-    await AiImageApi.deleteOne({ id: taskId })
-    if (selectedTaskId.value === taskId) {
-      selectedTaskId.value = null
-      detail.value = null
-    }
+    await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), { type: 'warning' })
+    await AiImageApi.deleteBatch({ ids })
+    clearDetailForDeletedIDs(ids)
     await loadList()
     ElMessage.success(t('common.success.delete'))
   } catch (error: unknown) {
@@ -243,7 +215,14 @@ async function deleteTask(taskId: number) {
   }
 }
 
-function reuseTask(source: AiImageDetailResponse) {
+function clearDetailForDeletedIDs(ids: number[]) {
+  if (selectedTaskId.value === null) return
+  if (!ids.includes(selectedTaskId.value)) return
+  selectedTaskId.value = null
+  detail.value = null
+}
+
+function reuseTaskFields(source: AiImageDetailResponse) {
   const inputFiles = source.inputs.map(toComposerFile)
   const maskFile = source.mask === null || source.mask === undefined ? null : toComposerMaskFile(source.mask, inputFiles)
   composer.value = {
@@ -251,15 +230,11 @@ function reuseTask(source: AiImageDetailResponse) {
     prompt: source.task.prompt,
     size: source.task.size as AiImageSize,
     quality: source.task.quality as AiImageQuality,
-    output_format: source.task.output_format as AiImageOutputFormat,
-    output_compression: source.task.output_compression ?? null,
-    moderation: source.task.moderation as AiImageModeration,
     n: source.task.n,
     input_files: inputFiles,
     mask_file: maskFile,
     mask_target_sort_order: maskFile === null ? '' : maskFile.related_sort_order,
   }
-  ElMessage.success(t('aiImages.reuseDone'))
 }
 
 function resetComposer() {
@@ -282,6 +257,90 @@ function refreshList() {
   void loadList()
 }
 
+function applyPrompt(prompt: AiPromptItem) {
+  composer.value.prompt = prompt.prompt
+  ElMessage.success(t('aiImages.promptApplied'))
+}
+
+async function addAssetReference(asset: AiAssetItem) {
+  try {
+    if (asset.type !== 'image') {
+      throw new Error(t('aiImages.assetTypeRequired'))
+    }
+    const url = requireNonEmptyURL(asset.url, t('aiImages.assetUrlRequired'))
+    const dimensions = await readImageDimensionsFromURL(url)
+    composer.value.input_files = [
+      ...composer.value.input_files,
+      createComposerFile({
+        storage_provider: 'remote_url',
+        storage_key: url,
+        storage_url: url,
+        mime_type: imageMimeTypeFromURL(url),
+        width: dimensions.width,
+        height: dimensions.height,
+        size_bytes: 0,
+      }),
+    ]
+    ElMessage.success(t('aiImages.addReferenceDone'))
+  } catch (error: unknown) {
+    notifyError(error, t('aiImages.addReferenceFailed'))
+  }
+}
+
+async function addClipboardReference() {
+  try {
+    const url = requireNonEmptyURL(await navigator.clipboard.readText(), t('aiImages.clipboardReferenceRequired'))
+    const dimensions = await readImageDimensionsFromURL(url)
+    composer.value.input_files = [
+      ...composer.value.input_files,
+      createComposerFile({
+        storage_provider: 'remote_url',
+        storage_key: url,
+        storage_url: url,
+        mime_type: imageMimeTypeFromURL(url),
+        width: dimensions.width,
+        height: dimensions.height,
+        size_bytes: 0,
+      }),
+    ]
+    ElMessage.success(t('aiImages.addReferenceDone'))
+  } catch (error: unknown) {
+    notifyError(error, t('aiImages.addReferenceFailed'))
+  }
+}
+
+async function saveAsset(file: AiImageFileItem, source: AiImageDetailResponse) {
+  try {
+    const status = 1 satisfies AiAssetCommonStatus
+    const payload: AiAssetMutationParams = {
+      slug: `image-task-${source.task.id}-file-${file.id}`,
+      type: 'image',
+      category: 'image-workspace',
+      title: `AI image #${file.id}`,
+      cover_url: file.storage_url,
+      description: source.task.prompt,
+      content: assetContent(file),
+      url: file.storage_url,
+      tags_json: '[]',
+      status,
+    }
+    await AiAssetApi.create(payload)
+    ElMessage.success(t('aiImages.saveAssetDone'))
+  } catch (error: unknown) {
+    notifyError(error, t('aiImages.saveAssetFailed'))
+  }
+}
+
+function addReference(file: AiImageFileItem) {
+  composer.value.input_files = [...composer.value.input_files, createComposerFile(toImageFileInput(file))]
+  ElMessage.success(t('aiImages.addReferenceDone'))
+}
+
+function assetContent(file: AiImageFileItem) {
+  if (file.revised_prompt === undefined) return ''
+  return file.revised_prompt
+}
+
 function defaultDict(): AiImageInitResponse['dict'] {
   return {
     size_arr: [
@@ -296,20 +355,7 @@ function defaultDict(): AiImageInitResponse['dict'] {
       { label: t('aiImages.qualityMedium'), value: 'medium' },
       { label: t('aiImages.qualityHigh'), value: 'high' },
     ],
-    output_format_arr: [
-      { label: 'PNG', value: 'png' },
-      { label: 'JPEG', value: 'jpeg' },
-      { label: 'WebP', value: 'webp' },
-    ],
-    moderation_arr: [
-      { label: t('aiImages.auto'), value: 'auto' },
-      { label: t('aiImages.moderationLow'), value: 'low' },
-    ],
     status_arr: defaultStatusOptions(),
-    favorite_arr: [
-      { label: t('aiImages.favorite'), value: CommonEnum.YES },
-      { label: t('aiImages.unfavorite'), value: CommonEnum.NO },
-    ],
   }
 }
 
@@ -342,9 +388,6 @@ function defaultComposer(): ImageComposerState {
     prompt: '',
     size: '1024x1024',
     quality: 'auto',
-    output_format: 'png',
-    output_compression: null,
-    moderation: 'auto',
     n: 1,
     input_files: [],
     mask_file: null,
@@ -395,7 +438,7 @@ function relatedSortOrderForMask(mask: AiImageFileItem, inputs: ImageComposerFil
   return target.sort_order
 }
 
-function toImageFileInput(file: ImageComposerFile): AiImageFileInput {
+function toImageFileInput(file: ImageComposerFile | AiImageFileItem): AiImageFileInput {
   return {
     storage_provider: file.storage_provider,
     storage_key: file.storage_key,
@@ -415,8 +458,29 @@ function requireImageMimeType(file: File): string {
   return mimeType
 }
 
+function requireNonEmptyURL(value: string, message: string): string {
+  const url = value.trim()
+  if (url === '') {
+    throw new Error(message)
+  }
+  const parsed = new URL(url)
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new Error(message)
+  }
+  return parsed.toString()
+}
+
+function imageMimeTypeFromURL(url: string): string {
+  const pathname = new URL(url).pathname.toLowerCase()
+  if (pathname.endsWith('.png')) return 'image/png'
+  if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) return 'image/jpeg'
+  if (pathname.endsWith('.webp')) return 'image/webp'
+  if (pathname.endsWith('.gif')) return 'image/gif'
+  throw new Error(t('aiImages.assetMimeRequired'))
+}
+
 function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const image = new Image()
     const url = URL.createObjectURL(file)
     image.onload = () => {
@@ -425,7 +489,20 @@ function readImageDimensions(file: File): Promise<{ width: number; height: numbe
     }
     image.onerror = () => {
       URL.revokeObjectURL(url)
-      resolve({ width: 0, height: 0 })
+      reject(new Error(t('aiImages.imageDimensionsFailed')))
+    }
+    image.src = url
+  })
+}
+
+function readImageDimensionsFromURL(url: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => {
+      resolve({ width: image.naturalWidth, height: image.naturalHeight })
+    }
+    image.onerror = () => {
+      reject(new Error(t('aiImages.imageDimensionsFailed')))
     }
     image.src = url
   })
@@ -439,13 +516,6 @@ function isCancelError(error: unknown) {
   return error === 'cancel' || error === 'close'
 }
 
-watch([statusFilter, favoriteFilter], () => {
-  page.current_page = 1
-  detail.value = null
-  selectedTaskId.value = null
-  void loadList()
-})
-
 onMounted(() => {
   Promise.all([loadInit(), loadList()]).catch((error: unknown) => {
     notifyError(error, t('aiImages.initFailed'))
@@ -458,17 +528,16 @@ onMounted(() => {
     <div class="image-workspace image-workspace--three-panel">
       <section class="image-panel image-panel--records">
         <ImageHistoryGrid
-          v-model:status="statusFilter"
-          v-model:favorite="favoriteFilter"
           :tasks="tasks"
           :page="page"
-          :dict="localizedDict"
           :loading="listLoading"
           :selected-task-id="selectedTaskId"
+          :can-delete="canDelete"
           @create="resetComposer"
           @refresh="refreshList"
           @detail="openDetail"
           @page-change="updatePage"
+          @delete-selected="deleteSelected"
         />
       </section>
 
@@ -483,6 +552,9 @@ onMounted(() => {
           :can-create-task="canCreateTask"
           @upload-file="uploadComposerFile"
           @open-mask="maskVisible = true"
+          @open-prompt-library="promptDialogVisible = true"
+          @open-asset-library="assetPickerVisible = true"
+          @add-clipboard-reference="addClipboardReference"
           @submit="submitTask"
         />
       </section>
@@ -491,12 +563,10 @@ onMounted(() => {
         <ImageResultPanel
           :detail="detail"
           :loading="detailLoading"
-          :can-favorite="canFavorite"
-          :can-delete="canDelete"
-          :status-options="localizedDict.status_arr"
-          @favorite="toggleFavorite"
-          @delete="deleteTask"
-          @reuse="reuseTask"
+          :can-save-asset="canSaveAsset"
+          @save-asset="saveAsset"
+          @add-reference="addReference"
+          @retry="retry"
         />
       </section>
     </div>
@@ -507,6 +577,8 @@ onMounted(() => {
       :uploading="uploading"
       @upload-mask-file="uploadComposerFile"
     />
+    <ImagePromptDialog v-model="promptDialogVisible" @select-prompt="applyPrompt" />
+    <ImageAssetPicker v-model="assetPickerVisible" @select-asset="addAssetReference" />
   </div>
 </template>
 

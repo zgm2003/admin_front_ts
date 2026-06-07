@@ -1,8 +1,6 @@
 import type {
   AiImageFileInput,
   AiImageFileItem,
-  AiImageModeration,
-  AiImageOutputFormat,
   AiImageQuality,
   AiImageSize,
 } from '@/api/ai/images'
@@ -25,9 +23,6 @@ export interface ImageComposerState {
   prompt: string
   size: AiImageSize | ''
   quality: AiImageQuality | ''
-  output_format: AiImageOutputFormat | ''
-  output_compression: number | null
-  moderation: AiImageModeration | ''
   n: number
   input_files: ImageComposerFile[]
   mask_file: ImageComposerMaskFile | null

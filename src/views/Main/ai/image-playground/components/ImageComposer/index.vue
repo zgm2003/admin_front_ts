@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Picture, Promotion, Upload } from '@element-plus/icons-vue'
+import { Collection, FolderOpened, Picture, Promotion, Upload } from '@element-plus/icons-vue'
 import type { AiImageAgentOption, AiImageInitResponse } from '@/api/ai/images'
 import ImageAssetList from '../ImageAssetList/index.vue'
 import type { ImageComposerFile, ImageComposerState, UploadImageFileRequest } from '../../types'
@@ -18,6 +18,9 @@ interface Props {
 interface Emits {
   uploadFile: [request: UploadImageFileRequest]
   openMask: []
+  openPromptLibrary: []
+  openAssetLibrary: []
+  addClipboardReference: []
   submit: []
 }
 
@@ -73,17 +76,9 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
         <div class="section-heading">
           <h2>{{ t('aiImages.prompt') }}</h2>
           <div class="section-actions">
-            <el-upload
-              multiple
-              accept="image/*"
-              :show-file-list="false"
-              :disabled="uploading || !canUploadFile || !canUploadMore"
-              :before-upload="beforeReferenceUpload"
-            >
-              <el-button :icon="Upload" plain :loading="uploading" :disabled="!canUploadFile || !canUploadMore">
-                {{ t('aiImages.uploadReference') }}
-              </el-button>
-            </el-upload>
+            <el-button :icon="Collection" plain @click="emit('openPromptLibrary')">
+              {{ t('aiImages.promptLibrary') }}
+            </el-button>
           </div>
         </div>
         <el-input
@@ -103,9 +98,28 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
             <h2>{{ t('aiImages.referenceImages') }}</h2>
             <p>{{ referenceSummary }}</p>
           </div>
-          <el-button :icon="Picture" plain :disabled="form.input_files.length === 0" @click="emit('openMask')">
-            {{ t('aiImages.maskEdit') }}
-          </el-button>
+          <div class="section-actions">
+            <el-button :icon="FolderOpened" plain :disabled="!canUploadMore" @click="emit('openAssetLibrary')">
+              {{ t('aiImages.assetLibrary') }}
+            </el-button>
+            <el-button :icon="Picture" plain :disabled="!canUploadMore" @click="emit('addClipboardReference')">
+              {{ t('aiImages.clipboardReference') }}
+            </el-button>
+            <el-upload
+              multiple
+              accept="image/*"
+              :show-file-list="false"
+              :disabled="uploading || !canUploadFile || !canUploadMore"
+              :before-upload="beforeReferenceUpload"
+            >
+              <el-button :icon="Upload" plain :loading="uploading" :disabled="!canUploadFile || !canUploadMore">
+                {{ t('aiImages.uploadReference') }}
+              </el-button>
+            </el-upload>
+            <el-button plain :disabled="form.input_files.length === 0" @click="emit('openMask')">
+              {{ t('aiImages.maskEdit') }}
+            </el-button>
+          </div>
         </div>
         <ImageAssetList
           :files="form.input_files"
@@ -120,7 +134,7 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
         <h2>{{ t('aiImages.generationSettings') }}</h2>
         <div class="settings-grid">
           <label class="studio-field studio-field--wide">
-            <span>{{ t('aiImages.agent') }}</span>
+            <span>{{ t('aiImages.model') }}</span>
             <el-select-v2
               v-model="form.agent_id"
               :options="agentSelectOptions"
@@ -142,18 +156,6 @@ function normalizeSortOrder(files: ImageComposerFile[]): ImageComposerFile[] {
           <label class="studio-field">
             <span>{{ t('aiImages.size') }}</span>
             <el-select-v2 v-model="form.size" :options="dict.size_arr" />
-          </label>
-          <label class="studio-field">
-            <span>{{ t('aiImages.outputFormat') }}</span>
-            <el-select-v2 v-model="form.output_format" :options="dict.output_format_arr" />
-          </label>
-          <label class="studio-field">
-            <span>{{ t('aiImages.outputCompression') }}</span>
-            <el-input-number v-model="form.output_compression" :min="0" :max="100" :controls="false" :placeholder="t('aiImages.optional')" />
-          </label>
-          <label class="studio-field">
-            <span>{{ t('aiImages.moderation') }}</span>
-            <el-select-v2 v-model="form.moderation" :options="dict.moderation_arr" />
           </label>
           <label class="studio-field">
             <span>{{ t('aiImages.n') }}</span>
