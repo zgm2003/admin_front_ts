@@ -1012,6 +1012,20 @@ export default {
     editTitle: '编辑 AI 智能体',
     testDone: '智能体连接测试完成'
   },
+  aiPrompts: {
+    filter: { keyword: '关键词', category: '分类', status: '状态' },
+    table: { cover: '封面', title: '标题', slug: '标识', category: '分类', preview: '预览', status: '状态', updatedAt: '更新时间' },
+    form: { slug: '标识', category: '分类', title: '标题', coverUrl: '封面 URL', prompt: '提示词', preview: '预览', tagsJson: '标签 JSON', sourceUrl: '来源 URL', status: '状态' },
+    addTitle: '新增 AI 提示词',
+    editTitle: '编辑 AI 提示词'
+  },
+  aiAssets: {
+    filter: { keyword: '关键词', type: '类型', status: '状态' },
+    table: { cover: '封面', title: '标题', slug: '标识', type: '类型', category: '分类', description: '描述', status: '状态', updatedAt: '更新时间' },
+    form: { slug: '标识', type: '类型', category: '分类', title: '标题', coverUrl: '封面 URL', description: '描述', content: '内容', url: 'URL', tagsJson: '标签 JSON', status: '状态' },
+    addTitle: '新增 AI 素材',
+    editTitle: '编辑 AI 素材'
+  },
   aiImages: {
     title: 'AI 图片工作台',
     subtitle: '通过 image_generate 智能体提交 gpt-image-2 异步任务，历史和任务文件都落库。',

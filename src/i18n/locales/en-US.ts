@@ -993,6 +993,20 @@ export default {
     editTitle: 'Edit AI Agent',
     testDone: 'Agent connection test completed'
   },
+  aiPrompts: {
+    filter: { keyword: 'Keyword', category: 'Category', status: 'Status' },
+    table: { cover: 'Cover', title: 'Title', slug: 'Slug', category: 'Category', preview: 'Preview', status: 'Status', updatedAt: 'Updated At' },
+    form: { slug: 'Slug', category: 'Category', title: 'Title', coverUrl: 'Cover URL', prompt: 'Prompt', preview: 'Preview', tagsJson: 'Tags JSON', sourceUrl: 'Source URL', status: 'Status' },
+    addTitle: 'Add AI Prompt',
+    editTitle: 'Edit AI Prompt'
+  },
+  aiAssets: {
+    filter: { keyword: 'Keyword', type: 'Type', status: 'Status' },
+    table: { cover: 'Cover', title: 'Title', slug: 'Slug', type: 'Type', category: 'Category', description: 'Description', status: 'Status', updatedAt: 'Updated At' },
+    form: { slug: 'Slug', type: 'Type', category: 'Category', title: 'Title', coverUrl: 'Cover URL', description: 'Description', content: 'Content', url: 'URL', tagsJson: 'Tags JSON', status: 'Status' },
+    addTitle: 'Add AI Asset',
+    editTitle: 'Edit AI Asset'
+  },
   aiImages: {
     title: 'AI Image Playground',
     subtitle: 'Submit async gpt-image-2 tasks through image_generate agents. History and task files are persisted on the server.',

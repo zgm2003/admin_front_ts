@@ -8,24 +8,27 @@ const t = i18n.global.t
 interface CrudApiModule<
   T extends Identifiable,
   P extends PaginationParams = PaginationParams,
+  S extends number = number,
 > extends TableApiModule<T, P> {
   deleteOne?(params: { id: Id }): Promise<unknown>
   deleteBatch?(params: { ids: Id[] }): Promise<unknown>
-  changeStatus?(params: { id: Id; status: number }): Promise<unknown>
+  changeStatus?(params: { id: Id; status: S }): Promise<unknown>
 }
 
 interface UseCrudTableOptions<
   T extends Identifiable,
   P extends PaginationParams = PaginationParams,
+  S extends number = number,
 > extends UseTableOptions<T, P> {
-  api: CrudApiModule<T, P>
+  api: CrudApiModule<T, P, S>
   afterDel?: () => void
 }
 
 export function useCrudTable<
   T extends Identifiable = Identifiable,
   P extends PaginationParams = PaginationParams,
->(options: UseCrudTableOptions<T, P>) {
+  S extends number = number,
+>(options: UseCrudTableOptions<T, P, S>) {
   const { api, afterDel, ...tableOptions } = options
 
   const table = useTable<T, P>({
@@ -90,7 +93,7 @@ export function useCrudTable<
     afterDel?.()
   }
 
-  async function toggleStatus(row: T, newStatus: number) {
+  async function toggleStatus(row: T, newStatus: S) {
     const statusAction = api.changeStatus
     if (!statusAction) {
       console.warn('useCrudTable: api.changeStatus not provided')
