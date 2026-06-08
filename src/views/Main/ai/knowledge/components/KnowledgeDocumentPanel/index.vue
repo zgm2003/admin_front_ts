@@ -61,7 +61,7 @@ const columns = computed(() => [
   { key: 'index_status', label: t('aiKnowledge.document.indexStatus'), width: 120 },
   { key: 'status', label: t('aiKnowledge.table.status'), width: 90 },
   { key: 'updated_at', label: t('aiKnowledge.table.updatedAt'), width: 150 },
-  { key: 'actions', label: t('common.actions.action'), width: 330, fixed: 'right' },
+  { key: 'actions', label: t('common.actions.action'), width: 400, fixed: 'right' },
 ])
 
 function indexStatusType(status: AiKnowledgeIndexStatus) {
