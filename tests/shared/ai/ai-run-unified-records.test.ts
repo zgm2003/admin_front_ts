@@ -26,10 +26,6 @@ describe('unified AI run records frontend contract', () => {
     expect(source).toContain("export type AiRunUsageStatus = 'pending' | 'reported' | 'unavailable'")
 
     expect(source).toContain('platform_arr: DictOption<AiRunPlatform>[]')
-    expect(source).toContain('modality_arr: DictOption<AiRunModality>[]')
-    expect(source).toContain('source_type_arr: DictOption<AiRunSourceType>[]')
-    expect(source).toContain('usage_status_arr: DictOption<AiRunUsageStatus>[]')
-
     expect(source).toContain('platform: AiRunPlatform')
     expect(source).toContain('modality: AiRunModality')
     expect(source).toContain('source_type: AiRunSourceType')
@@ -48,7 +44,7 @@ describe('unified AI run records frontend contract', () => {
     expect(source).not.toContain('cost')
   })
 
-  it('sends platform, modality, source type, and usage status filters to the backend', () => {
+  it('keeps source-fact query fields typed for API compatibility', () => {
     const source = runsApi()
 
     expect(source).toContain('platform?: AiRunPlatform |')
@@ -61,32 +57,32 @@ describe('unified AI run records frontend contract', () => {
     expect(source).toContain('if (params.usage_status) query.usage_status = params.usage_status')
   })
 
-  it('renders source facts and input snapshot without requiring chat messages', () => {
+  it('keeps low-value source facts out of the visible run monitor UI', () => {
     const source = runList()
 
     for (const key of [
       'aiRuns.filter.platform',
-      'aiRuns.filter.modality',
-      'aiRuns.filter.sourceType',
-      'aiRuns.filter.usageStatus',
       'aiRuns.table.platform',
-      'aiRuns.table.modality',
-      'aiRuns.table.source',
-      'aiRuns.table.usageStatus',
       'aiRuns.detail.platform',
-      'aiRuns.detail.modality',
-      'aiRuns.detail.sourceType',
-      'aiRuns.detail.sourceId',
       'aiRuns.detail.inputSnapshot',
-      'aiRuns.detail.usageStatus',
     ]) {
       expect(source).toContain(key)
     }
 
     expect(source).toContain('detailData.input_snapshot')
-    expect(source).toContain('detailData.source_type')
-    expect(source).toContain('detailData.source_id')
-    expect(source).toContain('detailData.usage_status')
+    expect(source).not.toContain('aiRuns.filter.modality')
+    expect(source).not.toContain('aiRuns.filter.sourceType')
+    expect(source).not.toContain('aiRuns.filter.usageStatus')
+    expect(source).not.toContain('aiRuns.table.modality')
+    expect(source).not.toContain('aiRuns.table.source')
+    expect(source).not.toContain('aiRuns.table.usageStatus')
+    expect(source).not.toContain('aiRuns.detail.modality')
+    expect(source).not.toContain('aiRuns.detail.sourceType')
+    expect(source).not.toContain('aiRuns.detail.sourceId')
+    expect(source).not.toContain('aiRuns.detail.usageStatus')
+    expect(source).not.toContain('detailData.source_type')
+    expect(source).not.toContain('detailData.source_id')
+    expect(source).not.toContain('detailData.usage_status')
     expect(source).not.toContain('detailData.user_message!.content')
     expect(source).not.toContain('detailData.assistant_message!.content')
   })
@@ -95,7 +91,7 @@ describe('unified AI run records frontend contract', () => {
     const zh = zhLocale()
     const en = enLocale()
 
-    for (const key of ['platform', 'modality', 'sourceType', 'sourceId', 'inputSnapshot', 'usageStatus']) {
+    for (const key of ['platform', 'inputSnapshot']) {
       expect(zh).toContain(key)
       expect(en).toContain(key)
     }
