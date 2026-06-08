@@ -985,7 +985,7 @@ export default {
     filter: { name: 'Agent Name', scene: 'Scene', provider: 'Provider', status: 'Status' },
     table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
     form: { name: 'Agent Name', provider: 'Provider', model: 'Model', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
-    scene: { chat: 'Chat', agentGenerate: 'Tool Generation', imageGenerate: 'Image Generation', canvasTextGenerate: 'Infinite Canvas Chat', canvasImageGenerate: 'Infinite Canvas Image', canvasVideoGenerate: 'Infinite Canvas Video' },
+    scene: { chat: 'Chat', agentGenerate: 'Tool Generation', canvasTextGenerate: 'Infinite Canvas Chat', canvasImageGenerate: 'Infinite Canvas Image', canvasVideoGenerate: 'Infinite Canvas Video' },
     actions: { test: 'Test', tools: 'Tool Config', knowledge: 'Knowledge' },
     tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
     knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },

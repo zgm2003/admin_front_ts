@@ -3,7 +3,7 @@ import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
 import type { AiProviderDriver, AiProviderModelItem } from './providers'
 
-export type AiAgentScene = 'chat' | 'agent_generate' | 'image_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'
+export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'
 
 export interface AiAgentProviderModelOption extends DictOption<string> {
   provider_id: number

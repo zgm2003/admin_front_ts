@@ -12,7 +12,8 @@ describe('AI agent free Canvas scene contract', () => {
     const zh = read('src/i18n/locales/zh-CN.ts')
     const en = read('src/i18n/locales/en-US.ts')
 
-    expect(agentsApi).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'image_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'")
+    expect(agentsApi).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'")
+    expect(agentsApi).not.toContain("'image_generate'")
     expect(agentsPage).not.toContain('AgentBillingDialog')
     expect(agentsPage).not.toContain('billingDialogVisible')
     expect(exists('src/api/ai/billingRules.ts')).toBe(false)
