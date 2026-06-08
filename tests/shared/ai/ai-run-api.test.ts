@@ -118,13 +118,18 @@ describe('AI run api REST contract', () => {
     for (const key of [
       'status_arr',
       'platform_arr',
-      'modality_arr',
-      'source_type_arr',
-      'usage_status_arr',
       'agentArr',
       'providerArr',
     ]) {
       expect(source).toMatch(new RegExp(`requireAiRunOptionArray<[^>]+>\\(response\\.dict\\.${key}, 'ai-runs\\.page-init\\.dict\\.${key}'\\)`))
+    }
+
+    for (const removedKey of [
+      'modality_arr',
+      'source_type_arr',
+      'usage_status_arr',
+    ]) {
+      expect(source).not.toContain(removedKey)
     }
 
     expect(source).toContain('function normalizeAiRunInitResponse(response: AiRunInitResponse): AiRunInitResponse')

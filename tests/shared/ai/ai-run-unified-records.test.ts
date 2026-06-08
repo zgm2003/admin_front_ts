@@ -14,24 +14,28 @@ const zhLocale = () => readFrontendSource('src/i18n/locales/zh-CN.ts')
 const enLocale = () => readFrontendSource('src/i18n/locales/en-US.ts')
 
 describe('unified AI run records frontend contract', () => {
-  it('declares every unified run field as a real non-fallback contract field', () => {
+  it('declares AI run provider-attempt fields without polymorphic source fields', () => {
     const source = runsApi()
 
     expect(source).toContain("export type AiRunPlatform = 'admin' | 'app' | 'canvas'")
-    expect(source).toContain("export type AiRunModality = 'chat' | 'text' | 'image' | 'video'")
-    expect(source).toContain("export type AiRunSourceType = 'ai_chat_message' | 'ai_text_task' | 'ai_image_task' | 'canvas_video_task'")
-    expect(source).toContain("value === 'ai_image_task'")
+    expect(source).not.toContain('AiRunModality')
+    expect(source).not.toContain('AiRunSourceType')
+    expect(source).not.toContain('AiRunUsageStatus')
+    expect(source).not.toContain('modality')
+    expect(source).not.toContain('source_type')
+    expect(source).not.toContain('source_id')
+    expect(source).not.toContain('usage_status')
+    expect(source).not.toContain("value === 'ai_image_task'")
+    expect(source).not.toContain('ai_chat_message')
+    expect(source).not.toContain('ai_text_task')
+    expect(source).not.toContain('ai_image_task')
+    expect(source).not.toContain('canvas_video_task')
     expect(source).not.toContain('admin_ai_image_task')
     expect(source).not.toContain('canvas_image_task')
-    expect(source).toContain("export type AiRunUsageStatus = 'pending' | 'reported' | 'unavailable'")
 
     expect(source).toContain('platform_arr: DictOption<AiRunPlatform>[]')
     expect(source).toContain('platform: AiRunPlatform')
-    expect(source).toContain('modality: AiRunModality')
-    expect(source).toContain('source_type: AiRunSourceType')
-    expect(source).toContain('source_id: number')
     expect(source).toContain('input_snapshot: string')
-    expect(source).toContain('usage_status: AiRunUsageStatus')
     expect(source).toContain('conversation_id: number | null')
     expect(source).toContain('user_message: AiRunMessageSummary | null')
     expect(source).toContain('assistant_message: AiRunMessageSummary | null')
@@ -44,17 +48,17 @@ describe('unified AI run records frontend contract', () => {
     expect(source).not.toContain('cost')
   })
 
-  it('keeps source-fact query fields typed for API compatibility', () => {
+  it('keeps only real run monitor query fields typed', () => {
     const source = runsApi()
 
     expect(source).toContain('platform?: AiRunPlatform |')
-    expect(source).toContain('modality?: AiRunModality |')
-    expect(source).toContain('source_type?: AiRunSourceType |')
-    expect(source).toContain('usage_status?: AiRunUsageStatus |')
     expect(source).toContain('if (params.platform) query.platform = params.platform')
-    expect(source).toContain('if (params.modality) query.modality = params.modality')
-    expect(source).toContain('if (params.source_type) query.source_type = params.source_type')
-    expect(source).toContain('if (params.usage_status) query.usage_status = params.usage_status')
+    expect(source).not.toContain('modality?:')
+    expect(source).not.toContain('source_type?:')
+    expect(source).not.toContain('usage_status?:')
+    expect(source).not.toContain('query.modality')
+    expect(source).not.toContain('query.source_type')
+    expect(source).not.toContain('query.usage_status')
   })
 
   it('keeps low-value source facts out of the visible run monitor UI', () => {
