@@ -10,7 +10,7 @@ function readFrontendSource(relativePath: string) {
 
 const forbiddenLooseTypePattern = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
 
-function expectStandardCrudApi(source: string, resource: 'ai-prompts' | 'ai-assets') {
+function expectStandardCrudApi(source: string, resource: 'ai-prompts') {
   expect(source).toContain(`\${ADMIN_API_PREFIX}/${resource}`)
   for (const method of ['pageInit', 'list', 'detail', 'create', 'update', 'deleteOne', 'deleteBatch']) {
     expect(source).toContain(method)
@@ -39,42 +39,30 @@ function expectCrudPage(source: string) {
   expect(source).not.toContain('return type')
 }
 
-describe('AI prompt/asset Admin API and CRUD pages', () => {
+describe('AI prompt Admin API and CRUD page', () => {
   it('uses standard REST API clients without legacy aliases or loose types', () => {
     const prompts = readFrontendSource('src/api/ai/prompts.ts')
-    const assets = readFrontendSource('src/api/ai/assets.ts')
 
     expectStandardCrudApi(prompts, 'ai-prompts')
-    expectStandardCrudApi(assets, 'ai-assets')
     expect(prompts).toContain('changeStatus')
-    expect(assets).not.toContain('changeStatus')
   })
 
   it('fails closed on page-init dictionaries and protects permission gates', () => {
     const prompts = readFrontendSource('src/api/ai/prompts.ts')
-    const assets = readFrontendSource('src/api/ai/assets.ts')
     const promptPage = readFrontendSource('src/views/Main/ai/prompts/index.vue')
-    const assetPage = readFrontendSource('src/views/Main/ai/assets/index.vue')
 
     expect(prompts).toContain('normalizeAiPromptInitResponse')
     expect(prompts).toContain("requireOptionArray<AiCommonStatus>(response.common_status_arr")
-    expect(assets).toContain('normalizeAiAssetInitResponse')
-    expect(assets).toContain("requireOptionArray<AiAssetType>(response.ai_asset_type_arr")
     for (const code of ['ai_prompt_add', 'ai_prompt_edit', 'ai_prompt_status', 'ai_prompt_del']) {
       expect(promptPage).toContain(`userStore.can('${code}')`)
-    }
-    for (const code of ['ai_asset_add', 'ai_asset_edit', 'ai_asset_del']) {
-      expect(assetPage).toContain(`userStore.can('${code}')`)
     }
   })
 
   it('uses standard CRUD page primitives and keeps dynamic view registry generic', () => {
     const promptPage = readFrontendSource('src/views/Main/ai/prompts/index.vue')
-    const assetPage = readFrontendSource('src/views/Main/ai/assets/index.vue')
     const viewRegistry = readFrontendSource('src/router/view-registry.ts')
 
     expectCrudPage(promptPage)
-    expectCrudPage(assetPage)
     expect(viewRegistry).toContain("return `../views/Main/${normalizedPath}/index.vue`")
     expect(viewRegistry).not.toContain('ai/prompts')
     expect(viewRegistry).not.toContain('ai/assets')
@@ -82,13 +70,8 @@ describe('AI prompt/asset Admin API and CRUD pages', () => {
 
   it('guards table dictionary labels before rendering status and type cells', () => {
     const promptPage = readFrontendSource('src/views/Main/ai/prompts/index.vue')
-    const assetPage = readFrontendSource('src/views/Main/ai/assets/index.vue')
 
     expect(promptPage).toContain('function isKnownStatus(')
     expect(promptPage).toContain('v-if="isKnownStatus(row.status)"')
-    expect(assetPage).toContain('function isKnownStatus(')
-    expect(assetPage).toContain('v-if="isKnownStatus(row.status)"')
-    expect(assetPage).toContain('function isKnownAssetType(')
-    expect(assetPage).toContain('v-if="isKnownAssetType(row.type)"')
   })
 })

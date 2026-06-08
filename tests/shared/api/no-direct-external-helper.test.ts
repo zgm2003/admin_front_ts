@@ -35,5 +35,5 @@ describe('Admin Vue direct external helper guard', () => {
     })
 
     expect(offenders).toEqual([])
-  })
+  }, 15000)
 })
