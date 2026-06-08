@@ -82,6 +82,7 @@ export default {
     confirmKick: 'Are you sure you want to kick this user offline?',
     confirmBatchDelete: 'Delete all selected records?',
     confirmStatusChange: 'Change enabled status?',
+    invalidData: 'Invalid data contract',
     selectAtLeastOne: 'Please select at least one record',
     export: {
       submitted: 'Export task submitted, you will be notified when complete',

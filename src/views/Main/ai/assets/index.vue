@@ -134,6 +134,14 @@ function typeText(type: AiAssetType): string {
   return option.label
 }
 
+function isKnownStatus(status: unknown): status is AiCommonStatus {
+  return dict.value.common_status_arr.some((item) => item.value === status)
+}
+
+function isKnownAssetType(type: unknown): type is AiAssetType {
+  return dict.value.ai_asset_type_arr.some((item) => item.value === type)
+}
+
 function statusTagType(status: AiCommonStatus): 'success' | 'danger' {
   return status === CommonEnum.YES ? 'success' : 'danger'
 }
@@ -232,10 +240,12 @@ onMounted(async () => {
           <el-text v-else type="info">-</el-text>
         </template>
         <template #cell-type="{ row }">
-          <el-tag type="info">{{ typeText(row.type) }}</el-tag>
+          <el-tag v-if="isKnownAssetType(row.type)" type="info">{{ typeText(row.type) }}</el-tag>
+          <el-text v-else type="danger">{{ t('common.invalidData') }}</el-text>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="statusTagType(row.status)">{{ statusText(row.status) }}</el-tag>
+          <el-tag v-if="isKnownStatus(row.status)" :type="statusTagType(row.status)">{{ statusText(row.status) }}</el-tag>
+          <el-text v-else type="danger">{{ t('common.invalidData') }}</el-text>
         </template>
         <template #cell-actions="{ row }">
           <el-button v-if="userStore.can('ai_asset_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>

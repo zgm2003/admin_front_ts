@@ -125,6 +125,10 @@ function statusText(status: AiCommonStatus): string {
   return option.label
 }
 
+function isKnownStatus(status: unknown): status is AiCommonStatus {
+  return dict.value.common_status_arr.some((item) => item.value === status)
+}
+
 function statusTagType(status: AiCommonStatus): 'success' | 'danger' {
   return status === CommonEnum.YES ? 'success' : 'danger'
 }
@@ -221,7 +225,8 @@ onMounted(async () => {
           <el-text v-else type="info">-</el-text>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="statusTagType(row.status)">{{ statusText(row.status) }}</el-tag>
+          <el-tag v-if="isKnownStatus(row.status)" :type="statusTagType(row.status)">{{ statusText(row.status) }}</el-tag>
+          <el-text v-else type="danger">{{ t('common.invalidData') }}</el-text>
         </template>
         <template #cell-actions="{ row }">
           <el-button v-if="userStore.can('ai_prompt_edit')" type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>

@@ -82,6 +82,7 @@ export default {
     confirmKick: '确定要踢该用户下线吗？',
     confirmBatchDelete: '确定批量删除选中记录吗？',
     confirmStatusChange: '确定变更启用状态吗？',
+    invalidData: '数据契约异常',
     selectAtLeastOne: '请至少选择一个记录',
     export: {
       submitted: '导出任务已提交，完成后将通知您',

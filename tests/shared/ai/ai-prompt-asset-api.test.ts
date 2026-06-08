@@ -79,4 +79,16 @@ describe('AI prompt/asset Admin API and CRUD pages', () => {
     expect(viewRegistry).not.toContain('ai/prompts')
     expect(viewRegistry).not.toContain('ai/assets')
   })
+
+  it('guards table dictionary labels before rendering status and type cells', () => {
+    const promptPage = readFrontendSource('src/views/Main/ai/prompts/index.vue')
+    const assetPage = readFrontendSource('src/views/Main/ai/assets/index.vue')
+
+    expect(promptPage).toContain('function isKnownStatus(')
+    expect(promptPage).toContain('v-if="isKnownStatus(row.status)"')
+    expect(assetPage).toContain('function isKnownStatus(')
+    expect(assetPage).toContain('v-if="isKnownStatus(row.status)"')
+    expect(assetPage).toContain('function isKnownAssetType(')
+    expect(assetPage).toContain('v-if="isKnownAssetType(row.type)"')
+  })
 })
