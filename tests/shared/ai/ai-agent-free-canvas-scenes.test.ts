@@ -12,7 +12,7 @@ describe('AI agent free Canvas scene contract', () => {
     const zh = read('src/i18n/locales/zh-CN.ts')
     const en = read('src/i18n/locales/en-US.ts')
 
-    expect(agentsApi).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'")
+    expect(agentsApi).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate' | 'canvas_audio_generate'")
     expect(agentsApi).not.toContain("'image_generate'")
     expect(agentsPage).not.toContain('AgentBillingDialog')
     expect(agentsPage).not.toContain('billingDialogVisible')
@@ -25,6 +25,7 @@ describe('AI agent free Canvas scene contract', () => {
       expect(source).toContain('canvasTextGenerate:')
       expect(source).toContain('canvasImageGenerate:')
       expect(source).toContain('canvasVideoGenerate:')
+      expect(source).toContain('canvasAudioGenerate:')
     }
   })
 })

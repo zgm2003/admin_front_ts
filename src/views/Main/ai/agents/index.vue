@@ -132,6 +132,7 @@ async function init() {
       { label: t('aiAgents.scene.canvasTextGenerate'), value: 'canvas_text_generate' },
       { label: t('aiAgents.scene.canvasImageGenerate'), value: 'canvas_image_generate' },
       { label: t('aiAgents.scene.canvasVideoGenerate'), value: 'canvas_video_generate' },
+      { label: t('aiAgents.scene.canvasAudioGenerate'), value: 'canvas_audio_generate' },
     ],
   }
   modelOptions.value = buildModelOptions()

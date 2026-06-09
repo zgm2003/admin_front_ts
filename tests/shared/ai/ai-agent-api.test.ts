@@ -36,7 +36,7 @@ describe('AI agent api contract', () => {
 
   it('keeps strict MVP mutation types', () => {
     const source = readFrontendSource('src/api/ai/agents.ts')
-    expect(source).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate'")
+    expect(source).toContain("export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate' | 'canvas_audio_generate'")
     expect(source).not.toContain("'image_generate'")
     expect(source).toContain('model_id: string')
     expect(source).toContain('scenes: AiAgentScene[]')
@@ -66,12 +66,14 @@ describe('AI agent api contract', () => {
     expect(source).toContain("canvasTextGenerate")
     expect(source).toContain("canvasImageGenerate")
     expect(source).toContain("canvasVideoGenerate")
+    expect(source).toContain("canvasAudioGenerate")
     expect(source).toContain("value: 'agent_generate'")
     expect(source).not.toContain("imageGenerate")
     expect(source).not.toContain("value: 'image_generate'")
     expect(source).toContain("value: 'canvas_text_generate'")
     expect(source).toContain("value: 'canvas_image_generate'")
     expect(source).toContain("value: 'canvas_video_generate'")
+    expect(source).toContain("value: 'canvas_audio_generate'")
     expect(source).toContain('system_prompt')
     expect(source).toContain('UpMedia')
     expect(source).toContain('<AgentToolDialog')
