@@ -29,3 +29,6 @@ src/types/components.d.ts
 
 # Build script with private key
 build.ps1
+
+# Local Git worktrees
+.worktrees/
