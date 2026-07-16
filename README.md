@@ -84,6 +84,17 @@ location / {
 
 `VITE_WEB_SOCKET_URL` 默认指向后端域名 `<api-domain>`。如果临时改成前端同域地址，前端站点必须把 `/api/admin/v1/realtime/ws` 精确反代到 Go 后端；不要让它落到 Vue history fallback。
 
+## Docker runtime
+
+The production-style frontend image uses pinned Node and unprivileged Nginx stages. Local full-stack Compose publishes Nginx at `http://localhost:5173`; Nginx proxies `/api/` and WebSocket upgrades to the Go API service and serves Vue history fallback for application routes.
+
+```powershell
+docker build -t admin-frontend:local .
+docker run --rm -p 127.0.0.1:5173:8080 admin-frontend:local
+```
+
+`VITE_GO_API_BASE_URL`, `VITE_WEB_SOCKET_URL`, and `VITE_PLATFORM` are public build arguments. Production builds must provide their real HTTPS/WSS origin; secrets must never be passed as frontend build arguments.
+
 不要再使用旧 `/api/admin/AiChat/stream`、`127.0.0.1:8788`、`/wss` 或 `/api/admin/WebSocket/bind` 文档示例。AI conversation events 走 Go WebSocket envelope；取消走 REST `POST /api/admin/v1/ai-conversations/:id/messages/cancel`。
 
 ## 相关项目

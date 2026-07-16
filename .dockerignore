@@ -1,0 +1,8 @@
+.git
+.github
+.vscode
+.worktrees
+node_modules
+dist
+src-tauri/target
+*.log
