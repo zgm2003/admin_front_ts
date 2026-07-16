@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
 import { ElNotification } from 'element-plus'
 import i18n from '@/i18n'
+import { normalizeLoopbackURLHost } from '@/lib/network/loopback'
 import { createDebouncedNotifier } from './notifier'
 import { applyCommonHeaders } from './headers'
 import { createAuthSessionManager } from './auth-session'
@@ -15,6 +16,7 @@ function requiredEnv(name: string, value: string | undefined): string {
 }
 
 const apiBaseURL = requiredEnv('VITE_GO_API_BASE_URL', import.meta.env.VITE_GO_API_BASE_URL)
+const normalizedApiBaseURL = normalizeLoopbackURLHost(new URL(apiBaseURL)).toString().replace(/\/$/, '')
 const t = i18n.global.t
 
 const notify = createDebouncedNotifier({
@@ -160,8 +162,8 @@ function resolveRequestErrorMessage(error: AxiosError): string {
 }
 
 const apiClient = createHttpClient({
-  baseURL: apiBaseURL,
-  refreshBaseURL: apiBaseURL,
+  baseURL: normalizedApiBaseURL,
+  refreshBaseURL: normalizedApiBaseURL,
 })
 
 const request = apiClient.request

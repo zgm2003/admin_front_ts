@@ -83,8 +83,8 @@ vi.mock('../../../src/lib/http/auth-session', () => ({
   }),
 }))
 
-async function importClient() {
-  vi.stubEnv('VITE_GO_API_BASE_URL', 'http://127.0.0.1:8080')
+async function importClient(apiBaseURL = 'http://127.0.0.1:8080') {
+  vi.stubEnv('VITE_GO_API_BASE_URL', apiBaseURL)
   await import('../../../src/lib/http/client')
   expect(mocks.responseHandlers.fulfilled).toBeTypeOf('function')
   expect(mocks.responseHandlers.rejected).toBeTypeOf('function')
@@ -95,10 +95,22 @@ describe('http client error contract', () => {
     vi.resetModules()
     vi.clearAllMocks()
     vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
     mocks.responseHandlers.fulfilled = undefined
     mocks.responseHandlers.rejected = undefined
     mocks.axiosCreate.mockReturnValue(mocks.service)
     mocks.handle401.mockResolvedValue('retry-result')
+  })
+
+  it('normalizes a configured loopback API host to the current browser host', async () => {
+    vi.stubGlobal('window', { location: { hostname: '127.0.0.1' } })
+
+    await importClient('http://localhost:5173')
+
+    expect(mocks.axiosCreate).toHaveBeenCalledWith({
+      baseURL: 'http://127.0.0.1:5173',
+      timeout: 60000,
+    })
   })
 
   it('fails closed when a 401 envelope has an empty msg before refreshing', async () => {
