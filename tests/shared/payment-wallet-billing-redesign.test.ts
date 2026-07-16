@@ -20,7 +20,7 @@ describe('payment wallet billing redesign contract', () => {
   })
 
   it('keeps migration seeded profile wallet component resolvable by runtime view registry', () => {
-    const migration = read('../admin_back_go/database/migrations/20260530_payment_wallet_billing_redesign.sql')
+    const migration = read('../admin_back_go/database/legacy-migrations/20260530_payment_wallet_billing_redesign.sql')
 
     expect(migration).toContain("'/profile/wallet'")
     expect(migration).toContain("'profile/wallet'")
