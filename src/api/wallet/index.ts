@@ -75,9 +75,9 @@ export interface WalletDictResponse {
   }
 }
 
-export interface WalletUsersPageInitResponse {}
+export type WalletUsersPageInitResponse = Record<string, never>
 
-export interface WalletLedgerPageInitResponse extends WalletDictResponse {}
+export type WalletLedgerPageInitResponse = WalletDictResponse
 
 const summary = () => request.get<WalletSummaryResponse>(`${ADMIN_API_PREFIX}/wallet/summary`)
 const transactions = (params: WalletTransactionListParams) => request.get<PaginatedResponse<WalletTransactionItem>>(`${ADMIN_API_PREFIX}/wallet/transactions`, { params })

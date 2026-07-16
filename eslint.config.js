@@ -9,6 +9,7 @@ export default tseslint.config(
       'dist/**',
       'coverage/**',
       'node_modules/**',
+      '.worktrees/**',
       'src-tauri/**',
       'src/types/auto-imports.d.ts',
       'src/types/components.d.ts',

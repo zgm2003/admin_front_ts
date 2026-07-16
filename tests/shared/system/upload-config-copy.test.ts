@@ -11,7 +11,7 @@ function sliceTopLevelSection(source: string, section: string) {
   const start = source.indexOf(startMarker)
   expect(start).toBeGreaterThanOrEqual(0)
 
-  const nextSection = /\n  [a-zA-Z0-9_]+: \{/g
+  const nextSection = /\n {2}[a-zA-Z0-9_]+: \{/g
   nextSection.lastIndex = start + startMarker.length
   const next = nextSection.exec(source)
 
