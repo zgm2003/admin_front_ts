@@ -279,13 +279,14 @@ export function useLoginForm() {
         captcha_answer: captchaPayload.captcha_answer,
       })
       sendCodeRef.value?.completeSend?.()
-    } catch (error) {
-      console.error('send login code failed:', error)
-    } finally {
       captchaDialogVisible.value = false
       captchaAction.value = null
       captchaChallenge.value = null
       captchaX.value = 0
+    } catch (error) {
+      console.error('send login code failed:', error)
+      await refreshCaptcha()
+    } finally {
       isSendingCode.value = false
     }
   }

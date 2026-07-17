@@ -238,4 +238,56 @@ describe('login captcha state', () => {
     expect(completeSend).toHaveBeenCalledTimes(1)
     expect(login.captchaDialogVisible.value).toBe(false)
   })
+
+  it('keeps login send-code captcha open and replaces a rejected challenge', async () => {
+    const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
+    const login = useLoginForm()
+    const validateField = vi.fn().mockResolvedValue(true)
+    const completeSend = vi.fn()
+    const firstChallenge = {
+      captcha_id: 'captcha-first',
+      captcha_type: 'slide' as const,
+      master_image: 'first-master',
+      tile_image: 'first-tile',
+      image_width: 320,
+      image_height: 180,
+      tile_x: 100,
+      tile_y: 12,
+      tile_width: 48,
+      tile_height: 48,
+      expires_in: 120,
+    }
+    const replacementChallenge = {
+      ...firstChallenge,
+      captcha_id: 'captcha-replacement',
+      master_image: 'replacement-master',
+      tile_image: 'replacement-tile',
+      tile_x: 80,
+    }
+    login.setFormRef({ validateField, clearValidate: vi.fn() } as never)
+    login.setSendCodeRef({ completeSend, reset: vi.fn() } as never)
+    login.activeAccountType.value = 'phone'
+    login.loginForm.login_account = '15671628271'
+    login.captchaEnabled.value = true
+    mocks.getCaptcha
+      .mockResolvedValueOnce(firstChallenge)
+      .mockResolvedValueOnce(replacementChallenge)
+    mocks.sendCode.mockRejectedValueOnce(new Error('验证码错误或已过期'))
+
+    await login.requestLoginCode()
+    login.captchaX.value = 124
+    await login.completeCaptchaLogin()
+
+    expect(mocks.sendCode).toHaveBeenCalledWith({
+      account: '15671628271',
+      scene: 'login',
+      login_type: 'phone',
+      captcha_id: 'captcha-first',
+      captcha_answer: { x: 124, y: 12 },
+    })
+    expect(completeSend).not.toHaveBeenCalled()
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(2)
+    expect(login.captchaDialogVisible.value).toBe(true)
+    expect(login.captchaChallenge.value).toEqual(replacementChallenge)
+  })
 })

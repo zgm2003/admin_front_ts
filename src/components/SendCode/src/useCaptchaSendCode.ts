@@ -82,13 +82,16 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
           y: challenge.tile_y,
         },
       })
-      options.onSent()
     } catch (error: unknown) {
       options.onError?.(error, 'send')
+      await refreshCaptcha()
+      return
     } finally {
       sending.value = false
-      resetCaptcha()
     }
+
+    options.onSent()
+    resetCaptcha()
   }
 
   return {

@@ -29,6 +29,13 @@
 
 后端在生成、缓存或发送验证码之前消费并校验 captcha。缺失、错误或过期的 captcha 一律拒绝；前端校验不能代替后端校验。
 
+Captcha 没有独立的预校验接口。用户确认滑块后，由同一个 `POST /auth/send-code` 原子校验 proof 并发送验证码；只有接口成功才代表 captcha 通过。失败契约为：
+
+- 缺少 proof：HTTP `400`、顶层 `code=100`、`error.code=captcha.required`。
+- proof 错误、过期或已消费：HTTP `400`、顶层 `code=100`、`error.code=captcha.invalid_or_expired`。
+- 失败时不得生成、缓存或发送邮箱/手机号验证码。
+- challenge 一次性消费，失败后客户端必须获取新 challenge，不能重放旧 proof。
+
 ## 前端设计
 
 共享 `SendCode` 组件统一负责非登录场景的完整状态机：
@@ -37,7 +44,8 @@
 2. 获取 captcha challenge 并打开共享滑块浮层。
 3. 用户完成滑块后提交带 captcha proof 的发送请求。
 4. 仅在发送成功后显示成功提示并启动倒计时。
-5. 无论请求成功或失败，都清理已消费的 challenge；再次发送必须获取新 challenge。
+5. 发送成功后关闭浮层并清理 challenge。
+6. 发送失败后保持浮层打开、展示后端错误并自动获取新 challenge；不得启动倒计时。
 
 登录验证码继续由 `useLoginForm` 编排，因为它还需要表单字段校验和显式 `login_type`；其请求契约与其他场景保持一致。
 
@@ -52,7 +60,7 @@
 - `forget`、`change_password` 允许合法邮箱或手机号。
 - `login` 由登录表单按选中类型校验。
 - captcha 加载失败时不发送验证码并保留可重试入口。
-- 请求失败时不启动倒计时。
+- 请求失败时不启动倒计时、不关闭浮层，并自动替换已消费的 challenge。
 
 ## 测试与验收
 
@@ -60,7 +68,8 @@
 - 后端测试覆盖 captcha 失败不写验证码缓存，captcha 成功后才发送。
 - 前端测试保证不存在不带 captcha proof 的 `UsersApi.sendCode` 调用。
 - 前端测试覆盖共享组件的打开 captcha、完成后发送、成功后倒计时以及失败不倒计时。
-- Docker 重建后，在登录、忘记密码、改手机号、改邮箱、验证码改密码入口逐一确认先出现滑块，完成前无 `/auth/send-code` 请求。
+- 前端测试分别覆盖登录与共享 SendCode 的失败路径：浮层保留、旧 challenge 清除、新 challenge 获取、发送成功回调不执行。
+- Docker 重建后，在登录、忘记密码、改手机号、改邮箱、验证码改密码入口逐一确认先出现滑块；用户确认滑块前无 `/auth/send-code` 请求，服务端返回成功前不得启动发送倒计时。
 
 ## 非目标
 

@@ -94,7 +94,7 @@ describe('shared send-code captcha flow', () => {
     expect(flow.captchaDialogVisible.value).toBe(true)
   })
 
-  it('does not mark the send successful when the API rejects it', async () => {
+  it('keeps the verifier open with a fresh challenge when the API rejects it', async () => {
     const onSent = vi.fn()
     const onError = vi.fn()
     const requestError = new Error('send failed')
@@ -111,7 +111,8 @@ describe('shared send-code captcha flow', () => {
 
     expect(onSent).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledWith(requestError, 'send')
-    expect(flow.captchaDialogVisible.value).toBe(false)
-    expect(flow.captchaChallenge.value).toBeNull()
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(2)
+    expect(flow.captchaDialogVisible.value).toBe(true)
+    expect(flow.captchaChallenge.value).toEqual(challenge)
   })
 })
