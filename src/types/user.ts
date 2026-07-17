@@ -46,9 +46,9 @@ export interface UserInitResponse {
 
 export interface UserLoginSession {
   access_token: string
-  refresh_token: string
+  refresh_token?: string
   expires_in: number
-  refresh_expires_in: number
+  refresh_expires_in?: number
   is_new_user?: boolean
 }
 

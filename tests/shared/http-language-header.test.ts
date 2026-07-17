@@ -18,6 +18,20 @@ vi.stubGlobal('navigator', {
 })
 
 describe('HTTP common language header', () => {
+  it('identifies browser and packaged desktop clients explicitly', async () => {
+    const { getAdminClientVariant } = await import('../../src/lib/http/platform')
+
+    expect(getAdminClientVariant({})).toBe('browser')
+    expect(getAdminClientVariant({ __TAURI__: {} })).toBe('desktop')
+  })
+
+  it('sends the required Admin client variant header', async () => {
+    const { buildCommonHeaders } = await import('../../src/lib/http/platform')
+    const headers = buildCommonHeaders()
+
+    expect(headers['X-Admin-Client-Variant']).toBe('browser')
+  })
+
   it('sends Accept-Language from lang cookie', async () => {
     cookieGet.mockImplementation((key: string) => key === 'lang' ? 'en-US' : undefined)
 
@@ -48,5 +62,6 @@ describe('HTTP common language header', () => {
     const headers = config.headers as AxiosHeaders
     expect(headers.get('Content-Type')).toBeUndefined()
     expect(headers.get('Authorization')).toBe('Bearer token')
+    expect(config.withCredentials).toBe(true)
   })
 })

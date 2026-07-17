@@ -1,5 +1,16 @@
 import Cookies from 'js-cookie'
+import { isTauriRuntime } from '@/platform/tauri/env'
 import { getDeviceId } from './device'
+
+export type AdminClientVariant = 'browser' | 'desktop'
+
+type TauriRuntime = { __TAURI__?: unknown }
+
+export function getAdminClientVariant(
+  runtime: TauriRuntime | undefined | null = globalThis as typeof globalThis & TauriRuntime
+): AdminClientVariant {
+  return isTauriRuntime(runtime) ? 'desktop' : 'browser'
+}
 
 export function generateTraceId(): string {
   const timestamp = Date.now().toString(36)
@@ -29,6 +40,7 @@ export function buildCommonHeaders(token?: string): Record<string, string> {
     'Accept-Language': getRequestLanguage(),
     platform: getPlatform(),
     'device-id': getDeviceId(),
+    'X-Admin-Client-Variant': getAdminClientVariant(),
     'X-Trace-Id': generateTraceId(),
   }
 

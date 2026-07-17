@@ -4,7 +4,7 @@ import {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import Cookies from 'js-cookie'
-import { buildCommonHeaders } from './platform'
+import { buildCommonHeaders, getAdminClientVariant } from './platform'
 
 export function setHeader(
   config: AxiosRequestConfig<unknown> | InternalAxiosRequestConfig<unknown>,
@@ -61,6 +61,7 @@ export function applyCommonHeaders(config: InternalAxiosRequestConfig<unknown>) 
   const token = Cookies.get('access_token')
   const headers = buildCommonHeaders(token)
   const hasFormDataPayload = isFormDataPayload(config.data)
+  config.withCredentials = getAdminClientVariant() === 'browser'
 
   if (hasFormDataPayload) {
     deleteHeader(config, 'Content-Type')

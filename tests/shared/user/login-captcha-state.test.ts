@@ -13,7 +13,15 @@ const mocks = vi.hoisted(() => ({
   messageError: vi.fn(),
   messageInfo: vi.fn(),
   notificationSuccess: vi.fn(),
+  localStorageSetItem: vi.fn(),
+  localStorageRemoveItem: vi.fn(),
 }))
+
+vi.stubGlobal('localStorage', {
+  getItem: vi.fn(() => null),
+  setItem: mocks.localStorageSetItem,
+  removeItem: mocks.localStorageRemoveItem,
+})
 
 vi.mock('vue', async () => {
   const actual = await vi.importActual<typeof import('vue')>('vue')
@@ -122,6 +130,43 @@ describe('login captcha state', () => {
       captcha_answer: { x: 124, y: 12 },
     })
     expect(login.captchaDialogVisible.value).toBe(false)
+  })
+
+  it('does not persist a browser refresh credential in a JavaScript-readable cookie', async () => {
+    const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
+    const login = useLoginForm()
+    login.loginForm.login_account = '15671628271'
+    login.loginForm.password = '123456'
+    login.captchaEnabled.value = true
+    login.captchaChallenge.value = {
+      captcha_id: 'captcha-browser-login',
+      captcha_type: 'slide',
+      master_image: 'master',
+      tile_image: 'tile',
+      image_width: 320,
+      image_height: 180,
+      tile_x: 100,
+      tile_y: 12,
+      tile_width: 48,
+      tile_height: 48,
+      expires_in: 120,
+    }
+    login.captchaX.value = 124
+    mocks.login.mockResolvedValueOnce({
+      access_token: 'browser-access-token',
+      expires_in: 3600,
+      is_new_user: false,
+    })
+    mocks.setupDynamicRoutes.mockResolvedValueOnce(undefined)
+
+    await login.completeCaptchaLogin()
+
+    expect(mocks.cookieSet).toHaveBeenCalledWith(
+      'access_token',
+      'browser-access-token',
+      expect.objectContaining({ expires: expect.any(Date) })
+    )
+    expect(mocks.cookieSet.mock.calls.some(([name]) => name === 'refresh_token')).toBe(false)
   })
 
   it('validates the selected login account before opening captcha for send-code', async () => {

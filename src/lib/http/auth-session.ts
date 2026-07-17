@@ -5,7 +5,7 @@ import { useMenuStore } from '@/store/menu'
 import { clearAllCookies } from '@/utils/storage'
 import type { ApiEnvelope } from '@/types/common'
 import { createRequestError, requireApiMessage, type RequestError } from './envelope'
-import { getPlatform } from './platform'
+import { getAdminClientVariant, getPlatform } from './platform'
 import { getDeviceId } from './device'
 import { setHeader } from './headers'
 
@@ -69,28 +69,36 @@ export function createAuthSessionManager(params: {
   }
 
   async function refreshToken() {
-    const refreshToken = Cookies.get('refresh_token')
-    if (!refreshToken) {
-      throw new Error(NO_REFRESH_TOKEN_MESSAGE)
+    const clientVariant = getAdminClientVariant()
+    let requestBody: { refresh_token: string } | undefined
+
+    if (clientVariant === 'desktop') {
+      const refreshToken = Cookies.get('refresh_token')
+      if (!refreshToken) {
+        throw new Error(NO_REFRESH_TOKEN_MESSAGE)
+      }
+      requestBody = { refresh_token: refreshToken }
     }
 
     const refreshResponse = await axios.post<ApiEnvelope<{
       access_token: string
-      refresh_token: string
+      refresh_token?: string
       expires_in: number
-      refresh_expires_in: number
+      refresh_expires_in?: number
     }>>(
       `${baseURL}${REFRESH_PATH}`,
-      { refresh_token: refreshToken },
+      requestBody,
       {
+        withCredentials: clientVariant === 'browser',
         headers: {
           platform: getPlatform(),
           'device-id': getDeviceId(),
+          'X-Admin-Client-Variant': clientVariant,
         },
       }
     )
 
-    return refreshResponse.data
+    return { payload: refreshResponse.data, clientVariant }
   }
 
   function handle401(originalRequest: RetryableRequestConfig, messageFromServer?: string) {
@@ -124,7 +132,7 @@ export function createAuthSessionManager(params: {
       isRefreshing = true
 
       refreshToken()
-        .then((payload) => {
+        .then(({ payload, clientVariant }) => {
           if (payload.code === 0 && payload.data) {
             const {
               access_token,
@@ -136,9 +144,14 @@ export function createAuthSessionManager(params: {
             Cookies.set('access_token', access_token, {
               expires: new Date(Date.now() + expires_in * 1000),
             })
-            Cookies.set('refresh_token', newRefreshToken, {
-              expires: new Date(Date.now() + refresh_expires_in * 1000),
-            })
+            if (clientVariant === 'desktop') {
+              if (!newRefreshToken || !refresh_expires_in) {
+                throw new Error('desktop refresh response missing refresh credential')
+              }
+              Cookies.set('refresh_token', newRefreshToken, {
+                expires: new Date(Date.now() + refresh_expires_in * 1000),
+              })
+            }
 
             isRefreshing = false
             processQueue(null, access_token)

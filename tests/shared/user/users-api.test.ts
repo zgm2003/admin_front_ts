@@ -87,6 +87,8 @@ describe('users api auth contract', () => {
     expect(typeSource).toContain('captcha_enabled: boolean')
     expect(typeSource).toContain('captcha_id: string')
     expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
+    expect(typeSource).toContain('refresh_token?: string')
+    expect(typeSource).toContain('refresh_expires_in?: number')
   })
 
   it('requires captcha proof for every send-code scene', () => {

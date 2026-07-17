@@ -4,6 +4,7 @@ import { ElMessage, ElNotification } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UsersApi } from '@/api/user/users'
 import { clearAllCookies } from '@/utils/storage'
+import { getAdminClientVariant } from '@/lib/http/platform'
 import { setupDynamicRoutes } from '@/router'
 import Cookies from 'js-cookie'
 import i18n from '@/i18n'
@@ -313,18 +314,30 @@ export function useLoginForm() {
   }
 
   const handleLoginSuccess = async (data: UserLoginSession) => {
+    const clientVariant = getAdminClientVariant()
+    const refreshCredential = data.refresh_token && data.refresh_expires_in
+      ? { token: data.refresh_token, expiresIn: data.refresh_expires_in }
+      : null
+    if (clientVariant === 'desktop' && !refreshCredential) {
+      throw new Error('desktop login response missing refresh credential')
+    }
+
     isLoginSuccess.value = true
     ElNotification.success(t('login.validation.loginSuccess'))
     clearAllCookies()
 
     if (loginForm.remember) {
       const expires = new Date(Date.now() + data.expires_in * 1000)
-      const refreshExpires = new Date(Date.now() + data.refresh_expires_in * 1000)
       Cookies.set('access_token', data.access_token, { expires })
-      Cookies.set('refresh_token', data.refresh_token, { expires: refreshExpires })
+      if (refreshCredential) {
+        const refreshExpires = new Date(Date.now() + refreshCredential.expiresIn * 1000)
+        Cookies.set('refresh_token', refreshCredential.token, { expires: refreshExpires })
+      }
     } else {
       Cookies.set('access_token', data.access_token)
-      Cookies.set('refresh_token', data.refresh_token)
+      if (refreshCredential) {
+        Cookies.set('refresh_token', refreshCredential.token)
+      }
     }
 
     await setupDynamicRoutes()
