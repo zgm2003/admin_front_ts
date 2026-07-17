@@ -25,11 +25,14 @@ const {
   showPassword,
   agreePolicy,
   isSubmitting,
+  isSendingCode: isSendingLoginCode,
+  isCaptchaSubmitting,
   isShaking,
   isLoginSuccess,
   isPasswordLogin,
   rules,
   handleSubmit,
+  requestLoginCode,
   completeCaptchaLogin,
   handleTabChange,
   refreshCaptcha,
@@ -92,11 +95,13 @@ async function tauriClose() {
           :show-password="showPassword"
           :is-password-login="isPasswordLogin"
           :is-submitting="isSubmitting"
+          :is-sending-code="isSendingLoginCode"
           :is-shaking="isShaking"
           :agree-policy="agreePolicy"
           :register-form="setFormRef"
           :register-send-code="setSendCodeRef"
           @submit="handleSubmit"
+          @send-code="requestLoginCode"
           @tab-change="handleTabChange"
           @update:login-account="loginForm.login_account = $event"
           @update:password="loginForm.password = $event"
@@ -116,7 +121,7 @@ async function tauriClose() {
       :challenge="captchaChallenge"
       :slider-x="captchaX"
       :loading="captchaLoading"
-      :verifying="isSubmitting"
+      :verifying="isCaptchaSubmitting"
       @update:slider-x="captchaX = $event"
       @refresh="refreshCaptcha"
       @complete="completeCaptchaLogin"

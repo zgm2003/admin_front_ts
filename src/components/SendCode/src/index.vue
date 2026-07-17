@@ -15,6 +15,8 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   /** 是否禁用发送按钮（额外条件） */
   sendDisabled?: boolean
+  /** 外部发送流程是否进行中 */
+  sending?: boolean
   /** 倒计时秒数 */
   countdown?: number
   /** 是否移动端样式（竖向排列） */
@@ -24,6 +26,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   placeholder: '',
   sendDisabled: false,
+  sending: false,
   countdown: 60,
   mobile: false,
   size: 'default'
@@ -31,6 +34,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
+  (e: 'request'): void
   (e: 'sent'): void
 }>()
 
@@ -46,19 +50,29 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 
 // 是否禁用发送按钮
 const isSendDisabled = computed(() => {
-  return !props.account || timer.value > 0 || props.sendDisabled
+  return !props.account || timer.value > 0 || props.sendDisabled || props.sending
 })
+
+const completeSend = () => {
+  ElNotification.success(t('common.success.sendCode'))
+  startCountdown()
+  emit('sent')
+}
 
 // 发送验证码
 const sendCode = async () => {
   if (isSendDisabled.value) return
 
+  const scene = props.scene
+  if (scene === 'login') {
+    emit('request')
+    return
+  }
+
   loading.value = true
   try {
-    await UsersApi.sendCode({ account: props.account, scene: props.scene })
-    ElNotification.success(t('common.success.sendCode'))
-    startCountdown()
-    emit('sent')
+    await UsersApi.sendCode({ account: props.account, scene })
+    completeSend()
   } finally {
     loading.value = false
   }
@@ -93,7 +107,7 @@ onUnmounted(() => {
 const useMobileLayout = computed(() => props.mobile || isMobile.value)
 
 // 暴露方法
-defineExpose({ reset, sendCode })
+defineExpose({ reset, sendCode, completeSend })
 </script>
 
 <template>
@@ -108,7 +122,7 @@ defineExpose({ reset, sendCode })
       type="primary" 
       :size="size"
       @click="sendCode" 
-      :loading="loading" 
+      :loading="loading || sending"
       :disabled="isSendDisabled"
       :style="{ width: useMobileLayout ? '100%' : 'auto' }"
     >

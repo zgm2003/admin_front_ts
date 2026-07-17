@@ -18,6 +18,7 @@ const props = defineProps<{
   showPassword: boolean
   isPasswordLogin: boolean
   isSubmitting: boolean
+  isSendingCode: boolean
   isShaking: boolean
   agreePolicy: boolean
   registerForm?: (formRef: FormInstance | null | undefined) => void
@@ -29,6 +30,7 @@ const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'submit'): void
+  (e: 'sendCode'): void
   (e: 'tabChange', method: UserLoginType): void
   (e: 'togglePassword'): void
   (e: 'forgotPassword'): void
@@ -78,6 +80,16 @@ const code = computed({
 const remember = computed({
   get: () => props.loginForm.remember,
   set: (value: boolean) => emit('update:remember', value),
+})
+const isLoginCodeAccountInvalid = computed(() => {
+  const account = props.loginForm.login_account.trim()
+  if (props.activeType === 'email') {
+    return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account)
+  }
+  if (props.activeType === 'phone') {
+    return !/^1[3-9]\d{9}$/.test(account)
+  }
+  return true
 })
 
 watchPostEffect(() => {
@@ -167,7 +179,10 @@ onBeforeUnmount(() => {
                     scene="login"
                     size="large"
                     :mobile="isMobile"
+                    :sending="isSendingCode"
+                    :send-disabled="isLoginCodeAccountInvalid"
                     :placeholder="t('auth.login.codePlaceholder')"
+                    @request="$emit('sendCode')"
                   />
                 </el-form-item>
               </template>

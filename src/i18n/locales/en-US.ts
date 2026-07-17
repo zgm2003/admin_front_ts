@@ -1637,6 +1637,7 @@ export default {
       passwordRequired: 'Password is required',
       codeRequired: 'Verification code is required',
       captchaLoadFailed: 'Failed to load captcha, please try again',
+      captchaConfigInvalid: 'Captcha configuration is invalid',
       policyRequired: 'Please read and agree to the terms of service and privacy policy first',
       passwordCaptchaConfigInvalid: 'Password-login captcha configuration is invalid',
       loginSuccess: 'Signed in successfully',

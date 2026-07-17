@@ -18,6 +18,7 @@ import type { SendCode } from '@/components/SendCode'
 
 type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeRef = InstanceType<typeof SendCode>
+type CaptchaAction = 'password-login' | 'send-code'
 
 const LOGIN_REMEMBER_KEY = 'loginRemember'
 const LOGIN_ACCOUNT_KEY = 'loginAccount'
@@ -35,6 +36,7 @@ export function useLoginForm() {
   const captchaEnabled = shallowRef(false)
   const captchaLoading = shallowRef(false)
   const captchaDialogVisible = shallowRef(false)
+  const captchaAction = shallowRef<CaptchaAction | null>(null)
 
   const loginForm = reactive({
     login_account: '',
@@ -47,6 +49,7 @@ export function useLoginForm() {
   const showPassword = ref(false)
   const agreePolicy = ref(false)
   const isSubmitting = ref(false)
+  const isSendingCode = ref(false)
   const isShaking = ref(false)
   const isLoginSuccess = ref(false)
   const rememberedLoginType = ref<UserLoginType | null>(null)
@@ -54,6 +57,7 @@ export function useLoginForm() {
 
   const loginType = computed<UserLoginType>(() => activeAccountType.value)
   const isPasswordLogin = computed(() => activeAccountType.value === 'password')
+  const isCaptchaSubmitting = computed(() => isSubmitting.value || isSendingCode.value)
 
   const rules = computed<FormRules>(() => {
     const accountRules: FormItemRule[] = [{ required: true, message: t('login.validation.accountRequired'), trigger: 'blur' }]
@@ -189,7 +193,8 @@ export function useLoginForm() {
     }
   }
 
-  const openCaptchaDialog = async () => {
+  const openCaptchaDialog = async (action: CaptchaAction) => {
+    captchaAction.value = action
     captchaDialogVisible.value = true
     try {
       await refreshCaptcha()
@@ -221,14 +226,75 @@ export function useLoginForm() {
         triggerShake()
         return
       }
-      await openCaptchaDialog()
+      await openCaptchaDialog('password-login')
       return
     }
 
     await submitLogin({ login_type: currentLoginType, login_account: account, code: loginForm.code })
   }
 
+  const requestLoginCode = async () => {
+    const currentLoginType = loginType.value
+    if (currentLoginType !== 'email' && currentLoginType !== 'phone') {
+      return
+    }
+
+    try {
+      await formRef.value?.validateField('login_account')
+    } catch {
+      triggerShake()
+      return
+    }
+
+    const account = loginForm.login_account.trim()
+    const isValidAccount = currentLoginType === 'email' ? isValidEmail(account) : isValidPhone(account)
+    if (!isValidAccount) {
+      triggerShake()
+      return
+    }
+    if (!captchaEnabled.value) {
+      ElMessage.error(t('login.validation.captchaConfigInvalid'))
+      triggerShake()
+      return
+    }
+
+    await openCaptchaDialog('send-code')
+  }
+
+  const completeCaptchaSendCode = async () => {
+    const captchaPayload = buildCaptchaAnswer()
+    const currentLoginType = loginType.value
+    if (!captchaPayload || (currentLoginType !== 'email' && currentLoginType !== 'phone')) {
+      return
+    }
+
+    isSendingCode.value = true
+    try {
+      await UsersApi.sendCode({
+        account: loginForm.login_account.trim(),
+        scene: 'login',
+        login_type: currentLoginType,
+        captcha_id: captchaPayload.captcha_id,
+        captcha_answer: captchaPayload.captcha_answer,
+      })
+      sendCodeRef.value?.completeSend?.()
+    } catch (error) {
+      console.error('send login code failed:', error)
+    } finally {
+      captchaDialogVisible.value = false
+      captchaAction.value = null
+      captchaChallenge.value = null
+      captchaX.value = 0
+      isSendingCode.value = false
+    }
+  }
+
   const completeCaptchaLogin = async () => {
+    if (captchaAction.value === 'send-code') {
+      await completeCaptchaSendCode()
+      return
+    }
+
     const captchaPayload = buildCaptchaAnswer()
     if (!captchaPayload) {
       return
@@ -304,6 +370,8 @@ export function useLoginForm() {
   }
 
   const handleTabChange = (method: UserLoginType) => {
+    captchaDialogVisible.value = false
+    captchaAction.value = null
     activeAccountType.value = method
     resetLoginForm()
   }
@@ -345,11 +413,14 @@ export function useLoginForm() {
     showPassword,
     agreePolicy,
     isSubmitting,
+    isSendingCode,
+    isCaptchaSubmitting,
     isShaking,
     isLoginSuccess,
     isPasswordLogin,
     rules,
     handleSubmit,
+    requestLoginCode,
     completeCaptchaLogin,
     handleTabChange,
     refreshCaptcha,

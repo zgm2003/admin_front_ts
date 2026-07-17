@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
+  sendCode: vi.fn(),
   getCaptcha: vi.fn(),
   getLoginConfig: vi.fn(),
   replace: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock('vue-router', () => ({
 vi.mock('@/api/user/users', () => ({
   UsersApi: {
     login: mocks.login,
+    sendCode: mocks.sendCode,
     getCaptcha: mocks.getCaptcha,
     getLoginConfig: mocks.getLoginConfig,
   },
@@ -119,6 +121,76 @@ describe('login captcha state', () => {
       captcha_id: 'captcha-1',
       captcha_answer: { x: 124, y: 12 },
     })
+    expect(login.captchaDialogVisible.value).toBe(false)
+  })
+
+  it('validates the selected login account before opening captcha for send-code', async () => {
+    const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
+    const login = useLoginForm()
+    const validateField = vi.fn().mockRejectedValueOnce(new Error('invalid email'))
+    login.setFormRef({ validateField, clearValidate: vi.fn() } as never)
+    login.activeAccountType.value = 'email'
+    login.loginForm.login_account = '15671628271'
+    login.captchaEnabled.value = true
+
+    const requestLoginCode = (login as unknown as { requestLoginCode?: () => Promise<void> }).requestLoginCode
+    expect(typeof requestLoginCode).toBe('function')
+    await requestLoginCode?.()
+
+    expect(validateField).toHaveBeenCalledWith('login_account')
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
+    expect(mocks.sendCode).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['email', 'user@example.com'],
+    ['phone', '15671628271'],
+  ] as const)('requires captcha before sending a %s login code', async (loginType, account) => {
+    const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
+    const login = useLoginForm()
+    const validateField = vi.fn().mockResolvedValueOnce(true)
+    const completeSend = vi.fn()
+    login.setFormRef({ validateField, clearValidate: vi.fn() } as never)
+    login.setSendCodeRef({ completeSend, reset: vi.fn() } as never)
+    login.activeAccountType.value = loginType
+    login.loginForm.login_account = account
+    login.captchaEnabled.value = true
+    mocks.getCaptcha.mockResolvedValueOnce({
+      captcha_id: `captcha-${loginType}`,
+      captcha_type: 'slide',
+      master_image: 'master',
+      tile_image: 'tile',
+      image_width: 320,
+      image_height: 180,
+      tile_x: 100,
+      tile_y: 12,
+      tile_width: 48,
+      tile_height: 48,
+      expires_in: 120,
+    })
+    mocks.sendCode.mockResolvedValueOnce(undefined)
+
+    const requestLoginCode = (login as unknown as { requestLoginCode?: () => Promise<void> }).requestLoginCode
+    expect(typeof requestLoginCode).toBe('function')
+    await requestLoginCode?.()
+
+    expect(validateField).toHaveBeenCalledWith('login_account')
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
+    expect(mocks.sendCode).not.toHaveBeenCalled()
+    expect(login.captchaDialogVisible.value).toBe(true)
+
+    login.captchaX.value = 124
+    await login.completeCaptchaLogin()
+
+    expect(mocks.sendCode).toHaveBeenCalledWith({
+      account,
+      scene: 'login',
+      login_type: loginType,
+      captcha_id: `captcha-${loginType}`,
+      captcha_answer: { x: 124, y: 12 },
+    })
+    expect(mocks.login).not.toHaveBeenCalled()
+    expect(completeSend).toHaveBeenCalledTimes(1)
     expect(login.captchaDialogVisible.value).toBe(false)
   })
 })
