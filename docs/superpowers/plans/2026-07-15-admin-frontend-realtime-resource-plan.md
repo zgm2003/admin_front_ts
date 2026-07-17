@@ -10,6 +10,12 @@
 
 ---
 
+## Docker-only execution policy
+
+P07 runtime and test execution is Docker-only. P06 must first remove the Windows-only `E:/admin/...` fixture assumptions and ensure the test/build context contains every required source fixture. Run npm, Vitest, build, MSW integration, and Playwright commands in pinned Node/Playwright containers; browser flows target the Docker frontend origin and the API/worker/state services started by `admin_back_go/scripts/docker-platform.ps1 up`.
+
+The host may edit files, inspect Git, and orchestrate Docker with PowerShell. It must not start Vite, API, worker, MySQL, or Redis directly, and a host-only passing test is not P07 gate evidence.
+
 ### Task 1: Implement typed RealtimeClient with resume
 
 **Files:**
