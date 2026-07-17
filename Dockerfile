@@ -1,5 +1,6 @@
 ARG NODE_IMAGE=node:22.23.1-alpine
 ARG NGINX_IMAGE=nginxinc/nginx-unprivileged:1.31.3-alpine
+ARG BUILD_REVISION=unknown
 
 FROM ${NODE_IMAGE} AS build
 
@@ -21,6 +22,10 @@ ENV VITE_PLATFORM=${VITE_PLATFORM}
 RUN npm run build:check
 
 FROM ${NGINX_IMAGE} AS runtime
+
+ARG BUILD_REVISION
+
+LABEL org.opencontainers.image.revision="${BUILD_REVISION}"
 
 COPY --chown=101:101 deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=101:101 --from=build /app/dist /usr/share/nginx/html

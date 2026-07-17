@@ -14,6 +14,8 @@ describe('frontend Docker runtime', () => {
     expect(dockerfile).toContain('npm run build:check')
     expect(dockerfile).toContain('VITE_GO_API_BASE_URL')
     expect(dockerfile).toContain('VITE_WEB_SOCKET_URL')
+    expect(dockerfile).toContain('ARG BUILD_REVISION=unknown')
+    expect(dockerfile).toContain('LABEL org.opencontainers.image.revision="${BUILD_REVISION}"')
     expect(dockerfile).toContain('HEALTHCHECK')
   })
 
@@ -22,7 +24,9 @@ describe('frontend Docker runtime', () => {
 
     expect(nginx).toContain('listen 8080')
     expect(nginx).toContain('location = /healthz')
-    expect(nginx).toContain('proxy_pass http://admin-api:8080')
+    expect(nginx).toContain('resolver 127.0.0.11 valid=5s ipv6=off')
+    expect(nginx).toContain('set $admin_api_upstream admin-api:8080')
+    expect(nginx).toContain('proxy_pass http://$admin_api_upstream')
     expect(nginx).toContain('proxy_set_header Upgrade $http_upgrade')
     expect(nginx).toContain('try_files $uri $uri/ /index.html')
   })
