@@ -89,14 +89,29 @@ describe('users api auth contract', () => {
     expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
   })
 
+  it('requires captcha proof for every send-code scene', () => {
+    const typeSource = readUserTypeSource()
+
+    expect(typeSource).toContain('export type UserSendCodeContext =')
+    expect(typeSource).toContain('export type UserSendCodeCaptchaProof =')
+    expect(typeSource).toContain("scene: Exclude<UserScene, 'login'>")
+    expect(typeSource).toContain('export type UserSendCodeParams = UserSendCodeContext & UserSendCodeCaptchaProof')
+    expect(typeSource).toContain('captcha_id: string')
+    expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
+  })
+
   it('uses Go REST for forgot password instead of the legacy PHP endpoint', () => {
     const source = readUsersApiSource()
     const forgotSource = readFrontendSource('src/views/Login/composables/useForgotPassword.ts')
+    const forgotDialogSource = readFrontendSource('src/views/Login/components/ForgotPasswordDialog.vue')
 
     expect(source).toContain('request.post<void, UserForgetPasswordParams>(`${ADMIN_API_PREFIX}/auth/forgot-password`, params)')
     expect(source).not.toContain('legacyRequest')
     expect(source).not.toContain(legacyUsersPath('forgetPassword'))
-    expect(forgotSource).toContain("UsersApi.sendCode({ account: forgotForm.account, scene: 'forget' })")
+    expect(forgotSource).not.toContain('UsersApi.sendCode')
+    expect(forgotDialogSource).toContain("import { SendCode } from '@/components/SendCode'")
+    expect(forgotDialogSource).toContain('<SendCode')
+    expect(forgotDialogSource).toContain('scene="forget"')
     expect(forgotSource).toContain('pwd.length < 6 || pwd.length > 128')
   })
 

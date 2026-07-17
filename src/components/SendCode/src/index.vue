@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
 import { ElNotification } from 'element-plus'
-import { UsersApi } from '@/api/user/users'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { AppCaptchaOverlay } from '@/components/AppCaptcha'
 import type { UserScene } from '@/types/user'
+import { isSendCodeAccountValid, useCaptchaSendCode } from './useCaptchaSendCode'
 
 const props = withDefaults(defineProps<{
   /** 发送目标账号（邮箱/手机号） */
@@ -45,38 +46,7 @@ const isMobile = useIsMobile()
 
 // 倒计时
 const timer = ref(0)
-const loading = ref(false)
 let intervalId: ReturnType<typeof setInterval> | null = null
-
-// 是否禁用发送按钮
-const isSendDisabled = computed(() => {
-  return !props.account || timer.value > 0 || props.sendDisabled || props.sending
-})
-
-const completeSend = () => {
-  ElNotification.success(t('common.success.sendCode'))
-  startCountdown()
-  emit('sent')
-}
-
-// 发送验证码
-const sendCode = async () => {
-  if (isSendDisabled.value) return
-
-  const scene = props.scene
-  if (scene === 'login') {
-    emit('request')
-    return
-  }
-
-  loading.value = true
-  try {
-    await UsersApi.sendCode({ account: props.account, scene })
-    completeSend()
-  } finally {
-    loading.value = false
-  }
-}
 
 // 开始倒计时
 const startCountdown = () => {
@@ -92,15 +62,69 @@ const startCountdown = () => {
   }, 1000)
 }
 
+const completeSend = () => {
+  ElNotification.success(t('common.success.sendCode'))
+  startCountdown()
+  emit('sent')
+}
+
+const {
+  captchaChallenge,
+  captchaX,
+  captchaLoading,
+  captchaDialogVisible,
+  sending: captchaSending,
+  openCaptcha,
+  refreshCaptcha,
+  completeCaptcha,
+  resetCaptcha,
+} = useCaptchaSendCode({
+  buildRequest: () => {
+    const scene = props.scene
+    if (scene === 'login') return null
+    return { account: props.account.trim(), scene }
+  },
+  onSent: completeSend,
+  onError: (_error, stage) => {
+    if (stage === 'captcha') {
+      ElNotification.error(t('login.validation.captchaLoadFailed'))
+    }
+  },
+})
+
+// 是否禁用发送按钮
+const isSendDisabled = computed(() => {
+  return !isSendCodeAccountValid(props.account, props.scene)
+    || timer.value > 0
+    || props.sendDisabled
+    || props.sending
+    || captchaSending.value
+})
+
+// 发送验证码
+const sendCode = async () => {
+  if (isSendDisabled.value) return
+
+  const scene = props.scene
+  if (scene === 'login') {
+    emit('request')
+    return
+  }
+
+  await openCaptcha()
+}
+
 // 重置倒计时（供外部调用）
 const reset = () => {
   if (intervalId) { clearInterval(intervalId); intervalId = null }
   timer.value = 0
   modelValue.value = ''
+  resetCaptcha()
 }
 
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
+  resetCaptcha()
 })
 
 // 是否使用移动端布局
@@ -122,13 +146,25 @@ defineExpose({ reset, sendCode, completeSend })
       type="primary" 
       :size="size"
       @click="sendCode" 
-      :loading="loading || sending"
+      :loading="captchaSending || sending"
       :disabled="isSendDisabled"
       :style="{ width: useMobileLayout ? '100%' : 'auto' }"
     >
       {{ timer > 0 ? t('personal.security.retryAfter', { timer }) : t('personal.security.getCode') }}
     </el-button>
   </div>
+  <Teleport to="body">
+    <AppCaptchaOverlay
+      v-model="captchaDialogVisible"
+      :challenge="captchaChallenge"
+      :slider-x="captchaX"
+      :loading="captchaLoading"
+      :verifying="captchaSending"
+      @update:slider-x="captchaX = $event"
+      @refresh="refreshCaptcha"
+      @complete="completeCaptcha"
+    />
+  </Teleport>
 </template>
 
 <style scoped lang="scss">

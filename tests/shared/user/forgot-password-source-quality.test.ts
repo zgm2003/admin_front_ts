@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const forgotPasswordPath = 'src/views/Login/composables/useForgotPassword.ts'
 
 const mocks = vi.hoisted(() => ({
-  sendCode: vi.fn(),
   forgetPassword: vi.fn(),
   messageError: vi.fn(),
   messageSuccess: vi.fn(),
@@ -14,7 +13,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/api/user/users', () => ({
   UsersApi: {
-    sendCode: mocks.sendCode,
     forgetPassword: mocks.forgetPassword,
   },
 }))
@@ -66,13 +64,14 @@ describe('forgot password source quality', () => {
     expect(source).toContain('requireRequestErrorMessage(error,')
   })
 
-  it('does not replace an empty send-code request error with the generic send fallback', async () => {
-    const forgotPassword = await createForgotPassword()
-    forgotPassword.forgotForm.account = 'user@example.com'
-    mocks.sendCode.mockRejectedValueOnce(new Error(''))
+  it('delegates verification-code sending to the shared SendCode component', () => {
+    const source = forgotPasswordSource()
 
-    await expect(forgotPassword.sendForgotCode()).rejects.toThrow('forgot password send code error message must be non-empty')
-    expect(mocks.messageError).not.toHaveBeenCalledWith('forgotPassword.validation.sendFailed')
+    expect(source).not.toContain('UsersApi.sendCode')
+    expect(source).not.toContain('sendForgotCode')
+    expect(source).not.toContain('startForgotCountdown')
+    expect(source).not.toContain('forgotCountdown')
+    expect(source).not.toContain('isSendingCode')
   })
 
   it('does not replace an empty reset-password request error with the generic reset fallback', async () => {

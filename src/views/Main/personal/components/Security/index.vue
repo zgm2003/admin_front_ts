@@ -24,6 +24,7 @@ const isMobile = useIsMobile()
 
 const phoneForm = ref({ phone: '', code: '' })
 const phoneLoading = ref(false)
+const isPhoneSendDisabled = computed(() => !/^1[3-9]\d{9}$/.test(phoneForm.value.phone.trim()))
 
 const savePhone = async () => {
   if (!phoneForm.value.phone || !phoneForm.value.code) {
@@ -44,6 +45,7 @@ const savePhone = async () => {
 
 const emailForm = ref({ email: '', code: '' })
 const emailLoading = ref(false)
+const isEmailSendDisabled = computed(() => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForm.value.email.trim()))
 
 const saveEmail = async () => {
   if (!emailForm.value.email || !emailForm.value.code) {
@@ -175,7 +177,12 @@ const savePassword = async () => {
               <el-input v-model="phoneForm.phone" :placeholder="t('personal.security.newPhonePlaceholder')" clearable />
             </el-form-item>
             <el-form-item :label="t('personal.security.code')">
-              <SendCode v-model="phoneForm.code" :account="phoneForm.phone" scene="bind_phone" />
+              <SendCode
+                v-model="phoneForm.code"
+                :account="phoneForm.phone"
+                scene="bind_phone"
+                :send-disabled="isPhoneSendDisabled"
+              />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="savePhone">{{ t('personal.security.save') }}</el-button>
@@ -208,7 +215,12 @@ const savePassword = async () => {
               <el-input v-model="emailForm.email" :placeholder="t('personal.security.newEmailPlaceholder')" clearable />
             </el-form-item>
             <el-form-item :label="t('personal.security.code')">
-              <SendCode v-model="emailForm.code" :account="emailForm.email" scene="bind_email" />
+              <SendCode
+                v-model="emailForm.code"
+                :account="emailForm.email"
+                scene="bind_email"
+                :send-disabled="isEmailSendDisabled"
+              />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="saveEmail">{{ t('personal.security.save') }}</el-button>

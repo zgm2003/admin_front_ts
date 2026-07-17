@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
+import { SendCode } from '@/components/SendCode'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -11,14 +12,11 @@ defineProps<{
   visible: boolean
   step: number
   form: { account: string; code: string; newPassword: string; confirmPassword: string }
-  countdown: number
-  isSendingCode: boolean
   isSubmitting: boolean
 }>()
 
 const emit = defineEmits<{
   'update:visible': [value: boolean]
-  sendCode: []
   next: []
   back: []
   reset: []
@@ -58,26 +56,13 @@ const emit = defineEmits<{
         </div>
         <div class="input-group">
           <label class="input-label">{{ t('auth.register.code') }}</label>
-          <div class="code-input-wrapper">
-            <el-input
-              v-model="form.code"
-              :placeholder="t('auth.forget.codePlaceholder')"
-              maxlength="6"
-              class="custom-input flex-1"
-            >
-              <template #prefix><el-icon><Lock /></el-icon></template>
-            </el-input>
-            <el-button
-              class="code-btn"
-              :disabled="countdown > 0 || isSendingCode"
-              :type="countdown > 0 ? 'info' : 'primary'"
-              :loading="isSendingCode"
-              plain
-              @click="$emit('sendCode')"
-            >
-              {{ countdown > 0 ? t('auth.register.resend', { timer: countdown }) : t('auth.register.sendCode') }}
-            </el-button>
-          </div>
+          <SendCode
+            v-model="form.code"
+            :account="form.account"
+            scene="forget"
+            :placeholder="t('auth.forget.codePlaceholder')"
+            class="forgot-send-code"
+          />
         </div>
         <el-button type="primary" class="submit-btn mt-4" @click="$emit('next')">{{ t('loginPage.forgot.next') }}</el-button>
       </div>
@@ -301,15 +286,14 @@ const emit = defineEmits<{
   @include input-control();
 }
 
-.code-input-wrapper {
-  display: flex;
-  gap: 12px;
-}
+.forgot-send-code {
+  @include input-control();
 
-.code-btn {
-  height: 46px !important;
-  border-radius: 16px !important;
-  font-weight: 600;
+  :deep(.el-button) {
+    height: 46px !important;
+    border-radius: 16px !important;
+    font-weight: 600;
+  }
 }
 
 .submit-btn {

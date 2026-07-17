@@ -197,10 +197,10 @@ const remoteSelectProps = [
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block" style="max-width: 400px">
-            <SendCode v-model="code" :account="testEmail" scene="login" placeholder="请输入验证码"/>
+            <SendCode v-model="code" :account="testEmail" scene="bind_email" placeholder="请输入验证码"/>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;SendCode v-model="code" account="test@example.com" scene="login" /&gt;</el-text>
+            <el-text type="info">&lt;SendCode v-model="code" account="test@example.com" scene="bind_email" /&gt;</el-text>
           </div>
         </div>
         <div class="demo-section">

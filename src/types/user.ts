@@ -75,18 +75,23 @@ export type UserLoginParams =
       code: string
     }
 
-export type UserSendCodeParams =
+export type UserSendCodeContext =
   | {
       account: string
       scene: 'login'
       login_type: 'email' | 'phone'
-      captcha_id: string
-      captcha_answer: UserCaptchaAnswer
     }
   | {
       account: string
       scene: Exclude<UserScene, 'login'>
     }
+
+export type UserSendCodeCaptchaProof = {
+  captcha_id: string
+  captcha_answer: UserCaptchaAnswer
+}
+
+export type UserSendCodeParams = UserSendCodeContext & UserSendCodeCaptchaProof
 
 export interface UserForgetPasswordParams {
   account: string

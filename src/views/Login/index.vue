@@ -45,12 +45,9 @@ const {
 const {
   forgotVisible,
   forgotStep,
-  forgotCountdown,
   isForgotSubmitting,
-  isSendingCode,
   forgotForm,
   openForgotDialog,
-  sendForgotCode,
   handleForgotNext,
   handleResetPassword,
 } = useForgotPassword()
@@ -132,11 +129,8 @@ async function tauriClose() {
       :visible="forgotVisible"
       :step="forgotStep"
       :form="forgotForm"
-      :countdown="forgotCountdown"
-      :is-sending-code="isSendingCode"
       :is-submitting="isForgotSubmitting"
       @update:visible="forgotVisible = $event"
-      @send-code="sendForgotCode"
       @next="handleForgotNext"
       @back="forgotStep = 1"
       @reset="handleResetPassword"
