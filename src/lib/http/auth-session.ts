@@ -1,4 +1,3 @@
-import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import Cookies from 'js-cookie'
 import router from '@/router'
 import { useMenuStore } from '@/store/menu'
@@ -10,14 +9,25 @@ import { getDeviceId } from './device'
 import { setHeader } from './headers'
 
 import { ADMIN_AUTH_REFRESH_PATH } from './api-prefix'
+import { legacyAxiosPost } from '@/modules/http/axios-adapter'
 
 const REFRESH_PATH = ADMIN_AUTH_REFRESH_PATH
 const NO_REFRESH_TOKEN_MESSAGE = 'No refresh token'
 const SESSION_EXPIRED_MESSAGE = '登录过期，请重新登录'
 const REFRESH_NETWORK_ERROR_MESSAGE = '网络错误，请重新登录'
 
-export type RetryableRequestConfig = InternalAxiosRequestConfig<unknown> & {
+export type RetryableRequestConfig = MutableRequestConfig & {
+  url?: string
   _retry?: boolean
+}
+
+interface MutableRequestConfig {
+  headers?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+interface ReplayService {
+  (config: RetryableRequestConfig): Promise<unknown>
 }
 
 interface QueuedRequest {
@@ -36,7 +46,7 @@ function resolveSessionExpiredMessage(messageFromServer?: string): string {
 
 export function createAuthSessionManager(params: {
   baseURL: string
-  service: AxiosInstance
+  service: ReplayService
   notify: (message: string) => void
 }) {
   const { baseURL, service, notify } = params
@@ -80,7 +90,7 @@ export function createAuthSessionManager(params: {
       requestBody = { refresh_token: refreshToken }
     }
 
-    const refreshResponse = await axios.post<ApiEnvelope<{
+    const refreshResponse = await legacyAxiosPost<ApiEnvelope<{
       access_token: string
       refresh_token?: string
       expires_in: number

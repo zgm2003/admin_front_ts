@@ -1,6 +1,7 @@
 import { readonly, shallowRef, type ShallowRef } from 'vue'
+import { createApiError, type ApiError } from '@/modules/http/error'
 import type { AppEnvironment } from './environment'
-import type { ApiError, BootstrapState, PrincipalSnapshot } from './state'
+import type { BootstrapState, PrincipalSnapshot } from './state'
 
 export type PrincipalRefreshReason =
   | 'bootstrap'
@@ -33,13 +34,13 @@ export interface AppKernelDependencies {
 }
 
 function toApiError(error: unknown, kind: ApiError['kind'] = 'internal'): ApiError {
-  return {
+  return createApiError({
     kind,
     code: kind === 'contract' ? 'app.environment_invalid' : 'app.bootstrap_failed',
     retryable: false,
     messageKey: kind === 'contract' ? 'app.environmentInvalid' : 'app.bootstrapFailed',
     cause: error,
-  }
+  })
 }
 
 function linkedAbortController(signals: readonly AbortSignal[]) {

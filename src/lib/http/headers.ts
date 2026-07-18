@@ -1,13 +1,20 @@
-import {
-  AxiosHeaders,
-  type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
-} from 'axios'
 import Cookies from 'js-cookie'
 import { buildCommonHeaders, getAdminClientVariant } from './platform'
 
+interface MutableHeaderBag {
+  set?(name: string, value: string): unknown
+  delete?(name: string): unknown
+  [name: string]: unknown
+}
+
+interface MutableRequestConfig {
+  data?: unknown
+  headers?: MutableHeaderBag
+  withCredentials?: boolean
+}
+
 export function setHeader(
-  config: AxiosRequestConfig<unknown> | InternalAxiosRequestConfig<unknown>,
+  config: MutableRequestConfig,
   name: string,
   value: string | number | boolean | null | undefined
 ) {
@@ -16,8 +23,8 @@ export function setHeader(
   }
 
   const headers = config.headers
-  if (headers && typeof (headers as AxiosHeaders).set === 'function') {
-    ;(headers as AxiosHeaders).set(name, String(value))
+  if (headers && typeof headers.set === 'function') {
+    headers.set(name, String(value))
     return
   }
 
@@ -28,7 +35,7 @@ export function setHeader(
 }
 
 function deleteHeader(
-  config: AxiosRequestConfig<unknown> | InternalAxiosRequestConfig<unknown>,
+  config: MutableRequestConfig,
   name: string
 ) {
   const headers = config.headers
@@ -36,16 +43,15 @@ function deleteHeader(
     return
   }
 
-  if (typeof (headers as AxiosHeaders).delete === 'function') {
-    ;(headers as AxiosHeaders).delete(name)
+  if (typeof headers.delete === 'function') {
+    headers.delete(name)
     return
   }
 
   const lowerName = name.toLowerCase()
-  const plainHeaders = headers as Record<string, unknown>
-  const existingName = Object.keys(plainHeaders).find((key) => key.toLowerCase() === lowerName)
+  const existingName = Object.keys(headers).find((key) => key.toLowerCase() === lowerName)
   if (existingName) {
-    delete plainHeaders[existingName]
+    delete headers[existingName]
   }
 }
 
@@ -57,7 +63,7 @@ function isFormDataPayload(data: unknown): boolean {
   return Object.prototype.toString.call(data) === '[object FormData]'
 }
 
-export function applyCommonHeaders(config: InternalAxiosRequestConfig<unknown>) {
+export function applyCommonHeaders(config: MutableRequestConfig) {
   const token = Cookies.get('access_token')
   const headers = buildCommonHeaders(token)
   const hasFormDataPayload = isFormDataPayload(config.data)

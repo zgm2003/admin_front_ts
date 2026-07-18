@@ -44,13 +44,16 @@ describe('permission api REST contract', () => {
   })
 
   it('declares the new API base URL as the only active request client', () => {
-    const clientSource = readFrontendSource('src/lib/http/client.ts')
+    const clientSource = readFrontendSource('src/lib/http/index.ts')
+    const adapterSource = readFrontendSource('src/modules/http/axios-adapter.ts')
     const envDevelopment = readFrontendSource('.env.development')
     const envProduction = readFrontendSource('.env.production')
 
-    expect(clientSource).toContain('const apiBaseURL = requiredEnv')
-    expect(clientSource).toContain('VITE_GO_API_BASE_URL')
-    expect(clientSource).toContain('const request = apiClient.request')
+    expect(clientSource).toContain('installApiClient')
+    expect(clientSource).toContain('requireClient().execute')
+    expect(clientSource).not.toMatch(/export\s+\{[^}]*\bservice\b/)
+    expect(adapterSource).toContain('baseURL: options.baseURL')
+    expect(adapterSource).toContain("from 'axios'")
     expect(clientSource).not.toContain('legacyRequest')
     expect(clientSource).not.toContain('legacyBaseURL')
     expect(clientSource).not.toContain('VITE_SOME_KEY')
