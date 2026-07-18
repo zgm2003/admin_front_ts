@@ -1,32 +1,32 @@
-import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { describe, expect, it, vi } from 'vitest'
+import { registerRouterGuards } from '@/router/guards'
 
-const {
-  isPublicRouteName,
-  shouldRedirectToLogin,
-  resolveRouteRestoreTarget,
-} = await import('../../../src/router/guard-helpers')
+describe('Router guard integration boundary', () => {
+  it('registers the kernel-owned before guard', async () => {
+    let beforeGuard: ((to: { name: string; fullPath: string }) => Promise<unknown>) | undefined
+    const router = {
+      beforeEach: vi.fn((guard) => { beforeGuard = guard }),
+      afterEach: vi.fn(),
+    }
+    registerRouterGuards(router, {
+      state: { value: { kind: 'anonymous' } },
+      bootstrap: vi.fn(async () => ({ kind: 'anonymous' })),
+    })
 
-describe('router guards', () => {
-  it('treats login and 404 as public routes', () => {
-    expect(isPublicRouteName('login')).toBe(true)
-    expect(isPublicRouteName('404')).toBe(true)
-    expect(isPublicRouteName('home')).toBe(false)
+    await expect(beforeGuard?.({ name: 'settings', fullPath: '/system/setting' })).resolves.toEqual({
+      name: 'login',
+      query: { redirect: '/system/setting' },
+    })
   })
 
-  it('redirects to login only when both tokens are missing on protected routes', () => {
-    expect(shouldRedirectToLogin({ routeName: 'home', accessToken: '', refreshToken: '' })).toBe(true)
-    expect(shouldRedirectToLogin({ routeName: 'home', accessToken: 'a', refreshToken: '' })).toBe(false)
-    expect(shouldRedirectToLogin({ routeName: 'home', accessToken: '', refreshToken: 'r' })).toBe(false)
-    expect(shouldRedirectToLogin({ routeName: 'login', accessToken: '', refreshToken: '' })).toBe(false)
-  })
+  it('contains no cookie or storage authentication decision', () => {
+    const source = readFileSync(resolve('src/router/guards.ts'), 'utf8')
 
-  it('restores the last visited path when the current route is root or login', () => {
-    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/payment/config' })).toBe('/payment/config')
-    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '/login' })).toBe('/home')
-    expect(resolveRouteRestoreTarget({ currentPath: '/', lastVisitedPath: '' })).toBe('/home')
-    expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '/user/userManager' })).toBe('/user/userManager')
-    expect(resolveRouteRestoreTarget({ currentPath: '/login', lastVisitedPath: '' })).toBe('/home')
-    // Retired legacy path: keep it out of the normal root/login restore fixture.
-    expect(resolveRouteRestoreTarget({ currentPath: '/pay/channel', lastVisitedPath: '/home' })).toBeNull()
+    expect(source).not.toContain('js-cookie')
+    expect(source).not.toContain('Cookies.')
+    expect(source).not.toContain('localStorage')
+    expect(source).not.toContain('sessionStorage')
   })
 })

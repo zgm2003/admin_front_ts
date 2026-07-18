@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { buildViewModuleKey } from '../../src/router/view-registry'
+import { isLocalViewKey, resolveViewComponent } from '../../src/router/view-registry'
 
 const exists = (path: string) => existsSync(resolve(process.cwd(), path))
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8')
@@ -25,9 +25,9 @@ describe('payment wallet billing redesign contract', () => {
     expect(migration).toContain("'/profile/wallet'")
     expect(migration).toContain("'profile/wallet'")
 
-    const profileWalletModuleKey = buildViewModuleKey('profile/wallet')
-    expect(profileWalletModuleKey).toBe('../views/Main/profile/wallet/index.vue')
-    expect(exists(profileWalletModuleKey!.replace('../views/Main/', 'src/views/Main/'))).toBe(true)
+    expect(isLocalViewKey('profile/wallet')).toBe(true)
+    expect(resolveViewComponent('profile/wallet')).toBeTypeOf('function')
+    expect(exists('src/views/Main/profile/wallet/index.vue')).toBe(true)
   })
 
   it('links the header wallet shortcut to profile wallet and removes manual recharge sync', () => {

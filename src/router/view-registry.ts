@@ -1,26 +1,19 @@
-import type { Component } from 'vue'
+import {
+  localViewKeys,
+  localViewLoaders,
+  type LocalViewKey,
+  type LocalViewLoader,
+} from '@/modules/routing/generated/local-views'
 
-export type ViewModuleLoader = () => Promise<{ default: Component }>
-export type ViewModuleMap = Record<string, ViewModuleLoader>
+const localViewKeySet: ReadonlySet<string> = new Set(localViewKeys)
 
-export function buildViewModuleKey(viewKey: string): string | null {
-  if (!viewKey || typeof viewKey !== 'string') {
-    return null
-  }
-
-  const normalizedPath = viewKey.replace(/^\/+/, '')
-  if (!normalizedPath) {
-    return null
-  }
-
-  return `../views/Main/${normalizedPath}/index.vue`
+export function isLocalViewKey(value: string): value is LocalViewKey {
+  return localViewKeySet.has(value)
 }
 
-export function resolveViewComponent(modules: ViewModuleMap, viewKey: string): ViewModuleLoader | undefined {
-  const moduleKey = buildViewModuleKey(viewKey)
-  if (!moduleKey) {
-    return undefined
-  }
-
-  return modules[moduleKey]
+export function resolveViewComponent(viewKey: string): LocalViewLoader | undefined {
+  return isLocalViewKey(viewKey) ? localViewLoaders[viewKey] : undefined
 }
+
+export { localViewKeys, localViewLoaders }
+export type { LocalViewKey, LocalViewLoader }

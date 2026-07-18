@@ -4,15 +4,18 @@ import {useUserStore} from '@/store/user'
 import {useMenuStore} from '@/store/menu'
 import { baseChildren, createCatchAllRoute, createMainRoute, publicRoutes } from '@/router/routes'
 import type { DynamicRouteItem } from '@/types/user'
-import {
-    registerRouterGuards,
-} from '@/router/guards'
 import { resolveCurrentRouteTarget, resolveRouteRestoreTarget } from '@/router/guard-helpers'
-import { type ViewModuleMap } from '@/router/view-registry'
 import { buildRuntimeRouteTree } from '@/router/runtime-route-tree'
 
 const mainRoute = createMainRoute()
 const router = createRouter({history: createWebHistory(), routes: [...publicRoutes, mainRoute]})
+
+export function createAdminRouter() {
+    return createRouter({
+        history: createWebHistory(),
+        routes: [...publicRoutes, createMainRoute()],
+    })
+}
 
 export async function setupDynamicRoutes() {
     mainRoute.children = [...baseChildren]
@@ -31,9 +34,7 @@ export async function setupDynamicRoutes() {
     const userStore = useUserStore()
     await userStore.fetchUserInfo()
     const storedRoutes: DynamicRouteItem[] = Array.isArray(userStore.router) ? userStore.router : []
-    const componentPaths = import.meta.glob('../views/Main/**/*.vue') as ViewModuleMap
-
-    mainRoute.children = [...baseChildren, ...buildRuntimeRouteTree(storedRoutes, componentPaths)]
+    mainRoute.children = [...baseChildren, ...buildRuntimeRouteTree(storedRoutes)]
     
     // Always add (replace) the route to ensure updates
     router.addRoute(mainRoute)
@@ -67,7 +68,5 @@ export async function refreshCurrentRoute() {
         useMenuStore().refreshCurrentPage()
     }
 }
-
-registerRouterGuards(router)
 
 export default router

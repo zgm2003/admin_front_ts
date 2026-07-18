@@ -61,11 +61,13 @@ describe('AI prompt Admin API and CRUD page', () => {
   it('uses standard CRUD page primitives and keeps dynamic view registry generic', () => {
     const promptPage = readFrontendSource('src/views/Main/ai/prompts/index.vue')
     const viewRegistry = readFrontendSource('src/router/view-registry.ts')
+    const generatedViews = readFrontendSource('src/modules/routing/generated/local-views.ts')
 
     expectCrudPage(promptPage)
-    expect(viewRegistry).toContain("return `../views/Main/${normalizedPath}/index.vue`")
-    expect(viewRegistry).not.toContain('ai/prompts')
-    expect(viewRegistry).not.toContain('ai/assets')
+    expect(viewRegistry).toContain("from '@/modules/routing/generated/local-views'")
+    expect(viewRegistry).not.toContain('import.meta.glob')
+    expect(generatedViews).toContain('"ai/prompts"')
+    expect(generatedViews).not.toContain('"ai/assets"')
   })
 
   it('guards table dictionary labels before rendering status and type cells', () => {

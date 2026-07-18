@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { permissionCodes } from '@/modules/routing/generated/permissions'
+import { backendViewKeys } from '@/modules/routing/generated/views'
 
 export const backendErrorCategorySchema = z.enum([
   'authentication',
@@ -67,8 +68,8 @@ const principalMenuItemSchema: z.ZodType<PrincipalMenuItem> = z.lazy(() => z.obj
   children: z.array(principalMenuItemSchema),
   i18n_key: z.string(),
   sort: z.number().int(),
-  show_menu: z.number().int(),
-  parent_id: z.number().int(),
+  show_menu: z.union([z.literal(1), z.literal(2)]),
+  parent_id: z.number().int().nonnegative(),
 }).strict())
 
 export const principalSchema = z.object({
@@ -80,10 +81,13 @@ export const principalSchema = z.object({
   router: z.array(z.object({
     name: z.string().min(1),
     path: z.string().min(1),
-    view_key: z.string().min(1),
+    view_key: z.enum(backendViewKeys),
     meta: z.record(z.string(), z.string()),
   }).strict()),
-  buttonCodes: z.array(z.enum(permissionCodes)),
+  buttonCodes: z.array(z.enum(permissionCodes)).refine(
+    (values) => new Set(values).size === values.length,
+    { message: 'buttonCodes must contain unique permission codes' },
+  ),
 }).strict()
 
 export const paymentConfigMutationResultSchema = z.object({

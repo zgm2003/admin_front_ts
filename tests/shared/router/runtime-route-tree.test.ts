@@ -1,12 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
-import { buildRuntimeRouteTree } from '../../../src/router/runtime-route-tree'
+import { describe, expect, it } from 'vitest'
+import { buildRuntimeRouteTree } from '@/router/runtime-route-tree'
 
-describe('runtime route tree', () => {
-  it('keeps the original path and swaps in DeadPage when view_key is missing', () => {
-    const modules = {
-      '../views/Main/payment/config/index.vue': vi.fn(),
-    }
-
+describe('legacy runtime route adapter', () => {
+  it('omits an unknown view instead of silently installing DeadPage', () => {
     const tree = buildRuntimeRouteTree([
       {
         path: '/system/missing',
@@ -14,13 +10,26 @@ describe('runtime route tree', () => {
         view_key: 'system/missing',
         meta: { menuId: '88' },
       },
-    ], modules)
+    ])
 
-    const deadRoute = tree.find((route) => route.path === '/system/missing')
+    expect(tree).toEqual([])
+  })
 
-    expect(deadRoute?.name).toBe('system-missing')
-    expect(deadRoute?.meta?.errorKind).toBe('dead')
-    expect(deadRoute?.meta?.deadRoutePath).toBe('/system/missing')
-    expect(deadRoute?.meta?.deadViewKey).toBe('system/missing')
+  it('resolves an exact generated view and keeps the documented metadata', () => {
+    const tree = buildRuntimeRouteTree([
+      {
+        path: '/system/setting',
+        name: 'system-setting',
+        view_key: 'system/setting',
+        meta: { menuId: '41' },
+      },
+    ])
+
+    expect(tree).toHaveLength(1)
+    expect(tree[0]).toMatchObject({
+      path: '/system/setting',
+      name: 'system-setting',
+      meta: { menuId: '41', pageLayout: 'card' },
+    })
   })
 })

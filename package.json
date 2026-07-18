@@ -15,6 +15,7 @@
     "contract:sync": "node ./scripts/sync-admin-contract.mjs",
     "contract:generate": "node ./scripts/generate-admin-types.mjs",
     "contract:check": "node ./scripts/check-admin-contract.mjs",
+    "routes:generate": "node ./scripts/generate-view-registry.mjs",
     "lint": "eslint .",
     "lint:baseline": "eslint . --max-warnings 82",
     "lint:quality": "node ./scripts/quality-checks.mjs",

@@ -8,6 +8,7 @@ import {
   authCredentialSchema,
   errorEnvelopeSchema,
   exportMutationResultSchema,
+  principalSchema,
 } from '@/modules/http/schema'
 
 describe('ApiError', () => {
@@ -101,5 +102,32 @@ describe('critical Admin boundary schemas', () => {
   it('fails closed when an export mutation result misses its documented task id', () => {
     expect(exportMutationResultSchema.safeParse({ id: 91, message: 'queued' }).success).toBe(true)
     expect(exportMutationResultSchema.safeParse({ message: 'queued' }).success).toBe(false)
+  })
+
+  it('rejects unknown principal views and duplicate button codes from users/me', () => {
+    const principal = {
+      user_id: 7,
+      username: 'admin',
+      avatar: '',
+      role_name: 'admin',
+      permissions: [],
+      router: [{
+        name: 'menu_41',
+        path: '/system/setting',
+        view_key: 'system/setting',
+        meta: { menuId: '41', code: 'system_setting_edit' },
+      }],
+      buttonCodes: ['system_setting_edit'],
+    }
+
+    expect(principalSchema.safeParse(principal).success).toBe(true)
+    expect(principalSchema.safeParse({
+      ...principal,
+      router: [{ ...principal.router[0], view_key: 'system/guessed' }],
+    }).success).toBe(false)
+    expect(principalSchema.safeParse({
+      ...principal,
+      buttonCodes: ['system_setting_edit', 'system_setting_edit'],
+    }).success).toBe(false)
   })
 })

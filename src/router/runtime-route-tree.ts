@@ -1,36 +1,22 @@
 import type { RouteMeta, RouteRecordRaw } from 'vue-router'
-import DeadPage from '@/views/Error/DeadPage.vue'
 import type { DynamicRouteItem } from '@/types/user'
-import { resolveViewComponent, type ViewModuleMap } from '@/router/view-registry'
+import { resolveViewComponent } from '@/router/view-registry'
 
-export function buildRuntimeRouteTree(routes: DynamicRouteItem[], modules: ViewModuleMap): RouteRecordRaw[] {
-  return routes.map((route) => {
-    const component = resolveViewComponent(modules, route.view_key)
-    const meta = { ...(route.meta || {}) } as RouteMeta
-
-    if (component) {
-      return {
-        path: route.path,
-        name: route.name,
-        component,
-        meta: {
-          ...meta,
-          pageLayout: meta.pageLayout ?? 'card',
-        },
-      }
-    }
-
-    return {
+export function buildRuntimeRouteTree(routes: readonly DynamicRouteItem[]): RouteRecordRaw[] {
+  const records: RouteRecordRaw[] = []
+  for (const route of routes) {
+    const component = resolveViewComponent(route.view_key)
+    if (!component) continue
+    const meta = { ...route.meta } as RouteMeta
+    records.push({
       path: route.path,
       name: route.name,
-      component: DeadPage,
+      component,
       meta: {
         ...meta,
-        pageLayout: 'centered',
-        errorKind: 'dead',
-        deadRoutePath: route.path,
-        deadViewKey: route.view_key,
+        pageLayout: meta.pageLayout ?? 'card',
       },
-    }
-  })
+    })
+  }
+  return records
 }
