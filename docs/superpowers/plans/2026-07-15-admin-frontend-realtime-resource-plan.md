@@ -2,19 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add typed recoverable realtime, latest-wins ResourceQuery/mutations, migrate feature APIs and tables, replace source-heavy tests with behavior tests, and meet zero-warning, performance, browser, and WCAG 2.2 AA gates.
+**Goal:** Add typed recoverable realtime, latest-wins ResourceQuery/mutations, migrate feature APIs and tables, replace source-heavy tests with behavior tests, and meet zero-warning, bundle, Docker-runtime, and WCAG 2.2 AA gates.
 
 **Architecture:** Realtime and resource orchestration are stateful modules owned by AppKernel. Feature workflows consume typed domain events and query/mutation objects, never raw WebSocket/Axios. Shared UI remains focused; pages split only where behavior, state, or presentation has a real boundary.
 
-**Tech Stack:** Vue 3.5, TypeScript 5.9, Vitest, Vue Test Utils, MSW, Playwright 1.61.1, axe-core 4.12.1.
+**Tech Stack:** Vue 3.5, TypeScript 5.9, Vitest, Vue Test Utils, MSW, axe-core 4.12.1, Docker Compose, PowerShell 7.
 
 ---
 
-## Docker-only execution policy
+## Docker-only runtime and explicit browser-tool policy
 
-P07 runtime and test execution is Docker-only. P06 must first remove the Windows-only `E:/admin/...` fixture assumptions and ensure the test/build context contains every required source fixture. Run npm, Vitest, build, MSW integration, and Playwright commands in pinned Node/Playwright containers; browser flows target the Docker frontend origin and the API/worker/state services started by `admin_back_go/scripts/docker-platform.ps1 up`.
+P07 starts only after the user accepts the P06 Docker build. API, worker, frontend, MySQL, and Redis runtime processes are started only by `admin_back_go/scripts/docker-platform.ps1`; no task starts Vite, Go binaries, MySQL, or Redis on the host. Static TypeScript/Vitest/build checks run through the pinned Node container introduced in Task 10.
 
-The host may edit files, inspect Git, and orchestrate Docker with PowerShell. It must not start Vite, API, worker, MySQL, or Redis directly, and a host-only passing test is not P07 gate evidence.
+Until Task 10 creates `scripts/docker-frontend-gate.ps1`, every `npm` or `node` command shown in Tasks 1-9 is the inner command for an equivalent `node:22.23.1-alpine` one-shot container mounted at `/workspace`; it is not permission to execute a host runtime. After Task 10, use the wrapper exclusively.
+
+Playwright is outside this plan. Do not install it, create browser-test files, or add a browser gate. It may be used only in a later task where the user explicitly requests it. Real UI acceptance belongs to the versioned manual checklist created in Task 9, and only the user may mark that checklist accepted.
 
 ### Task 1: Implement typed RealtimeClient with resume
 
@@ -539,91 +541,110 @@ git diff --cached --check
 git commit -m "feat(accessibility): meet wcag 2.2 aa on critical flows"
 ```
 
-### Task 9: Add real browser, accessibility, and performance smoke
+### Task 9: Add Docker runtime smoke and the user-owned acceptance checklist
 
 **Files:**
-- Create: `playwright.config.ts`
-- Create: `tests/e2e/auth.spec.ts`
-- Create: `tests/e2e/rbac-crud.spec.ts`
-- Create: `tests/e2e/notification.spec.ts`
-- Create: `tests/e2e/ai-realtime.spec.ts`
-- Create: `tests/e2e/contract-error.spec.ts`
-- Create: `tests/e2e/accessibility.spec.ts`
-- Create: `tests/e2e/performance.spec.ts`
-- Create: `tests/e2e/fixtures/admin.ts`
-- Create: `scripts/start-e2e-environment.ps1`
-- Create: `performance/e2e-profile.json`
-- Modify: `package.json`
+- Create: `scripts/verify-docker-runtime.ps1`
+- Create: `tests/shared/deployment/docker-runtime-smoke.test.ts`
+- Create: `docs/acceptance/p07-frontend-manual.md`
 
-- [ ] **Step 1: Configure deterministic projects**
+- [ ] **Step 1: Write the failing deployment-boundary test**
 
-Run Chromium desktop at 1440x900 and mobile at 390x844. Start the real Admin API/Worker test environment with MySQL/Redis and fake provider/COS endpoints. Seed unique run IDs, never a committed account/password.
+The test reads `scripts/verify-docker-runtime.ps1` and requires it to invoke `E:/admin/admin_back_go/scripts/docker-platform.ps1 status`, require all five containers to be healthy, call `/healthz`, `/health`, and `/ready`, compare both image revision labels with repository HEAD, and accept smoke credentials only through `ADMIN_SMOKE_ACCOUNT` and `ADMIN_SMOKE_PASSWORD`. It also rejects `npm run dev`, Vite, `go run`, `Start-Process`, host MySQL, and host Redis startup.
 
-- [ ] **Step 2: Implement required flows**
-
-- login, 20-request refresh, logout, revoked protected route;
-- menu/RBAC route and button update;
-- one representative create/edit/status/delete flow with latest-wins search;
-- notification live delivery, disconnect, and recovery;
-- AI reply completion, cancel, Worker restart, reconnect/resume;
-- malformed critical response and fatal contract-error screen.
-
-Each test cleans its own rows and sessions by unique prefix.
-
-- [ ] **Step 3: Run axe and keyboard smoke**
-
-Scan login, Layout, table/form/dialog, and AI chat with `@axe-core/playwright`; fail serious/critical violations. Use keyboard-only steps for skip link, menu, table action, form error, dialog close/return, and chat send/cancel.
-
-- [ ] **Step 4: Enforce environment-profile performance**
-
-Record LCP ≤ 2500 ms, INP ≤ 200 ms, CLS ≤ 0.1, login API p95 ≤ 300 ms, list p95 ≤ 200 ms, and fake-provider AI first event ≤ 2000 ms. Use five warmed runs on the committed CI profile; report raw samples and median/p95.
-
-- [ ] **Step 5: Verify and commit**
+Run directly through the pinned Node container:
 
 ```powershell
-npx playwright install chromium
-pwsh -NoProfile -File scripts/start-e2e-environment.ps1 -Command test
-npm run test:e2e
-git add -- playwright.config.ts tests/e2e/auth.spec.ts tests/e2e/rbac-crud.spec.ts tests/e2e/notification.spec.ts tests/e2e/ai-realtime.spec.ts tests/e2e/contract-error.spec.ts tests/e2e/accessibility.spec.ts tests/e2e/performance.spec.ts tests/e2e/fixtures/admin.ts scripts/start-e2e-environment.ps1 performance/e2e-profile.json package.json
-git diff --cached --check
-git commit -m "test(browser): cover admin recovery accessibility and budgets"
+docker run --rm --mount "type=bind,src=$((Get-Location).Path),dst=/workspace" --workdir /workspace node:22.23.1-alpine sh -lc "npm ci && npm test -- tests/shared/deployment/docker-runtime-smoke.test.ts"
 ```
 
-### Task 10: Make all frontend quality gates blocking
+Expected: FAIL because the runtime smoke script does not exist.
 
-**Files:**
-- Modify: `scripts/verify-frontend.ps1`
-- Modify: `.github/workflows/deploy-admin-front.yml`
-- Create: `tests/shared/deployment/quality-gates.test.ts`
+- [ ] **Step 2: Implement fail-closed Docker runtime verification**
 
-- [ ] **Step 1: Require every gate**
+`verify-docker-runtime.ps1` validates resolved backend/frontend roots, invokes only the backend Docker platform script, and exits nonzero on an unhealthy/missing container, non-2xx health response, revision mismatch, authentication failure, missing realtime ticket, WebSocket failure, or secret-like output. It runs authenticated HTTP and realtime-ticket/WebSocket smoke without printing credentials or tokens.
 
-The workflow and shared script run contract/view generation checks, ESLint zero warnings, typecheck, unit/component/integration coverage, production build, bundle budgets, Playwright desktop/mobile, axe, performance profile, dependency/license audit, and immutable artifact packaging.
+If either smoke credential environment variable is absent, stop with `ADMIN_SMOKE_CREDENTIALS_REQUIRED`; never silently skip authenticated checks or use a mock response.
 
-- [ ] **Step 2: Pin browser/runtime inputs**
+- [ ] **Step 3: Write the versioned manual acceptance checklist**
 
-Use Node 22.12.0, `@playwright/test 1.61.1`, and the lockfile. Install Chromium with the package CLI; cache only npm and browser binaries keyed by lockfile+Playwright version. Upload test report, traces on failure, bundle report, and checksums without credentials.
+`docs/acceptance/p07-frontend-manual.md` records the frontend/backend revisions and leaves user-owned checkboxes for password login without captcha, send-code captcha, session restore/logout, first protected navigation, menu persistence, direct URL entry, CRUD/error/empty states, notification and AI reconnect, queue monitor, downloads, keyboard behavior, narrow viewport, 200% zoom, dark theme, reduced motion, and visible focus.
 
-- [ ] **Step 3: Run and commit**
+The Agent may populate revision/evidence fields but must not mark user acceptance checkboxes.
+
+- [ ] **Step 4: Verify and commit**
 
 ```powershell
-pwsh -NoProfile -File scripts/verify-frontend.ps1
-npm run test:e2e
-npm test -- tests/shared/deployment/quality-gates.test.ts
-git add -- scripts/verify-frontend.ps1 .github/workflows/deploy-admin-front.yml tests/shared/deployment/quality-gates.test.ts
+docker run --rm --mount "type=bind,src=$((Get-Location).Path),dst=/workspace" --workdir /workspace node:22.23.1-alpine sh -lc "npm ci && npm test -- tests/shared/deployment/docker-runtime-smoke.test.ts"
+pwsh -NoProfile -File E:/admin/admin_back_go/scripts/docker-platform.ps1 up
+pwsh -NoProfile -File scripts/verify-docker-runtime.ps1
+git add -- scripts/verify-docker-runtime.ps1 tests/shared/deployment/docker-runtime-smoke.test.ts docs/acceptance/p07-frontend-manual.md
 git diff --cached --check
-git commit -m "ci: block frontend quality accessibility and budget regressions"
+git commit -m "test(docker): add frontend runtime acceptance gate"
+```
+
+Expected: automated Docker checks pass and the manual checklist remains pending user confirmation.
+
+### Task 10: Make containerized frontend quality gates blocking
+
+**Files:**
+- Create: `scripts/docker-frontend-gate.ps1`
+- Modify: `scripts/verify-frontend.ps1`
+- Create: `tests/shared/deployment/quality-gates.test.ts`
+- Modify: `package.json`
+
+- [ ] **Step 1: Write the failing quality-gate contract test**
+
+Require the shared verifier to run contract and generated-route checks, ESLint with zero warnings, typecheck, unit/component/integration coverage, production build, locale generation check, bundle budgets, test-architecture audit, dependency audit, and `git diff --check`. Reject browser automation commands, host service startup, runtime mock fallback, and GitHub deployment workflow references.
+
+Require `docker-frontend-gate.ps1` to use exact image `node:22.23.1-alpine`, `npm ci`, a named npm cache volume, the repository lockfile, and a caller-supplied static command. It validates that the mounted repository is `E:/admin/admin_front_ts` and propagates the container exit code.
+
+Run:
+
+```powershell
+npm test -- tests/shared/deployment/quality-gates.test.ts
+```
+
+Expected: FAIL until both scripts express the complete gate.
+
+- [ ] **Step 2: Implement the pinned container gate**
+
+The Docker wrapper mounts the repository at `/workspace`, sets that working directory, installs exactly from `package-lock.json`, and runs only the requested static command. It publishes no ports and starts no dev/preview server.
+
+`verify-frontend.ps1` becomes the single in-container gate and uses `npm run lint -- --max-warnings 0`; it removes the temporary P06 warning baseline. Dependency audit failures remain blocking and cannot be converted into warnings.
+
+- [ ] **Step 3: Prove that browser tooling is absent**
+
+```powershell
+git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
+```
+
+Expected: no matches. Documentation may record the prohibition; runtime, dependency, test, script, and Workflow paths may not contain it.
+
+- [ ] **Step 4: Run and commit**
+
+```powershell
+pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command "pwsh -NoProfile -File scripts/verify-frontend.ps1"
+git add -- scripts/docker-frontend-gate.ps1 scripts/verify-frontend.ps1 tests/shared/deployment/quality-gates.test.ts package.json package-lock.json
+git diff --cached --check
+git commit -m "build(frontend): block containerized quality regressions"
 ```
 
 ## Plan completion gate
 
 ```powershell
-npm ci
-pwsh -NoProfile -File scripts/verify-frontend.ps1
-npm run test:e2e
-node scripts/audit-test-architecture.mjs
-node scripts/analyze-bundle.mjs --check
+cd E:/admin/admin_front_ts
+pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command "pwsh -NoProfile -File scripts/verify-frontend.ps1"
+
+cd E:/admin/admin_back_go
+pwsh -NoProfile -File scripts/docker-platform.ps1 up
+pwsh -NoProfile -File scripts/docker-platform.ps1 status
+
+cd E:/admin/admin_front_ts
+pwsh -NoProfile -File scripts/verify-docker-runtime.ps1
+git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
 git status --short
+git -C E:/admin/admin_back_go status --short
 ```
 
-Expected: realtime recovery and latest-wins tests pass; source-text tests are below 20%; core coverage is at least 80% statements/branches; lint is 0/0; bundle, browser, WCAG, and performance gates pass; status is clean.
+Expected: realtime recovery and latest-wins tests pass; source-text tests are below 20%; core coverage is at least 80% statements/branches; lint is 0/0; contract, type, bundle, WCAG component, Docker health/revision, authenticated HTTP, and realtime smoke gates pass; browser-tool search and both status commands produce no output. P07 is not accepted until the user separately confirms `docs/acceptance/p07-frontend-manual.md`.

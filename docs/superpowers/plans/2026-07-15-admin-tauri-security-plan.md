@@ -2,13 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Package verified local UI, expose one narrow NativeBridge, protect desktop refresh credentials with the OS, and make native URL/path/download/updater commands deny untrusted input by default.
+**Goal:** Package a verified local Windows UI, expose one narrow NativeBridge, protect desktop refresh credentials with the OS, and make native URL/path/download/updater commands deny untrusted input by default.
 
 **Architecture:** Remote pages receive no Tauri capability. TypeScript imports one injected NativeBridge; the Rust command layer is the final policy boundary. Credentials never return from OS storage, managed downloads use Rust-owned dialogs/records, and updater artifacts remain signature verified.
 
-**Tech Stack:** Tauri 2, Rust 1.97.0, TypeScript/Vue, keyring 4.1.5, reqwest, URL 2.5.8.
+**Tech Stack:** Windows x86_64, NSIS, Tauri 2, Rust 1.97.0, TypeScript/Vue, keyring 4.1.5, reqwest, URL 2.5.8, PowerShell 7.
 
 ---
+
+## Execution and release boundary
+
+- P08 supports Windows x86_64/NSIS only; it does not add macOS, Linux, MSI, or mobile targets.
+- P08 changes security architecture and produces a locally verified package, but it does not upload a candidate, publish updater JSON, or create a GitHub Workflow.
+- P08.5 owns version synchronization, tag-triggered Windows build/signing, COS candidate upload, backend candidate import, and user-controlled promotion.
+- Web/API/worker/state runtime remains Docker-only. Native Rust/Tauri compilation may run on the Windows host because it is a build gate, not a Web/backend service.
+- Playwright is outside this plan and may be used only when the user explicitly requests it in a separate task.
 
 ### Task 1: Pin Rust and establish native verification
 
@@ -46,9 +54,9 @@ try {
 }
 ```
 
-- [ ] **Step 3: Verify in the pinned CI environment and commit**
+- [ ] **Step 3: Verify on the pinned Windows toolchain and commit**
 
-Run `pwsh -NoProfile -File scripts/verify-tauri.ps1` where Rust is installed. The current workstation lacks Rust, so the pinned Windows CI job is mandatory before acceptance.
+Run `pwsh -NoProfile -File scripts/verify-tauri.ps1` on Windows with the `rust-toolchain.toml` toolchain. If `rustup`, `cargo`, Clippy, rustfmt, or pinned `cargo-audit` is unavailable, stop and install the declared tool rather than skip or weaken the gate. Do not start Vite or any backend/state service.
 
 ```powershell
 git add -- rust-toolchain.toml src-tauri/Cargo.toml src-tauri/Cargo.lock scripts/verify-tauri.ps1 tests/shared/tauri/rust-toolchain.test.ts
@@ -268,7 +276,7 @@ Window: minimize, toggle maximize, hide, request close, query state. Notificatio
 
 - [ ] **Step 2: Harden updater**
 
-Keep exact HTTPS endpoint `https://cos.zgm2003.cn/tauri_updater/{{target}}-{{arch}}.json` and existing public verification key. Reject unsigned/mismatched artifacts; record version/checksum outcome without signed query values. Release workflow owns private signing material outside the repository.
+Keep exact HTTPS endpoint `https://cos.zgm2003.cn/tauri_updater/{{target}}-{{arch}}.json` and existing public verification key. Reject unsigned/mismatched artifacts; record version/checksum outcome without signed query values. P08.5 owns private signing material and candidate publication outside the repository.
 
 - [ ] **Step 3: Verify and commit**
 
@@ -319,49 +327,52 @@ git diff --cached --check
 git commit -m "test(tauri): enforce native denial and cleanup behavior"
 ```
 
-### Task 8: Make Rust/Tauri release gates blocking
+### Task 8: Make local Windows Tauri security gates blocking
 
 **Files:**
-- Modify: `.github/workflows/deploy-admin-front.yml`
-- Create: `.github/workflows/release-tauri.yml`
-- Create: `tests/shared/deployment/tauri-release.test.ts`
-- Modify: `scripts/verify-frontend.ps1`
+- Modify: `scripts/verify-tauri.ps1`
+- Create: `tests/shared/tauri/security-gate.test.ts`
+- Create: `docs/acceptance/p08-tauri-windows-manual.md`
 
-- [ ] **Step 1: Add a pinned Windows verification job**
+- [ ] **Step 1: Write the failing security-gate contract test**
 
-Use:
-
-```text
-dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30
-Rust 1.97.0
-cargo-audit 0.22.2 --locked
-```
-
-Run format, Clippy warnings denied, tests, audit, locked release build, Tauri build, config/source guards, and frontend tests. Cache Cargo registry/git/target using `actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830` keyed by toolchain and Cargo.lock.
-
-- [ ] **Step 2: Separate protected signed release**
-
-`release-tauri.yml` triggers only protected version tags, downloads the already verified web artifact, verifies digest, builds Tauri with signing secrets, checks updater signature/checksum, and uploads installer/updater manifest/signature. It never exposes signing material to pull-request jobs or artifacts.
-
-- [ ] **Step 3: Verify and commit**
+Require `verify-tauri.ps1` to run exact-toolchain checks, fmt, Clippy with warnings denied, Rust tests, `cargo audit --deny warnings`, locked release build, Tauri config/source guards, TypeScript NativeBridge tests, and a Windows NSIS package build. Reject skipped commands, broad-version tool installation, remote `frontendDist`, remote capability, shell/opener defaults, signing-key output, candidate upload, updater-manifest publication, GitHub deployment references, and browser automation.
 
 ```powershell
-npm test -- tests/shared/deployment/tauri-release.test.ts
-pwsh -NoProfile -File scripts/tests/tauri-security-source.tests.ps1
-git add -- .github/workflows/deploy-admin-front.yml .github/workflows/release-tauri.yml tests/shared/deployment/tauri-release.test.ts scripts/verify-frontend.ps1
-git commit -m "ci: block and sign verified tauri releases"
+npm test -- tests/shared/tauri/security-gate.test.ts
 ```
 
-The protected Windows workflow must pass because local Rust is unavailable.
+Expected: FAIL until the shared gate expresses every required check.
+
+- [ ] **Step 2: Complete the fail-closed Windows verifier**
+
+The verifier checks `rustc --version` against `rust-toolchain.toml`, checks the pinned `cargo-audit` version, and runs all commands from the repository root with `--locked` where supported. It builds only `x86_64-pc-windows-msvc` and confirms an NSIS artifact exists. It never reads the Tauri private key and never uploads or publishes a version.
+
+- [ ] **Step 3: Write the user-owned packaged-app checklist**
+
+The checklist records the frontend and Rust revisions and leaves user-owned checks for offline local UI loading, password login, browser-versus-desktop credential separation, restart/session restoration, Windows credential cleanup on logout, managed download allow/deny/cancel behavior, window close/minimize, notification permission, updater signature failure, and absence of remote native capability. The Agent cannot mark these checks accepted.
+
+- [ ] **Step 4: Verify and commit**
+
+```powershell
+npm test -- tests/shared/tauri/security-gate.test.ts tests/integration/native
+pwsh -NoProfile -File scripts/tests/tauri-security-source.tests.ps1
+pwsh -NoProfile -File scripts/verify-tauri.ps1
+git add -- scripts/verify-tauri.ps1 tests/shared/tauri/security-gate.test.ts docs/acceptance/p08-tauri-windows-manual.md
+git diff --cached --check
+git commit -m "build(tauri): block Windows security regressions"
+```
 
 ## Plan completion gate
 
 ```powershell
+cd E:/admin/admin_front_ts
 npm ci
 pwsh -NoProfile -File scripts/tests/tauri-security-source.tests.ps1
 pwsh -NoProfile -File scripts/verify-frontend.ps1
 pwsh -NoProfile -File scripts/verify-tauri.ps1
+git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
 git status --short
 ```
 
-Expected: Tauri loads local verified assets; global/remote capability and unsafe eval are absent; DOM code never persists a refresh credential; native URL/path/redirect/private-address abuse is denied; partial downloads are cleaned; updater artifacts are signed; Rust/TypeScript gates pass; status is clean.
+Expected: the Windows NSIS app loads only packaged local assets; global/remote capability and unsafe eval are absent; DOM code never persists a refresh credential; native URL/path/redirect/private-address abuse is denied; partial downloads are cleaned; unsigned updater artifacts are rejected; Rust/TypeScript gates pass; browser-tool search and status produce no output. P08 uploads no candidate and is accepted only after the user confirms `docs/acceptance/p08-tauri-windows-manual.md`.

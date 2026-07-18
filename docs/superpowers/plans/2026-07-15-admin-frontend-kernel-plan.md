@@ -1,5 +1,7 @@
 # Admin Frontend Kernel Implementation Plan
 
+> **Superseded browser-tool note (2026-07-18):** P06 is complete. Browser automation is not a standing dependency or gate; it may be used only when the user explicitly requests it. P07-P09 use component/integration tests, Docker smoke, and user-owned manual acceptance.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a deterministic Admin AppKernel with secure AuthSession, contract-driven ApiClient, atomic runtime routes, typed persistence, executable tests, and a blocking Docker-image verification gate.
@@ -37,7 +39,7 @@
 
 ```powershell
 npm install --save-exact zod@4.4.3
-npm install --save-dev --save-exact openapi-typescript@7.13.0 @vue/test-utils@2.4.11 happy-dom@20.10.6 @vitest/coverage-v8@4.0.7 msw@2.15.0 @playwright/test@1.61.1 @axe-core/playwright@4.12.1
+npm install --save-dev --save-exact openapi-typescript@7.13.0 @vue/test-utils@2.4.11 happy-dom@20.10.6 @vitest/coverage-v8@4.0.7 msw@2.15.0 axe-core@4.12.1
 ```
 
 - [x] **Step 2: Split Vitest projects**
