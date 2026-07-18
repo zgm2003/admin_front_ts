@@ -47,11 +47,14 @@ describe('useCrudTable', () => {
 
     await Promise.resolve()
 
-    expect(list).toHaveBeenCalledWith({
-      keyword: 'demo',
-      current_page: 1,
-      page_size: 20,
-    })
+    expect(list).toHaveBeenCalledWith(
+      {
+        keyword: 'demo',
+        current_page: 1,
+        page_size: 20,
+      },
+      { signal: expect.any(AbortSignal) },
+    )
     expect(table).toHaveProperty('confirmDel')
     expect(table).toHaveProperty('toggleStatus')
   })

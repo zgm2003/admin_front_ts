@@ -90,11 +90,11 @@ git commit -m "feat(realtime): resume typed terminal events by cursor"
 - Modify: `src/components/Table/src/useTable.ts`
 - Modify: `tests/shared/table/useTable.test.ts`
 
-- [ ] **Step 1: Write reverse-order and cancellation tests**
+- [x] **Step 1: Write reverse-order and cancellation tests**
 
 Start search A, then B; resolve B then A. Assert B owns data/loading/error. Cover abort, preserved-data refresh, empty, retry, selection intersection, reset, page-size normalization, and deletion fallback from an empty page to the previous page.
 
-- [ ] **Step 2: Define state and request ownership**
+- [x] **Step 2: Define state and request ownership**
 
 ```ts
 export type ResourceState<T> =
@@ -116,11 +116,11 @@ export interface ResourceQuery<TItem, TParams, TPage> {
 
 Each execution increments a sequence, aborts the previous controller, and commits state only if it still owns the sequence. A stale request can neither replace data nor clear loading.
 
-- [ ] **Step 3: Adapt AppTable**
+- [x] **Step 3: Adapt AppTable**
 
 `useTable` becomes a Vue adapter over ResourceQuery. Search/page/refresh return promises. Selection keys reconcile with new stable IDs. Errors propagate; the component decides inline/toast policy.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- --project unit tests/shared/table/useTable.test.ts
