@@ -112,7 +112,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, shallowRef } from 'vue'
-import Cookies from 'js-cookie'
 import { Expand, Fold } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { DIcon } from '@/components/DIcon'
@@ -122,6 +121,11 @@ import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
 import { isTauri } from '@/platform/tauri'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/hooks/useTheme'
+import { useAppKernel } from '@/app/injection'
+import {
+  readDevicePreferences,
+  writeDevicePreferences,
+} from '@/modules/persistence/preferences'
 import { resolveMenuLabel } from '@/views/Layout/utils/menuLabel'
 import type { PermissionMenuItem } from '@/types/user'
 import SearchDialog from './components/SearchDialog.vue'
@@ -130,6 +134,7 @@ import WindowControls from './components/WindowControls.vue'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
+const kernel = useAppKernel()
 const isMobile = useIsMobile()
 const { t, locale } = useI18n()
 
@@ -200,12 +205,16 @@ function handleMenuToggle() {
 }
 
 function setLang(lang: string) {
+  if (lang !== 'zh-CN' && lang !== 'en-US') return
   locale.value = lang
-  Cookies.set('lang', lang)
+  writeDevicePreferences(kernel.persistence, {
+    ...readDevicePreferences(kernel.persistence),
+    language: lang,
+  })
 }
 
 onMounted(() => {
-  isDark.value = localStorage.getItem('theme') === 'dark'
+  isDark.value = readDevicePreferences(kernel.persistence).theme === 'dark'
   toggleDarkMode(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 

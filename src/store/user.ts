@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
-import { UsersApi } from '@/api/user/users'
+import type { PrincipalSnapshot } from '@/app/state'
+import type { PrincipalMenuItem } from '@/modules/http/schema'
+import type { RuntimeRoute } from '@/modules/routing/contracts'
+import type { PermissionCode } from '@/modules/routing/generated/permissions'
 import { HOME_MENU_ITEM } from './menu'
-import type { DynamicRouteItem, PermissionMenuItem } from '@/types/user'
+import type { PermissionMenuItem } from '@/types/user'
 
 interface UserState {
   user_id: number | ''
@@ -9,9 +12,23 @@ interface UserState {
   username: string
   role_name: string
   permissions: PermissionMenuItem[]
-  router: DynamicRouteItem[]
-  buttonCodes: string[]
+  routes: RuntimeRoute[]
+  buttonCodes: Set<PermissionCode>
   _permissionMapCache: Map<string, PermissionMenuItem> | null
+}
+
+function mutableMenu(item: PrincipalMenuItem): PermissionMenuItem {
+  return {
+    index: item.index,
+    label: item.label,
+    path: item.path,
+    icon: item.icon,
+    i18n_key: item.i18n_key,
+    show_menu: item.show_menu,
+    sort: item.sort,
+    parent_id: item.parent_id,
+    children: item.children.map(mutableMenu),
+  }
 }
 
 export const useUserStore = defineStore('user', {
@@ -21,8 +38,8 @@ export const useUserStore = defineStore('user', {
     username: '',
     role_name: '',
     permissions: [],
-    router: [],
-    buttonCodes: [],
+    routes: [],
+    buttonCodes: new Set<PermissionCode>(),
     _permissionMapCache: null,
   }),
   getters: {
@@ -47,28 +64,28 @@ export const useUserStore = defineStore('user', {
     },
   },
   actions: {
-    async fetchUserInfo() {
-      try {
-        const data = await UsersApi.me()
-        this.user_id = data.user_id
-        this.avatar = data.avatar
-        this.username = data.username
-        this.role_name = data.role_name
-        this.permissions = [HOME_MENU_ITEM, ...data.permissions]
-        this.router = data.router
-        this.buttonCodes = data.buttonCodes
-        this._permissionMapCache = null
-      } catch (error) {
-        this.user_id = ''
-        this.permissions = []
-        this.router = []
-        this.buttonCodes = []
-        this._permissionMapCache = null
-        throw error
-      }
+    applyPrincipal(principal: PrincipalSnapshot) {
+      this.user_id = principal.userId
+      this.avatar = principal.avatar
+      this.username = principal.username
+      this.role_name = principal.roleName
+      this.permissions = [HOME_MENU_ITEM, ...principal.menus.map(mutableMenu)]
+      this.routes = [...principal.routes]
+      this.buttonCodes = new Set(principal.buttonCodes)
+      this._permissionMapCache = null
     },
-    can(code: string) {
-      return this.buttonCodes.includes(code)
+    clearPrincipal() {
+      this.user_id = ''
+      this.avatar = ''
+      this.username = ''
+      this.role_name = ''
+      this.permissions = []
+      this.routes = []
+      this.buttonCodes = new Set<PermissionCode>()
+      this._permissionMapCache = null
+    },
+    can(code: PermissionCode) {
+      return this.buttonCodes.has(code)
     },
   },
 })

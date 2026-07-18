@@ -98,3 +98,35 @@ export class BrowserRefreshCoordinator implements RefreshCoordinator {
     for (const listener of this.listeners) listener(value)
   }
 }
+
+function createRefreshChannel(): RefreshChannel {
+  if (typeof BroadcastChannel === 'undefined') {
+    return {
+      postMessage() {},
+      setMessageHandler() {},
+      close() {},
+    }
+  }
+  const channel = new BroadcastChannel('admin-auth-refresh')
+  return {
+    postMessage(message) {
+      channel.postMessage(message)
+    },
+    setMessageHandler(handler) {
+      channel.onmessage = (event) => handler(event.data)
+    },
+    close() {
+      channel.close()
+    },
+  }
+}
+
+export function createBrowserRefreshCoordinator(): BrowserRefreshCoordinator {
+  const runtimeNavigator = typeof navigator === 'undefined'
+    ? undefined
+    : navigator as Navigator & { readonly locks?: LockManager }
+  return new BrowserRefreshCoordinator({
+    lockManager: runtimeNavigator?.locks ?? null,
+    channel: createRefreshChannel(),
+  })
+}

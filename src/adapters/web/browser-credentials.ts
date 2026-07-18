@@ -5,12 +5,7 @@ import {
   type CredentialAdapter,
   type LoginCommand,
 } from '@/modules/auth/types'
-
-const successEnvelopeSchema = z.object({
-  code: z.literal(0),
-  data: z.unknown(),
-  msg: z.string(),
-}).passthrough()
+import { errorEnvelopeSchema, successEnvelopeSchema } from '@/modules/http/schema'
 
 const browserCredentialSchema = z.object({
   access_token: z.string().min(1),
@@ -18,22 +13,28 @@ const browserCredentialSchema = z.object({
 }).strict()
 
 interface BrowserCredentialAdapterOptions {
-  readonly apiOrigin: URL
+  readonly apiOrigin: URL | (() => URL)
   readonly fetch?: typeof fetch
   readonly now?: () => number
+  readonly headers?: () => Readonly<Record<string, string>>
 }
 
 export class BrowserCredentialAdapter implements CredentialAdapter {
   readonly variant = 'browser' as const
 
-  private readonly apiOrigin: string
+  private readonly apiOrigin: () => string
   private readonly fetch: typeof fetch
   private readonly now: () => number
+  private readonly commonHeaders: () => Readonly<Record<string, string>>
 
   constructor(options: BrowserCredentialAdapterOptions) {
-    this.apiOrigin = options.apiOrigin.origin
+    const apiOrigin = options.apiOrigin
+    this.apiOrigin = typeof apiOrigin === 'function'
+      ? () => apiOrigin().origin
+      : () => apiOrigin.origin
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.now = options.now ?? Date.now
+    this.commonHeaders = options.headers ?? (() => ({}))
   }
 
   async restore(signal: AbortSignal): Promise<AccessCredential | null> {
@@ -55,10 +56,11 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
 
   async revoke(accessToken: string | null, signal: AbortSignal): Promise<void> {
     const headers: Record<string, string> = {
+      ...this.commonHeaders(),
       'X-Admin-Client-Variant': 'browser',
     }
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`
-    const response = await this.fetch(`${this.apiOrigin}/api/admin/v1/auth/logout`, {
+    const response = await this.fetch(`${this.apiOrigin()}/api/admin/v1/auth/logout`, {
       method: 'POST',
       credentials: 'include',
       headers,
@@ -77,10 +79,11 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
     body?: LoginCommand,
   ): Promise<AccessCredential> {
     const headers: Record<string, string> = {
+      ...this.commonHeaders(),
       'X-Admin-Client-Variant': 'browser',
     }
     if (body) headers['Content-Type'] = 'application/json'
-    const response = await this.fetch(`${this.apiOrigin}${path}`, {
+    const response = await this.fetch(`${this.apiOrigin()}${path}`, {
       method: 'POST',
       credentials: 'include',
       headers,
@@ -113,17 +116,17 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
         status: response.status,
       })
     }
-    const parsed = successEnvelopeSchema.safeParse(payload)
-    if (!response.ok || !parsed.success) {
-      const backendError = typeof payload === 'object' && payload !== null && 'error' in payload
-        ? (payload as { error?: { code?: unknown } }).error
-        : undefined
-      const code = typeof backendError?.code === 'string' ? backendError.code : 'auth.request_failed'
-      throw new AuthSessionError(code, 'authentication request failed', {
+    const success = successEnvelopeSchema.safeParse(payload)
+    if (response.ok && success.success) return success.data.data
+    const failure = errorEnvelopeSchema.safeParse(payload)
+    if (failure.success) {
+      throw new AuthSessionError(failure.data.error.code, failure.data.msg, {
         status: response.status,
-        retryable: response.status >= 500,
+        retryable: failure.data.error.retryable,
       })
     }
-    return parsed.data.data
+    throw new AuthSessionError('auth.response_invalid', 'authentication response violates the Admin contract', {
+      status: response.status,
+    })
   }
 }

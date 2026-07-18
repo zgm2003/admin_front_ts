@@ -1,4 +1,10 @@
 import { defineStore } from 'pinia'
+import type { Pinia } from 'pinia'
+import {
+  readDevicePreferences,
+  writeDevicePreferences,
+} from '@/modules/persistence/preferences'
+import type { Persistence } from '@/modules/persistence/store'
 import {
   exitAppProcess,
   getTauriAppVersion,
@@ -8,7 +14,6 @@ import {
   resolveDesktopPlatform,
 } from '@/platform/tauri'
 
-const CLOSE_ACTION_KEY = 'tauri_close_action'
 export type CloseAction = 'minimize' | 'exit'
 
 export const useTauriStore = defineStore('tauri', {
@@ -19,14 +24,10 @@ export const useTauriStore = defineStore('tauri', {
     showCloseDialog: false,
     rememberChoice: false,
     _closeHandlerReady: false,
+    closeAction: null as CloseAction | null,
   }),
   getters: {
     isTauriEnv: () => isTauri(),
-    closeAction(): CloseAction | null {
-      const val = localStorage.getItem(CLOSE_ACTION_KEY)
-      if (val === 'minimize' || val === 'exit') return val
-      return null
-    },
   },
   actions: {
     async init() {
@@ -42,10 +43,10 @@ export const useTauriStore = defineStore('tauri', {
       this.forceUpdate = val
     },
     setCloseAction(action: CloseAction) {
-      localStorage.setItem(CLOSE_ACTION_KEY, action)
+      this.closeAction = action
     },
     clearCloseAction() {
-      localStorage.removeItem(CLOSE_ACTION_KEY)
+      this.closeAction = null
     },
     async hideWindow() {
       await hideAppWindow()
@@ -86,3 +87,30 @@ export const useTauriStore = defineStore('tauri', {
     },
   },
 })
+
+export function setupTauriStorePersistence(pinia: Pinia, persistence: Persistence): () => void {
+  const store = useTauriStore(pinia)
+  const restored = readDevicePreferences(persistence).desktopWindow?.closeAction
+  if (restored) store.closeAction = restored
+  return store.$subscribe((_mutation, state) => {
+    const current = readDevicePreferences(persistence)
+    const maximized = current.desktopWindow?.maximized
+    if (state.closeAction) {
+      writeDevicePreferences(persistence, {
+        ...current,
+        desktopWindow: maximized === undefined
+          ? { closeAction: state.closeAction }
+          : { maximized, closeAction: state.closeAction },
+      })
+      return
+    }
+    const withoutDesktopWindow = { ...current }
+    delete withoutDesktopWindow.desktopWindow
+    writeDevicePreferences(persistence, maximized === undefined
+      ? withoutDesktopWindow
+      : { ...withoutDesktopWindow, desktopWindow: { maximized } })
+  }, {
+    detached: true,
+    flush: 'sync',
+  })
+}

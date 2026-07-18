@@ -3,26 +3,6 @@ import { relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const adapterPath = 'src/adapters/web/storage.ts'
-const taskEightCredentialCutover = new Set([
-  'src/i18n/index.ts',
-  'src/lib/http/auth-session.ts',
-  'src/lib/http/headers.ts',
-  'src/lib/http/platform.ts',
-  'src/main.ts',
-  'src/router/index.ts',
-  'src/utils/storage.ts',
-  'src/views/Layout/components/Aside/index.vue',
-  'src/views/Layout/components/Header/components/SettingDrawer.vue',
-  'src/views/Layout/components/Header/index.vue',
-  'src/views/Login/composables/useLoginForm.ts',
-])
-
-const taskEightPreferenceCutover = new Set([
-  'src/hooks/useTheme.ts',
-  'src/store/tauri.ts',
-  'src/views/Main/ai/chat/composables/useAgents.ts',
-  'src/views/Main/test/index.vue',
-])
 
 function sourceFiles(root: string): string[] {
   const files: string[] = []
@@ -35,7 +15,7 @@ function sourceFiles(root: string): string[] {
 }
 
 describe('storage architecture boundary', () => {
-  it('allows no new direct browser storage or cookie callers during the Task 8 cutover', () => {
+  it('allows browser storage access only inside the web storage adapter', () => {
     const violations = sourceFiles(resolve('src'))
       .map((path) => ({
         path: relative(process.cwd(), path).replaceAll('\\', '/'),
@@ -43,8 +23,6 @@ describe('storage architecture boundary', () => {
       }))
       .filter(({ path, source }) => (
         path !== adapterPath
-        && !taskEightCredentialCutover.has(path)
-        && !taskEightPreferenceCutover.has(path)
         && /\blocalStorage\b|\bsessionStorage\b|document\.cookie|from ['"]js-cookie['"]/.test(source)
       ))
       .map(({ path }) => path)

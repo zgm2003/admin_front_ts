@@ -206,7 +206,12 @@ import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { toggleDarkMode } from '@/hooks/useTheme'
-import { clearLocalStorageExcept } from '@/utils/storage.ts'
+import { useAppKernel } from '@/app/injection'
+import { deviceNamespace, userNamespace } from '@/modules/persistence/namespaces'
+import {
+  readDevicePreferences,
+  writeDevicePreferences,
+} from '@/modules/persistence/preferences'
 import { Setting, Sunny, Moon, Check, Delete, RefreshRight } from '@element-plus/icons-vue'
 
 const props = defineProps<{ modelValue: boolean }>()
@@ -216,9 +221,10 @@ const show = computed({ get: () => props.modelValue, set: (v: boolean) => emit('
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const tauriStore = useTauriStore()
+const kernel = useAppKernel()
 const route = useRoute()
 const { t } = useI18n()
-const isDark = ref(localStorage.getItem('theme') === 'dark')
+const isDark = ref(readDevicePreferences(kernel.persistence).theme === 'dark')
 const customColor = ref(menuStore.systemColor)
 const closeActionValue = ref<string>(tauriStore.closeAction ?? 'ask')
 
@@ -255,10 +261,13 @@ const closeActionOptions = computed(() => [
 function onThemeChange(dark: boolean) {
   isDark.value = dark
   toggleDarkMode(dark)
-  localStorage.setItem('theme', dark ? 'dark' : 'light')
+  writeDevicePreferences(kernel.persistence, {
+    ...readDevicePreferences(kernel.persistence),
+    theme: dark ? 'dark' : 'light',
+  })
   // 不再强制重置为默认颜色，保持用户选择的主题色
   // menuStore.applyDefaultSystemColor(dark)
-  // 主题色已经在 localStorage 中持久化，直接应用即可
+  // 主题色由版本化设备偏好持久化。
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 }
 
@@ -301,7 +310,11 @@ function syncCurrentRouteUiState() {
 }
 
 function clear() {
-  clearLocalStorageExcept()
+  kernel.persistence.remove(deviceNamespace, 'preferences')
+  kernel.persistence.remove(deviceNamespace, 'menu-ui')
+  if (kernel.state.value.kind === 'ready') {
+    kernel.persistence.clearNamespace(userNamespace(kernel.state.value.principal.userId))
+  }
   menuStore.resetUiState()
   syncCurrentRouteUiState()
   toggleDarkMode(false)

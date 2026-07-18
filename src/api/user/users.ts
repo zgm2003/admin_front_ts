@@ -7,11 +7,8 @@ import type {
   UserEmailUpdateParams,
   UserExportResponse,
   UserForgetPasswordParams,
-  UserInitResponse,
   UserListInitResponse,
   UserListResponse,
-  UserLoginParams,
-  UserLoginSession,
   UserPasswordUpdateParams,
   UserPersonalEditParams,
   UserPersonalInitResponse,
@@ -118,26 +115,12 @@ function normalizeUserSessionListParams(params: UserSessionListParams): UserSess
   return query
 }
 
-const fetchCurrentUser = () =>
-  request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)
-
 export const UsersApi = {
-  me: fetchCurrentUser,
-
   getLoginConfig: () =>
     request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`),
 
   getCaptcha: () =>
     request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`),
-
-  login: (params: UserLoginParams) =>
-    request.post<UserLoginSession, UserLoginParams>(`${ADMIN_API_PREFIX}/auth/login`, params),
-
-  refresh: (params: { refresh_token: string }) =>
-    request.post<UserLoginSession>(`${ADMIN_API_PREFIX}/auth/refresh`, params),
-
-  logout: (params?: { refresh_token?: string }) =>
-    request.post<void, { refresh_token?: string }>(`${ADMIN_API_PREFIX}/auth/logout`, params),
 
   sendCode: (params: UserSendCodeParams) =>
     request.post<void, UserSendCodeParams>(`${ADMIN_API_PREFIX}/auth/send-code`, params),

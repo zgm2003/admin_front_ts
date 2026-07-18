@@ -24,34 +24,6 @@ export interface PermissionMenuItem {
   children: PermissionMenuItem[]
 }
 
-export interface DynamicRouteItem {
-  name: string
-  path: string
-  view_key: string
-  meta?: {
-    menuId?: string
-    [key: string]: unknown
-  }
-}
-
-export interface UserInitResponse {
-  user_id: number
-  username: string
-  avatar: string
-  role_name: string
-  permissions: PermissionMenuItem[]
-  router: DynamicRouteItem[]
-  buttonCodes: string[]
-}
-
-export interface UserLoginSession {
-  access_token: string
-  refresh_token?: string
-  expires_in: number
-  refresh_expires_in?: number
-  is_new_user?: boolean
-}
-
 export type UserCaptchaAnswer = SlideCaptchaAnswer
 export type UserCaptchaChallenge = SlideCaptchaChallenge
 

@@ -57,9 +57,10 @@ function normalizeDevelopmentLoopback(url: URL, location: Location): URL {
 }
 
 export function parseEnvironment(input: ImportMetaEnv, location: Location): AppEnvironment {
-  const mode = requiredString(input, 'MODE')
+  const buildMode = requiredString(input, 'MODE')
+  const mode = input.VITE_ADMIN_RUNTIME_MODE ?? buildMode
   if (mode !== 'development' && mode !== 'production' && mode !== 'test') {
-    throw new Error(`MODE must be development, production, or test; received ${mode}`)
+    throw new Error(`VITE_ADMIN_RUNTIME_MODE must be development, production, or test; received ${mode}`)
   }
   if (requiredString(input, 'VITE_PLATFORM') !== 'admin') {
     throw new Error('VITE_PLATFORM must be admin')

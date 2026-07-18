@@ -166,6 +166,11 @@
 <script setup lang="ts">
 import {ref, onMounted, defineAsyncComponent} from 'vue'
 import {toggleDarkMode as _toggleDarkMode} from '@/hooks/useTheme'
+import { useAppKernel } from '@/app/injection'
+import {
+  readDevicePreferences,
+  writeDevicePreferences,
+} from '@/modules/persistence/preferences'
 import {
   Document,
   Picture,
@@ -210,8 +215,14 @@ const presetFiles = {
   },
 }
 
+const kernel = useAppKernel()
+
 const toggleDarkMode = (val: string | number | boolean) => {
   _toggleDarkMode(Boolean(val))
+  writeDevicePreferences(kernel.persistence, {
+    ...readDevicePreferences(kernel.persistence),
+    theme: val ? 'dark' : 'light',
+  })
 }
 
 const onEditorChange = () => {
@@ -310,7 +321,7 @@ const downloadPreset = async (type: keyof typeof presetFiles) => {
 }
 
 onMounted(() => {
-  isDark.value = localStorage.getItem('theme') === 'dark'
+  isDark.value = readDevicePreferences(kernel.persistence).theme === 'dark'
   _toggleDarkMode(isDark.value)
 })
 </script>

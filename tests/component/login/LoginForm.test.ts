@@ -1,0 +1,129 @@
+import { defineComponent, nextTick } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Persistence, type StorageAdapter } from '@/modules/persistence/store'
+
+const mocks = vi.hoisted(() => ({
+  getLoginConfig: vi.fn(),
+  getCaptcha: vi.fn(),
+  sendCode: vi.fn(),
+  kernelLogin: vi.fn(),
+  messageError: vi.fn(),
+  notificationSuccess: vi.fn(),
+}))
+
+class MemoryStorage implements StorageAdapter {
+  readonly values = new Map<string, string>()
+  getItem(key: string) { return this.values.get(key) ?? null }
+  setItem(key: string, value: string) { this.values.set(key, value) }
+  removeItem(key: string) { this.values.delete(key) }
+  keys() { return [...this.values.keys()] }
+}
+
+const storage = new MemoryStorage()
+const persistence = new Persistence(storage)
+
+vi.mock('@/api/user/users', () => ({
+  UsersApi: {
+    getLoginConfig: mocks.getLoginConfig,
+    getCaptcha: mocks.getCaptcha,
+    sendCode: mocks.sendCode,
+  },
+}))
+
+vi.mock('@/app/injection', () => ({
+  useAppKernel: () => ({
+    login: mocks.kernelLogin,
+    persistence,
+  }),
+}))
+
+vi.mock('element-plus', () => ({
+  ElMessage: { error: mocks.messageError, info: vi.fn() },
+  ElNotification: { success: mocks.notificationSuccess },
+}))
+
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key: string) => key } },
+}))
+
+const challenge = {
+  captcha_id: 'captcha-login',
+  captcha_type: 'slide' as const,
+  master_image: 'master',
+  tile_image: 'tile',
+  image_width: 320,
+  image_height: 180,
+  tile_x: 100,
+  tile_y: 12,
+  tile_width: 48,
+  tile_height: 48,
+  expires_in: 120,
+}
+
+async function mountLoginHarness() {
+  const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
+  const Harness = defineComponent({
+    setup() {
+      return { login: useLoginForm() }
+    },
+    template: '<div />',
+  })
+  const wrapper = mount(Harness)
+  await flushPromises()
+  return wrapper.vm.login as ReturnType<typeof useLoginForm>
+}
+
+describe('kernel-owned login form', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    storage.values.clear()
+    mocks.getLoginConfig.mockResolvedValue({
+      login_type_arr: [{ label: 'Password', value: 'password' }],
+      captcha_enabled: true,
+      captcha_type: 'slide',
+    })
+    mocks.getCaptcha.mockResolvedValue(challenge)
+    mocks.kernelLogin.mockResolvedValue({ kind: 'ready' })
+  })
+
+  it('loads config first, completes captcha, and delegates credentials only to AppKernel', async () => {
+    const login = await mountLoginHarness()
+    expect(mocks.getLoginConfig).toHaveBeenCalledTimes(1)
+    login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
+    login.loginForm.login_account = 'admin@example.test'
+    login.loginForm.password = 'correct-password'
+    login.loginForm.remember = true
+    login.agreePolicy.value = true
+
+    await login.handleSubmit()
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
+    expect(mocks.kernelLogin).not.toHaveBeenCalled()
+    login.captchaX.value = 124
+    await login.completeCaptchaLogin()
+    await nextTick()
+
+    expect(mocks.kernelLogin).toHaveBeenCalledWith({
+      login_type: 'password',
+      login_account: 'admin@example.test',
+      password: 'correct-password',
+      captcha_id: 'captcha-login',
+      captcha_answer: { x: 124, y: 12 },
+    })
+    expect([...storage.values.values()].join('')).not.toMatch(/access[_-]?token|refresh[_-]?token/i)
+  })
+
+  it('shows the authentication failure and never turns it into an empty success state', async () => {
+    mocks.kernelLogin.mockRejectedValueOnce(new Error('账号或密码错误'))
+    const login = await mountLoginHarness()
+    login.loginForm.login_account = 'admin@example.test'
+    login.loginForm.password = 'wrong-password'
+    login.captchaChallenge.value = challenge
+    login.captchaX.value = 124
+
+    await login.completeCaptchaLogin()
+
+    expect(mocks.messageError).toHaveBeenCalledWith('账号或密码错误')
+    expect(login.isLoginSuccess.value).toBe(false)
+  })
+})

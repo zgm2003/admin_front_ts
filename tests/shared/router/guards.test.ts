@@ -21,6 +21,24 @@ describe('Router guard integration boundary', () => {
     })
   })
 
+  it('returns one disposer that removes both router hooks', () => {
+    const removeBefore = vi.fn()
+    const removeAfter = vi.fn()
+    const router = {
+      beforeEach: vi.fn(() => removeBefore),
+      afterEach: vi.fn(() => removeAfter),
+    }
+    const unregister = registerRouterGuards(router, {
+      state: { value: { kind: 'anonymous' } },
+      bootstrap: vi.fn(async () => ({ kind: 'anonymous' })),
+    })
+
+    unregister()
+
+    expect(removeBefore).toHaveBeenCalledTimes(1)
+    expect(removeAfter).toHaveBeenCalledTimes(1)
+  })
+
   it('contains no cookie or storage authentication decision', () => {
     const source = readFileSync(resolve('src/router/guards.ts'), 'utf8')
 

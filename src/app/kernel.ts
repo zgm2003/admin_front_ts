@@ -1,5 +1,7 @@
 import { readonly, shallowRef, type ShallowRef } from 'vue'
 import { createApiError, type ApiError } from '@/modules/http/error'
+import type { AuthEvent, LoginCommand } from '@/modules/auth/types'
+import type { Persistence } from '@/modules/persistence/store'
 import type { AppEnvironment } from './environment'
 import type { BootstrapState, PrincipalSnapshot } from './state'
 
@@ -11,7 +13,10 @@ export type PrincipalRefreshReason =
 
 export interface KernelAuthSession {
   restore(signal: AbortSignal): Promise<{ readonly kind: 'anonymous' | 'authenticated' }>
+  login(input: LoginCommand, signal?: AbortSignal): Promise<unknown>
+  logout(): Promise<void>
   dispose(): Promise<void>
+  subscribe?(listener: (event: AuthEvent) => void): () => void
 }
 
 export interface AppKernelDependencies {
@@ -28,6 +33,7 @@ export interface AppKernelDependencies {
   readonly realtime: {
     disconnect(): Promise<void>
   }
+  readonly persistence: Persistence
   readonly adapters: readonly {
     dispose(): Promise<void>
   }[]
@@ -68,20 +74,27 @@ function linkedAbortController(signals: readonly AbortSignal[]) {
 export class AppKernel {
   readonly state: Readonly<ShallowRef<BootstrapState>>
   readonly auth: KernelAuthSession
+  readonly persistence: Persistence
 
   private readonly mutableState = shallowRef<BootstrapState>({ kind: 'cold' })
   private readonly lifecycle = new AbortController()
   private transitionTail: Promise<void> = Promise.resolve()
   private bootstrapFlight: Promise<BootstrapState> | null = null
   private disposeFlight: Promise<void> | null = null
+  private logoutFlight: Promise<void> | null = null
   private disposed = false
   private environmentValue: AppEnvironment | null = null
   private readonly dependencies: AppKernelDependencies
+  private readonly unsubscribeAuth: () => void
 
   constructor(dependencies: AppKernelDependencies) {
     this.dependencies = dependencies
     this.state = readonly(this.mutableState)
     this.auth = dependencies.auth
+    this.persistence = dependencies.persistence
+    this.unsubscribeAuth = dependencies.auth.subscribe?.((event) => {
+      if (event.type === 'expired') void this.logout()
+    }) ?? (() => undefined)
   }
 
   get environment(): AppEnvironment | null {
@@ -105,10 +118,49 @@ export class AppKernel {
     })
   }
 
+  login(input: LoginCommand, signal?: AbortSignal): Promise<BootstrapState> {
+    if (this.disposed) return Promise.resolve(this.mutableState.value)
+    return this.enqueue(async () => {
+      let sessionEstablished = false
+      const linked = linkedAbortController([
+        this.lifecycle.signal,
+        ...(signal ? [signal] : []),
+      ])
+      try {
+        if (!this.environmentValue) this.environmentValue = this.dependencies.environment()
+        await this.dependencies.auth.login(input, linked.controller.signal)
+        sessionEstablished = true
+        await this.loadPrincipal('manual', linked.controller.signal)
+        return this.mutableState.value
+      } catch (error) {
+        if (sessionEstablished) await this.dependencies.auth.logout()
+        this.mutableState.value = linked.controller.signal.aborted
+          ? { kind: 'cold' }
+          : { kind: 'anonymous' }
+        throw error
+      } finally {
+        linked.dispose()
+      }
+    })
+  }
+
+  logout(): Promise<void> {
+    if (this.logoutFlight) return this.logoutFlight
+    this.logoutFlight = this.enqueue(async () => {
+      await this.dependencies.auth.logout()
+      this.bootstrapFlight = null
+      this.mutableState.value = { kind: 'anonymous' }
+    }).finally(() => {
+      this.logoutFlight = null
+    })
+    return this.logoutFlight
+  }
+
   dispose(): Promise<void> {
     if (this.disposeFlight) return this.disposeFlight
     this.disposed = true
     this.lifecycle.abort(new DOMException('AppKernel disposed', 'AbortError'))
+    this.unsubscribeAuth()
     this.disposeFlight = (async () => {
       await this.transitionTail
       await this.dependencies.realtime.disconnect()

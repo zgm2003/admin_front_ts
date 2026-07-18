@@ -133,6 +133,7 @@ export class AuthSession {
       throw new AuthSessionError('auth.session_frozen', 'authentication session is frozen')
     }
     this.frozen = false
+    this.logoutFlight = null
     this.mutableState.value = { kind: 'authenticating' }
     try {
       const next = await waitWithSignal(this.adapter.login(input, signal), signal)

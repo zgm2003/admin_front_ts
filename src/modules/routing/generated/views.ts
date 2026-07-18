@@ -37,3 +37,36 @@ export const backendViewKeys = [
 export type BackendViewKey = typeof backendViewKeys[number]
 
 export const backendViewKeySet: ReadonlySet<BackendViewKey> = new Set(backendViewKeys)
+
+export const backendViewDescriptors = {
+  "ai/agents": {"path":"/ai/agents","titleKey":"menu.ai_agents","showMenu":true,"permissionCodes":[]},
+  "ai/chat": {"path":"/ai/chat","titleKey":"menu.ai_chat","showMenu":true,"permissionCodes":[]},
+  "ai/knowledge": {"path":"/ai/knowledge","titleKey":"menu.ai_knowledge","showMenu":true,"permissionCodes":[]},
+  "ai/prompts": {"path":"/ai/prompts","titleKey":"menu.ai_prompts","showMenu":true,"permissionCodes":["ai_prompt_page"]},
+  "ai/providers": {"path":"/ai/providers","titleKey":"menu.ai_providers","showMenu":true,"permissionCodes":[]},
+  "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":[]},
+  "ai/tools": {"path":"/ai/tools","titleKey":"menu.ai_tools","showMenu":true,"permissionCodes":[]},
+  "notification": {"path":"/notification","titleKey":"menu.notification","showMenu":false,"permissionCodes":[]},
+  "payment/config": {"path":"/payment/config","titleKey":"menu.payment_config","showMenu":true,"permissionCodes":["payment_config_list"]},
+  "payment/ledger": {"path":"/payment/ledger","titleKey":"menu.payment_ledger","showMenu":true,"permissionCodes":["payment_ledger_list"]},
+  "payment/recharge": {"path":"/payment/recharge","titleKey":"menu.payment_recharge","showMenu":false,"permissionCodes":["payment_recharge_add","payment_recharge_list","payment_recharge_pay"]},
+  "payment/wallets": {"path":"/payment/wallets","titleKey":"menu.payment_wallets","showMenu":true,"permissionCodes":["payment_wallet_list"]},
+  "permission/authPlatform": {"path":"/permission/authPlatform","titleKey":"menu.permission_authPlatform","showMenu":true,"permissionCodes":[]},
+  "permission/permission": {"path":"/permission/permission","titleKey":"menu.permission_permission","showMenu":true,"permissionCodes":[]},
+  "permission/role": {"path":"/permission/role","titleKey":"menu.permission_role","showMenu":true,"permissionCodes":[]},
+  "personal": {"path":"/personal","titleKey":"menu.personal","showMenu":false,"permissionCodes":[]},
+  "profile/wallet": {"path":"/profile/wallet","titleKey":"menu.profile_wallet","showMenu":false,"permissionCodes":["profile_wallet"]},
+  "system/clientVersion": {"path":"/system/clientVersion","titleKey":"menu.system_clientVersion","showMenu":true,"permissionCodes":[]},
+  "system/cronTask": {"path":"/system/cronTask","titleKey":"menu.system_cronTask","showMenu":true,"permissionCodes":[]},
+  "system/exportTask": {"path":"/system/exportTask","titleKey":"menu.system_exportTask","showMenu":true,"permissionCodes":[]},
+  "system/log": {"path":"/system/log","titleKey":"menu.system_log","showMenu":true,"permissionCodes":[]},
+  "system/mail": {"path":"/system/mail","titleKey":"menu.system_mail","showMenu":true,"permissionCodes":["system_mail"]},
+  "system/notificationTask": {"path":"/system/notificationTask","titleKey":"menu.system_notificationTask","showMenu":true,"permissionCodes":[]},
+  "system/operationLog": {"path":"/system/operationLog","titleKey":"menu.system_operationLog","showMenu":true,"permissionCodes":[]},
+  "system/queueMonitor": {"path":"/system/queueMonitor","titleKey":"menu.system_queueMonitor","showMenu":true,"permissionCodes":["devTools_queueMonitor_list"]},
+  "system/setting": {"path":"/system/setting","titleKey":"menu.system_setting","showMenu":true,"permissionCodes":[]},
+  "system/sms": {"path":"/system/sms","titleKey":"menu.system_sms","showMenu":true,"permissionCodes":["system_sms"]},
+  "system/uploadConfig": {"path":"/system/uploadConfig","titleKey":"menu.system_uploadConfig","showMenu":true,"permissionCodes":[]},
+  "user/userManager": {"path":"/user/userManager","titleKey":"menu.user_userManager","showMenu":true,"permissionCodes":[]},
+  "user/usersLoginLog": {"path":"/user/usersLoginLog","titleKey":"menu.user_usersLoginLog","showMenu":true,"permissionCodes":[]},
+} as const

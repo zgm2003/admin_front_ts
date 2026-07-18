@@ -12,7 +12,7 @@ import {
 } from './client'
 
 export interface AxiosTransportOptions {
-  readonly baseURL: string
+  readonly baseURL: string | (() => string)
   readonly withCredentials?: boolean
 }
 
@@ -45,18 +45,18 @@ function transportError(error: unknown, request: TransportRequest): HttpTranspor
 class AxiosTransport implements HttpTransport {
   private readonly service: AxiosInstance
   private readonly withCredentials: boolean
+  private readonly baseURL: () => string
 
   constructor(options: AxiosTransportOptions) {
-    this.service = axios.create({
-      baseURL: options.baseURL,
-      validateStatus: () => true,
-    })
+    this.service = axios.create({ validateStatus: () => true })
     this.withCredentials = options.withCredentials ?? true
+    this.baseURL = typeof options.baseURL === 'function' ? options.baseURL : () => options.baseURL as string
   }
 
   async send(request: TransportRequest): Promise<TransportResponse> {
     try {
       const response = await this.service.request<unknown>({
+        baseURL: this.baseURL(),
         url: request.path,
         method: request.method,
         params: request.query,
@@ -79,13 +79,4 @@ class AxiosTransport implements HttpTransport {
 
 export function createAxiosTransport(options: AxiosTransportOptions): HttpTransport {
   return new AxiosTransport(options)
-}
-
-/** Transitional bridge used only by the legacy session file removed in Task 8. */
-export function legacyAxiosPost<T>(
-  url: string,
-  data: unknown,
-  config: Readonly<Record<string, unknown>>,
-): Promise<{ readonly data: T }> {
-  return axios.post<T>(url, data, config)
 }

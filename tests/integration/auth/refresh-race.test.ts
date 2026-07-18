@@ -18,6 +18,11 @@ describe('browser credential transport', () => {
       apiOrigin: new URL('https://admin.example.test'),
       fetch,
       now: () => 1_000,
+      headers: () => ({
+        platform: 'admin',
+        'device-id': 'device-1',
+        'Accept-Language': 'zh-CN',
+      }),
     })
     const signal = new AbortController().signal
 
@@ -31,7 +36,12 @@ describe('browser credential transport', () => {
     expect(fetch).toHaveBeenNthCalledWith(1, 'https://admin.example.test/api/admin/v1/auth/login', expect.objectContaining({
       method: 'POST',
       credentials: 'include',
-      headers: expect.objectContaining({ 'X-Admin-Client-Variant': 'browser' }),
+      headers: expect.objectContaining({
+        'X-Admin-Client-Variant': 'browser',
+        platform: 'admin',
+        'device-id': 'device-1',
+        'Accept-Language': 'zh-CN',
+      }),
     }))
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
       login_type: 'email',
@@ -42,7 +52,12 @@ describe('browser credential transport', () => {
       method: 'POST',
       credentials: 'include',
       body: undefined,
-      headers: { 'X-Admin-Client-Variant': 'browser' },
+      headers: {
+        platform: 'admin',
+        'device-id': 'device-1',
+        'Accept-Language': 'zh-CN',
+        'X-Admin-Client-Variant': 'browser',
+      },
     }))
   })
 

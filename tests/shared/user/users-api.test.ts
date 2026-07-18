@@ -22,8 +22,12 @@ function readCaptchaTypeSource() {
   return readFrontendSource('src/types/captcha.ts')
 }
 
-function readAuthSessionSource() {
-  return readFrontendSource('src/lib/http/auth-session.ts')
+function readBrowserCredentialSource() {
+  return readFrontendSource('src/adapters/web/browser-credentials.ts')
+}
+
+function readAuthSchemaSource() {
+  return readFrontendSource('src/modules/http/schema.ts')
 }
 
 function legacyUsersPath(action: string) {
@@ -38,45 +42,41 @@ describe('users api auth contract', () => {
     expect(source).not.toContain('export interface UserRegisterParams')
     expect(source).not.toContain('register: (params:')
     expect(source).not.toContain(legacyUsersPath('register'))
-    expect(source).toContain('`${ADMIN_API_PREFIX}/auth/login`')
+    expect(source).not.toContain('login: (params:')
+    expect(readBrowserCredentialSource()).toContain("'/api/admin/v1/auth/login'")
     expect(typeSource).not.toContain("| 'register'")
   })
 
   it('uses the REST current-user endpoint as the bootstrap contract', () => {
-    const source = readUsersApiSource()
+    const source = readFrontendSource('src/modules/http/admin-operations.ts')
 
-    expect(source).toContain("import request from '@/lib/http'")
-    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
-    expect(source).toContain('request.get<UserInitResponse>(`${ADMIN_API_PREFIX}/users/me`)')
-    expect(source).toContain('me: fetchCurrentUser')
+    expect(source).toContain("path: '/api/admin/v1/users/me'")
+    expect(source).toContain("auth: 'required'")
+    expect(source).toContain('responseSchema: principalSchema')
     expect(source).not.toContain('/users/init')
-    expect(source).not.toContain('UsersApi.init')
-    expect(source).not.toContain('init: fetchCurrentUser')
-    expect(source).not.toContain('goRequest')
-    expect(source).not.toContain(`legacyRequest.post<UserInitResponse>('${legacyUsersPath('init')}', {})`)
   })
 
   it('uses the REST auth refresh endpoint', () => {
-    const source = readAuthSessionSource()
+    const source = readBrowserCredentialSource()
     const usersApiSource = readUsersApiSource()
 
-    expect(source).toContain("import { ADMIN_AUTH_REFRESH_PATH } from './api-prefix'")
-    expect(source).toContain('const REFRESH_PATH = ADMIN_AUTH_REFRESH_PATH')
-    expect(source).toContain('`${baseURL}${REFRESH_PATH}`')
-    expect(source).toContain('originalRequest.url?.includes(REFRESH_PATH)')
+    expect(source).toContain("return this.requestCredential('/api/admin/v1/auth/refresh', signal)")
+    expect(source).toContain("credentials: 'include'")
     expect(source).not.toContain(legacyUsersPath('refresh'))
-    expect(usersApiSource).toContain('request.post<UserLoginSession>(`${ADMIN_API_PREFIX}/auth/refresh`, params)')
-    expect(usersApiSource).not.toContain(`legacyRequest.post<UserLoginSession>('${legacyUsersPath('refresh')}', params)`)
+    expect(usersApiSource).not.toContain('auth/refresh')
   })
 
   it('uses the REST password login plus go-captcha contract', () => {
     const source = readUsersApiSource()
     const typeSource = readUserTypeSource()
     const captchaTypeSource = readCaptchaTypeSource()
+    const authSchemaSource = readAuthSchemaSource()
+    const browserCredentialSource = readBrowserCredentialSource()
 
     expect(source).toContain('request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`)')
     expect(source).toContain('request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`)')
-    expect(source).toContain('request.post<UserLoginSession, UserLoginParams>(`${ADMIN_API_PREFIX}/auth/login`, params)')
+    expect(source).not.toContain('auth/login`, params')
+    expect(browserCredentialSource).toContain("'/api/admin/v1/auth/login'")
     expect(source).not.toContain(legacyUsersPath('login'))
 
     expect(typeSource).toContain("import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from './captcha'")
@@ -87,8 +87,11 @@ describe('users api auth contract', () => {
     expect(typeSource).toContain('captcha_enabled: boolean')
     expect(typeSource).toContain('captcha_id: string')
     expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
-    expect(typeSource).toContain('refresh_token?: string')
-    expect(typeSource).toContain('refresh_expires_in?: number')
+    expect(typeSource).not.toContain('refresh_token')
+    expect(typeSource).not.toContain('refresh_expires_in')
+    expect(authSchemaSource).toContain('refresh_token: z.string().min(1).optional()')
+    expect(authSchemaSource).toContain('refresh_expires_in: z.number().int().positive().optional()')
+    expect(browserCredentialSource).toContain('auth.browser_refresh_credential_leak')
   })
 
   it('requires captcha proof for every send-code scene', () => {

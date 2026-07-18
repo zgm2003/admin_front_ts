@@ -65,7 +65,6 @@ export default defineConfig({
       'pinia',
       'vue-i18n',
       'axios',
-      'js-cookie',
       '@iconify/vue',
       '@element-plus/icons-vue',
     ],

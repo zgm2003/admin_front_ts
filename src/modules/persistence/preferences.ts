@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { defineCodec } from './codec'
+import { deviceNamespace } from './namespaces'
+import type { Persistence } from './store'
 
 const sensitivePreferenceKeys = new Set([
   'accesstoken',
@@ -66,9 +68,10 @@ export const deviceIdentityCodec = defineCodec({
 
 const devicePreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
-  language: z.string().min(1).max(32).optional(),
+  language: z.enum(['zh-CN', 'en-US']).optional(),
   desktopWindow: z.object({
-    maximized: z.boolean(),
+    maximized: z.boolean().optional(),
+    closeAction: z.enum(['minimize', 'exit']).optional(),
   }).strict().optional(),
   rememberedLogin: z.object({
     account: z.string().max(320),
@@ -83,6 +86,19 @@ export const devicePreferencesCodec = defineCodec({
   maxBytes: 8 * 1024,
   schema: devicePreferencesSchema,
 })
+
+export function readDevicePreferences(persistence: Persistence): DevicePreferences {
+  return persistence.read(deviceNamespace, 'preferences', devicePreferencesCodec) ?? {}
+}
+
+export function writeDevicePreferences(
+  persistence: Persistence,
+  value: DevicePreferences,
+): DevicePreferences {
+  const validated = devicePreferencesCodec.decode(value)
+  persistence.write(deviceNamespace, 'preferences', devicePreferencesCodec, validated)
+  return validated
+}
 
 const menuUiPreferencesSchema = z.object({
   systemColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
@@ -102,6 +118,16 @@ export const menuUiPreferencesCodec = defineCodec({
   version: 1,
   maxBytes: 4 * 1024,
   schema: menuUiPreferencesSchema,
+})
+
+const aiChatPreferencesSchema = z.object({
+  selectedAgentId: z.number().int().positive(),
+}).strict()
+
+export const aiChatPreferencesCodec = defineCodec({
+  version: 1,
+  maxBytes: 512,
+  schema: aiChatPreferencesSchema,
 })
 
 export interface CurrentRoutePreference {

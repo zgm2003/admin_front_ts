@@ -1,52 +1,34 @@
-import Cookies from 'js-cookie'
 import { isTauriRuntime } from '@/platform/tauri/env'
-import { getDeviceId } from './device'
 
 export type AdminClientVariant = 'browser' | 'desktop'
+export type AdminRequestLanguage = 'zh-CN' | 'en-US'
 
 type TauriRuntime = { __TAURI__?: unknown }
 
+export interface CommonHeaderContext {
+  readonly language: AdminRequestLanguage
+  readonly deviceId: string
+  readonly clientVariant: AdminClientVariant
+  readonly traceId: string
+}
+
 export function getAdminClientVariant(
-  runtime: TauriRuntime | undefined | null = globalThis as typeof globalThis & TauriRuntime
+  runtime: TauriRuntime | undefined | null = globalThis as typeof globalThis & TauriRuntime,
 ): AdminClientVariant {
   return isTauriRuntime(runtime) ? 'desktop' : 'browser'
 }
 
 export function generateTraceId(): string {
-  const timestamp = Date.now().toString(36)
-  const random = Math.random().toString(36).slice(2, 10)
-  return `${timestamp}-${random}`
+  if (typeof globalThis.crypto?.randomUUID === 'function') return globalThis.crypto.randomUUID()
+  throw new Error('crypto.randomUUID is required to create a trace id')
 }
 
-export function getPlatform(): string {
-  const envPlatform = import.meta.env.VITE_PLATFORM
-  if (envPlatform) {
-    return envPlatform
+export function buildCommonHeaders(context: CommonHeaderContext): Record<string, string> {
+  return {
+    'Accept-Language': context.language,
+    platform: 'admin',
+    'device-id': context.deviceId,
+    'X-Admin-Client-Variant': context.clientVariant,
+    'X-Trace-Id': context.traceId,
   }
-
-  return /(Android|iPhone|iPad|iPod|Windows Phone)/i.test(navigator.userAgent)
-    ? 'app'
-    : 'admin'
-}
-
-export function getRequestLanguage(): 'zh-CN' | 'en-US' {
-  const lang = Cookies.get('lang')
-  return lang === 'en-US' ? 'en-US' : 'zh-CN'
-}
-
-export function buildCommonHeaders(token?: string): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Accept-Language': getRequestLanguage(),
-    platform: getPlatform(),
-    'device-id': getDeviceId(),
-    'X-Admin-Client-Variant': getAdminClientVariant(),
-    'X-Trace-Id': generateTraceId(),
-  }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  return headers
 }

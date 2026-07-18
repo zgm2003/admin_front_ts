@@ -14,6 +14,8 @@ describe('frontend Docker runtime', () => {
     expect(dockerfile).toContain('npm run build:check')
     expect(dockerfile).toContain('VITE_GO_API_BASE_URL')
     expect(dockerfile).toContain('VITE_WEB_SOCKET_URL')
+    expect(dockerfile).toContain('ARG VITE_ADMIN_RUNTIME_MODE=production')
+    expect(dockerfile).toContain('ENV VITE_ADMIN_RUNTIME_MODE=${VITE_ADMIN_RUNTIME_MODE}')
     expect(dockerfile).toContain('ARG BUILD_REVISION=unknown')
     expect(dockerfile).toContain('LABEL org.opencontainers.image.revision="${BUILD_REVISION}"')
     expect(dockerfile).toContain('HEALTHCHECK')

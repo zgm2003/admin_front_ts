@@ -111,12 +111,12 @@ import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { ArrowUp, User, Wallet, SwitchButton, Warning } from '@element-plus/icons-vue'
-import { clearAllCookies } from '@/utils/storage.ts'
-import { UsersApi } from '@/api/user/users'
+import { useAppKernel } from '@/app/injection'
 import MenuItem from './components/MenuItem.vue'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
+const kernel = useAppKernel()
 const router = useRouter()
 const { t } = useI18n()
 const logoutVisible = ref(false)
@@ -130,14 +130,13 @@ const handleUserCommand = (cmd: string) => {
   else if (cmd === 'logout') logoutVisible.value = true
 }
 
-const confirmLogout = () => {
-  UsersApi.logout({}).finally(() => {
-    menuStore.reset()
-    clearAllCookies()
-    localStorage.removeItem('lastVisitedPath')
+const confirmLogout = async () => {
+  try {
+    await kernel.logout()
     ElNotification.success(t('common.success.operation'))
-    router.push('/login')
-  })
+  } finally {
+    logoutVisible.value = false
+  }
 }
 </script>
 

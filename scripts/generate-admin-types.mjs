@@ -75,16 +75,41 @@ export async function generateAdminTypes(frontendRoot = process.cwd()) {
   ].join('\n'))
 
   const views = JSON.parse(await readFile(join(contractRoot, 'views.json'), 'utf8'))
+  const viewRecords = Array.isArray(views.views) ? views.views : []
   const viewKeys = assertSortedUniqueStrings(
-    Array.isArray(views.views) ? views.views.map((view) => view?.view_key) : views.views,
+    viewRecords.map((view) => view?.view_key),
     'view keys',
   )
+  const recordsByKey = new Map(viewRecords.map((view) => [view.view_key, view]))
+  const descriptorLines = viewKeys.map((key) => {
+    const view = recordsByKey.get(key)
+    if (
+      !view
+      || typeof view.path !== 'string'
+      || typeof view.i18n_key !== 'string'
+      || (view.show_menu !== 1 && view.show_menu !== 2)
+      || !Array.isArray(view.permission_codes)
+      || view.permission_codes.some((code) => typeof code !== 'string')
+    ) {
+      throw new Error(`view descriptor ${key} violates the Admin view contract`)
+    }
+    return `  ${JSON.stringify(key)}: ${JSON.stringify({
+      path: view.path,
+      titleKey: view.i18n_key,
+      showMenu: view.show_menu === 1,
+      permissionCodes: view.permission_codes,
+    })},`
+  })
   await writeGenerated(root, generatedAdminOutputs[2], [
     header(manifestSha),
     literalArray('backendViewKeys', viewKeys),
     'export type BackendViewKey = typeof backendViewKeys[number]',
     '',
     'export const backendViewKeySet: ReadonlySet<BackendViewKey> = new Set(backendViewKeys)',
+    '',
+    'export const backendViewDescriptors = {',
+    ...descriptorLines,
+    '} as const',
     '',
   ].join('\n'))
 

@@ -1,38 +1,41 @@
 import { computed, shallowRef } from 'vue'
 import { AiAgentApi } from '@/api/ai/agents'
+import { useAppKernel } from '@/app/injection'
+import { userNamespace } from '@/modules/persistence/namespaces'
+import { aiChatPreferencesCodec } from '@/modules/persistence/preferences'
 import type { Agent } from './types'
 
-const STORAGE_KEY = 'ai_chat_selected_agent'
+const PREFERENCE_KEY = 'ai-chat'
 
 export function useAgents() {
+  const kernel = useAppKernel()
   const agents = shallowRef<Agent[]>([])
   const selectedAgentId = shallowRef<number | null>(null)
   const loading = shallowRef(false)
 
   const selectedAgent = computed(() => agents.value.find((agent) => agent.id === selectedAgentId.value))
 
+  function currentNamespace() {
+    const state = kernel.state.value
+    return state.kind === 'ready' ? userNamespace(state.principal.userId) : null
+  }
+
   function persistSelection(agentId: number | null) {
-    try {
-      if (agentId) {
-        localStorage.setItem(STORAGE_KEY, String(agentId))
-      } else {
-        localStorage.removeItem(STORAGE_KEY)
-      }
-    } catch {
-      // localStorage can be unavailable in private mode.
-    }
+    const namespace = currentNamespace()
+    if (!namespace) return
+    if (agentId === null) kernel.persistence.remove(namespace, PREFERENCE_KEY)
+    else kernel.persistence.write(namespace, PREFERENCE_KEY, aiChatPreferencesCodec, {
+      selectedAgentId: agentId,
+    })
   }
 
   function restoreSelection(): boolean {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const id = raw ? Number(raw) : 0
-      if (Number.isInteger(id) && agents.value.some((agent) => agent.id === id)) {
-        selectedAgentId.value = id
-        return true
-      }
-    } catch {
-      // Ignore storage errors.
+    const namespace = currentNamespace()
+    if (!namespace) return false
+    const restored = kernel.persistence.read(namespace, PREFERENCE_KEY, aiChatPreferencesCodec)
+    if (restored && agents.value.some((agent) => agent.id === restored.selectedAgentId)) {
+      selectedAgentId.value = restored.selectedAgentId
+      return true
     }
     return false
   }

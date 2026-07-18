@@ -33,9 +33,22 @@ describe('parseEnvironment', () => {
     expect(parsed.clientVariant).toBe('desktop')
   })
 
+  it('uses an explicit local-Docker runtime mode instead of inferring from the build command', () => {
+    const parsed = parseEnvironment(environment({
+      MODE: 'production',
+      DEV: false,
+      PROD: true,
+      VITE_ADMIN_RUNTIME_MODE: 'development',
+    }), location)
+
+    expect(parsed.mode).toBe('development')
+    expect(parsed.apiOrigin.href).toBe('http://localhost:5173/')
+  })
+
   it.each([
     [{ VITE_PLATFORM: 'app' }, /VITE_PLATFORM/],
     [{ VITE_ADMIN_CLIENT_VARIANT: 'mobile' }, /VITE_ADMIN_CLIENT_VARIANT/],
+    [{ VITE_ADMIN_RUNTIME_MODE: 'staging' }, /VITE_ADMIN_RUNTIME_MODE/],
     [{ VITE_GO_API_BASE_URL: 'not-a-url' }, /VITE_GO_API_BASE_URL/],
     [{ VITE_WEB_SOCKET_URL: 'not-a-url' }, /VITE_WEB_SOCKET_URL/],
   ])('rejects values outside the closed Admin environment: %o', (overrides, message) => {

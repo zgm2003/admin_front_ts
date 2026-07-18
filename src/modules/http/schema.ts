@@ -48,7 +48,7 @@ export const authCredentialSchema = z.object({
   }
 })
 
-interface PrincipalMenuItem {
+export interface PrincipalMenuItem {
   readonly index: string
   readonly label: string
   readonly path: string
@@ -89,6 +89,8 @@ export const principalSchema = z.object({
     { message: 'buttonCodes must contain unique permission codes' },
   ),
 }).strict()
+
+export type PrincipalContract = z.infer<typeof principalSchema>
 
 export const paymentConfigMutationResultSchema = z.object({
   id: z.number().int().positive(),

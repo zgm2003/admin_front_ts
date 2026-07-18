@@ -1,18 +1,17 @@
 import { ref, shallowRef, reactive, computed, watch, onMounted } from 'vue'
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus'
 import { ElMessage, ElNotification } from 'element-plus'
-import { useRouter } from 'vue-router'
 import { UsersApi } from '@/api/user/users'
-import { clearAllCookies } from '@/utils/storage'
-import { getAdminClientVariant } from '@/lib/http/platform'
-import { setupDynamicRoutes } from '@/router'
-import Cookies from 'js-cookie'
+import { useAppKernel } from '@/app/injection'
+import {
+  readDevicePreferences,
+  writeDevicePreferences,
+} from '@/modules/persistence/preferences'
 import i18n from '@/i18n'
 import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from '@/types/captcha'
 import type {
   LoginConfigResponse,
   UserLoginParams,
-  UserLoginSession,
   UserLoginType,
 } from '@/types/user'
 import type { SendCode } from '@/components/SendCode'
@@ -21,13 +20,10 @@ type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeRef = InstanceType<typeof SendCode>
 type CaptchaAction = 'password-login' | 'send-code'
 
-const LOGIN_REMEMBER_KEY = 'loginRemember'
-const LOGIN_ACCOUNT_KEY = 'loginAccount'
-const LOGIN_TYPE_KEY = 'loginType'
 const CAPTCHA_MIN_MOVE_OFFSET = 16
 
 export function useLoginForm() {
-  const router = useRouter()
+  const kernel = useAppKernel()
   const t = i18n.global.t
   const formRef = ref<FormInstance>()
   const sendCodeRef = ref<SendCodeRef | null>(null)
@@ -178,11 +174,15 @@ export function useLoginForm() {
   ) => {
     isSubmitting.value = true
     try {
-      const data = await UsersApi.login(params)
+      await kernel.login(params)
       rememberPwd()
-      await handleLoginSuccess(data)
+      isLoginSuccess.value = true
+      ElNotification.success(t('login.validation.loginSuccess'))
     } catch (error) {
-      console.error('login failed:', error)
+      const message = error instanceof Error && error.message.trim()
+        ? error.message
+        : t('common.fail.login')
+      ElMessage.error(message)
       if (options.refreshCaptchaOnFailure) {
         await refreshCaptcha()
       }
@@ -284,7 +284,10 @@ export function useLoginForm() {
       captchaChallenge.value = null
       captchaX.value = 0
     } catch (error) {
-      console.error('send login code failed:', error)
+      const message = error instanceof Error && error.message.trim()
+        ? error.message
+        : t('common.fail.operation')
+      ElMessage.error(message)
       await refreshCaptcha()
     } finally {
       isSendingCode.value = false
@@ -314,73 +317,35 @@ export function useLoginForm() {
     )
   }
 
-  const handleLoginSuccess = async (data: UserLoginSession) => {
-    const clientVariant = getAdminClientVariant()
-    const refreshCredential = data.refresh_token && data.refresh_expires_in
-      ? { token: data.refresh_token, expiresIn: data.refresh_expires_in }
-      : null
-    if (clientVariant === 'desktop' && !refreshCredential) {
-      throw new Error('desktop login response missing refresh credential')
-    }
-
-    isLoginSuccess.value = true
-    ElNotification.success(t('login.validation.loginSuccess'))
-    clearAllCookies()
-
-    if (loginForm.remember) {
-      const expires = new Date(Date.now() + data.expires_in * 1000)
-      Cookies.set('access_token', data.access_token, { expires })
-      if (refreshCredential) {
-        const refreshExpires = new Date(Date.now() + refreshCredential.expiresIn * 1000)
-        Cookies.set('refresh_token', refreshCredential.token, { expires: refreshExpires })
-      }
-    } else {
-      Cookies.set('access_token', data.access_token)
-      if (refreshCredential) {
-        Cookies.set('refresh_token', refreshCredential.token)
-      }
-    }
-
-    await setupDynamicRoutes()
-
-    setTimeout(async () => {
-      if (router.currentRoute.value.path === '/login') {
-        const redirect = router.currentRoute.value.query.redirect as string
-        await router.replace(redirect || '/home')
-      }
-    }, 800)
-  }
-
   const rememberPwd = () => {
+    const current = readDevicePreferences(kernel.persistence)
     if (loginForm.remember) {
-      localStorage.setItem(LOGIN_REMEMBER_KEY, '1')
-      localStorage.setItem(LOGIN_ACCOUNT_KEY, loginForm.login_account)
-      localStorage.setItem(LOGIN_TYPE_KEY, activeAccountType.value)
+      writeDevicePreferences(kernel.persistence, {
+        ...current,
+        rememberedLogin: {
+          account: loginForm.login_account.trim(),
+          type: activeAccountType.value,
+        },
+      })
     } else {
-      localStorage.removeItem(LOGIN_REMEMBER_KEY)
-      localStorage.removeItem(LOGIN_ACCOUNT_KEY)
-      localStorage.removeItem(LOGIN_TYPE_KEY)
+      const withoutRememberedLogin = { ...current }
+      delete withoutRememberedLogin.rememberedLogin
+      writeDevicePreferences(kernel.persistence, withoutRememberedLogin)
     }
   }
 
   const getLoginFormCache = () => {
-    if (localStorage.getItem(LOGIN_REMEMBER_KEY) !== '1') {
+    const remembered = readDevicePreferences(kernel.persistence).rememberedLogin
+    if (!remembered) {
       hasRememberedAccount.value = false
       rememberedLoginType.value = null
       return
     }
 
-    loginForm.login_account = localStorage.getItem(LOGIN_ACCOUNT_KEY) || ''
+    loginForm.login_account = remembered.account
     loginForm.remember = true
-
     hasRememberedAccount.value = Boolean(loginForm.login_account)
-
-    const cachedType = localStorage.getItem(LOGIN_TYPE_KEY)
-    if (cachedType === 'password' || cachedType === 'email' || cachedType === 'phone') {
-      rememberedLoginType.value = cachedType
-    } else {
-      rememberedLoginType.value = null
-    }
+    rememberedLoginType.value = remembered.type
   }
 
   const handleTabChange = (method: UserLoginType) => {

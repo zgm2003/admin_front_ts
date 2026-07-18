@@ -108,20 +108,24 @@ function timeoutApiError(cause: unknown = timeoutReason()): ApiError {
   })
 }
 
-function linkExecutionSignal(signal: AbortSignal | undefined, timeoutMs: number) {
+function linkExecutionSignal(signals: readonly AbortSignal[], timeoutMs: number) {
   const controller = new AbortController()
-  const abortFromCaller = () => controller.abort(signal?.reason)
-  if (signal?.aborted) {
-    abortFromCaller()
-  } else {
-    signal?.addEventListener('abort', abortFromCaller, { once: true })
+  const listeners = new Map<AbortSignal, () => void>()
+  for (const signal of signals) {
+    const abortFromCaller = () => controller.abort(signal.reason)
+    listeners.set(signal, abortFromCaller)
+    if (signal.aborted) {
+      abortFromCaller()
+      break
+    }
+    signal.addEventListener('abort', abortFromCaller, { once: true })
   }
   const timeout = setTimeout(() => controller.abort(timeoutReason()), timeoutMs)
   return {
     signal: controller.signal,
     dispose() {
       clearTimeout(timeout)
-      signal?.removeEventListener('abort', abortFromCaller)
+      for (const [signal, listener] of listeners) signal.removeEventListener('abort', listener)
     },
   }
 }
@@ -219,6 +223,7 @@ export class ApiClient {
   private readonly now: () => number
   private readonly telemetry?: HttpTelemetry
   private readonly commonHeaders: () => Readonly<Record<string, string>>
+  private authenticatedScope = new AbortController()
 
   constructor(options: ApiClientOptions) {
     this.transport = options.transport
@@ -238,7 +243,10 @@ export class ApiClient {
     const startedAt = this.now()
     const totalTimeout = this.timeoutMs[operation.timeout]
     const deadline = startedAt + totalTimeout
-    const linked = linkExecutionSignal(options.signal, totalTimeout)
+    const linked = linkExecutionSignal([
+      ...(options.signal ? [options.signal] : []),
+      ...(operation.auth === 'required' ? [this.authenticatedScope.signal] : []),
+    ], totalTimeout)
     const requestId = options.requestId?.trim() || this.createRequestId()
     let status: number | undefined
     let outcome: HttpTelemetryEvent['outcome'] = 'error'
@@ -306,5 +314,10 @@ export class ApiClient {
         durationMs: Math.max(0, this.now() - startedAt),
       })
     }
+  }
+
+  abortAuthenticatedRequests(reason: unknown = new DOMException('session ended', 'AbortError')): void {
+    this.authenticatedScope.abort(reason)
+    this.authenticatedScope = new AbortController()
   }
 }

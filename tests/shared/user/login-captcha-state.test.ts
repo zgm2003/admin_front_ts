@@ -5,23 +5,12 @@ const mocks = vi.hoisted(() => ({
   sendCode: vi.fn(),
   getCaptcha: vi.fn(),
   getLoginConfig: vi.fn(),
-  replace: vi.fn(),
-  setupDynamicRoutes: vi.fn(),
-  clearAllCookies: vi.fn(),
-  cookieSet: vi.fn(),
-  cookieRemove: vi.fn(),
   messageError: vi.fn(),
   messageInfo: vi.fn(),
   notificationSuccess: vi.fn(),
-  localStorageSetItem: vi.fn(),
-  localStorageRemoveItem: vi.fn(),
+  persistenceRead: vi.fn(() => null),
+  persistenceWrite: vi.fn(),
 }))
-
-vi.stubGlobal('localStorage', {
-  getItem: vi.fn(() => null),
-  setItem: mocks.localStorageSetItem,
-  removeItem: mocks.localStorageRemoveItem,
-})
 
 vi.mock('vue', async () => {
   const actual = await vi.importActual<typeof import('vue')>('vue')
@@ -30,13 +19,6 @@ vi.mock('vue', async () => {
     onMounted: vi.fn(),
   }
 })
-
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    currentRoute: { value: { path: '/login', query: {} } },
-    replace: mocks.replace,
-  }),
-}))
 
 vi.mock('@/api/user/users', () => ({
   UsersApi: {
@@ -47,19 +29,16 @@ vi.mock('@/api/user/users', () => ({
   },
 }))
 
-vi.mock('@/router', () => ({
-  setupDynamicRoutes: mocks.setupDynamicRoutes,
-}))
-
-vi.mock('@/utils/storage', () => ({
-  clearAllCookies: mocks.clearAllCookies,
-}))
-
-vi.mock('js-cookie', () => ({
-  default: {
-    set: mocks.cookieSet,
-    remove: mocks.cookieRemove,
-  },
+vi.mock('@/app/injection', () => ({
+  useAppKernel: () => ({
+    login: mocks.login,
+    persistence: {
+      read: mocks.persistenceRead,
+      write: mocks.persistenceWrite,
+      remove: vi.fn(),
+      clearNamespace: vi.fn(),
+    },
+  }),
 }))
 
 vi.mock('element-plus', () => ({
@@ -132,7 +111,7 @@ describe('login captcha state', () => {
     expect(login.captchaDialogVisible.value).toBe(false)
   })
 
-  it('does not persist a browser refresh credential in a JavaScript-readable cookie', async () => {
+  it('persists only the remembered non-secret account after kernel login', async () => {
     const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
     const login = useLoginForm()
     login.loginForm.login_account = '15671628271'
@@ -152,21 +131,18 @@ describe('login captcha state', () => {
       expires_in: 120,
     }
     login.captchaX.value = 124
-    mocks.login.mockResolvedValueOnce({
-      access_token: 'browser-access-token',
-      expires_in: 3600,
-      is_new_user: false,
-    })
-    mocks.setupDynamicRoutes.mockResolvedValueOnce(undefined)
+    mocks.login.mockResolvedValueOnce({ kind: 'ready' })
 
     await login.completeCaptchaLogin()
 
-    expect(mocks.cookieSet).toHaveBeenCalledWith(
-      'access_token',
-      'browser-access-token',
-      expect.objectContaining({ expires: expect.any(Date) })
+    expect(mocks.login).toHaveBeenCalledTimes(1)
+    expect(mocks.persistenceWrite).toHaveBeenCalledWith(
+      expect.anything(),
+      'preferences',
+      expect.anything(),
+      { rememberedLogin: { account: '15671628271', type: 'password' } },
     )
-    expect(mocks.cookieSet.mock.calls.some(([name]) => name === 'refresh_token')).toBe(false)
+    expect(JSON.stringify(mocks.persistenceWrite.mock.calls)).not.toMatch(/access[_-]?token|refresh[_-]?token/i)
   })
 
   it('validates the selected login account before opening captcha for send-code', async () => {
@@ -287,6 +263,7 @@ describe('login captcha state', () => {
     })
     expect(completeSend).not.toHaveBeenCalled()
     expect(mocks.getCaptcha).toHaveBeenCalledTimes(2)
+    expect(mocks.messageError).toHaveBeenCalledWith('验证码错误或已过期')
     expect(login.captchaDialogVisible.value).toBe(true)
     expect(login.captchaChallenge.value).toEqual(replacementChallenge)
   })
