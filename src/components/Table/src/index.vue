@@ -92,7 +92,10 @@ const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
 </script>
 <template>
-  <div class="table-wrapper" :class="{ 'fixed-footer': props.fixedFooter }">
+  <div
+    class="table-wrapper"
+    :class="{ 'fixed-footer': props.fixedFooter }"
+  >
     <div class="table-toolbar">
       <div class="toolbar-left">
         <ElSpace>
@@ -102,23 +105,80 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
       <div class="toolbar-right">
         <ElSpace>
           <slot name="toolbar-right" />
-          <TableActions :show-refresh="props.showRefresh" :refresh-loading="props.refreshLoading" @refresh="emit('refresh')" />
-          <ColumnSetting v-if="props.showColumnSetting" v-model="selectedColumnKeys" :columns="props.columns" />
+          <TableActions
+            :show-refresh="props.showRefresh"
+            :refresh-loading="props.refreshLoading"
+            @refresh="emit('refresh')"
+          />
+          <ColumnSetting
+            v-if="props.showColumnSetting"
+            v-model="selectedColumnKeys"
+            :columns="props.columns"
+          />
         </ElSpace>
       </div>
     </div>
-    <ElTable ref="tableRef" :data="props.data" :row-key="props.rowKey" border v-loading="props.loading" @row-click="onRowClick" @selection-change="onSelectionChange" v-bind="mergedTableProps" :class="{ 'flex-table': props.fixedFooter }">
-      <ElTableColumn v-if="props.selectable" type="selection" width="48" align="center" header-align="center" />
-      <ElTableColumn v-if="props.showIndex" type="index" :label="t('common.index')" align="center" width="60"/>
-      <ElTableColumn v-for="col in visibleColumns" :key="getColumnKey(col)" :label="col.label" :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)" v-bind="getColumnBindings(col)">
+    <ElTable
+      ref="tableRef"
+      v-loading="props.loading"
+      :data="props.data"
+      :row-key="props.rowKey"
+      border
+      v-bind="mergedTableProps"
+      :class="{ 'flex-table': props.fixedFooter }"
+      @row-click="onRowClick"
+      @selection-change="onSelectionChange"
+    >
+      <ElTableColumn
+        v-if="props.selectable"
+        type="selection"
+        width="48"
+        align="center"
+        header-align="center"
+      />
+      <ElTableColumn
+        v-if="props.showIndex"
+        type="index"
+        :label="t('common.index')"
+        align="center"
+        width="60"
+      />
+      <ElTableColumn
+        v-for="col in visibleColumns"
+        :key="getColumnKey(col)"
+        :label="col.label"
+        :show-overflow-tooltip="(col.overflowTooltip ?? props.autoOverflowTooltip) && (!!col.width || !!col.minWidth)"
+        v-bind="getColumnBindings(col)"
+      >
         <template #default="{ row, $index }">
-          <slot :name="'cell-'+getColumnKey(col)" :row="row" :col="col" :value="getCellValue(row, col)" :index="$index">
+          <slot
+            :name="'cell-'+getColumnKey(col)"
+            :row="row"
+            :col="col"
+            :value="getCellValue(row, col)"
+            :index="$index"
+          >
             {{ formatCellValue(row, col, $index) }}
           </slot>
         </template>
       </ElTableColumn>
     </ElTable>
-    <div class="table-footer" v-if="page"><ElPagination v-model:current-page="page.current_page" v-model:page-size="page.page_size" :layout="paginationLayout" :small="isMobile" :pager-count="isMobile ? 5 : 7" :page-sizes="pageSizes" :total="page.total" @size-change="onSizeChange" @current-change="onCurrentChange" /></div>
+    <div
+      v-if="page"
+      class="table-footer"
+    >
+      <ElPagination
+        v-model:current-page="page.current_page"
+        v-model:page-size="page.page_size"
+        :layout="paginationLayout"
+        :small="isMobile"
+        :pager-count="isMobile ? 5 : 7"
+        :page-sizes="pageSizes"
+        :total="page.total"
+        @size-change="onSizeChange"
+        @current-change="onCurrentChange"
+      />
+    </div>
   </div>
 </template>
 <style scoped>

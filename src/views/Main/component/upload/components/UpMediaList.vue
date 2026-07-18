@@ -78,20 +78,33 @@ function toMediaItems(values: UploadUserFile[]): UploadMediaItem[] {
 <template>
   <div>
     <el-upload 
+      v-model:file-list="mediaList" 
+      v-loading="loading" 
       :before-upload="beforeUpload" 
       :on-remove="removeMedia" 
       :on-preview="handlePreview" 
       :accept="acceptType" 
       :list-type="listType" 
-      v-model:file-list="mediaList" 
-      v-loading="loading" 
       multiple
     >
       <el-icon><Plus /></el-icon>
     </el-upload>
-    <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '600px'">
-      <el-image v-if="type === 'image'" :src="dialogUrl" fit="contain" style="max-height: 70vh; width: 100%"/>
-      <video v-else :src="dialogUrl" controls style="max-width: 100%; max-height: 70vh"/>
+    <AppDialog
+      v-model="dialogVisible"
+      :width="isMobile ? '94vw' : '600px'"
+    >
+      <el-image
+        v-if="type === 'image'"
+        :src="dialogUrl"
+        fit="contain"
+        style="max-height: 70vh; width: 100%"
+      />
+      <video
+        v-else
+        :src="dialogUrl"
+        controls
+        style="max-width: 100%; max-height: 70vh"
+      />
     </AppDialog>
   </div>
 </template>

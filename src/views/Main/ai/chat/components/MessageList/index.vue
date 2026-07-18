@@ -35,8 +35,16 @@ function handleImageClick(message: Message, index: number) {
 
 <template>
   <div class="message-list">
-    <div v-if="loading && messages.length === 0" class="state-tip">
-      <el-icon class="is-loading" :size="24"><Loading /></el-icon>
+    <div
+      v-if="loading && messages.length === 0"
+      class="state-tip"
+    >
+      <el-icon
+        class="is-loading"
+        :size="24"
+      >
+        <Loading />
+      </el-icon>
       <span>{{ t('aiChat.loading') }}</span>
     </div>
 
@@ -47,7 +55,10 @@ function handleImageClick(message: Message, index: number) {
         class="message-row"
         :class="message.role === AiRoleEnum.USER ? 'user-row' : 'assistant-row'"
       >
-        <div v-if="message.role === AiRoleEnum.USER && getAttachments(message).length > 0" class="message-attachments">
+        <div
+          v-if="message.role === AiRoleEnum.USER && getAttachments(message).length > 0"
+          class="message-attachments"
+        >
           <el-image
             v-for="(attachment, index) in getAttachments(message)"
             :key="`${message.id}-${attachment.url}`"
@@ -60,26 +71,52 @@ function handleImageClick(message: Message, index: number) {
           >
             <template #placeholder>
               <div class="attachment-placeholder">
-                <el-icon class="is-loading" :size="18"><Loading /></el-icon>
+                <el-icon
+                  class="is-loading"
+                  :size="18"
+                >
+                  <Loading />
+                </el-icon>
               </div>
             </template>
             <template #error>
-              <div class="attachment-placeholder">{{ t('aiChat.imageLoadFailed') }}</div>
+              <div class="attachment-placeholder">
+                {{ t('aiChat.imageLoadFailed') }}
+              </div>
             </template>
           </el-image>
         </div>
         <div class="message-card">
-          <MarkdownRenderer v-if="message.content" :content="message.content" class="message-content" />
-          <div v-else-if="message.role === AiRoleEnum.ASSISTANT && message.isStreaming" class="typing-dots">
+          <MarkdownRenderer
+            v-if="message.content"
+            :content="message.content"
+            class="message-content"
+          />
+          <div
+            v-else-if="message.role === AiRoleEnum.ASSISTANT && message.isStreaming"
+            class="typing-dots"
+          >
             <span />
             <span />
             <span />
           </div>
-          <span v-else-if="message.role === AiRoleEnum.ASSISTANT" class="empty-content">...</span>
+          <span
+            v-else-if="message.role === AiRoleEnum.ASSISTANT"
+            class="empty-content"
+          >...</span>
         </div>
-        <div v-if="!message.isStreaming" class="message-actions">
-          <el-button text size="small" @click="emit('copy', message)">
-            <el-icon :size="15"><CopyDocument /></el-icon>
+        <div
+          v-if="!message.isStreaming"
+          class="message-actions"
+        >
+          <el-button
+            text
+            size="small"
+            @click="emit('copy', message)"
+          >
+            <el-icon :size="15">
+              <CopyDocument />
+            </el-icon>
             {{ t('aiChat.copyMessage') }}
           </el-button>
         </div>

@@ -24,27 +24,64 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <AppDialog v-model="visible" class="dialog-box" width="560px">
-    <template #header>{{ title }}</template>
+  <AppDialog
+    v-model="visible"
+    class="dialog-box"
+    width="560px"
+  >
+    <template #header>
+      {{ title }}
+    </template>
     <div class="role-permission-diff">
       <div class="role-permission-diff__section">
-        <div class="role-permission-diff__title">{{ addedTitle }}</div>
-        <el-empty v-if="!hasAdded" :description="emptyText" :image-size="60" />
-        <el-tag v-for="label in addedLabels" v-else :key="label" type="success" class="role-permission-diff__tag">
+        <div class="role-permission-diff__title">
+          {{ addedTitle }}
+        </div>
+        <el-empty
+          v-if="!hasAdded"
+          :description="emptyText"
+          :image-size="60"
+        />
+        <el-tag
+          v-for="label in addedLabels"
+          v-else
+          :key="label"
+          type="success"
+          class="role-permission-diff__tag"
+        >
           {{ label }}
         </el-tag>
       </div>
       <div class="role-permission-diff__section">
-        <div class="role-permission-diff__title">{{ removedTitle }}</div>
-        <el-empty v-if="!hasRemoved" :description="emptyText" :image-size="60" />
-        <el-tag v-for="label in removedLabels" v-else :key="label" type="danger" class="role-permission-diff__tag">
+        <div class="role-permission-diff__title">
+          {{ removedTitle }}
+        </div>
+        <el-empty
+          v-if="!hasRemoved"
+          :description="emptyText"
+          :image-size="60"
+        />
+        <el-tag
+          v-for="label in removedLabels"
+          v-else
+          :key="label"
+          type="danger"
+          class="role-permission-diff__tag"
+        >
           {{ label }}
         </el-tag>
       </div>
     </div>
     <template #footer>
-      <el-button @click="visible = false">{{ cancelText }}</el-button>
-      <el-button type="primary" @click="emit('confirm')">{{ confirmText }}</el-button>
+      <el-button @click="visible = false">
+        {{ cancelText }}
+      </el-button>
+      <el-button
+        type="primary"
+        @click="emit('confirm')"
+      >
+        {{ confirmText }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

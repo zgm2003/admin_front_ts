@@ -163,13 +163,23 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
 </script>
 
 <template>
-  <el-empty v-if="!hasGroups" :description="emptyText" />
-  <div v-else class="role-permission-matrix">
+  <el-empty
+    v-if="!hasGroups"
+    :description="emptyText"
+  />
+  <div
+    v-else
+    class="role-permission-matrix"
+  >
     <div class="role-permission-matrix__helper">
-      <span class="role-permission-matrix__helper-dot"></span>
+      <span class="role-permission-matrix__helper-dot" />
       <span>{{ helperText }}</span>
     </div>
-    <section v-for="group in groups" :key="group.groupId" class="role-permission-matrix__group">
+    <section
+      v-for="group in groups"
+      :key="group.groupId"
+      class="role-permission-matrix__group"
+    >
       <div class="role-permission-matrix__group-header">
         <div class="role-permission-matrix__group-main">
           <el-checkbox
@@ -193,19 +203,41 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
           </div>
         </div>
         <el-space>
-          <el-button size="small" text @click="toggleGroupCollapse(group)">
+          <el-button
+            size="small"
+            text
+            @click="toggleGroupCollapse(group)"
+          >
             {{ isGroupCollapsed(group) ? groupExpandLabel : groupCollapseLabel }}
           </el-button>
-          <el-button size="small" text type="primary" @click="selectGroup(group)">
+          <el-button
+            size="small"
+            text
+            type="primary"
+            @click="selectGroup(group)"
+          >
             {{ groupSelectLabel }}
           </el-button>
-          <el-button size="small" text @click="clearGroup(group)">
+          <el-button
+            size="small"
+            text
+            @click="clearGroup(group)"
+          >
             {{ groupClearLabel }}
           </el-button>
         </el-space>
       </div>
-      <el-table v-if="!isGroupCollapsed(group)" :data="group.rows" border row-key="pageId" class="role-permission-matrix__table">
-        <el-table-column :label="pageLabel" min-width="260">
+      <el-table
+        v-if="!isGroupCollapsed(group)"
+        :data="group.rows"
+        border
+        row-key="pageId"
+        class="role-permission-matrix__table"
+      >
+        <el-table-column
+          :label="pageLabel"
+          min-width="260"
+        >
           <template #default="{ row }">
             <div class="role-permission-matrix__page">
               <span
@@ -214,9 +246,11 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
                   'is-complete': rowRuntimeState(row).selection.checked,
                   'is-partial': rowRuntimeState(row).selection.indeterminate,
                 }"
-              ></span>
+              />
               <div class="role-permission-matrix__page-copy">
-                <div class="role-permission-matrix__page-name">{{ row.pageLabel }}</div>
+                <div class="role-permission-matrix__page-name">
+                  {{ row.pageLabel }}
+                </div>
                 <div class="role-permission-matrix__page-meta">
                   <span v-if="row.pagePermissionId">{{ pageAccessLabel }}</span>
                   <span>{{ actionCountLabel }} {{ rowRuntimeState(row).actionSelected }}/{{ row.actions.length }}</span>
@@ -225,9 +259,15 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="actionLabel" min-width="420">
+        <el-table-column
+          :label="actionLabel"
+          min-width="420"
+        >
           <template #default="{ row }">
-            <el-space wrap class="role-permission-matrix__actions">
+            <el-space
+              wrap
+              class="role-permission-matrix__actions"
+            >
               <el-checkbox
                 v-if="row.pagePermissionId"
                 class="role-permission-matrix__view"
@@ -244,7 +284,11 @@ const toggleGroupCollapse = (group: RoleMatrixGroup) => {
               >
                 {{ action.label }}
               </el-checkbox>
-              <el-tag v-if="row.actions.length === 0" size="small" type="info">
+              <el-tag
+                v-if="row.actions.length === 0"
+                size="small"
+                type="info"
+              >
                 {{ emptyActionsText }}
               </el-tag>
             </el-space>

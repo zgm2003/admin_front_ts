@@ -37,21 +37,34 @@ const emit = defineEmits<{
     <div class="forgot-content">
       <div class="step-indicator">
         <div :class="['step-item', { active: step >= 1 }]">
-          <div class="step-num">1</div>
+          <div class="step-num">
+            1
+          </div>
           <span class="step-text">{{ t('loginPage.forgot.steps.verify') }}</span>
         </div>
-        <div class="step-line"></div>
+        <div class="step-line" />
         <div :class="['step-item', { active: step >= 2 }]">
-          <div class="step-num">2</div>
+          <div class="step-num">
+            2
+          </div>
           <span class="step-text">{{ t('loginPage.forgot.steps.reset') }}</span>
         </div>
       </div>
 
-      <div v-if="step === 1" class="step-content animate-fade-in">
+      <div
+        v-if="step === 1"
+        class="step-content animate-fade-in"
+      >
         <div class="input-group">
           <label class="input-label">{{ t('auth.forget.account') }}</label>
-          <el-input v-model="form.account" :placeholder="t('auth.forget.accountPlaceholder')" class="custom-input">
-            <template #prefix><el-icon><Message /></el-icon></template>
+          <el-input
+            v-model="form.account"
+            :placeholder="t('auth.forget.accountPlaceholder')"
+            class="custom-input"
+          >
+            <template #prefix>
+              <el-icon><Message /></el-icon>
+            </template>
           </el-input>
         </div>
         <div class="input-group">
@@ -64,10 +77,19 @@ const emit = defineEmits<{
             class="forgot-send-code"
           />
         </div>
-        <el-button type="primary" class="submit-btn mt-4" @click="$emit('next')">{{ t('loginPage.forgot.next') }}</el-button>
+        <el-button
+          type="primary"
+          class="submit-btn mt-4"
+          @click="$emit('next')"
+        >
+          {{ t('loginPage.forgot.next') }}
+        </el-button>
       </div>
 
-      <div v-else class="step-content animate-fade-in">
+      <div
+        v-else
+        class="step-content animate-fade-in"
+      >
         <div class="input-group">
           <label class="input-label">{{ t('auth.edit.newPassword') }}</label>
           <el-input
@@ -77,7 +99,9 @@ const emit = defineEmits<{
             show-password
             class="custom-input"
           >
-            <template #prefix><el-icon><Lock /></el-icon></template>
+            <template #prefix>
+              <el-icon><Lock /></el-icon>
+            </template>
           </el-input>
         </div>
         <div class="input-group">
@@ -89,12 +113,24 @@ const emit = defineEmits<{
             show-password
             class="custom-input"
           >
-            <template #prefix><el-icon><Lock /></el-icon></template>
+            <template #prefix>
+              <el-icon><Lock /></el-icon>
+            </template>
           </el-input>
         </div>
         <div class="forgot-actions">
-          <el-button class="back-btn" @click="$emit('back')">{{ t('common.back') }}</el-button>
-          <el-button type="primary" class="submit-btn flex-1" :loading="isSubmitting" @click="$emit('reset')">
+          <el-button
+            class="back-btn"
+            @click="$emit('back')"
+          >
+            {{ t('common.back') }}
+          </el-button>
+          <el-button
+            type="primary"
+            class="submit-btn flex-1"
+            :loading="isSubmitting"
+            @click="$emit('reset')"
+          >
             {{ isSubmitting ? t('loginPage.forgot.submitting') : t('loginPage.forgot.submit') }}
           </el-button>
         </div>

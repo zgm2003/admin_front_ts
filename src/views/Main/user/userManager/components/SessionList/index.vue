@@ -134,22 +134,52 @@ onMounted(() => {
 
 <template>
   <div class="session-list">
-    <div class="stats-cards" v-loading="statsLoading">
-      <el-card shadow="never" class="stat-card">
-        <div class="stat-value">{{ stats.total_active }}</div>
-        <div class="stat-label">{{ t('userSession.stats.totalActive') }}</div>
+    <div
+      v-loading="statsLoading"
+      class="stats-cards"
+    >
+      <el-card
+        shadow="never"
+        class="stat-card"
+      >
+        <div class="stat-value">
+          {{ stats.total_active }}
+        </div>
+        <div class="stat-label">
+          {{ t('userSession.stats.totalActive') }}
+        </div>
       </el-card>
-      <el-card shadow="never" class="stat-card">
-        <div class="stat-value">{{ stats.platform_distribution.admin }}</div>
-        <div class="stat-label">{{ t('userSession.stats.adminOnline') }}</div>
+      <el-card
+        shadow="never"
+        class="stat-card"
+      >
+        <div class="stat-value">
+          {{ stats.platform_distribution.admin }}
+        </div>
+        <div class="stat-label">
+          {{ t('userSession.stats.adminOnline') }}
+        </div>
       </el-card>
-      <el-card shadow="never" class="stat-card">
-        <div class="stat-value">{{ stats.platform_distribution.app }}</div>
-        <div class="stat-label">{{ t('userSession.stats.appOnline') }}</div>
+      <el-card
+        shadow="never"
+        class="stat-card"
+      >
+        <div class="stat-value">
+          {{ stats.platform_distribution.app }}
+        </div>
+        <div class="stat-label">
+          {{ t('userSession.stats.appOnline') }}
+        </div>
       </el-card>
     </div>
 
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" :collapse-count="1" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      :collapse-count="1"
+      @query="onSearch"
+      @reset="onSearch"
+    />
 
     <div class="table">
       <AppTable
@@ -173,16 +203,39 @@ onMounted(() => {
         @selection-change="onSelectionChange"
       >
         <template #toolbar-left>
-          <el-button type="danger" @click="batchKick" v-if="userStore.can('user_userManager_kick')">{{ t('userSession.batchKick') }}</el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_kick')"
+            type="danger"
+            @click="batchKick"
+          >
+            {{ t('userSession.batchKick') }}
+          </el-button>
         </template>
         <template #cell-platform="{ row }">
-          <el-tag :type="row.platform === 'admin' ? 'primary' : 'success'" size="small">{{ row.platform_name }}</el-tag>
+          <el-tag
+            :type="row.platform === 'admin' ? 'primary' : 'success'"
+            size="small"
+          >
+            {{ row.platform_name }}
+          </el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="getStatusType(row.status)" size="small">{{ t(`userSession.status.${row.status}`) }}</el-tag>
+          <el-tag
+            :type="getStatusType(row.status)"
+            size="small"
+          >
+            {{ t(`userSession.status.${row.status}`) }}
+          </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="warning" text v-if="userStore.can('user_userManager_kick') && row.status === 'active'" @click="confirmKick(row)">{{ t('common.actions.kick') }}</el-button>
+          <el-button
+            v-if="userStore.can('user_userManager_kick') && row.status === 'active'"
+            type="warning"
+            text
+            @click="confirmKick(row)"
+          >
+            {{ t('common.actions.kick') }}
+          </el-button>
         </template>
       </AppTable>
     </div>

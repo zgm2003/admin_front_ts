@@ -230,11 +230,28 @@ function requireUploadURL(url: string): string {
 }
 </script>
 <template>
-  <el-skeleton v-if="!editorReady" :rows="10" animated />
-  <div v-else class="editor-wrap">
-    <Toolbar :editor="toolbarEditor" :editorId="props.editorId" class="toolbar"/>
-    <Editor v-model="valueHtml" :editorId="props.editorId" :defaultConfig="cfg" :style="editorStyle"
-            @on-change="handleChange" @on-created="handleCreated"/>
+  <el-skeleton
+    v-if="!editorReady"
+    :rows="10"
+    animated
+  />
+  <div
+    v-else
+    class="editor-wrap"
+  >
+    <Toolbar
+      :editor="toolbarEditor"
+      :editor-id="props.editorId"
+      class="toolbar"
+    />
+    <Editor
+      v-model="valueHtml"
+      :editor-id="props.editorId"
+      :default-config="cfg"
+      :style="editorStyle"
+      @on-change="handleChange"
+      @on-created="handleCreated"
+    />
   </div>
 </template>
 <style src="@wangeditor/editor/dist/css/style.css"></style>

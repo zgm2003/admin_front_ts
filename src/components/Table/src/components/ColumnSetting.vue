@@ -28,15 +28,28 @@ const value = computed({
 </script>
 
 <template>
-  <ElPopover placement="bottom" trigger="click" :width="200">
+  <ElPopover
+    placement="bottom"
+    trigger="click"
+    :width="200"
+  >
     <template #reference>
-      <ElButton :icon="Setting">{{ t('common.actions.columnSetting') }}</ElButton>
+      <ElButton :icon="Setting">
+        {{ t('common.actions.columnSetting') }}
+      </ElButton>
     </template>
     <div style="max-height: 400px; overflow-y: auto;">
       <ElCheckboxGroup v-model="value">
-        <div v-for="opt in options" :key="opt.value" style="margin-bottom: 8px;">
+        <div
+          v-for="opt in options"
+          :key="opt.value"
+          style="margin-bottom: 8px;"
+        >
           <ElCheckbox :label="opt.value">
-            <span :title="opt.label" style="display: inline-block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">
+            <span
+              :title="opt.label"
+              style="display: inline-block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;"
+            >
               {{ opt.label }}
             </span>
           </ElCheckbox>

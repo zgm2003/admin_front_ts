@@ -106,8 +106,12 @@ onBeforeUnmount(() => {
 <template>
   <div :class="['login-form-card', 'animate-fade-in-right', { 'shake-animation': isShaking, 'is-mobile': isMobile }]">
     <div class="header-text">
-      <h1 class="welcome-title">{{ t('common.welcomeBack') }}</h1>
-      <p class="welcome-desc">{{ t('loginPage.form.welcomeDesc') }}</p>
+      <h1 class="welcome-title">
+        {{ t('common.welcomeBack') }}
+      </h1>
+      <p class="welcome-desc">
+        {{ t('loginPage.form.welcomeDesc') }}
+      </p>
     </div>
 
     <div class="method-tabs">
@@ -132,7 +136,10 @@ onBeforeUnmount(() => {
     >
       <div class="form-content-area">
         <div class="method-container">
-          <div :key="activeType" class="method-content is-active">
+          <div
+            :key="activeType"
+            class="method-content is-active"
+          >
             <div class="input-group">
               <label class="input-label">{{ activeTypeConfig.label }}</label>
               <el-form-item prop="login_account">
@@ -158,11 +165,20 @@ onBeforeUnmount(() => {
                     :placeholder="t('auth.login.passwordPlaceholder')"
                     class="custom-input"
                   >
-                    <template #prefix><el-icon><Lock /></el-icon></template>
+                    <template #prefix>
+                      <el-icon><Lock /></el-icon>
+                    </template>
                     <template #suffix>
-                      <div class="password-toggle" @click="$emit('togglePassword')">
-                        <el-icon v-if="!showPassword"><View /></el-icon>
-                        <el-icon v-else><Hide /></el-icon>
+                      <div
+                        class="password-toggle"
+                        @click="$emit('togglePassword')"
+                      >
+                        <el-icon v-if="!showPassword">
+                          <View />
+                        </el-icon>
+                        <el-icon v-else>
+                          <Hide />
+                        </el-icon>
                       </div>
                     </template>
                   </el-input>
@@ -187,7 +203,6 @@ onBeforeUnmount(() => {
                 </el-form-item>
               </template>
             </div>
-
           </div>
         </div>
 
@@ -207,11 +222,20 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="terms-checkbox">
-          <el-checkbox :model-value="agreePolicy" @update:model-value="emit('update:agreePolicy', Boolean($event))">
+          <el-checkbox
+            :model-value="agreePolicy"
+            @update:model-value="emit('update:agreePolicy', Boolean($event))"
+          >
             {{ t('loginPage.form.agreePrefix') }}
-            <span class="term-btn" @click.prevent.stop="$emit('openService')">{{ t('loginPage.form.serviceTerms') }}</span>
+            <span
+              class="term-btn"
+              @click.prevent.stop="$emit('openService')"
+            >{{ t('loginPage.form.serviceTerms') }}</span>
             {{ t('loginPage.form.and') }}
-            <span class="term-btn" @click.prevent.stop="$emit('openPolicy')">{{ t('loginPage.form.privacyPolicy') }}</span>
+            <span
+              class="term-btn"
+              @click.prevent.stop="$emit('openPolicy')"
+            >{{ t('loginPage.form.privacyPolicy') }}</span>
           </el-checkbox>
         </div>
       </div>

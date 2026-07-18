@@ -111,7 +111,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="markdown-body" v-html="renderedHtml"></div>
+  <div
+    ref="containerRef"
+    class="markdown-body"
+    v-html="renderedHtml"
+  />
 </template>
 
 

@@ -198,7 +198,7 @@ watch(
               :min="1"
               :max="20"
               controls-position="right"
-            :controls="false"
+              :controls="false"
             />
           </label>
 
@@ -211,7 +211,7 @@ watch(
               :max="100"
               :step="0.01"
               controls-position="right"
-            :controls="false"
+              :controls="false"
             />
           </label>
 
@@ -224,7 +224,7 @@ watch(
               :max="30000"
               :step="500"
               controls-position="right"
-            :controls="false"
+              :controls="false"
             />
           </label>
 

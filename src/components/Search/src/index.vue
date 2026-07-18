@@ -193,11 +193,11 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
         <template v-if="field.type === 'input'">
           <el-input
             :model-value="inputModelValue(field.key)"
-            @update:model-value="setSearchValue(field.key, $event)"
             :placeholder="field.placeholder"
             clearable
             :style="{ width: resolveWidth(field.width, 150) }"
             v-bind="getFieldBindings(field)"
+            @update:model-value="setSearchValue(field.key, $event)"
           />
         </template>
 
@@ -255,7 +255,6 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
         <template v-else-if="isRemoteSelectField(field)">
           <RemoteSelect
             :model-value="remoteSelectModelValue(field.key)"
-            @update:model-value="setSearchValue(field.key, $event)"
             :fetch-method="field.fetchMethod"
             :label-field="field.labelField || 'label'"
             :value-field="field.valueField || 'value'"
@@ -263,19 +262,37 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
             :placeholder="field.placeholder"
             :width="resolveWidth(field.width, 200)"
             v-bind="getFieldBindings(field)"
+            @update:model-value="setSearchValue(field.key, $event)"
           />
         </template>
 
         <template v-else-if="field.type === 'slot'">
-          <slot :name="field.key" :form="form" :field="field" />
+          <slot
+            :name="field.key"
+            :form="form"
+            :field="field"
+          />
         </template>
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" native-type="submit">{{ t('common.actions.query') }}</el-button>
-        <el-button @click="onReset">{{ t('common.actions.reset') }}</el-button>
-        <el-button v-if="showToggle" text @click="toggleCollapsed">
-          <el-icon style="margin-right: 4px"><component :is="collapsed ? ArrowDown : ArrowUp" /></el-icon>
+        <el-button
+          type="primary"
+          native-type="submit"
+        >
+          {{ t('common.actions.query') }}
+        </el-button>
+        <el-button @click="onReset">
+          {{ t('common.actions.reset') }}
+        </el-button>
+        <el-button
+          v-if="showToggle"
+          text
+          @click="toggleCollapsed"
+        >
+          <el-icon style="margin-right: 4px">
+            <component :is="collapsed ? ArrowDown : ArrowUp" />
+          </el-icon>
           {{ collapsed ? t('common.actions.expand') : t('common.actions.collapse') }}
         </el-button>
       </el-form-item>

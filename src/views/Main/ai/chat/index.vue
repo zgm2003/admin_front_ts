@@ -344,49 +344,111 @@ onMounted(async () => {
       @select="handleSelectAgent"
     />
 
-    <main v-show="!isMobile || selectedAgentId" class="main-area">
+    <main
+      v-show="!isMobile || selectedAgentId"
+      class="main-area"
+    >
       <header class="main-header">
-        <el-button v-if="isMobile" text class="back-btn" @click="handleBackToAgentList">
-          <el-icon :size="20"><ArrowLeft /></el-icon>
+        <el-button
+          v-if="isMobile"
+          text
+          class="back-btn"
+          @click="handleBackToAgentList"
+        >
+          <el-icon :size="20">
+            <ArrowLeft />
+          </el-icon>
         </el-button>
         <div class="header-content">
           <span class="header-title">{{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}</span>
-          <span v-if="selectedAgent" class="header-agent">{{ selectedAgent.name }}</span>
+          <span
+            v-if="selectedAgent"
+            class="header-agent"
+          >{{ selectedAgent.name }}</span>
         </div>
       </header>
 
-      <el-scrollbar :ref="setMessageScrollRef" class="message-area" @scroll="handleMessageScroll">
-        <div v-if="switchingAgent" class="welcome-area">
-          <el-icon class="is-loading" :size="32" color="var(--el-color-primary)"><Loading /></el-icon>
+      <el-scrollbar
+        :ref="setMessageScrollRef"
+        class="message-area"
+        @scroll="handleMessageScroll"
+      >
+        <div
+          v-if="switchingAgent"
+          class="welcome-area"
+        >
+          <el-icon
+            class="is-loading"
+            :size="32"
+            color="var(--el-color-primary)"
+          >
+            <Loading />
+          </el-icon>
         </div>
 
-        <div v-else-if="selectedAgentId && messages.length === 0 && !messagesLoading" class="welcome-area">
+        <div
+          v-else-if="selectedAgentId && messages.length === 0 && !messagesLoading"
+          class="welcome-area"
+        >
           <div class="welcome-content">
-            <el-avatar :size="64" class="welcome-avatar">
-              <img v-if="selectedAgent?.avatar" :src="selectedAgent.avatar" :alt="selectedAgent.name" />
+            <el-avatar
+              :size="64"
+              class="welcome-avatar"
+            >
+              <img
+                v-if="selectedAgent?.avatar"
+                :src="selectedAgent.avatar"
+                :alt="selectedAgent.name"
+              >
               {{ selectedAgent?.name?.charAt(0) || '?' }}
             </el-avatar>
-            <h1 class="welcome-title">{{ selectedAgent?.name }}</h1>
-            <p class="welcome-tip">{{ selectedAgent?.description || t('aiChat.welcomeTip') }}</p>
+            <h1 class="welcome-title">
+              {{ selectedAgent?.name }}
+            </h1>
+            <p class="welcome-tip">
+              {{ selectedAgent?.description || t('aiChat.welcomeTip') }}
+            </p>
           </div>
         </div>
 
-        <div v-else-if="!selectedAgentId && agents.length > 0" class="welcome-area">
+        <div
+          v-else-if="!selectedAgentId && agents.length > 0"
+          class="welcome-area"
+        >
           <div class="welcome-content">
-            <h1 class="welcome-title">{{ t('aiChat.welcome') }}</h1>
-            <p class="welcome-tip">{{ t('aiChat.selectAgentFirst') }}</p>
+            <h1 class="welcome-title">
+              {{ t('aiChat.welcome') }}
+            </h1>
+            <p class="welcome-tip">
+              {{ t('aiChat.selectAgentFirst') }}
+            </p>
           </div>
         </div>
 
-        <div v-else-if="!agentsLoading && agents.length === 0" class="welcome-area">
-          <p class="welcome-tip">{{ t('aiChat.noAgentTip') }}</p>
+        <div
+          v-else-if="!agentsLoading && agents.length === 0"
+          class="welcome-area"
+        >
+          <p class="welcome-tip">
+            {{ t('aiChat.noAgentTip') }}
+          </p>
         </div>
 
-        <div v-if="messagesLoadingMore" class="history-tip">
-          <el-icon class="is-loading"><Loading /></el-icon>
+        <div
+          v-if="messagesLoadingMore"
+          class="history-tip"
+        >
+          <el-icon class="is-loading">
+            <Loading />
+          </el-icon>
           <span>{{ t('aiChat.loading') }}</span>
         </div>
-        <div v-else-if="!messagesHasMore && messages.length > 0" class="history-tip">{{ t('aiChat.noMoreHistory') }}</div>
+        <div
+          v-else-if="!messagesHasMore && messages.length > 0"
+          class="history-tip"
+        >
+          {{ t('aiChat.noMoreHistory') }}
+        </div>
 
         <MessageList
           v-if="messages.length > 0 || messagesLoading"
@@ -425,11 +487,30 @@ onMounted(async () => {
       @search="searchConversations"
     />
 
-    <AppDialog v-model="showRenameDialog" :title="t('aiChat.renameTitle')" width="400px" mobile-width="94vw" body-padding="24px" class="rename-dialog">
-      <el-input v-model="renameTitle" :placeholder="t('aiChat.newTitle')" maxlength="50" show-word-limit />
+    <AppDialog
+      v-model="showRenameDialog"
+      :title="t('aiChat.renameTitle')"
+      width="400px"
+      mobile-width="94vw"
+      body-padding="24px"
+      class="rename-dialog"
+    >
+      <el-input
+        v-model="renameTitle"
+        :placeholder="t('aiChat.newTitle')"
+        maxlength="50"
+        show-word-limit
+      />
       <template #footer>
-        <el-button @click="showRenameDialog = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmRenameConversation">{{ t('common.actions.confirm') }}</el-button>
+        <el-button @click="showRenameDialog = false">
+          {{ t('common.actions.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="confirmRenameConversation"
+        >
+          {{ t('common.actions.confirm') }}
+        </el-button>
       </template>
     </AppDialog>
   </div>

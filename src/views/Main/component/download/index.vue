@@ -330,13 +330,18 @@ const features = [
 
     <el-tabs v-model="activeTab">
       <!-- 基础用法 -->
-      <el-tab-pane label="基础用法" name="basic">
+      <el-tab-pane
+        label="基础用法"
+        name="basic"
+      >
         <div class="demo-section">
           <h3>
             <el-icon><Download /></el-icon>
             简单下载
           </h3>
-          <p class="section-desc">最简单的下载方式，适合不需要进度显示的场景</p>
+          <p class="section-desc">
+            最简单的下载方式，适合不需要进度显示的场景
+          </p>
           
           <div class="demo-block">
             <el-form :inline="true">
@@ -357,7 +362,10 @@ const features = [
                 />
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="handleSimpleDownload">
+                <el-button
+                  type="primary"
+                  @click="handleSimpleDownload"
+                >
                   <el-icon><Download /></el-icon>
                   开始下载
                 </el-button>
@@ -381,7 +389,9 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             <el-icon><VideoPlay /></el-icon>
             带进度的下载
           </h3>
-          <p class="section-desc">适合大文件下载，提供实时进度、速度显示</p>
+          <p class="section-desc">
+            适合大文件下载，提供实时进度、速度显示
+          </p>
           
           <div class="demo-block">
             <el-button 
@@ -394,10 +404,16 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             </el-button>
             
             <!-- 进度显示 -->
-            <div v-if="currentDownload" class="progress-display">
+            <div
+              v-if="currentDownload"
+              class="progress-display"
+            >
               <div class="progress-header">
                 <div class="file-info">
-                  <el-icon class="file-icon" :size="20">
+                  <el-icon
+                    class="file-icon"
+                    :size="20"
+                  >
                     <VideoPlay v-if="currentDownload.filename.includes('.mp4')" />
                     <Document v-else />
                   </el-icon>
@@ -442,10 +458,15 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             <el-icon><FolderOpened /></el-icon>
             快速测试
           </h3>
-          <p class="section-desc">点击下方按钮快速测试不同类型文件的下载</p>
+          <p class="section-desc">
+            点击下方按钮快速测试不同类型文件的下载
+          </p>
           
           <div class="demo-block">
-            <el-space wrap :size="12">
+            <el-space
+              wrap
+              :size="12"
+            >
               <el-button
                 v-for="file in presetFiles"
                 :key="file.name"
@@ -455,7 +476,10 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
                 {{ file.name }}
               </el-button>
               
-              <el-button type="warning" @click="handleBatchDownload">
+              <el-button
+                type="warning"
+                @click="handleBatchDownload"
+              >
                 <el-icon><Download /></el-icon>
                 批量下载（3个文件）
               </el-button>
@@ -468,7 +492,9 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             <el-icon><FolderOpened /></el-icon>
             下载管理器
           </h3>
-          <p class="section-desc">查看和管理所有下载任务（仅 Tauri 环境）</p>
+          <p class="section-desc">
+            查看和管理所有下载任务（仅 Tauri 环境）
+          </p>
           
           <div class="demo-block">
             <el-button 
@@ -479,7 +505,11 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
               <el-icon><FolderOpened /></el-icon>
               打开下载管理器
             </el-button>
-            <el-text v-if="!isTauri()" type="info" style="margin-left: 12px;">
+            <el-text
+              v-if="!isTauri()"
+              type="info"
+              style="margin-left: 12px;"
+            >
               （Web 环境不支持）
             </el-text>
           </div>
@@ -491,86 +521,198 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
       </el-tab-pane>
 
       <!-- API 文档 -->
-      <el-tab-pane label="API 文档" name="api">
+      <el-tab-pane
+        label="API 文档"
+        name="api"
+      >
         <div class="demo-section">
           <h3>downloadFile() 函数</h3>
-          <p class="section-desc">便捷的下载函数，自动适配 Tauri/Web 环境</p>
+          <p class="section-desc">
+            便捷的下载函数，自动适配 Tauri/Web 环境
+          </p>
           
-          <el-table :data="downloadFileApi" border>
-            <el-table-column prop="name" label="参数名" width="120" />
-            <el-table-column prop="type" label="类型" width="150" />
-            <el-table-column prop="required" label="必填" width="80">
+          <el-table
+            :data="downloadFileApi"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="参数名"
+              width="120"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="150"
+            />
+            <el-table-column
+              prop="required"
+              label="必填"
+              width="80"
+            >
               <template #default="{ row }">
-                <el-tag :type="row.required ? 'danger' : 'info'" size="small">
+                <el-tag
+                  :type="row.required ? 'danger' : 'info'"
+                  size="small"
+                >
                   {{ row.required ? '是' : '否' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="default" label="默认值" width="120" />
-            <el-table-column prop="desc" label="说明" />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         
         <div class="demo-section">
           <h3>DownloadOptions 配置</h3>
-          <p class="section-desc">下载选项配置对象</p>
+          <p class="section-desc">
+            下载选项配置对象
+          </p>
           
-          <el-table :data="downloadOptionsApi" border>
-            <el-table-column prop="name" label="属性名" width="150" />
-            <el-table-column prop="type" label="类型" width="300" />
-            <el-table-column prop="required" label="必填" width="80">
+          <el-table
+            :data="downloadOptionsApi"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="150"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="300"
+            />
+            <el-table-column
+              prop="required"
+              label="必填"
+              width="80"
+            >
               <template #default>
-                <el-tag type="info" size="small">否</el-tag>
+                <el-tag
+                  type="info"
+                  size="small"
+                >
+                  否
+                </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="desc" label="说明" />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         
         <div class="demo-section">
           <h3>DownloadProgress 进度对象</h3>
-          <p class="section-desc">下载进度信息对象结构</p>
+          <p class="section-desc">
+            下载进度信息对象结构
+          </p>
           
-          <el-table :data="downloadProgressApi" border>
-            <el-table-column prop="name" label="属性名" width="150" />
-            <el-table-column prop="type" label="类型" width="300" />
-            <el-table-column prop="desc" label="说明" />
+          <el-table
+            :data="downloadProgressApi"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="150"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="300"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         
         <div class="demo-section">
           <h3>downloadManager 管理器</h3>
-          <p class="section-desc">下载管理器单例，提供完整的下载控制能力</p>
+          <p class="section-desc">
+            下载管理器单例，提供完整的下载控制能力
+          </p>
           
-          <el-table :data="downloadManagerApi" border>
-            <el-table-column prop="name" label="方法名" width="200" />
-            <el-table-column prop="type" label="返回类型" width="250" />
-            <el-table-column prop="desc" label="说明" />
+          <el-table
+            :data="downloadManagerApi"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="方法名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="返回类型"
+              width="250"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         
         <div class="demo-section">
           <h3>DownloadManager 组件</h3>
-          <p class="section-desc">下载管理器 UI 组件</p>
+          <p class="section-desc">
+            下载管理器 UI 组件
+          </p>
           
-          <el-table :data="componentPropsApi" border>
-            <el-table-column prop="name" label="属性名" width="200" />
-            <el-table-column prop="type" label="类型" width="150" />
-            <el-table-column prop="default" label="默认值" width="120" />
-            <el-table-column prop="desc" label="说明" />
+          <el-table
+            :data="componentPropsApi"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="150"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- 最佳实践 -->
-      <el-tab-pane label="最佳实践" name="practices">
+      <el-tab-pane
+        label="最佳实践"
+        name="practices"
+      >
         <div 
           v-for="(practice, index) in bestPractices" 
           :key="index"
           class="demo-section"
         >
           <h3>{{ practice.title }}</h3>
-          <p class="section-desc">{{ practice.desc }}</p>
+          <p class="section-desc">
+            {{ practice.desc }}
+          </p>
           
           <div class="demo-code">
             <pre><code>{{ practice.code }}</code></pre>
@@ -579,7 +721,10 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
         
         <div class="demo-section">
           <h3>7. 注意事项</h3>
-          <el-alert type="info" :closable="false">
+          <el-alert
+            type="info"
+            :closable="false"
+          >
             <ul style="margin: 0; padding-left: 20px;">
               <li><strong>环境检测</strong>：代码会自动检测运行环境（Tauri/Web），无需手动判断</li>
               <li><strong>用户取消</strong>：用户在保存对话框中点击取消时，会抛出 "用户取消下载" 错误</li>
@@ -593,7 +738,10 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
       </el-tab-pane>
       
       <!-- 功能特性 -->
-      <el-tab-pane label="功能特性" name="features">
+      <el-tab-pane
+        label="功能特性"
+        name="features"
+      >
         <el-row :gutter="20">
           <el-col 
             v-for="(feature, index) in features" 
@@ -604,7 +752,10 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
             <el-card class="feature-card">
               <template #header>
                 <div class="feature-header">
-                  <el-icon :size="24" :color="index === 0 ? 'var(--el-color-success)' : 'var(--el-color-warning)'">
+                  <el-icon
+                    :size="24"
+                    :color="index === 0 ? 'var(--el-color-success)' : 'var(--el-color-warning)'"
+                  >
                     <component :is="feature.icon" />
                   </el-icon>
                   <span>{{ feature.title }}</span>
@@ -612,8 +763,13 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
               </template>
               
               <ul class="feature-list">
-                <li v-for="(item, i) in feature.items" :key="i">
-                  <el-icon color="var(--el-color-primary)"><CircleCheck /></el-icon>
+                <li
+                  v-for="(item, i) in feature.items"
+                  :key="i"
+                >
+                  <el-icon color="var(--el-color-primary)">
+                    <CircleCheck />
+                  </el-icon>
                   {{ item }}
                 </li>
               </ul>
@@ -621,24 +777,49 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
           </el-col>
         </el-row>
         
-        <div class="demo-section" style="margin-top: 20px;">
+        <div
+          class="demo-section"
+          style="margin-top: 20px;"
+        >
           <h3>技术架构</h3>
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="前端框架">Vue 3 + TypeScript</el-descriptions-item>
-            <el-descriptions-item label="桌面框架">Tauri 2.x</el-descriptions-item>
-            <el-descriptions-item label="后端语言">Rust</el-descriptions-item>
-            <el-descriptions-item label="HTTP 客户端">reqwest (Rust)</el-descriptions-item>
-            <el-descriptions-item label="异步运行时">tokio</el-descriptions-item>
-            <el-descriptions-item label="取消机制">tokio::select! (100ms 响应)</el-descriptions-item>
-            <el-descriptions-item label="进度更新">500ms 间隔</el-descriptions-item>
-            <el-descriptions-item label="文件对话框">tauri-plugin-dialog</el-descriptions-item>
+          <el-descriptions
+            :column="1"
+            border
+          >
+            <el-descriptions-item label="前端框架">
+              Vue 3 + TypeScript
+            </el-descriptions-item>
+            <el-descriptions-item label="桌面框架">
+              Tauri 2.x
+            </el-descriptions-item>
+            <el-descriptions-item label="后端语言">
+              Rust
+            </el-descriptions-item>
+            <el-descriptions-item label="HTTP 客户端">
+              reqwest (Rust)
+            </el-descriptions-item>
+            <el-descriptions-item label="异步运行时">
+              tokio
+            </el-descriptions-item>
+            <el-descriptions-item label="取消机制">
+              tokio::select! (100ms 响应)
+            </el-descriptions-item>
+            <el-descriptions-item label="进度更新">
+              500ms 间隔
+            </el-descriptions-item>
+            <el-descriptions-item label="文件对话框">
+              tauri-plugin-dialog
+            </el-descriptions-item>
           </el-descriptions>
         </div>
       </el-tab-pane>
     </el-tabs>
     
     <!-- 下载管理器组件 -->
-    <DownloadManager v-if="isTauri()" v-model:visible="showDownloadManager" />
+    <DownloadManager
+      v-if="isTauri()"
+      v-model:visible="showDownloadManager"
+    />
   </div>
 </template>
 

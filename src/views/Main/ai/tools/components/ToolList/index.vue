@@ -90,7 +90,12 @@ onMounted(() => {
 
 <template>
   <div class="tool-list">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <AppTable
       :columns="columns"
       :data="listData"
@@ -102,23 +107,64 @@ onMounted(() => {
       @update:pagination="onPageChange"
     >
       <template #toolbar-left>
-        <el-button type="success" @click="emit('add')">{{ t('common.actions.add') }}</el-button>
-        <el-button v-if="userStore.can('ai_tool_generate')" type="primary" @click="emit('generate')">{{ t('aiTools.actions.generate') }}</el-button>
+        <el-button
+          type="success"
+          @click="emit('add')"
+        >
+          {{ t('common.actions.add') }}
+        </el-button>
+        <el-button
+          v-if="userStore.can('ai_tool_generate')"
+          type="primary"
+          @click="emit('generate')"
+        >
+          {{ t('aiTools.actions.generate') }}
+        </el-button>
       </template>
       <template #cell-risk_level="{ row }">
-        <el-tag :type="riskTagType(row.risk_level)">{{ row.risk_level_name || row.risk_level }}</el-tag>
+        <el-tag :type="riskTagType(row.risk_level)">
+          {{ row.risk_level_name || row.risk_level }}
+        </el-tag>
       </template>
       <template #cell-timeout_ms="{ row }">
         <span>{{ row.timeout_ms }}ms</span>
       </template>
       <template #cell-status="{ row }">
-        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
+        <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+          {{ row.status_name || row.status }}
+        </el-tag>
       </template>
       <template #cell-actions="{ row }">
-        <el-button type="primary" text @click="emit('edit', row)">{{ t('common.actions.edit') }}</el-button>
-        <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-        <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-        <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+        <el-button
+          type="primary"
+          text
+          @click="emit('edit', row)"
+        >
+          {{ t('common.actions.edit') }}
+        </el-button>
+        <el-button
+          v-if="row.status === CommonEnum.NO"
+          type="warning"
+          text
+          @click="toggleStatus(row, CommonEnum.YES)"
+        >
+          {{ t('common.actions.enable') }}
+        </el-button>
+        <el-button
+          v-if="row.status === CommonEnum.YES"
+          type="warning"
+          text
+          @click="toggleStatus(row, CommonEnum.NO)"
+        >
+          {{ t('common.actions.disable') }}
+        </el-button>
+        <el-button
+          type="danger"
+          text
+          @click="confirmDel(row)"
+        >
+          {{ t('common.actions.del') }}
+        </el-button>
       </template>
     </AppTable>
   </div>

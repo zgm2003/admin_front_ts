@@ -34,14 +34,31 @@ async function handleTabChange(name: string | number) {
 
 <template>
   <div class="sms-page">
-    <el-tabs v-model="activeTab" :stretch="isMobile" class="sms-page__tabs" @tab-change="handleTabChange">
-      <el-tab-pane :label="t('sms.tabs.config')" name="config" lazy>
+    <el-tabs
+      v-model="activeTab"
+      :stretch="isMobile"
+      class="sms-page__tabs"
+      @tab-change="handleTabChange"
+    >
+      <el-tab-pane
+        :label="t('sms.tabs.config')"
+        name="config"
+        lazy
+      >
         <SmsConfigPanel />
       </el-tab-pane>
-      <el-tab-pane :label="t('sms.tabs.template')" name="template" lazy>
+      <el-tab-pane
+        :label="t('sms.tabs.template')"
+        name="template"
+        lazy
+      >
         <SmsTemplatePanel />
       </el-tab-pane>
-      <el-tab-pane :label="t('sms.tabs.log')" name="log" lazy>
+      <el-tab-pane
+        :label="t('sms.tabs.log')"
+        name="log"
+        lazy
+      >
         <SmsLogPanel ref="smsLogPanelRef" />
       </el-tab-pane>
     </el-tabs>

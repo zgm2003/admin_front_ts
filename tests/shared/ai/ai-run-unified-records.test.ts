@@ -105,7 +105,7 @@ describe('unified AI run records frontend contract', () => {
     const page = runPage()
     const stats = runStats()
 
-    expect(page).toContain('<RunStats/>')
+    expect(page).toMatch(/<RunStats\s*\/>/)
     expect(page).not.toContain('v-if="activeTab ===')
 
     expect(stats).not.toContain('v-if="dateLoader.state.value.data.length || dateLoader.state.value.loading"')

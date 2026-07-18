@@ -265,39 +265,73 @@ onMounted(() => {
 
 <template>
   <div class="run-list">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
       <AppTable
-          :columns="columns"
-          :data="listData"
-          :loading="listLoading"
-          row-key="id"
-          :pagination="page"
-          :show-index="true"
-          @refresh="refresh"
-          @update:pagination="onPageChange"
+        :columns="columns"
+        :data="listData"
+        :loading="listLoading"
+        row-key="id"
+        :pagination="page"
+        :show-index="true"
+        @refresh="refresh"
+        @update:pagination="onPageChange"
       >
         <template #cell-request_id="{row}">
           <div class="request-id-cell">
-            <el-text truncated>{{ row.request_id }}</el-text>
-            <el-button :icon="CopyDocument" size="small" text @click.stop="copy(row.request_id)"/>
+            <el-text truncated>
+              {{ row.request_id }}
+            </el-text>
+            <el-button
+              :icon="CopyDocument"
+              size="small"
+              text
+              @click.stop="copy(row.request_id)"
+            />
           </div>
         </template>
         <template #cell-platform="{row}">
-          <el-tag size="small" type="info">{{ row.platform }}</el-tag>
+          <el-tag
+            size="small"
+            type="info"
+          >
+            {{ row.platform }}
+          </el-tag>
         </template>
         <template #cell-status="{row}">
-          <el-tag :type="getStatusType(row.status)" size="small">{{ row.status_name }}</el-tag>
+          <el-tag
+            :type="getStatusType(row.status)"
+            size="small"
+          >
+            {{ row.status_name }}
+          </el-tag>
         </template>
         <template #cell-total_tokens="{row}">
           <span>{{ row.total_tokens.toLocaleString() }}</span>
         </template>
         <template #cell-error_message="{row}">
-          <el-text v-if="row.error_message" type="danger" truncated>{{ row.error_message }}</el-text>
+          <el-text
+            v-if="row.error_message"
+            type="danger"
+            truncated
+          >
+            {{ row.error_message }}
+          </el-text>
           <span v-else>-</span>
         </template>
         <template #cell-actions="{row}">
-          <el-button type="primary" text size="small" @click="showDetail(row)">{{
+          <el-button
+            type="primary"
+            text
+            size="small"
+            @click="showDetail(row)"
+          >
+            {{
               t('common.actions.detail')
             }}
           </el-button>
@@ -308,61 +342,114 @@ onMounted(() => {
 
   <!-- 详情弹窗 -->
   <AppDialog
-      v-model="detailVisible"
-      :title="t('aiRuns.detail.title')"
-      :width="detailDialogLayout.width"
-      :height="detailDialogLayout.height"
+    v-model="detailVisible"
+    :title="t('aiRuns.detail.title')"
+    :width="detailDialogLayout.width"
+    :height="detailDialogLayout.height"
   >
-      <div v-loading="detailLoading" class="run-detail">
+    <div
+      v-loading="detailLoading"
+      class="run-detail"
+    >
       <template v-if="detailData">
-        <el-descriptions :column="isMobile ? 1 : 2" border>
-          <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
-          <el-descriptions-item label="Request ID">{{ detailData.request_id }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.platform')">{{ detailData.platform }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.user')">{{ detailData.username }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.agent')">{{ detailData.agent_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.provider')">{{ detailData.provider_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.conversation')">{{
+        <el-descriptions
+          :column="isMobile ? 1 : 2"
+          border
+        >
+          <el-descriptions-item label="ID">
+            {{ detailData.id }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Request ID">
+            {{ detailData.request_id }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.platform')">
+            {{ detailData.platform }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.user')">
+            {{ detailData.username }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.agent')">
+            {{ detailData.agent_name }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.provider')">
+            {{ detailData.provider_name }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.conversation')">
+            {{
               detailData.conversation_title
             }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.status')">
-            <el-tag :type="getStatusType(detailData.status)" size="small">{{ detailData.status_name }}</el-tag>
+            <el-tag
+              :type="getStatusType(detailData.status)"
+              size="small"
+            >
+              {{ detailData.status_name }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.model')">{{ detailData.model_display_name }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">{{
+          <el-descriptions-item :label="t('aiRuns.detail.model')">
+            {{ detailData.model_display_name }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.promptTokens')">
+            {{
               detailData.prompt_tokens
             }}
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">{{
+          <el-descriptions-item :label="t('aiRuns.detail.completionTokens')">
+            {{
               detailData.completion_tokens
             }}
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">{{
+          <el-descriptions-item :label="t('aiRuns.detail.totalTokens')">
+            {{
               detailData.total_tokens
             }}
           </el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.latency')">{{ detailData.duration_text }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.startedAt')">{{ detailData.started_at }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.finishedAt')">{{ detailData.finished_at }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.createdAt')">{{ detailData.created_at }}</el-descriptions-item>
-          <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">{{ detailData.updated_at }}</el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.latency')">
+            {{ detailData.duration_text }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.startedAt')">
+            {{ detailData.started_at }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.finishedAt')">
+            {{ detailData.finished_at }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.createdAt')">
+            {{ detailData.created_at }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.updatedAt')">
+            {{ detailData.updated_at }}
+          </el-descriptions-item>
         </el-descriptions>
 
-        <el-divider content-position="left">{{ t('aiRuns.detail.inputSnapshot') }}</el-divider>
-        <div class="input-snapshot">{{ detailData.input_snapshot }}</div>
+        <el-divider content-position="left">
+          {{ t('aiRuns.detail.inputSnapshot') }}
+        </el-divider>
+        <div class="input-snapshot">
+          {{ detailData.input_snapshot }}
+        </div>
 
         <!-- 错误信息 -->
         <template v-if="detailData.error_message">
-          <el-divider content-position="left">{{ t('aiRuns.detail.error') }}</el-divider>
-          <el-alert type="error" :closable="false" show-icon>
-            <template #title>{{ detailData.error_message }}</template>
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.error') }}
+          </el-divider>
+          <el-alert
+            type="error"
+            :closable="false"
+            show-icon
+          >
+            <template #title>
+              {{ detailData.error_message }}
+            </template>
           </el-alert>
         </template>
 
         <!-- 持久化运行事件 -->
         <template v-if="detailData.events && detailData.events.length > 0">
-          <el-divider content-position="left">{{ t('aiRuns.detail.events') }}</el-divider>
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.events') }}
+          </el-divider>
           <el-timeline>
             <el-timeline-item
               v-for="event in detailData.events"
@@ -372,19 +459,43 @@ onMounted(() => {
             >
               <div class="event-item">
                 <div class="event-header">
-                  <el-tag size="small" type="info">#{{ event.seq }}</el-tag>
-                  <el-tag size="small" :type="eventTagType(detailData.status)">{{ event.event_type_name || event.event_type }}</el-tag>
+                  <el-tag
+                    size="small"
+                    type="info"
+                  >
+                    #{{ event.seq }}
+                  </el-tag>
+                  <el-tag
+                    size="small"
+                    :type="eventTagType(detailData.status)"
+                  >
+                    {{ event.event_type_name || event.event_type }}
+                  </el-tag>
                   <span class="event-type">{{ event.event_type }}</span>
                   <span class="event-id">ID {{ event.id }}</span>
-                  <span v-if="event.elapsed_text && event.elapsed_text !== '-'" class="event-elapsed">+{{ event.elapsed_text }}</span>
+                  <span
+                    v-if="event.elapsed_text && event.elapsed_text !== '-'"
+                    class="event-elapsed"
+                  >+{{ event.elapsed_text }}</span>
                 </div>
-                <div v-if="event.message" class="event-message">{{ event.message }}</div>
-                <div v-if="event.seq === detailData.events.length && isTerminalRun(detailData.status)" class="terminal-run-facts">
+                <div
+                  v-if="event.message"
+                  class="event-message"
+                >
+                  {{ event.message }}
+                </div>
+                <div
+                  v-if="event.seq === detailData.events.length && isTerminalRun(detailData.status)"
+                  class="terminal-run-facts"
+                >
                   <span>{{ t('aiRuns.detail.promptTokens') }}: {{ formatTokens(detailData.prompt_tokens) }}</span>
                   <span>{{ t('aiRuns.detail.completionTokens') }}: {{ formatTokens(detailData.completion_tokens) }}</span>
                   <span>{{ t('aiRuns.detail.totalTokens') }}: {{ formatTokens(detailData.total_tokens) }}</span>
                   <span>{{ t('aiRuns.detail.latency') }}: {{ detailData.duration_text }}</span>
-                  <span v-if="detailData.error_message" class="terminal-error">{{ t('aiRuns.detail.error') }}: {{ detailData.error_message }}</span>
+                  <span
+                    v-if="detailData.error_message"
+                    class="terminal-error"
+                  >{{ t('aiRuns.detail.error') }}: {{ detailData.error_message }}</span>
                 </div>
               </div>
             </el-timeline-item>
@@ -393,13 +504,24 @@ onMounted(() => {
 
         <!-- 知识库检索 -->
         <template v-if="detailData.knowledge_retrievals && detailData.knowledge_retrievals.length > 0">
-          <el-divider content-position="left">{{ t('aiRuns.detail.knowledgeRetrievals') }}</el-divider>
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.knowledgeRetrievals') }}
+          </el-divider>
           <div class="knowledge-retrieval-list">
-            <div v-for="retrieval in detailData.knowledge_retrievals" :key="retrieval.id" class="knowledge-retrieval-card">
+            <div
+              v-for="retrieval in detailData.knowledge_retrievals"
+              :key="retrieval.id"
+              class="knowledge-retrieval-card"
+            >
               <div class="knowledge-retrieval-header">
                 <div class="knowledge-retrieval-title">
                   <span>{{ retrieval.query }}</span>
-                  <el-tag size="small" :type="knowledgeRetrievalTagType(retrieval.status)">{{ retrieval.status_name || retrieval.status }}</el-tag>
+                  <el-tag
+                    size="small"
+                    :type="knowledgeRetrievalTagType(retrieval.status)"
+                  >
+                    {{ retrieval.status_name || retrieval.status }}
+                  </el-tag>
                 </div>
                 <div class="knowledge-retrieval-meta">
                   <span>{{ retrieval.selected_hits }} / {{ retrieval.total_hits }}</span>
@@ -407,7 +529,12 @@ onMounted(() => {
                   <span>{{ retrieval.created_at }}</span>
                 </div>
               </div>
-              <div v-if="retrieval.error_message" class="knowledge-retrieval-error">{{ retrieval.error_message }}</div>
+              <div
+                v-if="retrieval.error_message"
+                class="knowledge-retrieval-error"
+              >
+                {{ retrieval.error_message }}
+              </div>
               <el-collapse v-if="retrieval.hits.length > 0">
                 <el-collapse-item
                   v-for="hit in retrieval.hits"
@@ -416,15 +543,27 @@ onMounted(() => {
                 >
                   <template #title>
                     <div class="knowledge-hit-title">
-                      <el-tag size="small" type="info">#{{ hit.rank_no }}</el-tag>
+                      <el-tag
+                        size="small"
+                        type="info"
+                      >
+                        #{{ hit.rank_no }}
+                      </el-tag>
                       <span>{{ hit.knowledge_base_name }}</span>
                       <span>{{ hit.document_title }} / {{ hit.chunk_index }}</span>
                       <span>{{ hit.score.toFixed(4) }}</span>
-                      <el-tag size="small" :type="knowledgeHitTagType(hit.status)">{{ hit.status_name }}</el-tag>
+                      <el-tag
+                        size="small"
+                        :type="knowledgeHitTagType(hit.status)"
+                      >
+                        {{ hit.status_name }}
+                      </el-tag>
                       <span v-if="hit.skip_reason">{{ hit.skip_reason }}</span>
                     </div>
                   </template>
-                  <div class="knowledge-hit-content">{{ hit.content_snapshot }}</div>
+                  <div class="knowledge-hit-content">
+                    {{ hit.content_snapshot }}
+                  </div>
                 </el-collapse-item>
               </el-collapse>
             </div>
@@ -433,31 +572,57 @@ onMounted(() => {
 
         <!-- 工具调用 -->
         <template v-if="detailData.tool_calls && detailData.tool_calls.length > 0">
-          <el-divider content-position="left">{{ t('aiRuns.detail.toolCalls') }}</el-divider>
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.toolCalls') }}
+          </el-divider>
           <div class="tool-call-list">
-            <div v-for="call in detailData.tool_calls" :key="call.id" class="tool-call-card">
+            <div
+              v-for="call in detailData.tool_calls"
+              :key="call.id"
+              class="tool-call-card"
+            >
               <div class="tool-call-header">
                 <div class="tool-call-title">
                   <span class="tool-call-name">{{ call.tool_name || call.tool_code }}</span>
                   <code>{{ call.tool_code }}</code>
                 </div>
                 <div class="tool-call-meta">
-                  <el-tag size="small" :type="toolCallTagType(call.status)">{{ call.status }}</el-tag>
+                  <el-tag
+                    size="small"
+                    :type="toolCallTagType(call.status)"
+                  >
+                    {{ call.status }}
+                  </el-tag>
                   <span v-if="call.duration_ms !== null && call.duration_ms !== undefined">{{ call.duration_ms }}ms</span>
                   <span v-if="call.call_id">Call ID {{ call.call_id }}</span>
                 </div>
               </div>
-              <div v-if="call.error_message" class="tool-call-error">{{ call.error_message }}</div>
+              <div
+                v-if="call.error_message"
+                class="tool-call-error"
+              >
+                {{ call.error_message }}
+              </div>
               <el-row :gutter="12">
-                <el-col :md="12" :span="24">
+                <el-col
+                  :md="12"
+                  :span="24"
+                >
                   <div class="tool-call-json">
-                    <div class="tool-call-json-title">{{ t('aiRuns.detail.toolArguments') }}</div>
+                    <div class="tool-call-json-title">
+                      {{ t('aiRuns.detail.toolArguments') }}
+                    </div>
                     <pre>{{ prettyJSON(call.arguments_json) }}</pre>
                   </div>
                 </el-col>
-                <el-col :md="12" :span="24">
+                <el-col
+                  :md="12"
+                  :span="24"
+                >
                   <div class="tool-call-json">
-                    <div class="tool-call-json-title">{{ t('aiRuns.detail.toolResult') }}</div>
+                    <div class="tool-call-json-title">
+                      {{ t('aiRuns.detail.toolResult') }}
+                    </div>
                     <pre>{{ prettyJSON(call.result_json) }}</pre>
                   </div>
                 </el-col>
@@ -466,64 +631,89 @@ onMounted(() => {
           </div>
         </template>
 
-            <!-- 用户消息 -->
-            <template v-if="detailData.user_message">
-              <el-divider content-position="left">{{ t('aiRuns.detail.userMessage') }}</el-divider>
-              <div class="message-box user">
-                <div class="message-content">{{ detailData.user_message.content }}</div>
-                <!-- 图片附件 -->
-                <div v-if="detailData.user_message.meta_json?.attachments?.length" class="message-attachments">
-                  <el-image
-                    v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
-                    :key="idx"
-                    :src="attachment.url"
-                    :preview-src-list="getAttachmentPreviewUrls(detailData)"
-                    :initial-index="Number(idx)"
-                    fit="cover"
-                    class="attachment-thumb"
-                    lazy
-                  >
-                    <template #placeholder>
-                      <div class="image-placeholder">
-                        <el-icon class="is-loading"><Loading /></el-icon>
-                      </div>
-                    </template>
-                    <template #error>
-                      <div class="image-error">
-                        <el-icon><Picture /></el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-                </div>
-                <div class="message-meta">{{ detailData.user_message.created_at }}</div>
-              </div>
-            </template>
-
-            <!-- AI 回复 -->
-            <template v-if="detailData.assistant_message">
-              <el-divider content-position="left">{{ t('aiRuns.detail.assistantMessage') }}</el-divider>
-              <div class="message-box assistant">
-                <div class="message-content">{{ detailData.assistant_message.content }}</div>
-                <div class="message-meta">
-                  <span>{{ detailData.assistant_message.created_at }}</span>
-                </div>
-                <div v-if="detailData.assistant_message.meta_json && hasAssistantMeta(detailData.assistant_message.meta_json)" class="meta-json">
-                  <div v-if="detailData.assistant_message.meta_json.run_request_id" class="meta-item">
-                    <span class="meta-label">Run Request ID:</span>
-                    <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
+        <!-- 用户消息 -->
+        <template v-if="detailData.user_message">
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.userMessage') }}
+          </el-divider>
+          <div class="message-box user">
+            <div class="message-content">
+              {{ detailData.user_message.content }}
+            </div>
+            <!-- 图片附件 -->
+            <div
+              v-if="detailData.user_message.meta_json?.attachments?.length"
+              class="message-attachments"
+            >
+              <el-image
+                v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
+                :key="idx"
+                :src="attachment.url"
+                :preview-src-list="getAttachmentPreviewUrls(detailData)"
+                :initial-index="Number(idx)"
+                fit="cover"
+                class="attachment-thumb"
+                lazy
+              >
+                <template #placeholder>
+                  <div class="image-placeholder">
+                    <el-icon class="is-loading">
+                      <Loading />
+                    </el-icon>
                   </div>
-                  <div v-if="detailData.assistant_message.meta_json.provider_request_id" class="meta-item">
-                    <span class="meta-label">Provider Request ID:</span>
-                    <code>{{ detailData.assistant_message.meta_json.provider_request_id }}</code>
+                </template>
+                <template #error>
+                  <div class="image-error">
+                    <el-icon><Picture /></el-icon>
                   </div>
-                </div>
-              </div>
-            </template>
+                </template>
+              </el-image>
+            </div>
+            <div class="message-meta">
+              {{ detailData.user_message.created_at }}
+            </div>
+          </div>
+        </template>
 
+        <!-- AI 回复 -->
+        <template v-if="detailData.assistant_message">
+          <el-divider content-position="left">
+            {{ t('aiRuns.detail.assistantMessage') }}
+          </el-divider>
+          <div class="message-box assistant">
+            <div class="message-content">
+              {{ detailData.assistant_message.content }}
+            </div>
+            <div class="message-meta">
+              <span>{{ detailData.assistant_message.created_at }}</span>
+            </div>
+            <div
+              v-if="detailData.assistant_message.meta_json && hasAssistantMeta(detailData.assistant_message.meta_json)"
+              class="meta-json"
+            >
+              <div
+                v-if="detailData.assistant_message.meta_json.run_request_id"
+                class="meta-item"
+              >
+                <span class="meta-label">Run Request ID:</span>
+                <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
+              </div>
+              <div
+                v-if="detailData.assistant_message.meta_json.provider_request_id"
+                class="meta-item"
+              >
+                <span class="meta-label">Provider Request ID:</span>
+                <code>{{ detailData.assistant_message.meta_json.provider_request_id }}</code>
+              </div>
+            </div>
+          </div>
+        </template>
       </template>
-      </div>
+    </div>
     <template #footer>
-      <el-button @click="detailVisible = false">{{ t('common.actions.close') }}</el-button>
+      <el-button @click="detailVisible = false">
+        {{ t('common.actions.close') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

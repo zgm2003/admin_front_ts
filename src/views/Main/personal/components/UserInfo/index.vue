@@ -29,53 +29,107 @@ const sexLabel = computed(() => {
 </script>
 
 <template>
-  <el-card shadow="never" v-loading="loading" class="user-info-card">
+  <el-card
+    v-loading="loading"
+    shadow="never"
+    class="user-info-card"
+  >
     <template #header>
-      <div class="card-header"><span>{{ t('personal.title') }}</span></div>
+      <div class="card-header">
+        <span>{{ t('personal.title') }}</span>
+      </div>
     </template>
     <div class="content">
       <div class="avatar-section">
-        <el-avatar :size="isMobile ? 100 : 120" :src="userinfo.avatar" class="avatar"/>
+        <el-avatar
+          :size="isMobile ? 100 : 120"
+          :src="userinfo.avatar"
+          class="avatar"
+        />
       </div>
       <div class="info-row">
-        <div class="label">{{ t('personal.username') }}</div>
-        <div class="value">{{ userinfo.username }}</div>
-      </div>
-      <el-divider/>
-      <div class="info-row">
-        <div class="label">{{ t('personal.email') }}</div>
-        <div class="value">{{ userinfo.email || t('personal.notSet') }}</div>
-      </div>
-      <el-divider/>
-      <div class="info-row">
-        <div class="label">{{ t('personal.phone') }}</div>
-        <div class="value">{{ userinfo.phone || t('personal.notSet') }}</div>
-      </div>
-      <el-divider/>
-      <div class="info-row">
-        <div class="label">{{ t('personal.sex') }}</div>
-        <div class="value">{{ sexLabel }}</div>
-      </div>
-      <el-divider/>
-      <div class="info-row">
-        <div class="label">{{ t('personal.role') }}</div>
+        <div class="label">
+          {{ t('personal.username') }}
+        </div>
         <div class="value">
-          <el-tag v-if="userinfo.role_id === 1" type="success">{{ userinfo.role_name }}</el-tag>
-          <el-tag v-else type="danger">{{ userinfo.role_name }}</el-tag>
+          {{ userinfo.username }}
         </div>
       </div>
-      <el-divider/>
+      <el-divider />
       <div class="info-row">
-        <div class="label">{{ t('personal.passwordStatus') }}</div>
+        <div class="label">
+          {{ t('personal.email') }}
+        </div>
         <div class="value">
-          <el-tag v-if="userinfo.has_password" type="success">{{ t('personal.set') }}</el-tag>
-          <el-tag v-else type="warning">{{ t('personal.notSet') }}</el-tag>
+          {{ userinfo.email || t('personal.notSet') }}
         </div>
       </div>
-      <el-divider/>
+      <el-divider />
+      <div class="info-row">
+        <div class="label">
+          {{ t('personal.phone') }}
+        </div>
+        <div class="value">
+          {{ userinfo.phone || t('personal.notSet') }}
+        </div>
+      </div>
+      <el-divider />
+      <div class="info-row">
+        <div class="label">
+          {{ t('personal.sex') }}
+        </div>
+        <div class="value">
+          {{ sexLabel }}
+        </div>
+      </div>
+      <el-divider />
+      <div class="info-row">
+        <div class="label">
+          {{ t('personal.role') }}
+        </div>
+        <div class="value">
+          <el-tag
+            v-if="userinfo.role_id === 1"
+            type="success"
+          >
+            {{ userinfo.role_name }}
+          </el-tag>
+          <el-tag
+            v-else
+            type="danger"
+          >
+            {{ userinfo.role_name }}
+          </el-tag>
+        </div>
+      </div>
+      <el-divider />
+      <div class="info-row">
+        <div class="label">
+          {{ t('personal.passwordStatus') }}
+        </div>
+        <div class="value">
+          <el-tag
+            v-if="userinfo.has_password"
+            type="success"
+          >
+            {{ t('personal.set') }}
+          </el-tag>
+          <el-tag
+            v-else
+            type="warning"
+          >
+            {{ t('personal.notSet') }}
+          </el-tag>
+        </div>
+      </div>
+      <el-divider />
       <div class="info-row bio-row">
-        <div class="label">{{ t('personal.bio') }}</div>
-        <div class="value">{{ userinfo.bio || t('personal.noBio') }}</div>
+        <div class="label">
+          {{ t('personal.bio') }}
+        </div>
+        <div class="value">
+          {{ userinfo.bio || t('personal.noBio') }}
+        </div>
       </div>
     </div>
   </el-card>

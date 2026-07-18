@@ -46,11 +46,27 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="isTauri()" class="window-controls">
+  <div
+    v-if="isTauri()"
+    class="window-controls"
+  >
     <div class="window-controls__divider" />
-    <el-button text :icon="SemiSelect" @click="minimize" />
-    <el-button text :icon="isMaximized ? CopyDocument : FullScreen" @click="toggleMaximize" />
-    <el-button text type="danger" :icon="Close" @click="handleClose" />
+    <el-button
+      text
+      :icon="SemiSelect"
+      @click="minimize"
+    />
+    <el-button
+      text
+      :icon="isMaximized ? CopyDocument : FullScreen"
+      @click="toggleMaximize"
+    />
+    <el-button
+      text
+      type="danger"
+      :icon="Close"
+      @click="handleClose"
+    />
   </div>
 </template>
 

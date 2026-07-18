@@ -61,24 +61,48 @@ watch(() => props.rows, applyExpansion)
   <div class="permission-table-wrap">
     <el-table
       ref="tableRef"
+      v-loading="loading"
       class="permission-table"
       :data="rows"
       style="width:100%"
-      v-loading="loading"
       row-key="id"
       border
       @selection-change="emit('selectionChange', $event)"
       @row-click="handleRowClick"
     >
-      <el-table-column type="selection" width="55" align="center" header-align="center" />
-      <el-table-column prop="id" width="150" :label="labels.id" />
-      <el-table-column prop="name" :label="labels.name" align="center" />
-      <el-table-column :label="labels.icon" align="center" width="80">
+      <el-table-column
+        type="selection"
+        width="55"
+        align="center"
+        header-align="center"
+      />
+      <el-table-column
+        prop="id"
+        width="150"
+        :label="labels.id"
+      />
+      <el-table-column
+        prop="name"
+        :label="labels.name"
+        align="center"
+      />
+      <el-table-column
+        :label="labels.icon"
+        align="center"
+        width="80"
+      >
         <template #default="scope">
-          <DIcon v-if="scope.row.icon" :icon="scope.row.icon" :size="24" />
+          <DIcon
+            v-if="scope.row.icon"
+            :icon="scope.row.icon"
+            :size="24"
+          />
         </template>
       </el-table-column>
-      <el-table-column :label="labels.status" align="center">
+      <el-table-column
+        :label="labels.status"
+        align="center"
+      >
         <template #default="scope">
           <el-switch
             v-model="scope.row.status"
@@ -90,21 +114,47 @@ watch(() => props.rows, applyExpansion)
           />
         </template>
       </el-table-column>
-      <el-table-column prop="sort" :label="labels.sort" align="center" width="90" />
-      <el-table-column :label="labels.type" align="center">
+      <el-table-column
+        prop="sort"
+        :label="labels.sort"
+        align="center"
+        width="90"
+      />
+      <el-table-column
+        :label="labels.type"
+        align="center"
+      >
         <template #default="scope">
-          <el-tag v-if="scope.row.type === PermissionTypeEnum.DIR" effect="dark" type="success">
+          <el-tag
+            v-if="scope.row.type === PermissionTypeEnum.DIR"
+            effect="dark"
+            type="success"
+          >
             {{ scope.row.type_name }}
           </el-tag>
-          <el-tag v-if="scope.row.type === PermissionTypeEnum.PAGE" effect="dark" type="primary">
+          <el-tag
+            v-if="scope.row.type === PermissionTypeEnum.PAGE"
+            effect="dark"
+            type="primary"
+          >
             {{ scope.row.type_name }}
           </el-tag>
-          <el-tag v-if="scope.row.type === PermissionTypeEnum.BUTTON" effect="dark" type="danger">
+          <el-tag
+            v-if="scope.row.type === PermissionTypeEnum.BUTTON"
+            effect="dark"
+            type="danger"
+          >
             {{ scope.row.type_name }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="labels.actions" align="center" min-width="180" fixed="right" header-align="center">
+      <el-table-column
+        :label="labels.actions"
+        align="center"
+        min-width="180"
+        fixed="right"
+        header-align="center"
+      >
         <template #default="scope">
           <el-button
             v-if="canAdd && scope.row.type !== PermissionTypeEnum.BUTTON"

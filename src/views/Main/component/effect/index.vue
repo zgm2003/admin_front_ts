@@ -22,32 +22,53 @@ const particleFeatures = [
   <div class="effect-demo">
     <el-tabs v-model="activeTab">
       <!-- ParticleBackground -->
-      <el-tab-pane label="ParticleBackground 粒子背景" name="ParticleBackground">
+      <el-tab-pane
+        label="ParticleBackground 粒子背景"
+        name="ParticleBackground"
+      >
         <div class="demo-section">
           <h4>效果预览</h4>
           <div class="demo-block preview-block">
             <el-button @click="showParticle = !showParticle">
               {{ showParticle ? '关闭预览' : '开启预览' }}
             </el-button>
-            <el-text type="info" style="margin-left: 12px">
+            <el-text
+              type="info"
+              style="margin-left: 12px"
+            >
               点击按钮在当前页面显示粒子背景效果
             </el-text>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;ParticleBackground /&gt;</el-text>
+            <el-text type="info">
+              &lt;ParticleBackground /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>功能特性</h4>
-          <el-table :data="particleFeatures" border>
-            <el-table-column prop="feature" label="特性" width="150"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="particleFeatures"
+            border
+          >
+            <el-table-column
+              prop="feature"
+              label="特性"
+              width="150"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>使用说明</h4>
           <div class="demo-block">
-            <el-alert type="info" :closable="false">
+            <el-alert
+              type="info"
+              :closable="false"
+            >
               <pre style="margin:0;white-space:pre-wrap">组件使用 position: fixed 全屏覆盖，z-index: 0 放在最底层。
 pointer-events: none 不阻挡点击事件。
 适用场景：登录页、首页等需要科技感背景的页面。</pre>
@@ -56,18 +77,36 @@ pointer-events: none 不阻挡点击事件。
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="particleProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="default" label="默认值" width="100"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="particleProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="100"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="100"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
     </el-tabs>
 
     <!-- 粒子背景预览 -->
-    <ParticleBackground v-if="showParticle"/>
+    <ParticleBackground v-if="showParticle" />
   </div>
 </template>
 

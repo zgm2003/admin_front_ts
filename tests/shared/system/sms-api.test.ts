@@ -134,9 +134,9 @@ describe('sms api and page contract', () => {
     const viewSource = readFrontendSource('src/views/Main/system/sms/index.vue')
     const logSource = readFrontendSource('src/views/Main/system/sms/components/SmsLogPanel.vue')
 
-    expect(viewSource).toContain('name="config" lazy')
-    expect(viewSource).toContain('name="template" lazy')
-    expect(viewSource).toContain('name="log" lazy')
+    expect(viewSource).toMatch(/name="config"\s+lazy/)
+    expect(viewSource).toMatch(/name="template"\s+lazy/)
+    expect(viewSource).toMatch(/name="log"\s+lazy/)
     expect(viewSource).toContain('@tab-change="handleTabChange"')
     expect(viewSource).toContain('ref="smsLogPanelRef"')
     expect(viewSource).toContain('smsLogPanelRef.value?.refreshLogs()')

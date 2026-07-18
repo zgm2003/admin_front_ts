@@ -94,65 +94,166 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '860px'" height="68vh">
-    <template #header>{{ t('aiKnowledge.retrieval.title') }} - {{ knowledgeBase?.name || '-' }}</template>
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '860px'"
+    height="68vh"
+  >
+    <template #header>
+      {{ t('aiKnowledge.retrieval.title') }} - {{ knowledgeBase?.name || '-' }}
+    </template>
     <div class="retrieval-test-dialog">
-      <el-form :model="form" label-width="auto">
-        <el-form-item :label="t('aiKnowledge.retrieval.query')" required>
-          <el-input v-model="form.query" type="textarea" :rows="3" :placeholder="t('aiKnowledge.retrieval.queryPlaceholder')" />
+      <el-form
+        :model="form"
+        label-width="auto"
+      >
+        <el-form-item
+          :label="t('aiKnowledge.retrieval.query')"
+          required
+        >
+          <el-input
+            v-model="form.query"
+            type="textarea"
+            :rows="3"
+            :placeholder="t('aiKnowledge.retrieval.queryPlaceholder')"
+          />
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :md="8" :span="24">
+          <el-col
+            :md="8"
+            :span="24"
+          >
             <el-form-item label="TopK">
-              <el-input-number v-model="form.top_k" :min="1" :max="20" class="retrieval-test-dialog__number" :controls="false" />
+              <el-input-number
+                v-model="form.top_k"
+                :min="1"
+                :max="20"
+                class="retrieval-test-dialog__number"
+                :controls="false"
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="8" :span="24">
+          <el-col
+            :md="8"
+            :span="24"
+          >
             <el-form-item :label="t('aiKnowledge.form.defaultMinScore')">
-              <el-input-number v-model="form.min_score" :min="0" :max="100" :step="0.01" class="retrieval-test-dialog__number" :controls="false" />
+              <el-input-number
+                v-model="form.min_score"
+                :min="0"
+                :max="100"
+                :step="0.01"
+                class="retrieval-test-dialog__number"
+                :controls="false"
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="8" :span="24">
+          <el-col
+            :md="8"
+            :span="24"
+          >
             <el-form-item :label="t('aiKnowledge.form.defaultContext')">
-              <el-input-number v-model="form.max_context_chars" :min="1000" :max="30000" :step="500" class="retrieval-test-dialog__number" :controls="false" />
+              <el-input-number
+                v-model="form.max_context_chars"
+                :min="1000"
+                :max="30000"
+                :step="500"
+                class="retrieval-test-dialog__number"
+                :controls="false"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
 
-      <el-alert v-if="result" type="success" :closable="false" class="retrieval-test-dialog__summary">
+      <el-alert
+        v-if="result"
+        type="success"
+        :closable="false"
+        class="retrieval-test-dialog__summary"
+      >
         <template #title>
           {{ t('aiKnowledge.retrieval.summary', { selected: result.selected_hits, total: result.total_hits }) }}
         </template>
       </el-alert>
 
-      <el-table v-if="result" v-loading="loading" :data="result.hits" border>
-        <el-table-column prop="rank_no" :label="t('aiKnowledge.retrieval.rank')" width="80" />
-        <el-table-column prop="score" :label="t('aiKnowledge.retrieval.score')" width="90" />
-        <el-table-column prop="knowledge_base_name" :label="t('aiKnowledge.table.name')" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="document_title" :label="t('aiKnowledge.document.title')" min-width="150" show-overflow-tooltip />
-        <el-table-column :label="t('aiKnowledge.retrieval.hitStatus')" width="120">
+      <el-table
+        v-if="result"
+        v-loading="loading"
+        :data="result.hits"
+        border
+      >
+        <el-table-column
+          prop="rank_no"
+          :label="t('aiKnowledge.retrieval.rank')"
+          width="80"
+        />
+        <el-table-column
+          prop="score"
+          :label="t('aiKnowledge.retrieval.score')"
+          width="90"
+        />
+        <el-table-column
+          prop="knowledge_base_name"
+          :label="t('aiKnowledge.table.name')"
+          min-width="150"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="document_title"
+          :label="t('aiKnowledge.document.title')"
+          min-width="150"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          :label="t('aiKnowledge.retrieval.hitStatus')"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ hitStatusName(row) }}</el-tag>
+            <el-tag :type="row.status === 1 ? 'success' : 'info'">
+              {{ hitStatusName(row) }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('aiKnowledge.chunk.content')" min-width="260">
+        <el-table-column
+          :label="t('aiKnowledge.chunk.content')"
+          min-width="260"
+        >
           <template #default="{ row }">
-            <el-text line-clamp="3">{{ row.content }}</el-text>
+            <el-text line-clamp="3">
+              {{ row.content }}
+            </el-text>
           </template>
         </el-table-column>
       </el-table>
 
-      <div v-if="selectedHits.length" class="retrieval-test-dialog__selected">
-        <div class="retrieval-test-dialog__selected-title">{{ t('aiKnowledge.retrieval.selected') }}</div>
-        <el-tag v-for="hit in selectedHits" :key="hit.chunk_id" type="success">
+      <div
+        v-if="selectedHits.length"
+        class="retrieval-test-dialog__selected"
+      >
+        <div class="retrieval-test-dialog__selected-title">
+          {{ t('aiKnowledge.retrieval.selected') }}
+        </div>
+        <el-tag
+          v-for="hit in selectedHits"
+          :key="hit.chunk_id"
+          type="success"
+        >
           #{{ hit.rank_no }} {{ hit.document_title }} / {{ hit.chunk_index }}
         </el-tag>
       </div>
     </div>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="loading" @click="submit">{{ t('aiKnowledge.actions.retrievalTest') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="submit"
+      >
+        {{ t('aiKnowledge.actions.retrievalTest') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

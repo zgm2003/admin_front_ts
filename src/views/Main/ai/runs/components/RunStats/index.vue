@@ -233,41 +233,99 @@ onMounted(async () => {
 <template>
   <div class="run-stats">
     <!-- 筛选器 -->
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
 
     <!-- 概览卡片 -->
-    <div class="stats-section" v-loading="summaryLoading">
-      <h3 class="section-title">{{ t('aiRuns.stats.overview') }}</h3>
-      <p class="section-subtitle">{{ t('aiRuns.stats.keyOnlyTip') }}</p>
-      <div v-if="summaryCards.length" class="summary-grid">
-        <div v-for="(card, i) in summaryCards" :key="i" class="stat-card">
-          <div class="stat-value" :style="card.color ? { color: card.color } : {}">{{ card.value }}</div>
-          <div class="stat-label">{{ card.label }}</div>
-          <div v-if="card.detail" class="stat-detail">{{ card.detail }}</div>
+    <div
+      v-loading="summaryLoading"
+      class="stats-section"
+    >
+      <h3 class="section-title">
+        {{ t('aiRuns.stats.overview') }}
+      </h3>
+      <p class="section-subtitle">
+        {{ t('aiRuns.stats.keyOnlyTip') }}
+      </p>
+      <div
+        v-if="summaryCards.length"
+        class="summary-grid"
+      >
+        <div
+          v-for="(card, i) in summaryCards"
+          :key="i"
+          class="stat-card"
+        >
+          <div
+            class="stat-value"
+            :style="card.color ? { color: card.color } : {}"
+          >
+            {{ card.value }}
+          </div>
+          <div class="stat-label">
+            {{ card.label }}
+          </div>
+          <div
+            v-if="card.detail"
+            class="stat-detail"
+          >
+            {{ card.detail }}
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 按日期统计 -->
     <div class="stats-section">
-      <h3 class="section-title">{{ t('aiRuns.stats.recentDates') }}</h3>
-      <el-table :data="dateLoader.state.value.data" v-loading="dateLoader.state.value.loading" stripe size="small">
-        <el-table-column v-for="col in statsColumns('date', t('aiRuns.stats.date'))" :key="col.prop"
-          :prop="col.prop" :label="col.label" :formatter="col.formatter" />
+      <h3 class="section-title">
+        {{ t('aiRuns.stats.recentDates') }}
+      </h3>
+      <el-table
+        v-loading="dateLoader.state.value.loading"
+        :data="dateLoader.state.value.data"
+        stripe
+        size="small"
+      >
+        <el-table-column
+          v-for="col in statsColumns('date', t('aiRuns.stats.date'))"
+          :key="col.prop"
+          :prop="col.prop"
+          :label="col.label"
+          :formatter="col.formatter"
+        />
       </el-table>
     </div>
 
     <!-- 按智能体统计 -->
     <div class="stats-section">
-      <h3 class="section-title">{{ t('aiRuns.stats.topAgents') }}</h3>
-      <el-table :data="agentLoader.state.value.data" v-loading="agentLoader.state.value.loading" stripe size="small">
-        <el-table-column v-for="col in statsColumns('agent_name', t('aiRuns.stats.agent'))" :key="col.prop"
-          :prop="col.prop" :label="col.label" :formatter="col.formatter" />
+      <h3 class="section-title">
+        {{ t('aiRuns.stats.topAgents') }}
+      </h3>
+      <el-table
+        v-loading="agentLoader.state.value.loading"
+        :data="agentLoader.state.value.data"
+        stripe
+        size="small"
+      >
+        <el-table-column
+          v-for="col in statsColumns('agent_name', t('aiRuns.stats.agent'))"
+          :key="col.prop"
+          :prop="col.prop"
+          :label="col.label"
+          :formatter="col.formatter"
+        />
       </el-table>
     </div>
 
     <!-- 空状态 -->
-    <el-empty v-if="!summaryLoading && !hasSummaryData" :description="t('aiRuns.stats.noData')"/>
+    <el-empty
+      v-if="!summaryLoading && !hasSummaryData"
+      :description="t('aiRuns.stats.noData')"
+    />
   </div>
 </template>
 

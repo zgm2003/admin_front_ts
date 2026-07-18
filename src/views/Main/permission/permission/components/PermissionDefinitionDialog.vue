@@ -72,53 +72,164 @@ async function confirmSubmit() {
     destroy-on-close
   >
     <div class="permission-dialog-content">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto" :validate-on-rule-change="false">
-        <el-form-item :label="t('permission.form.type')" prop="type" required>
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="auto"
+        :validate-on-rule-change="false"
+      >
+        <el-form-item
+          :label="t('permission.form.type')"
+          prop="type"
+          required
+        >
           <el-radio-group v-model="form.type">
-            <el-radio v-for="item in props.permissionTypes" :key="item.value" :value="item.value" border>
+            <el-radio
+              v-for="item in props.permissionTypes"
+              :key="item.value"
+              :value="item.value"
+              border
+            >
               {{ item.label }}
             </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="t('permission.form.parent_id')" prop="parent_id">
-          <el-tree-select v-model="form.parent_id" :data="props.parentTree" clearable :check-strictly="true" :render-after-expand="false" />
+        <el-form-item
+          :label="t('permission.form.parent_id')"
+          prop="parent_id"
+        >
+          <el-tree-select
+            v-model="form.parent_id"
+            :data="props.parentTree"
+            clearable
+            :check-strictly="true"
+            :render-after-expand="false"
+          />
         </el-form-item>
-        <el-form-item :label="t('permission.form.name')" prop="name" required>
-          <el-input v-model="form.name" style="width:100%" clearable :placeholder="t('permission.form.placeholder.name')" />
+        <el-form-item
+          :label="t('permission.form.name')"
+          prop="name"
+          required
+        >
+          <el-input
+            v-model="form.name"
+            style="width:100%"
+            clearable
+            :placeholder="t('permission.form.placeholder.name')"
+          />
         </el-form-item>
-        <el-form-item v-if="isMenuType" :label="t('permission.form.i18n_key')" prop="i18n_key" required>
-          <el-input v-model="form.i18n_key" style="width:100%" clearable :placeholder="t('permission.form.placeholder.i18n_key')" />
+        <el-form-item
+          v-if="isMenuType"
+          :label="t('permission.form.i18n_key')"
+          prop="i18n_key"
+          required
+        >
+          <el-input
+            v-model="form.i18n_key"
+            style="width:100%"
+            clearable
+            :placeholder="t('permission.form.placeholder.i18n_key')"
+          />
           <div class="form-help-text">
             {{ t('permission.form.help.i18n_key') }}
           </div>
         </el-form-item>
-        <el-form-item v-if="isMenuType" :label="t('permission.form.show_menu')" prop="show_menu" required>
+        <el-form-item
+          v-if="isMenuType"
+          :label="t('permission.form.show_menu')"
+          prop="show_menu"
+          required
+        >
           <el-radio-group v-model="form.show_menu">
-            <el-radio :value="CommonEnum.YES" border>{{ t('common.status.show') }}</el-radio>
-            <el-radio :value="CommonEnum.NO" border>{{ t('common.status.hide') }}</el-radio>
+            <el-radio
+              :value="CommonEnum.YES"
+              border
+            >
+              {{ t('common.status.show') }}
+            </el-radio>
+            <el-radio
+              :value="CommonEnum.NO"
+              border
+            >
+              {{ t('common.status.hide') }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="t('permission.form.sort')" prop="sort" required>
-          <el-input-number v-model="form.sort" :min="1" :max="1000" :step="1" :controls="false" />
+        <el-form-item
+          :label="t('permission.form.sort')"
+          prop="sort"
+          required
+        >
+          <el-input-number
+            v-model="form.sort"
+            :min="1"
+            :max="1000"
+            :step="1"
+            :controls="false"
+          />
         </el-form-item>
-        <el-form-item v-if="isMenuType" :label="t('permission.form.icon')">
-          <el-input v-model="form.icon" style="width:80%" clearable />
-          <el-button :icon="Setting" @click="emit('openIconSelect')">{{ t('common.actions.edit') }}</el-button>
+        <el-form-item
+          v-if="isMenuType"
+          :label="t('permission.form.icon')"
+        >
+          <el-input
+            v-model="form.icon"
+            style="width:80%"
+            clearable
+          />
+          <el-button
+            :icon="Setting"
+            @click="emit('openIconSelect')"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
         </el-form-item>
-        <el-form-item v-if="form.type === PermissionTypeEnum.PAGE" :label="t('permission.form.path')" prop="path" required>
-          <el-input v-model="form.path" style="width:100%" clearable :placeholder="t('permission.form.placeholder.path')" />
+        <el-form-item
+          v-if="form.type === PermissionTypeEnum.PAGE"
+          :label="t('permission.form.path')"
+          prop="path"
+          required
+        >
+          <el-input
+            v-model="form.path"
+            style="width:100%"
+            clearable
+            :placeholder="t('permission.form.placeholder.path')"
+          />
           <div class="form-help-text">
             {{ t('permission.form.help.path') }}
           </div>
         </el-form-item>
-        <el-form-item v-if="form.type === PermissionTypeEnum.PAGE" :label="t('permission.form.component')" prop="component" required>
-          <el-input v-model="form.component" style="width:100%" clearable :rows="5" :placeholder="t('permission.form.placeholder.component')" />
+        <el-form-item
+          v-if="form.type === PermissionTypeEnum.PAGE"
+          :label="t('permission.form.component')"
+          prop="component"
+          required
+        >
+          <el-input
+            v-model="form.component"
+            style="width:100%"
+            clearable
+            :rows="5"
+            :placeholder="t('permission.form.placeholder.component')"
+          />
           <div class="form-help-text">
             {{ t('permission.form.help.component') }}
           </div>
         </el-form-item>
-        <el-form-item v-if="form.type === PermissionTypeEnum.BUTTON" :label="t('permission.form.code')" prop="code" required>
-          <el-input v-model="form.code" style="width:100%" clearable :placeholder="t('permission.form.placeholder.code')" />
+        <el-form-item
+          v-if="form.type === PermissionTypeEnum.BUTTON"
+          :label="t('permission.form.code')"
+          prop="code"
+          required
+        >
+          <el-input
+            v-model="form.code"
+            style="width:100%"
+            clearable
+            :placeholder="t('permission.form.placeholder.code')"
+          />
           <div class="form-help-text">
             {{ t('permission.form.codeHint') }}
           </div>
@@ -128,7 +239,10 @@ async function confirmSubmit() {
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-        <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+        <el-button
+          type="primary"
+          @click="confirmSubmit"
+        >{{ t('common.actions.confirm') }}</el-button>
       </span>
     </template>
   </AppDialog>

@@ -126,31 +126,95 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '780px'" height="64vh">
-    <template #header>{{ title }}</template>
-    <el-alert v-if="knowledgeBase" type="info" :closable="false" class="knowledge-document-form__base">
-      <template #title>{{ t('aiKnowledge.document.currentBase') }}：{{ knowledgeBase.name }}</template>
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '780px'"
+    height="64vh"
+  >
+    <template #header>
+      {{ title }}
+    </template>
+    <el-alert
+      v-if="knowledgeBase"
+      type="info"
+      :closable="false"
+      class="knowledge-document-form__base"
+    >
+      <template #title>
+        {{ t('aiKnowledge.document.currentBase') }}：{{ knowledgeBase.name }}
+      </template>
     </el-alert>
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto" :validate-on-rule-change="false">
-      <el-form-item :label="t('aiKnowledge.document.title')" prop="title" required>
-        <el-input v-model="form.title" clearable />
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="auto"
+      :validate-on-rule-change="false"
+    >
+      <el-form-item
+        :label="t('aiKnowledge.document.title')"
+        prop="title"
+        required
+      >
+        <el-input
+          v-model="form.title"
+          clearable
+        />
       </el-form-item>
-      <el-form-item :label="t('aiKnowledge.document.sourceType')" prop="source_type" required>
-        <el-select-v2 v-model="form.source_type" :options="props.dict.source_type_arr" class="knowledge-document-form__select" />
+      <el-form-item
+        :label="t('aiKnowledge.document.sourceType')"
+        prop="source_type"
+        required
+      >
+        <el-select-v2
+          v-model="form.source_type"
+          :options="props.dict.source_type_arr"
+          class="knowledge-document-form__select"
+        />
       </el-form-item>
-      <el-form-item :label="t('aiKnowledge.document.sourceRef')" prop="source_ref">
-        <el-input v-model="form.source_ref" clearable />
+      <el-form-item
+        :label="t('aiKnowledge.document.sourceRef')"
+        prop="source_ref"
+      >
+        <el-input
+          v-model="form.source_ref"
+          clearable
+        />
       </el-form-item>
-      <el-form-item :label="t('aiKnowledge.document.content')" prop="content" required>
-        <el-input v-model="form.content" type="textarea" :rows="12" />
+      <el-form-item
+        :label="t('aiKnowledge.document.content')"
+        prop="content"
+        required
+      >
+        <el-input
+          v-model="form.content"
+          type="textarea"
+          :rows="12"
+        />
       </el-form-item>
-      <el-form-item :label="t('aiKnowledge.form.status')" prop="status" required>
-        <el-select-v2 v-model="form.status" :options="props.dict.common_status_arr" class="knowledge-document-form__select" />
+      <el-form-item
+        :label="t('aiKnowledge.form.status')"
+        prop="status"
+        required
+      >
+        <el-select-v2
+          v-model="form.status"
+          :options="props.dict.common_status_arr"
+          class="knowledge-document-form__select"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">{{ t('common.actions.confirm') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saving"
+        @click="submit"
+      >
+        {{ t('common.actions.confirm') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

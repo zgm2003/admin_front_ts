@@ -138,141 +138,307 @@ const remoteSelectProps = [
   <div class="form-demo">
     <el-tabs v-model="activeTab">
       <!-- Search -->
-      <el-tab-pane label="Search 搜索" name="Search">
+      <el-tab-pane
+        label="Search 搜索"
+        name="Search"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <Search v-model="searchForm" :fields="searchFields" @query="handleQuery"/>
+            <Search
+              v-model="searchForm"
+              :fields="searchFields"
+              @query="handleQuery"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;Search v-model="searchForm" :fields="searchFields" @query="handleQuery" /&gt;
+            <el-text type="info">
+              &lt;Search v-model="searchForm" :fields="searchFields" @query="handleQuery" /&gt;
             </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="searchProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="searchProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Events</h4>
-          <el-table :data="searchEvents" border>
-            <el-table-column prop="name" label="事件名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="searchEvents"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="事件名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Field 配置项</h4>
-          <el-table :data="fieldProps" border>
-            <el-table-column prop="name" label="属性名" width="160"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="required" label="必填" width="80"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="fieldProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="160"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="required"
+              label="必填"
+              width="80"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Field type 可选值</h4>
-          <el-table :data="[
-            { type: 'input', desc: '文本输入框，透传 el-input 属性' },
-            { type: 'select-v2', desc: '虚拟下拉选择器，需配置 options，透传 el-select-v2 属性' },
-            { type: 'cascader', desc: '级联选择器，需配置 options 和 cascaderProps，透传 el-cascader 属性' },
-            { type: 'date-range', desc: '日期范围选择器，透传 el-date-picker 属性' },
-            { type: 'date', desc: '单日期选择器，透传 el-date-picker 属性' },
-            { type: 'remote-select', desc: '远程搜索选择器，需配置 fetchMethod，支持滚动加载' },
-            { type: 'slot', desc: '插槽，通过 #[key] 自定义内容' }
-          ]" border>
-            <el-table-column prop="type" label="type 值" width="150"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="[
+              { type: 'input', desc: '文本输入框，透传 el-input 属性' },
+              { type: 'select-v2', desc: '虚拟下拉选择器，需配置 options，透传 el-select-v2 属性' },
+              { type: 'cascader', desc: '级联选择器，需配置 options 和 cascaderProps，透传 el-cascader 属性' },
+              { type: 'date-range', desc: '日期范围选择器，透传 el-date-picker 属性' },
+              { type: 'date', desc: '单日期选择器，透传 el-date-picker 属性' },
+              { type: 'remote-select', desc: '远程搜索选择器，需配置 fetchMethod，支持滚动加载' },
+              { type: 'slot', desc: '插槽，通过 #[key] 自定义内容' }
+            ]"
+            border
+          >
+            <el-table-column
+              prop="type"
+              label="type 值"
+              width="150"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- SendCode -->
-      <el-tab-pane label="SendCode 验证码" name="SendCode">
+      <el-tab-pane
+        label="SendCode 验证码"
+        name="SendCode"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
-          <div class="demo-block" style="max-width: 400px">
-            <SendCode v-model="code" :account="testEmail" scene="bind_email" placeholder="请输入验证码"/>
+          <div
+            class="demo-block"
+            style="max-width: 400px"
+          >
+            <SendCode
+              v-model="code"
+              :account="testEmail"
+              scene="bind_email"
+              placeholder="请输入验证码"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;SendCode v-model="code" account="test@example.com" scene="bind_email" /&gt;</el-text>
+            <el-text type="info">
+              &lt;SendCode v-model="code" account="test@example.com" scene="bind_email" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="sendCodeProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="sendCodeProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- IconSelect -->
-      <el-tab-pane label="IconSelect 图标选择" name="IconSelect">
+      <el-tab-pane
+        label="IconSelect 图标选择"
+        name="IconSelect"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
             <el-space>
-              <el-button @click="iconSelectRef?.show()">选择图标</el-button>
+              <el-button @click="iconSelectRef?.show()">
+                选择图标
+              </el-button>
               <el-tag v-if="selectedIcon">
                 <el-icon>
-                  <component :is="selectedIcon"/>
+                  <component :is="selectedIcon" />
                 </el-icon>
                 {{ selectedIcon }}
               </el-tag>
             </el-space>
-            <IconSelect ref="iconSelectRef" @select-icon="handleIconSelect"/>
+            <IconSelect
+              ref="iconSelectRef"
+              @select-icon="handleIconSelect"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;IconSelect ref="iconSelectRef" @select-icon="handleIconSelect" /&gt;</el-text>
+            <el-text type="info">
+              &lt;IconSelect ref="iconSelectRef" @select-icon="handleIconSelect" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Events</h4>
-          <el-table :data="iconSelectProps" border>
-            <el-table-column prop="name" label="事件名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="iconSelectProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="事件名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Exposes</h4>
-          <el-table :data="iconSelectExpose" border>
-            <el-table-column prop="name" label="方法名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="iconSelectExpose"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="方法名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- RemoteSelect -->
-      <el-tab-pane label="RemoteSelect 远程搜索" name="RemoteSelect">
+      <el-tab-pane
+        label="RemoteSelect 远程搜索"
+        name="RemoteSelect"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
             <el-space>
-              <RemoteSelect v-model="remoteValue" :fetch-method="mockFetch" placeholder="搜索用户" />
-              <el-tag v-if="remoteValue">选中: {{ remoteValue }}</el-tag>
+              <RemoteSelect
+                v-model="remoteValue"
+                :fetch-method="mockFetch"
+                placeholder="搜索用户"
+              />
+              <el-tag v-if="remoteValue">
+                选中: {{ remoteValue }}
+              </el-tag>
             </el-space>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;RemoteSelect v-model="value" :fetch-method="fetchUsers" /&gt;</el-text>
+            <el-text type="info">
+              &lt;RemoteSelect v-model="value" :fetch-method="fetchUsers" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="remoteSelectProps" border>
-            <el-table-column prop="name" label="属性名" width="180"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="default" label="默认值" width="150"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="remoteSelectProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="180"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="150"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">

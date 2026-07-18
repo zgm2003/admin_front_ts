@@ -24,22 +24,36 @@ const handleSelect = (agent: Agent) => {
   <div class="agent-sidebar">
     <!-- 标题 -->
     <div class="sidebar-header">
-      <h3 class="sidebar-title">{{ t('aiChat.agentList') }}</h3>
+      <h3 class="sidebar-title">
+        {{ t('aiChat.agentList') }}
+      </h3>
     </div>
 
     <!-- 智能体列表 -->
     <el-scrollbar class="agent-list">
       <!-- 加载状态 -->
-      <div v-if="loading" class="loading-tip">
-        <el-icon class="is-loading" :size="20">
+      <div
+        v-if="loading"
+        class="loading-tip"
+      >
+        <el-icon
+          class="is-loading"
+          :size="20"
+        >
           <Loading />
         </el-icon>
         <span>{{ t('aiChat.loading') }}</span>
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="agents.length === 0" class="empty-tip">
-        <el-icon :size="48" class="empty-icon">
+      <div
+        v-else-if="agents.length === 0"
+        class="empty-tip"
+      >
+        <el-icon
+          :size="48"
+          class="empty-icon"
+        >
           <Avatar />
         </el-icon>
         <p>{{ t('aiChat.noAgent') }}</p>

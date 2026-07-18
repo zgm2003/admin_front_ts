@@ -142,9 +142,9 @@ describe('mail api and page contract', () => {
     const viewSource = readFrontendSource('src/views/Main/system/mail/index.vue')
     const logSource = readFrontendSource('src/views/Main/system/mail/components/MailLogPanel.vue')
 
-    expect(viewSource).toContain('name="config" lazy')
-    expect(viewSource).toContain('name="template" lazy')
-    expect(viewSource).toContain('name="log" lazy')
+    expect(viewSource).toMatch(/name="config"\s+lazy/)
+    expect(viewSource).toMatch(/name="template"\s+lazy/)
+    expect(viewSource).toMatch(/name="log"\s+lazy/)
     expect(viewSource).toContain('@tab-change="handleTabChange"')
     expect(viewSource).toContain('ref="mailLogPanelRef"')
     expect(viewSource).toContain('mailLogPanelRef.value?.refreshLogs()')

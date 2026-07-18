@@ -135,17 +135,31 @@ const groupedConversations = computed(() => {
       <div class="drawer-header">
         <div class="header-title">
           <span>{{ t('aiChat.historyConversations') }}</span>
-          <span v-if="agentName" class="agent-badge">{{ agentName }}</span>
+          <span
+            v-if="agentName"
+            class="agent-badge"
+          >{{ agentName }}</span>
         </div>
-        <el-button text class="close-btn" @click="handleClose">
-          <el-icon :size="18"><Close /></el-icon>
+        <el-button
+          text
+          class="close-btn"
+          @click="handleClose"
+        >
+          <el-icon :size="18">
+            <Close />
+          </el-icon>
         </el-button>
       </div>
 
       <!-- 新建按钮 -->
       <div class="drawer-actions">
-        <el-button class="new-chat-btn" @click="handleCreate">
-          <el-icon :size="16"><Plus /></el-icon>
+        <el-button
+          class="new-chat-btn"
+          @click="handleCreate"
+        >
+          <el-icon :size="16">
+            <Plus />
+          </el-icon>
           <span>{{ t('aiChat.newConversation') }}</span>
         </el-button>
       </div>
@@ -164,21 +178,49 @@ const groupedConversations = computed(() => {
       </div>
 
       <!-- 会话列表 -->
-      <el-scrollbar ref="scrollbarRef" class="conversation-list" @scroll="handleScroll">
-        <div v-if="loading" class="loading-tip">
-          <el-icon class="is-loading" :size="20"><Loading /></el-icon>
+      <el-scrollbar
+        ref="scrollbarRef"
+        class="conversation-list"
+        @scroll="handleScroll"
+      >
+        <div
+          v-if="loading"
+          class="loading-tip"
+        >
+          <el-icon
+            class="is-loading"
+            :size="20"
+          >
+            <Loading />
+          </el-icon>
           <span>{{ t('aiChat.loading') }}</span>
         </div>
 
-        <div v-else-if="conversations.length === 0" class="empty-tip">
-          <el-icon :size="40" class="empty-icon"><ChatDotRound /></el-icon>
+        <div
+          v-else-if="conversations.length === 0"
+          class="empty-tip"
+        >
+          <el-icon
+            :size="40"
+            class="empty-icon"
+          >
+            <ChatDotRound />
+          </el-icon>
           <p>{{ t('aiChat.noConversation') }}</p>
-          <p class="empty-hint">{{ t('aiChat.startNewChat') }}</p>
+          <p class="empty-hint">
+            {{ t('aiChat.startNewChat') }}
+          </p>
         </div>
 
         <template v-else>
-          <div v-for="group in groupedConversations" :key="group.label" class="conversation-group">
-            <div class="group-label">{{ group.label }}</div>
+          <div
+            v-for="group in groupedConversations"
+            :key="group.label"
+            class="conversation-group"
+          >
+            <div class="group-label">
+              {{ group.label }}
+            </div>
             <div
               v-for="conv in group.items"
               :key="conv.id"
@@ -186,11 +228,26 @@ const groupedConversations = computed(() => {
               :class="{ active: conv.id === currentId }"
               @click="handleSelect(conv)"
             >
-              <el-icon class="conv-icon" :size="16"><ChatDotRound /></el-icon>
+              <el-icon
+                class="conv-icon"
+                :size="16"
+              >
+                <ChatDotRound />
+              </el-icon>
               <span class="conv-title">{{ conv.title || t('aiChat.untitled') }}</span>
-              <el-dropdown trigger="click" @click.stop>
-                <el-button text size="small" class="conv-menu-btn" @click.stop>
-                  <el-icon :size="16"><MoreFilled /></el-icon>
+              <el-dropdown
+                trigger="click"
+                @click.stop
+              >
+                <el-button
+                  text
+                  size="small"
+                  class="conv-menu-btn"
+                  @click.stop
+                >
+                  <el-icon :size="16">
+                    <MoreFilled />
+                  </el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -198,7 +255,10 @@ const groupedConversations = computed(() => {
                       <el-icon><Edit /></el-icon>
                       {{ t('aiChat.rename') }}
                     </el-dropdown-item>
-                    <el-dropdown-item @click="emit('delete', conv)" class="danger-item">
+                    <el-dropdown-item
+                      class="danger-item"
+                      @click="emit('delete', conv)"
+                    >
                       <el-icon><Delete /></el-icon>
                       {{ t('aiChat.delete') }}
                     </el-dropdown-item>
@@ -208,11 +268,22 @@ const groupedConversations = computed(() => {
             </div>
           </div>
 
-          <div v-if="loadingMore" class="loading-more-tip">
-            <el-icon class="is-loading" :size="16"><Loading /></el-icon>
+          <div
+            v-if="loadingMore"
+            class="loading-more-tip"
+          >
+            <el-icon
+              class="is-loading"
+              :size="16"
+            >
+              <Loading />
+            </el-icon>
             <span>{{ t('aiChat.loading') }}</span>
           </div>
-          <div v-else-if="!hasMore && conversations.length > 0" class="no-more-tip">
+          <div
+            v-else-if="!hasMore && conversations.length > 0"
+            class="no-more-tip"
+          >
             {{ t('aiChat.noMoreConversations') }}
           </div>
         </template>

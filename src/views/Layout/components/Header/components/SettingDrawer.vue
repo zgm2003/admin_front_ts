@@ -1,8 +1,15 @@
 <template>
-  <el-drawer v-model="show" direction="rtl" size="320px" class="setting-drawer">
+  <el-drawer
+    v-model="show"
+    direction="rtl"
+    size="320px"
+    class="setting-drawer"
+  >
     <template #header>
       <div class="drawer-header">
-        <el-icon :size="20"><Setting /></el-icon>
+        <el-icon :size="20">
+          <Setting />
+        </el-icon>
         <span>{{ t('header.projectConfig') }}</span>
       </div>
     </template>
@@ -10,14 +17,18 @@
     <div class="setting-body">
       <!-- 主题模式 -->
       <div class="setting-section">
-        <div class="section-title">{{ t('header.theme') }}</div>
+        <div class="section-title">
+          {{ t('header.theme') }}
+        </div>
         <div class="theme-switch">
           <div 
             class="theme-option" 
             :class="{ active: !isDark }" 
             @click="onThemeChange(false)"
           >
-            <el-icon :size="20"><Sunny /></el-icon>
+            <el-icon :size="20">
+              <Sunny />
+            </el-icon>
             <span>{{ t('header.lightMode') }}</span>
           </div>
           <div 
@@ -25,7 +36,9 @@
             :class="{ active: isDark }" 
             @click="onThemeChange(true)"
           >
-            <el-icon :size="20"><Moon /></el-icon>
+            <el-icon :size="20">
+              <Moon />
+            </el-icon>
             <span>{{ t('header.darkMode') }}</span>
           </div>
         </div>
@@ -33,7 +46,9 @@
       
       <!-- 主题色 -->
       <div class="setting-section">
-        <div class="section-title">{{ t('header.systemTheme') }}</div>
+        <div class="section-title">
+          {{ t('header.systemTheme') }}
+        </div>
         <div class="color-grid">
           <div 
             v-for="c in themeColors" 
@@ -44,81 +59,138 @@
             :title="c.label"
             @click="systemColor(c.value)"
           >
-            <el-icon v-if="menuStore.systemColor === c.value" :size="14"><Check /></el-icon>
+            <el-icon
+              v-if="menuStore.systemColor === c.value"
+              :size="14"
+            >
+              <Check />
+            </el-icon>
           </div>
           <div class="color-item custom-picker-wrapper">
-            <el-color-picker v-model="customColor" @change="onCustomColor" />
+            <el-color-picker
+              v-model="customColor"
+              @change="onCustomColor"
+            />
           </div>
         </div>
       </div>
       
       <!-- 界面显示 -->
       <div class="setting-section">
-        <div class="section-title">{{ t('header.display') }}</div>
+        <div class="section-title">
+          {{ t('header.display') }}
+        </div>
         <div class="setting-list">
           <div class="setting-item">
             <span>{{ t('header.breadcrumb') }}</span>
-            <el-switch v-model="menuStore.breadcrumb" @change="breadcrumb" />
+            <el-switch
+              v-model="menuStore.breadcrumb"
+              @change="breadcrumb"
+            />
           </div>
           <div class="setting-item">
             <span>{{ t('header.hamburger') }}</span>
-            <el-switch v-model="menuStore.hamburger" @change="hamburger" />
+            <el-switch
+              v-model="menuStore.hamburger"
+              @change="hamburger"
+            />
           </div>
           <div class="setting-item">
             <span>{{ t('header.tab') }}</span>
-            <el-switch v-model="menuStore.tabtag" @change="tabtag" />
+            <el-switch
+              v-model="menuStore.tabtag"
+              @change="tabtag"
+            />
           </div>
           <div class="setting-item">
             <span>{{ t('header.uniqueOpen') }}</span>
-            <el-switch v-model="menuStore.uniqueOpen" @change="uniqueOpen" />
+            <el-switch
+              v-model="menuStore.uniqueOpen"
+              @change="uniqueOpen"
+            />
           </div>
           <div class="setting-item">
             <span>{{ t('header.footer') }}</span>
-            <el-switch v-model="menuStore.footer" @change="changeFooter" />
+            <el-switch
+              v-model="menuStore.footer"
+              @change="changeFooter"
+            />
           </div>
         </div>
       </div>
       
       <!-- 页面过渡 -->
       <div class="setting-section">
-        <div class="section-title">{{ t('header.transition') }}</div>
+        <div class="section-title">
+          {{ t('header.transition') }}
+        </div>
         <div class="setting-list">
           <div class="setting-item">
             <span>{{ t('header.transitionEnable') }}</span>
-            <el-switch v-model="menuStore.pageTransition" @change="pageTransition" />
+            <el-switch
+              v-model="menuStore.pageTransition"
+              @change="pageTransition"
+            />
           </div>
           <div class="setting-item">
             <span>{{ t('header.transitionType') }}</span>
-            <el-select-v2 v-model="menuStore.transitionName" :options="transitionOptions" style="width: 140px" size="small" @change="transitionName" />
+            <el-select-v2
+              v-model="menuStore.transitionName"
+              :options="transitionOptions"
+              style="width: 140px"
+              size="small"
+              @change="transitionName"
+            />
           </div>
         </div>
       </div>
       
       <!-- 桌面应用设置（仅 Tauri 环境） -->
-      <div v-if="tauriStore.isTauriEnv" class="setting-section">
-        <div class="section-title">{{ t('header.desktopApp') }}</div>
+      <div
+        v-if="tauriStore.isTauriEnv"
+        class="setting-section"
+      >
+        <div class="section-title">
+          {{ t('header.desktopApp') }}
+        </div>
         <div class="setting-list">
           <div class="setting-item">
             <span>{{ t('header.onClose') }}</span>
-            <el-select-v2 v-model="closeActionValue" :options="closeActionOptions" style="width: 140px" size="small" @change="onCloseActionChange" />
+            <el-select-v2
+              v-model="closeActionValue"
+              :options="closeActionOptions"
+              style="width: 140px"
+              size="small"
+              @change="onCloseActionChange"
+            />
           </div>
         </div>
       </div>
       
       <!-- 操作按钮 -->
       <div class="setting-actions">
-        <el-button @click="clear" class="action-btn">
+        <el-button
+          class="action-btn"
+          @click="clear"
+        >
           <el-icon><Delete /></el-icon>
           {{ t('header.clearCache') }}
         </el-button>
-        <el-button type="primary" @click="resetTheme" class="action-btn">
+        <el-button
+          type="primary"
+          class="action-btn"
+          @click="resetTheme"
+        >
           <el-icon><RefreshRight /></el-icon>
           {{ t('header.resetConfig') }}
         </el-button>
       </div>
       
       <!-- 版本信息 -->
-      <div v-if="tauriStore.version" class="version-section">
+      <div
+        v-if="tauriStore.version"
+        class="version-section"
+      >
         <span>{{ t('header.currentVersion', { version: tauriStore.version }) }}</span>
       </div>
     </div>

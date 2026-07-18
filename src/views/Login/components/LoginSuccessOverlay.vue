@@ -8,13 +8,18 @@ defineProps<{ visible: boolean }>()
 
 <template>
   <Transition name="fade-loading">
-    <div v-if="visible" class="login-success-overlay">
+    <div
+      v-if="visible"
+      class="login-success-overlay"
+    >
       <div class="loading-content">
         <div class="loading-spinner">
-          <div class="double-bounce1"></div>
-          <div class="double-bounce2"></div>
+          <div class="double-bounce1" />
+          <div class="double-bounce2" />
         </div>
-        <div class="loading-text">{{ t('loginPage.loading.preparing') }}</div>
+        <div class="loading-text">
+          {{ t('loginPage.loading.preparing') }}
+        </div>
       </div>
     </div>
   </Transition>

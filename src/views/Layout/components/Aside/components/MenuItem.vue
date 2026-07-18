@@ -1,15 +1,32 @@
 <template>
   <template v-if="isVisible">
-    <el-menu-item v-if="!hasChildren" :index="item.index" @click="handleClick(item)">
-      <DIcon :icon="item.icon" :size="18" />
+    <el-menu-item
+      v-if="!hasChildren"
+      :index="item.index"
+      @click="handleClick(item)"
+    >
+      <DIcon
+        :icon="item.icon"
+        :size="18"
+      />
       <span class="menu-label">{{ displayLabel }}</span>
     </el-menu-item>
-    <el-sub-menu v-else :index="item.index">
+    <el-sub-menu
+      v-else
+      :index="item.index"
+    >
       <template #title>
-        <DIcon :icon="item.icon" :size="18" />
+        <DIcon
+          :icon="item.icon"
+          :size="18"
+        />
         <span class="menu-label">{{ displayLabel }}</span>
       </template>
-      <MenuItem v-for="child in item.children" :key="child.index" :item="child" />
+      <MenuItem
+        v-for="child in item.children"
+        :key="child.index"
+        :item="child"
+      />
     </el-sub-menu>
   </template>
 </template>

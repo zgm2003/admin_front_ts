@@ -126,14 +126,25 @@ async function confirmSubmit() {
     <template #header>
       <div class="provider-form-dialog__header">
         <div>
-          <div class="provider-form-dialog__title">{{ title }}</div>
-          <div class="provider-form-dialog__subtitle">{{ t('aiProviders.dialog.openaiOnly') }}</div>
+          <div class="provider-form-dialog__title">
+            {{ title }}
+          </div>
+          <div class="provider-form-dialog__subtitle">
+            {{ t('aiProviders.dialog.openaiOnly') }}
+          </div>
         </div>
       </div>
     </template>
 
     <div class="provider-form-dialog__shell">
-      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" :validate-on-rule-change="false" class="provider-form-dialog__form">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-position="top"
+        :validate-on-rule-change="false"
+        class="provider-form-dialog__form"
+      >
         <section class="provider-form-dialog__section">
           <div class="provider-form-dialog__section-head">
             <h3>{{ t('aiProviders.dialog.basicSection') }}</h3>
@@ -141,19 +152,48 @@ async function confirmSubmit() {
           </div>
 
           <el-row :gutter="16">
-            <el-col :md="12" :span="24">
-              <el-form-item :label="t('aiProviders.form.name')" prop="name" required>
-                <el-input v-model="form.name" clearable :placeholder="t('aiProviders.dialog.namePlaceholder')" />
+            <el-col
+              :md="12"
+              :span="24"
+            >
+              <el-form-item
+                :label="t('aiProviders.form.name')"
+                prop="name"
+                required
+              >
+                <el-input
+                  v-model="form.name"
+                  clearable
+                  :placeholder="t('aiProviders.dialog.namePlaceholder')"
+                />
               </el-form-item>
             </el-col>
-            <el-col :md="12" :span="24">
-              <el-form-item :label="t('aiProviders.form.driver')" prop="driver" required>
-                <el-select-v2 v-model="form.driver" :options="dict.engine_type_arr" style="width: 100%" />
+            <el-col
+              :md="12"
+              :span="24"
+            >
+              <el-form-item
+                :label="t('aiProviders.form.driver')"
+                prop="driver"
+                required
+              >
+                <el-select-v2
+                  v-model="form.driver"
+                  :options="dict.engine_type_arr"
+                  style="width: 100%"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="24">
-              <el-form-item :label="t('aiProviders.form.baseUrl')" prop="base_url">
-                <el-input v-model="form.base_url" placeholder="https://api.openai.com/v1" clearable />
+              <el-form-item
+                :label="t('aiProviders.form.baseUrl')"
+                prop="base_url"
+              >
+                <el-input
+                  v-model="form.base_url"
+                  placeholder="https://api.openai.com/v1"
+                  clearable
+                />
               </el-form-item>
             </el-col>
           </el-row>
@@ -169,7 +209,11 @@ async function confirmSubmit() {
 
           <el-row :gutter="16">
             <el-col :span="24">
-              <el-form-item :label="t('aiProviders.form.apiKey')" prop="api_key" :required="mode === 'add'">
+              <el-form-item
+                :label="t('aiProviders.form.apiKey')"
+                prop="api_key"
+                :required="mode === 'add'"
+              >
                 <div class="provider-form-dialog__api-key">
                   <el-input
                     v-model="form.api_key"
@@ -178,14 +222,23 @@ async function confirmSubmit() {
                     clearable
                     :placeholder="mode === 'edit' ? t('aiProviders.form.apiKeyEditPlaceholder') : t('aiProviders.form.apiKeyPlaceholder')"
                   />
-                  <el-button type="primary" :loading="modelLoading" class="provider-form-dialog__fetch" @click="fetchModels">
+                  <el-button
+                    type="primary"
+                    :loading="modelLoading"
+                    class="provider-form-dialog__fetch"
+                    @click="fetchModels"
+                  >
                     {{ t('aiProviders.actions.fetchModels') }}
                   </el-button>
                 </div>
               </el-form-item>
             </el-col>
             <el-col :span="24">
-              <el-form-item :label="t('aiProviders.form.modelIds')" prop="model_ids" required>
+              <el-form-item
+                :label="t('aiProviders.form.modelIds')"
+                prop="model_ids"
+                required
+              >
                 <el-select-v2
                   v-model="form.model_ids"
                   :options="selectModelOptions"
@@ -198,19 +251,44 @@ async function confirmSubmit() {
                 />
               </el-form-item>
             </el-col>
-            <el-col :md="12" :span="24">
-              <el-form-item :label="t('aiProviders.form.status')" prop="status" required>
-                <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width: 100%" />
+            <el-col
+              :md="12"
+              :span="24"
+            >
+              <el-form-item
+                :label="t('aiProviders.form.status')"
+                prop="status"
+                required
+              >
+                <el-select-v2
+                  v-model="form.status"
+                  :options="dict.common_status_arr"
+                  style="width: 100%"
+                />
               </el-form-item>
             </el-col>
           </el-row>
 
-          <div v-if="form.model_ids.length > 0" class="provider-form-dialog__display-grid">
-            <div class="provider-form-dialog__display-title">{{ t('aiProviders.dialog.displayNames') }}</div>
+          <div
+            v-if="form.model_ids.length > 0"
+            class="provider-form-dialog__display-grid"
+          >
+            <div class="provider-form-dialog__display-title">
+              {{ t('aiProviders.dialog.displayNames') }}
+            </div>
             <el-row :gutter="12">
-              <el-col v-for="modelID in form.model_ids" :key="modelID" :md="12" :span="24">
+              <el-col
+                v-for="modelID in form.model_ids"
+                :key="modelID"
+                :md="12"
+                :span="24"
+              >
                 <el-form-item :label="modelID">
-                  <el-input v-model="form.model_display_names[modelID]" clearable :placeholder="t('aiProviders.form.modelDisplayName')" />
+                  <el-input
+                    v-model="form.model_display_names[modelID]"
+                    clearable
+                    :placeholder="t('aiProviders.form.modelDisplayName')"
+                  />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -221,10 +299,20 @@ async function confirmSubmit() {
 
     <template #footer>
       <div class="provider-form-dialog__footer">
-        <div class="provider-form-dialog__footer-note">{{ t('aiProviders.dialog.secretNote') }}</div>
+        <div class="provider-form-dialog__footer-note">
+          {{ t('aiProviders.dialog.secretNote') }}
+        </div>
         <div class="provider-form-dialog__footer-actions">
-          <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-          <el-button type="primary" class="provider-form-dialog__submit" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+          <el-button @click="visible = false">
+            {{ t('common.actions.cancel') }}
+          </el-button>
+          <el-button
+            type="primary"
+            class="provider-form-dialog__submit"
+            @click="confirmSubmit"
+          >
+            {{ t('common.actions.confirm') }}
+          </el-button>
         </div>
       </div>
     </template>

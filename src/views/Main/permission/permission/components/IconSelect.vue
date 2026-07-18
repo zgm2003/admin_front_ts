@@ -162,7 +162,12 @@ const getIconCategoryColor = (icon: string) => {
 </script>
 
 <template>
-  <AppDialog v-model="iconBoxShow" :title="t('iconSelect.title')" width="70%" :close-on-click-modal="false">
+  <AppDialog
+    v-model="iconBoxShow"
+    :title="t('iconSelect.title')"
+    width="70%"
+    :close-on-click-modal="false"
+  >
     <!-- 搜索和筛选 -->
     <div class="icon-select-header">
       <el-input 
@@ -172,7 +177,11 @@ const getIconCategoryColor = (icon: string) => {
         class="search-input"
         prefix-icon="Search"
       />
-      <el-select v-model="iconType" :placeholder="t('iconSelect.typePlaceholder')" style="width: 160px;">
+      <el-select
+        v-model="iconType"
+        :placeholder="t('iconSelect.typePlaceholder')"
+        style="width: 160px;"
+      >
         <el-option 
           v-for="opt in iconTypeOptions" 
           :key="opt.value" 
@@ -183,17 +192,31 @@ const getIconCategoryColor = (icon: string) => {
     </div>
 
     <!-- 当前选中 -->
-    <div v-if="selectedIcon" class="selected-preview">
+    <div
+      v-if="selectedIcon"
+      class="selected-preview"
+    >
       <span class="preview-label">{{ t('iconSelect.selected') }}</span>
       <div class="preview-icon">
-        <DIcon :icon="selectedIcon" :size="32" />
+        <DIcon
+          :icon="selectedIcon"
+          :size="32"
+        />
       </div>
       <span class="preview-name">{{ selectedIcon }}</span>
-      <el-button size="small" @click="clearSelection">{{ t('iconSelect.clearSelection') }}</el-button>
+      <el-button
+        size="small"
+        @click="clearSelection"
+      >
+        {{ t('iconSelect.clearSelection') }}
+      </el-button>
     </div>
 
     <!-- 图标网格 -->
-    <el-scrollbar height="500px" class="icon-grid-container">
+    <el-scrollbar
+      height="500px"
+      class="icon-grid-container"
+    >
       <div class="icon-grid">
         <!-- Element Plus 图标 -->
         <div 
@@ -202,15 +225,22 @@ const getIconCategoryColor = (icon: string) => {
           class="icon-item"
           :class="{ 'is-selected': selectedIcon === name }"
           @click="handleSelectIcon(name)"
-          >
-            <div class="icon-wrapper">
-              <el-icon :size="28">
-                <component :is="IconComponent" />
-              </el-icon>
-            </div>
-            <div class="icon-name">{{ name }}</div>
-            <div class="icon-badge" style="background: #409EFF;">{{ t('iconSelect.badges.element') }}</div>
+        >
+          <div class="icon-wrapper">
+            <el-icon :size="28">
+              <component :is="IconComponent" />
+            </el-icon>
           </div>
+          <div class="icon-name">
+            {{ name }}
+          </div>
+          <div
+            class="icon-badge"
+            style="background: #409EFF;"
+          >
+            {{ t('iconSelect.badges.element') }}
+          </div>
+        </div>
 
         <!-- Iconify 图标 -->
         <div 
@@ -221,10 +251,19 @@ const getIconCategoryColor = (icon: string) => {
           @click="handleSelectIcon(iconName)"
         >
           <div class="icon-wrapper">
-            <Icon :icon="iconName" :width="28" :height="28" />
+            <Icon
+              :icon="iconName"
+              :width="28"
+              :height="28"
+            />
           </div>
-          <div class="icon-name">{{ getIconDisplayName(iconName) }}</div>
-          <div class="icon-badge" :style="{ background: getIconCategoryColor(iconName) }">
+          <div class="icon-name">
+            {{ getIconDisplayName(iconName) }}
+          </div>
+          <div
+            class="icon-badge"
+            :style="{ background: getIconCategoryColor(iconName) }"
+          >
             {{ iconName.split(':')[0] }}
           </div>
         </div>
@@ -242,13 +281,22 @@ const getIconCategoryColor = (icon: string) => {
     <template #footer>
       <div class="dialog-footer">
         <div class="footer-info">
-          <el-text type="info" size="small">
+          <el-text
+            type="info"
+            size="small"
+          >
             {{ t('iconSelect.total', { count: filteredElementIcons.length + filteredIconifyIcons.length }) }}
           </el-text>
         </div>
         <div class="footer-actions">
-          <el-button @click="iconBoxShow = false">{{ t('common.actions.cancel') }}</el-button>
-          <el-button type="primary" @click="confirmSelection" :disabled="!selectedIcon">
+          <el-button @click="iconBoxShow = false">
+            {{ t('common.actions.cancel') }}
+          </el-button>
+          <el-button
+            type="primary"
+            :disabled="!selectedIcon"
+            @click="confirmSelection"
+          >
             {{ t('common.actions.confirm') }}
           </el-button>
         </div>

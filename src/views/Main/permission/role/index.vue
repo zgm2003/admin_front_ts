@@ -207,25 +207,49 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch"/>
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="table">
-      <AppTable :columns="columns" :data="listData" :loading="listLoading" row-key="id" :pagination="page" selectable
-                :show-index="true"
-                @refresh="refresh" @update:pagination="onPageChange" @selection-change="onSelectionChange">
+      <AppTable
+        :columns="columns"
+        :data="listData"
+        :loading="listLoading"
+        row-key="id"
+        :pagination="page"
+        selectable
+        :show-index="true"
+        @refresh="refresh"
+        @update:pagination="onPageChange"
+        @selection-change="onSelectionChange"
+      >
         <template #toolbar-left>
-          <el-button v-if="userStore.can('permission_role_add')" type="success" @click="add">{{
+          <el-button
+            v-if="userStore.can('permission_role_add')"
+            type="success"
+            @click="add"
+          >
+            {{
               t('common.actions.add')
             }}
           </el-button>
           <el-dropdown>
-            <el-button type="primary">{{ t('common.actions.batchAction') }}
+            <el-button type="primary">
+              {{ t('common.actions.batchAction') }}
               <el-icon class="el-icon--right">
                 <ArrowDown />
               </el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="batchDel" v-if="userStore.can('permission_role_del')">{{
+                <el-dropdown-item
+                  v-if="userStore.can('permission_role_del')"
+                  @click="batchDel"
+                >
+                  {{
                     t('common.actions.batchDelete')
                   }}
                 </el-dropdown-item>
@@ -234,14 +258,38 @@ onMounted(() => {
           </el-dropdown>
         </template>
         <template #cell-is_default="{ row }">
-          <el-tag type="success" v-if="row.is_default === CommonEnum.YES">{{ t('role.table.is_default') }}</el-tag>
-          <span v-else></span>
+          <el-tag
+            v-if="row.is_default === CommonEnum.YES"
+            type="success"
+          >
+            {{ t('role.table.is_default') }}
+          </el-tag>
+          <span v-else />
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" @click="edit(row)" text v-if="userStore.can('permission_role_edit')">{{ t('common.actions.edit') }}</el-button>
-          <el-button type="danger" text v-if="userStore.can('permission_role_del')" @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
-          <el-button type="success" text @click="handleDefaultSwitch(row)"
-                     v-if="userStore.can('permission_role_setDefault') && row.is_default !== CommonEnum.YES">{{ t('role.actions.setDefault') }}
+          <el-button
+            v-if="userStore.can('permission_role_edit')"
+            type="primary"
+            text
+            @click="edit(row)"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('permission_role_del')"
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
+          <el-button
+            v-if="userStore.can('permission_role_setDefault') && row.is_default !== CommonEnum.YES"
+            type="success"
+            text
+            @click="handleDefaultSwitch(row)"
+          >
+            {{ t('role.actions.setDefault') }}
           </el-button>
         </template>
       </AppTable>
@@ -253,16 +301,34 @@ onMounted(() => {
     :width="isMobile ? '94vw' : '1040px'"
     :height="isMobile ? '72vh' : 'min(72vh, 720px)'"
   >
-    <template #header>{{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}</template>
+    <template #header>
+      {{ dialogMode === 'edit' ? t('common.actions.edit') : t('common.actions.add') }}
+    </template>
     <div class="content-box">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="auto">
-        <el-form-item :label="t('role.table.name')" prop="name" required>
-          <el-input v-model="form.name" clearable style="width:100%"/>
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="auto"
+      >
+        <el-form-item
+          :label="t('role.table.name')"
+          prop="name"
+          required
+        >
+          <el-input
+            v-model="form.name"
+            clearable
+            style="width:100%"
+          />
         </el-form-item>
         <el-form-item :label="t('role.form.permission')">
           <div class="role-permission-editor">
             <div class="role-permission-editor__toolbar">
-              <el-tabs v-model="activePlatform" class="role-permission-editor__tabs">
+              <el-tabs
+                v-model="activePlatform"
+                class="role-permission-editor__tabs"
+              >
                 <el-tab-pane
                   v-for="item in platformOptions"
                   :key="item.value"
@@ -271,8 +337,12 @@ onMounted(() => {
                 />
               </el-tabs>
               <el-space>
-                <el-button @click="selectAllPermissions">{{ t('common.actions.selectAll') }}</el-button>
-                <el-button @click="clearCurrentPlatformPermissions">{{ t('role.permissionMatrix.clearPlatform') }}</el-button>
+                <el-button @click="selectAllPermissions">
+                  {{ t('common.actions.selectAll') }}
+                </el-button>
+                <el-button @click="clearCurrentPlatformPermissions">
+                  {{ t('role.permissionMatrix.clearPlatform') }}
+                </el-button>
               </el-space>
             </div>
             <RolePermissionMatrix
@@ -296,10 +366,14 @@ onMounted(() => {
         </el-form-item>
       </el-form>
     </div>
-    <template #footer><span class="dialog-footer"><el-button @click="dialogVisible=false">{{
+    <template #footer>
+      <span class="dialog-footer"><el-button @click="dialogVisible=false">{{
         t('common.actions.cancel')
       }}</el-button><el-button
-        type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button></span></template>
+        type="primary"
+        @click="confirmSubmit"
+      >{{ t('common.actions.confirm') }}</el-button></span>
+    </template>
   </AppDialog>
   <RolePermissionDiffDialog
     v-model="diffDialogVisible"

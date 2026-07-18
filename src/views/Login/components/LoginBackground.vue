@@ -6,25 +6,48 @@ const isMobile = useIsMobile()
 </script>
 
 <template>
-  <div class="login-background" :class="{ 'is-mobile': isMobile }">
-    <div class="mesh-gradient"></div>
-    <div class="dot-pattern"></div>
-    <div class="deco-blob blob-1"></div>
-    <div class="deco-blob blob-2"></div>
-    <div class="deco-blob blob-3"></div>
-    <div class="deco-blob blob-4"></div>
+  <div
+    class="login-background"
+    :class="{ 'is-mobile': isMobile }"
+  >
+    <div class="mesh-gradient" />
+    <div class="dot-pattern" />
+    <div class="deco-blob blob-1" />
+    <div class="deco-blob blob-2" />
+    <div class="deco-blob blob-3" />
+    <div class="deco-blob blob-4" />
 
     <div class="floating-icons">
-      <el-icon class="float-item icon-1"><Cherry /></el-icon>
-      <el-icon class="float-item icon-2"><StarFilled /></el-icon>
-      <el-icon class="float-item icon-3"><CircleCheckFilled /></el-icon>
-      <el-icon class="float-item icon-4"><Plus /></el-icon>
-      <el-icon class="float-item icon-5"><ChatDotRound /></el-icon>
-      <el-icon class="float-item icon-6"><Setting /></el-icon>
-      <el-icon class="float-item icon-7"><ChatDotRound /></el-icon>
-      <el-icon class="float-item icon-8"><Bell /></el-icon>
-      <el-icon class="float-item icon-9"><Timer /></el-icon>
-      <el-icon class="float-item icon-10"><Timer /></el-icon>
+      <el-icon class="float-item icon-1">
+        <Cherry />
+      </el-icon>
+      <el-icon class="float-item icon-2">
+        <StarFilled />
+      </el-icon>
+      <el-icon class="float-item icon-3">
+        <CircleCheckFilled />
+      </el-icon>
+      <el-icon class="float-item icon-4">
+        <Plus />
+      </el-icon>
+      <el-icon class="float-item icon-5">
+        <ChatDotRound />
+      </el-icon>
+      <el-icon class="float-item icon-6">
+        <Setting />
+      </el-icon>
+      <el-icon class="float-item icon-7">
+        <ChatDotRound />
+      </el-icon>
+      <el-icon class="float-item icon-8">
+        <Bell />
+      </el-icon>
+      <el-icon class="float-item icon-9">
+        <Timer />
+      </el-icon>
+      <el-icon class="float-item icon-10">
+        <Timer />
+      </el-icon>
     </div>
   </div>
 </template>

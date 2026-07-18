@@ -5,21 +5,37 @@
         <span style="font-size:16px;font-weight:700;">{{ t('devTest.themeSwitch') }}</span>
       </div>
     </template>
-    <el-switch v-model="isDark" :active-text="t('devTest.dark')" :inactive-text="t('devTest.light')" @change="toggleDarkMode"/>
+    <el-switch
+      v-model="isDark"
+      :active-text="t('devTest.dark')"
+      :inactive-text="t('devTest.light')"
+      @change="toggleDarkMode"
+    />
   </el-card>
 
-  <el-card shadow="never" style="margin-top:16px;">
+  <el-card
+    shadow="never"
+    style="margin-top:16px;"
+  >
     <template #header>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:16px;font-weight:700;">{{ t('devTest.downloadTitle') }}</span>
-        <el-button type="primary" size="small" @click="showManager = true">
+        <el-button
+          type="primary"
+          size="small"
+          @click="showManager = true"
+        >
           <el-icon><FolderOpened /></el-icon>
           {{ t('devTest.downloadManager') }}
         </el-button>
       </div>
     </template>
     
-    <el-space direction="vertical" :size="16" style="width:100%;">
+    <el-space
+      direction="vertical"
+      :size="16"
+      style="width:100%;"
+    >
       <!-- 测试 URL 输入 -->
       <el-form :inline="true">
         <el-form-item :label="t('devTest.downloadUrl')">
@@ -39,7 +55,10 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleDownloadWithProgress">
+          <el-button
+            type="primary"
+            @click="handleDownloadWithProgress"
+          >
             {{ t('devTest.startDownload') }}
           </el-button>
         </el-form-item>
@@ -51,33 +70,55 @@
           {{ t('devTest.quickTest') }}
         </div>
         <el-space wrap>
-          <el-button size="small" @click="downloadPreset('pdf')">
+          <el-button
+            size="small"
+            @click="downloadPreset('pdf')"
+          >
             <el-icon><Document /></el-icon>
             {{ t('devTest.pdf') }}
           </el-button>
-          <el-button size="small" @click="downloadPreset('image')">
+          <el-button
+            size="small"
+            @click="downloadPreset('image')"
+          >
             <el-icon><Picture /></el-icon>
             {{ t('devTest.image') }}
           </el-button>
-          <el-button size="small" @click="downloadPreset('video')">
+          <el-button
+            size="small"
+            @click="downloadPreset('video')"
+          >
             <el-icon><VideoPlay /></el-icon>
             {{ t('devTest.video') }}
           </el-button>
-          <el-button size="small" @click="downloadPreset('large')">
+          <el-button
+            size="small"
+            @click="downloadPreset('large')"
+          >
             <el-icon><Download /></el-icon>
             {{ t('devTest.largeFile') }}
           </el-button>
-          <el-button size="small" type="warning" @click="handleMultipleDownloads">
+          <el-button
+            size="small"
+            type="warning"
+            @click="handleMultipleDownloads"
+          >
             {{ t('devTest.batchDownload') }}
           </el-button>
         </el-space>
       </div>
 
       <!-- 当前下载进度 -->
-      <div v-if="currentDownload" class="current-download">
+      <div
+        v-if="currentDownload"
+        class="current-download"
+      >
         <div class="download-header">
           <div class="file-info-compact">
-            <el-icon class="file-icon" :size="20">
+            <el-icon
+              class="file-icon"
+              :size="20"
+            >
               <VideoPlay v-if="currentDownload.filename.includes('.mp4')" />
               <Document v-else />
             </el-icon>
@@ -103,13 +144,20 @@
     </el-space>
   </el-card>
 
-  <el-card shadow="never" style="margin-top:16px;">
+  <el-card
+    shadow="never"
+    style="margin-top:16px;"
+  >
     <template #header>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:16px;font-weight:700;">{{ t('devTest.editor') }}</span>
       </div>
     </template>
-    <RichEditor v-model="content" :height="350" @change="onEditorChange"/>
+    <RichEditor
+      v-model="content"
+      :height="350"
+      @change="onEditorChange"
+    />
   </el-card>
 
   <!-- 下载管理器抽屉 -->

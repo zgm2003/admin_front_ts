@@ -22,7 +22,10 @@ const goBack = () => router.back()
         <el-icon><Back /></el-icon>
         {{ t('error.notFound.back') }}
       </el-button>
-      <el-button type="primary" @click="goHome">
+      <el-button
+        type="primary"
+        @click="goHome"
+      >
         <el-icon><HomeFilled /></el-icon>
         {{ t('error.notFound.home') }}
       </el-button>

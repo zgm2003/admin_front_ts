@@ -1,5 +1,9 @@
 <template>
-  <div ref="containerRef" class="remote-select-container" :style="{ width }">
+  <div
+    ref="containerRef"
+    class="remote-select-container"
+    :style="{ width }"
+  >
     <el-select
       ref="selectRef"
       v-model="selected"
@@ -23,11 +27,21 @@
         :label="getLabel(item)"
         :value="getValue(item)"
       />
-      <el-option v-if="statusText" disabled value="__status__" class="load-status">
+      <el-option
+        v-if="statusText"
+        disabled
+        value="__status__"
+        class="load-status"
+      >
         <span>{{ statusText }}</span>
       </el-option>
-      <template v-if="loaded && !options.length" #empty>
-        <div class="empty-text">{{ t('common.noData') }}</div>
+      <template
+        v-if="loaded && !options.length"
+        #empty
+      >
+        <div class="empty-text">
+          {{ t('common.noData') }}
+        </div>
       </template>
     </el-select>
   </div>

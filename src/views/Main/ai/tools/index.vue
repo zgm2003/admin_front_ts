@@ -73,7 +73,10 @@ onMounted(() => {
       @edit="openEdit"
     />
 
-    <ToolGenerateDialog v-model="generateVisible" @generated="applyGeneratedDraft" />
+    <ToolGenerateDialog
+      v-model="generateVisible"
+      @generated="applyGeneratedDraft"
+    />
 
     <ToolFormDialog
       v-model="formVisible"

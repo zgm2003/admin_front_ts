@@ -15,15 +15,31 @@ const SettingsTab = defineAsyncComponent(() => import('./components/UploadSettin
 
 <template>
   <div class="upload-config-page">
-    <el-tabs v-model="active" :stretch="isMobile" class="upload-config-page__tabs">
-      <el-tab-pane :label="t('upload.tabs.driver')" name="driver" lazy>
-        <DriversTab/>
+    <el-tabs
+      v-model="active"
+      :stretch="isMobile"
+      class="upload-config-page__tabs"
+    >
+      <el-tab-pane
+        :label="t('upload.tabs.driver')"
+        name="driver"
+        lazy
+      >
+        <DriversTab />
       </el-tab-pane>
-      <el-tab-pane :label="t('upload.tabs.rule')" name="rule" lazy>
-        <RulesTab/>
+      <el-tab-pane
+        :label="t('upload.tabs.rule')"
+        name="rule"
+        lazy
+      >
+        <RulesTab />
       </el-tab-pane>
-      <el-tab-pane :label="t('upload.tabs.setting')" name="setting" lazy>
-        <SettingsTab/>
+      <el-tab-pane
+        :label="t('upload.tabs.setting')"
+        name="setting"
+        lazy
+      >
+        <SettingsTab />
       </el-tab-pane>
     </el-tabs>
   </div>

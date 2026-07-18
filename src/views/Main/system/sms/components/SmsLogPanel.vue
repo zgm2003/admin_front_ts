@@ -193,7 +193,12 @@ onMounted(() => {
         @refresh="refresh"
       >
         <template #toolbar-left>
-          <el-button v-if="canDelete" type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
+          <el-button
+            v-if="canDelete"
+            type="danger"
+            :disabled="selectedIds.length === 0"
+            @click="batchDel"
+          >
             {{ t('common.actions.batchDelete') }}
           </el-button>
         </template>
@@ -203,44 +208,117 @@ onMounted(() => {
         </template>
 
         <template #cell-status="{ row }">
-          <el-tag :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+          <el-tag :type="statusType(row.status)">
+            {{ statusLabel(row.status) }}
+          </el-tag>
         </template>
 
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="openDetail(row)">{{ t('common.actions.detail') }}</el-button>
-          <el-button v-if="canDelete" type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button
+            type="primary"
+            text
+            @click="openDetail(row)"
+          >
+            {{ t('common.actions.detail') }}
+          </el-button>
+          <el-button
+            v-if="canDelete"
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
 
-    <AppDialog v-model="detailVisible" :title="t('sms.log.detailTitle')" width="760px">
-      <el-skeleton v-if="detailLoading" :rows="6" animated />
+    <AppDialog
+      v-model="detailVisible"
+      :title="t('sms.log.detailTitle')"
+      width="760px"
+    >
+      <el-skeleton
+        v-if="detailLoading"
+        :rows="6"
+        animated
+      />
       <template v-else-if="detail">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item label="ID">{{ detail.id }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.scene')">{{ sceneLabel(detail.scene) }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.toPhone')">{{ detail.to_phone }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.status')">
-            <el-tag :type="statusType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
+        <el-descriptions
+          :column="2"
+          border
+        >
+          <el-descriptions-item label="ID">
+            {{ detail.id }}
           </el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.duration')">{{ detail.duration_ms }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.fee')">{{ detail.tencent_fee }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.requestId')">{{ detail.tencent_request_id || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.serialNo')">{{ detail.tencent_serial_no || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.errorCode')">{{ detail.error_code || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.errorMessage')">{{ detail.error_message || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.sentAt')">{{ detail.sent_at || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.common.createdAt')">{{ detail.created_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.scene')">
+            {{ sceneLabel(detail.scene) }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.toPhone')">
+            {{ detail.to_phone }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.status')">
+            <el-tag :type="statusType(detail.status)">
+              {{ statusLabel(detail.status) }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.duration')">
+            {{ detail.duration_ms }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.fee')">
+            {{ detail.tencent_fee }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.requestId')">
+            {{ detail.tencent_request_id || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.serialNo')">
+            {{ detail.tencent_serial_no || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.errorCode')">
+            {{ detail.error_code || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.errorMessage')">
+            {{ detail.error_message || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.sentAt')">
+            {{ detail.sent_at || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.common.createdAt')">
+            {{ detail.created_at || '-' }}
+          </el-descriptions-item>
         </el-descriptions>
 
-        <el-alert class="sms-log__notice" type="info" :closable="false" :title="t('sms.log.securityNotice')" />
-        <el-descriptions v-if="detail.template" class="sms-log__template" :title="t('sms.log.templateTitle')" :column="2" border>
-          <el-descriptions-item :label="t('sms.log.templateScene')">{{ sceneLabel(detail.template.scene) }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.log.templateName')">{{ detail.template.name || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('sms.template.tencentTemplateId')">{{ detail.template.tencent_template_id }}</el-descriptions-item>
+        <el-alert
+          class="sms-log__notice"
+          type="info"
+          :closable="false"
+          :title="t('sms.log.securityNotice')"
+        />
+        <el-descriptions
+          v-if="detail.template"
+          class="sms-log__template"
+          :title="t('sms.log.templateTitle')"
+          :column="2"
+          border
+        >
+          <el-descriptions-item :label="t('sms.log.templateScene')">
+            {{ sceneLabel(detail.template.scene) }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.log.templateName')">
+            {{ detail.template.name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('sms.template.tencentTemplateId')">
+            {{ detail.template.tencent_template_id }}
+          </el-descriptions-item>
           <el-descriptions-item :label="t('sms.template.variables')">
             <el-space wrap>
-              <el-tag v-for="item in detail.template.variables" :key="item" size="small">{{ item }}</el-tag>
+              <el-tag
+                v-for="item in detail.template.variables"
+                :key="item"
+                size="small"
+              >
+                {{ item }}
+              </el-tag>
             </el-space>
           </el-descriptions-item>
         </el-descriptions>

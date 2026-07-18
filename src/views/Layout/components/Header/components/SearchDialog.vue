@@ -1,57 +1,100 @@
 <template>
   <AppDialog
-      v-model="show"
-      :width="dialogLayout.width"
-      class="search-dialog"
-      :show-close="false"
-      body-padding="0"
-      destroy-on-close
-      append-to-body
+    v-model="show"
+    :width="dialogLayout.width"
+    class="search-dialog"
+    :show-close="false"
+    body-padding="0"
+    destroy-on-close
+    append-to-body
   >
-    <div class="search-container" :style="{ height: dialogLayout.bodyHeight }">
-      <el-button v-if="isMobile" class="close-btn" circle @click="show = false">
+    <div
+      class="search-container"
+      :style="{ height: dialogLayout.bodyHeight }"
+    >
+      <el-button
+        v-if="isMobile"
+        class="close-btn"
+        circle
+        @click="show = false"
+      >
         <el-icon>
-          <Close/>
+          <Close />
         </el-icon>
       </el-button>
       <div class="search-header">
-        <img src="/logo.png" class="logo" alt="logo"/>
+        <img
+          src="/logo.png"
+          class="logo"
+          alt="logo"
+        >
         <el-input
-            v-model="keyword"
-            :placeholder="t('search.placeholder')"
-            clearable
-            :prefix-icon="Search"
-            class="search-input"
-            size="large"
+          v-model="keyword"
+          :placeholder="t('search.placeholder')"
+          clearable
+          :prefix-icon="Search"
+          class="search-input"
+          size="large"
         />
       </div>
-      <div class="search-hints" v-if="!isMobile">
-        <div class="hint-item"><kbd>Ctrl</kbd> + <kbd>K</kbd> {{ t('search.wake') }}</div>
+      <div
+        v-if="!isMobile"
+        class="search-hints"
+      >
+        <div class="hint-item">
+          <kbd>Ctrl</kbd> + <kbd>K</kbd> {{ t('search.wake') }}
+        </div>
         <div class="hint-item">
           <el-icon>
-            <Top/>
+            <Top />
           </el-icon>
           <el-icon>
-            <Bottom/>
+            <Bottom />
           </el-icon>
           {{ t('search.navigate') }}
         </div>
-        <div class="hint-item"><kbd>Enter</kbd> {{ t('search.enter') }}</div>
-        <div class="hint-item"><kbd>Esc</kbd> {{ t('search.esc') }}</div>
+        <div class="hint-item">
+          <kbd>Enter</kbd> {{ t('search.enter') }}
+        </div>
+        <div class="hint-item">
+          <kbd>Esc</kbd> {{ t('search.esc') }}
+        </div>
       </div>
-      <el-scrollbar :height="dialogLayout.resultHeight" class="result-scroll">
-        <el-empty v-if="filtered.length===0" :description="t('search.empty')"/>
-        <div v-for="(it, index) in filtered" :key="it.path" :class="['result-item', { active: index === activeIndex }]"
-             @click="go(it)" @mouseenter="activeIndex = index">
+      <el-scrollbar
+        :height="dialogLayout.resultHeight"
+        class="result-scroll"
+      >
+        <el-empty
+          v-if="filtered.length===0"
+          :description="t('search.empty')"
+        />
+        <div
+          v-for="(it, index) in filtered"
+          :key="it.path"
+          :class="['result-item', { active: index === activeIndex }]"
+          @click="go(it)"
+          @mouseenter="activeIndex = index"
+        >
           <div class="row">
-            <DIcon :icon="it.icon" :size="20" class="left-icon" />
+            <DIcon
+              :icon="it.icon"
+              :size="20"
+              class="left-icon"
+            />
             <div class="content">
-              <div class="title">{{ resolveMenuLabel(t, it) }}</div>
-              <div class="sub">{{ it.path }}</div>
+              <div class="title">
+                {{ resolveMenuLabel(t, it) }}
+              </div>
+              <div class="sub">
+                {{ it.path }}
+              </div>
             </div>
-            <div class="enter-icon" v-if="index === activeIndex">
+            <div
+              v-if="index === activeIndex"
+              class="enter-icon"
+            >
               <el-icon>
-                <Right/>
+                <Right />
               </el-icon>
             </div>
           </div>

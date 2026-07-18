@@ -62,7 +62,10 @@ watch(isMobile, (val) => {
         <Header />
       </el-header>
 
-      <TabTag v-if="menuStore.tabtag" class="layout-tabs" />
+      <TabTag
+        v-if="menuStore.tabtag"
+        class="layout-tabs"
+      />
 
       <el-main class="layout-content">
         <router-view v-slot="{ Component }">
@@ -71,18 +74,33 @@ watch(isMobile, (val) => {
             :name="menuStore.transitionName"
             mode="out-in"
           >
-            <div :key="route.fullPath + '::' + menuStore.refreshKey" class="layout-view" :class="layoutViewClass">
+            <div
+              :key="route.fullPath + '::' + menuStore.refreshKey"
+              class="layout-view"
+              :class="layoutViewClass"
+            >
               <component :is="Component" />
             </div>
           </transition>
 
-          <div v-else class="layout-view" :class="layoutViewClass">
-            <component :is="Component" :key="route.fullPath + '::' + menuStore.refreshKey" />
+          <div
+            v-else
+            class="layout-view"
+            :class="layoutViewClass"
+          >
+            <component
+              :is="Component"
+              :key="route.fullPath + '::' + menuStore.refreshKey"
+            />
           </div>
         </router-view>
       </el-main>
 
-      <el-footer v-if="menuStore.footer && !menuStore.contentFullscreen" height="48px" class="layout-footer">
+      <el-footer
+        v-if="menuStore.footer && !menuStore.contentFullscreen"
+        height="48px"
+        class="layout-footer"
+      >
         <Footer />
       </el-footer>
     </el-container>

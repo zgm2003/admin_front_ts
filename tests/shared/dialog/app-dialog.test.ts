@@ -82,14 +82,14 @@ describe('AppDialog component contract', () => {
     const source = readAppDialogSource()
 
     expect(source).toContain('v-if="resolvedContentHeight"')
-    expect(source).toContain('<el-scrollbar :height="resolvedContentHeight"')
+    expect(source).toMatch(/<el-scrollbar\s+[\s\S]*?:height="resolvedContentHeight"/)
   })
 
   it('keeps the footer slot outside the scrollable body branch', () => {
     const source = readAppDialogSource()
 
-    expect(source.indexOf('<el-scrollbar :height="resolvedContentHeight"')).toBeLessThan(
-      source.indexOf('<template v-if="$slots.footer" #footer>'),
+    expect(source.indexOf('</el-scrollbar>')).toBeLessThan(
+      source.indexOf('<slot name="footer"'),
     )
   })
 

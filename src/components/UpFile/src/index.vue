@@ -57,7 +57,10 @@ const clearFile = () => {
 </script>
 
 <template>
-  <div class="up-file" :class="{ 'is-mobile': isMobile }">
+  <div
+    class="up-file"
+    :class="{ 'is-mobile': isMobile }"
+  >
     <el-upload
       drag
       :auto-upload="true"
@@ -66,22 +69,51 @@ const clearFile = () => {
       :accept="accept"
       :disabled="disabled || uploading"
     >
-      <div v-if="uploading" class="uploading">
-        <el-icon class="is-loading"><Loading /></el-icon>
+      <div
+        v-if="uploading"
+        class="uploading"
+      >
+        <el-icon class="is-loading">
+          <Loading />
+        </el-icon>
         <span>上传中...</span>
       </div>
-      <div v-else-if="displayUrl" class="uploaded">
+      <div
+        v-else-if="displayUrl"
+        class="uploaded"
+      >
         <el-icon><Document /></el-icon>
         <span class="file-name">{{ fileName || '已上传文件' }}</span>
-        <el-button type="danger" text size="small" @click.stop="clearFile">删除</el-button>
+        <el-button
+          type="danger"
+          text
+          size="small"
+          @click.stop="clearFile"
+        >
+          删除
+        </el-button>
       </div>
-      <div v-else class="placeholder">
-        <el-icon class="upload-icon"><UploadFilled /></el-icon>
+      <div
+        v-else
+        class="placeholder"
+      >
+        <el-icon class="upload-icon">
+          <UploadFilled />
+        </el-icon>
         <div class="el-upload__text">
-          <template v-if="isMobile">点击上传文件</template>
-          <template v-else>拖拽文件到此处或 <em>点击上传</em></template>
+          <template v-if="isMobile">
+            点击上传文件
+          </template>
+          <template v-else>
+            拖拽文件到此处或 <em>点击上传</em>
+          </template>
         </div>
-        <div v-if="tip" class="el-upload__tip">{{ tip }}</div>
+        <div
+          v-if="tip"
+          class="el-upload__tip"
+        >
+          {{ tip }}
+        </div>
       </div>
     </el-upload>
   </div>

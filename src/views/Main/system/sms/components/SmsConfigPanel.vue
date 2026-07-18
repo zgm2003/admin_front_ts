@@ -127,7 +127,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sms-config" v-loading="loading">
+  <div
+    v-loading="loading"
+    class="sms-config"
+  >
     <el-alert
       class="sms-config__notice"
       type="info"
@@ -136,7 +139,10 @@ onMounted(() => {
       :title="t('sms.config.notice')"
     />
 
-    <el-card shadow="never" class="sms-config__card">
+    <el-card
+      shadow="never"
+      class="sms-config__card"
+    >
       <template #header>
         <div class="sms-config__header">
           <div>
@@ -149,30 +155,82 @@ onMounted(() => {
         </div>
       </template>
 
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="160px" class="sms-config__form">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="160px"
+        class="sms-config__form"
+      >
         <el-row :gutter="16">
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.secretId')" prop="secret_id">
-              <el-input v-model="form.secret_id" show-password clearable :placeholder="isConfigured ? config?.secret_id_hint || t('sms.config.secretKeep') : ''" />
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.secretId')"
+              prop="secret_id"
+            >
+              <el-input
+                v-model="form.secret_id"
+                show-password
+                clearable
+                :placeholder="isConfigured ? config?.secret_id_hint || t('sms.config.secretKeep') : ''"
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.secretKey')" prop="secret_key">
-              <el-input v-model="form.secret_key" show-password clearable :placeholder="isConfigured ? config?.secret_key_hint || t('sms.config.secretKeep') : ''" />
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.secretKey')"
+              prop="secret_key"
+            >
+              <el-input
+                v-model="form.secret_key"
+                show-password
+                clearable
+                :placeholder="isConfigured ? config?.secret_key_hint || t('sms.config.secretKeep') : ''"
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.smsSdkAppId')" prop="sms_sdk_app_id">
-              <el-input v-model="form.sms_sdk_app_id" clearable />
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.smsSdkAppId')"
+              prop="sms_sdk_app_id"
+            >
+              <el-input
+                v-model="form.sms_sdk_app_id"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.signName')" prop="sign_name">
-              <el-input v-model="form.sign_name" clearable />
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.signName')"
+              prop="sign_name"
+            >
+              <el-input
+                v-model="form.sign_name"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.region')" prop="region">
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.region')"
+              prop="region"
+            >
               <el-select-v2
                 v-model="form.region"
                 :options="dict.sms_region_arr"
@@ -181,13 +239,29 @@ onMounted(() => {
               />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.endpoint')" prop="endpoint">
-              <el-input v-model="form.endpoint" clearable />
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.endpoint')"
+              prop="endpoint"
+            >
+              <el-input
+                v-model="form.endpoint"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.verifyCodeTTLMinutes')" prop="verify_code_ttl_minutes" class="sms-config__form-item--ttl">
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.verifyCodeTTLMinutes')"
+              prop="verify_code_ttl_minutes"
+              class="sms-config__form-item--ttl"
+            >
               <div class="sms-config__field-stack">
                 <div class="sms-config__ttl-control">
                   <el-input-number
@@ -200,14 +274,26 @@ onMounted(() => {
                   />
                   <span class="sms-config__ttl-unit">{{ t('sms.config.minutesUnit') }}</span>
                 </div>
-                <div class="sms-config__help">{{ t('sms.config.verifyCodeTTLHelp') }}</div>
+                <div class="sms-config__help">
+                  {{ t('sms.config.verifyCodeTTLHelp') }}
+                </div>
               </div>
             </el-form-item>
           </el-col>
-          <el-col :span="24" :md="12">
-            <el-form-item :label="t('sms.config.status')" prop="status">
+          <el-col
+            :span="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('sms.config.status')"
+              prop="status"
+            >
               <el-radio-group v-model="form.status">
-                <el-radio v-for="item in dict.common_status_arr" :key="item.value" :value="item.value">
+                <el-radio
+                  v-for="item in dict.common_status_arr"
+                  :key="item.value"
+                  :value="item.value"
+                >
                   {{ item.label }}
                 </el-radio>
               </el-radio-group>
@@ -215,36 +301,77 @@ onMounted(() => {
           </el-col>
         </el-row>
         <div class="sms-config__actions">
-          <el-button v-if="userStore.can('system_sms_configEdit')" type="primary" :loading="saving" @click="save">
+          <el-button
+            v-if="userStore.can('system_sms_configEdit')"
+            type="primary"
+            :loading="saving"
+            @click="save"
+          >
             {{ t('common.actions.save') }}
           </el-button>
-          <el-button v-if="isConfigured && userStore.can('system_sms_configDel')" type="danger" @click="deleteConfig">
+          <el-button
+            v-if="isConfigured && userStore.can('system_sms_configDel')"
+            type="danger"
+            @click="deleteConfig"
+          >
             {{ t('common.actions.del') }}
           </el-button>
         </div>
       </el-form>
     </el-card>
 
-    <el-card shadow="never" class="sms-config__card">
+    <el-card
+      shadow="never"
+      class="sms-config__card"
+    >
       <template #header>
         <strong>{{ t('sms.config.testTitle') }}</strong>
       </template>
-      <el-form label-width="160px" class="sms-config__test">
+      <el-form
+        label-width="160px"
+        class="sms-config__test"
+      >
         <el-form-item :label="t('sms.config.testPhone')">
-          <el-input v-model="testForm.to_phone" clearable placeholder="13800138000" />
+          <el-input
+            v-model="testForm.to_phone"
+            clearable
+            placeholder="13800138000"
+          />
         </el-form-item>
         <el-form-item :label="t('sms.config.testScene')">
-          <el-select v-model="testForm.template_scene" class="sms-config__select">
-            <el-option v-for="item in dict.sms_scene_arr" :key="item.value" :label="item.label" :value="item.value" />
+          <el-select
+            v-model="testForm.template_scene"
+            class="sms-config__select"
+          >
+            <el-option
+              v-for="item in dict.sms_scene_arr"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
-        <el-button v-if="userStore.can('system_sms_test')" type="primary" :loading="testing" @click="sendTest">
+        <el-button
+          v-if="userStore.can('system_sms_test')"
+          type="primary"
+          :loading="testing"
+          @click="sendTest"
+        >
           {{ t('sms.config.sendTest') }}
         </el-button>
       </el-form>
-      <el-descriptions v-if="config" class="sms-config__meta" :column="2" border>
-        <el-descriptions-item :label="t('sms.config.lastTestAt')">{{ config.last_test_at || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('sms.config.lastTestError')">{{ config.last_test_error || '-' }}</el-descriptions-item>
+      <el-descriptions
+        v-if="config"
+        class="sms-config__meta"
+        :column="2"
+        border
+      >
+        <el-descriptions-item :label="t('sms.config.lastTestAt')">
+          {{ config.last_test_at || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('sms.config.lastTestError')">
+          {{ config.last_test_error || '-' }}
+        </el-descriptions-item>
       </el-descriptions>
     </el-card>
   </div>

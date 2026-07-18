@@ -218,7 +218,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <canvas ref="canvasRef" class="particle"></canvas>
+  <canvas
+    ref="canvasRef"
+    class="particle"
+  />
 </template>
 
 <style scoped>

@@ -36,7 +36,10 @@ const goBack = () => router.back()
         <el-icon><Back /></el-icon>
         {{ t('error.deadPage.back') }}
       </el-button>
-      <el-button type="primary" @click="goHome">
+      <el-button
+        type="primary"
+        @click="goHome"
+      >
         <el-icon><HomeFilled /></el-icon>
         {{ t('error.deadPage.home') }}
       </el-button>

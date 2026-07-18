@@ -55,128 +55,253 @@ const upFileEvents = [
   <div class="upload-demo">
     <el-tabs v-model="activeTab">
       <!-- UpMedia 图片 -->
-      <el-tab-pane label="UpMedia 图片上传" name="UpMedia">
+      <el-tab-pane
+        label="UpMedia 图片上传"
+        name="UpMedia"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpMedia v-model="imgUrl"/>
+            <UpMedia v-model="imgUrl" />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMedia v-model="imgUrl" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMedia v-model="imgUrl" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>自定义尺寸</h4>
           <div class="demo-block">
             <el-space>
-              <UpMedia v-model="imgUrl2" width="80px"/>
-              <UpMedia v-model="imgUrl2" width="120px"/>
-              <UpMedia v-model="imgUrl2" width="150px"/>
+              <UpMedia
+                v-model="imgUrl2"
+                width="80px"
+              />
+              <UpMedia
+                v-model="imgUrl2"
+                width="120px"
+              />
+              <UpMedia
+                v-model="imgUrl2"
+                width="150px"
+              />
             </el-space>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMedia v-model="imgUrl" width="150px" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMedia v-model="imgUrl" width="150px" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>带输入框</h4>
           <div class="demo-block">
-            <UpMedia v-model="imgUrlWithInput" show-input width="80px"/>
+            <UpMedia
+              v-model="imgUrlWithInput"
+              show-input
+              width="80px"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMedia v-model="imgUrl" show-input /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMedia v-model="imgUrl" show-input /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="upMediaProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="150"/>
-            <el-table-column prop="default" label="默认值" width="150"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="upMediaProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="150"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="150"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- UpMedia 视频 -->
-      <el-tab-pane label="UpMedia 视频上传" name="UpMediaVideo">
+      <el-tab-pane
+        label="UpMedia 视频上传"
+        name="UpMediaVideo"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpMedia v-model="videoUrl" type="video"/>
+            <UpMedia
+              v-model="videoUrl"
+              type="video"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMedia v-model="videoUrl" type="video" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMedia v-model="videoUrl" type="video" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>带输入框</h4>
           <div class="demo-block">
-            <UpMedia v-model="videoUrlWithInput" type="video" show-input width="80px"/>
+            <UpMedia
+              v-model="videoUrlWithInput"
+              type="video"
+              show-input
+              width="80px"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMedia v-model="videoUrl" type="video" show-input /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMedia v-model="videoUrl" type="video" show-input /&gt;
+            </el-text>
           </div>
         </div>
       </el-tab-pane>
 
       <!-- UpMediaList -->
-      <el-tab-pane label="UpMediaList 多媒体列表" name="UpMediaList">
+      <el-tab-pane
+        label="UpMediaList 多媒体列表"
+        name="UpMediaList"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpMediaList v-model="imgList"/>
+            <UpMediaList v-model="imgList" />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpMediaList v-model="imgList" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpMediaList v-model="imgList" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="upMediaListProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="upMediaListProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="100"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- UpFile -->
-      <el-tab-pane label="UpFile 文件上传" name="UpFile">
+      <el-tab-pane
+        label="UpFile 文件上传"
+        name="UpFile"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <UpFile v-model="fileUrl" folder-name="releases" />
+            <UpFile
+              v-model="fileUrl"
+              folder-name="releases"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpFile v-model="fileUrl" folder-name="releases" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpFile v-model="fileUrl" folder-name="releases" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>带提示和文件类型限制</h4>
           <div class="demo-block">
-            <UpFile v-model="fileUrl2" folder-name="releases" accept=".zip,.exe" tip="支持 .zip/.exe 文件" />
+            <UpFile
+              v-model="fileUrl2"
+              folder-name="releases"
+              accept=".zip,.exe"
+              tip="支持 .zip/.exe 文件"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;UpFile v-model="fileUrl" folder-name="releases" accept=".zip,.exe" tip="支持 .zip/.exe 文件" /&gt;</el-text>
+            <el-text type="info">
+              &lt;UpFile v-model="fileUrl" folder-name="releases" accept=".zip,.exe" tip="支持 .zip/.exe 文件" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="upFileProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="upFileProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="100"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Events</h4>
-          <el-table :data="upFileEvents" border>
-            <el-table-column prop="name" label="事件名" width="120"/>
-            <el-table-column prop="params" label="参数" width="200"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="upFileEvents"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="事件名"
+              width="120"
+            />
+            <el-table-column
+              prop="params"
+              label="参数"
+              width="200"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>

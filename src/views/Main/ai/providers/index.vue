@@ -132,7 +132,12 @@ onMounted(() => {
 
 <template>
   <div class="ai-provider-page">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="ai-provider-page__table">
       <AppTable
         :columns="columns"
@@ -145,7 +150,12 @@ onMounted(() => {
         @update:pagination="onPageChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button
+            type="success"
+            @click="add"
+          >
+            {{ t('common.actions.add') }}
+          </el-button>
         </template>
         <template #cell-engine_type="{ row }">
           <el-tag>{{ row.driver_name || row.engine_type_name || row.engine_type }}</el-tag>
@@ -160,28 +170,90 @@ onMounted(() => {
           <ProviderModelList :models="rowModels(row)" />
         </template>
         <template #cell-health_status="{ row }">
-          <el-tooltip v-if="row.last_check_error" :content="row.last_check_error" placement="top">
-            <el-tag :type="stateTagType(row.health_status)">{{ row.health_status || 'unknown' }}</el-tag>
+          <el-tooltip
+            v-if="row.last_check_error"
+            :content="row.last_check_error"
+            placement="top"
+          >
+            <el-tag :type="stateTagType(row.health_status)">
+              {{ row.health_status || 'unknown' }}
+            </el-tag>
           </el-tooltip>
-          <el-tag v-else :type="stateTagType(row.health_status)">{{ row.health_status || 'unknown' }}</el-tag>
+          <el-tag
+            v-else
+            :type="stateTagType(row.health_status)"
+          >
+            {{ row.health_status || 'unknown' }}
+          </el-tag>
         </template>
         <template #cell-last_model_sync_status="{ row }">
-          <el-tooltip v-if="row.last_model_sync_error" :content="row.last_model_sync_error" placement="top">
-            <el-tag :type="stateTagType(row.last_model_sync_status)">{{ row.last_model_sync_status || 'unknown' }}</el-tag>
+          <el-tooltip
+            v-if="row.last_model_sync_error"
+            :content="row.last_model_sync_error"
+            placement="top"
+          >
+            <el-tag :type="stateTagType(row.last_model_sync_status)">
+              {{ row.last_model_sync_status || 'unknown' }}
+            </el-tag>
           </el-tooltip>
-          <el-tag v-else :type="stateTagType(row.last_model_sync_status)">{{ row.last_model_sync_status || 'unknown' }}</el-tag>
+          <el-tag
+            v-else
+            :type="stateTagType(row.last_model_sync_status)"
+          >
+            {{ row.last_model_sync_status || 'unknown' }}
+          </el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+            {{ row.status_name || row.status }}
+          </el-tag>
         </template>
         <template #cell-actions="{ row }">
           <div class="ai-provider-page__actions">
-            <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
-            <el-button type="success" text @click="testConnection(row)">{{ t('aiProviders.actions.test') }}</el-button>
-            <el-button type="info" text @click="syncModels(row)">{{ t('aiProviders.actions.syncModels') }}</el-button>
-            <el-button v-if="row.status === 2" type="warning" text @click="toggleStatus(row, 1)">{{ t('common.actions.enable') }}</el-button>
-            <el-button v-if="row.status === 1" type="warning" text @click="toggleStatus(row, 2)">{{ t('common.actions.disable') }}</el-button>
-            <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+            <el-button
+              type="primary"
+              text
+              @click="edit(row)"
+            >
+              {{ t('common.actions.edit') }}
+            </el-button>
+            <el-button
+              type="success"
+              text
+              @click="testConnection(row)"
+            >
+              {{ t('aiProviders.actions.test') }}
+            </el-button>
+            <el-button
+              type="info"
+              text
+              @click="syncModels(row)"
+            >
+              {{ t('aiProviders.actions.syncModels') }}
+            </el-button>
+            <el-button
+              v-if="row.status === 2"
+              type="warning"
+              text
+              @click="toggleStatus(row, 1)"
+            >
+              {{ t('common.actions.enable') }}
+            </el-button>
+            <el-button
+              v-if="row.status === 1"
+              type="warning"
+              text
+              @click="toggleStatus(row, 2)"
+            >
+              {{ t('common.actions.disable') }}
+            </el-button>
+            <el-button
+              type="danger"
+              text
+              @click="confirmDel(row)"
+            >
+              {{ t('common.actions.del') }}
+            </el-button>
           </div>
         </template>
       </AppTable>

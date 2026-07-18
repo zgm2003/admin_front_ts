@@ -92,9 +92,16 @@ const resetForm = () => {
 </script>
 
 <template>
-  <div class="base-info" v-loading="loading">
+  <div
+    v-loading="loading"
+    class="base-info"
+  >
     <div class="base-info-card">
-      <el-form label-width="auto" label-position="top" class="base-form">
+      <el-form
+        label-width="auto"
+        label-position="top"
+        class="base-form"
+      >
         <el-form-item
           :label="t('personal.form.avatar')"
           :class="{ 'is-dirty-item': dirtyFields.avatar }"
@@ -126,9 +133,19 @@ const resetForm = () => {
         </el-form-item>
 
         <!-- xs/sm 均占满行：避免 768~991px 仍按 sm=12 双列导致「用户名/性别」远窄于下方整行字段 -->
-        <el-row :gutter="isMobile ? 0 : 20" class="form-row">
-          <el-col :xs="24" :sm="24" :md="12">
-            <el-form-item :label="t('personal.form.username')" :class="{ 'is-dirty-item': dirtyFields.username }">
+        <el-row
+          :gutter="isMobile ? 0 : 20"
+          class="form-row"
+        >
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('personal.form.username')"
+              :class="{ 'is-dirty-item': dirtyFields.username }"
+            >
               <el-input
                 v-model="form.username"
                 :placeholder="t('personal.form.usernamePlaceholder')"
@@ -137,8 +154,15 @@ const resetForm = () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="24" :md="12">
-            <el-form-item :label="t('personal.form.sex')" :class="{ 'is-dirty-item': dirtyFields.sex }">
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('personal.form.sex')"
+              :class="{ 'is-dirty-item': dirtyFields.sex }"
+            >
               <el-select-v2
                 v-model="form.sex"
                 :options="sexArr"
@@ -152,9 +176,19 @@ const resetForm = () => {
           </el-col>
         </el-row>
 
-        <el-row :gutter="isMobile ? 0 : 20" class="form-row">
-          <el-col :xs="24" :sm="24" :md="12">
-            <el-form-item :label="t('personal.form.birthday')" :class="{ 'is-dirty-item': dirtyFields.birthday }">
+        <el-row
+          :gutter="isMobile ? 0 : 20"
+          class="form-row"
+        >
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('personal.form.birthday')"
+              :class="{ 'is-dirty-item': dirtyFields.birthday }"
+            >
               <el-date-picker
                 v-model="form.birthday"
                 type="date"
@@ -167,8 +201,15 @@ const resetForm = () => {
               />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="24" :md="12">
-            <el-form-item :label="t('personal.form.address')" :class="{ 'is-dirty-item': dirtyFields.address_id }">
+          <el-col
+            :xs="24"
+            :sm="24"
+            :md="12"
+          >
+            <el-form-item
+              :label="t('personal.form.address')"
+              :class="{ 'is-dirty-item': dirtyFields.address_id }"
+            >
               <el-cascader
                 v-model="form.address_id"
                 :options="addressOptions"
@@ -182,7 +223,10 @@ const resetForm = () => {
           </el-col>
         </el-row>
 
-        <el-form-item :label="t('personal.form.detailAddress')" :class="{ 'is-dirty-item': dirtyFields.detail_address }">
+        <el-form-item
+          :label="t('personal.form.detailAddress')"
+          :class="{ 'is-dirty-item': dirtyFields.detail_address }"
+        >
           <el-input
             v-model="form.detail_address"
             :placeholder="t('personal.form.detailAddress')"
@@ -191,7 +235,10 @@ const resetForm = () => {
           />
         </el-form-item>
 
-        <el-form-item :label="t('personal.form.bio')" :class="{ 'is-dirty-item': dirtyFields.bio }">
+        <el-form-item
+          :label="t('personal.form.bio')"
+          :class="{ 'is-dirty-item': dirtyFields.bio }"
+        >
           <el-input
             v-model="form.bio"
             type="textarea"
@@ -201,11 +248,21 @@ const resetForm = () => {
           />
         </el-form-item>
 
-        <el-form-item label-width="0" class="btn-item">
-          <el-button type="primary" class="submit-btn" @click="confirmEdit">
+        <el-form-item
+          label-width="0"
+          class="btn-item"
+        >
+          <el-button
+            type="primary"
+            class="submit-btn"
+            @click="confirmEdit"
+          >
             {{ t('personal.form.saveBasic') }}
           </el-button>
-          <el-button class="reset-btn" @click="resetForm">
+          <el-button
+            class="reset-btn"
+            @click="resetForm"
+          >
             {{ t('personal.form.resetBasic') }}
           </el-button>
         </el-form-item>

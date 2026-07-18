@@ -135,7 +135,10 @@ defineExpose({ reset, sendCode, completeSend })
 </script>
 
 <template>
-  <div class="send-code-wrapper" :class="{ 'is-mobile': useMobileLayout }">
+  <div
+    class="send-code-wrapper"
+    :class="{ 'is-mobile': useMobileLayout }"
+  >
     <el-input 
       v-model="modelValue" 
       :placeholder="placeholder || t('personal.security.codePlaceholder')" 
@@ -145,10 +148,10 @@ defineExpose({ reset, sendCode, completeSend })
     <el-button 
       type="primary" 
       :size="size"
-      @click="sendCode" 
-      :loading="captchaSending || sending"
+      :loading="captchaSending || sending" 
       :disabled="isSendDisabled"
       :style="{ width: useMobileLayout ? '100%' : 'auto' }"
+      @click="sendCode"
     >
       {{ timer > 0 ? t('personal.security.retryAfter', { timer }) : t('personal.security.getCode') }}
     </el-button>

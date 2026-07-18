@@ -167,7 +167,7 @@ async function confirmSubmit() {
               :max="2592000"
               :step="3600"
               style="width:100%"
-            :controls="false"
+              :controls="false"
             />
           </el-form-item>
         </el-col>
@@ -186,7 +186,7 @@ async function confirmSubmit() {
               :max="31536000"
               :step="86400"
               style="width:100%"
-            :controls="false"
+              :controls="false"
             />
           </el-form-item>
         </el-col>

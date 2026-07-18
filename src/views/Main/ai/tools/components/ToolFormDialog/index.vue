@@ -172,7 +172,9 @@ watch(
     height="76vh"
     body-padding="12px 18px 0"
   >
-    <template #header>{{ title }}</template>
+    <template #header>
+      {{ title }}
+    </template>
     <el-form
       ref="formRef"
       class="tool-form"
@@ -182,66 +184,169 @@ watch(
       :validate-on-rule-change="false"
     >
       <section class="tool-form-section">
-        <div class="tool-form-section__title">{{ t('aiTools.form.basicInfo') }}</div>
+        <div class="tool-form-section__title">
+          {{ t('aiTools.form.basicInfo') }}
+        </div>
         <el-row :gutter="14">
-          <el-col :md="9" :span="24">
-            <el-form-item :label="t('aiTools.form.name')" prop="name" required>
-              <el-input v-model="form.name" clearable />
+          <el-col
+            :md="9"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.name')"
+              prop="name"
+              required
+            >
+              <el-input
+                v-model="form.name"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="9" :span="24">
-            <el-form-item :label="t('aiTools.form.code')" prop="code" required>
-              <el-input v-model="form.code" placeholder="admin_user_count" clearable />
+          <el-col
+            :md="9"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.code')"
+              prop="code"
+              required
+            >
+              <el-input
+                v-model="form.code"
+                placeholder="admin_user_count"
+                clearable
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="6" :span="24">
-            <el-form-item :label="t('aiTools.form.status')" prop="status" required>
-              <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width: 100%" />
+          <el-col
+            :md="6"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.status')"
+              prop="status"
+              required
+            >
+              <el-select-v2
+                v-model="form.status"
+                :options="dict.common_status_arr"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item :label="t('aiTools.form.description')">
-              <el-input v-model="form.description" type="textarea" :rows="2" resize="none" />
+              <el-input
+                v-model="form.description"
+                type="textarea"
+                :rows="2"
+                resize="none"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </section>
 
       <section class="tool-form-section">
-        <div class="tool-form-section__title">{{ t('aiTools.form.runtimeConfig') }}</div>
+        <div class="tool-form-section__title">
+          {{ t('aiTools.form.runtimeConfig') }}
+        </div>
         <el-row :gutter="14">
-          <el-col :md="12" :span="24">
-            <el-form-item :label="t('aiTools.form.riskLevel')" prop="risk_level" required>
-              <el-select-v2 v-model="form.risk_level" :options="dict.risk_level_arr" style="width: 100%" />
+          <el-col
+            :md="12"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.riskLevel')"
+              prop="risk_level"
+              required
+            >
+              <el-select-v2
+                v-model="form.risk_level"
+                :options="dict.risk_level_arr"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="12" :span="24">
-            <el-form-item :label="t('aiTools.form.timeout')" prop="timeout_ms" required>
-              <el-input-number v-model="form.timeout_ms" :min="100" :max="30000" :step="100" style="width: 100%" :controls="false" />
+          <el-col
+            :md="12"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.timeout')"
+              prop="timeout_ms"
+              required
+            >
+              <el-input-number
+                v-model="form.timeout_ms"
+                :min="100"
+                :max="30000"
+                :step="100"
+                style="width: 100%"
+                :controls="false"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </section>
 
       <section class="tool-form-section">
-        <div class="tool-form-section__title">{{ t('aiTools.form.schemaConfig') }}</div>
+        <div class="tool-form-section__title">
+          {{ t('aiTools.form.schemaConfig') }}
+        </div>
         <el-row :gutter="14">
-          <el-col :md="12" :span="24">
-            <el-form-item :label="t('aiTools.form.parametersJson')" prop="parameters_text" required>
-              <el-input v-model="form.parameters_text" class="json-input" type="textarea" :rows="8" resize="vertical" spellcheck="false" />
+          <el-col
+            :md="12"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.parametersJson')"
+              prop="parameters_text"
+              required
+            >
+              <el-input
+                v-model="form.parameters_text"
+                class="json-input"
+                type="textarea"
+                :rows="8"
+                resize="vertical"
+                spellcheck="false"
+              />
             </el-form-item>
           </el-col>
-          <el-col :md="12" :span="24">
-            <el-form-item :label="t('aiTools.form.resultSchemaJson')" prop="result_schema_text" required>
-              <el-input v-model="form.result_schema_text" class="json-input" type="textarea" :rows="8" resize="vertical" spellcheck="false" />
+          <el-col
+            :md="12"
+            :span="24"
+          >
+            <el-form-item
+              :label="t('aiTools.form.resultSchemaJson')"
+              prop="result_schema_text"
+              required
+            >
+              <el-input
+                v-model="form.result_schema_text"
+                class="json-input"
+                type="textarea"
+                :rows="8"
+                resize="vertical"
+                spellcheck="false"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </section>
     </el-form>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        @click="confirmSubmit"
+      >
+        {{ t('common.actions.confirm') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

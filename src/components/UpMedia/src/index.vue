@@ -61,33 +61,71 @@ const onInputChange = (val: string) => {
 
 <template>
   <div :class="['up-media-container', { vertical: showInput }]">
-    <div class="media-uploader-wrapper" v-loading="loading" :style="{ width: width, height: width }">
-      <el-upload class="media-uploader" :before-upload="beforeUpload" :accept="acceptType" :show-file-list="false">
-        <el-icon v-if="!mediaUrl" class="media-uploader-icon">
+    <div
+      v-loading="loading"
+      class="media-uploader-wrapper"
+      :style="{ width: width, height: width }"
+    >
+      <el-upload
+        class="media-uploader"
+        :before-upload="beforeUpload"
+        :accept="acceptType"
+        :show-file-list="false"
+      >
+        <el-icon
+          v-if="!mediaUrl"
+          class="media-uploader-icon"
+        >
           <Plus />
         </el-icon>
-        <el-popover placement="right-start" :width="type === 'video' ? 300 : 250" trigger="hover" v-if="mediaUrl">
+        <el-popover
+          v-if="mediaUrl"
+          placement="right-start"
+          :width="type === 'video' ? 300 : 250"
+          trigger="hover"
+        >
           <template #reference>
             <!-- 图片预览 -->
-            <el-image v-if="type === 'image'" :src="mediaUrl" fit="fill" />
+            <el-image
+              v-if="type === 'image'"
+              :src="mediaUrl"
+              fit="fill"
+            />
             <!-- 视频预览 -->
-            <video v-else :src="mediaUrl" controls style="width: 100%; height: auto;" />
+            <video
+              v-else
+              :src="mediaUrl"
+              controls
+              style="width: 100%; height: auto;"
+            />
           </template>
-          <el-image v-if="type === 'image'" :src="mediaUrl" />
-          <video v-else :src="mediaUrl" controls style="width: 100%; height: auto;" />
+          <el-image
+            v-if="type === 'image'"
+            :src="mediaUrl"
+          />
+          <video
+            v-else
+            :src="mediaUrl"
+            controls
+            style="width: 100%; height: auto;"
+          />
         </el-popover>
       </el-upload>
-      <el-icon class="clear-icon" @click="clear" v-if="isClearable && mediaUrl">
+      <el-icon
+        v-if="isClearable && mediaUrl"
+        class="clear-icon"
+        @click="clear"
+      >
         <CircleCloseFilled />
       </el-icon>
     </div>
     <el-input 
       v-if="showInput" 
       :model-value="mediaUrl" 
-      @update:model-value="onInputChange" 
       :placeholder="placeholder" 
       clearable 
-      class="url-input"
+      class="url-input" 
+      @update:model-value="onInputChange"
     />
   </div>
 </template>

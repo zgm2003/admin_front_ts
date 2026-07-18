@@ -217,7 +217,9 @@ onMounted(async () => {
       <!-- 下载中 -->
       <template v-if="updateStatus === 'downloading'">
         <div class="status-row">
-          <el-icon class="loading-icon"><Loading /></el-icon>
+          <el-icon class="loading-icon">
+            <Loading />
+          </el-icon>
           <span>正在下载更新，请勿关闭程序...</span>
         </div>
         <el-progress
@@ -228,18 +230,31 @@ onMounted(async () => {
         />
         <div class="meta-row">
           <span>{{ formatSize(downloaded) }}<template v-if="contentLength > 0"> / {{ formatSize(contentLength) }}</template></span>
-          <span v-if="speed > 0" class="speed">{{ formatSpeed(speed) }}</span>
-          <span v-if="contentLength > 0" class="percent">{{ Math.round(progress) }}%</span>
+          <span
+            v-if="speed > 0"
+            class="speed"
+          >{{ formatSpeed(speed) }}</span>
+          <span
+            v-if="contentLength > 0"
+            class="percent"
+          >{{ Math.round(progress) }}%</span>
         </div>
       </template>
 
       <!-- 安装中 -->
       <template v-else-if="updateStatus === 'installing'">
         <div class="status-row">
-          <el-icon class="loading-icon"><Loading /></el-icon>
+          <el-icon class="loading-icon">
+            <Loading />
+          </el-icon>
           <span>下载完成，正在安装更新...</span>
         </div>
-        <el-progress :percentage="100" :stroke-width="10" status="success" style="margin-top: 16px" />
+        <el-progress
+          :percentage="100"
+          :stroke-width="10"
+          status="success"
+          style="margin-top: 16px"
+        />
       </template>
 
       <!-- 失败 -->
@@ -248,13 +263,25 @@ onMounted(async () => {
           <el-icon><CircleClose /></el-icon>
           <span>更新失败</span>
         </div>
-        <p class="error-message">{{ errorMessage }}</p>
+        <p class="error-message">
+          {{ errorMessage }}
+        </p>
       </template>
     </div>
 
-    <template v-if="updateStatus === 'failed' && !tauriStore.forceUpdate" #footer>
-      <el-button @click="showUpdateDialog = false">关闭</el-button>
-      <el-button type="primary" @click="retryUpdate">重试</el-button>
+    <template
+      v-if="updateStatus === 'failed' && !tauriStore.forceUpdate"
+      #footer
+    >
+      <el-button @click="showUpdateDialog = false">
+        关闭
+      </el-button>
+      <el-button
+        type="primary"
+        @click="retryUpdate"
+      >
+        重试
+      </el-button>
     </template>
   </AppDialog>
 
@@ -270,10 +297,19 @@ onMounted(async () => {
     <p style="margin: 0 0 16px; color: var(--el-text-color-regular)">
       是否最小化到系统托盘继续运行？
     </p>
-    <el-checkbox v-model="tauriStore.rememberChoice">记住我的选择</el-checkbox>
+    <el-checkbox v-model="tauriStore.rememberChoice">
+      记住我的选择
+    </el-checkbox>
     <template #footer>
-      <el-button @click="tauriStore.handleExit()">退出应用</el-button>
-      <el-button type="primary" @click="tauriStore.handleMinimize()">最小化到托盘</el-button>
+      <el-button @click="tauriStore.handleExit()">
+        退出应用
+      </el-button>
+      <el-button
+        type="primary"
+        @click="tauriStore.handleMinimize()"
+      >
+        最小化到托盘
+      </el-button>
     </template>
   </AppDialog>
 </template>

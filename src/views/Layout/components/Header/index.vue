@@ -1,14 +1,25 @@
 <template>
-  <div class="header-bar" :class="{ 'header-bar--draggable': isTauri() }">
+  <div
+    class="header-bar"
+    :class="{ 'header-bar--draggable': isTauri() }"
+  >
     <div class="header-left">
-      <el-button v-if="menuStore.hamburger" text class="menu-toggle" @click="handleMenuToggle">
+      <el-button
+        v-if="menuStore.hamburger"
+        text
+        class="menu-toggle"
+        @click="handleMenuToggle"
+      >
         <el-icon :size="20">
           <Expand v-if="menuStore.collapse" />
           <Fold v-else />
         </el-icon>
       </el-button>
 
-      <el-breadcrumb v-if="menuStore.breadcrumb" separator="/">
+      <el-breadcrumb
+        v-if="menuStore.breadcrumb"
+        separator="/"
+      >
         <transition-group name="breadcrumb">
           <el-breadcrumb-item
             v-for="item in breadcrumbs"
@@ -22,30 +33,69 @@
     </div>
 
     <div class="header-right">
-      <el-badge v-if="isTauri()" :value="downloadCount" :hidden="downloadCount === 0" :max="99">
-        <el-button text :title="t('header.downloads')" @click="showDownloadManager = true">
-          <DIcon icon="Download" :size="18" />
+      <el-badge
+        v-if="isTauri()"
+        :value="downloadCount"
+        :hidden="downloadCount === 0"
+        :max="99"
+      >
+        <el-button
+          text
+          :title="t('header.downloads')"
+          @click="showDownloadManager = true"
+        >
+          <DIcon
+            icon="Download"
+            :size="18"
+          />
         </el-button>
       </el-badge>
 
-      <el-dropdown trigger="click" @command="setLang">
-        <el-button text :title="t('common.language')">
-          <DIcon icon="mdi:translate" :size="18" />
+      <el-dropdown
+        trigger="click"
+        @command="setLang"
+      >
+        <el-button
+          text
+          :title="t('common.language')"
+        >
+          <DIcon
+            icon="mdi:translate"
+            :size="18"
+          />
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="zh-CN">{{ $t('common.zh') }}</el-dropdown-item>
-            <el-dropdown-item command="en-US">{{ $t('common.en') }}</el-dropdown-item>
+            <el-dropdown-item command="zh-CN">
+              {{ $t('common.zh') }}
+            </el-dropdown-item>
+            <el-dropdown-item command="en-US">
+              {{ $t('common.en') }}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
 
-      <el-button text :title="t('header.settings')" @click="drawer = true">
-        <DIcon icon="Setting" :size="18" />
+      <el-button
+        text
+        :title="t('header.settings')"
+        @click="drawer = true"
+      >
+        <DIcon
+          icon="Setting"
+          :size="18"
+        />
       </el-button>
 
-      <el-button text :title="t('header.search')" @click="searchOpen = true">
-        <DIcon icon="Search" :size="18" />
+      <el-button
+        text
+        :title="t('header.search')"
+        @click="searchOpen = true"
+      >
+        <DIcon
+          icon="Search"
+          :size="18"
+        />
       </el-button>
 
       <WindowControls />
@@ -54,7 +104,10 @@
 
   <SettingDrawer v-model="drawer" />
   <SearchDialog v-model="searchOpen" />
-  <DownloadManager v-if="isTauri()" v-model:visible="showDownloadManager" />
+  <DownloadManager
+    v-if="isTauri()"
+    v-model:visible="showDownloadManager"
+  />
 </template>
 
 <script setup lang="ts">

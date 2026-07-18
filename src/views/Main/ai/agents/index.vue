@@ -257,7 +257,12 @@ onMounted(() => {
 
 <template>
   <div class="ai-agent-page">
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
     <div class="ai-agent-page__table">
       <AppTable
         :columns="columns"
@@ -270,22 +275,42 @@ onMounted(() => {
         @update:pagination="onPageChange"
       >
         <template #toolbar-left>
-          <el-button type="success" @click="add">{{ t('common.actions.add') }}</el-button>
+          <el-button
+            type="success"
+            @click="add"
+          >
+            {{ t('common.actions.add') }}
+          </el-button>
         </template>
         <template #cell-avatar="{ row }">
-          <el-avatar :src="row.avatar || undefined" :size="36">{{ row.name?.charAt(0) || '?' }}</el-avatar>
+          <el-avatar
+            :src="row.avatar || undefined"
+            :size="36"
+          >
+            {{ row.name?.charAt(0) || '?' }}
+          </el-avatar>
         </template>
         <template #cell-model_id="{ row }">
           <el-text>{{ row.model_display_name || row.model_id }}</el-text>
         </template>
         <template #cell-scenes="{ row }">
-          <el-tag type="info">{{ sceneText(row) }}</el-tag>
+          <el-tag type="info">
+            {{ sceneText(row) }}
+          </el-tag>
         </template>
         <template #cell-status="{ row }">
-          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">{{ row.status_name || row.status }}</el-tag>
+          <el-tag :type="row.status === CommonEnum.YES ? 'success' : 'danger'">
+            {{ row.status_name || row.status }}
+          </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button type="primary" text @click="edit(row)">{{ t('common.actions.edit') }}</el-button>
+          <el-button
+            type="primary"
+            text
+            @click="edit(row)"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
           <el-button
             v-if="userStore.can('ai_agent_test') && row.status === CommonEnum.YES"
             type="success"
@@ -294,32 +319,101 @@ onMounted(() => {
           >
             {{ t('aiAgents.actions.test') }}
           </el-button>
-          <el-button type="primary" text @click="openTools(row)">{{ t('aiAgents.actions.tools') }}</el-button>
-          <el-button type="success" text @click="openKnowledge(row)">{{ t('aiAgents.actions.knowledge') }}</el-button>
-          <el-button v-if="row.status === CommonEnum.NO" type="warning" text @click="toggleStatus(row, CommonEnum.YES)">{{ t('common.actions.enable') }}</el-button>
-          <el-button v-if="row.status === CommonEnum.YES" type="warning" text @click="toggleStatus(row, CommonEnum.NO)">{{ t('common.actions.disable') }}</el-button>
-          <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+          <el-button
+            type="primary"
+            text
+            @click="openTools(row)"
+          >
+            {{ t('aiAgents.actions.tools') }}
+          </el-button>
+          <el-button
+            type="success"
+            text
+            @click="openKnowledge(row)"
+          >
+            {{ t('aiAgents.actions.knowledge') }}
+          </el-button>
+          <el-button
+            v-if="row.status === CommonEnum.NO"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.YES)"
+          >
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button
+            v-if="row.status === CommonEnum.YES"
+            type="warning"
+            text
+            @click="toggleStatus(row, CommonEnum.NO)"
+          >
+            {{ t('common.actions.disable') }}
+          </el-button>
+          <el-button
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
   </div>
 
-  <AppDialog v-model="dialogVisible" :width="isMobile ? '94vw' : '760px'" height="70vh">
-    <template #header>{{ dialogMode === 'add' ? t('aiAgents.addTitle') : t('aiAgents.editTitle') }}</template>
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto" :validate-on-rule-change="false">
+  <AppDialog
+    v-model="dialogVisible"
+    :width="isMobile ? '94vw' : '760px'"
+    height="70vh"
+  >
+    <template #header>
+      {{ dialogMode === 'add' ? t('aiAgents.addTitle') : t('aiAgents.editTitle') }}
+    </template>
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="auto"
+      :validate-on-rule-change="false"
+    >
       <el-row :gutter="12">
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiAgents.form.name')" prop="name" required>
-            <el-input v-model="form.name" clearable />
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiAgents.form.name')"
+            prop="name"
+            required
+          >
+            <el-input
+              v-model="form.name"
+              clearable
+            />
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiAgents.form.status')" prop="status" required>
-            <el-select-v2 v-model="form.status" :options="dict.common_status_arr" style="width: 100%" />
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiAgents.form.status')"
+            prop="status"
+            required
+          >
+            <el-select-v2
+              v-model="form.status"
+              :options="dict.common_status_arr"
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiAgents.form.model')" prop="model_path" required>
+          <el-form-item
+            :label="t('aiAgents.form.model')"
+            prop="model_path"
+            required
+          >
             <el-cascader
               v-model="form.model_path"
               :options="modelOptions"
@@ -333,25 +427,58 @@ onMounted(() => {
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiAgents.form.scenes')" prop="scenes" required>
-            <el-select-v2 v-model="form.scenes" :options="dict.scene_arr" multiple clearable style="width: 100%" />
+          <el-form-item
+            :label="t('aiAgents.form.scenes')"
+            prop="scenes"
+            required
+          >
+            <el-select-v2
+              v-model="form.scenes"
+              :options="dict.scene_arr"
+              multiple
+              clearable
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiAgents.form.avatar')" prop="avatar">
-            <UpMedia v-model="form.avatar" type="image" folder-name="ai-agents" width="72px" show-input />
+          <el-form-item
+            :label="t('aiAgents.form.avatar')"
+            prop="avatar"
+          >
+            <UpMedia
+              v-model="form.avatar"
+              type="image"
+              folder-name="ai-agents"
+              width="72px"
+              show-input
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiAgents.form.systemPrompt')" prop="system_prompt">
-            <el-input v-model="form.system_prompt" type="textarea" :rows="8" />
+          <el-form-item
+            :label="t('aiAgents.form.systemPrompt')"
+            prop="system_prompt"
+          >
+            <el-input
+              v-model="form.system_prompt"
+              type="textarea"
+              :rows="8"
+            />
           </el-form-item>
         </el-col>
       </el-row>
     </el-form>
     <template #footer>
-      <el-button @click="dialogVisible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+      <el-button @click="dialogVisible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        @click="confirmSubmit"
+      >
+        {{ t('common.actions.confirm') }}
+      </el-button>
     </template>
   </AppDialog>
 
@@ -366,7 +493,6 @@ onMounted(() => {
     :agent="knowledgeAgent"
     @saved="getList"
   />
-
 </template>
 
 <style scoped>

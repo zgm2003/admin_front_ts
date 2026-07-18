@@ -34,14 +34,31 @@ async function handleTabChange(name: string | number) {
 
 <template>
   <div class="mail-page">
-    <el-tabs v-model="activeTab" :stretch="isMobile" class="mail-page__tabs" @tab-change="handleTabChange">
-      <el-tab-pane :label="t('mail.tabs.config')" name="config" lazy>
+    <el-tabs
+      v-model="activeTab"
+      :stretch="isMobile"
+      class="mail-page__tabs"
+      @tab-change="handleTabChange"
+    >
+      <el-tab-pane
+        :label="t('mail.tabs.config')"
+        name="config"
+        lazy
+      >
         <MailConfigPanel />
       </el-tab-pane>
-      <el-tab-pane :label="t('mail.tabs.template')" name="template" lazy>
+      <el-tab-pane
+        :label="t('mail.tabs.template')"
+        name="template"
+        lazy
+      >
         <MailTemplatePanel />
       </el-tab-pane>
-      <el-tab-pane :label="t('mail.tabs.log')" name="log" lazy>
+      <el-tab-pane
+        :label="t('mail.tabs.log')"
+        name="log"
+        lazy
+      >
         <MailLogPanel ref="mailLogPanelRef" />
       </el-tab-pane>
     </el-tabs>

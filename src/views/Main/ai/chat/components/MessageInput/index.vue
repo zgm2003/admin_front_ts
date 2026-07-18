@@ -423,39 +423,99 @@ defineExpose({
     <div class="input-toolbar">
       <div class="toolbar-left">
         <!-- 历史会话 -->
-        <el-button v-if="showHistoryBtn" text class="toolbar-btn" :disabled="disabled" @click="emit('openHistory')" :title="t('aiChat.historyConversations')">
-          <el-icon :size="18"><ChatLineSquare /></el-icon>
+        <el-button
+          v-if="showHistoryBtn"
+          text
+          class="toolbar-btn"
+          :disabled="disabled"
+          :title="t('aiChat.historyConversations')"
+          @click="emit('openHistory')"
+        >
+          <el-icon :size="18">
+            <ChatLineSquare />
+          </el-icon>
         </el-button>
         <!-- 图片上传 -->
-        <el-button v-if="supportsImage" text class="toolbar-btn" :disabled="sending || disabled || isImageLimitReached || isRecording" @click="handleUploadClick" :title="t('aiChat.uploadImage')">
-          <el-icon :size="18"><Picture /></el-icon>
+        <el-button
+          v-if="supportsImage"
+          text
+          class="toolbar-btn"
+          :disabled="sending || disabled || isImageLimitReached || isRecording"
+          :title="t('aiChat.uploadImage')"
+          @click="handleUploadClick"
+        >
+          <el-icon :size="18">
+            <Picture />
+          </el-icon>
         </el-button>
         <!-- 语音 -->
-        <el-button text class="toolbar-btn voice-btn" :class="{ 'is-recording': isRecording }" :disabled="sending || disabled" @click="toggleVoiceInput" :title="t('aiChat.voiceInput')">
-          <el-icon :size="18"><Microphone /></el-icon>
+        <el-button
+          text
+          class="toolbar-btn voice-btn"
+          :class="{ 'is-recording': isRecording }"
+          :disabled="sending || disabled"
+          :title="t('aiChat.voiceInput')"
+          @click="toggleVoiceInput"
+        >
+          <el-icon :size="18">
+            <Microphone />
+          </el-icon>
         </el-button>
         <!-- Emoji -->
-        <el-popover v-model:visible="showEmojiPicker" placement="top-start" :width="320" trigger="click" :show-arrow="false" popper-class="emoji-popover">
+        <el-popover
+          v-model:visible="showEmojiPicker"
+          placement="top-start"
+          :width="320"
+          trigger="click"
+          :show-arrow="false"
+          popper-class="emoji-popover"
+        >
           <template #reference>
-            <el-button text class="toolbar-btn" :disabled="sending || disabled || isRecording" :title="t('aiChat.insertEmoji')">
-              <DIcon icon="fluent-emoji:grinning-face" :size="18" />
+            <el-button
+              text
+              class="toolbar-btn"
+              :disabled="sending || disabled || isRecording"
+              :title="t('aiChat.insertEmoji')"
+            >
+              <DIcon
+                icon="fluent-emoji:grinning-face"
+                :size="18"
+              />
             </el-button>
           </template>
           <EmojiPicker @select="handleEmojiSelect" />
         </el-popover>
         <!-- 参数设置 -->
-        <el-button text class="toolbar-btn" :class="{ 'params-active': hasCustomParams }" :disabled="sending || disabled" @click="showParamsPanel = !showParamsPanel" :title="t('aiChat.runtimeParams')">
-          <el-icon :size="18"><Setting /></el-icon>
+        <el-button
+          text
+          class="toolbar-btn"
+          :class="{ 'params-active': hasCustomParams }"
+          :disabled="sending || disabled"
+          :title="t('aiChat.runtimeParams')"
+          @click="showParamsPanel = !showParamsPanel"
+        >
+          <el-icon :size="18">
+            <Setting />
+          </el-icon>
         </el-button>
       </div>
     </div>
 
     <!-- 参数设置面板（v-if 懒加载，不常驻 DOM） -->
-    <div v-if="showParamsPanel" class="params-panel">
+    <div
+      v-if="showParamsPanel"
+      class="params-panel"
+    >
       <div class="params-header">
         <span class="params-title">{{ t('aiChat.runtimeParams') }}</span>
-        <button class="params-reset-btn" :class="{ active: hasCustomParams }" @click="resetParams">
-          <el-icon :size="12"><RefreshRight /></el-icon>
+        <button
+          class="params-reset-btn"
+          :class="{ active: hasCustomParams }"
+          @click="resetParams"
+        >
+          <el-icon :size="12">
+            <RefreshRight />
+          </el-icon>
           {{ t('aiChat.resetParams') }}
         </button>
       </div>
@@ -463,48 +523,110 @@ defineExpose({
         <div class="params-item">
           <div class="params-item-header">
             <span class="params-item-label">{{ t('aiChat.temperature') }}</span>
-            <span class="params-item-value" :class="{ custom: runtimeTemperature !== null }">
+            <span
+              class="params-item-value"
+              :class="{ custom: runtimeTemperature !== null }"
+            >
               {{ runtimeTemperature !== null ? runtimeTemperature.toFixed(1) : t('aiChat.useDefault') }}
             </span>
           </div>
-          <el-slider :model-value="runtimeTemperature ?? 1" @update:model-value="(v: number | number[]) => runtimeTemperature = v as number" :min="0" :max="2" :step="0.1" :show-tooltip="false" size="small" />
+          <el-slider
+            :model-value="runtimeTemperature ?? 1"
+            :min="0"
+            :max="2"
+            :step="0.1"
+            :show-tooltip="false"
+            size="small"
+            @update:model-value="(v: number | number[]) => runtimeTemperature = v as number"
+          />
         </div>
         <div class="params-item">
           <div class="params-item-header">
             <span class="params-item-label">{{ t('aiChat.maxTokens') }}</span>
-            <span class="params-item-value" :class="{ custom: runtimeMaxTokens !== null }">
+            <span
+              class="params-item-value"
+              :class="{ custom: runtimeMaxTokens !== null }"
+            >
               {{ runtimeMaxTokens !== null ? runtimeMaxTokens.toLocaleString() : t('aiChat.useDefault') }}
             </span>
           </div>
-          <el-slider :model-value="runtimeMaxTokens ?? 4096" @update:model-value="(v: number | number[]) => runtimeMaxTokens = v as number" :min="256" :max="32768" :step="256" :show-tooltip="false" size="small" />
+          <el-slider
+            :model-value="runtimeMaxTokens ?? 4096"
+            :min="256"
+            :max="32768"
+            :step="256"
+            :show-tooltip="false"
+            size="small"
+            @update:model-value="(v: number | number[]) => runtimeMaxTokens = v as number"
+          />
         </div>
       </div>
       <div class="params-item params-item-full">
         <div class="params-item-header">
           <span class="params-item-label">{{ t('aiChat.maxHistory') }}</span>
-          <span class="params-item-value" :class="{ custom: runtimeMaxHistory !== null }">
+          <span
+            class="params-item-value"
+            :class="{ custom: runtimeMaxHistory !== null }"
+          >
             {{ runtimeMaxHistory !== null ? runtimeMaxHistory : '20' }}
           </span>
         </div>
-        <el-slider :model-value="runtimeMaxHistory ?? 20" @update:model-value="(v: number | number[]) => runtimeMaxHistory = v as number" :min="1" :max="50" :step="1" :show-tooltip="false" size="small" />
+        <el-slider
+          :model-value="runtimeMaxHistory ?? 20"
+          :min="1"
+          :max="50"
+          :step="1"
+          :show-tooltip="false"
+          size="small"
+          @update:model-value="(v: number | number[]) => runtimeMaxHistory = v as number"
+        />
       </div>
     </div>
 
     <!-- 待发送附件预览区 -->
-    <div v-if="pendingAttachments.length" class="pending-area">
-      <div v-for="att in pendingAttachments" :key="att.id" class="pending-item" :class="{ error: att.status === 'error' }">
-        <img :src="att.preview" :alt="att.file.name" class="pending-thumb" />
+    <div
+      v-if="pendingAttachments.length"
+      class="pending-area"
+    >
+      <div
+        v-for="att in pendingAttachments"
+        :key="att.id"
+        class="pending-item"
+        :class="{ error: att.status === 'error' }"
+      >
+        <img
+          :src="att.preview"
+          :alt="att.file.name"
+          class="pending-thumb"
+        >
         <!-- 上传中遮罩 -->
-        <div v-if="att.status === 'uploading'" class="pending-overlay">
-          <el-icon class="is-loading" :size="20" color="#fff"><Loading /></el-icon>
+        <div
+          v-if="att.status === 'uploading'"
+          class="pending-overlay"
+        >
+          <el-icon
+            class="is-loading"
+            :size="20"
+            color="#fff"
+          >
+            <Loading />
+          </el-icon>
         </div>
         <!-- 错误遮罩 -->
-        <div v-if="att.status === 'error'" class="pending-overlay error">
+        <div
+          v-if="att.status === 'error'"
+          class="pending-overlay error"
+        >
           <span class="error-text">{{ att.error || t('aiChat.uploadFailed') }}</span>
         </div>
         <!-- 删除按钮 -->
-        <button class="pending-remove" @click="removeAttachment(att.id)">
-          <el-icon :size="12"><Close /></el-icon>
+        <button
+          class="pending-remove"
+          @click="removeAttachment(att.id)"
+        >
+          <el-icon :size="12">
+            <Close />
+          </el-icon>
         </button>
       </div>
     </div>
@@ -514,33 +636,50 @@ defineExpose({
       <textarea
         ref="textareaRef"
         :value="inputText"
-        @input="handleInput"
-        @keydown="handleKeydown"
-        @paste="handlePaste"
         :placeholder="disabled ? t('aiChat.selectAgentFirst') : t('aiChat.inputPlaceholder')"
         :disabled="sending || disabled || isRecording"
         :maxlength="MAX_CONTENT_LENGTH"
         rows="1"
         class="chat-textarea"
+        @input="handleInput"
+        @keydown="handleKeydown"
+        @paste="handlePaste"
       />
     </div>
 
     <!-- 底部：状态 + 发送/停止 -->
     <div class="input-footer">
-      <span v-if="isRecording" class="recording-status">
-        <el-icon class="recording-icon" :size="14"><Microphone /></el-icon>
+      <span
+        v-if="isRecording"
+        class="recording-status"
+      >
+        <el-icon
+          class="recording-icon"
+          :size="14"
+        ><Microphone /></el-icon>
         {{ t('aiChat.voiceRecording') }}
       </span>
-      <span v-else class="input-hint">
+      <span
+        v-else
+        class="input-hint"
+      >
         {{ isMobile ? t('aiChat.inputHintMobile') : t('aiChat.inputHint') }}
         <template v-if="supportsImage && !isMobile">{{ t('aiChat.inputHintImage') }}</template>
       </span>
-      <span v-if="showCharCount" class="char-count" :class="{ 'near-limit': inputText.length >= MAX_CONTENT_LENGTH }">
+      <span
+        v-if="showCharCount"
+        class="char-count"
+        :class="{ 'near-limit': inputText.length >= MAX_CONTENT_LENGTH }"
+      >
         {{ inputText.length.toLocaleString() }} / {{ MAX_CONTENT_LENGTH.toLocaleString() }}
       </span>
       <!-- 停止按钮 -->
-      <button v-if="isStreaming" class="stop-button" @click="emit('stop')">
-        <div class="stop-icon"></div>
+      <button
+        v-if="isStreaming"
+        class="stop-button"
+        @click="emit('stop')"
+      >
+        <div class="stop-icon" />
       </button>
       <!-- 发送按钮 -->
       <el-button
@@ -555,7 +694,14 @@ defineExpose({
     </div>
 
     <!-- 隐藏的文件选择器 -->
-    <input ref="fileInputRef" type="file" accept="image/*" multiple style="display:none" @change="handleFileChange" />
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="image/*"
+      multiple
+      style="display:none"
+      @change="handleFileChange"
+    >
   </div>
 </template>
 

@@ -23,10 +23,18 @@ function modelLabel(model: AiProviderModelItem): string {
         type="info"
       >
         {{ modelLabel(model) }}
-        <span v-if="model.display_name" class="provider-model-list__id">{{ model.model_id }}</span>
+        <span
+          v-if="model.display_name"
+          class="provider-model-list__id"
+        >{{ model.model_id }}</span>
       </el-tag>
     </template>
-    <el-text v-else type="info">-</el-text>
+    <el-text
+      v-else
+      type="info"
+    >
+      -
+    </el-text>
   </div>
 </template>
 

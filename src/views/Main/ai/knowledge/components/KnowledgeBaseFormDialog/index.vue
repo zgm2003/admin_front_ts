@@ -142,60 +142,188 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '760px'" height="62vh">
-    <template #header>{{ title }}</template>
-    <el-form ref="formRef" :model="form" :rules="rules" label-width="auto" :validate-on-rule-change="false">
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '760px'"
+    height="62vh"
+  >
+    <template #header>
+      {{ title }}
+    </template>
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="auto"
+      :validate-on-rule-change="false"
+    >
       <el-row :gutter="12">
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.name')" prop="name" required>
-            <el-input v-model="form.name" clearable />
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.name')"
+            prop="name"
+            required
+          >
+            <el-input
+              v-model="form.name"
+              clearable
+            />
           </el-form-item>
         </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.code')" prop="code" required>
-            <el-input v-model="form.code" clearable />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item :label="t('aiKnowledge.form.description')" prop="description">
-            <el-input v-model="form.description" type="textarea" :rows="3" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.chunkSize')" prop="chunk_size_chars" required>
-            <el-input-number v-model="form.chunk_size_chars" :min="300" :max="8000" :step="100" controls-position="right" class="knowledge-base-form__number" :controls="false" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="12" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.chunkOverlap')" prop="chunk_overlap_chars">
-            <el-input-number v-model="form.chunk_overlap_chars" :min="0" :max="1000" :step="20" controls-position="right" class="knowledge-base-form__number" :controls="false" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="8" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.defaultTopK')" prop="default_top_k" required>
-            <el-input-number v-model="form.default_top_k" :min="1" :max="20" controls-position="right" class="knowledge-base-form__number" :controls="false" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="8" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.defaultMinScore')" prop="default_min_score" required>
-            <el-input-number v-model="form.default_min_score" :min="0" :max="100" :step="0.01" controls-position="right" class="knowledge-base-form__number" :controls="false" />
-          </el-form-item>
-        </el-col>
-        <el-col :md="8" :span="24">
-          <el-form-item :label="t('aiKnowledge.form.defaultContext')" prop="default_max_context_chars" required>
-            <el-input-number v-model="form.default_max_context_chars" :min="1000" :max="30000" :step="500" controls-position="right" class="knowledge-base-form__number" :controls="false" />
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.code')"
+            prop="code"
+            required
+          >
+            <el-input
+              v-model="form.code"
+              clearable
+            />
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item :label="t('aiKnowledge.form.status')" prop="status" required>
-            <el-select-v2 v-model="form.status" :options="props.dict.common_status_arr" class="knowledge-base-form__select" />
+          <el-form-item
+            :label="t('aiKnowledge.form.description')"
+            prop="description"
+          >
+            <el-input
+              v-model="form.description"
+              type="textarea"
+              :rows="3"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.chunkSize')"
+            prop="chunk_size_chars"
+            required
+          >
+            <el-input-number
+              v-model="form.chunk_size_chars"
+              :min="300"
+              :max="8000"
+              :step="100"
+              controls-position="right"
+              class="knowledge-base-form__number"
+              :controls="false"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.chunkOverlap')"
+            prop="chunk_overlap_chars"
+          >
+            <el-input-number
+              v-model="form.chunk_overlap_chars"
+              :min="0"
+              :max="1000"
+              :step="20"
+              controls-position="right"
+              class="knowledge-base-form__number"
+              :controls="false"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="8"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.defaultTopK')"
+            prop="default_top_k"
+            required
+          >
+            <el-input-number
+              v-model="form.default_top_k"
+              :min="1"
+              :max="20"
+              controls-position="right"
+              class="knowledge-base-form__number"
+              :controls="false"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="8"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.defaultMinScore')"
+            prop="default_min_score"
+            required
+          >
+            <el-input-number
+              v-model="form.default_min_score"
+              :min="0"
+              :max="100"
+              :step="0.01"
+              controls-position="right"
+              class="knowledge-base-form__number"
+              :controls="false"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="8"
+          :span="24"
+        >
+          <el-form-item
+            :label="t('aiKnowledge.form.defaultContext')"
+            prop="default_max_context_chars"
+            required
+          >
+            <el-input-number
+              v-model="form.default_max_context_chars"
+              :min="1000"
+              :max="30000"
+              :step="500"
+              controls-position="right"
+              class="knowledge-base-form__number"
+              :controls="false"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
+          <el-form-item
+            :label="t('aiKnowledge.form.status')"
+            prop="status"
+            required
+          >
+            <el-select-v2
+              v-model="form.status"
+              :options="props.dict.common_status_arr"
+              class="knowledge-base-form__select"
+            />
           </el-form-item>
         </el-col>
       </el-row>
     </el-form>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">{{ t('common.actions.confirm') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saving"
+        @click="submit"
+      >
+        {{ t('common.actions.confirm') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

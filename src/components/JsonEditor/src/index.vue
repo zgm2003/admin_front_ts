@@ -49,10 +49,25 @@ defineExpose({ validate })
 
 <template>
   <div class="json-editor">
-    <el-input type="textarea" v-model="modelValue" :rows="props.rows" @blur="onBlur" />
+    <el-input
+      v-model="modelValue"
+      type="textarea"
+      :rows="props.rows"
+      @blur="onBlur"
+    />
     <div class="json-editor__actions">
-      <el-button size="small" @click="format">{{ t('jsonEditor.format') }}</el-button>
-      <el-button size="small" @click="validate">{{ t('jsonEditor.validate') }}</el-button>
+      <el-button
+        size="small"
+        @click="format"
+      >
+        {{ t('jsonEditor.format') }}
+      </el-button>
+      <el-button
+        size="small"
+        @click="validate"
+      >
+        {{ t('jsonEditor.validate') }}
+      </el-button>
     </div>
   </div>
 </template>

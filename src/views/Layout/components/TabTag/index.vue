@@ -166,14 +166,30 @@ watch(tagSignature, () => {
 
 <template>
   <div class="tags-view">
-    <button type="button" class="tags-nav" :class="{ disabled: !prevTag }" @click="goPrevTag">
+    <button
+      type="button"
+      class="tags-nav"
+      :class="{ disabled: !prevTag }"
+      @click="goPrevTag"
+    >
       <el-icon><DArrowLeft /></el-icon>
     </button>
 
     <div class="tags-wrapper">
-      <el-scrollbar ref="scrollPaneRef" class="tags-scroll" @wheel.prevent="handleScroll">
-        <div ref="tagsInnerRef" class="tags-inner">
-          <TransitionGroup name="tag" tag="div" class="tags-list">
+      <el-scrollbar
+        ref="scrollPaneRef"
+        class="tags-scroll"
+        @wheel.prevent="handleScroll"
+      >
+        <div
+          ref="tagsInnerRef"
+          class="tags-inner"
+        >
+          <TransitionGroup
+            name="tag"
+            tag="div"
+            class="tags-list"
+          >
             <div
               v-for="tag in tags"
               :key="tag.path"
@@ -188,9 +204,16 @@ watch(tagSignature, () => {
               @keydown.space.prevent="visitTag(tag)"
               @contextmenu.prevent="openMenu(tag, $event)"
             >
-              <span class="tag-dot" v-if="isActive(tag)"></span>
+              <span
+                v-if="isActive(tag)"
+                class="tag-dot"
+              />
               <span class="tag-label">{{ getTagLabel(tag) }}</span>
-              <span v-if="!isAffix(tag)" class="tag-close" @click.stop="closeTag(tag)">
+              <span
+                v-if="!isAffix(tag)"
+                class="tag-close"
+                @click.stop="closeTag(tag)"
+              >
                 <el-icon :size="12"><Close /></el-icon>
               </span>
             </div>
@@ -199,29 +222,68 @@ watch(tagSignature, () => {
       </el-scrollbar>
     </div>
 
-    <button type="button" class="tags-nav" :class="{ disabled: !nextTag }" @click="goNextTag">
+    <button
+      type="button"
+      class="tags-nav"
+      :class="{ disabled: !nextTag }"
+      @click="goNextTag"
+    >
       <el-icon><DArrowRight /></el-icon>
     </button>
 
-    <el-dropdown trigger="click" @command="handleCommand">
-      <button type="button" class="tags-nav tags-action">
+    <el-dropdown
+      trigger="click"
+      @command="handleCommand"
+    >
+      <button
+        type="button"
+        class="tags-nav tags-action"
+      >
         <el-icon><Setting /></el-icon>
       </button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item command="refresh" :icon="Refresh">{{ t('tabTag.refresh') }}</el-dropdown-item>
-          <el-dropdown-item command="fullscreen" :icon="FullScreen">{{ menuStore.contentFullscreen ? t('tabTag.exitFullscreen') : t('tabTag.fullscreen') }}</el-dropdown-item>
-          <el-dropdown-item command="closeOther" :icon="CircleClose">{{ t('tabTag.closeOther') }}</el-dropdown-item>
-          <el-dropdown-item command="closeAll" :icon="FolderDelete">{{ t('tabTag.closeAll') }}</el-dropdown-item>
+          <el-dropdown-item
+            command="refresh"
+            :icon="Refresh"
+          >
+            {{ t('tabTag.refresh') }}
+          </el-dropdown-item>
+          <el-dropdown-item
+            command="fullscreen"
+            :icon="FullScreen"
+          >
+            {{ menuStore.contentFullscreen ? t('tabTag.exitFullscreen') : t('tabTag.fullscreen') }}
+          </el-dropdown-item>
+          <el-dropdown-item
+            command="closeOther"
+            :icon="CircleClose"
+          >
+            {{ t('tabTag.closeOther') }}
+          </el-dropdown-item>
+          <el-dropdown-item
+            command="closeAll"
+            :icon="FolderDelete"
+          >
+            {{ t('tabTag.closeAll') }}
+          </el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
 
-    <ul ref="contextMenuRef" v-show="visible" class="context-menu" :style="{ left: `${left}px`, top: `${top}px` }">
+    <ul
+      v-show="visible"
+      ref="contextMenuRef"
+      class="context-menu"
+      :style="{ left: `${left}px`, top: `${top}px` }"
+    >
       <li @click="handleContextRefresh">
         <el-icon><Refresh /></el-icon>{{ t('tabTag.refresh') }}
       </li>
-      <li v-if="selectedTag && !isAffix(selectedTag)" @click="handleContextClose">
+      <li
+        v-if="selectedTag && !isAffix(selectedTag)"
+        @click="handleContextClose"
+      >
         <el-icon><Close /></el-icon>{{ t('tabTag.close') }}
       </li>
       <li @click="handleContextCloseOther">

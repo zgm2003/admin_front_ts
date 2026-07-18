@@ -120,8 +120,14 @@ function emptySummary(): WalletSummaryResponse {
 
 <template>
   <div class="personal-wallet-page">
-    <el-tabs v-model="activeTab" class="personal-wallet-page__tabs">
-      <el-tab-pane :label="t('wallet.summary')" name="wallet">
+    <el-tabs
+      v-model="activeTab"
+      class="personal-wallet-page__tabs"
+    >
+      <el-tab-pane
+        :label="t('wallet.summary')"
+        name="wallet"
+      >
         <section class="personal-wallet-page__summary">
           <div
             v-for="item in summaryCards"
@@ -133,12 +139,18 @@ function emptySummary(): WalletSummaryResponse {
           </div>
         </section>
         <div class="personal-wallet-page__actions">
-          <el-button type="primary" @click="goRecharge">
+          <el-button
+            type="primary"
+            @click="goRecharge"
+          >
             {{ t('wallet.recharge') }}
           </el-button>
         </div>
       </el-tab-pane>
-      <el-tab-pane :label="t('wallet.fundsDetail')" name="transactions">
+      <el-tab-pane
+        :label="t('wallet.fundsDetail')"
+        name="transactions"
+      >
         <section class="personal-wallet-page__transactions">
           <Search
             v-model="searchForm"
@@ -160,7 +172,10 @@ function emptySummary(): WalletSummaryResponse {
               @update:pagination="onPageChange"
             >
               <template #cell-direction_text="{ row }">
-                <el-tag :type="tagType(row.direction)" effect="light">
+                <el-tag
+                  :type="tagType(row.direction)"
+                  effect="light"
+                >
                   {{ row.direction_text }}
                 </el-tag>
               </template>

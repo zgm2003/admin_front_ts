@@ -10,12 +10,23 @@ const activeTab = ref('list')
 
 <template>
   <div class="runs-page">
-    <el-tabs v-model="activeTab" class="runs-tabs">
-      <el-tab-pane :label="t('aiRuns.tabs.list')" name="list" lazy>
-        <RunList/>
+    <el-tabs
+      v-model="activeTab"
+      class="runs-tabs"
+    >
+      <el-tab-pane
+        :label="t('aiRuns.tabs.list')"
+        name="list"
+        lazy
+      >
+        <RunList />
       </el-tab-pane>
-      <el-tab-pane :label="t('aiRuns.tabs.stats')" name="stats" lazy>
-        <RunStats/>
+      <el-tab-pane
+        :label="t('aiRuns.tabs.stats')"
+        name="stats"
+        lazy
+      >
+        <RunStats />
       </el-tab-pane>
     </el-tabs>
   </div>

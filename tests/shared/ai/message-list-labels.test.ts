@@ -18,7 +18,7 @@ describe('AI chat message list labels', () => {
   it('does not render an empty text bubble for image-only user messages', () => {
     const source = readFrontendSource('src/views/Main/ai/chat/components/MessageList/index.vue')
 
-    expect(source).toContain('v-else-if="message.role === AiRoleEnum.ASSISTANT" class="empty-content"')
+    expect(source).toMatch(/v-else-if="message\.role === AiRoleEnum\.ASSISTANT"\s+class="empty-content"/)
     expect(source).not.toContain('v-else class="empty-content"')
   })
 })

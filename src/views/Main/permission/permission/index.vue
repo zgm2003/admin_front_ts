@@ -80,18 +80,39 @@ onMounted(async () => {
 
 <template>
   <div class="permission-definition-page">
-    <PlatformTabs v-model="activePlatform" :options="platformOptions" @change="switchPlatform" />
+    <PlatformTabs
+      v-model="activePlatform"
+      :options="platformOptions"
+      @change="switchPlatform"
+    />
 
-    <Search v-model="searchForm" :fields="searchFields" @query="onSearch" @reset="onSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="onSearch"
+      @reset="onSearch"
+    />
 
     <div class="permission-toolbar">
-      <el-button v-if="canAdd" type="success" @click="openAdd">
+      <el-button
+        v-if="canAdd"
+        type="success"
+        @click="openAdd"
+      >
         {{ t('common.actions.add') }}
       </el-button>
-      <el-button v-if="canDelete" type="danger" @click="batchDel">
+      <el-button
+        v-if="canDelete"
+        type="danger"
+        @click="batchDel"
+      >
         {{ t('common.actions.batchDelete') }}
       </el-button>
-      <el-button type="primary" :icon="isExpanded ? ArrowUp : ArrowDown" @click="toggleExpand">
+      <el-button
+        type="primary"
+        :icon="isExpanded ? ArrowUp : ArrowDown"
+        @click="toggleExpand"
+      >
         {{ isExpanded ? t('common.actions.collapseAll') : t('common.actions.expandAll') }}
       </el-button>
     </div>
@@ -127,7 +148,10 @@ onMounted(async () => {
     @open-icon-select="openIconSelect"
   />
 
-  <IconSelect ref="iconSelectRef" @select-icon="confirmIcon" />
+  <IconSelect
+    ref="iconSelectRef"
+    @select-icon="confirmIcon"
+  />
 </template>
 
 <style scoped>

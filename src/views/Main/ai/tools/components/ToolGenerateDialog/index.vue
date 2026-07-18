@@ -137,8 +137,15 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '720px'" height="64vh" body-padding="16px 18px 6px">
-    <template #header>{{ t('aiTools.generate.title') }}</template>
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '720px'"
+    height="64vh"
+    body-padding="16px 18px 6px"
+  >
+    <template #header>
+      {{ t('aiTools.generate.title') }}
+    </template>
 
     <el-form
       ref="formRef"
@@ -148,7 +155,11 @@ watch(
       label-position="top"
       :validate-on-rule-change="false"
     >
-      <el-form-item :label="t('aiTools.generate.agent')" prop="agent_id" required>
+      <el-form-item
+        :label="t('aiTools.generate.agent')"
+        prop="agent_id"
+        required
+      >
         <el-select-v2
           v-model="form.agent_id"
           :options="agentOptions"
@@ -158,7 +169,11 @@ watch(
         />
       </el-form-item>
 
-      <el-form-item :label="t('aiTools.generate.requirement')" prop="requirement" required>
+      <el-form-item
+        :label="t('aiTools.generate.requirement')"
+        prop="requirement"
+        required
+      >
         <el-input
           v-model="form.requirement"
           type="textarea"
@@ -170,8 +185,16 @@ watch(
         />
       </el-form-item>
 
-      <el-form-item :label="t('aiTools.generate.codeHint')" prop="code_hint">
-        <el-input v-model="form.code_hint" clearable maxlength="64" placeholder="admin_user_count" />
+      <el-form-item
+        :label="t('aiTools.generate.codeHint')"
+        prop="code_hint"
+      >
+        <el-input
+          v-model="form.code_hint"
+          clearable
+          maxlength="64"
+          placeholder="admin_user_count"
+        />
       </el-form-item>
 
       <el-alert
@@ -182,7 +205,12 @@ watch(
         show-icon
       >
         <ul class="tool-generate-list">
-          <li v-for="item in warnings" :key="item">{{ item }}</li>
+          <li
+            v-for="item in warnings"
+            :key="item"
+          >
+            {{ item }}
+          </li>
         </ul>
       </el-alert>
 
@@ -193,18 +221,39 @@ watch(
         :closable="false"
         show-icon
       >
-        <template #title>{{ t('aiTools.generate.needMoreInfo') }}</template>
+        <template #title>
+          {{ t('aiTools.generate.needMoreInfo') }}
+        </template>
         <ul class="tool-generate-list">
-          <li v-for="item in clarifyingQuestions" :key="item">{{ item }}</li>
+          <li
+            v-for="item in clarifyingQuestions"
+            :key="item"
+          >
+            {{ item }}
+          </li>
         </ul>
       </el-alert>
 
-      <el-text v-if="usageText" class="tool-generate-usage" type="info">{{ usageText }}</el-text>
+      <el-text
+        v-if="usageText"
+        class="tool-generate-usage"
+        type="info"
+      >
+        {{ usageText }}
+      </el-text>
     </el-form>
 
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="loading" @click="confirmGenerate">{{ t('aiTools.generate.submit') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="confirmGenerate"
+      >
+        {{ t('aiTools.generate.submit') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

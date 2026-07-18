@@ -145,13 +145,18 @@ onMounted(() => {
         @update:pagination="onPageChange"
       >
         <template #cell-is_success="{ row }">
-          <ElTag :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+          <ElTag
+            :type="row.is_success === CommonEnum.YES ? 'success' : 'danger'"
+            size="small"
+          >
             {{ row.is_success === CommonEnum.YES ? t('common.success.login') : t('common.fail.login') }}
           </ElTag>
         </template>
 
         <template #cell-reason="{ row }">
-          <ElText truncated>{{ row.reason || '-' }}</ElText>
+          <ElText truncated>
+            {{ row.reason || '-' }}
+          </ElText>
         </template>
       </AppTable>
     </div>

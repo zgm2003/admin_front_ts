@@ -1,9 +1,20 @@
 <template>
   <!-- Iconify 图标 -->
-  <Icon v-if="isIconify && icon" :icon="icon" :width="size" :height="size" class="d-icon" />
+  <Icon
+    v-if="isIconify && icon"
+    :icon="icon"
+    :width="size"
+    :height="size"
+    class="d-icon"
+  />
 
   <!-- Element Plus 图标（运行时按需加载） -->
-  <component v-else-if="resolvedEpIcon" :is="resolvedEpIcon" :style="iconStyle" class="d-icon" />
+  <component
+    :is="resolvedEpIcon"
+    v-else-if="resolvedEpIcon"
+    :style="iconStyle"
+    class="d-icon"
+  />
 </template>
 
 <script setup lang="ts">

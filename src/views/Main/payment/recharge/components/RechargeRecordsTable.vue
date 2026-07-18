@@ -59,7 +59,12 @@ function tagType(status: PaymentRechargeListItem['status']) {
       @update:pagination="emit('pageChange', $event)"
     >
       <template #cell-status_text="{ row }">
-        <el-tag :type="tagType(row.status)" effect="light">{{ row.status_text }}</el-tag>
+        <el-tag
+          :type="tagType(row.status)"
+          effect="light"
+        >
+          {{ row.status_text }}
+        </el-tag>
       </template>
       <template #cell-actions="{ row }">
         <div class="recharge-records-table__actions">

@@ -8,10 +8,18 @@
   >
     <div class="download-manager">
       <!-- 空状态 -->
-      <el-empty v-if="downloads.length === 0" :description="t('download.noTasks')" :image-size="120" />
+      <el-empty
+        v-if="downloads.length === 0"
+        :description="t('download.noTasks')"
+        :image-size="120"
+      />
 
       <!-- 下载列表 -->
-      <div v-else ref="listRef" class="download-list">
+      <div
+        v-else
+        ref="listRef"
+        class="download-list"
+      >
         <transition-group name="list">
           <div
             v-for="item in sortedDownloads"
@@ -22,7 +30,10 @@
             <!-- 文件图标和信息 -->
             <div class="item-header">
               <div class="file-icon-wrapper">
-                <el-icon class="file-icon" :size="32">
+                <el-icon
+                  class="file-icon"
+                  :size="32"
+                >
                   <Document v-if="isDocument(item.filename)" />
                   <Picture v-else-if="isImage(item.filename)" />
                   <VideoPlay v-else-if="isVideo(item.filename)" />
@@ -31,7 +42,10 @@
               </div>
               
               <div class="file-info">
-                <div class="filename" :title="item.filename">
+                <div
+                  class="filename"
+                  :title="item.filename"
+                >
                   {{ item.filename }}
                 </div>
                 <div class="file-meta">
@@ -41,7 +55,10 @@
                       / {{ formatSize(item.total) }}
                     </template>
                   </span>
-                  <span v-if="item.status === 'downloading'" class="speed">
+                  <span
+                    v-if="item.status === 'downloading'"
+                    class="speed"
+                  >
                     {{ formatSpeed(item.speed) }}
                   </span>
                 </div>
@@ -49,23 +66,42 @@
 
               <!-- 状态图标 -->
               <div class="status-icon">
-                <el-icon v-if="item.status === 'completed'" class="success" :size="24">
+                <el-icon
+                  v-if="item.status === 'completed'"
+                  class="success"
+                  :size="24"
+                >
                   <CircleCheck />
                 </el-icon>
-                <el-icon v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)" class="error" :size="24">
+                <el-icon
+                  v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)"
+                  class="error"
+                  :size="24"
+                >
                   <CircleClose />
                 </el-icon>
-                <el-icon v-else-if="item.status === 'downloading' && item.downloaded > 0" class="loading" :size="24">
+                <el-icon
+                  v-else-if="item.status === 'downloading' && item.downloaded > 0"
+                  class="loading"
+                  :size="24"
+                >
                   <Loading />
                 </el-icon>
-                <el-icon v-else-if="item.status === 'cancelled'" class="info" :size="24">
+                <el-icon
+                  v-else-if="item.status === 'cancelled'"
+                  class="info"
+                  :size="24"
+                >
                   <Close />
                 </el-icon>
               </div>
             </div>
 
             <!-- 进度条 -->
-            <div v-if="item.status === 'downloading' || item.status === 'paused'" class="progress-wrapper">
+            <div
+              v-if="item.status === 'downloading' || item.status === 'paused'"
+              class="progress-wrapper"
+            >
               <el-progress
                 :percentage="Math.round(item.progress)"
                 :status="item.status === 'paused' ? 'warning' : undefined"
@@ -76,14 +112,26 @@
             </div>
 
             <!-- 状态信息 -->
-            <div v-if="item.status !== 'downloading' || item.downloaded === 0" class="status-message">
-              <span v-if="item.status === 'completed'" class="success-text">
+            <div
+              v-if="item.status !== 'downloading' || item.downloaded === 0"
+              class="status-message"
+            >
+              <span
+                v-if="item.status === 'completed'"
+                class="success-text"
+              >
                 {{ t('download.completed') }}
               </span>
-              <span v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)" class="error-text">
+              <span
+                v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)"
+                class="error-text"
+              >
                 {{ item.error || t('download.failed') }}
               </span>
-              <span v-else-if="item.status === 'cancelled'" class="info-text">
+              <span
+                v-else-if="item.status === 'cancelled'"
+                class="info-text"
+              >
                 {{ t('download.cancelled') }}
               </span>
             </div>
@@ -140,12 +188,22 @@
       </div>
 
       <!-- 底部操作 -->
-      <div v-if="downloads.length > 0" class="footer-actions">
-        <el-button @click="handleClearCompleted" :disabled="!hasCompleted">
+      <div
+        v-if="downloads.length > 0"
+        class="footer-actions"
+      >
+        <el-button
+          :disabled="!hasCompleted"
+          @click="handleClearCompleted"
+        >
           <el-icon><CircleCheck /></el-icon>
           {{ t('download.clearCompleted') }}
         </el-button>
-        <el-button type="danger" plain @click="handleClearAll">
+        <el-button
+          type="danger"
+          plain
+          @click="handleClearAll"
+        >
           <el-icon><Delete /></el-icon>
           {{ t('download.clearAll') }}
         </el-button>

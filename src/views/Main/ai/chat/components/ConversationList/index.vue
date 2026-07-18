@@ -52,27 +52,55 @@ function handleScroll() {
 <template>
   <aside class="conversation-sidebar">
     <div class="conversation-header">
-      <el-button class="new-chat-btn" @click="emit('create')">
-        <el-icon :size="18"><Plus /></el-icon>
+      <el-button
+        class="new-chat-btn"
+        @click="emit('create')"
+      >
+        <el-icon :size="18">
+          <Plus />
+        </el-icon>
         <span>{{ t('aiChat.newConversation') }}</span>
       </el-button>
     </div>
 
-    <el-scrollbar ref="scrollbarRef" class="conversation-list" @scroll="handleScroll">
-      <div v-if="loading" class="state-tip">
-        <el-icon class="is-loading" :size="20"><Loading /></el-icon>
+    <el-scrollbar
+      ref="scrollbarRef"
+      class="conversation-list"
+      @scroll="handleScroll"
+    >
+      <div
+        v-if="loading"
+        class="state-tip"
+      >
+        <el-icon
+          class="is-loading"
+          :size="20"
+        >
+          <Loading />
+        </el-icon>
         <span>{{ t('aiChat.loading') }}</span>
       </div>
 
-      <div v-else-if="conversations.length === 0" class="state-tip empty-tip">
-        <el-icon :size="44"><ChatDotRound /></el-icon>
+      <div
+        v-else-if="conversations.length === 0"
+        class="state-tip empty-tip"
+      >
+        <el-icon :size="44">
+          <ChatDotRound />
+        </el-icon>
         <p>{{ t('aiChat.noConversation') }}</p>
         <span>{{ t('aiChat.startNewChat') }}</span>
       </div>
 
       <template v-else>
-        <section v-for="group in groupedConversations" :key="group.label" class="conversation-group">
-          <div class="group-label">{{ group.label }}</div>
+        <section
+          v-for="group in groupedConversations"
+          :key="group.label"
+          class="conversation-group"
+        >
+          <div class="group-label">
+            {{ group.label }}
+          </div>
           <button
             v-for="conversation in group.items"
             :key="conversation.id"
@@ -81,20 +109,45 @@ function handleScroll() {
             type="button"
             @click="emit('select', conversation)"
           >
-            <el-icon class="conversation-icon" :size="16"><ChatDotRound /></el-icon>
+            <el-icon
+              class="conversation-icon"
+              :size="16"
+            >
+              <ChatDotRound />
+            </el-icon>
             <span class="conversation-title">{{ conversation.title || t('aiChat.untitled') }}</span>
             <span class="conversation-time">{{ conversation.last_message_at || conversation.updated_at }}</span>
-            <el-button text size="small" class="delete-btn" @click.stop="emit('delete', conversation)">
-              <el-icon :size="15"><Delete /></el-icon>
+            <el-button
+              text
+              size="small"
+              class="delete-btn"
+              @click.stop="emit('delete', conversation)"
+            >
+              <el-icon :size="15">
+                <Delete />
+              </el-icon>
             </el-button>
           </button>
         </section>
 
-        <div v-if="loadingMore" class="load-more-tip">
-          <el-icon class="is-loading" :size="16"><Loading /></el-icon>
+        <div
+          v-if="loadingMore"
+          class="load-more-tip"
+        >
+          <el-icon
+            class="is-loading"
+            :size="16"
+          >
+            <Loading />
+          </el-icon>
           <span>{{ t('aiChat.loading') }}</span>
         </div>
-        <div v-else-if="!hasMore" class="load-more-tip">{{ t('aiChat.noMoreConversations') }}</div>
+        <div
+          v-else-if="!hasMore"
+          class="load-more-tip"
+        >
+          {{ t('aiChat.noMoreConversations') }}
+        </div>
       </template>
     </el-scrollbar>
   </aside>

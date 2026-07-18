@@ -43,8 +43,16 @@ onMounted(() => {
     </div>
 
     <template v-if="isMobile">
-      <div v-loading="loading" class="card-list">
-        <el-card v-for="item in logList" :key="item.id" shadow="never" class="log-card">
+      <div
+        v-loading="loading"
+        class="card-list"
+      >
+        <el-card
+          v-for="item in logList"
+          :key="item.id"
+          shadow="never"
+          class="log-card"
+        >
           <div class="card-row">
             <span class="label">{{ t('usersLoginLog.table.account') }}:</span>
             <span class="value">{{ item.login_account }}</span>
@@ -63,7 +71,10 @@ onMounted(() => {
           </div>
           <div class="card-row">
             <span class="label">{{ t('usersLoginLog.table.is_success') }}:</span>
-            <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+            <el-tag
+              :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'"
+              size="small"
+            >
               {{ item.is_success === CommonEnum.YES ? t('common.success.login') : t('common.fail.login') }}
             </el-tag>
           </div>
@@ -72,16 +83,29 @@ onMounted(() => {
             <span class="value time">{{ item.created_at }}</span>
           </div>
         </el-card>
-        <el-empty v-if="!loading && logList.length === 0" :description="t('personal.log.noData')" />
+        <el-empty
+          v-if="!loading && logList.length === 0"
+          :description="t('personal.log.noData')"
+        />
       </div>
     </template>
 
     <template v-else>
-      <div v-loading="loading" class="log-list">
-        <div v-for="item in logList" :key="item.id" class="log-item">
+      <div
+        v-loading="loading"
+        class="log-list"
+      >
+        <div
+          v-for="item in logList"
+          :key="item.id"
+          class="log-item"
+        >
           <div class="log-main">
             <span class="account">{{ item.login_account }}</span>
-            <el-tag :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'" size="small">
+            <el-tag
+              :type="item.is_success === CommonEnum.YES ? 'success' : 'danger'"
+              size="small"
+            >
               {{ item.is_success === CommonEnum.YES ? t('common.success.login') : t('common.fail.login') }}
             </el-tag>
           </div>
@@ -92,7 +116,10 @@ onMounted(() => {
             <span class="meta-item time"><el-icon><Clock /></el-icon>{{ item.created_at }}</span>
           </div>
         </div>
-        <el-empty v-if="!loading && logList.length === 0" :description="t('personal.log.noData')" />
+        <el-empty
+          v-if="!loading && logList.length === 0"
+          :description="t('personal.log.noData')"
+        />
       </div>
     </template>
   </div>

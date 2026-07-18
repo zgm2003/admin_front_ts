@@ -59,20 +59,50 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '820px'" height="64vh">
-    <template #header>{{ t('aiKnowledge.document.chunks') }} - {{ document?.title || '-' }}</template>
-    <el-table v-loading="loading" :data="chunks" border class="knowledge-chunk-dialog__table">
-      <el-table-column prop="chunk_index" :label="t('aiKnowledge.chunk.index')" width="90" />
-      <el-table-column prop="content_chars" :label="t('aiKnowledge.chunk.chars')" width="100" />
-      <el-table-column prop="status_name" :label="t('aiKnowledge.table.status')" width="100" />
-      <el-table-column :label="t('aiKnowledge.chunk.content')" min-width="420">
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '820px'"
+    height="64vh"
+  >
+    <template #header>
+      {{ t('aiKnowledge.document.chunks') }} - {{ document?.title || '-' }}
+    </template>
+    <el-table
+      v-loading="loading"
+      :data="chunks"
+      border
+      class="knowledge-chunk-dialog__table"
+    >
+      <el-table-column
+        prop="chunk_index"
+        :label="t('aiKnowledge.chunk.index')"
+        width="90"
+      />
+      <el-table-column
+        prop="content_chars"
+        :label="t('aiKnowledge.chunk.chars')"
+        width="100"
+      />
+      <el-table-column
+        prop="status_name"
+        :label="t('aiKnowledge.table.status')"
+        width="100"
+      />
+      <el-table-column
+        :label="t('aiKnowledge.chunk.content')"
+        min-width="420"
+      >
         <template #default="{ row }">
-          <div class="knowledge-chunk-dialog__content">{{ row.content }}</div>
+          <div class="knowledge-chunk-dialog__content">
+            {{ row.content }}
+          </div>
         </template>
       </el-table-column>
     </el-table>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.close') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.close') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

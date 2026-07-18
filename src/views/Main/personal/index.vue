@@ -68,24 +68,62 @@ onMounted(() => {
   <div class="personal-page">
     <div class="personal-container">
       <!-- 外部用户：只显示左侧（用户信息卡片），全宽 -->
-      <div v-if="userinfo.is_self !== CommonEnum.YES" class="module-full">
-        <UserInfo :userinfo="userinfo" :sex-arr="sexArr" :loading="loading" />
+      <div
+        v-if="userinfo.is_self !== CommonEnum.YES"
+        class="module-full"
+      >
+        <UserInfo
+          :userinfo="userinfo"
+          :sex-arr="sexArr"
+          :loading="loading"
+        />
       </div>
 
       <!-- 内部用户：只显示右侧（Tab 模块），全宽 -->
-      <div v-else class="module-full">
-        <el-card shadow="never" class="personal-card">
+      <div
+        v-else
+        class="module-full"
+      >
+        <el-card
+          shadow="never"
+          class="personal-card"
+        >
           <el-tabs v-model="activeTab">
-            <el-tab-pane :label="t('personal.tabs.basic')" name="basic" lazy>
-              <BaseInfo :userinfo="userinfo" :address-tree="addressTree" :sex-arr="sexArr" @refresh="initPersonal" />
+            <el-tab-pane
+              :label="t('personal.tabs.basic')"
+              name="basic"
+              lazy
+            >
+              <BaseInfo
+                :userinfo="userinfo"
+                :address-tree="addressTree"
+                :sex-arr="sexArr"
+                @refresh="initPersonal"
+              />
             </el-tab-pane>
-            <el-tab-pane :label="t('personal.tabs.security')" name="security" lazy>
-              <Security :userinfo="userinfo" :verify-type-arr="verifyTypeArr" @refresh="initPersonal" />
+            <el-tab-pane
+              :label="t('personal.tabs.security')"
+              name="security"
+              lazy
+            >
+              <Security
+                :userinfo="userinfo"
+                :verify-type-arr="verifyTypeArr"
+                @refresh="initPersonal"
+              />
             </el-tab-pane>
-            <el-tab-pane :label="t('personal.tabs.loginLog')" name="loginLog" lazy>
+            <el-tab-pane
+              :label="t('personal.tabs.loginLog')"
+              name="loginLog"
+              lazy
+            >
               <LoginLog :user-id="userIdForLog" />
             </el-tab-pane>
-            <el-tab-pane :label="t('personal.tabs.operationLog')" name="operationLog" lazy>
+            <el-tab-pane
+              :label="t('personal.tabs.operationLog')"
+              name="operationLog"
+              lazy
+            >
               <OperationLog :user-id="userIdForLog" />
             </el-tab-pane>
           </el-tabs>

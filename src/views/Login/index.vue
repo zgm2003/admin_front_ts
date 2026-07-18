@@ -67,10 +67,24 @@ async function tauriClose() {
     :class="{ 'is-mobile': isMobile, 'is-tauri-mobile': isMobile && isTauriEnv() }"
   >
     <!-- Tauri 无边框模式：顶部拖拽条 -->
-    <div v-if="isTauriEnv()" class="tauri-drag-bar">
+    <div
+      v-if="isTauriEnv()"
+      class="tauri-drag-bar"
+    >
       <div class="tauri-drag-controls">
-        <el-button text size="small" :icon="SemiSelect" @click="tauriMinimize" />
-        <el-button text size="small" type="danger" :icon="CloseBold" @click="tauriClose" />
+        <el-button
+          text
+          size="small"
+          :icon="SemiSelect"
+          @click="tauriMinimize"
+        />
+        <el-button
+          text
+          size="small"
+          type="danger"
+          :icon="CloseBold"
+          @click="tauriClose"
+        />
       </div>
     </div>
 
@@ -82,7 +96,10 @@ async function tauriClose() {
       <LoginBrandPanel v-if="!isMobile" />
 
       <!-- 右侧登录表单（移动端：品牌 + 表单合一面板） -->
-      <div class="form-section" :class="{ 'login-mobile-sheet': isMobile }">
+      <div
+        class="form-section"
+        :class="{ 'login-mobile-sheet': isMobile }"
+      >
         <LoginMobileBrand v-if="isMobile" />
         <LoginFormCard
           :login-types="loginTypes"

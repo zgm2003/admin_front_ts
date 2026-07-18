@@ -1,7 +1,15 @@
 <template>
-  <div class="aside-wrapper" :class="{ 'is-collapse': menuStore.collapse }">
+  <div
+    class="aside-wrapper"
+    :class="{ 'is-collapse': menuStore.collapse }"
+  >
     <div class="logo-container">
-      <div class="logo-icon"><img src="/logo.png" alt="Logo" /></div>
+      <div class="logo-icon">
+        <img
+          src="/logo.png"
+          alt="Logo"
+        >
+      </div>
       <div class="logo-copy">
         <span class="logo-text">{{ brandLabel }}</span>
       </div>
@@ -14,40 +22,82 @@
       :unique-opened="menuStore.uniqueOpen"
       class="aside-menu"
     >
-      <MenuItem v-for="item in userStore.permissions" :key="item.index" :item="item" />
+      <MenuItem
+        v-for="item in userStore.permissions"
+        :key="item.index"
+        :item="item"
+      />
     </el-menu>
 
     <div class="user-section">
-      <el-dropdown trigger="click" @command="handleUserCommand" placement="top-start">
-        <button type="button" class="user-trigger">
-          <el-avatar :src="userStore.avatar" :size="38" />
+      <el-dropdown
+        trigger="click"
+        placement="top-start"
+        @command="handleUserCommand"
+      >
+        <button
+          type="button"
+          class="user-trigger"
+        >
+          <el-avatar
+            :src="userStore.avatar"
+            :size="38"
+          />
           <div class="user-meta">
             <div class="user-copy">
               <span class="user-name">{{ userStore.username || defaultUserName }}</span>
               <span class="user-role">{{ userStore.role_name || defaultRoleName }}</span>
             </div>
-            <el-icon class="user-arrow"><ArrowUp /></el-icon>
+            <el-icon class="user-arrow">
+              <ArrowUp />
+            </el-icon>
           </div>
         </button>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="personal"><el-icon><User /></el-icon>{{ t('header.personal') }}</el-dropdown-item>
-            <el-dropdown-item command="wallet"><el-icon><Wallet /></el-icon>{{ t('header.myWallet') }}</el-dropdown-item>
-            <el-dropdown-item divided command="logout"><el-icon><SwitchButton /></el-icon>{{ t('header.logout') }}</el-dropdown-item>
+            <el-dropdown-item command="personal">
+              <el-icon><User /></el-icon>{{ t('header.personal') }}
+            </el-dropdown-item>
+            <el-dropdown-item command="wallet">
+              <el-icon><Wallet /></el-icon>{{ t('header.myWallet') }}
+            </el-dropdown-item>
+            <el-dropdown-item
+              divided
+              command="logout"
+            >
+              <el-icon><SwitchButton /></el-icon>{{ t('header.logout') }}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
     </div>
   </div>
 
-  <AppDialog v-model="logoutVisible" :title="t('header.logoutTitle')" width="400" align-center>
+  <AppDialog
+    v-model="logoutVisible"
+    :title="t('header.logoutTitle')"
+    width="400"
+    align-center
+  >
     <div class="logout-content">
-      <el-icon class="logout-icon" :size="48"><Warning /></el-icon>
+      <el-icon
+        class="logout-icon"
+        :size="48"
+      >
+        <Warning />
+      </el-icon>
       <p>{{ t('header.logoutText') }}</p>
     </div>
     <template #footer>
-      <el-button @click="logoutVisible = false">{{ t('header.cancel') }}</el-button>
-      <el-button type="primary" @click="confirmLogout">{{ t('header.ok') }}</el-button>
+      <el-button @click="logoutVisible = false">
+        {{ t('header.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        @click="confirmLogout"
+      >
+        {{ t('header.ok') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

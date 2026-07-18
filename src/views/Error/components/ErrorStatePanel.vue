@@ -20,12 +20,25 @@ const hasDetails = computed(() => props.details.length > 0)
 
 <template>
   <section class="error-state-panel">
-    <div class="error-state-panel__code">{{ props.code }}</div>
-    <h1 class="error-state-panel__title">{{ props.title }}</h1>
-    <p class="error-state-panel__description">{{ props.description }}</p>
+    <div class="error-state-panel__code">
+      {{ props.code }}
+    </div>
+    <h1 class="error-state-panel__title">
+      {{ props.title }}
+    </h1>
+    <p class="error-state-panel__description">
+      {{ props.description }}
+    </p>
 
-    <ul v-if="hasDetails" class="error-state-panel__details">
-      <li v-for="item in props.details" :key="item.label" class="error-state-panel__detail">
+    <ul
+      v-if="hasDetails"
+      class="error-state-panel__details"
+    >
+      <li
+        v-for="item in props.details"
+        :key="item.label"
+        class="error-state-panel__detail"
+      >
         <span class="error-state-panel__detail-label">{{ item.label }}</span>
         <span class="error-state-panel__detail-value">{{ item.value }}</span>
       </li>

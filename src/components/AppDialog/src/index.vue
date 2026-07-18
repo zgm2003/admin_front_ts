@@ -84,25 +84,46 @@ const bodyStyle = computed(() => ({
     class="app-dialog"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <template v-if="$slots.header" #header>
+    <template
+      v-if="$slots.header"
+      #header
+    >
       <slot name="header" />
     </template>
 
-    <div v-if="resolvedContentHeight" class="app-dialog__body app-dialog__body--scroll">
-      <el-scrollbar :height="resolvedContentHeight" class="app-dialog__scrollbar">
-        <div class="app-dialog__content app-dialog__content--scroll" :style="bodyStyle">
+    <div
+      v-if="resolvedContentHeight"
+      class="app-dialog__body app-dialog__body--scroll"
+    >
+      <el-scrollbar
+        :height="resolvedContentHeight"
+        class="app-dialog__scrollbar"
+      >
+        <div
+          class="app-dialog__content app-dialog__content--scroll"
+          :style="bodyStyle"
+        >
           <slot />
         </div>
       </el-scrollbar>
     </div>
 
-    <div v-else class="app-dialog__body">
-      <div class="app-dialog__content" :style="bodyStyle">
+    <div
+      v-else
+      class="app-dialog__body"
+    >
+      <div
+        class="app-dialog__content"
+        :style="bodyStyle"
+      >
         <slot />
       </div>
     </div>
 
-    <template v-if="$slots.footer" #footer>
+    <template
+      v-if="$slots.footer"
+      #footer
+    >
       <slot name="footer" />
     </template>
   </el-dialog>

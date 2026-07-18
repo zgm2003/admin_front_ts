@@ -11,8 +11,13 @@ const hasWarnings = computed(() => props.warnings.length > 0)
 </script>
 
 <template>
-  <div v-if="hasWarnings" class="permission-health-panel">
-    <div class="permission-health-panel__title">{{ title }}</div>
+  <div
+    v-if="hasWarnings"
+    class="permission-health-panel"
+  >
+    <div class="permission-health-panel__title">
+      {{ title }}
+    </div>
     <el-alert
       v-for="warning in props.warnings"
       :key="warning.key"

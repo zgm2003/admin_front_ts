@@ -116,46 +116,105 @@ watch(() => route.query.status, () => {
 
 <template>
   <div class="box">
-    <el-tabs v-model="searchForm.status" @tab-change="handleChangeStatus">
-      <el-tab-pane v-for="item in statusArr" :key="item.value" :name="item.value">
-        <template #label>{{ item.label }} ({{ item.num }})</template>
+    <el-tabs
+      v-model="searchForm.status"
+      @tab-change="handleChangeStatus"
+    >
+      <el-tab-pane
+        v-for="item in statusArr"
+        :key="item.value"
+        :name="item.value"
+      >
+        <template #label>
+          {{ item.label }} ({{ item.num }})
+        </template>
       </el-tab-pane>
     </el-tabs>
 
-    <Search v-model="searchForm" :fields="searchFields" @query="handleSearch" @reset="handleSearch" />
+    <Search
+      v-model="searchForm"
+      :fields="searchFields"
+      @query="handleSearch"
+      @reset="handleSearch"
+    />
     
-    <AppTable :columns="columns" :data="listData" :loading="listLoading" :pagination="page" selectable
-              @update:pagination="onPageChange" @selection-change="onSelectionChange" @refresh="handleRefresh">
+    <AppTable
+      :columns="columns"
+      :data="listData"
+      :loading="listLoading"
+      :pagination="page"
+      selectable
+      @update:pagination="onPageChange"
+      @selection-change="onSelectionChange"
+      @refresh="handleRefresh"
+    >
       <template #toolbar-left>
-        <el-button type="danger" :disabled="selectedIds.length === 0" @click="batchDel">
+        <el-button
+          type="danger"
+          :disabled="selectedIds.length === 0"
+          @click="batchDel"
+        >
           {{ t('common.actions.batchDelete') }}
         </el-button>
       </template>
       
       <template #cell-title="{row}">
         <span>{{ row.title }}</span>
-        <el-tooltip v-if="row.error_msg" :content="row.error_msg" placement="top">
-          <el-icon color="var(--el-color-danger)" style="margin-left: 4px; cursor: help"><Close /></el-icon>
+        <el-tooltip
+          v-if="row.error_msg"
+          :content="row.error_msg"
+          placement="top"
+        >
+          <el-icon
+            color="var(--el-color-danger)"
+            style="margin-left: 4px; cursor: help"
+          >
+            <Close />
+          </el-icon>
         </el-tooltip>
       </template>
       
       <template #cell-file_name="{row}">
         <span v-if="row.file_name">{{ row.file_name }}</span>
-        <span v-else class="text-secondary">-</span>
+        <span
+          v-else
+          class="text-secondary"
+        >-</span>
       </template>
       
       <template #cell-row_count="{row}">
         <span v-if="row.row_count !== null">{{ row.row_count.toLocaleString() }}</span>
-        <span v-else class="text-secondary">-</span>
+        <span
+          v-else
+          class="text-secondary"
+        >-</span>
       </template>
       
       <template #cell-status="{row}">
-        <el-tag :type="getStatusType(row.status)" size="small">{{ row.status_text }}</el-tag>
+        <el-tag
+          :type="getStatusType(row.status)"
+          size="small"
+        >
+          {{ row.status_text }}
+        </el-tag>
       </template>
       
       <template #cell-actions="{row}">
-        <el-button type="primary" text @click="row.file_url ? downloadFile(row.file_url, row.file_name) : ElMessage.warning(t('exportTask.noFile'))" :disabled="row.status !== 2">{{ t('exportTask.download') }}</el-button>
-        <el-button type="danger" text @click="confirmDel(row)">{{ t('common.actions.del') }}</el-button>
+        <el-button
+          type="primary"
+          text
+          :disabled="row.status !== 2"
+          @click="row.file_url ? downloadFile(row.file_url, row.file_name) : ElMessage.warning(t('exportTask.noFile'))"
+        >
+          {{ t('exportTask.download') }}
+        </el-button>
+        <el-button
+          type="danger"
+          text
+          @click="confirmDel(row)"
+        >
+          {{ t('common.actions.del') }}
+        </el-button>
       </template>
     </AppTable>
   </div>

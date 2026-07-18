@@ -139,110 +139,239 @@ const dIconProps = [
   <div class="display-demo">
     <el-tabs v-model="activeTab">
       <!-- Table -->
-      <el-tab-pane label="AppTable 表格" name="Table">
+      <el-tab-pane
+        label="AppTable 表格"
+        name="Table"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
-          <div class="demo-block" style="height: 300px">
-            <AppTable :columns="tableColumns" :data="tableData" :pagination="tablePage" :fixed-footer="true"/>
+          <div
+            class="demo-block"
+            style="height: 300px"
+          >
+            <AppTable
+              :columns="tableColumns"
+              :data="tableData"
+              :pagination="tablePage"
+              :fixed-footer="true"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;AppTable :columns="columns" :data="data" :pagination="page" /&gt;</el-text>
+            <el-text type="info">
+              &lt;AppTable :columns="columns" :data="data" :pagination="page" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="tableProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="tableProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Slots</h4>
-          <el-table :data="tableSlots" border>
-            <el-table-column prop="name" label="插槽名" width="200"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="tableSlots"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="插槽名"
+              width="200"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Column 配置项</h4>
-          <el-table :data="columnProps" border>
-            <el-table-column prop="name" label="属性名" width="160"/>
-            <el-table-column prop="type" label="类型" width="100"/>
-            <el-table-column prop="required" label="必填" width="80"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="columnProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="160"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="100"
+            />
+            <el-table-column
+              prop="required"
+              label="必填"
+              width="80"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>Events</h4>
-          <el-table :data="tableEvents" border>
-            <el-table-column prop="name" label="事件名" width="200"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="tableEvents"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="事件名"
+              width="200"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- Editor -->
-      <el-tab-pane label="Editor 富文本" name="Editor">
+      <el-tab-pane
+        label="Editor 富文本"
+        name="Editor"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <Editor v-model="editorContent" height="300px"/>
+            <Editor
+              v-model="editorContent"
+              height="300px"
+            />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;Editor v-model="content" height="300px" /&gt;</el-text>
+            <el-text type="info">
+              &lt;Editor v-model="content" height="300px" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="editorProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="140"/>
-            <el-table-column prop="default" label="默认值" width="140"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="editorProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="140"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="140"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
       </el-tab-pane>
 
       <!-- CustomLoading -->
-      <el-tab-pane label="CustomLoading 加载" name="CustomLoading">
+      <el-tab-pane
+        label="CustomLoading 加载"
+        name="CustomLoading"
+      >
         <div class="demo-section">
           <h4>说明</h4>
           <div class="demo-block">
-            <el-alert type="info" :closable="false">
+            <el-alert
+              type="info"
+              :closable="false"
+            >
               <pre style="margin:0;white-space:pre-wrap">{{ loadingDesc }}</pre>
             </el-alert>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;CustomLoading /&gt; (放在 App.vue 根节点)</el-text>
+            <el-text type="info">
+              &lt;CustomLoading /&gt; (放在 App.vue 根节点)
+            </el-text>
           </div>
         </div>
       </el-tab-pane>
 
       <!-- MarkdownRenderer -->
-      <el-tab-pane label="MarkdownRenderer" name="MarkdownRenderer">
+      <el-tab-pane
+        label="MarkdownRenderer"
+        name="MarkdownRenderer"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
             <MarkdownRenderer :content="markdownContent" />
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;MarkdownRenderer :content="markdownText" /&gt;</el-text>
+            <el-text type="info">
+              &lt;MarkdownRenderer :content="markdownText" /&gt;
+            </el-text>
           </div>
         </div>
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="markdownProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="120"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="markdownProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="120"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
         <div class="demo-section">
           <h4>特性</h4>
-          <el-alert type="info" :closable="false">
+          <el-alert
+            type="info"
+            :closable="false"
+          >
             <ul style="margin: 0; padding-left: 20px;">
               <li>基于 markdown-it 解析 Markdown</li>
               <li>代码高亮使用 highlight.js（github-dark 主题）</li>
@@ -255,46 +384,91 @@ const dIconProps = [
       </el-tab-pane>
 
       <!-- DIcon -->
-      <el-tab-pane label="DIcon 图标" name="DIcon">
+      <el-tab-pane
+        label="DIcon 图标"
+        name="DIcon"
+      >
         <div class="demo-section">
           <h4>基础用法</h4>
           <div class="demo-block">
-            <el-space :size="24" wrap>
-              <div v-for="item in iconExamples" :key="item.icon" style="text-align: center;">
-                <DIcon :icon="item.icon" :size="32" />
+            <el-space
+              :size="24"
+              wrap
+            >
+              <div
+                v-for="item in iconExamples"
+                :key="item.icon"
+                style="text-align: center;"
+              >
+                <DIcon
+                  :icon="item.icon"
+                  :size="32"
+                />
                 <div style="margin-top: 8px; font-size: 12px; color: var(--el-text-color-secondary);">
                   {{ item.desc }}
                 </div>
-                <el-tag size="small" style="margin-top: 4px;">{{ item.type }}</el-tag>
+                <el-tag
+                  size="small"
+                  style="margin-top: 4px;"
+                >
+                  {{ item.type }}
+                </el-tag>
               </div>
             </el-space>
           </div>
           <div class="demo-code">
-            <el-text type="info">&lt;DIcon icon="UserFilled" :size="24" /&gt;</el-text>
-            <br/>
-            <el-text type="info">&lt;DIcon icon="mdi:account" :size="24" /&gt;</el-text>
+            <el-text type="info">
+              &lt;DIcon icon="UserFilled" :size="24" /&gt;
+            </el-text>
+            <br>
+            <el-text type="info">
+              &lt;DIcon icon="mdi:account" :size="24" /&gt;
+            </el-text>
           </div>
         </div>
         
         <div class="demo-section">
           <h4>不同尺寸</h4>
           <div class="demo-block">
-            <el-space :size="24" align="center">
+            <el-space
+              :size="24"
+              align="center"
+            >
               <div style="text-align: center;">
-                <DIcon icon="UserFilled" :size="16" />
-                <div style="margin-top: 4px; font-size: 12px;">16px</div>
+                <DIcon
+                  icon="UserFilled"
+                  :size="16"
+                />
+                <div style="margin-top: 4px; font-size: 12px;">
+                  16px
+                </div>
               </div>
               <div style="text-align: center;">
-                <DIcon icon="mdi:account" :size="24" />
-                <div style="margin-top: 4px; font-size: 12px;">24px</div>
+                <DIcon
+                  icon="mdi:account"
+                  :size="24"
+                />
+                <div style="margin-top: 4px; font-size: 12px;">
+                  24px
+                </div>
               </div>
               <div style="text-align: center;">
-                <DIcon icon="carbon:user" :size="32" />
-                <div style="margin-top: 4px; font-size: 12px;">32px</div>
+                <DIcon
+                  icon="carbon:user"
+                  :size="32"
+                />
+                <div style="margin-top: 4px; font-size: 12px;">
+                  32px
+                </div>
               </div>
               <div style="text-align: center;">
-                <DIcon icon="lucide:user" :size="48" />
-                <div style="margin-top: 4px; font-size: 12px;">48px</div>
+                <DIcon
+                  icon="lucide:user"
+                  :size="48"
+                />
+                <div style="margin-top: 4px; font-size: 12px;">
+                  48px
+                </div>
               </div>
             </el-space>
           </div>
@@ -302,17 +476,38 @@ const dIconProps = [
 
         <div class="demo-section">
           <h4>Attributes</h4>
-          <el-table :data="dIconProps" border>
-            <el-table-column prop="name" label="属性名" width="200"/>
-            <el-table-column prop="type" label="类型" width="140"/>
-            <el-table-column prop="default" label="默认值" width="120"/>
-            <el-table-column prop="desc" label="说明"/>
+          <el-table
+            :data="dIconProps"
+            border
+          >
+            <el-table-column
+              prop="name"
+              label="属性名"
+              width="200"
+            />
+            <el-table-column
+              prop="type"
+              label="类型"
+              width="140"
+            />
+            <el-table-column
+              prop="default"
+              label="默认值"
+              width="120"
+            />
+            <el-table-column
+              prop="desc"
+              label="说明"
+            />
           </el-table>
         </div>
 
         <div class="demo-section">
           <h4>特性</h4>
-          <el-alert type="info" :closable="false">
+          <el-alert
+            type="info"
+            :closable="false"
+          >
             <ul style="margin: 0; padding-left: 20px;">
               <li>自动识别 Element Plus 和 Iconify 图标格式</li>
               <li>Element Plus 格式：直接使用组件名（如 UserFilled）</li>
@@ -325,7 +520,10 @@ const dIconProps = [
 
         <div class="demo-section">
           <h4>使用场景</h4>
-          <el-alert type="success" :closable="false">
+          <el-alert
+            type="success"
+            :closable="false"
+          >
             <ul style="margin: 0; padding-left: 20px;">
               <li>菜单图标：左侧导航菜单</li>
               <li>按钮图标：操作按钮前缀图标</li>
@@ -335,7 +533,6 @@ const dIconProps = [
           </el-alert>
         </div>
       </el-tab-pane>
-
     </el-tabs>
   </div>
 </template>

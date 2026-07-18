@@ -87,9 +87,18 @@ watch(
 </script>
 
 <template>
-  <AppDialog v-model="visible" :width="isMobile ? '94vw' : '680px'" height="54vh">
-    <template #header>{{ t('aiAgents.tools.title') }}</template>
-    <div v-loading="loading" class="agent-tool-dialog">
+  <AppDialog
+    v-model="visible"
+    :width="isMobile ? '94vw' : '680px'"
+    height="54vh"
+  >
+    <template #header>
+      {{ t('aiAgents.tools.title') }}
+    </template>
+    <div
+      v-loading="loading"
+      class="agent-tool-dialog"
+    >
       <div class="agent-tool-dialog__agent">
         <span class="agent-tool-dialog__label">{{ t('aiAgents.tools.agent') }}</span>
         <strong>{{ agentName }}</strong>
@@ -112,8 +121,16 @@ watch(
       </div>
     </div>
     <template #footer>
-      <el-button @click="visible = false">{{ t('common.actions.cancel') }}</el-button>
-      <el-button type="primary" :loading="saving" @click="confirmSubmit">{{ t('common.actions.confirm') }}</el-button>
+      <el-button @click="visible = false">
+        {{ t('common.actions.cancel') }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saving"
+        @click="confirmSubmit"
+      >
+        {{ t('common.actions.confirm') }}
+      </el-button>
     </template>
   </AppDialog>
 </template>

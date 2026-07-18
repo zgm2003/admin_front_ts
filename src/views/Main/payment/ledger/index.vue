@@ -137,7 +137,10 @@ onMounted(() => {
         @update:pagination="onPageChange"
       >
         <template #cell-direction_text="{ row }">
-          <el-tag :type="tagType(row.direction)" effect="light">
+          <el-tag
+            :type="tagType(row.direction)"
+            effect="light"
+          >
             {{ row.direction_text }}
           </el-tag>
         </template>

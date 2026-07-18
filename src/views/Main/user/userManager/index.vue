@@ -10,12 +10,23 @@ const activeTab = ref('userList')
 
 <template>
   <div class="user-manager-page">
-    <el-tabs v-model="activeTab" class="user-tabs">
-      <el-tab-pane :label="t('user.tabs.userList')" name="userList" lazy>
-        <UserList/>
+    <el-tabs
+      v-model="activeTab"
+      class="user-tabs"
+    >
+      <el-tab-pane
+        :label="t('user.tabs.userList')"
+        name="userList"
+        lazy
+      >
+        <UserList />
       </el-tab-pane>
-      <el-tab-pane :label="t('user.tabs.sessionList')" name="sessionList" lazy>
-        <SessionList v-if="activeTab === 'sessionList'"/>
+      <el-tab-pane
+        :label="t('user.tabs.sessionList')"
+        name="sessionList"
+        lazy
+      >
+        <SessionList v-if="activeTab === 'sessionList'" />
       </el-tab-pane>
     </el-tabs>
   </div>
