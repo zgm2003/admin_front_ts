@@ -27,7 +27,7 @@
 - Modify: `tests/component/login/LoginForm.test.ts`
 - Modify: `src/views/Login/composables/useLoginForm.ts`
 
-- [ ] **Step 1: Write failing consent-flow tests**
+- [x] **Step 1: Write failing consent-flow tests**
 
 Add tests that initialize a valid password form, call `handleSubmit()` while unchecked, and assert:
 
@@ -51,7 +51,7 @@ expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
 
 Also assert repeated unchecked submission opens only the same Boolean dialog state, already-checked submission skips the dialog, and `openService()` / `openPolicy()` do not change consent.
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -61,7 +61,7 @@ npm test -- tests/component/login/LoginForm.test.ts
 
 Expected: FAIL because `policyConfirmVisible`, `confirmPolicyAndContinue`, and `cancelPolicyConfirmation` do not exist and the current code emits `policyRequired` instead of opening a dialog.
 
-- [ ] **Step 3: Implement the minimal closed consent gate**
+- [x] **Step 3: Implement the minimal closed consent gate**
 
 Add page-local state and a private submission continuation:
 
@@ -98,7 +98,7 @@ const cancelPolicyConfirmation = () => {
 
 Return those members from the composable. Change `openService()` and `openPolicy()` so they only show their existing informational messages and never set `agreePolicy`.
 
-- [ ] **Step 4: Run focused tests and verify GREEN**
+- [x] **Step 4: Run focused tests and verify GREEN**
 
 Run:
 
@@ -108,7 +108,7 @@ npm test -- tests/component/login/LoginForm.test.ts
 
 Expected: all login-form tests pass; unchecked submission causes zero captcha/API work until explicit confirmation.
 
-- [ ] **Step 5: Commit the consent state machine**
+- [x] **Step 5: Commit the consent state machine**
 
 ```powershell
 git add -- src/views/Login/composables/useLoginForm.ts tests/component/login/LoginForm.test.ts
@@ -125,7 +125,7 @@ git commit -m "feat(login): require explicit policy confirmation"
 - Modify: `src/i18n/locales/zh-CN.ts`
 - Modify: `src/i18n/locales/en-US.ts`
 
-- [ ] **Step 1: Write a failing dialog component test**
+- [x] **Step 1: Write a failing dialog component test**
 
 Mount the component with Element Plus controls stubbed and assert:
 
@@ -139,7 +139,7 @@ expect(wrapper.emitted('cancel')).toHaveLength(1)
 
 Also invoke the `AppDialog` model update with `false` and assert it emits `cancel`, and assert the terms/privacy controls emit `openService`/`openPolicy` without emitting `confirm`.
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -149,7 +149,7 @@ npm test -- tests/component/login/LoginPolicyConfirmDialog.test.ts
 
 Expected: FAIL because `LoginPolicyConfirmDialog.vue` does not exist.
 
-- [ ] **Step 3: Implement the focused dialog and localized copy**
+- [x] **Step 3: Implement the focused dialog and localized copy**
 
 Create a component based on the shared dialog boundary:
 
@@ -186,7 +186,7 @@ policyConfirm: {
 
 Wire the component in `Login/index.vue` to `policyConfirmVisible`, `confirmPolicyAndContinue`, `cancelPolicyConfirmation`, `openService`, and `openPolicy`.
 
-- [ ] **Step 4: Run dialog and login tests and verify GREEN**
+- [x] **Step 4: Run dialog and login tests and verify GREEN**
 
 Run:
 
@@ -196,7 +196,7 @@ npm test -- tests/component/login/LoginPolicyConfirmDialog.test.ts tests/compone
 
 Expected: both files pass; confirm/cancel/link events remain distinct.
 
-- [ ] **Step 5: Commit the dialog integration**
+- [x] **Step 5: Commit the dialog integration**
 
 ```powershell
 git add -- src/views/Login/components/LoginPolicyConfirmDialog.vue src/views/Login/index.vue src/i18n/locales/zh-CN.ts src/i18n/locales/en-US.ts tests/component/login/LoginPolicyConfirmDialog.test.ts
@@ -209,7 +209,7 @@ git commit -m "feat(login): add policy confirmation dialog"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-18-login-policy-confirmation-plan.md`
 
-- [ ] **Step 1: Run frontend gates**
+- [x] **Step 1: Run frontend gates**
 
 ```powershell
 npm run lint:baseline
@@ -222,7 +222,7 @@ git diff --check
 
 Expected: zero errors, lint at or below the 82-warning ratchet, generated contracts/routes unchanged, and all tests pass.
 
-- [ ] **Step 2: Audit architecture and consent boundaries**
+- [x] **Step 2: Audit architecture and consent boundaries**
 
 ```powershell
 rg -n "agreePolicy\.value = true|policySubmitPending|policyConfirmVisible" src/views/Login
@@ -231,7 +231,7 @@ rg -n "localStorage|sessionStorage|document\.cookie|UsersApi|kernel\.login" src/
 
 Expected: consent becomes true only in the explicit confirm command or direct checkbox model update; the dialog contains no storage, cookie, API, or kernel access.
 
-- [ ] **Step 3: Commit plan evidence before the clean-checkout image build**
+- [x] **Step 3: Commit plan evidence before the clean-checkout image build**
 
 Mark completed steps and append exact test/Docker evidence, then:
 
@@ -263,3 +263,20 @@ docker image inspect admin-frontend:local
 ```
 
 Expected: both repositories are clean and the frontend image revision label equals frontend `HEAD`.
+
+---
+
+## Verification evidence
+
+- Branch/workspace: direct checkout `E:/admin/admin_front_ts` on `master`; no worktree used.
+- Consent gate RED (2026-07-18): `LoginForm.test.ts` failed 5 of 7 tests because the confirmation state and commands did not exist and terms links still granted consent.
+- Consent gate GREEN: `LoginForm.test.ts` passed 7 of 7 tests; commit `435ee3c`.
+- Dialog RED: `LoginPolicyConfirmDialog.test.ts` failed import resolution because the component did not exist.
+- Dialog GREEN: dialog and login focused suites passed 10 of 10 tests; commit `e40f690`.
+- Lint gate: 0 errors and 82 baseline warnings (ratchet maximum: 82).
+- Type gate: `vue-tsc -b` exited 0.
+- Contract gate: hash `60379e7aa488dfcf64da72ef093a6b49ec5414c4ac29a3ba1356939ee0514381` verified.
+- Route gate: 68 Admin view loaders generated with no repository diff.
+- Full test gate: 134 files passed, 458 tests passed.
+- Architecture audit: `agreePolicy.value = true` exists only in `confirmPolicyAndContinue`; the dialog has no storage, cookie, API, AppKernel, fallback-field, or compatibility logic.
+- Docker runtime evidence is collected after this evidence commit so the built image can carry the final clean-checkout revision label.
