@@ -8,16 +8,21 @@ import App from './App.vue'
 import i18n from './i18n'
 import router, { setupDynamicRoutes } from './router'
 import { AppKernel } from './app/kernel'
+import { createBrowserLocalStorageAdapter } from './adapters/web/storage'
 import { parseEnvironment } from './app/environment'
 import { provideAppKernel } from './app/injection'
+import { createDeviceIdProvider, installDeviceIdProvider } from './lib/http/device'
 import { permissionCodeSet, type PermissionCode } from './modules/routing/generated/permissions'
+import { Persistence } from './modules/persistence/store'
 import { setupMenuStorePersistence } from './store/menu'
 import { useUserStore } from './store/user'
 
 const app = createApp(App)
 const pinia = createPinia()
+const persistence = new Persistence(createBrowserLocalStorageAdapter())
+installDeviceIdProvider(createDeviceIdProvider(persistence))
 app.use(pinia)
-setupMenuStorePersistence(pinia)
+setupMenuStorePersistence(pinia, persistence)
 app.use(router)
 app.use(i18n)
 

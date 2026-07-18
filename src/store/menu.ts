@@ -1,26 +1,17 @@
 import { defineStore } from 'pinia'
 import type { Pinia } from 'pinia'
+import { deviceNamespace } from '@/modules/persistence/namespaces'
+import {
+  menuUiPreferencesCodec,
+  type MenuUiPreferences,
+} from '@/modules/persistence/preferences'
+import type { Persistence } from '@/modules/persistence/store'
 import type { PermissionMenuItem } from '@/types/user'
 
 const LIGHT_SYSTEM_DEFAULT = '#409EFF'
 const DARK_SYSTEM_DEFAULT = '#1890ff'
 
 export type MenuItem = PermissionMenuItem
-
-function loadStoredTabList(): MenuItem[] {
-  const raw = localStorage.getItem('tabList')
-  if (!raw) {
-    return [HOME_MENU_ITEM]
-  }
-
-  try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as MenuItem[]) : [HOME_MENU_ITEM]
-  } catch {
-    localStorage.removeItem('tabList')
-    return [HOME_MENU_ITEM]
-  }
-}
 
 export const HOME_MENU_ITEM: MenuItem = {
   index: '0',
@@ -34,28 +25,21 @@ export const HOME_MENU_ITEM: MenuItem = {
   children: [],
 }
 
-/** Keys that are persisted as simple strings via $subscribe */
-const PERSISTED_KEYS = [
-  'selectedMenu', 'systemColor', 'breadcrumb', 'hamburger',
-  'tabtag', 'uniqueOpen', 'footer', 'pageTransition',
-  'transitionName', 'layoutMode',
-] as const
-
 export const useMenuStore = defineStore('menu', {
   state: () => ({
     collapse: false,
     drawer: false,
-    selectedMenu: localStorage.getItem('selectedMenu') || '0',
-    tabList: loadStoredTabList(),
-    systemColor: localStorage.getItem('systemColor') || LIGHT_SYSTEM_DEFAULT,
-    breadcrumb: localStorage.getItem('breadcrumb') !== 'false',
-    hamburger: localStorage.getItem('hamburger') !== 'false',
-    tabtag: localStorage.getItem('tabtag') !== 'false',
-    uniqueOpen: localStorage.getItem('uniqueOpen') !== 'false',
-    footer: localStorage.getItem('footer') !== 'false',
-    pageTransition: localStorage.getItem('pageTransition') !== 'false',
-    transitionName: localStorage.getItem('transitionName') || 'fade',
-    layoutMode: (localStorage.getItem('layoutMode') as 'single' | 'double') || 'single',
+    selectedMenu: '0',
+    tabList: [HOME_MENU_ITEM],
+    systemColor: LIGHT_SYSTEM_DEFAULT,
+    breadcrumb: true,
+    hamburger: true,
+    tabtag: true,
+    uniqueOpen: true,
+    footer: true,
+    pageTransition: true,
+    transitionName: 'fade',
+    layoutMode: 'single' as 'single' | 'double',
     contentFullscreen: false,
     refreshKey: 0,
   }),
@@ -157,16 +141,33 @@ export const useMenuStore = defineStore('menu', {
   },
 })
 
-/**
- * Setup auto-persistence for menu store.
- * Call once after `app.use(pinia)`.
- */
-export function setupMenuStorePersistence(pinia: Pinia) {
+function menuUiPreferences(state: ReturnType<typeof useMenuStore>['$state']): MenuUiPreferences {
+  return {
+    systemColor: state.systemColor,
+    breadcrumb: state.breadcrumb,
+    hamburger: state.hamburger,
+    tabtag: state.tabtag,
+    uniqueOpen: state.uniqueOpen,
+    footer: state.footer,
+    pageTransition: state.pageTransition,
+    transitionName: state.transitionName,
+    layoutMode: state.layoutMode,
+  }
+}
+
+export function setupMenuStorePersistence(pinia: Pinia, persistence: Persistence): () => void {
   const store = useMenuStore(pinia)
-  store.$subscribe((_mutation, state) => {
-    for (const key of PERSISTED_KEYS) {
-      localStorage.setItem(key, String(state[key]))
-    }
-    localStorage.setItem('tabList', JSON.stringify(state.tabList))
+  const restored = persistence.read(deviceNamespace, 'menu-ui', menuUiPreferencesCodec)
+  if (restored) store.$patch(restored)
+  return store.$subscribe((_mutation, state) => {
+    persistence.write(
+      deviceNamespace,
+      'menu-ui',
+      menuUiPreferencesCodec,
+      menuUiPreferences(state),
+    )
+  }, {
+    detached: true,
+    flush: 'sync',
   })
 }
