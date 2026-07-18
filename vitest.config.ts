@@ -13,7 +13,50 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      include: [
+        'src/app/**/*.{ts,vue}',
+        'src/modules/**/*.{ts,vue}',
+      ],
+      exclude: [
+        'src/modules/**/generated/**',
+      ],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+      },
+    },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['tests/**/*.test.ts'],
+          exclude: [
+            'tests/component/**/*.test.ts',
+            'tests/integration/**/*.test.ts',
+          ],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'component',
+          environment: 'happy-dom',
+          setupFiles: ['tests/setup/dom.ts'],
+          include: ['tests/component/**/*.test.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'integration',
+          environment: 'node',
+          include: ['tests/integration/**/*.test.ts'],
+        },
+      },
+    ],
   },
 })
