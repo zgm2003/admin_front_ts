@@ -74,6 +74,12 @@ async function mountLoginHarness() {
   return wrapper.vm.login as ReturnType<typeof useLoginForm>
 }
 
+function preparePasswordLogin(login: Awaited<ReturnType<typeof mountLoginHarness>>) {
+  login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
+  login.loginForm.login_account = 'admin@example.test'
+  login.loginForm.password = 'correct-password'
+}
+
 describe('kernel-owned login form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -111,6 +117,66 @@ describe('kernel-owned login form', () => {
       captcha_answer: { x: 124, y: 12 },
     })
     expect([...storage.values.values()].join('')).not.toMatch(/access[_-]?token|refresh[_-]?token/i)
+  })
+
+  it('opens one policy confirmation before validation, captcha, or kernel work', async () => {
+    const login = await mountLoginHarness()
+    preparePasswordLogin(login)
+
+    await login.handleSubmit()
+    await login.handleSubmit()
+
+    expect(login.policyConfirmVisible.value).toBe(true)
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
+    expect(mocks.kernelLogin).not.toHaveBeenCalled()
+    expect(mocks.messageError).not.toHaveBeenCalledWith('login.validation.policyRequired')
+  })
+
+  it('cancels a deferred login without granting consent or doing login work', async () => {
+    const login = await mountLoginHarness()
+    preparePasswordLogin(login)
+    await login.handleSubmit()
+
+    login.cancelPolicyConfirmation()
+
+    expect(login.policyConfirmVisible.value).toBe(false)
+    expect(login.agreePolicy.value).toBe(false)
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
+    expect(mocks.kernelLogin).not.toHaveBeenCalled()
+  })
+
+  it('continues the deferred submission exactly once after an explicit confirmation click', async () => {
+    const login = await mountLoginHarness()
+    preparePasswordLogin(login)
+    await login.handleSubmit()
+
+    await login.confirmPolicyAndContinue()
+    await login.confirmPolicyAndContinue()
+
+    expect(login.agreePolicy.value).toBe(true)
+    expect(login.policyConfirmVisible.value).toBe(false)
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
+    expect(mocks.kernelLogin).not.toHaveBeenCalled()
+  })
+
+  it('submits directly when the checkbox was already selected', async () => {
+    const login = await mountLoginHarness()
+    preparePasswordLogin(login)
+    login.agreePolicy.value = true
+
+    await login.handleSubmit()
+
+    expect(login.policyConfirmVisible.value).toBe(false)
+    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not treat opening terms or privacy information as consent', async () => {
+    const login = await mountLoginHarness()
+
+    login.openService()
+    expect(login.agreePolicy.value).toBe(false)
+    login.openPolicy()
+    expect(login.agreePolicy.value).toBe(false)
   })
 
   it('shows the authentication failure and never turns it into an empty success state', async () => {

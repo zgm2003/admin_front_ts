@@ -45,6 +45,8 @@ export function useLoginForm() {
   const activeAccountType = ref<UserLoginType>('password')
   const showPassword = ref(false)
   const agreePolicy = ref(false)
+  const policyConfirmVisible = ref(false)
+  let policySubmitPending = false
   const isSubmitting = ref(false)
   const isSendingCode = ref(false)
   const isShaking = ref(false)
@@ -205,9 +207,7 @@ export function useLoginForm() {
     }
   }
 
-  const handleSubmit = async () => {
-    if (!agreePolicy.value) return ElMessage.error(t('login.validation.policyRequired'))
-
+  const continueSubmit = async () => {
     const currentLoginType = loginType.value
     const fieldsToValidate = currentLoginType === 'password'
       ? ['login_account', 'password']
@@ -232,6 +232,30 @@ export function useLoginForm() {
     }
 
     await submitLogin({ login_type: currentLoginType, login_account: account, code: loginForm.code })
+  }
+
+  const handleSubmit = async () => {
+    if (!agreePolicy.value) {
+      policySubmitPending = true
+      policyConfirmVisible.value = true
+      return
+    }
+
+    await continueSubmit()
+  }
+
+  const confirmPolicyAndContinue = async () => {
+    if (!policySubmitPending) return
+
+    policySubmitPending = false
+    agreePolicy.value = true
+    policyConfirmVisible.value = false
+    await continueSubmit()
+  }
+
+  const cancelPolicyConfirmation = () => {
+    policySubmitPending = false
+    policyConfirmVisible.value = false
   }
 
   const requestLoginCode = async () => {
@@ -364,12 +388,10 @@ export function useLoginForm() {
   }
 
   const openService = () => {
-    agreePolicy.value = true
     ElMessage.info(t('login.validation.termsHint'))
   }
 
   const openPolicy = () => {
-    agreePolicy.value = true
     ElMessage.info(t('login.validation.privacyHint'))
   }
 
@@ -391,6 +413,7 @@ export function useLoginForm() {
     activeAccountType,
     showPassword,
     agreePolicy,
+    policyConfirmVisible,
     isSubmitting,
     isSendingCode,
     isCaptchaSubmitting,
@@ -399,6 +422,8 @@ export function useLoginForm() {
     isPasswordLogin,
     rules,
     handleSubmit,
+    confirmPolicyAndContinue,
+    cancelPolicyConfirmation,
     requestLoginCode,
     completeCaptchaLogin,
     handleTabChange,
