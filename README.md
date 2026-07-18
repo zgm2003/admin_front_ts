@@ -56,12 +56,21 @@ src/
 
 ## 生产部署
 
-前端长期部署 runbook 只维护在 root repo，避免 `admin_front_ts` 复制第二份生产真相：
+前端与后端都只通过 Docker 镜像交付，Compose 生命周期说明维护在后端仓库：
 
 ```text
-E:/admin_go/docs/deployment/frontend-github-actions-scp.md
-E:/admin_go/docs/deployment/docker-first-backend.md
+E:/admin/admin_back_go/deploy/docker-first/README.md
 ```
+
+统一入口：
+
+```powershell
+cd E:/admin/admin_back_go
+pwsh -NoProfile -File scripts/docker-platform.ps1 up
+```
+
+前端 production build 只发生在 `admin_front_ts/Dockerfile` 内，最终镜像是唯一交付物；
+不上传或解压 `dist`，不使用 GitHub Actions、SCP、宿主机 Vite 或宿主机 Go 进程部署。
 
 通用生产边界：
 
@@ -72,7 +81,9 @@ HTTP API           https://<api-domain>/api/admin/v1/...
 Realtime WS        wss://<api-domain>/api/admin/v1/realtime/ws
 ```
 
-GitHub Actions 生产构建仍必须从 Repository secrets / variables 注入 `VITE_GO_API_BASE_URL` 和 `VITE_WEB_SOCKET_URL`；仓库里的 `.env.production` 同步当前线上默认值，供手工/本地 production build 使用，不准改回 `example.com` 占位。
+生产镜像构建时必须显式注入 `VITE_GO_API_BASE_URL` 和 `VITE_WEB_SOCKET_URL`；
+仓库里的 `.env.production` 同步当前线上默认值，供 Docker 镜像验证读取，不准改回
+`example.com` 占位。
 
 生产前端 Nginx 至少需要保证 Vue history fallback：
 

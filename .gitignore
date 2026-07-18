@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
 *.local
 
 # Auto-generated type declarations
@@ -29,6 +30,3 @@ src/types/components.d.ts
 
 # Build script with private key
 build.ps1
-
-# Local Git worktrees
-.worktrees/

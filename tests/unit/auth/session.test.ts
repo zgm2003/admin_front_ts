@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AuthSession } from '@/modules/auth/session'
-import type { AccessCredential, CredentialAdapter } from '@/modules/auth/types'
+import {
+  AuthSessionError,
+  type AccessCredential,
+  type CredentialAdapter,
+} from '@/modules/auth/types'
 
 const credential: AccessCredential = {
   accessToken: 'access-secret',
@@ -38,6 +42,20 @@ function session(authAdapter = adapter(), overrides: ConstructorParameters<typeo
 }
 
 describe('AuthSession', () => {
+  it('restores each anonymous or authenticated session only once', async () => {
+    const anonymousAdapter = adapter()
+    const anonymous = session(anonymousAdapter)
+    await expect(anonymous.restore()).resolves.toEqual({ kind: 'anonymous' })
+    await expect(anonymous.restore()).resolves.toEqual({ kind: 'anonymous' })
+    expect(anonymousAdapter.restore).toHaveBeenCalledTimes(1)
+
+    const authenticatedAdapter = adapter({ restore: vi.fn(async () => credential) })
+    const authenticated = session(authenticatedAdapter)
+    await expect(authenticated.restore()).resolves.toEqual({ kind: 'authenticated' })
+    await expect(authenticated.restore()).resolves.toEqual({ kind: 'authenticated' })
+    expect(authenticatedAdapter.restore).toHaveBeenCalledTimes(1)
+  })
+
   it('restores anonymous and authenticated sessions without exposing the token in its snapshot', async () => {
     const anonymous = session()
     await expect(anonymous.restore()).resolves.toEqual({ kind: 'anonymous' })
@@ -187,6 +205,106 @@ describe('AuthSession', () => {
       'credential-clear',
       'navigate',
     ])
+    expect(auth.state.value).toEqual({ kind: 'anonymous' })
+  })
+
+  it('rejects missing sessions and every invalid credential shape', async () => {
+    const missing = session()
+    await expect(missing.refresh()).rejects.toMatchObject({ code: 'auth.session_missing' })
+    await expect(missing.withAccessToken(async () => 'unexpected')).rejects.toMatchObject({
+      code: 'auth.session_missing',
+    })
+
+    const invalidCredentials: AccessCredential[] = [
+      { accessToken: '', expiresAt: Date.now() + 60_000 },
+      { accessToken: 'token', expiresAt: Number.NaN },
+      { accessToken: 'token', expiresAt: Date.now() - 1 },
+    ]
+    for (const invalid of invalidCredentials) {
+      const auth = session(adapter({ login: vi.fn(async () => invalid) }))
+      await auth.restore()
+      await expect(auth.login({
+        login_type: 'password',
+        login_account: 'admin@example.test',
+        password: 'secret',
+        captcha_id: 'captcha-id',
+        captcha_answer: { x: 20, y: 0 },
+      })).rejects.toMatchObject({ code: 'auth.credential_invalid' })
+      expect(auth.state.value).toEqual({ kind: 'anonymous' })
+    }
+  })
+
+  it.each([
+    [new AuthSessionError('auth.revoked', 'revoked'), 'revoked'],
+    [new Error('rotation failed'), 'rotation-failed'],
+  ] as const)('classifies a failed refresh as %s', async (error, reason) => {
+    const authAdapter = adapter({
+      restore: vi.fn(async () => credential),
+      refresh: vi.fn(async () => { throw error }),
+    })
+    const auth = session(authAdapter)
+    const events: unknown[] = []
+    auth.subscribe((event) => events.push(event))
+    await auth.restore()
+
+    await expect(auth.refresh()).rejects.toBe(error)
+    expect(auth.state.value).toEqual({ kind: 'expired', reason })
+    expect(events).toContainEqual({ type: 'expired', reason })
+    expect(authAdapter.clear).toHaveBeenCalledTimes(1)
+  })
+
+  it('coalesces logout, ignores revoke failure, and permits a fresh anonymous login', async () => {
+    const revoke = deferred<void>()
+    const authAdapter = adapter({
+      revoke: vi.fn(() => revoke.promise),
+    })
+    const auth = session(authAdapter)
+    await auth.restore()
+
+    const first = auth.logout()
+    const second = auth.logout()
+    expect(second).toBe(first)
+    await expect(auth.login({
+      login_type: 'password',
+      login_account: 'admin@example.test',
+      password: 'secret',
+      captcha_id: 'captcha-id',
+      captcha_answer: { x: 20, y: 0 },
+    })).rejects.toMatchObject({ code: 'auth.session_frozen' })
+
+    revoke.reject(new Error('best effort failure'))
+    await first
+    expect(authAdapter.revoke).toHaveBeenCalledWith(null, expect.any(AbortSignal))
+
+    await expect(auth.login({
+      login_type: 'password',
+      login_account: 'admin@example.test',
+      password: 'secret',
+      captcha_id: 'captcha-id',
+      captcha_answer: { x: 20, y: 0 },
+    })).resolves.toMatchObject({ kind: 'authenticated' })
+  })
+
+  it('aborts and joins an active refresh before disposing its coordinator', async () => {
+    const dispose = vi.fn()
+    const authAdapter = adapter({
+      restore: vi.fn(async () => credential),
+      refresh: vi.fn(() => new Promise<AccessCredential>(() => undefined)),
+    })
+    const auth = session(authAdapter, {
+      coordinator: {
+        run: (operation) => operation(),
+        dispose,
+      },
+    })
+    await auth.restore()
+    const refresh = auth.refresh()
+    const rejection = expect(refresh).rejects.toMatchObject({ name: 'AbortError' })
+
+    await auth.dispose()
+
+    await rejection
+    expect(dispose).toHaveBeenCalledTimes(1)
     expect(auth.state.value).toEqual({ kind: 'anonymous' })
   })
 })
