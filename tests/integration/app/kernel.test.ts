@@ -190,6 +190,29 @@ describe('AppKernel bootstrap', () => {
     expect(adapterDispose).toHaveBeenCalledTimes(1)
   })
 
+  it('rejects new lifecycle work after disposal without touching authentication', async () => {
+    const login = vi.fn(async () => undefined)
+    const deps = dependencies({
+      auth: {
+        restore: vi.fn(async () => ({ kind: 'anonymous' as const })),
+        login,
+        logout: vi.fn(async () => undefined),
+        dispose: vi.fn(async () => undefined),
+      },
+    })
+    const kernel = new AppKernel(deps)
+    await kernel.dispose()
+
+    await expect(kernel.bootstrap()).resolves.toEqual({ kind: 'cold' })
+    await expect(kernel.login({
+      login_type: 'password',
+      login_account: 'admin',
+      password: 'secret',
+    })).resolves.toEqual({ kind: 'cold' })
+    await expect(kernel.refreshPrincipal('manual')).resolves.toBeUndefined()
+    expect(login).not.toHaveBeenCalled()
+  })
+
   it.each(['cold', 'restoring-session', 'anonymous', 'loading-principal', 'installing-routes', 'failed'] as const)(
     'does not expose protected content while state is %s',
     (kind) => {

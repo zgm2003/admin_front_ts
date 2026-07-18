@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { createApiError } from '@/modules/http/error'
@@ -151,14 +149,5 @@ describe('useCrudTable', () => {
     expect(table.selectedIds.value).toEqual([])
     expect(table.page.value.current_page).toBe(1)
     expect(table.data.value).toEqual([{ id: 20 }])
-  })
-
-  it('does not keep legacy del/status fallback source paths', () => {
-    const source = readFileSync(resolve(process.cwd(), 'src/hooks/useCrudTable.ts'), 'utf8')
-
-    expect(source).not.toMatch(/\bapi\.del\b/)
-    expect(source).not.toMatch(/\bapi\.status\b/)
-    expect(source).not.toContain('api.deleteOne/api.del')
-    expect(source).not.toContain('api.changeStatus/api.status')
   })
 })

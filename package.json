@@ -19,6 +19,7 @@
     "lint": "eslint .",
     "lint:baseline": "eslint . --max-warnings 82",
     "lint:quality": "node ./scripts/quality-checks.mjs",
+    "test:architecture": "node ./scripts/audit-test-architecture.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",

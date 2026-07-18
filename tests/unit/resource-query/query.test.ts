@@ -108,4 +108,65 @@ describe('ResourceQuery', () => {
     query.dispose()
     await expect(query.execute({ term: 'new' })).rejects.toThrow(/disposed/i)
   })
+
+  it('requires an initial execution before refresh or retry', async () => {
+    const query = resource(vi.fn())
+
+    await expect(query.refresh()).rejects.toThrow(/before execute/i)
+    await expect(query.retry()).rejects.toThrow(/before execute/i)
+  })
+
+  it('preserves data for a failed refresh and retries in refresh mode', async () => {
+    const failure = new Error('temporary failure')
+    const request = vi.fn()
+      .mockResolvedValueOnce({ items: [{ id: 1 }] })
+      .mockRejectedValueOnce(failure)
+      .mockResolvedValueOnce({ items: [{ id: 2 }] })
+    const query = resource(request)
+
+    await query.execute({ term: 'current' })
+    await expect(query.refresh()).rejects.toMatchObject({ kind: 'internal' })
+    expect(query.state.value).toMatchObject({ kind: 'error', data: [{ id: 1 }] })
+
+    const retry = query.retry()
+    expect(query.state.value).toMatchObject({ kind: 'refreshing', data: [{ id: 1 }] })
+    await expect(retry).resolves.toEqual({ items: [{ id: 2 }] })
+  })
+
+  it('commits normalized parameters and rejects a non-array item selector', async () => {
+    const request = vi.fn(async (params: Params) => ({ items: [{ id: params.term.length }] }))
+    const query = createResourceQuery<Item, Params, Page>({
+      request,
+      selectItems: (page) => page.items,
+      onCommit: (_page, params) => ({ term: params.term.trim() }),
+    })
+    await query.execute({ term: ' normalized ' })
+    await query.refresh()
+    expect(request).toHaveBeenLastCalledWith(
+      { term: 'normalized' },
+      { signal: expect.any(AbortSignal) },
+    )
+
+    const invalid = createResourceQuery<Item, Params, Page>({
+      request: async () => ({ items: [] }),
+      selectItems: () => null as never,
+    })
+    await expect(invalid.execute({ term: 'invalid' })).rejects.toMatchObject({
+      kind: 'internal',
+      code: 'http.internal',
+    })
+  })
+
+  it('maps request aborts to canceled errors and makes reset/dispose idempotent', async () => {
+    const pending = deferred<Page>()
+    const query = resource(() => pending.promise)
+    const flight = query.execute({ term: 'cancel' })
+
+    query.dispose()
+    query.dispose()
+    query.reset()
+    pending.reject(new Error('aborted'))
+
+    await expect(flight).rejects.toMatchObject({ kind: 'canceled', code: 'http.canceled' })
+  })
 })

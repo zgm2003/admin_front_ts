@@ -1,27 +1,39 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-function readFrontendSource(relativePath: string) {
-  return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
-}
+const notifications = vi.hoisted(() => ({
+  error: vi.fn(),
+  success: vi.fn(),
+}))
 
-describe('export submit helper wiring', () => {
-  it('defines a reusable export helper with selection guard and success fallback', () => {
-    const source = readFrontendSource('src/hooks/useExportSubmit.ts')
+vi.mock('element-plus', () => ({ ElNotification: notifications }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key: string) => key }),
+}))
 
-    expect(source).toContain('export function useExportSubmit')
-    expect(source).toContain("ElNotification.error({ message: t('common.selectAtLeastOne') })")
-    expect(source).toContain('const data = await options.submit([...ids])')
-    expect(source).toContain("ElNotification.success({ message: data.message || t('common.export.submitted') })")
+const { useExportSubmit } = await import('@/hooks/useExportSubmit')
+
+describe('export submit behavior', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('rejects an empty selection without calling the API', async () => {
+    const submit = vi.fn()
+    const { submitSelectedExport } = useExportSubmit({ submit })
+
+    await submitSelectedExport([])
+
+    expect(submit).not.toHaveBeenCalled()
+    expect(notifications.error).toHaveBeenCalledWith({ message: 'common.selectAtLeastOne' })
   })
 
-  it('uses the helper from the user list export button instead of duplicating submit flow', () => {
-    const source = readFrontendSource('src/views/Main/user/userManager/components/UserList/index.vue')
+  it('submits a copied id list and reports the documented response message', async () => {
+    const ids = [3, 9]
+    const submit = vi.fn().mockResolvedValue({ message: 'export queued' })
+    const { submitSelectedExport } = useExportSubmit({ submit })
 
-    expect(source).toContain("import { useExportSubmit } from '@/hooks/useExportSubmit'")
-    expect(source).toContain('const { submitSelectedExport } = useExportSubmit({')
-    expect(source).toContain('submit: (ids) => UsersListApi.export({ ids }),')
-    expect(source).toContain('await submitSelectedExport(selectedIds.value)')
+    await submitSelectedExport(ids)
+
+    expect(submit).toHaveBeenCalledWith([3, 9])
+    expect(submit.mock.calls[0]?.[0]).not.toBe(ids)
+    expect(notifications.success).toHaveBeenCalledWith({ message: 'export queued' })
   })
 })

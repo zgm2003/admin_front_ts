@@ -90,4 +90,39 @@ describe('Mutation', () => {
     expect(isApiError(error)).toBe(true)
     expect(error).toMatchObject({ kind: 'internal', code: 'http.internal' })
   })
+
+  it('rejects invalid mutation keys before execution', async () => {
+    const execute = vi.fn()
+    const blank = createMutation({
+      key: () => ' ',
+      execute,
+      invalidate: [],
+    })
+
+    await expect(blank.mutate({ id: 1 })).rejects.toMatchObject({
+      kind: 'internal',
+      code: 'mutation.key_invalid',
+    })
+    expect(execute).not.toHaveBeenCalled()
+  })
+
+  it('aborts pending work on dispose and rejects later mutations', async () => {
+    const pending = deferred<string>()
+    const execute = vi.fn((_input, options: { signal: AbortSignal }) => new Promise<string>((resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true })
+      pending.promise.then(resolve, reject)
+    }))
+    const mutation = createMutation({
+      key: (input: { id: number }) => `save:${input.id}`,
+      execute,
+      invalidate: [],
+    })
+
+    const flight = mutation.mutate({ id: 1 })
+    mutation.dispose()
+    mutation.dispose()
+
+    await expect(flight).rejects.toMatchObject({ kind: 'canceled', code: 'http.canceled' })
+    await expect(mutation.mutate({ id: 2 })).rejects.toThrow(/disposed/i)
+  })
 })

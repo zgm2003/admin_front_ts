@@ -45,6 +45,38 @@ describe('parseEnvironment', () => {
     expect(parsed.apiOrigin.href).toBe('http://localhost:5173/')
   })
 
+  it('normalizes development loopback endpoints to the browser host', () => {
+    const parsed = parseEnvironment(environment(), {
+      href: 'http://admin.internal.test:5173/login',
+    } as Location)
+
+    expect(parsed.apiOrigin.hostname).toBe('admin.internal.test')
+    expect(parsed.realtimeOrigin.hostname).toBe('admin.internal.test')
+  })
+
+  it.each([
+    [{ MODE: undefined }, /MODE is required/],
+    [{ VITE_PLATFORM: '   ' }, /VITE_PLATFORM is required/],
+    [{ VITE_GO_API_BASE_URL: 'ftp://admin.example.test' }, /HTTP or HTTPS/],
+    [{ VITE_GO_API_BASE_URL: 'http://localhost:5173/base' }, /origin without a path/],
+    [{ VITE_WEB_SOCKET_URL: 'https://localhost:5173/realtime' }, /WS or WSS/],
+  ])('rejects missing or protocol-invalid environment input: %o', (overrides, message) => {
+    expect(() => parseEnvironment(environment(overrides), location)).toThrow(message)
+  })
+
+  it('accepts matching explicit production ports', () => {
+    const parsed = parseEnvironment(environment({
+      MODE: 'production',
+      DEV: false,
+      PROD: true,
+      VITE_GO_API_BASE_URL: 'https://admin.example.test:8443',
+      VITE_WEB_SOCKET_URL: 'wss://admin.example.test:8443/api/admin/v1/realtime/ws',
+    }), { href: 'https://admin.example.test:8443/' } as Location)
+
+    expect(parsed.apiOrigin.port).toBe('8443')
+    expect(parsed.realtimeOrigin.port).toBe('8443')
+  })
+
   it.each([
     [{ VITE_PLATFORM: 'app' }, /VITE_PLATFORM/],
     [{ VITE_ADMIN_CLIENT_VARIANT: 'mobile' }, /VITE_ADMIN_CLIENT_VARIANT/],

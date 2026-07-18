@@ -278,19 +278,19 @@ Expected: search/page races are latest-wins; no feature imports Axios or raw Web
 - Create: component/integration replacements under `tests/component` and `tests/integration`
 - Modify: `package.json`
 
-- [ ] **Step 1: Add an executable test audit**
+- [x] **Step 1: Add an executable test audit**
 
 The manifest records every current source-reading suite by exact path with one of `delete`, `replace`, or `retain-guard`, plus the exact replacement test path for `replace`. The script rejects missing files, duplicate entries, replacement collisions, or a source reader absent from the manifest. It parses test imports/file reads, classifies direct production behavior versus source-text guards, prints counts, and fails when source-text suites are 20% or more. Architecture/security guards are the only retained source readers and are listed by exact path in the manifest.
 
-- [ ] **Step 2: Convert critical suites**
+- [x] **Step 2: Convert critical suites**
 
 Replace text assertions for auth, router, realtime, table/query, notification, payment, user/RBAC, export, AI conversation/run, dialog, and network behavior with imports, mounted Vue components, MSW, fake clocks, and fake WebSocket transports. Delete assertions that only count strings or lines and add no behavior.
 
-- [ ] **Step 3: Enforce core coverage**
+- [x] **Step 3: Enforce core coverage**
 
 Configure 80% statements and branches separately for `src/app`, `src/modules/auth`, `http`, `routing`, `realtime`, `resource-query`, and `persistence`. Add explicit transition tests until each directory passes; do not hide misses through aggregate application coverage.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- --coverage

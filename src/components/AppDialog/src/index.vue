@@ -34,6 +34,7 @@ const props = withDefaults(defineProps<{
   mobileWidth: DEFAULT_APP_DIALOG_MOBILE_WIDTH,
   appendToBody: true,
   destroyOnClose: true,
+  draggable: undefined,
   showClose: true,
   top: '5vh',
 })

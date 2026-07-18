@@ -1,69 +1,33 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { PermissionApi } from '@/api/permission/permission'
+import { installApiClientHarness } from '../../helpers/api-client'
 
-function readFrontendSource(relativePath: string) {
-  return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
-}
+const cleanups: Array<() => void> = []
+afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
-const forbiddenLooseTypePattern = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
+describe('permission API behavior', () => {
+  it('executes the documented permission resource operations', async () => {
+    const harness = installApiClientHarness({})
+    cleanups.push(harness.uninstall)
+    await PermissionApi.pageInit()
+    harness.respondWith([])
+    await PermissionApi.list({ platform: 'admin' })
+    harness.respondWith({ id: 4 })
+    await PermissionApi.create({ platform: 'admin' } as never)
+    harness.respondWith({})
+    await PermissionApi.update({ id: 4, platform: 'admin' } as never)
+    await PermissionApi.changeStatus({ id: 4, status: 1 })
+    await PermissionApi.deleteOne({ id: 4 })
+    await PermissionApi.deleteBatch({ ids: [4, 5] })
 
-describe('permission api REST contract', () => {
-  it('uses default REST endpoints instead of legacy all-post permission routes', () => {
-    const source = readFrontendSource('src/api/permission/permission.ts')
-
-    expect(source).toContain("import request from '@/lib/http'")
-    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
-    expect(source).toContain('const pageInit = () => request.get<PermissionInitResponse>(`${ADMIN_API_PREFIX}/permissions/page-init`)')
-    expect(source).toContain('request.get<PermissionListItem[]>(`${ADMIN_API_PREFIX}/permissions`')
-    expect(source).toContain('request.post<PermissionCreateResponse, PermissionMutationPayload>(`${ADMIN_API_PREFIX}/permissions`')
-    expect(source).toContain('request.put<void, PermissionMutationPayload>(')
-    expect(source).toContain('request.patch<void, PermissionStatusBody>(')
-    expect(source).toContain('request.delete<void>(`${ADMIN_API_PREFIX}/permissions/${params.id}`)')
-    expect(source).toContain('request.delete<void, PermissionBatchDeletePayload>(`${ADMIN_API_PREFIX}/permissions`')
-    expect(source).toContain('pageInit')
-    expect(source).toContain('create')
-    expect(source).toContain('update')
-    expect(source).toContain('changeStatus')
-    expect(source).toContain('deleteOne')
-    expect(source).toContain('deleteBatch')
-    expect(source).toContain('pageInit')
-    expect(source).toContain('create')
-    expect(source).toContain('update')
-    expect(source).toContain('changeStatus')
-    expect(source).not.toContain('goRequest')
-    expect(source).not.toContain('/api/admin/Permission/')
-  })
-
-  it('keeps touched permission api types strict without catch-all fields', () => {
-    const source = readFrontendSource('src/api/permission/permission.ts')
-
-    expect(source).not.toContain('extends Record<string, unknown>')
-    expect(source).not.toMatch(forbiddenLooseTypePattern)
-    expect(source).not.toContain('permission_id')
-  })
-
-  it('declares the new API base URL as the only active request client', () => {
-    const clientSource = readFrontendSource('src/lib/http/index.ts')
-    const adapterSource = readFrontendSource('src/modules/http/axios-adapter.ts')
-    const envDevelopment = readFrontendSource('.env.development')
-    const envProduction = readFrontendSource('.env.production')
-
-    expect(clientSource).toContain('installApiClient')
-    expect(clientSource).toContain('requireClient().execute')
-    expect(clientSource).not.toMatch(/export\s+\{[^}]*\bservice\b/)
-    expect(adapterSource).toContain('baseURL: this.baseURL()')
-    expect(adapterSource).toContain("typeof options.baseURL === 'function'")
-    expect(adapterSource).toContain("from 'axios'")
-    expect(clientSource).not.toContain('legacyRequest')
-    expect(clientSource).not.toContain('legacyBaseURL')
-    expect(clientSource).not.toContain('VITE_SOME_KEY')
-    expect(clientSource).not.toContain('goRequest')
-    expect(clientSource).not.toMatch(forbiddenLooseTypePattern)
-    expect(envDevelopment).toMatch(/^VITE_GO_API_BASE_URL=http:\/\/localhost:8080$/m)
-    expect(envProduction).toMatch(/^VITE_GO_API_BASE_URL=https:\/\/www\.zgm2003\.cn$/m)
-    expect(envProduction).toMatch(/^VITE_WEB_SOCKET_URL=wss:\/\/www\.zgm2003\.cn\/api\/admin\/v1\/realtime\/ws$/m)
-    expect(envProduction).not.toContain('api.example.com')
-    expect(envProduction).not.toContain('admin.example.com')
+    expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', '/api/admin/v1/permissions/page-init'],
+      ['GET', '/api/admin/v1/permissions'],
+      ['POST', '/api/admin/v1/permissions'],
+      ['PUT', '/api/admin/v1/permissions/4'],
+      ['PATCH', '/api/admin/v1/permissions/4/status'],
+      ['DELETE', '/api/admin/v1/permissions/4'],
+      ['DELETE', '/api/admin/v1/permissions'],
+    ])
   })
 })

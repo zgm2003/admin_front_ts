@@ -1,28 +1,39 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { PaymentConfigApi } from '@/api/payment/config'
+import { installApiClientHarness } from '../../helpers/api-client'
 
-const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8')
-const loose = new RegExp(`\\b${'an'}${'y'}\\b|as ${'an'}${'y'}|Record<string, ${'an'}${'y'}>`)
+const cleanups: Array<() => void> = []
+afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
-describe('payment config api', () => {
-  it('uses config REST paths and strict payloads', () => {
-    const source = read('src/api/payment/config.ts')
-    expect(source).toContain('request.get<PaymentConfigInitResponse>(`${ADMIN_API_PREFIX}/payment/configs/page-init`)')
-    expect(source).toContain('request.post<PaymentConfigCreateResponse, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs`')
-    expect(source).toContain('request.post<PaymentCertificateUploadResponse, FormData>(`${ADMIN_API_PREFIX}/payment/certificates`')
-    expect(source).toContain('request.post<PaymentConfigTestResponse>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/test`)')
-    expect(source).not.toContain('/payment/channels')
-    expect(source).not.toContain('/payment/orders')
-    expect(source).not.toContain('/payment/events')
-    expect(source).toContain("export type PaymentProvider = 'alipay'")
-    expect(source).toContain('provider: PaymentProvider')
-    expect(source).toContain('private_key_hint: string')
-    expect(source).not.toContain('app_private_key_hint')
-    expect(source).not.toContain('return_url')
-    expect(source).not.toContain('merchant_id')
-    expect(source).not.toContain('sign_type')
-    expect(source).not.toContain('extra_config')
-    expect(source).not.toMatch(loose)
+describe('payment configuration API behavior', () => {
+  it('executes the documented payment configuration operations', async () => {
+    const harness = installApiClientHarness({})
+    cleanups.push(harness.uninstall)
+    await PaymentConfigApi.pageInit()
+    await PaymentConfigApi.list({ current_page: 1, page_size: 20 })
+    harness.respondWith({ id: 4 })
+    await PaymentConfigApi.create({ provider: 'alipay' } as never)
+    harness.respondWith({})
+    await PaymentConfigApi.update({ id: 4, provider: 'alipay' } as never)
+    await PaymentConfigApi.changeStatus(4, 1)
+    await PaymentConfigApi.test(4)
+    await PaymentConfigApi.deleteOne(4)
+
+    expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', '/api/admin/v1/payment/configs/page-init'],
+      ['GET', '/api/admin/v1/payment/configs'],
+      ['POST', '/api/admin/v1/payment/configs'],
+      ['PUT', '/api/admin/v1/payment/configs/4'],
+      ['PATCH', '/api/admin/v1/payment/configs/4/status'],
+      ['POST', '/api/admin/v1/payment/configs/4/test'],
+      ['DELETE', '/api/admin/v1/payment/configs/4'],
+    ])
+  })
+
+  it('rejects invalid resource identities without an HTTP request', async () => {
+    const harness = installApiClientHarness()
+    cleanups.push(harness.uninstall)
+    expect(() => PaymentConfigApi.deleteOne(0)).toThrow(/positive/i)
+    expect(harness.requests).toEqual([])
   })
 })

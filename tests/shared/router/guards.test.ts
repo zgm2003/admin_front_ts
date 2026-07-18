@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { registerRouterGuards } from '@/router/guards'
@@ -79,14 +77,5 @@ describe('Router guard integration boundary', () => {
 
     await expect(guard({ name: 'home', fullPath: '/home' })).resolves.toBe(true)
     expect(bootstrap).not.toHaveBeenCalled()
-  })
-
-  it('contains no cookie or storage authentication decision', () => {
-    const source = readFileSync(resolve('src/router/guards.ts'), 'utf8')
-
-    expect(source).not.toContain('js-cookie')
-    expect(source).not.toContain('Cookies.')
-    expect(source).not.toContain('localStorage')
-    expect(source).not.toContain('sessionStorage')
   })
 })

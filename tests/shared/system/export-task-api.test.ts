@@ -1,38 +1,33 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { ExportTaskApi } from '@/api/system/exportTask'
+import { installApiClientHarness } from '../../helpers/api-client'
 
-function readFrontendSource(relativePath: string) {
-  return readFileSync(resolve(process.cwd(), relativePath), 'utf8')
-}
+const cleanups: Array<() => void> = []
+afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
-describe('export task api REST contract', () => {
-  it('uses Go REST endpoints instead of legacy export task routes', () => {
-    const source = readFrontendSource('src/api/system/exportTask.ts')
+describe('export task API behavior', () => {
+  it('executes documented list, status, and deletion operations', async () => {
+    const harness = installApiClientHarness([])
+    cleanups.push(harness.uninstall)
+    await ExportTaskApi.statusCount({})
+    harness.respondWith({ list: [], page: { current_page: 1, page_size: 20, total: 0 } })
+    await ExportTaskApi.list({ current_page: 1, page_size: 20 })
+    harness.respondWith({})
+    await ExportTaskApi.deleteOne({ id: 7 })
+    await ExportTaskApi.deleteBatch({ ids: [8, 9] })
 
-    expect(source).toContain("import request from '@/lib/http'")
-    expect(source).toContain("import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'")
-    expect(source).toContain('kind?: string')
-    expect(source).toContain('kind: string')
-    expect(source).toContain('kind_text: string')
-    expect(source).toContain('request.get<ExportTaskStatusItem[]>(`${ADMIN_API_PREFIX}/export-tasks/status-count`, { params })')
-    expect(source).toContain('request.get<PaginatedResponse<ExportTaskItem>>(`${ADMIN_API_PREFIX}/export-tasks`, { params })')
-    expect(source).toContain('deleteOne: (params: { id: Id }) => {')
-    expect(source).toContain('deleteBatch: (params: { ids: Id[] }) => {')
-    expect(source).toContain('request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids: normalizedIDs } })')
-    expect(source).not.toContain('legacyRequest')
-    expect(source).not.toContain('/api/admin/ExportTask/statusCount')
-    expect(source).not.toContain('/api/admin/ExportTask/list')
-    expect(source).not.toContain('/api/admin/ExportTask/del')
+    expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
+      ['GET', '/api/admin/v1/export-tasks/status-count'],
+      ['GET', '/api/admin/v1/export-tasks'],
+      ['DELETE', '/api/admin/v1/export-tasks/7'],
+      ['DELETE', '/api/admin/v1/export-tasks'],
+    ])
   })
 
-  it('refreshes both list and status-count from the toolbar refresh button', () => {
-    const source = readFrontendSource('src/views/Main/system/exportTask/index.vue')
-
-    expect(source).toContain('const handleRefresh = async () => {')
-    expect(source).toContain('await getList()')
-    expect(source).toContain('await refreshStatusCount()')
-    expect(source).toContain('@refresh="handleRefresh"')
-    expect(source).not.toContain('@refresh="refresh"')
+  it('rejects an invalid export identity before transport', async () => {
+    const harness = installApiClientHarness()
+    cleanups.push(harness.uninstall)
+    expect(() => ExportTaskApi.deleteOne({ id: 0 })).toThrow(/positive integer/i)
+    expect(harness.requests).toEqual([])
   })
 })

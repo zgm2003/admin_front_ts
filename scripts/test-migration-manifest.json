@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "source": "tests/layout/header-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/layout/search-dialog-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/admin-ai-interaction-retirement.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/ai/ai-agent-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-agent-free-canvas-scenes.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-chat-cancel-state.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/ai/ai-chat-cancel-state.test.ts"
+    },
+    {
+      "source": "tests/shared/ai/ai-conversation-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/ai/ai-conversation-api.test.ts"
+    },
+    {
+      "source": "tests/shared/ai/ai-knowledge-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-message-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-prompt-asset-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-provider-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-run-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/ai/ai-run-api.test.ts"
+    },
+    {
+      "source": "tests/shared/ai/ai-run-unified-records.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/ai-tools-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/message-input-layout.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/ai/message-list-labels.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/api/no-direct-external-helper.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/api/restful-naming-guard.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/architecture/storage-boundary.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/auth/browser-grant-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/auth/browser-grant-api.test.ts"
+    },
+    {
+      "source": "tests/shared/build/vite-config.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/deployment/docker-container.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/deployment/docker-only-delivery.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/deployment/frontend-deploy-env.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/dialog/ai-runs-detail-dialog.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/dialog/app-dialog.test.ts",
+      "action": "replace",
+      "replacement": "tests/component/dialog/AppDialog.test.ts"
+    },
+    {
+      "source": "tests/shared/dialog/search-dialog.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/display/display-demo-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/download-manager/dev-test-download-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/download-manager/download-demo-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/download-manager/download-manager-source-quality.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/download-manager/download-manager-source-quality.test.ts"
+    },
+    {
+      "source": "tests/shared/editor/editor-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/effect/particle-background-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/form/form-demo-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/home/home-dashboard.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/home/home-dashboard.test.ts"
+    },
+    {
+      "source": "tests/shared/http/ai-stream-contract.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/http/ai-stream-websocket-contract.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/http/no-sse-env.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/i18n/literal-i18n-keys.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/i18n/literal-i18n-keys.test.ts"
+    },
+    {
+      "source": "tests/shared/i18n/no-visible-chinese.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/icon/dicon-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/json-editor/json-editor-source-quality.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/json-editor/json-editor-source-quality.test.ts"
+    },
+    {
+      "source": "tests/shared/network/network-status.test.ts",
+      "action": "replace",
+      "replacement": "tests/component/network/NetworkStatusNotice.test.ts"
+    },
+    {
+      "source": "tests/shared/notification/notification-runtime.test.ts",
+      "action": "replace",
+      "replacement": "tests/component/notification/NotificationRuntime.test.ts"
+    },
+    {
+      "source": "tests/shared/payment-wallet-billing-redesign.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/payment/payment-config-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/payment/payment-config-api.test.ts"
+    },
+    {
+      "source": "tests/shared/payment/payment-config-page.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/payment/payment-order-api.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/payment/payment-order-page.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/payment/payment-recharge-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/payment/payment-recharge-page.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/auth-platform-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/auth-platform-form.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/permission-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/permission/permission-api.test.ts"
+    },
+    {
+      "source": "tests/shared/permission/permission-definition-page-structure.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/permission-form.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/permission-platform-scope.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/permission-tree-table.test.ts",
+      "action": "replace",
+      "replacement": "tests/component/permission/PermissionTreeTable.test.ts"
+    },
+    {
+      "source": "tests/shared/permission/role-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/permission/role-matrix-ui.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/router/error-routes.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/router/guards.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/router/guards.test.ts"
+    },
+    {
+      "source": "tests/shared/router/view-registry.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/system/cron-task-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/export-submit-helper.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/system/export-submit-helper.test.ts"
+    },
+    {
+      "source": "tests/shared/system/export-task-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/system/export-task-api.test.ts"
+    },
+    {
+      "source": "tests/shared/system/mail-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/notification-task-refresh.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/operation-log-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/queue-monitor-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/sms-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/system-setting-page.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/upload-config-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/system/upload-config-copy.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/table/remote-select-contract.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/table/remote-select-contract.test.ts"
+    },
+    {
+      "source": "tests/shared/table/shared-primitives-quality.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/table/shared-primitives-quality.test.ts"
+    },
+    {
+      "source": "tests/shared/table/useCrudTable.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/table/useCrudTable.test.ts"
+    },
+    {
+      "source": "tests/shared/upload/upload-demo-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/user/forgot-password-source-quality.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/user/forgot-password-source-quality.test.ts"
+    },
+    {
+      "source": "tests/shared/user/send-code-security-source.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/user/send-code-captcha-flow.test.ts"
+    },
+    {
+      "source": "tests/shared/user/user-list.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/user/users-api.test.ts",
+      "action": "replace",
+      "replacement": "tests/shared/user/users-api.test.ts"
+    },
+    {
+      "source": "tests/shared/validator/use-validator-source-quality.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/wallet/wallet-api.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/shared/wallet/wallet-pages.test.ts",
+      "action": "delete"
+    },
+    {
+      "source": "tests/unit/contracts/admin-contract.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/unit/http/architecture.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/unit/realtime/protocol.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/unit/test-architecture/audit.test.ts",
+      "action": "retain-guard"
+    }
+  ]
+}

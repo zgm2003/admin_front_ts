@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const temporaryRoots: string[] = []
-const backendBundle = resolve(process.cwd(), '../admin_back_go/contracts/admin/v1')
+const lockedBundle = resolve(process.cwd(), 'contracts/backend/admin/v1')
 
 async function createTemporaryRoot(name: string) {
   const root = await mkdtemp(join(tmpdir(), `admin-${name}-`))
@@ -15,7 +15,7 @@ async function createTemporaryRoot(name: string) {
 async function copyBackendBundle(name: string) {
   const root = await createTemporaryRoot(name)
   const bundle = join(root, 'v1')
-  await cp(backendBundle, bundle, { recursive: true })
+  await cp(lockedBundle, bundle, { recursive: true })
   return bundle
 }
 
@@ -37,7 +37,7 @@ describe('Admin Contract Bundle consumer', () => {
     const frontendRoot = await createTemporaryRoot('contract-check')
     const { syncBundleSnapshot } = await import('../../../scripts/sync-admin-contract.mjs')
     const { checkAdminContract } = await import('../../../scripts/check-admin-contract.mjs')
-    await syncBundleSnapshot(backendBundle, frontendRoot)
+    await syncBundleSnapshot(lockedBundle, frontendRoot)
     const copiedOpenapi = join(frontendRoot, 'contracts/backend/admin/v1/openapi.json')
     await writeFile(copiedOpenapi, `${await readFile(copiedOpenapi, 'utf8')} `, 'utf8')
 
@@ -49,8 +49,8 @@ describe('Admin Contract Bundle consumer', () => {
     const secondRoot = await createTemporaryRoot('contract-second')
     const { syncBundleSnapshot } = await import('../../../scripts/sync-admin-contract.mjs')
     const { generateAdminTypes } = await import('../../../scripts/generate-admin-types.mjs')
-    await syncBundleSnapshot(backendBundle, firstRoot)
-    await syncBundleSnapshot(backendBundle, secondRoot)
+    await syncBundleSnapshot(lockedBundle, firstRoot)
+    await syncBundleSnapshot(lockedBundle, secondRoot)
     await generateAdminTypes(firstRoot)
     await generateAdminTypes(secondRoot)
 

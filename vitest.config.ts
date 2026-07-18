@@ -25,6 +25,13 @@ export default defineConfig({
       thresholds: {
         statements: 80,
         branches: 80,
+        'src/app/**': { statements: 80, branches: 80 },
+        'src/modules/auth/**': { statements: 80, branches: 80 },
+        'src/modules/http/**': { statements: 80, branches: 80 },
+        'src/modules/routing/**': { statements: 80, branches: 80 },
+        'src/modules/realtime/**': { statements: 80, branches: 80 },
+        'src/modules/resource-query/**': { statements: 80, branches: 80 },
+        'src/modules/persistence/**': { statements: 80, branches: 80 },
       },
     },
     projects: [
