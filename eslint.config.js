@@ -52,4 +52,11 @@ export default tseslint.config(
       'vue/no-mutating-props': 'warn',
     },
   },
+  {
+    files: ['src/modules/**/generated/*.ts'],
+    rules: {
+      // Generated contract output is reproducible and intentionally exceeds source line budgets.
+      'max-lines': 'off',
+    },
+  },
 )
