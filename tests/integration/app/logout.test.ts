@@ -50,7 +50,14 @@ describe('AppKernel logout integration', () => {
         install: vi.fn(async () => undefined),
         clear: vi.fn(async () => undefined),
       },
-      realtime: { disconnect: vi.fn(async () => undefined) },
+      realtime: {
+        connect: vi.fn(async () => undefined),
+        disconnect: vi.fn(async () => undefined),
+        dispose: vi.fn(async () => undefined),
+        subscribe: vi.fn(() => () => undefined),
+        retainTopic: vi.fn(() => () => undefined),
+        registerRecovery: vi.fn(() => () => undefined),
+      },
       persistence: {} as never,
       adapters: [],
     })
@@ -95,7 +102,14 @@ describe('AppKernel logout integration', () => {
         install: vi.fn(async () => undefined),
         clear: vi.fn(async () => undefined),
       },
-      realtime: { disconnect: vi.fn(async () => undefined) },
+      realtime: {
+        connect: vi.fn(async () => undefined),
+        disconnect: vi.fn(async () => undefined),
+        dispose: vi.fn(async () => undefined),
+        subscribe: vi.fn(() => () => undefined),
+        retainTopic: vi.fn(() => () => undefined),
+        registerRecovery: vi.fn(() => () => undefined),
+      },
       persistence: {} as never,
       adapters: [],
     })

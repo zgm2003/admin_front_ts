@@ -1,25 +1,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { onWsMessage } from '@/lib/realtime'
-import type { WsMessageData } from '@/lib/realtime'
+import { useAppKernel } from '@/app/injection'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
 
-interface NotificationWsPayload extends WsMessageData {
-  title?: string
-  content?: string
-  link?: string
-  level?: 'normal' | 'urgent'
-  notification_type?: 'success' | 'warning' | 'info' | 'error'
-}
-
-const { t } = useI18n()
 const router = useRouter()
+const kernel = useAppKernel()
 
-function navigateTo(link?: string) {
+function navigateTo(link: string) {
   if (!link) {
     return
   }
@@ -37,23 +27,19 @@ function navigateTo(link?: string) {
 let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
-  unsubscribe = onWsMessage<NotificationWsPayload>('notification.created.v1', async ({ data }) => {
-    const title = typeof data.title === 'string' ? data.title : t('notification.title')
-    const content = typeof data.content === 'string' ? data.content : ''
-    const link = typeof data.link === 'string' ? data.link : undefined
-
+  unsubscribe = kernel.realtime.subscribe('notification.created.v1', async ({ data }) => {
     if (await shouldUseNative()) {
-      await sendNativeNotification(title, content)
+      await sendNativeNotification(data.title, data.content)
     }
 
     const notification = ElNotification({
-      title,
-      message: content,
-      type: data.notification_type || 'info',
+      title: data.title,
+      message: data.content,
+      type: data.notification_type,
       duration: 5000,
       onClick: () => {
         notification.close()
-        navigateTo(link)
+        navigateTo(data.link)
       },
     })
   })

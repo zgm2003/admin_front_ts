@@ -45,7 +45,12 @@ function dependencies(overrides: Partial<AppKernelDependencies> = {}): AppKernel
       clear: vi.fn(async () => undefined),
     },
     realtime: {
+      connect: vi.fn(async () => undefined),
       disconnect: vi.fn(async () => undefined),
+      dispose: vi.fn(async () => undefined),
+      subscribe: vi.fn(() => () => undefined),
+      retainTopic: vi.fn(() => () => undefined),
+      registerRecovery: vi.fn(() => () => undefined),
     },
     adapters: [],
     ...overrides,
@@ -97,6 +102,33 @@ describe('AppKernel bootstrap', () => {
 
     await expect(bootstrap).resolves.toEqual({ kind: 'ready', principal })
     expect(isProtectedContentVisible(kernel.state.value)).toBe(true)
+  })
+
+  it('starts exactly one authenticated realtime context without blocking ready state', async () => {
+    const realtimeConnect = deferred<void>()
+    const connect = vi.fn(() => realtimeConnect.promise)
+    const deps = dependencies({
+      auth: {
+        restore: vi.fn(async () => ({ kind: 'authenticated' as const })),
+        dispose: vi.fn(async () => undefined),
+      },
+      realtime: {
+        connect,
+        disconnect: vi.fn(async () => undefined),
+        dispose: vi.fn(async () => undefined),
+        subscribe: vi.fn(() => () => undefined),
+        retainTopic: vi.fn(() => () => undefined),
+        registerRecovery: vi.fn(() => () => undefined),
+      },
+    })
+    const kernel = new AppKernel(deps)
+
+    await expect(kernel.bootstrap()).resolves.toEqual({ kind: 'ready', principal })
+    await expect(kernel.bootstrap()).resolves.toEqual({ kind: 'ready', principal })
+
+    expect(connect).toHaveBeenCalledTimes(1)
+    expect(connect).toHaveBeenCalledWith({ userId: 7, platform: 'admin' })
+    realtimeConnect.resolve()
   })
 
   it('maps invalid startup configuration to the failed state', async () => {
@@ -151,7 +183,7 @@ describe('AppKernel bootstrap', () => {
 
     await expect(bootstrap).resolves.toEqual({ kind: 'cold' })
     expect(install).not.toHaveBeenCalled()
-    expect(deps.realtime.disconnect).toHaveBeenCalledTimes(1)
+    expect(deps.realtime.dispose).toHaveBeenCalledTimes(1)
     expect(deps.routes.clear).toHaveBeenCalledTimes(1)
     expect(deps.principal.clear).toHaveBeenCalledTimes(1)
     expect(deps.auth.dispose).toHaveBeenCalledTimes(1)

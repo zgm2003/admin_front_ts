@@ -7,8 +7,12 @@ import {
   type RealtimeTicketResponse,
 } from './browserGrantContract'
 
-export async function issueRealtimeTicket(): Promise<RealtimeTicketResponse> {
-  const response = await request.post<unknown>(`${ADMIN_API_PREFIX}/auth/realtime-tickets`)
+export async function issueRealtimeTicket(signal?: AbortSignal): Promise<RealtimeTicketResponse> {
+  const response = await request.post<unknown>(
+    `${ADMIN_API_PREFIX}/auth/realtime-tickets`,
+    undefined,
+    { signal },
+  )
   return parseRealtimeTicketResponse(response)
 }
 

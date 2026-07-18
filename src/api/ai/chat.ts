@@ -2,6 +2,7 @@ import request from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 export {
   AI_RESPONSE_EVENTS,
+  type AiResponseCanceledPayload,
   type AiResponseCompletedPayload,
   type AiResponseDeltaPayload,
   type AiResponseEventType,

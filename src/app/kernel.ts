@@ -2,6 +2,11 @@ import { readonly, shallowRef, type ShallowRef } from 'vue'
 import { createApiError, type ApiError } from '@/modules/http/error'
 import type { AuthEvent, LoginCommand } from '@/modules/auth/types'
 import type { Persistence } from '@/modules/persistence/store'
+import type {
+  RealtimeRecoveryHandler,
+} from '@/modules/realtime/client'
+import type { RealtimeEventType } from '@/modules/realtime/protocol'
+import type { RealtimeHandler } from '@/modules/realtime/subscriptions'
 import type { AppEnvironment } from './environment'
 import type { BootstrapState, PrincipalSnapshot } from './state'
 
@@ -19,6 +24,15 @@ export interface KernelAuthSession {
   subscribe?(listener: (event: AuthEvent) => void): () => void
 }
 
+export interface KernelRealtime {
+  connect(identity: { readonly userId: number; readonly platform: 'admin' }): void
+  disconnect(options?: { readonly purge?: boolean }): Promise<void>
+  dispose(): Promise<void>
+  subscribe<K extends RealtimeEventType>(type: K, handler: RealtimeHandler<K>): () => void
+  retainTopic(topic: string): () => void
+  registerRecovery(handler: RealtimeRecoveryHandler): () => void
+}
+
 export interface AppKernelDependencies {
   readonly environment: () => AppEnvironment
   readonly auth: KernelAuthSession
@@ -30,9 +44,7 @@ export interface AppKernelDependencies {
     install(principal: PrincipalSnapshot, signal: AbortSignal): Promise<void>
     clear(): Promise<void>
   }
-  readonly realtime: {
-    disconnect(): Promise<void>
-  }
+  readonly realtime: KernelRealtime
   readonly persistence: Persistence
   readonly adapters: readonly {
     dispose(): Promise<void>
@@ -75,6 +87,7 @@ export class AppKernel {
   readonly state: Readonly<ShallowRef<BootstrapState>>
   readonly auth: KernelAuthSession
   readonly persistence: Persistence
+  readonly realtime: KernelRealtime
 
   private readonly mutableState = shallowRef<BootstrapState>({ kind: 'cold' })
   private readonly lifecycle = new AbortController()
@@ -84,6 +97,7 @@ export class AppKernel {
   private logoutFlight: Promise<void> | null = null
   private disposed = false
   private environmentValue: AppEnvironment | null = null
+  private realtimeUserId: number | null = null
   private readonly dependencies: AppKernelDependencies
   private readonly unsubscribeAuth: () => void
 
@@ -92,6 +106,7 @@ export class AppKernel {
     this.state = readonly(this.mutableState)
     this.auth = dependencies.auth
     this.persistence = dependencies.persistence
+    this.realtime = dependencies.realtime
     this.unsubscribeAuth = dependencies.auth.subscribe?.((event) => {
       if (event.type === 'expired') void this.logout()
     }) ?? (() => undefined)
@@ -148,6 +163,7 @@ export class AppKernel {
     if (this.logoutFlight) return this.logoutFlight
     this.logoutFlight = this.enqueue(async () => {
       await this.dependencies.auth.logout()
+      this.realtimeUserId = null
       this.bootstrapFlight = null
       this.mutableState.value = { kind: 'anonymous' }
     }).finally(() => {
@@ -163,7 +179,8 @@ export class AppKernel {
     this.unsubscribeAuth()
     this.disposeFlight = (async () => {
       await this.transitionTail
-      await this.dependencies.realtime.disconnect()
+      await this.dependencies.realtime.dispose()
+      this.realtimeUserId = null
       await this.dependencies.routes.clear()
       await this.dependencies.principal.clear()
       await this.dependencies.auth.dispose()
@@ -227,5 +244,9 @@ export class AppKernel {
     await this.dependencies.routes.install(principal, signal)
     if (signal.aborted) return
     this.mutableState.value = { kind: 'ready', principal }
+    if (this.realtimeUserId !== principal.userId) {
+      this.realtimeUserId = principal.userId
+      this.dependencies.realtime.connect({ userId: principal.userId, platform: 'admin' })
+    }
   }
 }

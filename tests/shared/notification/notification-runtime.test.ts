@@ -10,7 +10,8 @@ describe('notification runtime realtime contract', () => {
   it('shows every created notification event instead of filtering normal notices away', () => {
     const source = readFrontendSource('src/components/NotificationRuntime/src/index.vue')
 
-    expect(source).toContain("onWsMessage<NotificationWsPayload>('notification.created.v1'")
+    expect(source).toContain("kernel.realtime.subscribe('notification.created.v1'")
+    expect(source).not.toContain('WsMessageData')
     expect(source).not.toContain("data.level !== 'urgent'")
   })
 })

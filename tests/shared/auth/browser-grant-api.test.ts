@@ -14,6 +14,8 @@ describe('browser grant API contract', () => {
     expect(source).toContain("from './browserGrantContract'")
     expect(source).toContain("`${ADMIN_API_PREFIX}/auth/realtime-tickets`")
     expect(source).toContain("`${ADMIN_API_PREFIX}/auth/queue-monitor-grants`")
+    expect(source).toContain('issueRealtimeTicket(signal?: AbortSignal)')
+    expect(source).toContain('{ signal }')
     expect(source).not.toContain('queue-monitor-ui')
     expect(source).not.toContain('access_token')
   })

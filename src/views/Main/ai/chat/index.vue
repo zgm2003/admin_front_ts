@@ -324,6 +324,10 @@ useConversationSocket({
     ElNotification.error({ message: payload.msg })
     if (currentConversationId.value === payload.conversation_id) scrollToBottom()
   },
+  onCanceled(payload) {
+    sessions.cancel(payload.conversation_id, payload.request_id)
+    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+  },
 })
 
 onMounted(async () => {

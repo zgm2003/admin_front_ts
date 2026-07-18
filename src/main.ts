@@ -14,12 +14,14 @@ import { provideAppKernel } from './app/injection'
 import { BrowserCredentialAdapter } from './adapters/web/browser-credentials'
 import { createBrowserRefreshCoordinator } from './adapters/web/browser-coordinator'
 import { createBrowserLocalStorageAdapter } from './adapters/web/storage'
+import { BrowserWebSocketTransport } from './adapters/web/websocket'
 import {
   createUnavailableNativeBridge,
   DesktopCredentialAdapter,
 } from './adapters/native'
 import { AuthSession } from './modules/auth/session'
 import type { CredentialAdapter } from './modules/auth/types'
+import { issueRealtimeTicket } from './api/auth/browserGrant'
 import { ApiClient } from './modules/http/client'
 import { createAxiosTransport } from './modules/http/axios-adapter'
 import { getCurrentPrincipalOperation } from './modules/http/admin-operations'
@@ -43,7 +45,7 @@ import { setupMenuStorePersistence } from './store/menu'
 import { setupTauriStorePersistence } from './store/tauri'
 import { useUserStore } from './store/user'
 import { toggleDarkMode } from './hooks/useTheme'
-import { disconnectSharedWebSocket } from './lib/realtime/websocket-client'
+import { RealtimeClient } from './modules/realtime/client'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -119,12 +121,14 @@ const routeRegistry = new RuntimeRouteRegistry({
   rootRouteName: 'HomeView',
 })
 
+let realtimeClient: RealtimeClient | null = null
+
 const auth = new AuthSession({
   adapter: lazyCredentialAdapter,
   coordinator: createBrowserRefreshCoordinator(),
   logoutHooks: {
     async disconnectRealtime() {
-      disconnectSharedWebSocket()
+      await realtimeClient?.disconnect({ purge: true })
     },
     async abortAuthenticatedRequests() {
       apiClient.abortAuthenticatedRequests()
@@ -153,6 +157,16 @@ const apiClient = new ApiClient({
   headers: requestHeaders,
 })
 const uninstallApiClient = installApiClient(apiClient)
+const installedRealtimeClient = new RealtimeClient({
+  endpoint: () => environment().realtimeOrigin,
+  transport: new BrowserWebSocketTransport(),
+  persistence,
+  issueTicket: async (signal) => (await issueRealtimeTicket(signal)).ticket,
+  onProtocolError(error) {
+    console.error('[Realtime] Protocol error:', error)
+  },
+})
+realtimeClient = installedRealtimeClient
 let unregisterRouterGuards: (() => void) | null = null
 
 function requestedRoute(): string | null {
@@ -199,11 +213,7 @@ const kernel = new AppKernel({
       routeRegistry.clear()
     },
   },
-  realtime: {
-    async disconnect() {
-      disconnectSharedWebSocket()
-    },
-  },
+  realtime: installedRealtimeClient,
   adapters: [{
     async dispose() {
       unregisterRouterGuards?.()

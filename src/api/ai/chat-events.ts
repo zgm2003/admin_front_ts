@@ -1,33 +1,23 @@
+import type {
+  AICanceledPayload,
+  AICompletedPayload,
+  AIDeltaPayload,
+  AIFailedPayload,
+  AIStartPayload,
+  RealtimeEventType,
+} from '@/modules/realtime/protocol'
+
 export const AI_RESPONSE_EVENTS = {
   start: 'ai.response.start.v1',
   delta: 'ai.response.delta.v1',
   completed: 'ai.response.completed.v1',
   failed: 'ai.response.failed.v1',
-} as const
+  canceled: 'ai.response.canceled.v1',
+} as const satisfies Readonly<Record<string, RealtimeEventType>>
 
 export type AiResponseEventType = typeof AI_RESPONSE_EVENTS[keyof typeof AI_RESPONSE_EVENTS]
-
-export interface AiResponseStartPayload {
-  conversation_id: number
-  request_id: string
-  user_message_id: number
-  agent_id: number
-}
-
-export interface AiResponseDeltaPayload {
-  conversation_id: number
-  request_id: string
-  delta: string
-}
-
-export interface AiResponseCompletedPayload {
-  conversation_id: number
-  request_id: string
-  assistant_message_id: number
-}
-
-export interface AiResponseFailedPayload {
-  conversation_id: number
-  request_id: string
-  msg: string
-}
+export type AiResponseStartPayload = AIStartPayload
+export type AiResponseDeltaPayload = AIDeltaPayload
+export type AiResponseCompletedPayload = AICompletedPayload
+export type AiResponseFailedPayload = AIFailedPayload
+export type AiResponseCanceledPayload = AICanceledPayload

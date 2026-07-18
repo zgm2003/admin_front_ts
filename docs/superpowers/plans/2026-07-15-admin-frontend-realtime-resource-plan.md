@@ -31,11 +31,11 @@ Playwright is outside this plan. Do not install it, create browser-test files, o
 - Modify: `src/app/kernel.ts`
 - Delete after migration: `src/lib/realtime/websocket-client.ts` and `message-bus.ts`
 
-- [ ] **Step 1: Test lifecycle and failure policy**
+- [x] **Step 1: Test lifecycle and failure policy**
 
 Cover connect/open/handshake/ready, handshake-only retry reset, exponential jitter with fake RNG/clock, permanent auth attempt budget, offline/visibility pause, one connection per authenticated kernel, malformed/unknown messages, handler isolation, duplicate event IDs, cursor monotonicity, resume, resync-required, subscription restore, bounded control buffer, and logout purge.
 
-- [ ] **Step 2: Define the closed protocol**
+- [x] **Step 2: Define the closed protocol**
 
 ```ts
 export type RealtimeEventMap = {
@@ -62,15 +62,15 @@ export interface Envelope<K extends keyof RealtimeEventMap> {
 
 Build Zod schemas from the locked backend artifacts. No `| string` and no `Record<string,unknown>` payload escape.
 
-- [ ] **Step 3: Implement client policy**
+- [x] **Step 3: Implement client policy**
 
 Use the P04 one-time ticket endpoint before opening WebSocket. Backoff is `min(30s,500ms*2^attempt)+uniform(0,25%)`. Only a validated connected envelope marks ready/resets failures. Keep a 512-ID LRU dedupe and persist only the durable cursor through user-scoped Persistence. Reference-count topics; restore them after handshake. Buffer at most 32 replay-safe subscribe/resume controls, never domain mutations.
 
-- [ ] **Step 4: Recover durable truth**
+- [x] **Step 4: Recover durable truth**
 
 On reconnect send `realtime.resume.v1` with last durable sequence. Apply terminal events in sequence order. On resync-required call notification/AI command authoritative queries, then set returned cursor. Ephemeral deltas are never reconstructed or persisted.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 npm test -- --project unit --project integration

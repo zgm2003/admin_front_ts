@@ -3,7 +3,6 @@ import { watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { NotificationRuntime } from '@/components/NotificationRuntime'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useWebSocket } from '@/hooks/useWebSocket'
 import Aside from '@/views/Layout/components/Aside/index.vue'
 import Header from '@/views/Layout/components/Header/index.vue'
 import TabTag from '@/views/Layout/components/TabTag/index.vue'
@@ -20,8 +19,6 @@ const layoutViewClass = computed(() => ({
   'page-card': pageLayout.value === 'card',
   'layout-view--centered': pageLayout.value === 'centered',
 }))
-
-useWebSocket()
 
 watch(isMobile, (val) => {
   if (val) menuStore.mobile()

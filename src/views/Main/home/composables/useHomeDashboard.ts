@@ -2,11 +2,12 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { CommonEnum } from '@/enums'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
-import { onWsMessage } from '@/lib/realtime'
+import { useAppKernel } from '@/app/injection'
 import { resolveHomeNavigationAction } from './helpers'
 
 export function useHomeDashboard() {
   const router = useRouter()
+  const kernel = useAppKernel()
 
   const notificationsLoading = ref(false)
   const notifications = ref<NotificationItem[]>([])
@@ -80,7 +81,7 @@ export function useHomeDashboard() {
   let unsubscribe: (() => void) | null = null
 
   onMounted(() => {
-    unsubscribe = onWsMessage('notification.created.v1', () => {
+    unsubscribe = kernel.realtime.subscribe('notification.created.v1', () => {
       void loadNotificationSnapshot()
     })
   })
