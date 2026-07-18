@@ -52,11 +52,11 @@ export function createRuntimeBeforeEachGuard(kernel: RoutingKernel) {
   return async (to: GuardTarget): Promise<true | false | RouteLocationRaw> => {
     if (to.name !== null && to.name !== undefined && publicRouteNames.has(to.name)) return true
     let state = kernel.state.value
+    if (state.kind === 'installing-routes') return true
     if (
       state.kind === 'cold'
       || state.kind === 'restoring-session'
       || state.kind === 'loading-principal'
-      || state.kind === 'installing-routes'
     ) {
       state = await kernel.bootstrap()
     }

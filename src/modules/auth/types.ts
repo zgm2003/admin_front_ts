@@ -1,5 +1,4 @@
 import type { ShallowRef } from 'vue'
-import type { SlideCaptchaAnswer } from '@/types/captcha'
 
 export interface AccessCredential {
   readonly accessToken: string
@@ -11,8 +10,6 @@ export type LoginCommand =
     readonly login_type: 'password'
     readonly login_account: string
     readonly password: string
-    readonly captcha_id: string
-    readonly captcha_answer: SlideCaptchaAnswer
   }
   | {
     readonly login_type: 'email' | 'phone'

@@ -18,7 +18,6 @@ import type { SendCode } from '@/components/SendCode'
 
 type LoginTypeItem = { label: string; value: UserLoginType }
 type SendCodeRef = InstanceType<typeof SendCode>
-type CaptchaAction = 'password-login' | 'send-code'
 
 const CAPTCHA_MIN_MOVE_OFFSET = 16
 
@@ -33,7 +32,6 @@ export function useLoginForm() {
   const captchaEnabled = shallowRef(false)
   const captchaLoading = shallowRef(false)
   const captchaDialogVisible = shallowRef(false)
-  const captchaAction = shallowRef<CaptchaAction | null>(null)
 
   const loginForm = reactive({
     login_account: '',
@@ -170,10 +168,7 @@ export function useLoginForm() {
     }
   }
 
-  const submitLogin = async (
-    params: UserLoginParams,
-    options: { closeCaptchaAfterAttempt?: boolean; refreshCaptchaOnFailure?: boolean } = {},
-  ) => {
+  const submitLogin = async (params: UserLoginParams) => {
     isSubmitting.value = true
     try {
       await kernel.login(params)
@@ -185,19 +180,12 @@ export function useLoginForm() {
         ? error.message
         : t('common.fail.login')
       ElMessage.error(message)
-      if (options.refreshCaptchaOnFailure) {
-        await refreshCaptcha()
-      }
     } finally {
-      if (options.closeCaptchaAfterAttempt) {
-        captchaDialogVisible.value = false
-      }
       isSubmitting.value = false
     }
   }
 
-  const openCaptchaDialog = async (action: CaptchaAction) => {
-    captchaAction.value = action
+  const openCaptchaDialog = async () => {
     captchaDialogVisible.value = true
     try {
       await refreshCaptcha()
@@ -222,12 +210,11 @@ export function useLoginForm() {
 
     const account = loginForm.login_account.trim()
     if (currentLoginType === 'password') {
-      if (!captchaEnabled.value) {
-        ElMessage.error(t('login.validation.passwordCaptchaConfigInvalid'))
-        triggerShake()
-        return
-      }
-      await openCaptchaDialog('password-login')
+      await submitLogin({
+        login_type: 'password',
+        login_account: account,
+        password: loginForm.password,
+      })
       return
     }
 
@@ -283,7 +270,7 @@ export function useLoginForm() {
       return
     }
 
-    await openCaptchaDialog('send-code')
+    await openCaptchaDialog()
   }
 
   const completeCaptchaSendCode = async () => {
@@ -304,7 +291,6 @@ export function useLoginForm() {
       })
       sendCodeRef.value?.completeSend?.()
       captchaDialogVisible.value = false
-      captchaAction.value = null
       captchaChallenge.value = null
       captchaX.value = 0
     } catch (error) {
@@ -319,26 +305,7 @@ export function useLoginForm() {
   }
 
   const completeCaptchaLogin = async () => {
-    if (captchaAction.value === 'send-code') {
-      await completeCaptchaSendCode()
-      return
-    }
-
-    const captchaPayload = buildCaptchaAnswer()
-    if (!captchaPayload) {
-      return
-    }
-
-    await submitLogin(
-      {
-        login_type: 'password',
-        login_account: loginForm.login_account.trim(),
-        password: loginForm.password,
-        captcha_id: captchaPayload.captcha_id,
-        captcha_answer: captchaPayload.captcha_answer,
-      },
-      { closeCaptchaAfterAttempt: true, refreshCaptchaOnFailure: true },
-    )
+    await completeCaptchaSendCode()
   }
 
   const rememberPwd = () => {
@@ -374,7 +341,6 @@ export function useLoginForm() {
 
   const handleTabChange = (method: UserLoginType) => {
     captchaDialogVisible.value = false
-    captchaAction.value = null
     activeAccountType.value = method
     resetLoginForm()
   }

@@ -38,8 +38,6 @@ export type UserLoginParams =
       login_account: string
       login_type: 'password'
       password: string
-      captcha_id: string
-      captcha_answer: UserCaptchaAnswer
     }
   | {
       login_account: string

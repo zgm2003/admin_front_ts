@@ -1645,7 +1645,6 @@ export default {
       captchaLoadFailed: 'Failed to load captcha, please try again',
       captchaConfigInvalid: 'Captcha configuration is invalid',
       policyRequired: 'Please read and agree to the terms of service and privacy policy first',
-      passwordCaptchaConfigInvalid: 'Password-login captcha configuration is invalid',
       loginSuccess: 'Signed in successfully',
       termsHint: 'View the terms of service in system settings',
       privacyHint: 'View the privacy policy in system settings'

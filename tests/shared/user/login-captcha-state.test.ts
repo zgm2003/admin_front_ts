@@ -64,76 +64,37 @@ describe('login captcha state', () => {
     vi.clearAllMocks()
   })
 
-  it('closes the captcha overlay after a completed password-login attempt fails', async () => {
+  it('does not open captcha when a password-login attempt fails', async () => {
     const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
     const login = useLoginForm()
 
+    login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
     login.loginForm.login_account = '15671628271'
     login.loginForm.password = 'wrong-password'
-    login.captchaEnabled.value = true
-    login.captchaDialogVisible.value = true
-    login.captchaChallenge.value = {
-      captcha_id: 'captcha-1',
-      captcha_type: 'slide',
-      master: 'master',
-      thumb: 'thumb',
-      width: 320,
-      height: 180,
-      tile_x: 100,
-      tile_y: 12,
-      tile_width: 48,
-      tile_height: 48,
-    }
-    login.captchaX.value = 124
+    login.agreePolicy.value = true
     mocks.login.mockRejectedValueOnce(new Error('账号或密码错误'))
-    mocks.getCaptcha.mockResolvedValueOnce({
-      captcha_id: 'captcha-2',
-      captcha_type: 'slide',
-      master: 'next-master',
-      thumb: 'next-thumb',
-      width: 320,
-      height: 180,
-      tile_x: 80,
-      tile_y: 10,
-      tile_width: 48,
-      tile_height: 48,
-    })
 
-    await login.completeCaptchaLogin()
+    await login.handleSubmit()
 
     expect(mocks.login).toHaveBeenCalledWith({
       login_type: 'password',
       login_account: '15671628271',
       password: 'wrong-password',
-      captcha_id: 'captcha-1',
-      captcha_answer: { x: 124, y: 12 },
     })
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
     expect(login.captchaDialogVisible.value).toBe(false)
   })
 
   it('persists only the remembered non-secret account after kernel login', async () => {
     const { useLoginForm } = await import('@/views/Login/composables/useLoginForm')
     const login = useLoginForm()
+    login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
     login.loginForm.login_account = '15671628271'
     login.loginForm.password = '123456'
-    login.captchaEnabled.value = true
-    login.captchaChallenge.value = {
-      captcha_id: 'captcha-browser-login',
-      captcha_type: 'slide',
-      master_image: 'master',
-      tile_image: 'tile',
-      image_width: 320,
-      image_height: 180,
-      tile_x: 100,
-      tile_y: 12,
-      tile_width: 48,
-      tile_height: 48,
-      expires_in: 120,
-    }
-    login.captchaX.value = 124
+    login.agreePolicy.value = true
     mocks.login.mockResolvedValueOnce({ kind: 'ready' })
 
-    await login.completeCaptchaLogin()
+    await login.handleSubmit()
 
     expect(mocks.login).toHaveBeenCalledTimes(1)
     expect(mocks.persistenceWrite).toHaveBeenCalledWith(

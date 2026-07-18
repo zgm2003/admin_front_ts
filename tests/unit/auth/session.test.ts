@@ -78,8 +78,6 @@ describe('AuthSession', () => {
       login_type: 'password',
       login_account: 'admin@example.test',
       password: 'secret',
-      captcha_id: 'captcha-id',
-      captcha_answer: { x: 20, y: 0 },
     })
 
     expect(auth.state.value.kind).toBe('authenticating')
@@ -227,8 +225,6 @@ describe('AuthSession', () => {
         login_type: 'password',
         login_account: 'admin@example.test',
         password: 'secret',
-        captcha_id: 'captcha-id',
-        captcha_answer: { x: 20, y: 0 },
       })).rejects.toMatchObject({ code: 'auth.credential_invalid' })
       expect(auth.state.value).toEqual({ kind: 'anonymous' })
     }
@@ -268,8 +264,6 @@ describe('AuthSession', () => {
       login_type: 'password',
       login_account: 'admin@example.test',
       password: 'secret',
-      captcha_id: 'captcha-id',
-      captcha_answer: { x: 20, y: 0 },
     })).rejects.toMatchObject({ code: 'auth.session_frozen' })
 
     revoke.reject(new Error('best effort failure'))
@@ -280,8 +274,6 @@ describe('AuthSession', () => {
       login_type: 'password',
       login_account: 'admin@example.test',
       password: 'secret',
-      captcha_id: 'captcha-id',
-      captcha_answer: { x: 20, y: 0 },
     })).resolves.toMatchObject({ kind: 'authenticated' })
   })
 

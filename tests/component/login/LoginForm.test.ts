@@ -1,4 +1,4 @@
-import { defineComponent, nextTick } from 'vue'
+import { defineComponent } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Persistence, type StorageAdapter } from '@/modules/persistence/store'
@@ -93,7 +93,7 @@ describe('kernel-owned login form', () => {
     mocks.kernelLogin.mockResolvedValue({ kind: 'ready' })
   })
 
-  it('loads config first, completes captcha, and delegates credentials only to AppKernel', async () => {
+  it('loads config first and delegates password credentials directly to AppKernel', async () => {
     const login = await mountLoginHarness()
     expect(mocks.getLoginConfig).toHaveBeenCalledTimes(1)
     login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
@@ -103,18 +103,12 @@ describe('kernel-owned login form', () => {
     login.agreePolicy.value = true
 
     await login.handleSubmit()
-    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
-    expect(mocks.kernelLogin).not.toHaveBeenCalled()
-    login.captchaX.value = 124
-    await login.completeCaptchaLogin()
-    await nextTick()
 
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
     expect(mocks.kernelLogin).toHaveBeenCalledWith({
       login_type: 'password',
       login_account: 'admin@example.test',
       password: 'correct-password',
-      captcha_id: 'captcha-login',
-      captcha_answer: { x: 124, y: 12 },
     })
     expect([...storage.values.values()].join('')).not.toMatch(/access[_-]?token|refresh[_-]?token/i)
   })
@@ -155,8 +149,8 @@ describe('kernel-owned login form', () => {
 
     expect(login.agreePolicy.value).toBe(true)
     expect(login.policyConfirmVisible.value).toBe(false)
-    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
-    expect(mocks.kernelLogin).not.toHaveBeenCalled()
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
+    expect(mocks.kernelLogin).toHaveBeenCalledTimes(1)
   })
 
   it('submits directly when the checkbox was already selected', async () => {
@@ -167,7 +161,8 @@ describe('kernel-owned login form', () => {
     await login.handleSubmit()
 
     expect(login.policyConfirmVisible.value).toBe(false)
-    expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
+    expect(mocks.getCaptcha).not.toHaveBeenCalled()
+    expect(mocks.kernelLogin).toHaveBeenCalledTimes(1)
   })
 
   it('does not treat opening terms or privacy information as consent', async () => {
@@ -182,12 +177,11 @@ describe('kernel-owned login form', () => {
   it('shows the authentication failure and never turns it into an empty success state', async () => {
     mocks.kernelLogin.mockRejectedValueOnce(new Error('账号或密码错误'))
     const login = await mountLoginHarness()
-    login.loginForm.login_account = 'admin@example.test'
+    preparePasswordLogin(login)
     login.loginForm.password = 'wrong-password'
-    login.captchaChallenge.value = challenge
-    login.captchaX.value = 124
+    login.agreePolicy.value = true
 
-    await login.completeCaptchaLogin()
+    await login.handleSubmit()
 
     expect(mocks.messageError).toHaveBeenCalledWith('账号或密码错误')
     expect(login.isLoginSuccess.value).toBe(false)

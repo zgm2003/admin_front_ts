@@ -1760,7 +1760,6 @@ export default {
       captchaLoadFailed: '验证码加载失败，请重试',
       captchaConfigInvalid: '验证码配置异常',
       policyRequired: '请先阅读并同意服务条款和隐私政策',
-      passwordCaptchaConfigInvalid: '密码登录验证码配置异常',
       loginSuccess: '登录成功',
       termsHint: '请在系统设置页查看服务条款',
       privacyHint: '请在系统设置页查看隐私政策'

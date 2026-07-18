@@ -66,7 +66,7 @@ describe('users api auth contract', () => {
     expect(usersApiSource).not.toContain('auth/refresh')
   })
 
-  it('uses the REST password login plus go-captcha contract', () => {
+  it('uses REST password login without captcha fields', () => {
     const source = readUsersApiSource()
     const typeSource = readUserTypeSource()
     const captchaTypeSource = readCaptchaTypeSource()
@@ -74,7 +74,6 @@ describe('users api auth contract', () => {
     const browserCredentialSource = readBrowserCredentialSource()
 
     expect(source).toContain('request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`)')
-    expect(source).toContain('request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`)')
     expect(source).not.toContain('auth/login`, params')
     expect(browserCredentialSource).toContain("'/api/admin/v1/auth/login'")
     expect(source).not.toContain(legacyUsersPath('login'))
@@ -85,8 +84,14 @@ describe('users api auth contract', () => {
     expect(captchaTypeSource).toContain('export interface SlideCaptchaAnswer')
     expect(captchaTypeSource).toContain('export interface SlideCaptchaChallenge')
     expect(typeSource).toContain('captcha_enabled: boolean')
-    expect(typeSource).toContain('captcha_id: string')
-    expect(typeSource).toContain('captcha_answer: UserCaptchaAnswer')
+    const loginContract = typeSource.slice(
+      typeSource.indexOf('export type UserLoginParams ='),
+      typeSource.indexOf('export type UserSendCodeContext ='),
+    )
+    expect(loginContract).toContain("login_type: 'password'")
+    expect(loginContract).toContain('password: string')
+    expect(loginContract).not.toContain('captcha_id')
+    expect(loginContract).not.toContain('captcha_answer')
     expect(typeSource).not.toContain('refresh_token')
     expect(typeSource).not.toContain('refresh_expires_in')
     expect(authSchemaSource).toContain('refresh_token: z.string().min(1).optional()')
@@ -95,8 +100,10 @@ describe('users api auth contract', () => {
   })
 
   it('requires captcha proof for every send-code scene', () => {
+    const source = readUsersApiSource()
     const typeSource = readUserTypeSource()
 
+    expect(source).toContain('request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`)')
     expect(typeSource).toContain('export type UserSendCodeContext =')
     expect(typeSource).toContain('export type UserSendCodeCaptchaProof =')
     expect(typeSource).toContain("scene: Exclude<UserScene, 'login'>")

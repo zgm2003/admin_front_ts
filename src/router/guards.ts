@@ -24,8 +24,8 @@ export function registerRouterGuards(
     const userStore = useUserStore(options.pinia)
     const menuId = typeof to.meta.menuId === 'string' ? to.meta.menuId : ''
 
-    menuStore.selectedMenu = menuId
     if (!menuId) return
+    menuStore.selectedMenu = menuId
     const item = userStore.permissionMap.get(menuId)
     if (item) menuStore.selectMenu(item)
     options.menuPersistence?.setLastRoute(to.fullPath)
