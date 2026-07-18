@@ -1,35 +1,98 @@
 import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
-import router, { setupDynamicRoutes } from './router'
 import { createPinia } from 'pinia'
-import { setupMenuStorePersistence } from './store/menu'
-import i18n from './i18n'
-// Element Plus 全量样式 + 暗色模式
+import Cookies from 'js-cookie'
+import './style.css'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+import App from './App.vue'
+import i18n from './i18n'
+import router, { setupDynamicRoutes } from './router'
+import { AppKernel } from './app/kernel'
+import { parseEnvironment } from './app/environment'
+import { provideAppKernel } from './app/injection'
+import { permissionCodeSet, type PermissionCode } from './modules/routing/generated/permissions'
+import { setupMenuStorePersistence } from './store/menu'
+import { useUserStore } from './store/user'
 
 const app = createApp(App)
-
 const pinia = createPinia()
 app.use(pinia)
 setupMenuStorePersistence(pinia)
 app.use(router)
 app.use(i18n)
 
-// 移除原生 loading
-const removeLoading = () => {
-  const el = document.getElementById('app-loading')
-  if (el) {
-    el.classList.add('fade-out')
-    setTimeout(() => el.remove(), 600)
+const userStore = useUserStore(pinia)
+const kernel = new AppKernel({
+  environment: () => parseEnvironment(import.meta.env, window.location),
+  auth: {
+    async restore() {
+      return Cookies.get('access_token') || Cookies.get('refresh_token')
+        ? { kind: 'authenticated' }
+        : { kind: 'anonymous' }
+    },
+    async dispose() {},
+  },
+  principal: {
+    async load(signal) {
+      if (signal.aborted) throw signal.reason
+      await userStore.fetchUserInfo()
+      if (signal.aborted) throw signal.reason
+      const buttonCodes = new Set<PermissionCode>()
+      for (const code of userStore.buttonCodes) {
+        if (!permissionCodeSet.has(code as PermissionCode)) {
+          throw new Error(`users/me returned unknown permission code: ${code}`)
+        }
+        buttonCodes.add(code as PermissionCode)
+      }
+      return {
+        userId: Number(userStore.user_id),
+        username: userStore.username,
+        avatar: userStore.avatar,
+        roleName: userStore.role_name,
+        buttonCodes,
+      }
+    },
+    async clear() {
+      userStore.$reset()
+    },
+  },
+  routes: {
+    async install(_principal, signal) {
+      if (signal.aborted) throw signal.reason
+      await setupDynamicRoutes()
+    },
+    async clear() {},
+  },
+  realtime: {
+    async disconnect() {},
+  },
+  adapters: [],
+})
+provideAppKernel(app, kernel)
+
+function removeLoading() {
+  const element = document.getElementById('app-loading')
+  if (!element) return
+  element.classList.add('fade-out')
+  setTimeout(() => element.remove(), 600)
+}
+
+app.mount('#app')
+
+async function bootstrap() {
+  await router.isReady()
+  const state = await kernel.bootstrap()
+  if (state.kind === 'anonymous' && router.currentRoute.value.name !== 'login') {
+    await router.replace('/login')
   }
 }
 
-// 先挂载应用，再初始化动态路由
-app.mount('#app')
-router.isReady()
-  .then(() => setupDynamicRoutes())
-  .catch(() => router.replace('/login'))
+bootstrap()
+  .catch(() => undefined)
   .finally(removeLoading)
 
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    void kernel.dispose()
+  })
+}
