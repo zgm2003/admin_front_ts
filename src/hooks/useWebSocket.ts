@@ -8,6 +8,7 @@ import {
 import {
   type WsMessage,
 } from '@/lib/realtime/message-bus'
+import { issueRealtimeTicket } from '@/api/auth/browserGrant'
 
 export interface UseWebSocketOptions {
   /** 是否自动连接，默认 true */
@@ -46,6 +47,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   onMounted(() => {
     consumerHandle = retainWebSocketConsumer({
       ...options,
+      issueTicket: async () => (await issueRealtimeTicket()).ticket,
       autoConnect,
       onMessage,
       onConnected,

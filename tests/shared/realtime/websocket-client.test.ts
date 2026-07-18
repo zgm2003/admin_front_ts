@@ -10,15 +10,16 @@ const {
 
 describe('websocket-client helpers', () => {
   it('builds the Go realtime WebSocket URL from the Go API base URL', () => {
-    expect(buildWebSocketURL({ apiBaseURL: 'http://localhost:8080' })).toBe('ws://localhost:8080/api/admin/v1/realtime/ws')
-    expect(buildWebSocketURL({ apiBaseURL: 'https://www.zgm2003.cn/base' })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
+    expect(buildWebSocketURL({ apiBaseURL: 'http://localhost:8080', ticket: 'ticket-local' })).toBe('ws://localhost:8080/api/admin/v1/realtime/ws?ticket=ticket-local')
+    expect(buildWebSocketURL({ apiBaseURL: 'https://www.zgm2003.cn/base', ticket: 'ticket-prod' })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws?ticket=ticket-prod')
   })
 
   it('uses an explicit websocket URL when configured', () => {
     expect(buildWebSocketURL({
       apiBaseURL: 'https://www.zgm2003.cn',
       explicitURL: 'wss://www.zgm2003.cn/api/admin/v1/realtime/ws',
-    })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws')
+      ticket: 'opaque-ticket',
+    })).toBe('wss://www.zgm2003.cn/api/admin/v1/realtime/ws?ticket=opaque-ticket')
   })
 
   it('builds identity topics only from server connected payload', () => {
@@ -38,6 +39,9 @@ describe('websocket-client helpers', () => {
 
     expect(source).toContain('realtime.connected.v1')
     expect(source).toContain('realtime.subscribe.v1')
+    expect(source).toContain('issueTicket: () => Promise<string>')
+    expect(source).toContain("searchParams.set('ticket', ticket)")
+    expect(source).not.toContain("from '@/api/")
     expect(source).not.toContain("legacyRequest.post('/api/admin/WebSocket/bind'")
     expect(source).not.toContain("ws://127.0.0.1:7272")
   })

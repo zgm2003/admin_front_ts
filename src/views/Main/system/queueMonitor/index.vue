@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ADMIN_QUEUE_MONITOR_UI_URL, ensureQueueMonitorAuthCookie } from '@/api/system/queueMonitor'
+import { ADMIN_QUEUE_MONITOR_UI_URL, prepareQueueMonitorGrant } from '@/api/system/queueMonitor'
 
 const { t } = useI18n()
 
@@ -10,9 +10,10 @@ const frameReady = shallowRef(false)
 
 async function prepareFrame() {
   try {
-    await ensureQueueMonitorAuthCookie()
-  } finally {
+    await prepareQueueMonitorGrant()
     frameReady.value = true
+  } catch {
+    frameReady.value = false
   }
 }
 

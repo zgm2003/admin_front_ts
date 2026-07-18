@@ -15,6 +15,7 @@ export interface WebSocketSnapshot {
 }
 
 export interface WebSocketClientConsumer {
+  issueTicket: () => Promise<string>
   autoConnect?: boolean
   reconnectInterval?: number
   maxReconnectAttempts?: number
@@ -30,6 +31,9 @@ let sharedIsConnected = false
 let sharedIsReady = false
 let sharedReconnectCount = 0
 let sharedReconnectTimer: ReturnType<typeof setTimeout> | null = null
+let sharedConnectPromise: Promise<void> | null = null
+let sharedConnectionGeneration = 0
+let sharedTicketIssuer: (() => Promise<string>) | null = null
 
 const consumers = new Set<WebSocketClientConsumer>()
 
@@ -45,30 +49,39 @@ export function buildWebSocketURL(params: {
   apiBaseURL?: string
   explicitURL?: string
   currentHostname?: string
+  ticket: string
 }) {
+  const ticket = params.ticket.trim()
+  if (!ticket) {
+    throw new Error('realtime ticket is required to build WebSocket URL')
+  }
+
   const explicitURL = params.explicitURL?.trim()
+  let wsURL: URL
   if (explicitURL) {
-    const wsURL = new URL(explicitURL)
+    wsURL = new URL(explicitURL)
     normalizeLoopbackURLHost(wsURL, params.currentHostname)
-    return wsURL.toString()
+  } else {
+    const apiBaseURL = params.apiBaseURL?.trim()
+    if (!apiBaseURL) {
+      throw new Error('VITE_GO_API_BASE_URL is required to build realtime WebSocket URL')
+    }
+
+    const apiURL = new URL(apiBaseURL)
+    normalizeLoopbackURLHost(apiURL, params.currentHostname)
+    wsURL = new URL(REALTIME_WS_PATH, apiURL.origin)
+    wsURL.protocol = websocketProtocolFor(apiURL.protocol)
   }
 
-  const apiBaseURL = params.apiBaseURL?.trim()
-  if (!apiBaseURL) {
-    throw new Error('VITE_GO_API_BASE_URL is required to build realtime WebSocket URL')
-  }
-
-  const apiURL = new URL(apiBaseURL)
-  normalizeLoopbackURLHost(apiURL, params.currentHostname)
-  const wsURL = new URL(REALTIME_WS_PATH, apiURL.origin)
-  wsURL.protocol = websocketProtocolFor(apiURL.protocol)
+  wsURL.searchParams.set('ticket', ticket)
   return wsURL.toString()
 }
 
-function getWebSocketUrl() {
+function getWebSocketUrl(ticket: string) {
   return buildWebSocketURL({
     apiBaseURL: import.meta.env.VITE_GO_API_BASE_URL,
     explicitURL: import.meta.env.VITE_WEB_SOCKET_URL,
+    ticket,
   })
 }
 
@@ -147,6 +160,28 @@ function clearReconnectTimer() {
   }
 }
 
+function scheduleReconnect() {
+  if (sharedReconnectTimer) {
+    return
+  }
+
+  const { maxReconnectAttempts, reconnectInterval } = getReconnectOptions()
+  if (!shouldReconnect({
+    reconnectCount: sharedReconnectCount,
+    maxReconnectAttempts,
+    consumerCount: consumers.size,
+  })) {
+    return
+  }
+
+  sharedReconnectTimer = setTimeout(() => {
+    sharedReconnectTimer = null
+    sharedReconnectCount++
+    notifyStateChange()
+    void connectSharedWebSocket()
+  }, reconnectInterval)
+}
+
 function normalizeMessage(raw: unknown): WsMessage {
   if (!isRecord(raw) || typeof raw.type !== 'string') {
     throw new Error('Invalid realtime envelope: type is required')
@@ -194,15 +229,33 @@ function handleSharedMessage(message: WsMessage) {
   }
 }
 
-export function connectSharedWebSocket() {
+export function connectSharedWebSocket(issueTicket?: () => Promise<string>): Promise<void> {
+  if (issueTicket) {
+    sharedTicketIssuer = issueTicket
+  }
   if (sharedWs?.readyState === WebSocket.OPEN || sharedWs?.readyState === WebSocket.CONNECTING) {
-    return
+    return Promise.resolve()
+  }
+  if (sharedConnectPromise) {
+    return sharedConnectPromise
   }
 
-  try {
-    sharedWs = new WebSocket(getWebSocketUrl())
+  const ticketIssuer = sharedTicketIssuer
+  if (!ticketIssuer) {
+    return Promise.reject(new Error('realtime ticket issuer is required'))
+  }
 
-    sharedWs.onopen = () => {
+  const generation = sharedConnectionGeneration
+  const attempt = (async () => {
+    const ticket = await ticketIssuer()
+    if (generation !== sharedConnectionGeneration || consumers.size === 0) {
+      return
+    }
+
+    const socket = new WebSocket(getWebSocketUrl(ticket))
+    sharedWs = socket
+
+    socket.onopen = () => {
       sharedIsConnected = true
       sharedIsReady = false
       sharedReconnectCount = 0
@@ -210,7 +263,7 @@ export function connectSharedWebSocket() {
       notifyConnected()
     }
 
-    sharedWs.onmessage = (event) => {
+    socket.onmessage = (event) => {
       try {
         const message = normalizeMessage(JSON.parse(event.data as string))
         handleSharedMessage(message)
@@ -221,40 +274,42 @@ export function connectSharedWebSocket() {
       }
     }
 
-    sharedWs.onclose = () => {
+    socket.onclose = () => {
+      if (sharedWs !== socket) {
+        return
+      }
+      sharedWs = null
       sharedIsConnected = false
       sharedIsReady = false
       notifyStateChange()
       notifyDisconnected()
-
-      const { maxReconnectAttempts, reconnectInterval } = getReconnectOptions()
-      if (shouldReconnect({
-        reconnectCount: sharedReconnectCount,
-        maxReconnectAttempts,
-        consumerCount: consumers.size,
-      })) {
-        sharedReconnectTimer = setTimeout(() => {
-          sharedReconnectCount++
-          notifyStateChange()
-          connectSharedWebSocket()
-        }, reconnectInterval)
-      }
+      scheduleReconnect()
     }
 
-    sharedWs.onerror = (error) => {
+    socket.onerror = (error) => {
       console.error('[WebSocket] Error:', error)
       notifyError(error)
     }
-  } catch (error) {
+  })().catch((error) => {
     console.error('[WebSocket] Connect error:', error)
-  }
+    scheduleReconnect()
+  }).finally(() => {
+    if (sharedConnectPromise === attempt) {
+      sharedConnectPromise = null
+    }
+  })
+
+  sharedConnectPromise = attempt
+  return attempt
 }
 
 export function disconnectSharedWebSocket() {
   clearReconnectTimer()
-  if (sharedWs) {
-    sharedWs.close()
-    sharedWs = null
+  sharedConnectionGeneration++
+  const socket = sharedWs
+  sharedWs = null
+  if (socket) {
+    socket.close()
   }
   sharedIsConnected = false
   sharedIsReady = false
@@ -263,20 +318,24 @@ export function disconnectSharedWebSocket() {
 
 export function retainWebSocketConsumer(consumer: WebSocketClientConsumer) {
   consumers.add(consumer)
+  sharedTicketIssuer = consumer.issueTicket
   consumer.onStateChange?.(getSnapshot())
 
   if (consumer.autoConnect !== false && !sharedWs) {
-    connectSharedWebSocket()
+    void connectSharedWebSocket(consumer.issueTicket)
   }
 
   return {
     release() {
       consumers.delete(consumer)
       if (consumers.size === 0) {
+        sharedTicketIssuer = null
         disconnectSharedWebSocket()
+      } else if (sharedTicketIssuer === consumer.issueTicket) {
+        sharedTicketIssuer = consumers.values().next().value?.issueTicket ?? null
       }
     },
-    connect: connectSharedWebSocket,
+    connect: () => connectSharedWebSocket(consumer.issueTicket),
     disconnect: disconnectSharedWebSocket,
     send: sendSharedWebSocket,
     getSnapshot,

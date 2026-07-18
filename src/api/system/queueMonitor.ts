@@ -1,15 +1,12 @@
-import { service } from '@/lib/http'
-import { getCommonHeaders } from '@/lib/http/headers'
+import { issueQueueMonitorGrant } from '@/api/auth/browserGrant'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
 import { normalizeLoopbackURLHost } from '@/lib/network/loopback'
 
 export const ADMIN_QUEUE_MONITOR_UI_PATH = `${ADMIN_API_PREFIX}/queue-monitor-ui`
 export const ADMIN_QUEUE_MONITOR_UI_URL = buildQueueMonitorUIURL(import.meta.env.VITE_GO_API_BASE_URL)
 
-export function ensureQueueMonitorAuthCookie() {
-  return service.head(ADMIN_QUEUE_MONITOR_UI_PATH, {
-    headers: getCommonHeaders(),
-  })
+export function prepareQueueMonitorGrant() {
+  return issueQueueMonitorGrant()
 }
 
 export function buildQueueMonitorUIURL(apiBaseURL: string): string {
