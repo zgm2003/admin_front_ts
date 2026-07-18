@@ -1,6 +1,8 @@
+import { getCurrentScope, onScopeDispose } from 'vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import i18n from '@/i18n'
 import { useTable, type PaginationParams, type TableApiModule, type UseTableOptions } from '@/components/Table/src/useTable'
+import { createMutation, type MutationExecutionOptions } from '@/modules/resource-query/mutation'
 import type { Id, Identifiable } from '@/types/common'
 
 const t = i18n.global.t
@@ -10,9 +12,9 @@ interface CrudApiModule<
   P extends PaginationParams = PaginationParams,
   S extends number = number,
 > extends TableApiModule<T, P> {
-  deleteOne?(params: { id: Id }): Promise<unknown>
-  deleteBatch?(params: { ids: Id[] }): Promise<unknown>
-  changeStatus?(params: { id: Id; status: S }): Promise<unknown>
+  deleteOne?(params: { id: Id }, options?: MutationExecutionOptions): Promise<unknown>
+  deleteBatch?(params: { ids: Id[] }, options?: MutationExecutionOptions): Promise<unknown>
+  changeStatus?(params: { id: Id; status: S }, options?: MutationExecutionOptions): Promise<unknown>
 }
 
 interface UseCrudTableOptions<
@@ -24,96 +26,108 @@ interface UseCrudTableOptions<
   afterDel?: () => void
 }
 
+async function confirmMutation(message: string, confirmButtonText: string): Promise<boolean> {
+  try {
+    await ElMessageBox.confirm(message, t('common.confirmTitle'), {
+      type: 'warning',
+      confirmButtonText,
+      cancelButtonText: t('common.actions.cancel'),
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function idKey(id: Id): string {
+  return JSON.stringify([typeof id, id])
+}
+
 export function useCrudTable<
   T extends Identifiable = Identifiable,
   P extends PaginationParams = PaginationParams,
   S extends number = number,
 >(options: UseCrudTableOptions<T, P, S>) {
   const { api, afterDel, ...tableOptions } = options
+  const table = useTable<T, P>({ api, ...tableOptions })
+  const deleteOne = api.deleteOne
+  const deleteBatch = api.deleteBatch
+  const changeStatus = api.changeStatus
 
-  const table = useTable<T, P>({
-    api,
-    ...tableOptions,
+  const deleteOneMutation = deleteOne && createMutation({
+    key: (input: { id: Id }) => `delete-one:${idKey(input.id)}`,
+    confirm: () => confirmMutation(t('common.confirmDelete'), t('common.actions.del')),
+    execute: (input, mutationOptions) => deleteOne(input, mutationOptions),
+    invalidate: [table.resource],
+  })
+  const deleteBatchMutation = deleteBatch && createMutation({
+    key: (input: { ids: Id[] }) => `delete-batch:${JSON.stringify(input.ids.map(idKey))}`,
+    confirm: () => confirmMutation(t('common.confirmBatchDelete'), t('common.actions.del')),
+    execute: (input, mutationOptions) => deleteBatch(input, mutationOptions),
+    invalidate: [table.resource],
+  })
+  const statusMutation = changeStatus && createMutation({
+    key: (input: { id: Id; status: S }) => `status:${idKey(input.id)}:${String(input.status)}`,
+    confirm: () => confirmMutation(t('common.confirmStatusChange'), t('common.actions.confirm')),
+    execute: (input, mutationOptions) => changeStatus(input, mutationOptions),
+    invalidate: [table.resource],
   })
 
   function onSearch() {
     table.resetPage()
-    void table.getList()
+    return table.getList()
   }
 
   async function confirmDel(row: T) {
-    const deleteAction = api.deleteOne
-    if (!deleteAction) {
+    if (!deleteOneMutation) {
       console.warn('useCrudTable: api.deleteOne not provided')
       return
     }
-
-    try {
-      await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
-        type: 'warning',
-        confirmButtonText: t('common.actions.del'),
-        cancelButtonText: t('common.actions.cancel'),
-      })
-    } catch {
-      return
-    }
-
-    await deleteAction({ id: row.id })
+    const input = { id: row.id }
+    const duplicate = deleteOneMutation.isPending(input)
+    const result = await deleteOneMutation.mutate(input)
+    if (duplicate || result.kind === 'canceled') return
     ElNotification.success({ message: t('common.success.operation') })
-    await table.getList()
     afterDel?.()
   }
 
   async function batchDel() {
-    if (!api.deleteBatch) {
+    if (!deleteBatchMutation) {
       console.warn('useCrudTable: api.deleteBatch not provided')
       return
     }
-
     if (!table.selectedIds.value.length) {
       ElNotification.error({ message: t('common.selectAtLeastOne') })
       return
     }
-
-    try {
-      await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), {
-        type: 'warning',
-        confirmButtonText: t('common.actions.del'),
-        cancelButtonText: t('common.actions.cancel'),
-      })
-    } catch {
-      return
-    }
-
-    const ids = table.selectedIds.value as Id[]
-    await api.deleteBatch({ ids })
-    ElNotification.success({ message: t('common.success.operation') })
+    const input = { ids: [...table.selectedIds.value] }
+    const duplicate = deleteBatchMutation.isPending(input)
+    const result = await deleteBatchMutation.mutate(input)
+    if (duplicate || result.kind === 'canceled') return
     table.clearSelection()
-    await table.getList()
+    ElNotification.success({ message: t('common.success.operation') })
     afterDel?.()
   }
 
   async function toggleStatus(row: T, newStatus: S) {
-    const statusAction = api.changeStatus
-    if (!statusAction) {
+    if (!statusMutation) {
       console.warn('useCrudTable: api.changeStatus not provided')
       return
     }
-
-    try {
-      await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
-        type: 'warning',
-        confirmButtonText: t('common.actions.confirm'),
-        cancelButtonText: t('common.actions.cancel'),
-      })
-    } catch {
-      return
-    }
-
-    await statusAction({ id: row.id, status: newStatus })
+    const input = { id: row.id, status: newStatus }
+    const duplicate = statusMutation.isPending(input)
+    const result = await statusMutation.mutate(input)
+    if (duplicate || result.kind === 'canceled') return
     ElNotification.success({ message: t('common.success.operation') })
-    await table.getList()
   }
+
+  function dispose() {
+    deleteOneMutation?.dispose()
+    deleteBatchMutation?.dispose()
+    statusMutation?.dispose()
+    table.dispose()
+  }
+  if (getCurrentScope()) onScopeDispose(dispose)
 
   return {
     ...table,
@@ -121,5 +135,6 @@ export function useCrudTable<
     confirmDel,
     batchDel,
     toggleStatus,
+    dispose,
   }
 }

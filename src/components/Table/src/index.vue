@@ -6,8 +6,10 @@ import { useI18n } from 'vue-i18n'
 import ColumnSetting from './components/ColumnSetting.vue'
 import TableActions from './components/TableActions.vue'
 import {
+  formatTableColumnValue,
   tableColumnKey,
   tableColumnProp,
+  tableColumnValue,
   type TableColumn,
   type TableColumnKey,
   type TablePaginationState,
@@ -15,8 +17,8 @@ import {
 } from './types'
 
 interface AppTableProps<Row extends TableRow> {
-  columns: TableColumn<Row>[]
-  data: Row[]
+  columns?: TableColumn<Row>[]
+  data?: Row[]
   loading?: boolean
   rowKey?: string
   selectable?: boolean
@@ -59,18 +61,17 @@ const tableRef = ref<InstanceType<typeof ElTable> | null>(null)
 const page = ref<TablePaginationState | null>(props.pagination ? { ...props.pagination } : null)
 const isMobile = useIsMobile()
 const getColumnKey = (col: TableColumn<Row>) => tableColumnKey<Row>(col)
-const getCellValue = (row: Row, col: TableColumn<Row>) => Reflect.get(row, tableColumnProp<Row>(col))
-const getColumnBindings = (col: TableColumn<Row>): Record<string, unknown> => {
-  const { key, prop, label, hidden, overflowTooltip, formatter, ...rest } = col
-  return { align: 'center', prop: prop ?? key, ...rest }
-}
-const formatCellValue = (row: Row, col: TableColumn<Row>, index: number) => {
-  const value = getCellValue(row, col)
-  if (typeof col.formatter === 'function') {
-    return col.formatter(row, { property: tableColumnProp<Row>(col) }, value, index)
-  }
-  return value
-}
+const getCellValue = (row: Row, col: TableColumn<Row>) => tableColumnValue(row, col)
+const getColumnBindings = (col: TableColumn<Row>): Record<string, unknown> => ({
+  align: 'center',
+  prop: tableColumnProp<Row>(col),
+  width: col.width,
+  minWidth: col.minWidth,
+  fixed: col.fixed,
+  ...col.elementProps,
+})
+const formatCellValue = (row: Row, col: TableColumn<Row>, index: number) =>
+  formatTableColumnValue(row, col, index)
 watch(() => props.columns, (cols) => { selectedColumnKeys.value = cols.filter((c) => !c.hidden).map((c) => getColumnKey(c)) }, { immediate: true })
 watch(() => selectedColumnKeys.value, (keys) => { emit('column-change', keys) })
 const visibleColumns = computed(() => props.columns.filter((c) => selectedColumnKeys.value.includes(getColumnKey(c))))

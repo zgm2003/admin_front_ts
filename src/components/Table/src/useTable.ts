@@ -134,6 +134,7 @@ export function useTable<
   if (immediate) void getList().catch(() => undefined)
 
   return {
+    resource: query,
     state: query.state,
     loading,
     data,

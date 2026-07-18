@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
 interface GuardedFile {
@@ -26,6 +27,7 @@ interface SourceViolation {
 
 const guardedFiles: GuardedFile[] = [
   { label: 'Table', path: 'src/components/Table/src/index.vue' },
+  { label: 'Table types', path: 'src/components/Table/src/types.ts' },
   { label: 'ColumnSetting', path: 'src/components/Table/src/components/ColumnSetting.vue' },
   { label: 'Search', path: 'src/components/Search/src/index.vue' },
   { label: 'Search types', path: 'src/components/Search/types.ts' },
@@ -40,11 +42,11 @@ const primitiveRules: SourceRule[] = [
 
 const exactRules: ExactRule[] = [
   {
-    file: guardedFiles[2],
+    file: guardedFiles[3],
     text: 'Object.assign(form, value || {})',
   },
   {
-    file: guardedFiles[2],
+    file: guardedFiles[3],
     text: '(field.options ?? []) as any[]',
   },
   {
@@ -52,8 +54,16 @@ const exactRules: ExactRule[] = [
     text: 'page as any',
   },
   {
-    file: guardedFiles[4],
+    file: guardedFiles[5],
     text: 'params: any',
+  },
+  {
+    file: guardedFiles[1],
+    text: '[elementTableColumnProp: string]: unknown',
+  },
+  {
+    file: guardedFiles[4],
+    text: '[key: string]: unknown',
   },
 ]
 
@@ -101,4 +111,36 @@ describe('shared table and search primitive source quality', () => {
 
     expect(violations).toEqual([])
   })
+
+  it('uses explicit typed elementProps extension points', () => {
+    expect(readSource(guardedFiles[1])).toContain('elementProps?:')
+    expect(readSource(guardedFiles[4])).toContain('elementProps?:')
+    expect(readSource(guardedFiles[0])).toContain('col.elementProps')
+    expect(readSource(guardedFiles[3])).toContain('field.elementProps')
+  })
+
+  it('typechecks closed column and model-bound search contracts', () => {
+    const configPath = resolve(process.cwd(), 'tsconfig.app.json')
+    const config = ts.readConfigFile(configPath, ts.sys.readFile)
+    expect(config.error).toBeUndefined()
+    const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, process.cwd(), {
+      composite: false,
+      incremental: false,
+      noEmit: true,
+      skipLibCheck: true,
+    })
+    const fixture = resolve(
+      process.cwd(),
+      'tests/shared/table/fixtures/shared-primitives-types.ts',
+    )
+    const program = ts.createProgram({ rootNames: [fixture], options: parsed.options })
+    const diagnostics = ts.getPreEmitDiagnostics(program)
+    const output = ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+      getCanonicalFileName: (fileName) => fileName,
+      getCurrentDirectory: () => process.cwd(),
+      getNewLine: () => '\n',
+    })
+
+    expect(output).toBe('')
+  }, 30_000)
 })

@@ -21,6 +21,7 @@ const props = withDefaults(
   {
     inline: true,
     collapseCount: 1,
+    size: 'default',
   }
 )
 
@@ -147,25 +148,6 @@ const toggleCollapsed = () => {
 const isRemoteSelectField = (field: SearchField): field is RemoteSelectSearchField =>
   field.type === 'remote-select'
 
-const getFieldBindings = (field: SearchField): Record<string, unknown> => {
-  const {
-    key,
-    type,
-    label,
-    placeholder,
-    width,
-    options,
-    cascaderProps,
-    fetchMethod,
-    labelField,
-    valueField,
-    keywordField,
-    ...rest
-  } = field
-
-  return rest
-}
-
 const resolveWidth = (width: SearchField['width'], fallback: number) => {
   if (isMobile.value) {
     return '100%'
@@ -194,9 +176,10 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
           <el-input
             :model-value="inputModelValue(field.key)"
             :placeholder="field.placeholder"
-            clearable
+            :disabled="field.disabled"
+            :clearable="field.clearable ?? true"
             :style="{ width: resolveWidth(field.width, 150) }"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
             @update:model-value="setSearchValue(field.key, $event)"
           />
         </template>
@@ -206,10 +189,11 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
             v-model="form[field.key]"
             :options="field.options"
             filterable
-            clearable
+            :disabled="field.disabled"
+            :clearable="field.clearable ?? true"
             :placeholder="field.placeholder"
             :style="{ width: resolveWidth(field.width, 150) }"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
           />
         </template>
 
@@ -218,11 +202,12 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
             v-model="form[field.key]"
             :options="field.options"
             :props="field.cascaderProps"
-            clearable
+            :disabled="field.disabled"
+            :clearable="field.clearable ?? true"
             filterable
             :placeholder="field.placeholder"
             :style="{ width: resolveWidth(field.width, 150) }"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
           />
         </template>
 
@@ -234,9 +219,10 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
             :start-placeholder="t('common.startDate')"
             :end-placeholder="t('common.endDate')"
             value-format="YYYY-MM-DD"
-            clearable
+            :disabled="field.disabled"
+            :clearable="field.clearable ?? true"
             :style="{ width: resolveWidth(field.width, 300) }"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
           />
         </template>
 
@@ -246,9 +232,10 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
             type="date"
             :placeholder="field.placeholder"
             value-format="YYYY-MM-DD"
-            clearable
+            :disabled="field.disabled"
+            :clearable="field.clearable ?? true"
             :style="{ width: resolveWidth(field.width, 150) }"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
           />
         </template>
 
@@ -256,12 +243,13 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
           <RemoteSelect
             :model-value="remoteSelectModelValue(field.key)"
             :fetch-method="field.fetchMethod"
-            :label-field="field.labelField || 'label'"
-            :value-field="field.valueField || 'value'"
-            :keyword-field="field.keywordField || 'keyword'"
+            :label-field="field.labelField"
+            :value-field="field.valueField"
+            :keyword-field="field.keywordField"
             :placeholder="field.placeholder"
+            :clearable="field.clearable"
             :width="resolveWidth(field.width, 200)"
-            v-bind="getFieldBindings(field)"
+            v-bind="field.elementProps"
             @update:model-value="setSearchValue(field.key, $event)"
           />
         </template>

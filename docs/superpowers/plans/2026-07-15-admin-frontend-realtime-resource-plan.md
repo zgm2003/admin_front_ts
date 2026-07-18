@@ -145,11 +145,11 @@ git commit -m "feat(query): enforce latest-wins table resources"
 - Modify: `tests/shared/table/remote-select-contract.test.ts`
 - Modify: `tests/shared/table/shared-primitives-quality.test.ts`
 
-- [ ] **Step 1: Test mutation policy**
+- [x] **Step 1: Test mutation policy**
 
 Cover confirmation cancel, pending dedupe, required idempotency key, typed failure, success invalidation, selection clear, and empty-page fallback. Query errors must not be swallowed.
 
-- [ ] **Step 2: Define separate orchestration**
+- [x] **Step 2: Define separate orchestration**
 
 ```ts
 export interface MutationSpec<TInput,TOutput> {
@@ -162,11 +162,11 @@ export interface MutationSpec<TInput,TOutput> {
 
 `Mutation` owns pending identity and invalidation, not form fields, columns, or business validation.
 
-- [ ] **Step 3: Close UI types**
+- [x] **Step 3: Close UI types**
 
 `TableColumn<Row>` is a union of property column (`prop: keyof Row`) and derived column (`key` plus typed formatter); remove the open index signature. `SearchField<Model,K extends keyof Model>` binds keys to compatible value/control types. Keep an explicit `elementProps` object typed from Element Plus props rather than arbitrary top-level unknown values.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- --project unit tests/shared/table
