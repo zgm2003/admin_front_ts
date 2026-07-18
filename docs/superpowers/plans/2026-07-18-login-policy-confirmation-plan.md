@@ -241,7 +241,7 @@ git diff --cached --check
 git commit -m "docs(login): record policy confirmation evidence"
 ```
 
-- [ ] **Step 4: Build and restart through the sole Compose lifecycle**
+- [x] **Step 4: Build and restart through the sole Compose lifecycle**
 
 ```powershell
 cd E:/admin/admin_back_go
@@ -254,7 +254,7 @@ curl.exe -fsS http://127.0.0.1:8080/ready
 
 Expected: all five containers are healthy and all endpoints succeed. No host Vite or Go application process is started.
 
-- [ ] **Step 5: Verify the final repository and runtime revision**
+- [x] **Step 5: Verify the final repository and runtime revision**
 
 ```powershell
 git -C E:/admin/admin_front_ts status --short
@@ -279,4 +279,7 @@ Expected: both repositories are clean and the frontend image revision label equa
 - Route gate: 68 Admin view loaders generated with no repository diff.
 - Full test gate: 134 files passed, 458 tests passed.
 - Architecture audit: `agreePolicy.value = true` exists only in `confirmPolicyAndContinue`; the dialog has no storage, cookie, API, AppKernel, fallback-field, or compatibility logic.
-- Docker runtime evidence is collected after this evidence commit so the built image can carry the final clean-checkout revision label.
+- Docker build gate: `scripts/docker-platform.ps1 up` exited 0; the frontend ran `vue-tsc -b && vite build`, and the backend image ran `go test ./...` before startup.
+- Runtime gate: MySQL, Redis, Admin API, Admin worker, and frontend all reported `healthy`.
+- Health probes: frontend returned `ok`; `/health` returned `status: ok`; `/ready` returned `status: ready` with database, Redis, queue, realtime, and token checks up.
+- Revision gate before this final evidence commit: frontend image revision `875dd3b0493ca8a4364e571ccfbb196d52e82532` exactly matched the then-current frontend `HEAD`. The Compose lifecycle is rerun after this evidence commit to stamp and verify the final revision.
