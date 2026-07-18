@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a deterministic Admin AppKernel with secure AuthSession, contract-driven ApiClient, atomic runtime routes, typed persistence, executable tests, and blocking artifact-producing CI.
+**Goal:** Build a deterministic Admin AppKernel with secure AuthSession, contract-driven ApiClient, atomic runtime routes, typed persistence, executable tests, and a blocking Docker-image verification gate.
 
 **Architecture:** `AppKernel` is the only composition root and imports cause no I/O. Auth, HTTP, routing, persistence, realtime, and native behavior are injected modules. The backend Admin Contract Bundle is copied under an exact digest lock and generates transport/permission/view types reproducibly.
 
@@ -18,7 +18,7 @@
 - Create `contracts/backend/admin/v1/*`, `contracts/backend/admin/lock.json`, and sync/check scripts.
 - Create unit/component/integration test setup and replace auth/router source-string tests.
 - Modify `main.ts`, `App.vue`, Login, Router, user/menu stores, and API entrypoints.
-- Create `scripts/verify-frontend.ps1` and make deployment consume its immutable artifact.
+- Create `scripts/verify-frontend.ps1` and make Docker image verification the delivery gate.
 
 ### Task 1: Establish executable test layers and a mechanical lint baseline
 
@@ -485,29 +485,22 @@ git diff --cached --check
 git commit -m "refactor(app): route login and logout through the kernel"
 ```
 
-### Task 9: Build once and deploy the verified artifact
+### Task 9: Verify once and deliver only a Docker image
 
 **Files:**
 - Create: `scripts/verify-frontend.ps1`
-- Create: `scripts/package-web-artifact.mjs`
-- Modify: `.github/workflows/deploy-admin-front.yml`
+- Create: `tests/shared/deployment/docker-only-delivery.test.ts`
+- Modify: `.gitignore`
+- Modify: `.dockerignore`
+- Delete: `.github/`
+- Delete: `.worktrees/`
 - Modify: `docs/deployment/github-actions-scp.md`
-- Create: `tests/shared/deployment/immutable-artifact.test.ts`
 
-- [ ] **Step 1: Guard action pins and no rebuild**
+- [ ] **Step 1: Guard the Docker-only boundary**
 
-The test requires:
+The test requires both repositories to have no `.github` or `.worktrees` directory, no registered secondary worktree, and no worktree ignore rule. It rejects SCP, `dist.tar.gz`, Vite/Go host startup, or any deployable archive path.
 
-```text
-actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-```
-
-Reject an `npm run build` command in the deploy job.
-
-- [ ] **Step 2: Implement the shared verifier**
+- [ ] **Step 2: Implement the shared source and image verifier**
 
 ```powershell
 $ErrorActionPreference = "Stop"
@@ -517,23 +510,24 @@ npm run routes:generate
 npm run lint:baseline
 npm run typecheck
 npm test -- --coverage
-npm run build
-node scripts/package-web-artifact.mjs
+docker build --build-arg BUILD_REVISION=$GitSha --tag admin-frontend:$GitSha .
+docker image inspect admin-frontend:$GitSha
 ```
 
-`package-web-artifact.mjs` creates `artifacts/admin-web-$GitSha.tar.gz` and a SHA-256 file from `dist`, rejecting a dirty generated contract or missing Vite manifest. `$GitSha` is the clean checkout commit supplied by the script.
+The verifier requires the exact clean checkout commit, performs no host-side production build, and treats the resulting Docker image as the only release candidate. It verifies the revision label, unprivileged runtime user, healthcheck, and exposed port.
 
-- [ ] **Step 3: Split verify and deploy jobs**
+- [ ] **Step 3: Keep Compose as the only runtime entry**
 
-The verify job uploads the tarball/checksum. The deploy job depends on verify, downloads that exact named artifact, verifies SHA, and transfers it. It never checks out source, runs `npm ci`, or builds. P09 changes the remote extraction to versioned atomic switching and rollback.
+Local integrated acceptance runs only through `E:/admin/admin_back_go/scripts/docker-platform.ps1 up`. The backend Compose file builds the same frontend Dockerfile and starts the resulting image with `--no-build`. No registry or remote host contract is added until the operator specifies one.
 
 - [ ] **Step 4: Verify and commit**
 
 ```powershell
 pwsh -NoProfile -File scripts/verify-frontend.ps1
-npm test -- tests/shared/deployment/immutable-artifact.test.ts
-git add -- scripts/verify-frontend.ps1 scripts/package-web-artifact.mjs .github/workflows/deploy-admin-front.yml docs/deployment/github-actions-scp.md tests/shared/deployment/immutable-artifact.test.ts
-git commit -m "ci: deploy only the verified frontend artifact"
+npm test -- tests/shared/deployment/docker-only-delivery.test.ts
+git add -- scripts/verify-frontend.ps1 .gitignore .dockerignore docs/deployment/github-actions-scp.md tests/shared/deployment/docker-only-delivery.test.ts
+git add -u -- .github
+git commit -m "build(docker): verify the frontend image as the release unit"
 ```
 
 ## Plan completion gate
@@ -545,4 +539,4 @@ rg -n "js-cookie|Cookies\.|document\.cookie" src
 git status --short
 ```
 
-Expected: kernel transitions, auth races, HTTP replay, route replacement, and persistence tests pass; contract generation is clean; no production code reads credential cookies/storage; CI produces one immutable web artifact; status is clean.
+Expected: kernel transitions, auth races, HTTP replay, route replacement, and persistence tests pass; contract generation is clean; no production code reads credential cookies/storage; the verified release candidate is one revision-labelled Docker image; status is clean.

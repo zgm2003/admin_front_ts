@@ -322,9 +322,9 @@ Required outcomes:
 
 Phase 0 records a reproducible baseline. Later tasks may only tighten or explicitly justify a budget change in the same review as the behavior requiring it.
 
-## CI and deployment
+## Verification and Docker deployment
 
-PR verification blocks on:
+The local release verifier blocks on:
 
 - lockfile-clean `npm ci`;
 - generated-contract drift;
@@ -336,13 +336,13 @@ PR verification blocks on:
 - dependency/license audit;
 - Rust format, Clippy with warnings denied, tests, audit, and Tauri build in pinned environments.
 
-Mechanical formatting/autofix is isolated in its own commit before architectural changes. Blanket lint disables are forbidden; generated files use narrow, documented exclusions.
+Mechanical formatting/autofix is isolated in its own commit before architectural changes. Blanket lint disables are forbidden; generated files use narrow, documented exclusions. Neither repository retains `.github` workflows or secondary Git worktrees.
 
-The deploy job does not rebuild unverified source. It downloads the immutable web artifact produced by the passing workflow, verifies its digest, deploys to a versioned directory, performs health/smoke checks, and atomically switches the active release. The previous release remains available for rollback. Tauri release artifacts are built separately, signed, checksummed, and published only from a protected release workflow.
+The frontend production build runs once inside `admin_front_ts/Dockerfile`; the resulting revision-labelled Docker image is the only deployable unit. Integrated runtime acceptance uses `admin_back_go/scripts/docker-platform.ps1 up`. No SCP, extracted `dist` archive, host Vite process, or GitHub Actions deployment path exists. Registry, signing, remote rollout, and rollback remain separate contracts to define before production release rather than being guessed in P06.
 
 ## Required execution order
 
-1. Establish blocking CI, contract snapshots, test environments, bundle measurement, and a mechanical lint-only commit.
+1. Establish blocking verification, contract snapshots, test environments, bundle measurement, and a mechanical lint-only commit.
 2. Implement AppKernel, AuthSession, ApiClient/ApiError, and RuntimeRouteRegistry together with the synchronized backend session/contract changes.
 3. Implement RealtimeClient together with the backend delivery/resume contract.
 4. Deepen ResourceQuery/table/mutation behavior and migrate representative flows before broad page migration.
@@ -360,12 +360,12 @@ Shared generated contracts, authentication transport, route/permission catalogs,
 - Access credentials are memory-only; browser and desktop refresh credentials use their approved secure adapters.
 - Concurrent refresh, logout, route replacement, query ordering, and realtime recovery tests pass deterministically.
 - Raw Axios and WebSocket objects do not escape their infrastructure adapters.
-- OpenAPI, permission, view, and realtime contracts cannot drift without CI failure.
+- OpenAPI, permission, view, and realtime contracts cannot drift without verification failure.
 - All API and realtime boundary failures map to typed safe errors.
 - Lint reports zero errors and zero warnings; typecheck, tests, coverage, build, budgets, browser smoke, and accessibility gates pass.
 - Source-text tests are below 20% of test files and core behavior is tested through executable interfaces.
 - Tauri uses local verified assets, no global Tauri object, no remote capability, no `unsafe-eval`, and rejects untrusted URL/path/native-command input.
-- Deployment consumes a verified immutable artifact and has a tested rollback.
+- Deployment consumes only a verified, revision-labelled Docker image; rollback is implemented only after its production contract is approved.
 - No App/Canvas API prefix, platform inference, runtime branch, or compatibility contract remains.
 - No tenant behavior or speculative tenant interface is implemented.
 
