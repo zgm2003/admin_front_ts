@@ -168,6 +168,12 @@ export default {
       privacyPolicy: 'Privacy Policy',
       loggingIn: 'Signing in...'
     },
+    policyConfirm: {
+      title: 'Confirm Terms of Service and Privacy Policy',
+      description: 'Before signing in, please read and agree to the Terms of Service and Privacy Policy. This consent applies only to this login page session.',
+      cancel: 'Cancel',
+      confirm: 'Agree and continue'
+    },
     brand: {
       logoAlt: 'ZhiLan system logo',
       name: 'ZhiLan System',

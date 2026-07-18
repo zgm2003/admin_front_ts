@@ -168,6 +168,12 @@ export default {
       privacyPolicy: '隐私政策',
       loggingIn: '登录中...'
     },
+    policyConfirm: {
+      title: '请确认服务条款与隐私政策',
+      description: '登录前，请阅读并同意服务条款和隐私政策。仅本次登录页面有效。',
+      cancel: '取消',
+      confirm: '同意并继续'
+    },
     brand: {
       logoAlt: '智澜系统 Logo',
       name: '智澜系统',

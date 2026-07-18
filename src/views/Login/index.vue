@@ -9,6 +9,7 @@ import LoginBackground from './components/LoginBackground.vue'
 import LoginBrandPanel from './components/LoginBrandPanel.vue'
 import LoginMobileBrand from './components/LoginMobileBrand.vue'
 import LoginFormCard from './components/LoginFormCard.vue'
+import LoginPolicyConfirmDialog from './components/LoginPolicyConfirmDialog.vue'
 import ForgotPasswordDialog from './components/ForgotPasswordDialog.vue'
 import LoginSuccessOverlay from './components/LoginSuccessOverlay.vue'
 
@@ -24,6 +25,7 @@ const {
   activeAccountType,
   showPassword,
   agreePolicy,
+  policyConfirmVisible,
   isSubmitting,
   isSendingCode: isSendingLoginCode,
   isCaptchaSubmitting,
@@ -32,6 +34,8 @@ const {
   isPasswordLogin,
   rules,
   handleSubmit,
+  confirmPolicyAndContinue,
+  cancelPolicyConfirmation,
   requestLoginCode,
   completeCaptchaLogin,
   handleTabChange,
@@ -139,6 +143,14 @@ async function tauriClose() {
       @update:slider-x="captchaX = $event"
       @refresh="refreshCaptcha"
       @complete="completeCaptchaLogin"
+    />
+
+    <LoginPolicyConfirmDialog
+      :visible="policyConfirmVisible"
+      @confirm="confirmPolicyAndContinue"
+      @cancel="cancelPolicyConfirmation"
+      @open-service="openService"
+      @open-policy="openPolicy"
     />
 
     <!-- 忘记密码弹窗 -->
