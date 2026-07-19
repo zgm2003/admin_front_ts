@@ -1,18 +1,9 @@
-import type { Id, PaginatedResponse } from './common'
+import type { components } from '@/modules/http/generated/admin'
 
-export interface OperationLogItem {
-  id: Id
-  user_name: string
-  user_email: string
-  action: string
-  request_data: string | null
-  response_data: string | null
-  is_success: number
-  created_at: string
-}
+export type OperationLogItem = components['schemas']['Go_internal_module_operationlog_ListItem_Output']
 
 export interface OperationLogFilters {
-  user_id?: Id | ''
+  user_id?: number | ''
   action?: string
   date?: string[]
 }
@@ -22,8 +13,6 @@ export interface OperationLogListParams extends OperationLogFilters {
   page_size: number
 }
 
-export type OperationLogListResponse = PaginatedResponse<OperationLogItem>
+export type OperationLogListResponse = components['schemas']['Go_internal_module_operationlog_ListResponse_Output']
 
-export interface OperationLogInitResponse {
-  [key: string]: never
-}
+export type OperationLogInitResponse = components['schemas']['Go_internal_module_operationlog_InitResponse_Output']

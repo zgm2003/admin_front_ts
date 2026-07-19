@@ -33,9 +33,9 @@ export type UploadRule = UploadTokenResponse['rule']
 
 export interface LegacyUploadTokenRequest {
   folderName: string
-  fileName?: string
-  fileSize?: number
-  fileKind?: UploadFileKind
+  fileName: string
+  fileSize: number
+  fileKind: UploadFileKind
 }
 
 export type UploadTokenParams = UploadTokenRequest | LegacyUploadTokenRequest
@@ -114,10 +114,27 @@ function normalizeTokenRequest(params: UploadTokenParams): UploadTokenRequest {
     return params
   }
 
+  if (!isUploadFolder(params.folderName)) {
+    throw new Error('upload folder violates the Admin upload-token contract')
+  }
+
   return {
     folder: params.folderName,
-    file_name: params.fileName || 'file',
-    file_size: params.fileSize || 1,
-    file_kind: params.fileKind || 'file',
+    file_name: params.fileName,
+    file_size: params.fileSize,
+    file_kind: params.fileKind,
   }
+}
+
+function isUploadFolder(value: string): value is UploadTokenRequest['folder'] {
+  return value === 'avatars'
+    || value === 'images'
+    || value === 'videos'
+    || value === 'cover_images'
+    || value === 'ai-agents'
+    || value === 'ai_chat_images'
+    || value === 'releases'
+    || value === 'tauri_updater'
+    || value === 'exports'
+    || value === 'reconcile_reports'
 }

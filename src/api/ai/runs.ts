@@ -62,9 +62,10 @@ type AiRunStatsQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs
 type AiRunStatsListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_stats_by_date'>['query']>
 
 function positiveID(value: Id | number): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error('AI run id must be a positive integer')
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error('AI run id must be a positive integer')
+  }
+  return value
 }
 
 function normalizeListParams(params: AiRunListParams): AiRunListQuery {

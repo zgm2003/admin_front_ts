@@ -1,12 +1,19 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse } from '@/types/common'
-import type { PermissionTreeNode } from './permission'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import { adminOperations } from '@/modules/http/generated/operations'
+import type { DictOption, Id } from '@/types/common'
+import {
+  isPermissionPlatform,
+  parsePermissionTree,
+  type PermissionPlatform,
+  type PermissionTreeNode,
+} from './permission'
 
 export interface RoleInitResponse {
   dict: {
     permission_tree: PermissionTreeNode[]
-    permission_platform_arr: DictOption<string>[]
+    permission_platform_arr: DictOption<PermissionPlatform>[]
   }
 }
 
@@ -16,14 +23,9 @@ export interface RoleListParams {
   name?: string
 }
 
-export interface RoleListItem {
-  id: number
-  name: string
-  permission_id: number[]
-  is_default: number
-  created_at: string
-  updated_at: string
-}
+export type RoleListItem = components['schemas']['Go_internal_module_role_ListItem_Output']
+export type RoleListResponse = components['schemas']['Go_internal_module_role_ListResponse_Output']
+export type RoleCreateResponse = components['schemas']['Go_internal_server_adminroute_IDData_Output']
 
 export interface RoleAddPayload {
   name: string
@@ -42,7 +44,7 @@ export interface RoleDeleteOnePayload {
   id: Id
 }
 
-function normalizeRoleIDs(id: Id | Id[]): number[] {
+function normalizeRoleIDs(id: Id | Id[]): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -58,29 +60,53 @@ function normalizeRoleIDs(id: Id | Id[]): number[] {
     ids.push(value)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error('role ids must not be empty')
+  return [first, ...ids.slice(1)]
 }
 
-const pageInit = () => request.get<RoleInitResponse>(`${ADMIN_API_PREFIX}/roles/page-init`)
-const create = (params: RoleAddPayload) => request.post<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles`, params)
-const update = (params: RoleEditPayload) => {
-  const { id, ...body } = params
-  return request.put<void, RoleAddPayload>(`${ADMIN_API_PREFIX}/roles/${id}`, body)
+const pageInit = async (options: ExecuteOptions = {}): Promise<RoleInitResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_roles_page_init, {}, options)
+  const permissionPlatformArr = response.dict.permission_platform_arr.map((option) => {
+    if (!isPermissionPlatform(option.value)) throw new Error('role platform dictionary violates the editable contract')
+    return { label: option.label, value: option.value }
+  })
+  return {
+    dict: {
+      permission_tree: parsePermissionTree(response.dict.permission_tree),
+      permission_platform_arr: permissionPlatformArr,
+    },
+  }
 }
-const deleteOne = (params: RoleDeleteOnePayload) => request.delete<void>(`${ADMIN_API_PREFIX}/roles/${normalizeRoleIDs(params.id)[0]}`)
-const deleteBatch = (params: RoleBatchDeletePayload) => {
+const create = (params: RoleAddPayload, options: ExecuteOptions = {}): Promise<RoleCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_roles, { body: params }, options)
+const update = async (params: RoleEditPayload, options: ExecuteOptions = {}): Promise<void> => {
+  const { id, ...body } = params
+  await executeAdminOperation(adminOperations.put_api_admin_v1_roles_id, {
+    path: { id },
+    body,
+  }, options)
+}
+const deleteOne = async (params: RoleDeleteOnePayload, options: ExecuteOptions = {}): Promise<void> => {
+  const [id] = normalizeRoleIDs(params.id)
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_roles_id, { path: { id } }, options)
+}
+const deleteBatch = async (params: RoleBatchDeletePayload, options: ExecuteOptions = {}): Promise<void> => {
   const ids = normalizeRoleIDs(params.ids)
-  const body: RoleBatchDeletePayload = { ids }
-  return request.delete<void, RoleBatchDeletePayload>(`${ADMIN_API_PREFIX}/roles`, { data: body })
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_roles, { body: { ids } }, options)
 }
 
 export const RoleApi = {
   pageInit,
-  list: (params: RoleListParams) => request.get<PaginatedResponse<RoleListItem>>(`${ADMIN_API_PREFIX}/roles`, { params }),
+  list: (params: RoleListParams, options: ExecuteOptions = {}): Promise<RoleListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_roles, { query: params }, options),
   create,
   update,
   deleteOne,
   deleteBatch,
-  default: (params: { id: number }) =>
-    request.patch<void>(`${ADMIN_API_PREFIX}/roles/${params.id}/default`),
+  async default(params: { id: number }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_roles_id_default, {
+      path: { id: params.id },
+    }, options)
+  },
 }

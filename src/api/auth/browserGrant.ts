@@ -1,5 +1,5 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import { adminOperations } from '@/modules/http/generated/operations'
 import {
   parseQueueMonitorGrantResponse,
   parseRealtimeTicketResponse,
@@ -8,15 +8,19 @@ import {
 } from './browserGrantContract'
 
 export async function issueRealtimeTicket(signal?: AbortSignal): Promise<RealtimeTicketResponse> {
-  const response = await request.post<unknown>(
-    `${ADMIN_API_PREFIX}/auth/realtime-tickets`,
-    undefined,
+  const response = await executeAdminOperation(
+    adminOperations.post_api_admin_v1_auth_realtime_tickets,
+    {},
     { signal },
   )
   return parseRealtimeTicketResponse(response)
 }
 
-export async function issueQueueMonitorGrant(): Promise<QueueMonitorGrantResponse> {
-  const response = await request.post<unknown>(`${ADMIN_API_PREFIX}/auth/queue-monitor-grants`)
+export async function issueQueueMonitorGrant(signal?: AbortSignal): Promise<QueueMonitorGrantResponse> {
+  const response = await executeAdminOperation(
+    adminOperations.post_api_admin_v1_auth_queue_monitor_grants,
+    {},
+    { signal },
+  )
   return parseQueueMonitorGrantResponse(response)
 }

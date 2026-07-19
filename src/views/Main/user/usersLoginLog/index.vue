@@ -10,18 +10,18 @@ import { UsersListApi } from '@/api/user/users'
 import { CommonEnum } from '@/enums'
 import { useIsMobile } from '@/hooks/useResponsive'
 import type { DictOption } from '@/types/common'
-import type { UserListItem, UserLoginLogInitResponse, UserLoginType } from '@/types/user'
+import type { UserListItem, UserLoginLogInitResponse } from '@/types/user'
 import { useUsersLoginLogTable, type UsersLoginLogSearchForm } from './composables/useUsersLoginLogTable'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
 
 const platformArr = ref<DictOption<string>[]>([])
-const loginTypeArr = ref<DictOption<UserLoginType>[]>([])
+const loginTypeArr = ref<DictOption<string>[]>([])
 const searchForm = ref<UsersLoginLogSearchForm>({
   user_id: '',
   login_account: '',
-  login_type: '' as UserLoginType | '',
+  login_type: '',
   ip: '',
   platform: '',
   is_success: '' as number | '',

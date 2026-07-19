@@ -1,6 +1,11 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id, RequestPayload } from '@/types/common'
 
 export type AiCommonStatus = 1 | 2
 
@@ -16,19 +21,10 @@ export interface AiPromptListParams extends RequestPayload {
   status?: AiCommonStatus | ''
 }
 
-export interface AiPromptItem {
-  id: number
-  slug: string
-  category: string
-  title: string
-  cover_url: string
-  prompt: string
-  preview: string
-  tags_json: string
-  source_url: string
-  status: AiCommonStatus
-  created_at: string
-  updated_at: string
+type AiPromptContractItem = components['schemas']['Go_internal_module_ai_prompt_Item_Output']
+export type AiPromptItem = Omit<AiPromptContractItem, 'status'> & { status: AiCommonStatus }
+export interface AiPromptListResponse extends Omit<components['schemas']['Go_internal_module_ai_prompt_ListResponse_Output'], 'list'> {
+  list: AiPromptItem[]
 }
 
 export interface AiPromptMutationParams {
@@ -60,22 +56,19 @@ export interface AiPromptCreateResponse {
   id: number
 }
 
-interface AiPromptListQueryParams {
-  current_page?: number
-  page_size?: number
-  keyword?: string
-  category?: string
-  status?: AiCommonStatus
-}
+type AiPromptListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_prompts'>['query']>
 
 function positiveID(value: Id | number, label: string): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error(`${label} must be a positive integer`)
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer`)
+  }
+  return value
 }
 
 function normalizeIDs(values: Id[]): number[] {
-  return values.map((value) => positiveID(value, 'AI prompt id'))
+  const ids = values.map((value) => positiveID(value, 'AI prompt id'))
+  if (ids.length === 0) throw new Error('AI prompt ids must not be empty')
+  return ids
 }
 
 function mutationID(value: Id | undefined): number {
@@ -86,18 +79,21 @@ function mutationID(value: Id | undefined): number {
   return positiveID(value, 'AI prompt id')
 }
 
-function requireOptionArray<T extends string | number>(value: unknown, field: string): DictOption<T>[] {
-  if (!Array.isArray(value)) {
-    throw new Error(`${field} must be an array`)
-  }
-
-  return value as DictOption<T>[]
+function isCommonStatus(value: number): value is AiCommonStatus {
+  return value === 1 || value === 2
 }
 
-function normalizeAiPromptInitResponse(response: AiPromptInitResponse): AiPromptInitResponse {
-  return {
-    common_status_arr: requireOptionArray<AiCommonStatus>(response.common_status_arr, 'ai-prompts.page-init.common_status_arr'),
-  }
+function normalizeAiPromptInitResponse(response: components['schemas']['Go_internal_module_ai_prompt_PageInitResponse_Output']): AiPromptInitResponse {
+  const statuses = response.common_status_arr.map((option) => {
+    if (!isCommonStatus(option.value)) throw new Error('ai-prompts.page-init.common_status_arr violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  return { common_status_arr: statuses }
+}
+
+function toPromptItem(item: AiPromptContractItem): AiPromptItem {
+  if (!isCommonStatus(item.status)) throw new Error('AI prompt item status violates the editable contract')
+  return { ...item, status: item.status }
 }
 
 function normalizeListParams(params: AiPromptListParams): AiPromptListQueryParams {
@@ -124,16 +120,45 @@ function mutationBody(params: AiPromptMutationParams): AiPromptMutationBody {
   }
 }
 
-const pageInit = async () => normalizeAiPromptInitResponse(
-  await request.get<AiPromptInitResponse>(`${ADMIN_API_PREFIX}/ai-prompts/page-init`)
+const pageInit = async (options: ExecuteOptions = {}): Promise<AiPromptInitResponse> => normalizeAiPromptInitResponse(
+  await executeAdminOperation(adminOperations.get_api_admin_v1_ai_prompts_page_init, {}, options),
 )
-const list = (params: AiPromptListParams) => request.get<PaginatedResponse<AiPromptItem>>(`${ADMIN_API_PREFIX}/ai-prompts`, { params: normalizeListParams(params) })
-const detail = (params: { id: Id }) => request.get<AiPromptItem>(`${ADMIN_API_PREFIX}/ai-prompts/${positiveID(params.id, 'AI prompt id')}`)
-const create = (params: AiPromptMutationParams) => request.post<AiPromptCreateResponse, AiPromptMutationBody>(`${ADMIN_API_PREFIX}/ai-prompts`, mutationBody(params))
-const update = (params: AiPromptMutationParams) => request.put<void, AiPromptMutationBody>(`${ADMIN_API_PREFIX}/ai-prompts/${mutationID(params.id)}`, mutationBody(params))
-const changeStatus = (params: { id: Id; status: AiCommonStatus }) => request.patch<void, { status: AiCommonStatus }>(`${ADMIN_API_PREFIX}/ai-prompts/${positiveID(params.id, 'AI prompt id')}/status`, { status: params.status })
-const deleteOne = (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/ai-prompts/${positiveID(params.id, 'AI prompt id')}`)
-const deleteBatch = (params: { ids: Id[] }) => request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/ai-prompts`, { data: { ids: normalizeIDs(params.ids) } })
+const list = async (params: AiPromptListParams, options: ExecuteOptions = {}): Promise<AiPromptListResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_prompts, {
+    query: normalizeListParams(params),
+  }, options)
+  return { list: response.list.map(toPromptItem), page: response.page }
+}
+const detail = async (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiPromptItem> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_prompts_id, {
+    path: { id: positiveID(params.id, 'AI prompt id') },
+  }, options)
+  return toPromptItem(response)
+}
+const create = (params: AiPromptMutationParams, options: ExecuteOptions = {}): Promise<AiPromptCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_ai_prompts, { body: mutationBody(params) }, options)
+const update = async (params: AiPromptMutationParams, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.put_api_admin_v1_ai_prompts_id, {
+    path: { id: mutationID(params.id) },
+    body: mutationBody(params),
+  }, options)
+}
+const changeStatus = async (params: { id: Id; status: AiCommonStatus }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.patch_api_admin_v1_ai_prompts_id_status, {
+    path: { id: positiveID(params.id, 'AI prompt id') },
+    body: { status: params.status },
+  }, options)
+}
+const deleteOne = async (params: { id: Id }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_ai_prompts_id, {
+    path: { id: positiveID(params.id, 'AI prompt id') },
+  }, options)
+}
+const deleteBatch = async (params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_ai_prompts, {
+    body: { ids: normalizeIDs(params.ids) },
+  }, options)
+}
 
 export const AiPromptApi = {
   pageInit,

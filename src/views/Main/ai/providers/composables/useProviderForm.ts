@@ -1,7 +1,7 @@
 import { computed, reactive, shallowRef } from 'vue'
 import type { FormRules } from 'element-plus'
 import { CommonEnum } from '@/enums'
-import type { AiModelOptionItem, AiProviderDriver } from '@/api/ai/providers'
+import type { AiModelOptionItem, AiProviderDriver, AiProviderStatus } from '@/api/ai/providers'
 
 export interface ProviderFormState {
   id?: number
@@ -11,7 +11,7 @@ export interface ProviderFormState {
   api_key: string
   model_ids: string[]
   model_display_names: Record<string, string>
-  status: number
+  status: AiProviderStatus
 }
 
 export type TranslateFn = (key: string) => string

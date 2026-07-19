@@ -41,11 +41,11 @@ function uploadAppCert(options: UploadRequestOptions) {
 }
 
 function uploadAlipayCert(options: UploadRequestOptions) {
-  return uploadRequest('alipay_cert', options)
+  return uploadRequest('platform_cert', options)
 }
 
 function uploadAlipayRootCert(options: UploadRequestOptions) {
-  return uploadRequest('alipay_root_cert', options)
+  return uploadRequest('root_cert', options)
 }
 
 defineExpose({
@@ -310,7 +310,7 @@ defineExpose({
                 :show-file-list="false"
                 :http-request="uploadAlipayCert"
               >
-                <el-button :loading="props.uploadLoading === 'alipay_cert'">
+                <el-button :loading="props.uploadLoading === 'platform_cert'">
                   {{ t('paymentConfig.actions.uploadCertificate') }}
                 </el-button>
               </el-upload>
@@ -335,7 +335,7 @@ defineExpose({
                 :show-file-list="false"
                 :http-request="uploadAlipayRootCert"
               >
-                <el-button :loading="props.uploadLoading === 'alipay_root_cert'">
+                <el-button :loading="props.uploadLoading === 'root_cert'">
                   {{ t('paymentConfig.actions.uploadCertificate') }}
                 </el-button>
               </el-upload>

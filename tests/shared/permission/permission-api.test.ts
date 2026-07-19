@@ -7,7 +7,13 @@ afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
 describe('permission API behavior', () => {
   it('executes the documented permission resource operations', async () => {
-    const harness = installApiClientHarness({})
+    const harness = installApiClientHarness({
+      dict: {
+        permission_platform_arr: [],
+        permission_tree: [],
+        permission_type_arr: [],
+      },
+    })
     cleanups.push(harness.uninstall)
     await PermissionApi.pageInit()
     harness.respondWith([])

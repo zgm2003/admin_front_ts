@@ -1,21 +1,21 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 
-export type PaymentEnvironment = 'sandbox' | 'production'
-export type PaymentEnabledMethod = 'web' | 'h5'
-export type PaymentCertificateType = 'app_cert' | 'alipay_cert' | 'alipay_root_cert'
-export type PaymentProvider = 'alipay'
+type PaymentConfigCreateBody = NonNullable<AdminOperationInput<'post_api_admin_v1_payment_configs'>['body']>
+type PaymentCertificateUploadBody = NonNullable<AdminOperationInput<'post_api_admin_v1_payment_certificates'>['body']>
+type PaymentConfigListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_payment_configs'>['query']>
 
-export interface PaymentConfigInitResponse {
-  dict: {
-    provider_arr: DictOption<PaymentProvider>[]
-    environment_arr: DictOption<PaymentEnvironment>[]
-    common_status_arr: DictOption<number>[]
-    enabled_method_arr: DictOption<PaymentEnabledMethod>[]
-    certificate_type_arr: DictOption<PaymentCertificateType>[]
-  }
-}
+export type PaymentEnvironment = PaymentConfigCreateBody['environment']
+export type PaymentEnabledMethod = PaymentConfigCreateBody['enabled_methods'][number]
+export type PaymentCertificateType = PaymentCertificateUploadBody['cert_type']
+export type PaymentProvider = PaymentConfigCreateBody['provider']
+
+export type PaymentConfigInitResponse = components['schemas']['Go_internal_module_payment_ConfigPageInitResponse_Output']
 
 export interface PaymentConfigListParams {
   current_page: number
@@ -23,80 +23,120 @@ export interface PaymentConfigListParams {
   name?: string
   provider?: PaymentProvider | ''
   environment?: PaymentEnvironment | ''
-  status?: number | ''
+  status?: 1 | 2 | ''
 }
 
-export interface PaymentConfigListItem {
-  id: number
-  provider: PaymentProvider
-  provider_text: string
-  code: string
-  name: string
-  app_id: string
-  private_key_hint: string
-  app_cert_path: string
-  platform_cert_path: string
-  root_cert_path: string
-  notify_url: string
-  environment: PaymentEnvironment
-  environment_text: string
-  enabled_methods: PaymentEnabledMethod[]
-  enabled_methods_text: string
-  sort: number
-  status: number
-  status_text: string
-  remark: string
-  created_at: string
-  updated_at: string
+type PaymentConfigContractItem = components['schemas']['Go_internal_module_payment_ConfigListItem_Output']
+type PaymentConfigEditableFields = Pick<
+  PaymentConfigCreateBody,
+  'provider' | 'environment' | 'enabled_methods' | 'status'
+>
+export type PaymentConfigListItem = Omit<PaymentConfigContractItem, keyof PaymentConfigEditableFields>
+  & PaymentConfigEditableFields
+export interface PaymentConfigListResponse extends Omit<components['schemas']['Go_internal_module_payment_ConfigListResponse_Output'], 'list'> {
+  list: PaymentConfigListItem[]
 }
 
-export interface PaymentConfigMutationPayload {
-  id?: number
-  provider: PaymentProvider
-  code: string
-  name: string
-  app_id: string
-  app_private_key?: string
-  app_cert_path: string
-  platform_cert_path: string
-  root_cert_path: string
-  notify_url: string
-  environment: PaymentEnvironment
-  enabled_methods: PaymentEnabledMethod[]
-  sort: number
-  status: number
-  remark: string
-}
+export type PaymentConfigMutationPayload = PaymentConfigCreateBody & { id?: number }
 
-export interface PaymentConfigCreateResponse {
-  id: number
-}
+export type PaymentConfigCreateResponse = components['schemas']['Go_internal_server_adminroute_IDData_Output']
 
-export interface PaymentCertificateUploadResponse {
-  path: string
-  file_name: string
-  sha256: string
-  size: number
-}
+export type PaymentCertificateUploadResponse = components['schemas']['Go_internal_module_payment_CertificateUploadResponse_Output']
 
-export interface PaymentConfigTestResponse {
-  ok: boolean
-  checks: string[]
-  message: string
-}
+export type PaymentConfigTestResponse = components['schemas']['Go_internal_module_payment_ConfigTestResponse_Output']
 
 function positiveID(value: number): number {
   if (!Number.isInteger(value) || value <= 0) throw new Error('payment config id must be positive')
   return value
 }
 
+function requiredPositiveID(value: number | undefined): number {
+  if (value === undefined) throw new Error('payment config id is required')
+  return positiveID(value)
+}
+
+function isEnabledMethod(value: string): value is PaymentEnabledMethod {
+  return value === 'web' || value === 'h5'
+}
+
+function toPaymentConfigItem(item: PaymentConfigContractItem): PaymentConfigListItem {
+  if (
+    item.provider !== 'alipay'
+    || (item.environment !== 'sandbox' && item.environment !== 'production')
+    || !item.enabled_methods.every(isEnabledMethod)
+    || (item.status !== 1 && item.status !== 2)
+  ) {
+    throw new Error('payment config list item violates the editable contract')
+  }
+  return {
+    ...item,
+    provider: item.provider,
+    environment: item.environment,
+    enabled_methods: item.enabled_methods,
+    status: item.status,
+  }
+}
+
+function paymentConfigBody(payload: PaymentConfigMutationPayload): PaymentConfigCreateBody {
+  return {
+    provider: payload.provider,
+    code: payload.code,
+    name: payload.name,
+    app_id: payload.app_id,
+    app_private_key: payload.app_private_key,
+    app_cert_path: payload.app_cert_path,
+    platform_cert_path: payload.platform_cert_path,
+    root_cert_path: payload.root_cert_path,
+    notify_url: payload.notify_url,
+    environment: payload.environment,
+    enabled_methods: payload.enabled_methods,
+    sort: payload.sort,
+    status: payload.status,
+    remark: payload.remark,
+  }
+}
+
 export const PaymentConfigApi = {
-  pageInit: () => request.get<PaymentConfigInitResponse>(`${ADMIN_API_PREFIX}/payment/configs/page-init`),
-  list: (params: PaymentConfigListParams) => request.get<PaginatedResponse<PaymentConfigListItem>>(`${ADMIN_API_PREFIX}/payment/configs`, { params }),
-  create: (payload: PaymentConfigMutationPayload) => request.post<PaymentConfigCreateResponse, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs`, payload),
-  update: (payload: PaymentConfigMutationPayload) => request.put<void, PaymentConfigMutationPayload>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(payload.id ?? 0)}`, payload),
-  changeStatus: (id: number, status: number) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/status`, { status }),
-  deleteOne: (id: number) => request.delete<void>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}`),
-  uploadCertificate: (payload: FormData) => request.post<PaymentCertificateUploadResponse, FormData>(`${ADMIN_API_PREFIX}/payment/certificates`, payload),
-  test: (id: number) => request.post<PaymentConfigTestResponse>(`${ADMIN_API_PREFIX}/payment/configs/${positiveID(id)}/test`),
+  pageInit: (options: ExecuteOptions = {}): Promise<PaymentConfigInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_payment_configs_page_init, {}, options),
+  list: async (params: PaymentConfigListParams, options: ExecuteOptions = {}): Promise<PaymentConfigListResponse> => {
+    const query: PaymentConfigListQuery = {
+      current_page: params.current_page,
+      page_size: params.page_size,
+    }
+    if (params.name) query.name = params.name
+    if (params.provider) query.provider = params.provider
+    if (params.environment) query.environment = params.environment
+    if (typeof params.status === 'number') query.status = params.status
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_payment_configs, { query }, options)
+    return { list: response.list.map(toPaymentConfigItem), page: response.page }
+  },
+  create: (payload: PaymentConfigMutationPayload, options: ExecuteOptions = {}): Promise<PaymentConfigCreateResponse> => {
+    return executeAdminOperation(adminOperations.post_api_admin_v1_payment_configs, {
+      body: paymentConfigBody(payload),
+    }, options)
+  },
+  async update(payload: PaymentConfigMutationPayload, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_payment_configs_id, {
+      path: { id: requiredPositiveID(payload.id) },
+      body: paymentConfigBody(payload),
+    }, options)
+  },
+  async changeStatus(id: number, status: 1 | 2, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_payment_configs_id_status, {
+      path: { id: positiveID(id) },
+      body: { status },
+    }, options)
+  },
+  async deleteOne(id: number, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_payment_configs_id, {
+      path: { id: positiveID(id) },
+    }, options)
+  },
+  uploadCertificate: (payload: PaymentCertificateUploadBody, options: ExecuteOptions = {}): Promise<PaymentCertificateUploadResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_payment_certificates, { body: payload }, options),
+  test: (id: number, options: ExecuteOptions = {}): Promise<PaymentConfigTestResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_payment_configs_id_test, {
+      path: { id: positiveID(id) },
+    }, options),
 }

@@ -1,6 +1,11 @@
 import type { PermissionTreeNode } from '@/api/permission/permission'
 
-export function buildLeafSelectablePermissionTree(nodes: PermissionTreeNode[]): PermissionTreeNode[] {
+export interface SelectablePermissionTreeNode extends Omit<PermissionTreeNode, 'children'> {
+  disabled: boolean
+  children?: SelectablePermissionTreeNode[]
+}
+
+export function buildLeafSelectablePermissionTree(nodes: PermissionTreeNode[]): SelectablePermissionTreeNode[] {
   return nodes.map((node) => {
     const children = node.children?.length ? buildLeafSelectablePermissionTree(node.children) : undefined
 

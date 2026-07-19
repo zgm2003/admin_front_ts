@@ -6,6 +6,11 @@ interface ParentRuleInput {
   type: number
 }
 
+export interface PermissionParentTreeNode extends Omit<PermissionTreeNode, 'children'> {
+  disabled: boolean
+  children?: PermissionParentTreeNode[]
+}
+
 export function isPermissionParentSelectable(
   node: Pick<PermissionTreeNode, 'platform' | 'type'>,
   input: ParentRuleInput,
@@ -58,7 +63,7 @@ export function buildPermissionSuggestion(input:
   return { code: `${input.domain}_${input.entity}_${input.action}` }
 }
 
-export function applyParentSelectableState(nodes: PermissionTreeNode[], input: ParentRuleInput): PermissionTreeNode[] {
+export function applyParentSelectableState(nodes: PermissionTreeNode[], input: ParentRuleInput): PermissionParentTreeNode[] {
   return nodes.map((node) => ({
     ...node,
     disabled: !isPermissionParentSelectable(node, input),

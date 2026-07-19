@@ -1,6 +1,11 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id } from '@/types/common'
 
 export type MailCommonStatus = 1 | 2
 export type MailLogStatus = 1 | 2 | 3
@@ -69,9 +74,7 @@ export interface MailTemplateItem {
   updated_at: string
 }
 
-export interface MailTemplateListResponse {
-  list: MailTemplateItem[]
-}
+export type MailTemplateListResponse = MailTemplateItem[]
 
 export interface MailTemplateSampleVariableRow {
   key: string
@@ -109,15 +112,7 @@ export interface MailLogListParams {
   created_at_end?: string
 }
 
-interface MailLogQueryParams {
-  current_page: number
-  page_size: number
-  scene?: MailLogScene
-  status?: MailLogStatus
-  to_email?: string
-  created_at_start?: string
-  created_at_end?: string
-}
+type MailLogQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_mail_logs'>['query']>
 
 export interface MailLogItem {
   id: number
@@ -137,6 +132,10 @@ export interface MailLogItem {
   template?: MailLogTemplate | null
 }
 
+export interface MailLogListResponse extends Omit<components['schemas']['Go_internal_module_mail_LogListResponse_Output'], 'list'> {
+  list: MailLogItem[]
+}
+
 export interface MailLogTemplate {
   id: number
   scene: MailTemplateScene
@@ -146,16 +145,6 @@ export interface MailLogTemplate {
   status: MailCommonStatus
 }
 
-interface MailStatusPayload {
-  status: MailCommonStatus
-}
-
-interface MailDeletePayload {
-  ids: number[]
-}
-
-const BASE = `${ADMIN_API_PREFIX}/mail`
-
 function assertPositiveID(id: Id, label: string): number {
   if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
     throw new Error(`${label} must be a positive integer`)
@@ -163,7 +152,7 @@ function assertPositiveID(id: Id, label: string): number {
   return id
 }
 
-function normalizeIDs(id: Id | Id[], label: string): number[] {
+function normalizeIDs(id: Id | Id[], label: string): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -177,7 +166,9 @@ function normalizeIDs(id: Id | Id[], label: string): number[] {
     ids.push(numericID)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error(`${label}s must not be empty`)
+  return [first, ...ids.slice(1)]
 }
 
 function normalizeLogParams(params: MailLogListParams): MailLogQueryParams {
@@ -205,30 +196,169 @@ function normalizeLogParams(params: MailLogListParams): MailLogQueryParams {
   return query
 }
 
-function deleteLogs(id: Id | Id[]) {
+function isCommonStatus(value: number): value is MailCommonStatus {
+  return value === 1 || value === 2
+}
+
+function isLogStatus(value: number): value is MailLogStatus {
+  return value === 1 || value === 2 || value === 3
+}
+
+function isTemplateScene(value: string): value is MailTemplateScene {
+  return value === 'login' || value === 'forget' || value === 'bind_email' || value === 'change_password'
+}
+
+function isLogScene(value: string): value is MailLogScene {
+  return value === 'test' || isTemplateScene(value)
+}
+
+function isMailRegion(value: string): value is MailRegion {
+  return value === 'ap-guangzhou' || value === 'ap-hongkong'
+}
+
+function toMailConfig(item: components['schemas']['Go_internal_module_mail_ConfigResponse_Output']): MailConfigItem {
+  if (!isCommonStatus(item.status)) throw new Error('mail config status violates the contract')
+  return { ...item, status: item.status }
+}
+
+function toMailTemplate(item: components['schemas']['Go_internal_module_mail_TemplateDTO_Output']): MailTemplateItem {
+  if (!isTemplateScene(item.scene) || !isCommonStatus(item.status)) {
+    throw new Error('mail template violates the contract')
+  }
+  return { ...item, scene: item.scene, status: item.status }
+}
+
+function toMailLogTemplate(item: components['schemas']['Go_internal_module_mail_LogTemplateDTO_Output']): MailLogTemplate {
+  if (!isTemplateScene(item.scene) || !isCommonStatus(item.status)) {
+    throw new Error('mail log template violates the contract')
+  }
+  return { ...item, scene: item.scene, status: item.status }
+}
+
+function toMailLog(item: components['schemas']['Go_internal_module_mail_LogDTO_Output']): MailLogItem {
+  if (!isLogScene(item.scene) || !isLogStatus(item.status)) {
+    throw new Error('mail log violates the contract')
+  }
+  return {
+    ...item,
+    scene: item.scene,
+    status: item.status,
+    template: item.template ? toMailLogTemplate(item.template) : item.template,
+  }
+}
+
+function toMailPageInit(response: components['schemas']['Go_internal_module_mail_PageInitResponse_Output']): MailPageInitResponse {
+  const commonStatus = response.dict.common_status_arr.map((option) => {
+    if (!isCommonStatus(option.value)) throw new Error('mail common status dictionary violates the contract')
+    return { label: option.label, value: option.value as MailCommonStatus }
+  })
+  const scenes = response.dict.mail_scene_arr.map((option) => {
+    if (!isTemplateScene(option.value)) throw new Error('mail scene dictionary violates the contract')
+    return { label: option.label, value: option.value as MailTemplateScene }
+  })
+  const logScenes = response.dict.mail_log_scene_arr.map((option) => {
+    if (!isLogScene(option.value)) throw new Error('mail log scene dictionary violates the contract')
+    return { label: option.label, value: option.value as MailLogScene }
+  })
+  const logStatuses = response.dict.mail_log_status_arr.map((option) => {
+    if (!isLogStatus(option.value)) throw new Error('mail log status dictionary violates the contract')
+    return { label: option.label, value: option.value as MailLogStatus }
+  })
+  const regions = response.dict.mail_region_arr.map((option) => {
+    if (!isMailRegion(option.value)) throw new Error('mail region dictionary violates the contract')
+    return { label: option.label, value: option.value as MailRegion }
+  })
+  return {
+    dict: {
+      common_status_arr: commonStatus,
+      mail_scene_arr: scenes,
+      mail_log_scene_arr: logScenes,
+      mail_log_status_arr: logStatuses,
+      mail_region_arr: regions,
+      default_region: response.dict.default_region,
+      default_endpoint: response.dict.default_endpoint,
+      default_ttl_minutes: response.dict.default_ttl_minutes,
+    },
+  }
+}
+
+async function deleteLogs(id: Id | Id[], options: ExecuteOptions = {}): Promise<void> {
   const ids = normalizeIDs(id, 'mail log id')
   if (ids.length === 1) {
-    return request.delete<void>(`${BASE}/logs/${ids[0]}`)
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_mail_logs_id, {
+      path: { id: ids[0] },
+    }, options)
+    return
   }
-  return request.delete<void, MailDeletePayload>(`${BASE}/logs`, { data: { ids } })
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_mail_logs, { body: { ids } }, options)
+}
+
+const createTemplate = (payload: MailTemplatePayload, options: ExecuteOptions = {}): Promise<{ id: number }> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_mail_templates, { body: payload }, options)
+
+async function updateTemplate(id: Id, payload: MailTemplatePayload, options: ExecuteOptions = {}): Promise<void> {
+  await executeAdminOperation(adminOperations.put_api_admin_v1_mail_templates_id, {
+    path: { id: assertPositiveID(id, 'mail template id') },
+    body: payload,
+  }, options)
+}
+
+async function updateTemplateStatus(id: Id, status: MailCommonStatus, options: ExecuteOptions = {}): Promise<void> {
+  await executeAdminOperation(adminOperations.patch_api_admin_v1_mail_templates_id_status, {
+    path: { id: assertPositiveID(id, 'mail template id') },
+    body: { status },
+  }, options)
 }
 
 export const MailApi = {
-  pageInit: () => request.get<MailPageInitResponse>(`${BASE}/page-init`),
-  config: () => request.get<MailConfigItem>(`${BASE}/config`),
-  saveConfig: (payload: MailConfigFormState) => request.put<void, MailConfigFormState>(`${BASE}/config`, payload),
-  deleteConfig: () => request.delete<void>(`${BASE}/config`),
-  test: (payload: MailTestPayload) => request.post<void, MailTestPayload>(`${BASE}/test`, payload),
-  templates: () => request.get<MailTemplateListResponse>(`${BASE}/templates`),
-  createTemplate: (payload: MailTemplatePayload) => request.post<{ id: number }, MailTemplatePayload>(`${BASE}/templates`, payload),
-  addTemplate: (payload: MailTemplatePayload) => request.post<{ id: number }, MailTemplatePayload>(`${BASE}/templates`, payload),
-  updateTemplate: (id: Id, payload: MailTemplatePayload) => request.put<void, MailTemplatePayload>(`${BASE}/templates/${assertPositiveID(id, 'mail template id')}`, payload),
-  editTemplate: (id: Id, payload: MailTemplatePayload) => request.put<void, MailTemplatePayload>(`${BASE}/templates/${assertPositiveID(id, 'mail template id')}`, payload),
-  updateTemplateStatus: (id: Id, status: MailCommonStatus) => request.patch<void, MailStatusPayload>(`${BASE}/templates/${assertPositiveID(id, 'mail template id')}/status`, { status }),
-  changeTemplateStatus: (id: Id, status: MailCommonStatus) => request.patch<void, MailStatusPayload>(`${BASE}/templates/${assertPositiveID(id, 'mail template id')}/status`, { status }),
-  deleteTemplate: (id: Id) => request.delete<void>(`${BASE}/templates/${assertPositiveID(id, 'mail template id')}`),
-  logs: (params: MailLogListParams) => request.get<PaginatedResponse<MailLogItem>>(`${BASE}/logs`, { params: normalizeLogParams(params) }),
-  log: (id: Id) => request.get<MailLogItem>(`${BASE}/logs/${assertPositiveID(id, 'mail log id')}`),
-  deleteLog: (id: Id) => request.delete<void>(`${BASE}/logs/${assertPositiveID(id, 'mail log id')}`),
-  deleteLogs: (params: { id: Id | Id[] }) => deleteLogs(params.id),
+  pageInit: async (options: ExecuteOptions = {}): Promise<MailPageInitResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_mail_page_init, {}, options)
+    return toMailPageInit(response)
+  },
+  config: async (options: ExecuteOptions = {}): Promise<MailConfigItem> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_mail_config, {}, options)
+    return toMailConfig(response)
+  },
+  async saveConfig(payload: MailConfigFormState, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_mail_config, { body: payload }, options)
+  },
+  async deleteConfig(options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_mail_config, {}, options)
+  },
+  async test(payload: MailTestPayload, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.post_api_admin_v1_mail_test, { body: payload }, options)
+  },
+  templates: async (options: ExecuteOptions = {}): Promise<MailTemplateListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_mail_templates, {}, options)
+    return response.map(toMailTemplate)
+  },
+  createTemplate,
+  addTemplate: createTemplate,
+  updateTemplate,
+  editTemplate: updateTemplate,
+  updateTemplateStatus,
+  changeTemplateStatus: updateTemplateStatus,
+  async deleteTemplate(id: Id, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_mail_templates_id, {
+      path: { id: assertPositiveID(id, 'mail template id') },
+    }, options)
+  },
+  logs: async (params: MailLogListParams, options: ExecuteOptions = {}): Promise<MailLogListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_mail_logs, {
+      query: normalizeLogParams(params),
+    }, options)
+    return { list: response.list.map(toMailLog), page: response.page }
+  },
+  log: async (id: Id, options: ExecuteOptions = {}): Promise<MailLogItem> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_mail_logs_id, {
+      path: { id: assertPositiveID(id, 'mail log id') },
+    }, options)
+    return toMailLog(response)
+  },
+  async deleteLog(id: Id, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_mail_logs_id, {
+      path: { id: assertPositiveID(id, 'mail log id') },
+    }, options)
+  },
+  deleteLogs: (params: { id: Id | Id[] }, options: ExecuteOptions = {}) => deleteLogs(params.id, options),
 }

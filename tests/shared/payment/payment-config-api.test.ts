@@ -7,16 +7,43 @@ afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
 describe('payment configuration API behavior', () => {
   it('executes the documented payment configuration operations', async () => {
-    const harness = installApiClientHarness({})
+    const harness = installApiClientHarness({
+      dict: {
+        certificate_type_arr: [],
+        common_status_arr: [],
+        enabled_method_arr: [],
+        environment_arr: [],
+        provider_arr: [],
+      },
+    })
     cleanups.push(harness.uninstall)
     await PaymentConfigApi.pageInit()
+    harness.respondWith({
+      list: [],
+      page: { current_page: 1, page_size: 20, total: 0, total_page: 0 },
+    })
     await PaymentConfigApi.list({ current_page: 1, page_size: 20 })
     harness.respondWith({ id: 4 })
-    await PaymentConfigApi.create({ provider: 'alipay' } as never)
+    const payload = {
+      provider: 'alipay' as const,
+      code: 'alipay-main',
+      name: 'Alipay main',
+      app_id: 'app-id',
+      app_cert_path: '/certs/app.pem',
+      platform_cert_path: '/certs/platform.pem',
+      root_cert_path: '/certs/root.pem',
+      notify_url: 'https://example.test/payment/callback',
+      environment: 'sandbox' as const,
+      enabled_methods: ['web'] as const,
+      status: 1 as const,
+    }
+    await PaymentConfigApi.create(payload)
     harness.respondWith({})
-    await PaymentConfigApi.update({ id: 4, provider: 'alipay' } as never)
+    await PaymentConfigApi.update({ id: 4, ...payload })
     await PaymentConfigApi.changeStatus(4, 1)
+    harness.respondWith({ checks: [], message: 'ok', ok: true })
     await PaymentConfigApi.test(4)
+    harness.respondWith({})
     await PaymentConfigApi.deleteOne(4)
 
     expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
@@ -33,7 +60,7 @@ describe('payment configuration API behavior', () => {
   it('rejects invalid resource identities without an HTTP request', async () => {
     const harness = installApiClientHarness()
     cleanups.push(harness.uninstall)
-    expect(() => PaymentConfigApi.deleteOne(0)).toThrow(/positive/i)
+    await expect(PaymentConfigApi.deleteOne(0)).rejects.toThrow(/positive/i)
     expect(harness.requests).toEqual([])
   })
 })

@@ -8,7 +8,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import type { UserLoginLogItem } from '@/types/user'
 
 const props = defineProps<{
-  userId: string | number
+  userId: number
 }>()
 
 const { t } = useI18n()
@@ -24,7 +24,7 @@ const getList = async () => {
       page_size: 5,
       user_id: props.userId,
     })
-    logList.value = data.list || []
+    logList.value = data.list
   } finally {
     loading.value = false
   }

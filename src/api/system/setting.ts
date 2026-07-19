@@ -1,6 +1,11 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id } from '@/types/common'
 
 export type SystemSettingValueType = 1 | 2 | 3 | 4
 export type SystemSettingStatus = 1 | 2
@@ -18,44 +23,22 @@ export interface SystemSettingListParams {
   status?: SystemSettingStatus | ''
 }
 
-interface SystemSettingListQueryParams {
-  current_page: number
-  page_size: number
-  key?: string
-  status?: SystemSettingStatus
-}
+type SystemSettingListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_system_settings'>['query']>
 
-export interface SystemSettingItem {
-  id: number
-  setting_key: string
-  setting_value: string
+type SystemSettingContractItem = components['schemas']['Go_internal_module_systemsetting_ListItem_Output']
+export interface SystemSettingItem extends Omit<SystemSettingContractItem, 'value_type' | 'status'> {
   value_type: SystemSettingValueType
-  value_type_name: string
-  remark: string
   status: SystemSettingStatus
-  status_name: string
-  is_del: number
-  created_at: string
-  updated_at: string
+}
+export interface SystemSettingListResponse extends Omit<components['schemas']['Go_internal_module_systemsetting_ListResponse_Output'], 'list'> {
+  list: SystemSettingItem[]
 }
 
-export interface SystemSettingAddParams {
-  key: string
-  value: string
-  type: SystemSettingValueType
-  remark?: string
-}
+export type SystemSettingAddParams = NonNullable<AdminOperationInput<'post_api_admin_v1_system_settings'>['body']>
 
-export interface SystemSettingCreateResponse {
-  id: number
-}
+export type SystemSettingCreateResponse = components['schemas']['Go_internal_server_adminroute_IDData_Output']
 
-export interface SystemSettingEditParams {
-  id: number
-  value: string
-  type: SystemSettingValueType
-  remark?: string
-}
+export type SystemSettingEditParams = NonNullable<AdminOperationInput<'put_api_admin_v1_system_settings_id'>['body']> & { id: number }
 
 export interface SystemSettingBatchDeletePayload {
   ids: number[]
@@ -63,10 +46,6 @@ export interface SystemSettingBatchDeletePayload {
 
 export interface SystemSettingStatusPayload {
   id: Id
-  status: SystemSettingStatus
-}
-
-interface SystemSettingStatusBody {
   status: SystemSettingStatus
 }
 
@@ -86,7 +65,7 @@ function normalizeListParams(params: SystemSettingListParams): SystemSettingList
   return query
 }
 
-function normalizeSystemSettingIDs(id: Id | Id[]): number[] {
+function normalizeSystemSettingIDs(id: Id | Id[]): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -102,30 +81,64 @@ function normalizeSystemSettingIDs(id: Id | Id[]): number[] {
     ids.push(value)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error('system setting ids must not be empty')
+  return [first, ...ids.slice(1)]
 }
 
-const BASE = `${ADMIN_API_PREFIX}/system-settings`
+function isValueType(value: number): value is SystemSettingValueType {
+  return value === 1 || value === 2 || value === 3 || value === 4
+}
 
-const pageInit = () => request.get<SystemSettingInitResponse>(`${BASE}/page-init`)
-const create = (params: SystemSettingAddParams) => request.post<SystemSettingCreateResponse, SystemSettingAddParams>(BASE, params)
-const update = (params: SystemSettingEditParams) => {
+function toSystemSettingItem(item: SystemSettingContractItem): SystemSettingItem {
+  if (!isValueType(item.value_type) || (item.status !== 1 && item.status !== 2)) {
+    throw new Error('system setting list item violates the editable contract')
+  }
+  return { ...item, value_type: item.value_type, status: item.status }
+}
+
+const pageInit = async (options: ExecuteOptions = {}): Promise<SystemSettingInitResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_system_settings_page_init, {}, options)
+  const values = response.dict.system_setting_value_type_arr.map((option) => {
+    if (!isValueType(option.value)) throw new Error('system setting type dictionary violates the editable contract')
+    return { label: option.label, value: option.value }
+  })
+  return { dict: { system_setting_value_type_arr: values } }
+}
+const create = (params: SystemSettingAddParams, options: ExecuteOptions = {}): Promise<SystemSettingCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_system_settings, { body: params }, options)
+const update = async (params: SystemSettingEditParams, options: ExecuteOptions = {}): Promise<void> => {
   const { id, ...body } = params
-  return request.put<void, Omit<SystemSettingEditParams, 'id'>>(`${BASE}/${id}`, body)
+  await executeAdminOperation(adminOperations.put_api_admin_v1_system_settings_id, {
+    path: { id: normalizeSystemSettingIDs(id)[0] },
+    body,
+  }, options)
 }
-const deleteOne = (params: { id: Id }) => request.delete<void>(`${BASE}/${normalizeSystemSettingIDs(params.id)[0]}`)
-const deleteBatch = (params: SystemSettingBatchDeletePayload) => {
-  const body: SystemSettingBatchDeletePayload = { ids: normalizeSystemSettingIDs(params.ids) }
-  return request.delete<void, SystemSettingBatchDeletePayload>(BASE, { data: body })
+const deleteOne = async (params: { id: Id }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_system_settings_id, {
+    path: { id: normalizeSystemSettingIDs(params.id)[0] },
+  }, options)
 }
-const changeStatus = (params: SystemSettingStatusPayload) => {
-  const body: SystemSettingStatusBody = { status: params.status }
-  return request.patch<void, SystemSettingStatusBody>(`${BASE}/${normalizeSystemSettingIDs(params.id)[0]}/status`, body)
+const deleteBatch = async (params: SystemSettingBatchDeletePayload, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_system_settings, {
+    body: { ids: normalizeSystemSettingIDs(params.ids) },
+  }, options)
+}
+const changeStatus = async (params: SystemSettingStatusPayload, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.patch_api_admin_v1_system_settings_id_status, {
+    path: { id: normalizeSystemSettingIDs(params.id)[0] },
+    body: { status: params.status },
+  }, options)
 }
 
 export const SystemSettingApi = {
   pageInit,
-  list: (params: SystemSettingListParams) => request.get<PaginatedResponse<SystemSettingItem>>(BASE, { params: normalizeListParams(params) }),
+  list: async (params: SystemSettingListParams, options: ExecuteOptions = {}): Promise<SystemSettingListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_system_settings, {
+      query: normalizeListParams(params),
+    }, options)
+    return { list: response.list.map(toSystemSettingItem), page: response.page }
+  },
   create,
   update,
   deleteOne,

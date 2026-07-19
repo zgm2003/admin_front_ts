@@ -88,7 +88,7 @@ async function load() {
   try {
     const [initData, listData] = await Promise.all([SmsApi.pageInit(), SmsApi.templates()])
     dict.value = normalizeSmsDict(initData.dict)
-    templates.value = listData.list
+    templates.value = listData
   } finally {
     loading.value = false
   }

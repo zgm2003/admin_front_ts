@@ -21,11 +21,23 @@ const sexArr = ref<DictOption<number>[]>([])
 const addressTree = ref<AddressTreeNode[]>([])
 const verifyTypeArr = ref<DictOption<'password' | 'code'>[]>([])
 const loading = ref(false)
+
+function parseUserID(value: number | string | null | undefined): number {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value
+  if (typeof value === 'string' && /^\d+$/.test(value)) {
+    const parsed = Number(value)
+    if (Number.isSafeInteger(parsed) && parsed > 0) return parsed
+  }
+  throw new Error('profile route user id must be a positive integer')
+}
+
 const userId = computed(() => {
   const queryUserID = Array.isArray(route.query.user_id) ? route.query.user_id[0] : route.query.user_id
-  return queryUserID || String(userStore.user_id)
+  if (queryUserID !== undefined && queryUserID !== null && queryUserID !== '') {
+    return parseUserID(queryUserID)
+  }
+  return parseUserID(userStore.user_id)
 })
-const userIdForLog = computed(() => String(userId.value))
 
 const userinfo = ref<UserPersonalInfo>({
   user_id: 0,
@@ -51,9 +63,9 @@ const initPersonal = async () => {
   try {
     const data = await UsersApi.initPersonal({ user_id: userId.value })
     userinfo.value = data.profile
-    addressTree.value = data.dict.auth_address_tree || []
-    sexArr.value = data.dict.sexArr || []
-    verifyTypeArr.value = data.dict.verify_type_arr || []
+    addressTree.value = data.dict.auth_address_tree
+    sexArr.value = data.dict.sexArr
+    verifyTypeArr.value = data.dict.verify_type_arr
   } finally {
     loading.value = false
   }
@@ -117,14 +129,14 @@ onMounted(() => {
               name="loginLog"
               lazy
             >
-              <LoginLog :user-id="userIdForLog" />
+              <LoginLog :user-id="userId" />
             </el-tab-pane>
             <el-tab-pane
               :label="t('personal.tabs.operationLog')"
               name="operationLog"
               lazy
             >
-              <OperationLog :user-id="userIdForLog" />
+              <OperationLog :user-id="userId" />
             </el-tab-pane>
           </el-tabs>
         </el-card>

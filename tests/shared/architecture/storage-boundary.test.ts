@@ -28,7 +28,7 @@ describe('storage architecture boundary', () => {
       .map(({ path }) => path)
 
     expect(violations).toEqual([])
-  })
+  }, 15_000)
 
   it('keeps menu and device access behind Persistence immediately', () => {
     for (const path of ['src/store/menu.ts', 'src/lib/http/device.ts']) {

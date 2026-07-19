@@ -13,6 +13,7 @@ import {
   type AiToolItem,
   type AiToolMutationParams,
   type AiToolRiskLevel,
+  type AiToolStatus,
   type JsonObject,
 } from '@/api/ai/tools'
 
@@ -25,7 +26,7 @@ interface ToolForm {
   result_schema_text: string
   risk_level: AiToolRiskLevel
   timeout_ms: number
-  status: number
+  status: AiToolStatus
 }
 
 interface Props {

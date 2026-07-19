@@ -97,7 +97,7 @@ async function edit(row: AiProviderItem) {
   currentInitial.value = {
     id: row.id,
     name: row.name,
-    driver: row.driver ?? row.engine_type,
+    driver: row.engine_type,
     base_url: row.base_url,
     api_key: '',
     model_ids: models.map((model) => model.model_id),

@@ -9,7 +9,10 @@ import {
   type PermissionListParams,
   type PermissionEditPayload,
   type PermissionMutationPayload,
+  type PermissionPlatform,
+  type PermissionType,
   type PermissionTreeNode,
+  isPermissionPlatform,
 } from '@/api/permission/permission'
 import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
 import { applyParentSelectableState, normalizePermissionParentId } from '../helpers'
@@ -21,12 +24,12 @@ export interface PermissionFormState {
   icon: string
   path: string
   component: string
-  type: number
+  type: PermissionType
   code: string
   i18n_key: string
   sort: number
-  show_menu: number
-  platform: string
+  show_menu: 1 | 2
+  platform: PermissionPlatform
 }
 
 export interface PermissionHealthWarning {
@@ -36,7 +39,7 @@ export interface PermissionHealthWarning {
   count: number
 }
 
-export function createDefaultPermissionForm(platform: string): PermissionFormState {
+export function createDefaultPermissionForm(platform: PermissionPlatform): PermissionFormState {
   return {
     id: '',
     name: '',
@@ -53,7 +56,7 @@ export function createDefaultPermissionForm(platform: string): PermissionFormSta
   }
 }
 
-function filterTreeByPlatform(tree: PermissionTreeNode[], platform: string): PermissionTreeNode[] {
+function filterTreeByPlatform(tree: PermissionTreeNode[], platform: PermissionPlatform): PermissionTreeNode[] {
   return tree
     .filter((node) => node.platform === platform)
     .map((node) => ({
@@ -91,7 +94,7 @@ export function usePermissionDefinitionPage() {
   const permissionTree = ref<PermissionInitResponse['dict']['permission_tree']>([])
   const permissionTypeArr = ref<PermissionInitResponse['dict']['permission_type_arr']>([])
   const platformOptions = ref<PermissionInitResponse['dict']['permission_platform_arr']>([])
-  const activePlatform = shallowRef<string>(PlatformEnum.ADMIN)
+  const activePlatform = shallowRef<PermissionPlatform>(PlatformEnum.ADMIN)
 
   const dialogVisible = shallowRef(false)
   const dialogMode = shallowRef<'add' | 'edit'>('add')
@@ -182,7 +185,9 @@ export function usePermissionDefinitionPage() {
 
   function openAddChild(current: PermissionListItem) {
     dialogMode.value = 'add'
-    const nextType = Math.min(PermissionTypeEnum.BUTTON, current.type + 1)
+    const nextType: PermissionType = current.type === PermissionTypeEnum.DIR
+      ? PermissionTypeEnum.PAGE
+      : PermissionTypeEnum.BUTTON
     form.value = {
       ...createDefaultPermissionForm(activePlatform.value),
       parent_id: current.id,
@@ -316,6 +321,9 @@ export function usePermissionDefinitionPage() {
 
   function switchPlatform(platform?: string) {
     if (platform) {
+      if (!isPermissionPlatform(platform)) {
+        throw new Error('selected permission platform violates the contract')
+      }
       activePlatform.value = platform
     }
     selectedIds.value = []

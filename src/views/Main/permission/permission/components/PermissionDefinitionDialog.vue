@@ -5,8 +5,9 @@ import { Setting } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { CommonEnum, PermissionTypeEnum, PlatformEnum } from '@/enums'
-import type { PermissionInitResponse, PermissionTreeNode } from '@/api/permission/permission'
+import type { PermissionInitResponse } from '@/api/permission/permission'
 import type { PermissionFormState } from '../composables/usePermissionDefinitionPage'
+import type { PermissionParentTreeNode } from '../helpers'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const form = defineModel<PermissionFormState>('form', { required: true })
@@ -15,7 +16,7 @@ const props = defineProps<{
   mode: 'add' | 'edit'
   isMobile: boolean
   permissionTypes: PermissionInitResponse['dict']['permission_type_arr']
-  parentTree: PermissionTreeNode[]
+  parentTree: PermissionParentTreeNode[]
 }>()
 
 const emit = defineEmits<{

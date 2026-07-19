@@ -11,6 +11,7 @@ import {
   type AiKnowledgeBaseItem,
   type AiKnowledgeBaseMutationParams,
   type AiKnowledgeInitResponse,
+  type AiKnowledgeStatus,
 } from '@/api/ai/knowledge'
 
 interface BaseForm {
@@ -23,7 +24,7 @@ interface BaseForm {
   default_top_k: number
   default_min_score: number
   default_max_context_chars: number
-  status: number
+  status: AiKnowledgeStatus
 }
 
 interface Props {

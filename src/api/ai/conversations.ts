@@ -38,9 +38,10 @@ function normalizeListParams(params: AiConversationListParams = {}): AiConversat
 }
 
 function positiveID(value: Id | number): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error('AI conversation id must be a positive integer')
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error('AI conversation id must be a positive integer')
+  }
+  return value
 }
 
 async function deleteConversation(id: number, options: ExecuteOptions): Promise<void> {

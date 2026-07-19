@@ -1,9 +1,9 @@
 {
-  "backend_commit": "7898d84e9882a9c1fd3b58f0886c862cfbd7de07",
+  "backend_commit": "aff99f2c8a949f90c39f1149308591b8b5f1f51b",
   "bundle_version": "admin-2026-07-15.1",
-  "manifest_sha256": "fd7878e7d401426ebaa2e5acda08f6c1c98c2613ff077408f80575138f8d34e9",
+  "manifest_sha256": "64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295",
   "artifacts": {
-    "openapi.json": "dcc3f0569b5be36c250acac7a5f550f0e74f4af51cfe5115b83f9fe4d20b1ea8",
+    "openapi.json": "3db932285afe4325315e7263fe81245334197e6c8385596901728e7d896ec509",
     "permissions.json": "803c5f499c26a93ecd7950e24e52a30ff7e21b6ada3fb2938b199b39bb07e49a",
     "realtime/envelope.schema.json": "16837ed458b0b63f4ec1e28d8ad19d91b2bbde4d610597cf115ce86f7564c903",
     "realtime/events.schema.json": "ad7c4dd5fba930074be079a4d917fd51f7ac24826379279599d182aecb47eddf",

@@ -39,9 +39,10 @@ export interface AiMessageCancelParams {
 type AiMessageListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_conversations_id_messages'>['query']>
 
 function positiveID(value: Id | number, label = 'AI message id'): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error(`${label} must be a positive integer`)
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer`)
+  }
+  return value
 }
 
 function normalizeListParams(params: AiMessageListParams): AiMessageListQueryParams {

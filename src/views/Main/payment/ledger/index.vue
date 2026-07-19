@@ -4,9 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useTable } from '@/components/Table'
-import { WalletApi, type WalletDirection, type WalletLedgerPageInitResponse, type WalletSourceType, type WalletTransactionItem, type WalletTransactionListParams } from '@/api/wallet'
+import { WalletApi, type WalletDirection, type WalletLedgerPageInitResponse, type WalletTransactionItem, type WalletTransactionListParams } from '@/api/wallet'
 import type { SearchField, SearchFormModel } from '@/components/Search/types'
-import type { DictOption } from '@/types/common'
 
 type WalletLedgerSearchForm = WalletTransactionListParams & SearchFormModel & {
   user_id_text: string
@@ -31,20 +30,9 @@ const searchForm = ref<WalletLedgerSearchForm>({
   dateRange: [],
 })
 
-const directionOptions = computed<DictOption<WalletDirection>[]>(() => (
-  dict.value.direction_arr.length > 0 ? dict.value.direction_arr : [
-    { label: t('wallet.directionIn'), value: 'in' },
-    { label: t('wallet.directionOut'), value: 'out' },
-  ]
-))
+const directionOptions = computed(() => dict.value.direction_arr)
 
-const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => (
-  dict.value.source_type_arr.length > 0 ? dict.value.source_type_arr : [
-    { label: t('wallet.sourceRecharge'), value: 'recharge' },
-    { label: t('wallet.sourceAiGenerate'), value: 'ai_generate' },
-    { label: t('wallet.sourceAiRefund'), value: 'ai_refund' },
-  ]
-))
+const sourceTypeOptions = computed(() => dict.value.source_type_arr)
 
 const apiSearchForm = computed<WalletTransactionListParams>(() => {
   const [dateStart, dateEnd] = searchForm.value.dateRange

@@ -14,6 +14,7 @@ import {
   type AiKnowledgeDocumentItem,
   type AiKnowledgeIndexStatus,
   type AiKnowledgeInitResponse,
+  type AiKnowledgeStatus,
 } from '@/api/ai/knowledge'
 import KnowledgeDocumentFormDialog from '../KnowledgeDocumentFormDialog/index.vue'
 import KnowledgeChunkDialog from '../KnowledgeChunkDialog/index.vue'
@@ -38,7 +39,7 @@ const documents = ref<AiKnowledgeDocumentItem[]>([])
 const page = ref<PageInfo>({ current_page: 1, page_size: 20, total: 0, total_page: 0 })
 const searchForm = ref({
   title: '',
-  status: '' as number | '',
+  status: '' as AiKnowledgeStatus | '',
 })
 
 const formVisible = shallowRef(false)
@@ -143,7 +144,7 @@ async function reindex(row: AiKnowledgeDocumentItem) {
   await loadDocuments()
 }
 
-async function changeDocumentStatus(row: AiKnowledgeDocumentItem, status: number) {
+async function changeDocumentStatus(row: AiKnowledgeDocumentItem, status: AiKnowledgeStatus) {
   try {
     await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
       type: 'warning',

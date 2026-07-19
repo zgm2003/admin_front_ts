@@ -1,4 +1,4 @@
-import type { DictOption, Id, PaginatedResponse } from './common'
+import type { DictOption, Id } from './common'
 import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from './captcha'
 import type { components } from '@/modules/http/generated/admin'
 
@@ -98,7 +98,7 @@ export interface UserPersonalInfo {
   role_name: string
   address_id: number
   detail_address: string
-  sex: number
+  sex: 0 | 1 | 2
   birthday: string
   bio: string
   is_self: number
@@ -119,7 +119,7 @@ export interface UserPersonalInitResponse {
 export interface UserPersonalEditParams {
   username: string
   avatar?: string
-  sex: number
+  sex: 0 | 1 | 2
   birthday?: string | null
   address_id: number
   detail_address?: string
@@ -195,93 +195,42 @@ export interface UserSessionListParams {
   status?: UserSessionStatus
 }
 
-export interface UserSessionPageInitResponse {
-  dict: {
-    platformArr: DictOption<string>[]
-    statusArr: DictOption<UserSessionStatus>[]
-  }
-}
+export type UserSessionPageInitResponse = components['schemas']['Go_internal_module_auth_SessionPageInitResponse_Output']
 
-export interface UserSessionItem {
-  id: number
-  user_id: number
-  username: string
-  platform: string
-  platform_name: string
-  device_id: string
-  ip: string
-  ua: string
-  last_seen_at: string
-  created_at: string
-  expires_at: string
-  refresh_expires_at: string
-  revoked_at: string | null
-  status: UserSessionStatus
-}
+export type UserSessionItem = components['schemas']['Go_internal_module_auth_SessionListItem_Output']
 
-export interface UserSessionStats {
-  total_active: number
-  platform_distribution: Record<string, number> & {
-    admin: number
-    app: number
-  }
-}
+export type UserSessionStats = components['schemas']['Go_internal_module_auth_SessionStatsResponse_Output']
 
 export interface UserSessionKickParams {
   id: number
 }
 
-export interface UserSessionKickResponse {
-  id: number
-  revoked: boolean
-}
+export type UserSessionKickResponse = components['schemas']['Go_internal_module_auth_SessionRevokeResponse_Output']
 
 export interface UserSessionBatchKickParams {
   ids: number[]
 }
 
-export interface UserSessionBatchKickResponse {
-  count: number
-  skipped_current: number
-  skipped_already_revoked: number
-}
+export type UserSessionBatchKickResponse = components['schemas']['Go_internal_module_auth_SessionBatchRevokeResponse_Output']
 
-export interface UserLoginLogItem {
-  id: number
-  user_name: string
-  login_account: string
-  login_type: UserLoginType
-  login_type_name: string
-  platform: string
-  platform_name: string
-  ip: string
-  ua: string
-  is_success: number
-  reason: string
-  created_at: string
-}
+export type UserLoginLogItem = components['schemas']['Go_internal_module_auth_LoginLogListItem_Output']
 
 export interface UserLoginLogListParams {
   page_size: number
   current_page: number
-  user_id?: number | string
+  user_id?: number | ''
   login_account?: string
-  login_type?: UserLoginType | ''
+  login_type?: string
   ip?: string
   platform?: string
-  is_success?: number | string
+  is_success?: number | ''
   date?: string[]
 }
 
-export interface UserLoginLogInitResponse {
-  dict: {
-    platformArr: DictOption<string>[]
-    login_type_arr: DictOption<UserLoginType>[]
-  }
-}
+export type UserLoginLogInitResponse = components['schemas']['Go_internal_module_auth_LoginLogPageInitResponse_Output']
 
 export type UserListResponse = components['schemas']['UserListResult']
-export type UserSessionListResponse = PaginatedResponse<UserSessionItem>
-export type UserLoginLogListResponse = PaginatedResponse<UserLoginLogItem>
+export type UserSessionListResponse = components['schemas']['Go_internal_module_auth_SessionListResponse_Output']
+export type UserLoginLogListResponse = components['schemas']['Go_internal_module_auth_LoginLogListResponse_Output']
 
 export type UserIdentity = Id

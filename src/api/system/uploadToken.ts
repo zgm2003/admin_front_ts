@@ -1,15 +1,15 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 
 export type UploadProvider = 'cos'
 export type UploadFileKind = 'image' | 'file'
 
-export interface UploadTokenRequest {
-  folder: string
-  file_name: string
-  file_size: number
-  file_kind: UploadFileKind
-}
+export type UploadTokenRequest = NonNullable<AdminOperationInput<'post_api_admin_v1_upload_tokens'>['body']>
 
 export interface UploadCredentials {
   tmp_secret_id: string
@@ -23,21 +23,9 @@ export interface UploadRule {
   file_exts: string[]
 }
 
-export interface UploadTokenResponse {
-  provider: UploadProvider
-  bucket: string
-  region: string
-  key: string
-  upload_path: string
-  bucket_domain: string | null
-  credentials: UploadCredentials
-  start_time: number
-  expired_time: number
-  rule: UploadRule
-}
-
-const BASE = `${ADMIN_API_PREFIX}/upload-tokens`
+export type UploadTokenResponse = components['schemas']['Go_internal_module_uploadtoken_CreateResponse_Output']
 
 export const UploadTokenApi = {
-  create: (params: UploadTokenRequest) => request.post<UploadTokenResponse, UploadTokenRequest>(BASE, params),
+  create: (params: UploadTokenRequest, options: ExecuteOptions = {}): Promise<UploadTokenResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_upload_tokens, { body: params }, options),
 }

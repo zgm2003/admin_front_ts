@@ -1,65 +1,27 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 
 export type PaymentRechargeStatus = 'pending' | 'paying' | 'paid' | 'credited' | 'closed' | 'failed'
 export type PaymentRechargePayMethod = 'web' | 'h5'
 export type PaymentRechargeProvider = 'alipay'
 
-export interface WalletSummary {
-  balance_cents: number
-  balance_text: string
-  total_recharge_cents: number
-  total_recharge_text: string
-  total_consume_cents: number
-  total_consume_text: string
-}
+export type WalletSummary = components['schemas']['Go_internal_module_payment_WalletSummary_Output']
 
-export interface RechargePackageItem {
-  code: string
-  name: string
-  amount_cents: number
-  amount_text: string
-  badge: string
-}
+export type RechargePackageItem = components['schemas']['Go_internal_module_payment_RechargePackageItem_Output']
 
-export interface RechargePaymentMethod {
-  provider: PaymentRechargeProvider
-  label: string
-  enabled: boolean
-}
+export type RechargePaymentMethod = components['schemas']['Go_internal_module_payment_RechargePaymentMethod_Output']
 
-export interface PaymentRechargeListItem {
-  id: number
-  recharge_no: string
-  payment_order_no: string
-  package_code: string
-  package_name: string
-  amount_cents: number
-  amount_text: string
-  status: PaymentRechargeStatus
-  status_text: string
-  pay_url: string
-  paid_at: string
-  credited_at: string
-  created_at: string
-  updated_at: string
-}
+export type PaymentRechargeListItem = components['schemas']['Go_internal_module_payment_RechargeListItem_Output']
+export type PaymentRechargeListResponse = components['schemas']['Go_internal_module_payment_RechargeListResponse_Output']
 
-export interface PaymentRechargeDetail extends PaymentRechargeListItem {
-  failure_reason: string
-  alipay_trade_no: string
-}
+export type PaymentRechargeDetail = components['schemas']['Go_internal_module_payment_RechargeDetail_Output']
 
-export interface PaymentRechargeInitResponse {
-  wallet: WalletSummary
-  packages: RechargePackageItem[]
-  payment_method: RechargePaymentMethod
-  dict: {
-    status_arr: DictOption<PaymentRechargeStatus>[]
-  }
-  recent: PaymentRechargeListItem[]
-}
+export type PaymentRechargeInitResponse = components['schemas']['Go_internal_module_payment_RechargePageInitResponse_Output']
 
 export interface PaymentRechargeListParams {
   current_page: number
@@ -76,13 +38,9 @@ export interface PaymentRechargeCreatePayload {
   return_url: string
 }
 
-export interface PaymentRechargePayResponse {
-  id: number
-  recharge_no: string
-  payment_order_no: string
-  status: PaymentRechargeStatus
-  pay_url: string
-}
+export type PaymentRechargePayResponse = components['schemas']['Go_internal_module_payment_RechargePayResponse_Output']
+
+type PaymentRechargeListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_payment_recharges'>['query']>
 
 
 function positiveID(value: number): number {
@@ -91,9 +49,27 @@ function positiveID(value: number): number {
 }
 
 export const PaymentRechargeApi = {
-  pageInit: () => request.get<PaymentRechargeInitResponse>(`${ADMIN_API_PREFIX}/payment/recharges/page-init`),
-  list: (params: PaymentRechargeListParams) => request.get<PaginatedResponse<PaymentRechargeListItem>>(`${ADMIN_API_PREFIX}/payment/recharges`, { params }),
-  detail: (id: number) => request.get<PaymentRechargeDetail>(`${ADMIN_API_PREFIX}/payment/recharges/${positiveID(id)}`),
-  create: (payload: PaymentRechargeCreatePayload) => request.post<PaymentRechargePayResponse, PaymentRechargeCreatePayload>(`${ADMIN_API_PREFIX}/payment/recharges`, payload),
-  pay: (id: number) => request.post<PaymentRechargePayResponse>(`${ADMIN_API_PREFIX}/payment/recharges/${positiveID(id)}/pay`),
+  pageInit: (options: ExecuteOptions = {}): Promise<PaymentRechargeInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_payment_recharges_page_init, {}, options),
+  list: (params: PaymentRechargeListParams, options: ExecuteOptions = {}): Promise<PaymentRechargeListResponse> => {
+    const query: PaymentRechargeListQuery = {
+      current_page: params.current_page,
+      page_size: params.page_size,
+    }
+    if (params.keyword) query.keyword = params.keyword
+    if (params.status) query.status = params.status
+    if (params.date_start) query.date_start = params.date_start
+    if (params.date_end) query.date_end = params.date_end
+    return executeAdminOperation(adminOperations.get_api_admin_v1_payment_recharges, { query }, options)
+  },
+  detail: (id: number, options: ExecuteOptions = {}): Promise<PaymentRechargeDetail> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_payment_recharges_id, {
+      path: { id: positiveID(id) },
+    }, options),
+  create: (payload: PaymentRechargeCreatePayload, options: ExecuteOptions = {}): Promise<PaymentRechargePayResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_payment_recharges, { body: payload }, options),
+  pay: (id: number, options: ExecuteOptions = {}): Promise<PaymentRechargePayResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_payment_recharges_id_pay, {
+      path: { id: positiveID(id) },
+    }, options),
 }

@@ -1,11 +1,12 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 import type { UserLoginLogInitResponse, UserLoginLogListParams, UserLoginLogListResponse } from '@/types/user'
 
-type UserLoginLogQueryParams = Omit<UserLoginLogListParams, 'date'> & {
-  date_start?: string
-  date_end?: string
-}
+type UserLoginLogQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_users_login_logs'>['query']>
 
 function normalizeLoginLogListParams(params: UserLoginLogListParams): UserLoginLogQueryParams {
   const query: UserLoginLogQueryParams = {
@@ -14,6 +15,9 @@ function normalizeLoginLogListParams(params: UserLoginLogListParams): UserLoginL
   }
 
   if (params.user_id !== undefined && params.user_id !== '') {
+    if (typeof params.user_id !== 'number' || !Number.isInteger(params.user_id) || params.user_id <= 0) {
+      throw new Error('login log user id must be a positive integer')
+    }
     query.user_id = params.user_id
   }
   const loginAccount = params.login_account?.trim()
@@ -31,6 +35,9 @@ function normalizeLoginLogListParams(params: UserLoginLogListParams): UserLoginL
     query.platform = params.platform
   }
   if (params.is_success !== undefined && params.is_success !== '') {
+    if (params.is_success !== 0 && params.is_success !== 1) {
+      throw new Error('login log success filter must be 0 or 1')
+    }
     query.is_success = params.is_success
   }
   if (Array.isArray(params.date) && params.date.length >= 2 && params.date[0] && params.date[1]) {
@@ -41,9 +48,11 @@ function normalizeLoginLogListParams(params: UserLoginLogListParams): UserLoginL
 }
 
 export const UsersLoginLogApi = {
-  pageInit: () =>
-    request.get<UserLoginLogInitResponse>(`${ADMIN_API_PREFIX}/users/login-logs/page-init`),
+  pageInit: (options: ExecuteOptions = {}): Promise<UserLoginLogInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_users_login_logs_page_init, {}, options),
 
-  list: (params: UserLoginLogListParams) =>
-    request.get<UserLoginLogListResponse>(`${ADMIN_API_PREFIX}/users/login-logs`, { params: normalizeLoginLogListParams(params) }),
+  list: (params: UserLoginLogListParams, options: ExecuteOptions = {}): Promise<UserLoginLogListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_users_login_logs, {
+      query: normalizeLoginLogListParams(params),
+    }, options),
 }

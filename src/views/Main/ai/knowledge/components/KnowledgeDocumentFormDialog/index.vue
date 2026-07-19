@@ -13,6 +13,7 @@ import {
   type AiKnowledgeDocumentMutationParams,
   type AiKnowledgeInitResponse,
   type AiKnowledgeSourceType,
+  type AiKnowledgeStatus,
 } from '@/api/ai/knowledge'
 
 interface DocumentForm {
@@ -21,7 +22,7 @@ interface DocumentForm {
   source_type: AiKnowledgeSourceType
   source_ref: string
   content: string
-  status: number
+  status: AiKnowledgeStatus
 }
 
 interface Props {

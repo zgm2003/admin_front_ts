@@ -1,6 +1,12 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+  type AdminOperationOutput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id } from '@/types/common'
 
 export type ClientPlatform = 'windows-x86_64' | 'darwin-x86_64'
 export type CommonYesNo = 1 | 2
@@ -18,76 +24,34 @@ export interface ClientVersionListParams {
   platform?: ClientPlatform | ''
 }
 
-interface ClientVersionListQueryParams {
-  current_page: number
-  page_size: number
-  platform?: ClientPlatform
-}
+type ClientVersionListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_client_versions'>['query']>
 
-export interface ClientVersionItem {
-  id: number
-  version: string
-  notes: string
-  file_url: string
-  signature: string
+type ClientVersionContractItem = components['schemas']['Go_internal_module_clientversion_ListItem_Output']
+export interface ClientVersionItem extends Omit<ClientVersionContractItem, 'platform' | 'is_latest' | 'force_update'> {
   platform: ClientPlatform
-  platform_name: string
-  file_size: number
-  file_size_text: string
   is_latest: CommonYesNo
-  is_latest_name: string
-  force_update: CommonYesNo
-  force_update_name: string
-  created_at: string
-  updated_at: string
-}
-
-export interface ClientVersionForm {
-  id?: number
-  version: string
-  notes?: string
-  file_url: string
-  signature: string
-  platform: ClientPlatform
-  file_size: number
   force_update: CommonYesNo
 }
-
-export interface ClientVersionCreateResponse {
-  id: number
+export interface ClientVersionListResponse extends Omit<components['schemas']['Go_internal_module_clientversion_ListResponse_Output'], 'list'> {
+  list: ClientVersionItem[]
 }
+
+type ClientVersionSaveBody = NonNullable<AdminOperationInput<'post_api_admin_v1_client_versions'>['body']>
+export type ClientVersionForm = ClientVersionSaveBody & { id?: number }
+
+export type ClientVersionCreateResponse = components['schemas']['Go_internal_server_adminroute_IDData_Output']
 
 export interface ClientVersionManifestPlatform {
   url: string
   signature: string
 }
 
-export interface ClientVersionUpdateJsonManifest {
-  version: string
-  notes: string
-  pub_date: string
-  platforms: Partial<Record<ClientPlatform, ClientVersionManifestPlatform>>
-}
+export type ClientVersionUpdateJsonManifest = components['schemas']['Go_internal_module_clientversion_ManifestPayload_Output']
 
 export type ClientVersionUpdateJsonResponse = ClientVersionUpdateJsonManifest | []
 
-export interface ClientVersionCurrentCheckResponse {
-  force_update: boolean
-}
-
-interface ClientVersionSaveBody {
-  version: string
-  notes?: string
-  file_url: string
-  signature: string
-  platform: ClientPlatform
-  file_size: number
-  force_update: CommonYesNo
-}
-
-interface ClientVersionForceUpdateBody {
-  force_update: CommonYesNo
-}
+export type ClientVersionCurrentCheckResponse = components['schemas']['Go_internal_module_clientversion_CurrentCheckResponse_Output']
+type ClientVersionUpdateJsonContract = AdminOperationOutput<'get_api_admin_v1_client_versions_update_json'>
 
 function normalizeListParams(params: ClientVersionListParams): ClientVersionListQueryParams {
   const query: ClientVersionListQueryParams = {
@@ -134,16 +98,92 @@ function assertSingleID(id: Id | Id[]): number {
   return assertPositiveID(id, 'client version id')
 }
 
-const BASE = `${ADMIN_API_PREFIX}/client-versions`
+function toClientVersionItem(item: ClientVersionContractItem): ClientVersionItem {
+  if (
+    (item.platform !== 'windows-x86_64' && item.platform !== 'darwin-x86_64')
+    || (item.is_latest !== 1 && item.is_latest !== 2)
+    || (item.force_update !== 1 && item.force_update !== 2)
+  ) {
+    throw new Error('client version list item violates the editable contract')
+  }
+  return {
+    ...item,
+    platform: item.platform,
+    is_latest: item.is_latest,
+    force_update: item.force_update,
+  }
+}
+
+function isClientPlatform(value: string): value is ClientPlatform {
+  return value === 'windows-x86_64' || value === 'darwin-x86_64'
+}
+
+function isCommonYesNo(value: number): value is CommonYesNo {
+  return value === 1 || value === 2
+}
+
+function exactUpdateJson(response: ClientVersionUpdateJsonContract): ClientVersionUpdateJsonResponse {
+  if (Array.isArray(response)) {
+    if (response.length !== 0) throw new Error('client version update-json array must be exactly empty')
+    return []
+  }
+  return response
+}
 
 export const ClientVersionApi = {
-  pageInit: () => request.get<ClientVersionPageInitResponse>(`${BASE}/page-init`),
-  list: (params: ClientVersionListParams) => request.get<PaginatedResponse<ClientVersionItem>>(BASE, { params: normalizeListParams(params) }),
-  create: (params: ClientVersionForm) => request.post<ClientVersionCreateResponse, ClientVersionSaveBody>(BASE, toSaveBody(params)),
-  update: (params: ClientVersionForm & { id: number }) => request.put<void, ClientVersionSaveBody>(`${BASE}/${assertPositiveID(params.id, 'client version id')}`, toSaveBody(params)),
-  setLatest: (params: { id: Id }) => request.patch<void>(`${BASE}/${assertPositiveID(params.id, 'client version id')}/latest`),
-  deleteOne: (params: { id: Id | Id[] }) => request.delete<void>(`${BASE}/${assertSingleID(params.id)}`),
-  updateJson: (params: { platform?: ClientPlatform | '' }) => request.get<ClientVersionUpdateJsonResponse>(`${BASE}/update-json`, { params: params.platform ? { platform: params.platform } : undefined }),
-  forceUpdate: (params: { id: Id; force_update: CommonYesNo }) => request.patch<void, ClientVersionForceUpdateBody>(`${BASE}/${assertPositiveID(params.id, 'client version id')}/force-update`, { force_update: params.force_update }),
-  currentCheck: (params: { version: string; platform?: ClientPlatform | '' }) => request.get<ClientVersionCurrentCheckResponse>(`${BASE}/current-check`, { params: params.platform ? params : { version: params.version } }),
+  pageInit: async (options: ExecuteOptions = {}): Promise<ClientVersionPageInitResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_client_versions_page_init, {}, options)
+    const platforms = response.dict.client_version_platform_arr.map((option) => {
+      const value = option.value
+      if (!isClientPlatform(value)) {
+        throw new Error('client version platform dictionary violates the editable contract')
+      }
+      return { label: option.label, value }
+    })
+    const yesNo = response.dict.common_yes_no_arr.map((option) => {
+      const value = option.value
+      if (!isCommonYesNo(value)) throw new Error('client version yes/no dictionary violates the editable contract')
+      return { label: option.label, value }
+    })
+    return { dict: { client_version_platform_arr: platforms, common_yes_no_arr: yesNo } }
+  },
+  list: async (params: ClientVersionListParams, options: ExecuteOptions = {}): Promise<ClientVersionListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_client_versions, {
+      query: normalizeListParams(params),
+    }, options)
+    return { list: response.list.map(toClientVersionItem), page: response.page }
+  },
+  create: (params: ClientVersionForm, options: ExecuteOptions = {}): Promise<ClientVersionCreateResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_client_versions, { body: toSaveBody(params) }, options),
+  async update(params: ClientVersionForm & { id: number }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_client_versions_id, {
+      path: { id: assertPositiveID(params.id, 'client version id') },
+      body: toSaveBody(params),
+    }, options)
+  },
+  async setLatest(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_client_versions_id_latest, {
+      path: { id: assertPositiveID(params.id, 'client version id') },
+    }, options)
+  },
+  async deleteOne(params: { id: Id | Id[] }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_client_versions_id, {
+      path: { id: assertSingleID(params.id) },
+    }, options)
+  },
+  updateJson: async (params: { platform?: ClientPlatform | '' }, options: ExecuteOptions = {}): Promise<ClientVersionUpdateJsonResponse> => {
+    const query = params.platform ? { platform: params.platform } : undefined
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_client_versions_update_json, { query }, options)
+    return exactUpdateJson(response)
+  },
+  async forceUpdate(params: { id: Id; force_update: CommonYesNo }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_client_versions_id_force_update, {
+      path: { id: assertPositiveID(params.id, 'client version id') },
+      body: { force_update: params.force_update },
+    }, options)
+  },
+  currentCheck: (params: { version: string; platform?: ClientPlatform | '' }, options: ExecuteOptions = {}): Promise<ClientVersionCurrentCheckResponse> => {
+    const query = params.platform ? { version: params.version, platform: params.platform } : { version: params.version }
+    return executeAdminOperation(adminOperations.get_api_admin_v1_client_versions_current_check, { query }, options)
+  },
 }

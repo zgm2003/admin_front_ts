@@ -1,13 +1,19 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id, RequestPayload } from '@/types/common'
 
 export type AiKnowledgeSourceType = 'text' | 'markdown' | 'file'
 export type AiKnowledgeIndexStatus = 'pending' | 'indexed' | 'failed'
+export type AiKnowledgeStatus = 1 | 2
 
 export interface AiKnowledgeInitResponse {
   dict: {
-    common_status_arr: DictOption<number>[]
+    common_status_arr: DictOption<AiKnowledgeStatus>[]
     source_type_arr: DictOption<AiKnowledgeSourceType>[]
     index_status_arr: DictOption<AiKnowledgeIndexStatus>[]
   }
@@ -18,7 +24,7 @@ export interface AiKnowledgeListParams extends RequestPayload {
   page_size?: number
   name?: string
   code?: string
-  status?: number | ''
+  status?: AiKnowledgeStatus | ''
 }
 
 export interface AiKnowledgeBaseItem {
@@ -31,10 +37,14 @@ export interface AiKnowledgeBaseItem {
   default_top_k: number
   default_min_score: number
   default_max_context_chars: number
-  status: number
+  status: AiKnowledgeStatus
   status_name: string
   created_at: string
   updated_at: string
+}
+type AiKnowledgeBaseContract = components['schemas']['Go_internal_module_ai_knowledge_BaseDTO_Output']
+export interface AiKnowledgeBaseListResponse extends Omit<components['schemas']['Go_internal_module_ai_knowledge_BaseListResponse_Output'], 'list'> {
+  list: AiKnowledgeBaseItem[]
 }
 
 export interface AiKnowledgeBaseMutationParams {
@@ -47,7 +57,7 @@ export interface AiKnowledgeBaseMutationParams {
   default_top_k: number
   default_min_score: number
   default_max_context_chars: number
-  status: number
+  status: AiKnowledgeStatus
 }
 
 export interface AiKnowledgeBaseMutationBody {
@@ -59,7 +69,7 @@ export interface AiKnowledgeBaseMutationBody {
   default_top_k: number
   default_min_score: number
   default_max_context_chars: number
-  status: number
+  status: AiKnowledgeStatus
 }
 
 export interface AiKnowledgeCreateResponse {
@@ -70,7 +80,7 @@ export interface AiKnowledgeDocumentListParams extends RequestPayload {
   current_page?: number
   page_size?: number
   title?: string
-  status?: number | ''
+  status?: AiKnowledgeStatus | ''
 }
 
 export interface AiKnowledgeDocumentItem {
@@ -84,7 +94,7 @@ export interface AiKnowledgeDocumentItem {
   index_status_name: string
   error_message: string
   last_indexed_at: string
-  status: number
+  status: AiKnowledgeStatus
   status_name: string
   created_at: string
   updated_at: string
@@ -92,6 +102,10 @@ export interface AiKnowledgeDocumentItem {
 
 export interface AiKnowledgeDocumentDetail extends AiKnowledgeDocumentItem {
   content: string
+}
+type AiKnowledgeDocumentContract = components['schemas']['Go_internal_module_ai_knowledge_DocumentDTO_Output']
+export interface AiKnowledgeDocumentListResponse extends Omit<components['schemas']['Go_internal_module_ai_knowledge_DocumentListResponse_Output'], 'list'> {
+  list: AiKnowledgeDocumentItem[]
 }
 
 export interface AiKnowledgeDocumentMutationParams {
@@ -101,7 +115,7 @@ export interface AiKnowledgeDocumentMutationParams {
   source_type: AiKnowledgeSourceType
   source_ref: string
   content: string
-  status: number
+  status: AiKnowledgeStatus
 }
 
 export interface AiKnowledgeDocumentMutationBody {
@@ -109,7 +123,7 @@ export interface AiKnowledgeDocumentMutationBody {
   source_type: AiKnowledgeSourceType
   source_ref: string
   content: string
-  status: number
+  status: AiKnowledgeStatus
 }
 
 export interface AiKnowledgeChunkItem {
@@ -182,25 +196,68 @@ export interface AiKnowledgeRetrievalTestResponse {
   selected: AiKnowledgeSelectedHit[]
 }
 
-interface AiKnowledgeListQueryParams {
-  current_page?: number
-  page_size?: number
-  name?: string
-  code?: string
-  status?: number
-}
-
-interface AiKnowledgeDocumentListQueryParams {
-  current_page?: number
-  page_size?: number
-  title?: string
-  status?: number
-}
+type AiKnowledgeListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_knowledge_bases'>['query']>
+type AiKnowledgeDocumentListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_knowledge_bases_id_documents'>['query']>
 
 function positiveID(value: Id | number, label: string): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error(`${label} must be a positive integer`)
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer`)
+  }
+  return value
+}
+
+function isKnowledgeStatus(value: number): value is AiKnowledgeStatus {
+  return value === 1 || value === 2
+}
+
+function isSourceType(value: string): value is AiKnowledgeSourceType {
+  return value === 'text' || value === 'markdown' || value === 'file'
+}
+
+function isIndexStatus(value: string): value is AiKnowledgeIndexStatus {
+  return value === 'pending' || value === 'indexed' || value === 'failed'
+}
+
+function toKnowledgeBase(item: AiKnowledgeBaseContract): AiKnowledgeBaseItem {
+  if (!isKnowledgeStatus(item.status)) throw new Error('AI knowledge base status violates the editable contract')
+  return { ...item, status: item.status }
+}
+
+function toKnowledgeDocument(item: AiKnowledgeDocumentContract): AiKnowledgeDocumentItem {
+  if (!isSourceType(item.source_type) || !isIndexStatus(item.index_status) || !isKnowledgeStatus(item.status)) {
+    throw new Error('AI knowledge document violates the editable contract')
+  }
+  return {
+    ...item,
+    source_type: item.source_type,
+    index_status: item.index_status,
+    status: item.status,
+  }
+}
+
+function toKnowledgeDetail(
+  item: components['schemas']['Go_internal_module_ai_knowledge_DocumentDetailResponse_Output'],
+): AiKnowledgeDocumentDetail {
+  const document = toKnowledgeDocument(item)
+  return { ...document, content: item.content }
+}
+
+function toKnowledgeInit(
+  response: components['schemas']['Go_internal_module_ai_knowledge_InitResponse_Output'],
+): AiKnowledgeInitResponse {
+  const statuses = response.dict.common_status_arr.map((option) => {
+    if (!isKnowledgeStatus(option.value)) throw new Error('AI knowledge status dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  const sources = response.dict.source_type_arr.map((option) => {
+    if (!isSourceType(option.value)) throw new Error('AI knowledge source dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  const indexes = response.dict.index_status_arr.map((option) => {
+    if (!isIndexStatus(option.value)) throw new Error('AI knowledge index dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  return { dict: { common_status_arr: statuses, source_type_arr: sources, index_status_arr: indexes } }
 }
 
 function normalizeListParams(params: AiKnowledgeListParams): AiKnowledgeListQueryParams {
@@ -254,45 +311,111 @@ function retrievalTestBody(params: AiKnowledgeRetrievalTestParams): AiKnowledgeR
   return body
 }
 
-function deleteBase(id: Id): Promise<void> {
-  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(id, 'AI knowledge base id')}`)
+function requiredID(value: Id | undefined, label: string): number {
+  if (value === undefined) throw new Error(`${label} must be provided`)
+  return positiveID(value, label)
 }
 
-const pageInit = () => request.get<AiKnowledgeInitResponse>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/page-init`)
-const create = (params: AiKnowledgeBaseMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases`, baseBody(params))
-const update = (params: AiKnowledgeBaseMutationParams) => {
-  const id = positiveID(params.id ?? 0, 'AI knowledge base id')
-  return request.put<void, AiKnowledgeBaseMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${id}`, baseBody(params))
+async function deleteBase(id: Id, options: ExecuteOptions = {}): Promise<void> {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_ai_knowledge_bases_id, {
+    path: { id: positiveID(id, 'AI knowledge base id') },
+  }, options)
 }
-const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.id, 'AI knowledge base id')}/status`, { status: params.status })
-const deleteOne = (params: { id: Id }) => deleteBase(params.id)
-const deleteBatch = async (params: { ids: Id[] }) => {
-  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+
+const pageInit = async (options: ExecuteOptions = {}): Promise<AiKnowledgeInitResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_bases_page_init, {}, options)
+  return toKnowledgeInit(response)
 }
-const createDocument = (params: AiKnowledgeDocumentMutationParams) => request.post<AiKnowledgeCreateResponse, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id ?? 0, 'AI knowledge base id')}/documents`, documentBody(params))
-const updateDocument = (params: AiKnowledgeDocumentMutationParams) => {
-  const id = positiveID(params.id ?? 0, 'AI knowledge document id')
-  return request.put<void, AiKnowledgeDocumentMutationBody>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${id}`, documentBody(params))
+const create = (params: AiKnowledgeBaseMutationParams, options: ExecuteOptions = {}): Promise<AiKnowledgeCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_ai_knowledge_bases, { body: baseBody(params) }, options)
+const update = async (params: AiKnowledgeBaseMutationParams, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.put_api_admin_v1_ai_knowledge_bases_id, {
+    path: { id: requiredID(params.id, 'AI knowledge base id') },
+    body: baseBody(params),
+  }, options)
+}
+const changeStatus = async (params: { id: Id; status: AiKnowledgeStatus }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.patch_api_admin_v1_ai_knowledge_bases_id_status, {
+    path: { id: positiveID(params.id, 'AI knowledge base id') },
+    body: { status: params.status },
+  }, options)
+}
+const deleteOne = (params: { id: Id }, options: ExecuteOptions = {}) => deleteBase(params.id, options)
+const deleteBatch = async (params: { ids: Id[] }, options: ExecuteOptions = {}) => {
+  if (params.ids.length === 0) throw new Error('AI knowledge base ids must not be empty')
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item }, options)))
+}
+const createDocument = (params: AiKnowledgeDocumentMutationParams, options: ExecuteOptions = {}): Promise<AiKnowledgeCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_ai_knowledge_bases_id_documents, {
+    path: { id: requiredID(params.knowledge_base_id, 'AI knowledge base id') },
+    body: documentBody(params),
+  }, options)
+const updateDocument = async (params: AiKnowledgeDocumentMutationParams, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.put_api_admin_v1_ai_knowledge_documents_id, {
+    path: { id: requiredID(params.id, 'AI knowledge document id') },
+    body: documentBody(params),
+  }, options)
 }
 
 export const AiKnowledgeApi = {
   pageInit,
-  list: (params: AiKnowledgeListParams) => request.get<PaginatedResponse<AiKnowledgeBaseItem>>(`${ADMIN_API_PREFIX}/ai-knowledge-bases`, { params: normalizeListParams(params) }),
-  detail: (params: { id: Id }) => request.get<AiKnowledgeBaseItem>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.id, 'AI knowledge base id')}`),
+  list: async (params: AiKnowledgeListParams, options: ExecuteOptions = {}): Promise<AiKnowledgeBaseListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_bases, {
+      query: normalizeListParams(params),
+    }, options)
+    return { list: response.list.map(toKnowledgeBase), page: response.page }
+  },
+  detail: async (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiKnowledgeBaseItem> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_bases_id, {
+      path: { id: positiveID(params.id, 'AI knowledge base id') },
+    }, options)
+    return toKnowledgeBase(response)
+  },
   create,
   update,
   changeStatus,
   deleteOne,
   deleteBatch,
-  documents: (params: { knowledge_base_id: Id } & AiKnowledgeDocumentListParams) => request.get<PaginatedResponse<AiKnowledgeDocumentItem>>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id, 'AI knowledge base id')}/documents`, { params: normalizeDocumentListParams(params) }),
-  documentDetail: (params: { id: Id }) => request.get<AiKnowledgeDocumentDetail>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}`),
+  documents: async (params: { knowledge_base_id: Id } & AiKnowledgeDocumentListParams, options: ExecuteOptions = {}): Promise<AiKnowledgeDocumentListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_bases_id_documents, {
+      path: { id: positiveID(params.knowledge_base_id, 'AI knowledge base id') },
+      query: normalizeDocumentListParams(params),
+    }, options)
+    return { list: response.list.map(toKnowledgeDocument), page: response.page }
+  },
+  documentDetail: async (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiKnowledgeDocumentDetail> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_documents_id, {
+      path: { id: positiveID(params.id, 'AI knowledge document id') },
+    }, options)
+    return toKnowledgeDetail(response)
+  },
   createDocument,
   updateDocument,
   addDocument: createDocument,
   editDocument: updateDocument,
-  documentStatus: (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}/status`, { status: params.status }),
-  deleteDocument: (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}`),
-  reindexDocument: (params: { id: Id }) => request.post<void>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}/reindex`),
-  chunks: (params: { id: Id }) => request.get<AiKnowledgeChunkListResponse>(`${ADMIN_API_PREFIX}/ai-knowledge-documents/${positiveID(params.id, 'AI knowledge document id')}/chunks`),
-  retrievalTest: (params: AiKnowledgeRetrievalTestParams) => request.post<AiKnowledgeRetrievalTestResponse, AiKnowledgeRetrievalTestBody>(`${ADMIN_API_PREFIX}/ai-knowledge-bases/${positiveID(params.knowledge_base_id, 'AI knowledge base id')}/retrieval-tests`, retrievalTestBody(params)),
+  async documentStatus(params: { id: Id; status: AiKnowledgeStatus }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_ai_knowledge_documents_id_status, {
+      path: { id: positiveID(params.id, 'AI knowledge document id') },
+      body: { status: params.status },
+    }, options)
+  },
+  async deleteDocument(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_ai_knowledge_documents_id, {
+      path: { id: positiveID(params.id, 'AI knowledge document id') },
+    }, options)
+  },
+  async reindexDocument(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.post_api_admin_v1_ai_knowledge_documents_id_reindex, {
+      path: { id: positiveID(params.id, 'AI knowledge document id') },
+    }, options)
+  },
+  chunks: (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiKnowledgeChunkListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_knowledge_documents_id_chunks, {
+      path: { id: positiveID(params.id, 'AI knowledge document id') },
+    }, options),
+  retrievalTest: (params: AiKnowledgeRetrievalTestParams, options: ExecuteOptions = {}): Promise<AiKnowledgeRetrievalTestResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests, {
+      path: { id: positiveID(params.knowledge_base_id, 'AI knowledge base id') },
+      body: retrievalTestBody(params),
+    }, options),
 }

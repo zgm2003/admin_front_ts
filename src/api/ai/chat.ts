@@ -1,5 +1,7 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import { adminOperations } from '@/modules/http/generated/operations'
 export {
   AI_RESPONSE_EVENTS,
   type AiResponseCanceledPayload,
@@ -10,11 +12,7 @@ export {
   type AiResponseStartPayload,
 } from './chat-events'
 
-export interface AiChatCancelResponse {
-  conversation_id: number
-  request_id: string
-  status: 'canceled'
-}
+export type AiChatCancelResponse = components['schemas']['AIMessageCancelResult']
 
 export function createAiRequestId() {
   return `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
@@ -26,8 +24,9 @@ function positiveID(value: number, label: string): number {
 }
 
 export const AiChatApi = {
-  cancel: (params: { conversation_id: number; request_id: string }) => request.post<AiChatCancelResponse, { request_id: string }>(
-    `${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages/cancel`,
-    { request_id: params.request_id }
-  ),
+  cancel: (params: { conversation_id: number; request_id: string }, options: ExecuteOptions = {}): Promise<AiChatCancelResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_ai_conversations_id_messages_cancel, {
+      path: { id: positiveID(params.conversation_id, 'conversation id') },
+      body: { request_id: params.request_id },
+    }, options),
 }

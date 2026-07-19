@@ -1,9 +1,9 @@
-import request, { executeAdminOperation } from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
 import type { ExecuteOptions } from '@/modules/http/client'
 import {
   adminOperations,
   type AdminOperationInput,
+  type AdminOperationOutput,
 } from '@/modules/http/generated/operations'
 import type { Id } from '@/types/common'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
@@ -28,13 +28,70 @@ import type {
   UserSessionListResponse,
   UserSessionPageInitResponse,
   UserSessionStats,
+  UserLoginType,
+  UserVerifyType,
   UsersListParams,
   UserEditParams,
   UserBatchEditParams,
 } from '@/types/user'
 
 type UserListQueryParams = AdminOperationInput<'get_api_admin_v1_users'>['query']
-type UserSessionBatchKickPayload = { ids: number[] }
+type UserSessionListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_user_sessions'>['query']>
+type LoginConfigContract = AdminOperationOutput<'get_api_admin_v1_auth_login_config'>
+type CaptchaContract = AdminOperationOutput<'get_api_admin_v1_auth_captcha'>
+type PersonalContract = AdminOperationOutput<'get_api_admin_v1_profile'>
+
+function isUserLoginType(value: string): value is UserLoginType {
+  return value === 'email' || value === 'phone' || value === 'password'
+}
+
+function isUserVerifyType(value: string): value is UserVerifyType {
+  return value === 'password' || value === 'code'
+}
+
+function toLoginConfig(response: LoginConfigContract): LoginConfigResponse {
+  if (response.captcha_type !== 'slide') {
+    throw new Error('login config captcha_type violates the supported contract')
+  }
+  const loginTypeArr = response.login_type_arr.map((option) => {
+    if (!isUserLoginType(option.value)) {
+      throw new Error('login config login_type_arr violates the supported contract')
+    }
+    return { label: option.label, value: option.value }
+  })
+  return {
+    login_type_arr: loginTypeArr,
+    captcha_enabled: response.captcha_enabled,
+    captcha_type: response.captcha_type,
+  }
+}
+
+function toSlideCaptcha(response: CaptchaContract): SlideCaptchaChallenge {
+  if (response.captcha_type !== 'slide') {
+    throw new Error('captcha response captcha_type violates the supported contract')
+  }
+  return { ...response, captcha_type: response.captcha_type }
+}
+
+function toPersonalResponse(response: PersonalContract): UserPersonalInitResponse {
+  if (response.profile.sex !== 0 && response.profile.sex !== 1 && response.profile.sex !== 2) {
+    throw new Error('profile sex violates the editable contract')
+  }
+  const verifyTypeArr = response.dict.verify_type_arr.map((option) => {
+    if (!isUserVerifyType(option.value)) {
+      throw new Error('profile verify_type_arr violates the supported contract')
+    }
+    return { label: option.label, value: option.value }
+  })
+  return {
+    profile: { ...response.profile, sex: response.profile.sex },
+    dict: {
+      auth_address_tree: response.dict.auth_address_tree,
+      sexArr: response.dict.sexArr,
+      verify_type_arr: verifyTypeArr,
+    },
+  }
+}
 
 function normalizePositiveIDs(id: Id | Id[], label: string): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
@@ -97,8 +154,8 @@ function normalizeUsersListParams(params: UsersListParams): UserListQueryParams 
   return query
 }
 
-function normalizeUserSessionListParams(params: UserSessionListParams): UserSessionListParams {
-  const query: UserSessionListParams = {
+function normalizeUserSessionListParams(params: UserSessionListParams): UserSessionListQuery {
+  const query: UserSessionListQuery = {
     current_page: params.current_page,
     page_size: params.page_size,
   }
@@ -117,38 +174,58 @@ function normalizeUserSessionListParams(params: UserSessionListParams): UserSess
 }
 
 export const UsersApi = {
-  getLoginConfig: () =>
-    request.get<LoginConfigResponse>(`${ADMIN_API_PREFIX}/auth/login-config`),
-
-  getCaptcha: () =>
-    request.get<SlideCaptchaChallenge>(`${ADMIN_API_PREFIX}/auth/captcha`),
-
-  sendCode: (params: UserSendCodeParams) =>
-    request.post<void, UserSendCodeParams>(`${ADMIN_API_PREFIX}/auth/send-code`, params),
-
-  forgetPassword: (params: UserForgetPasswordParams) =>
-    request.post<void, UserForgetPasswordParams>(`${ADMIN_API_PREFIX}/auth/forgot-password`, params),
-
-  initPersonal: (params?: { user_id?: number | string }) => {
-    const rawUserID = params?.user_id
-    const userID = typeof rawUserID === 'string' ? Number(rawUserID) : rawUserID
-    if (typeof userID === 'number' && Number.isInteger(userID) && userID > 0) {
-      return request.get<UserPersonalInitResponse>(`${ADMIN_API_PREFIX}/users/${userID}/profile`)
-    }
-    return request.get<UserPersonalInitResponse>(`${ADMIN_API_PREFIX}/profile`)
+  async getLoginConfig(options: ExecuteOptions = {}): Promise<LoginConfigResponse> {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_auth_login_config, {}, options)
+    return toLoginConfig(response)
   },
 
-  editPersonal: (params: UserPersonalEditParams) =>
-    request.put<void, UserPersonalEditParams>(`${ADMIN_API_PREFIX}/profile`, params),
+  async getCaptcha(options: ExecuteOptions = {}): Promise<SlideCaptchaChallenge> {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_auth_captcha, {}, options)
+    return toSlideCaptcha(response)
+  },
 
-  updatePhone: (params: UserPhoneUpdateParams) =>
-    request.put<void, UserPhoneUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/phone`, params),
+  async sendCode(params: UserSendCodeParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.post_api_admin_v1_auth_send_code, {
+      body: params,
+    }, options)
+  },
 
-  updateEmail: (params: UserEmailUpdateParams) =>
-    request.put<void, UserEmailUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/email`, params),
+  async forgetPassword(params: UserForgetPasswordParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.post_api_admin_v1_auth_forgot_password, {
+      body: params,
+    }, options)
+  },
 
-  updatePassword: (params: UserPasswordUpdateParams) =>
-    request.put<void, UserPasswordUpdateParams>(`${ADMIN_API_PREFIX}/profile/security/password`, params),
+  initPersonal: async (params?: { user_id?: number }, options: ExecuteOptions = {}): Promise<UserPersonalInitResponse> => {
+    const userID = params?.user_id
+    if (userID === undefined) {
+      const response = await executeAdminOperation(adminOperations.get_api_admin_v1_profile, {}, options)
+      return toPersonalResponse(response)
+    }
+    if (typeof userID !== 'number' || !Number.isInteger(userID) || userID <= 0) {
+      throw new Error('profile user id must be a positive integer')
+    }
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_users_id_profile, {
+      path: { id: userID },
+    }, options)
+    return toPersonalResponse(response)
+  },
+
+  async editPersonal(params: UserPersonalEditParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_profile, { body: params }, options)
+  },
+
+  async updatePhone(params: UserPhoneUpdateParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_phone, { body: params }, options)
+  },
+
+  async updateEmail(params: UserEmailUpdateParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_email, { body: params }, options)
+  },
+
+  async updatePassword(params: UserPasswordUpdateParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_password, { body: params }, options)
+  },
 }
 
 export const UsersListApi = {
@@ -203,21 +280,27 @@ export const UsersListApi = {
 }
 
 export const UserSessionApi = {
-  pageInit: () =>
-    request.get<UserSessionPageInitResponse>(`${ADMIN_API_PREFIX}/user-sessions/page-init`),
+  pageInit: (options: ExecuteOptions = {}): Promise<UserSessionPageInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions_page_init, {}, options),
 
-  list: (params: UserSessionListParams) =>
-    request.get<UserSessionListResponse>(`${ADMIN_API_PREFIX}/user-sessions`, { params: normalizeUserSessionListParams(params) }),
+  list: (params: UserSessionListParams, options: ExecuteOptions = {}): Promise<UserSessionListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions, {
+      query: normalizeUserSessionListParams(params),
+    }, options),
 
-  stats: () =>
-    request.get<UserSessionStats>(`${ADMIN_API_PREFIX}/user-sessions/stats`),
+  stats: (options: ExecuteOptions = {}): Promise<UserSessionStats> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions_stats, {}, options),
 
-  kick: (params: UserSessionKickParams) =>
-    request.patch<UserSessionKickResponse>(`${ADMIN_API_PREFIX}/user-sessions/${params.id}/revoke`),
+  kick: (params: UserSessionKickParams, options: ExecuteOptions = {}): Promise<UserSessionKickResponse> =>
+    executeAdminOperation(adminOperations.patch_api_admin_v1_user_sessions_id_revoke, {
+      path: { id: params.id },
+    }, options),
 
-  batchKick: (params: UserSessionBatchKickParams) => {
+  batchKick: (params: UserSessionBatchKickParams, options: ExecuteOptions = {}): Promise<UserSessionBatchKickResponse> => {
     const ids = normalizePositiveIDs(params.ids, 'user session')
-    return request.patch<UserSessionBatchKickResponse, UserSessionBatchKickPayload>(`${ADMIN_API_PREFIX}/user-sessions/revoke`, { ids })
+    return executeAdminOperation(adminOperations.patch_api_admin_v1_user_sessions_revoke, {
+      body: { ids },
+    }, options)
   },
 }
 

@@ -1,9 +1,15 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { DictOption, Id, RequestPayload } from '@/types/common'
 import type { AiProviderDriver, AiProviderModelItem } from './providers'
 
 export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate' | 'canvas_audio_generate'
+export type AiAgentStatus = 1 | 2
 
 export interface AiAgentProviderModelOption extends DictOption<string> {
   provider_id: number
@@ -14,7 +20,7 @@ export interface AiAgentProviderModelOption extends DictOption<string> {
 export interface AiAgentInitResponse {
   dict: {
     scene_arr: DictOption<AiAgentScene>[]
-    common_status_arr: DictOption<number>[]
+    common_status_arr: DictOption<AiAgentStatus>[]
     provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
     provider_model_options: AiAgentProviderModelOption[]
   }
@@ -26,25 +32,17 @@ export interface AiAgentListParams extends RequestPayload {
   name?: string
   scene?: AiAgentScene | ''
   provider_id?: number | ''
-  status?: number | ''
+  status?: AiAgentStatus | ''
 }
 
-export interface AiAgentItem {
-  id: number
-  provider_id: number
-  provider_name: string
-  engine_type: AiProviderDriver | string
-  name: string
-  avatar?: string | null
-  model_id: string
-  model_display_name: string
+type AiAgentContractItem = components['schemas']['Go_internal_module_ai_agent_AgentDTO_Output']
+export interface AiAgentItem extends Omit<AiAgentContractItem, 'engine_type' | 'scenes' | 'status'> {
+  engine_type: AiProviderDriver
   scenes: AiAgentScene[]
-  scene_names?: string[]
-  system_prompt?: string
-  status: number
-  status_name?: string
-  created_at: string
-  updated_at: string
+  status: AiAgentStatus
+}
+export interface AiAgentListResponse extends Omit<components['schemas']['Go_internal_module_ai_agent_ListResponse_Output'], 'list'> {
+  list: AiAgentItem[]
 }
 
 export interface AiAgentOption {
@@ -73,7 +71,7 @@ export interface AiAgentMutationParams {
   scenes: AiAgentScene[]
   system_prompt?: string
   avatar?: string
-  status?: number
+  status?: AiAgentStatus
 }
 
 export interface AiAgentMutationBody {
@@ -83,20 +81,14 @@ export interface AiAgentMutationBody {
   scenes: AiAgentScene[]
   system_prompt?: string
   avatar?: string
-  status: number
+  status: AiAgentStatus
 }
 
 export interface AiAgentCreateResponse {
   id: number
 }
 
-export interface AiAgentTestResult {
-  ok: boolean
-  status?: string
-  latency_ms?: number
-  message?: string
-  model_count?: number
-}
+export type AiAgentTestResult = components['schemas']['Go_internal_infra_ai_TestConnectionResult_Output']
 
 export interface AiAgentToolBindingResponse {
   agent_id: number
@@ -120,7 +112,7 @@ export interface AiAgentKnowledgeBindingItem {
   top_k: number
   min_score: number
   max_context_chars: number
-  status: number
+  status: AiAgentStatus
   status_name?: string
 }
 
@@ -149,26 +141,25 @@ export interface AiAgentKnowledgeBindingBodyItem {
   top_k: number
   min_score: number
   max_context_chars: number
-  status: number
+  status: AiAgentStatus
 }
 
 export interface AiAgentUpdateKnowledgeBasesBody {
   bindings: AiAgentKnowledgeBindingBodyItem[]
 }
 
-interface AiAgentListQueryParams {
-  current_page?: number
-  page_size?: number
-  name?: string
-  scene?: AiAgentScene
-  provider_id?: number
-  status?: number
-}
+type AiAgentListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_agents'>['query']>
 
 export function positiveID(value: Id | number, label: string): number {
-  const id = typeof value === 'number' ? value : Number(value)
-  if (!Number.isInteger(id) || id <= 0) throw new Error(`${label} must be a positive integer`)
-  return id
+  if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer`)
+  }
+  return value
+}
+
+function requiredPositiveID(value: Id | undefined, label: string): number {
+  if (value === undefined) throw new Error(`${label} is required`)
+  return positiveID(value, label)
 }
 
 function normalizeListParams(params: AiAgentListParams): AiAgentListQueryParams {
@@ -183,14 +174,17 @@ function normalizeListParams(params: AiAgentListParams): AiAgentListQueryParams 
 }
 
 function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
+  if (params.status !== 1 && params.status !== 2) {
+    throw new Error('AI agent status must be provided as 1 or 2')
+  }
   return {
     name: params.name,
     provider_id: params.provider_id,
     model_id: params.model_id,
-    scenes: params.scenes.length > 0 ? params.scenes : ['chat'],
-    system_prompt: params.system_prompt?.trim(),
-    avatar: params.avatar?.trim(),
-    status: params.status ?? 1,
+    scenes: params.scenes,
+    system_prompt: params.system_prompt,
+    avatar: params.avatar,
+    status: params.status,
   }
 }
 
@@ -227,41 +221,157 @@ function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   }
 }
 
-async function listOptions(): Promise<AiAgentOptionsResponse> {
-  const response = await request.get<AiAgentOptionsResponse>(`${ADMIN_API_PREFIX}/ai-agents/options`)
-  return { list: response.list.map(normalizeOption).filter((item) => item.id > 0 && item.name !== '') }
+async function listOptions(options: ExecuteOptions = {}): Promise<AiAgentOptionsResponse> {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_options, {}, options)
+  const list = response.list.map(normalizeOption)
+  if (list.some((item) => item.id <= 0 || item.name === '')) {
+    throw new Error('AI agent options response violates the contract')
+  }
+  return { list }
 }
 
-function deleteAgent(id: number): Promise<void> {
-  return request.delete<void>(`${ADMIN_API_PREFIX}/ai-agents/${id}`)
+function isAgentScene(value: string): value is AiAgentScene {
+  return value === 'chat'
+    || value === 'agent_generate'
+    || value === 'canvas_text_generate'
+    || value === 'canvas_image_generate'
+    || value === 'canvas_video_generate'
+    || value === 'canvas_audio_generate'
 }
 
-const pageInit = () => request.get<AiAgentInitResponse>(`${ADMIN_API_PREFIX}/ai-agents/page-init`)
-const create = (params: AiAgentMutationParams) => request.post<AiAgentCreateResponse, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents`, mutationBody(params))
-const update = (params: AiAgentMutationParams) => {
-  const id = positiveID(params.id ?? 0, 'AI agent id')
-  return request.put<void, AiAgentMutationBody>(`${ADMIN_API_PREFIX}/ai-agents/${id}`, mutationBody(params))
+function isAgentStatus(value: number): value is AiAgentStatus {
+  return value === 1 || value === 2
 }
-const changeStatus = (params: { id: Id; status: number }) => request.patch<void, { status: number }>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}/status`, { status: params.status })
-const deleteOne = (params: { id: Id }) => deleteAgent(positiveID(params.id, 'AI agent id'))
-const deleteBatch = async (params: { ids: Id[] }): Promise<void> => {
-  await Promise.all(params.ids.map((item) => deleteOne({ id: item })))
+
+function toAgentItem(item: AiAgentContractItem): AiAgentItem {
+  if (
+    item.engine_type !== 'openai'
+    || !item.scenes.every(isAgentScene)
+    || !isAgentStatus(item.status)
+  ) {
+    throw new Error('AI agent item violates the editable contract')
+  }
+  return {
+    ...item,
+    engine_type: item.engine_type,
+    scenes: item.scenes,
+    status: item.status,
+  }
+}
+
+function toAgentInit(response: components['schemas']['Go_internal_module_ai_agent_InitResponse_Output']): AiAgentInitResponse {
+  const scenes = response.dict.scene_arr.map((option) => {
+    if (!isAgentScene(option.value)) throw new Error('AI agent scene dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  const statuses = response.dict.common_status_arr.map((option) => {
+    if (!isAgentStatus(option.value)) throw new Error('AI agent status dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  const providers = response.dict.provider_options.map((option) => {
+    if (option.engine_type !== 'openai') throw new Error('AI agent provider dictionary violates the contract')
+    return { ...option, engine_type: 'openai' as const }
+  })
+  return {
+    dict: {
+      scene_arr: scenes,
+      common_status_arr: statuses,
+      provider_options: providers,
+      provider_model_options: response.dict.provider_model_options,
+    },
+  }
+}
+
+function toKnowledgeBindings(
+  response: components['schemas']['Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output'],
+): AiAgentKnowledgeBindingResponse {
+  const bindings = response.bindings.map((item) => {
+    if (!isAgentStatus(item.status)) throw new Error('AI agent knowledge binding status violates the contract')
+    return { ...item, status: item.status }
+  })
+  return { ...response, bindings }
+}
+
+async function deleteAgent(id: number, options: ExecuteOptions = {}): Promise<void> {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_ai_agents_id, {
+    path: { id },
+  }, options)
+}
+
+const pageInit = async (options: ExecuteOptions = {}): Promise<AiAgentInitResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_page_init, {}, options)
+  return toAgentInit(response)
+}
+const create = (params: AiAgentMutationParams, options: ExecuteOptions = {}): Promise<AiAgentCreateResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_ai_agents, { body: mutationBody(params) }, options)
+const update = async (params: AiAgentMutationParams, options: ExecuteOptions = {}): Promise<void> => {
+  const id = requiredPositiveID(params.id, 'AI agent id')
+  await executeAdminOperation(adminOperations.put_api_admin_v1_ai_agents_id, {
+    path: { id },
+    body: mutationBody(params),
+  }, options)
+}
+const changeStatus = async (params: { id: Id; status: 1 | 2 }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.patch_api_admin_v1_ai_agents_id_status, {
+    path: { id: positiveID(params.id, 'AI agent id') },
+    body: { status: params.status },
+  }, options)
+}
+const deleteOne = (params: { id: Id }, options: ExecuteOptions = {}) =>
+  deleteAgent(positiveID(params.id, 'AI agent id'), options)
+const deleteBatch = async (params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> => {
+  if (params.ids.length === 0) throw new Error('AI agent ids must not be empty')
+  await Promise.all(params.ids.map((item) => deleteOne({ id: item }, options)))
 }
 
 export const AiAgentApi = {
   pageInit,
-  list: (params: AiAgentListParams) => request.get<PaginatedResponse<AiAgentItem>>(`${ADMIN_API_PREFIX}/ai-agents`, { params: normalizeListParams(params) }),
-  options: () => listOptions(),
-  models: (params: { provider_id: Id }) => request.get<{ list: AiProviderModelItem[] }>(`${ADMIN_API_PREFIX}/ai-agents/provider-models/${positiveID(params.provider_id, 'AI provider id')}`),
-  detail: (params: { id: Id }) => request.get<AiAgentItem>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}`),
-  tools: (params: { agent_id: Id }) => request.get<AiAgentToolBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`),
-  updateTools: (params: AiAgentUpdateToolsParams) => request.put<void, AiAgentUpdateToolsBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/tools`, updateToolsBody(params)),
-  knowledgeBases: (params: { agent_id: Id }) => request.get<AiAgentKnowledgeBindingResponse>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`),
-  updateKnowledgeBases: (params: AiAgentUpdateKnowledgeBasesParams) => request.put<void, AiAgentUpdateKnowledgeBasesBody>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.agent_id, 'AI agent id')}/knowledge-bases`, updateKnowledgeBasesBody(params)),
+  list: async (params: AiAgentListParams, options: ExecuteOptions = {}): Promise<AiAgentListResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents, {
+      query: normalizeListParams(params),
+    }, options)
+    return { list: response.list.map(toAgentItem), page: response.page }
+  },
+  options: (options: ExecuteOptions = {}) => listOptions(options),
+  models: (params: { provider_id: Id }, options: ExecuteOptions = {}): Promise<{ list: AiProviderModelItem[] }> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_provider_models_id, {
+      path: { id: positiveID(params.provider_id, 'AI provider id') },
+    }, options),
+  detail: async (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiAgentItem> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_id, {
+      path: { id: positiveID(params.id, 'AI agent id') },
+    }, options)
+    return toAgentItem(response)
+  },
+  tools: (params: { agent_id: Id }, options: ExecuteOptions = {}): Promise<AiAgentToolBindingResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_id_tools, {
+      path: { id: positiveID(params.agent_id, 'AI agent id') },
+    }, options),
+  async updateTools(params: AiAgentUpdateToolsParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_ai_agents_id_tools, {
+      path: { id: positiveID(params.agent_id, 'AI agent id') },
+      body: updateToolsBody(params),
+    }, options)
+  },
+  knowledgeBases: async (params: { agent_id: Id }, options: ExecuteOptions = {}): Promise<AiAgentKnowledgeBindingResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_id_knowledge_bases, {
+      path: { id: positiveID(params.agent_id, 'AI agent id') },
+    }, options)
+    return toKnowledgeBindings(response)
+  },
+  async updateKnowledgeBases(params: AiAgentUpdateKnowledgeBasesParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.put_api_admin_v1_ai_agents_id_knowledge_bases, {
+      path: { id: positiveID(params.agent_id, 'AI agent id') },
+      body: updateKnowledgeBasesBody(params),
+    }, options)
+  },
   create,
   update,
   changeStatus,
-  test: (params: { id: Id }) => request.post<AiAgentTestResult>(`${ADMIN_API_PREFIX}/ai-agents/${positiveID(params.id, 'AI agent id')}/test`),
+  test: (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiAgentTestResult> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_ai_agents_id_test, {
+      path: { id: positiveID(params.id, 'AI agent id') },
+    }, options),
   deleteOne,
   deleteBatch,
 }

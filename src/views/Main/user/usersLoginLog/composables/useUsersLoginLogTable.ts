@@ -5,7 +5,7 @@ import type { SearchFormModel } from '@/components/Search/types'
 import type { UserLoginLogItem, UserLoginType } from '@/types/user'
 
 export interface UsersLoginLogSearchForm extends SearchFormModel {
-  user_id: string
+  user_id: number | ''
   login_account: string
   login_type: UserLoginType | ''
   ip: string

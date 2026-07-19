@@ -2,6 +2,8 @@ import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { adminOperations, type AdminOperationInput } from '@/modules/http/generated/operations'
+import { encodeOperationInput } from '@/modules/http/operations'
 
 const temporaryRoots: string[] = []
 const lockedBundle = resolve(process.cwd(), 'contracts/backend/admin/v1')
@@ -24,6 +26,30 @@ afterEach(async () => {
 })
 
 describe('Admin Contract Bundle consumer', () => {
+  it('encodes the documented payment certificate upload as multipart form data', async () => {
+    const file = new Blob(['certificate'], { type: 'application/x-pem-file' })
+    const input: AdminOperationInput<'post_api_admin_v1_payment_certificates'> = {
+      body: {
+        cert_type: 'app_cert',
+        config_code: 'alipay-main',
+        file,
+      },
+    }
+
+    const operation = adminOperations.post_api_admin_v1_payment_certificates
+    const encoded = encodeOperationInput(operation, input)
+
+    expect(operation.timeout).toBe('upload')
+    expect(encoded.body).toBeInstanceOf(FormData)
+    const body = encoded.body as FormData
+    expect(body.get('cert_type')).toBe('app_cert')
+    expect(body.get('config_code')).toBe('alipay-main')
+    const encodedFile = body.get('file')
+    expect(encodedFile).toBeInstanceOf(Blob)
+    expect(await (encodedFile as Blob).text()).toBe('certificate')
+    expect((encodedFile as Blob).type).toBe('application/x-pem-file')
+  })
+
   it('rejects a backend artifact whose bytes do not match the manifest SHA', async () => {
     const bundle = await copyBackendBundle('contract-tamper')
     const openapiPath = join(bundle, 'openapi.json')

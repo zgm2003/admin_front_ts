@@ -1,6 +1,13 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 import type { DictOption } from '@/types/common'
+
+export type SystemLogLevel = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
 
 export interface SystemLogInitResponse {
   dict: {
@@ -9,24 +16,11 @@ export interface SystemLogInitResponse {
   }
 }
 
-export type SystemLogLevel = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
+export type SystemLogFileItem = components['schemas']['Go_internal_module_systemlog_FileItem_Output']
 
-export interface SystemLogFileItem {
-  name: string
-  size: number
-  size_human: string
-  mtime: string
-}
+export type SystemLogFilesResponse = components['schemas']['Go_internal_module_systemlog_FilesResponse_Output']
 
-export interface SystemLogFilesResponse {
-  list: SystemLogFileItem[]
-}
-
-export interface SystemLogLineItem {
-  number: number
-  level: SystemLogLevel | ''
-  content: string
-}
+export type SystemLogLineItem = components['schemas']['Go_internal_module_systemlog_LineItem_Output']
 
 export interface SystemLogLinesParams {
   filename: string
@@ -35,24 +29,39 @@ export interface SystemLogLinesParams {
   tail?: number
 }
 
-export interface SystemLogLinesResponse {
-  lines: SystemLogLineItem[]
-  total: number
-  filename: string
+export type SystemLogLinesResponse = components['schemas']['Go_internal_module_systemlog_LinesResponse_Output']
+type SystemLogLinesQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_system_logs_files_name_lines'>['query']>
+
+function isSystemLogLevel(value: string): value is SystemLogLevel {
+  return value === 'DEBUG' || value === 'INFO' || value === 'WARNING' || value === 'ERROR' || value === 'CRITICAL'
 }
 
-const BASE = `${ADMIN_API_PREFIX}/system-logs`
-
-const pageInit = () => request.get<SystemLogInitResponse>(`${BASE}/page-init`)
+const pageInit = async (options: ExecuteOptions = {}): Promise<SystemLogInitResponse> => {
+  const response = await executeAdminOperation(adminOperations.get_api_admin_v1_system_logs_page_init, {}, options)
+  const logLevelArr = response.dict.log_level_arr.map((option) => {
+    if (!isSystemLogLevel(option.value)) throw new Error('system log level dictionary violates the filter contract')
+    return { label: option.label, value: option.value }
+  })
+  return {
+    dict: {
+      log_level_arr: logLevelArr,
+      log_tail_arr: response.dict.log_tail_arr,
+    },
+  }
+}
 
 export const SystemLogApi = {
   pageInit,
-  files: () => request.get<SystemLogFilesResponse>(`${BASE}/files`),
-  lines: ({ filename, keyword, level, tail }: SystemLogLinesParams) => request.get<SystemLogLinesResponse>(`${BASE}/files/${encodeURIComponent(filename)}/lines`, {
-    params: {
-      keyword: keyword || undefined,
-      level: level || undefined,
-      tail,
-    },
-  }),
+  files: (options: ExecuteOptions = {}): Promise<SystemLogFilesResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_system_logs_files, {}, options),
+  lines: ({ filename, keyword, level, tail }: SystemLogLinesParams, options: ExecuteOptions = {}): Promise<SystemLogLinesResponse> => {
+    const query: SystemLogLinesQuery = {}
+    if (keyword) query.keyword = keyword
+    if (level) query.level = level
+    if (tail !== undefined) query.tail = tail
+    return executeAdminOperation(adminOperations.get_api_admin_v1_system_logs_files_name_lines, {
+      path: { name: filename },
+      query,
+    }, options)
+  },
 }

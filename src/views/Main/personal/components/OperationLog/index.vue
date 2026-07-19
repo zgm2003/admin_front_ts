@@ -8,7 +8,7 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import type { OperationLogItem } from '@/types/operationLog'
 
 const props = defineProps<{
-  userId: string | number
+  userId: number
 }>()
 
 const { t } = useI18n()

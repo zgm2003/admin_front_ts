@@ -91,7 +91,7 @@ async function load() {
   try {
     const [initData, listData] = await Promise.all([MailApi.pageInit(), MailApi.templates()])
     dict.value = normalizeMailDict(initData.dict)
-    templates.value = listData.list
+    templates.value = listData
   } finally {
     loading.value = false
   }

@@ -24,8 +24,8 @@ export type PaymentConfigFormRef = {
 
 const certificateFieldMap: { [key in PaymentCertificateType]: CertificateField } = {
   app_cert: 'app_cert_path',
-  alipay_cert: 'platform_cert_path',
-  alipay_root_cert: 'root_cert_path',
+  platform_cert: 'platform_cert_path',
+  root_cert: 'root_cert_path',
 }
 
 export function usePaymentConfigPage() {
@@ -179,11 +179,11 @@ export function usePaymentConfigPage() {
     }
     uploadLoading.value = certType
     try {
-      const payload = new FormData()
-      payload.append('config_code', configCode)
-      payload.append('cert_type', certType)
-      payload.append('file', options.file)
-      const result = await PaymentConfigApi.uploadCertificate(payload)
+      const result = await PaymentConfigApi.uploadCertificate({
+        config_code: configCode,
+        cert_type: certType,
+        file: options.file,
+      })
       form.value[certificateFieldMap[certType]] = result.path
       options.onSuccess(result)
       ElNotification.success({ message: t('paymentConfig.messages.certificateUploadSuccess') })

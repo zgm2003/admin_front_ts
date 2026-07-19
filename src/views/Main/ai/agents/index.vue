@@ -18,6 +18,7 @@ import {
   type AiAgentItem,
   type AiAgentMutationParams,
   type AiAgentScene,
+  type AiAgentStatus,
 } from '@/api/ai/agents'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
 import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
@@ -29,7 +30,7 @@ interface AgentForm {
   name: string
   model_path: ModelPath | []
   scenes: AiAgentScene[]
-  status: number
+  status: AiAgentStatus
   system_prompt: string
   avatar: string
 }
@@ -49,7 +50,7 @@ const searchForm = ref({
   name: '',
   scene: '' as AiAgentScene | '',
   provider_id: '' as number | '',
-  status: '' as number | '',
+  status: '' as AiAgentStatus | '',
 })
 
 const {

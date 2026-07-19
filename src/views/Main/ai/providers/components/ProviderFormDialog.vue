@@ -61,7 +61,7 @@ async function fetchModels() {
   try {
     const result = props.mode === 'edit' && !form.api_key.trim() && form.id
       ? await AiProviderApi.previewStoredModels({ id: form.id })
-      : await AiProviderApi.previewModels({ driver: form.driver, base_url: form.base_url, api_key: form.api_key })
+      : await AiProviderApi.previewModels({ engine_type: form.driver, base_url: form.base_url, api_key: form.api_key })
     modelOptions.value = result.list
     mergeDisplayNames(result.list)
     const firstModel = result.list[0]
@@ -86,7 +86,6 @@ function buildPayload(): AiProviderMutationParams {
   return {
     id: form.id,
     name: form.name,
-    driver: form.driver,
     engine_type: form.driver,
     base_url: form.base_url,
     model_ids: form.model_ids,

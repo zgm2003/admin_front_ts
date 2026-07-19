@@ -64,6 +64,46 @@ function responseContract(operation, label) {
   throw new Error(`${label} has no JSON success response schema`)
 }
 
+function resolveComponentSchema(schema, components, label) {
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
+    throw new Error(`${label} must declare an object schema`)
+  }
+  const reference = schema.$ref
+  if (reference === undefined) return schema
+  if (typeof reference !== 'string' || !reference.startsWith('#/components/schemas/')) {
+    throw new Error(`${label} has an unsupported schema reference`)
+  }
+  const name = reference.slice('#/components/schemas/'.length)
+  const resolved = components[name]
+  if (!resolved) throw new Error(`${label} references missing component ${name}`)
+  return resolved
+}
+
+function multipartContract(operation, components, label) {
+  const requestBody = operation?.requestBody
+  const mediaType = requestBody?.content?.['multipart/form-data']
+  if (!mediaType) return null
+
+  const schema = resolveComponentSchema(mediaType.schema, components, `${label} multipart body`)
+  if (schema.type !== 'object' || !schema.properties || typeof schema.properties !== 'object') {
+    throw new Error(`${label} multipart body must be an object with named properties`)
+  }
+  const required = new Set(schema.required ?? [])
+  const fields = Object.entries(schema.properties)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, fieldSchema]) => {
+      const field = resolveComponentSchema(fieldSchema, components, `${label} multipart field ${name}`)
+      const binary = field.type === 'string' && (field.format === 'binary' || field.format === 'byte')
+      if (!binary && !['string', 'integer', 'number', 'boolean'].includes(field.type)) {
+        throw new Error(`${label} multipart field ${name} has unsupported type ${String(field.type)}`)
+      }
+      return { name, binary, required: required.has(name), type: field.type }
+    })
+  if (fields.length === 0) throw new Error(`${label} multipart body must not be empty`)
+
+  return { fields }
+}
+
 function fieldCompleteOperations(openapi) {
   const components = openapi.components?.schemas ?? {}
   const methods = new Set(['get', 'post', 'put', 'patch', 'delete'])
@@ -98,6 +138,11 @@ function fieldCompleteOperations(openapi) {
         replay: method === 'get' ? 'safe' : 'never',
         dataSchema,
         operation,
+        multipart: multipartContract(
+          operation,
+          components,
+          `${method.toUpperCase()} ${path}`,
+        ),
       })
     }
   }
@@ -134,6 +179,33 @@ function hasEncodedInput(operation) {
     || Boolean(operation.operation.requestBody)
 }
 
+function multipartEncoderName(operation) {
+  return `encode_${operation.id}_multipart`
+}
+
+function multipartAppendSource(field) {
+  const access = `body[${JSON.stringify(field.name)}]`
+  const value = field.binary || field.type === 'string' ? access : `String(${access})`
+  const append = `form.append(${JSON.stringify(field.name)}, ${value})`
+  return field.required
+    ? [`  ${append}`]
+    : [`  if (${access} !== undefined) {`, `    ${append}`, '  }']
+}
+
+function multipartEncoderSource(operation) {
+  if (!operation.multipart) return ''
+  return [
+    `function ${multipartEncoderName(operation)}(`,
+    `  body: AdminOperationInput<${JSON.stringify(operation.id)}>['body'],`,
+    '): FormData {',
+    '  const form = new FormData()',
+    ...operation.multipart.fields.flatMap(multipartAppendSource),
+    '  return form',
+    '}',
+    '',
+  ].join('\n')
+}
+
 function operationSource(operation) {
   const input = `AdminOperationInput<${JSON.stringify(operation.id)}>`
   const output = `AdminOperationOutput<${JSON.stringify(operation.id)}>`
@@ -143,17 +215,25 @@ function operationSource(operation) {
     `    method: ${JSON.stringify(operation.method)},`,
     `    path: ${JSON.stringify(operation.path)},`,
     `    auth: ${JSON.stringify(operation.auth)},`,
-    "    timeout: 'interactive',",
+    `    timeout: ${JSON.stringify(operation.multipart ? 'upload' : 'interactive')},`,
     `    replay: ${JSON.stringify(operation.replay)},`,
     `    responseSchema: schemaCompiler.compile<${output}>(responseDataSchemas[${JSON.stringify(operation.id)}]),`,
     `    telemetryName: ${JSON.stringify(`admin.${operation.id.replaceAll('_', '.')}`)},`,
-    ...(hasEncodedInput(operation) ? ['    encode: (input) => input,'] : []),
+    ...(operation.multipart
+      ? [
+          '    encode: (input) => ({',
+          '      ...input,',
+          `      body: ${multipartEncoderName(operation)}(input.body),`,
+          '    }),',
+        ]
+      : hasEncodedInput(operation) ? ['    encode: (input) => input,'] : []),
     '  }),',
   ].join('\n')
 }
 
 function generatedOperationsSource(openapi, manifestSha) {
   const operations = fieldCompleteOperations(openapi)
+  const multipartOperations = operations.filter((operation) => operation.multipart)
   const responseSchemas = Object.fromEntries(operations.map((operation) => [operation.id, operation.dataSchema]))
   const componentSchemas = referencedComponents(
     operations.map((operation) => operation.dataSchema),
@@ -181,12 +261,27 @@ function generatedOperationsSource(openapi, manifestSha) {
     '        ? Record<never, never>',
     '        : { readonly [P in N]?: Exclude<Value, undefined> }',
     '      : Record<never, never>',
+    'type MultipartBinaryFieldByOperation = {',
+    ...multipartOperations.map((operation) => {
+      const binaryFields = operation.multipart.fields
+        .filter((field) => field.binary)
+        .map((field) => JSON.stringify(field.name))
+      return `  ${JSON.stringify(operation.id)}: ${binaryFields.join(' | ') || 'never'}`
+    }),
+    '}',
+    'type MultipartBody<K extends keyof MultipartBinaryFieldByOperation, Body> = {',
+    '  [P in keyof Body]: P extends MultipartBinaryFieldByOperation[K] ? Blob : Body[P]',
+    '}',
     'type RequestBodyField<K extends AdminOperationId> =',
-    "  OperationContract<K> extends { requestBody: { content: { 'application/json': infer Body } } }",
-    '    ? { readonly body: Body }',
-    "    : OperationContract<K> extends { requestBody?: { content: { 'application/json': infer Body } } }",
-    '      ? { readonly body?: Body }',
-    '      : Record<never, never>',
+    "  OperationContract<K> extends { requestBody: { content: { 'multipart/form-data': infer Body } } }",
+    '    ? { readonly body: K extends keyof MultipartBinaryFieldByOperation ? MultipartBody<K, Body> : Body }',
+    "    : OperationContract<K> extends { requestBody?: { content: { 'multipart/form-data': infer Body } } }",
+    '      ? { readonly body?: K extends keyof MultipartBinaryFieldByOperation ? MultipartBody<K, Body> : Body }',
+    "      : OperationContract<K> extends { requestBody: { content: { 'application/json': infer Body } } }",
+    '        ? { readonly body: Body }',
+    "        : OperationContract<K> extends { requestBody?: { content: { 'application/json': infer Body } } }",
+    '          ? { readonly body?: Body }',
+    '          : Record<never, never>',
     'type ResponsesContract<K extends AdminOperationId> = OperationContract<K> extends { responses: infer Responses } ? Responses : never',
     "type SuccessResponse<K extends AdminOperationId> = ResponsesContract<K>[Exclude<keyof ResponsesContract<K>, 'default'>]",
     'type SuccessEnvelope<K extends AdminOperationId> = SuccessResponse<K> extends { content: { \'application/json\': infer Envelope } } ? Envelope : never',
@@ -198,6 +293,7 @@ function generatedOperationsSource(openapi, manifestSha) {
     '',
     'const schemaCompiler = createContractSchemaCompiler(contractSchemas)',
     '',
+    ...multipartOperations.map(multipartEncoderSource),
     'export const adminOperations = {',
     ...operations.map(operationSource),
     '} as const',
