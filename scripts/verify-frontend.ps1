@@ -86,12 +86,24 @@ try {
     throw 'frontend checkout must be clean before Docker image verification'
   }
 
-  npm ci
-  npm run contract:check
-  npm run routes:generate
-  npm run lint:baseline
-  npm run typecheck
-  npm test -- --coverage
+  $qualityCommands = @(
+    'npm ci --no-audit --no-fund',
+    'npm run check:browser-only',
+    'npm run contract:check',
+    'npm run routes:generate',
+    'npm run lint:baseline',
+    'npm run typecheck',
+    'npm test -- --coverage',
+    'npm run build:check'
+  ) -join ' && '
+  Invoke-Docker @('run',
+    '--rm',
+    '--mount', "type=bind,src=$repositoryRoot,dst=/workspace",
+    '--mount', 'type=volume,dst=/workspace/node_modules',
+    '--workdir', '/workspace',
+    'node:22.23.1-alpine',
+    'sh', '-lc', $qualityCommands
+  )
 
   $apiOrigin = Read-ProductionValue -Name 'VITE_GO_API_BASE_URL'
   $realtimeOrigin = Read-ProductionValue -Name 'VITE_WEB_SOCKET_URL'

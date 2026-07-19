@@ -32,4 +32,8 @@ describe('Browser-only device preferences', () => {
       desktopWindow: { maximized: true },
     })).toThrow()
   })
+
+  it('migrates sparse v1 preferences without inventing absent fields', () => {
+    expect(devicePreferencesCodec.migrate?.(1, {})).toEqual({})
+  })
 })
