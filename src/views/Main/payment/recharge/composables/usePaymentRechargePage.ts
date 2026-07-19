@@ -13,7 +13,7 @@ import {
 import { useTable } from '@/components/Table'
 import { useUserStore } from '@/store/user'
 import type { SearchField, SearchFormModel } from '@/components/Search/types'
-import { getNativeBridge } from '@/adapters/native'
+import { navigateToExternalHttps } from '@/lib/browser/navigation'
 
 export type PaymentRechargeSearchForm = PaymentRechargeListParams & SearchFormModel & {
   dateRange: string[]
@@ -24,7 +24,6 @@ export function usePaymentRechargePage() {
   const router = useRouter()
   const userStore = useUserStore()
   const { t } = useI18n()
-  const native = getNativeBridge()
   const activeTab = ref('cashier')
   const pageLoading = ref(false)
   const submitting = ref(false)
@@ -120,7 +119,7 @@ export function usePaymentRechargePage() {
     try {
       const result = await PaymentRechargeApi.create(buildCreatePayload(selectedPackage.value!.code))
       if (result.pay_url) {
-        native.window.navigateExternal(result.pay_url)
+        navigateToExternalHttps(result.pay_url)
         return
       }
       ElNotification.success({ message: t('paymentRecharge.messages.created') })
@@ -132,12 +131,12 @@ export function usePaymentRechargePage() {
 
   async function payRecharge(row: PaymentRechargeListItem) {
     if (row.status === 'paying' && row.pay_url !== '') {
-      native.window.navigateExternal(row.pay_url)
+      navigateToExternalHttps(row.pay_url)
       return
     }
     const result = await PaymentRechargeApi.pay(row.id)
     if (result.pay_url) {
-      native.window.navigateExternal(result.pay_url)
+      navigateToExternalHttps(result.pay_url)
       return
     }
     await refreshAll()

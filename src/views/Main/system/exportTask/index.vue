@@ -15,7 +15,7 @@ import {
 } from '@/api/system/exportTask'
 import {createExportsWorkflow} from '@/features/exports/workflow'
 import {useWorkflowTable} from '@/features/shared/use-workflow-table'
-import {downloadFile} from '@/components/DownloadManager'
+import {downloadFile} from '@/lib/browser/download'
 
 const {t} = useI18n()
 const route = useRoute()

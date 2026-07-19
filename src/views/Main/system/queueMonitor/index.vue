@@ -2,10 +2,9 @@
 import { computed, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ADMIN_QUEUE_MONITOR_UI_URL, prepareQueueMonitorGrant } from '@/api/system/queueMonitor'
-import { getNativeBridge } from '@/adapters/native'
+import { openSameOriginPath } from '@/lib/browser/navigation'
 
 const { t } = useI18n()
-const native = getNativeBridge()
 
 const frameSrc = computed(() => ADMIN_QUEUE_MONITOR_UI_URL)
 const frameReady = shallowRef(false)
@@ -20,7 +19,7 @@ async function prepareFrame() {
 }
 
 function openStandalone() {
-  native.window.openSameOrigin(ADMIN_QUEUE_MONITOR_UI_URL)
+  openSameOriginPath(ADMIN_QUEUE_MONITOR_UI_URL)
 }
 
 onMounted(() => {

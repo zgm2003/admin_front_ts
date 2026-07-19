@@ -3,13 +3,12 @@ import { useRouter } from 'vue-router'
 import { CommonEnum } from '@/enums'
 import { NotificationApi, type NotificationItem } from '@/api/system/notification'
 import { useAppKernel } from '@/app/injection'
-import { getNativeBridge } from '@/adapters/native'
+import { openExternalUrl } from '@/lib/browser/navigation'
 import { resolveHomeNavigationAction } from './helpers'
 
 export function useHomeDashboard() {
   const router = useRouter()
   const kernel = useAppKernel()
-  const native = getNativeBridge()
 
   const notificationsLoading = ref(false)
   const notifications = ref<NotificationItem[]>([])
@@ -51,7 +50,7 @@ export function useHomeDashboard() {
     }
 
     if (action.type === 'external') {
-      native.window.openExternal(target)
+      openExternalUrl(target)
       return
     }
 

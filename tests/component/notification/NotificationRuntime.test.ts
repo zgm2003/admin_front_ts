@@ -8,25 +8,15 @@ const mocks = vi.hoisted(() => ({
   notification: vi.fn(),
   close: vi.fn(),
   routerPush: vi.fn(),
-  shouldUseNative: vi.fn(),
-  sendNativeNotification: vi.fn(),
-  handler: undefined as undefined | ((event: { data: Record<string, unknown> }) => Promise<void>),
+  openExternalUrl: vi.fn(),
+  handler: undefined as undefined | ((event: { data: Record<string, unknown> }) => void),
 }))
 
 vi.mock('@/app/injection', () => ({
   useAppKernel: () => ({ realtime: { subscribe: mocks.subscribe } }),
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: mocks.routerPush }) }))
-vi.mock('@/adapters/native', () => ({
-  getNativeBridge: () => ({
-    kind: 'tauri',
-    window: { openExternal: vi.fn() },
-    notifications: {
-      shouldUseNative: mocks.shouldUseNative,
-      send: mocks.sendNativeNotification,
-    },
-  }),
-}))
+vi.mock('@/lib/browser/navigation', () => ({ openExternalUrl: mocks.openExternalUrl }))
 vi.mock('element-plus', () => ({ ElNotification: mocks.notification }))
 
 describe('NotificationRuntime', () => {
@@ -38,7 +28,6 @@ describe('NotificationRuntime', () => {
       return mocks.unsubscribe
     })
     mocks.notification.mockReturnValue({ close: mocks.close })
-    mocks.shouldUseNative.mockResolvedValue(false)
   })
 
   it('subscribes once, shows every typed notification, and releases the subscription', async () => {
@@ -71,8 +60,7 @@ describe('NotificationRuntime', () => {
     expect(mocks.unsubscribe).toHaveBeenCalledTimes(1)
   })
 
-  it('mirrors the same event to native notification only when native mode is active', async () => {
-    mocks.shouldUseNative.mockResolvedValue(true)
+  it('always uses the in-app notification and never mirrors to a native runtime', async () => {
     mount(NotificationRuntime)
 
     await mocks.handler?.({
@@ -86,7 +74,25 @@ describe('NotificationRuntime', () => {
       },
     })
 
-    expect(mocks.sendNativeNotification).toHaveBeenCalledWith('Urgent', 'Review now')
     expect(mocks.notification).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens an allowlisted external notification link through the browser policy', async () => {
+    mount(NotificationRuntime)
+
+    await mocks.handler?.({
+      data: {
+        task_id: 9,
+        title: 'Export ready',
+        content: 'Download now',
+        link: 'https://cos.zgm2003.cn/exports/report.csv',
+        level: 'normal',
+        notification_type: 'success',
+      },
+    })
+    mocks.notification.mock.calls[0]?.[0].onClick()
+
+    expect(mocks.openExternalUrl).toHaveBeenCalledWith('https://cos.zgm2003.cn/exports/report.csv')
+    expect(mocks.routerPush).not.toHaveBeenCalled()
   })
 })

@@ -15,11 +15,4 @@ describe('frontend production endpoints', () => {
     expect(env).not.toContain('api.example.com')
     expect(env).not.toContain('admin.example.com')
   })
-
-  it('keeps Tauri CSP from allowing the root frontend domain as a WebSocket endpoint', () => {
-    const tauriConfig = readFrontendSource('src-tauri/tauri.conf.json')
-
-    expect(tauriConfig).toContain('wss://www.zgm2003.cn')
-    expect(tauriConfig).not.toMatch(/\bwss:\/\/zgm2003\.cn(?:\s|[";])/)
-  })
 })
