@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 60379e7aa488dfcf64da72ef093a6b49ec5414c4ac29a3ba1356939ee0514381
+// Generated from Admin Contract Bundle manifest SHA-256: aaef6d0070f1e579227b4f3c64c05795a52779c27242cd718e688b4804f4499b
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3084,7 +3084,473 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddressTreeNode: {
+            children?: components["schemas"]["AddressTreeNode"][];
+            /** Format: int64 */
+            id: number;
+            label: string;
+            /** Format: int64 */
+            parent_id: number;
+            /** Format: int64 */
+            value: number;
+        };
+        AIAttachmentRequest: {
+            name?: string;
+            /** Format: int64 */
+            size?: number;
+            /** @constant */
+            type: "image";
+            url: string;
+        };
+        AIConversationCreateRequest: {
+            /** Format: int64 */
+            agent_id: number;
+            title?: string;
+        };
+        AIConversationCreateResult: {
+            /** Format: int64 */
+            id: number;
+        };
+        AIConversationCreateSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIConversationCreateResult"];
+            msg: string;
+        };
+        AIConversationDetail: {
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            created_at: string;
+            /** Format: int64 */
+            id: number;
+            last_message_at: string;
+            title: string;
+            updated_at: string;
+        };
+        AIConversationDetailSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIConversationDetail"];
+            msg: string;
+        };
+        AIConversationItem: {
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            /** Format: int64 */
+            id: number;
+            last_message_at: string;
+            title: string;
+            updated_at: string;
+        };
+        AIConversationListResult: {
+            has_more: boolean;
+            list: components["schemas"]["AIConversationItem"][];
+            /** Format: int64 */
+            next_id: number;
+            next_time: string;
+        };
+        AIConversationListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIConversationListResult"];
+            msg: string;
+        };
+        AIConversationUpdateRequest: {
+            title: string;
+        };
+        AIMessageCancelRequest: {
+            request_id: string;
+        };
+        AIMessageCancelResult: {
+            /** Format: int64 */
+            conversation_id: number;
+            request_id: string;
+            /** @constant */
+            status: "canceled";
+        };
+        AIMessageCancelSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIMessageCancelResult"];
+            msg: string;
+        };
+        AIMessageItem: {
+            content: string;
+            content_type: string;
+            created_at: string;
+            /** Format: int64 */
+            id: number;
+            meta_json?: components["schemas"]["AIMessageMeta"];
+            /** @enum {integer} */
+            role: 1 | 2 | 3;
+            updated_at: string;
+        };
+        AIMessageListResult: {
+            has_more: boolean;
+            list: components["schemas"]["AIMessageItem"][];
+            /** Format: int64 */
+            next_id: number;
+        };
+        AIMessageListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIMessageListResult"];
+            msg: string;
+        };
+        AIMessageMeta: {
+            attachments?: components["schemas"]["AIMessageMetaAttachment"][];
+            runtime_params?: components["schemas"]["AIRuntimeParams"];
+        };
+        AIMessageMetaAttachment: {
+            name: string;
+            /** Format: int64 */
+            size: number;
+            /** @constant */
+            type: "image";
+            url: string;
+        };
+        AIMessageSendRequest: {
+            attachments?: components["schemas"]["AIAttachmentRequest"][];
+            /** @description Trimmed content must be non-empty when attachments is absent or empty. */
+            content?: string;
+            request_id: string;
+            runtime_params?: components["schemas"]["AIRuntimeParams"];
+        } | unknown | {
+            attachments: unknown;
+        };
+        AIMessageSendResult: {
+            /** Format: int64 */
+            command_id: number;
+            /** Format: int64 */
+            conversation_id: number;
+            request_id: string;
+            /** @enum {string} */
+            state: "pending" | "claimed" | "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown" | "timed_out";
+            /** Format: int64 */
+            user_message_id: number;
+        };
+        AIMessageSendSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIMessageSendResult"];
+            msg: string;
+        };
+        AIRunDetail: {
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            assistant_message: components["schemas"]["AIRunMessageSummary"] | null;
+            /** Format: int64 */
+            completion_tokens: number;
+            conversation_id: number | null;
+            conversation_title: string;
+            created_at: string;
+            duration_ms: number | null;
+            duration_text: string;
+            error_message: string;
+            events: components["schemas"]["AIRunEvent"][];
+            finished_at: string;
+            /** Format: int64 */
+            id: number;
+            input_snapshot: string;
+            knowledge_retrievals: components["schemas"]["AIRunKnowledgeRetrieval"][];
+            model_display_name: string;
+            model_id: string;
+            /** @enum {string} */
+            platform: "admin" | "app" | "canvas";
+            /** Format: int64 */
+            prompt_tokens: number;
+            /** Format: int64 */
+            provider_id: number;
+            provider_name: string;
+            request_id: string;
+            started_at: string;
+            /** @enum {string} */
+            status: "running" | "success" | "failed" | "canceled" | "timeout";
+            status_name: string;
+            tool_calls: components["schemas"]["AIRunToolCall"][];
+            /** Format: int64 */
+            total_tokens: number;
+            updated_at: string;
+            /** Format: int64 */
+            user_id: number;
+            user_message: components["schemas"]["AIRunMessageSummary"] | null;
+            username: string;
+        };
+        AIRunDetailSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunDetail"];
+            msg: string;
+        };
+        AIRunEvent: {
+            created_at: string;
+            elapsed_ms: number | null;
+            elapsed_text: string;
+            /** @enum {string} */
+            event_type: "start" | "completed" | "failed" | "canceled" | "timeout";
+            event_type_name: string;
+            /** Format: int64 */
+            id: number;
+            message: string;
+            /** Format: int64 */
+            seq: number;
+        };
+        AIRunKnowledgeHit: {
+            /** Format: int64 */
+            chunk_id: number;
+            /** Format: int64 */
+            chunk_index: number;
+            content_snapshot: string;
+            created_at: string;
+            /** Format: int64 */
+            document_id: number;
+            document_title: string;
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            knowledge_base_id: number;
+            knowledge_base_name: string;
+            /** Format: int64 */
+            rank_no: number;
+            score: number;
+            skip_reason: string;
+            /** @enum {integer} */
+            status: 1 | 2;
+            status_name: string;
+        };
+        AIRunKnowledgeRetrieval: {
+            created_at: string;
+            duration_ms: number | null;
+            duration_text: string;
+            error_message: string;
+            hits: components["schemas"]["AIRunKnowledgeHit"][];
+            /** Format: int64 */
+            id: number;
+            query: string;
+            /** Format: int64 */
+            run_id: number;
+            /** Format: int64 */
+            selected_hits: number;
+            /** @enum {string} */
+            status: "success" | "failed" | "skipped";
+            status_name: string;
+            /** Format: int64 */
+            total_hits: number;
+        };
+        AIRunListItem: {
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            /** Format: int64 */
+            completion_tokens: number;
+            conversation_id: number | null;
+            conversation_title: string;
+            created_at: string;
+            duration_ms: number | null;
+            duration_text: string;
+            error_message: string;
+            /** Format: int64 */
+            id: number;
+            input_snapshot: string;
+            model_display_name: string;
+            model_id: string;
+            /** @enum {string} */
+            platform: "admin" | "app" | "canvas";
+            /** Format: int64 */
+            prompt_tokens: number;
+            /** Format: int64 */
+            provider_id: number;
+            provider_name: string;
+            request_id: string;
+            /** @enum {string} */
+            status: "running" | "success" | "failed" | "canceled" | "timeout";
+            status_name: string;
+            /** Format: int64 */
+            total_tokens: number;
+            /** Format: int64 */
+            user_id: number;
+        };
+        AIRunListResult: {
+            list: components["schemas"]["AIRunListItem"][];
+            page: components["schemas"]["Page"];
+        };
+        AIRunListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunListResult"];
+            msg: string;
+        };
+        AIRunMessageSummary: {
+            content: string;
+            content_type: string;
+            created_at: string;
+            /** Format: int64 */
+            id: number;
+            meta_json: components["schemas"]["JSONValue"];
+            /** @enum {integer} */
+            role: 1 | 2 | 3;
+        };
+        AIRunPageInit: {
+            dict: components["schemas"]["AIRunPageInitDict"];
+        };
+        AIRunPageInitDict: {
+            agentArr: components["schemas"]["IntOption"][];
+            platform_arr: components["schemas"]["StringOption"][];
+            providerArr: components["schemas"]["IntOption"][];
+            status_arr: components["schemas"]["StringOption"][];
+        };
+        AIRunPageInitSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunPageInit"];
+            msg: string;
+        };
+        AIRunStatsByAgentItem: {
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            /** Format: int64 */
+            avg_duration_ms: number;
+            /** Format: int64 */
+            total_completion_tokens: number;
+            /** Format: int64 */
+            total_prompt_tokens: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunStatsByAgentResult: {
+            list: components["schemas"]["AIRunStatsByAgentItem"][];
+            page: components["schemas"]["Page"];
+        };
+        AIRunStatsByAgentSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunStatsByAgentResult"];
+            msg: string;
+        };
+        AIRunStatsByDateItem: {
+            /** Format: int64 */
+            avg_duration_ms: number;
+            date: string;
+            /** Format: int64 */
+            total_completion_tokens: number;
+            /** Format: int64 */
+            total_prompt_tokens: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunStatsByDateResult: {
+            list: components["schemas"]["AIRunStatsByDateItem"][];
+            page: components["schemas"]["Page"];
+        };
+        AIRunStatsByDateSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunStatsByDateResult"];
+            msg: string;
+        };
+        AIRunStatsByUserItem: {
+            /** Format: int64 */
+            avg_duration_ms: number;
+            /** Format: int64 */
+            total_completion_tokens: number;
+            /** Format: int64 */
+            total_prompt_tokens: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+            username: string;
+        };
+        AIRunStatsByUserResult: {
+            list: components["schemas"]["AIRunStatsByUserItem"][];
+            page: components["schemas"]["Page"];
+        };
+        AIRunStatsByUserSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunStatsByUserResult"];
+            msg: string;
+        };
+        AIRunStatsDateRange: {
+            end: string | null;
+            start: string | null;
+        };
+        AIRunStatsMetric: {
+            /** Format: int64 */
+            avg_duration_ms: number;
+            /** Format: int64 */
+            total_completion_tokens: number;
+            /** Format: int64 */
+            total_prompt_tokens: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunStatsResult: {
+            date_range: components["schemas"]["AIRunStatsDateRange"];
+            summary: components["schemas"]["AIRunStatsSummary"];
+        };
+        AIRunStatsSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunStatsResult"];
+            msg: string;
+        };
+        AIRunStatsSummary: {
+            /** Format: int64 */
+            avg_duration_ms: number;
+            /** Format: int64 */
+            fail_runs: number;
+            success_rate: number;
+            /** Format: int64 */
+            total_completion_tokens: number;
+            /** Format: int64 */
+            total_prompt_tokens: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRuntimeParams: {
+            /** Format: int64 */
+            max_history?: number;
+            /** Format: int64 */
+            max_tokens?: number;
+            temperature?: number;
+        };
+        AIRunToolCall: {
+            arguments_json: components["schemas"]["JSONValue"];
+            call_id: string | null;
+            duration_ms: number | null;
+            error_message: string;
+            finished_at: string;
+            /** Format: int64 */
+            id: number;
+            result_json: components["schemas"]["JSONValue"];
+            started_at: string;
+            /** @enum {string} */
+            status: "running" | "success" | "failed" | "timeout";
+            tool_code: string;
+            /** Format: int64 */
+            tool_id: number;
+            tool_name: string;
+        };
         EmptyObject: Record<string, never>;
+        EmptySuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: Record<string, never>;
+            msg: string;
+        };
         ErrorEnvelope: {
             code: number;
             data: unknown;
@@ -3098,8 +3564,130 @@ export interface components {
             };
             msg: string;
         };
+        /** @description Positive export-task IDs owned by the current user. */
+        ExportTaskDeleteBatchRequest: {
+            ids: number[];
+        };
+        ExportTaskItem: {
+            created_at: string;
+            error_msg: string | null;
+            expire_at: string | null;
+            file_name: string | null;
+            file_size_text: string;
+            file_url: string | null;
+            /** Format: int64 */
+            id: number;
+            kind: string;
+            kind_text: string;
+            row_count: number | null;
+            /** @enum {integer} */
+            status: 1 | 2 | 3;
+            status_text: string;
+            title: string;
+        };
+        ExportTaskListResult: {
+            list: components["schemas"]["ExportTaskItem"][];
+            /** Format: int64 */
+            next_id: number;
+            page: components["schemas"]["Page"];
+        };
+        ExportTaskListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["ExportTaskListResult"];
+            msg: string;
+        };
+        ExportTaskStatusCountItem: {
+            label: string;
+            /** Format: int64 */
+            num: number;
+            /** @enum {integer} */
+            value: 1 | 2 | 3;
+        };
+        ExportTaskStatusCountSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["ExportTaskStatusCountItem"][];
+            msg: string;
+        };
         GenericObject: {
             [key: string]: unknown;
+        };
+        IntOption: {
+            label: string;
+            /** Format: int64 */
+            value: number;
+        };
+        /** @description Any valid JSON value explicitly stored in a json.RawMessage field; invalid or absent stored JSON is normalized to an empty object. */
+        JSONValue: unknown;
+        /** @description Positive notification IDs owned by the current user. */
+        NotificationDeleteBatchRequest: {
+            ids: number[];
+        };
+        NotificationItem: {
+            content: string;
+            created_at: string;
+            /** Format: int64 */
+            id: number;
+            /** @enum {integer} */
+            is_read: 1 | 2;
+            /** @enum {integer} */
+            level: 1 | 2;
+            level_text: string;
+            link: string;
+            title: string;
+            /** @enum {integer} */
+            type: 1 | 2 | 3 | 4;
+            type_text: string;
+        };
+        NotificationListResult: {
+            list: components["schemas"]["NotificationItem"][];
+            /** Format: int64 */
+            next_id: number;
+            page: components["schemas"]["Page"];
+        };
+        NotificationListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["NotificationListResult"];
+            msg: string;
+        };
+        NotificationPageInit: {
+            dict: components["schemas"]["NotificationPageInitDict"];
+        };
+        NotificationPageInitDict: {
+            notification_level_arr: components["schemas"]["IntOption"][];
+            notification_read_status_arr: components["schemas"]["IntOption"][];
+            notification_type_arr: components["schemas"]["IntOption"][];
+        };
+        NotificationPageInitSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["NotificationPageInit"];
+            msg: string;
+        };
+        NotificationReadRequest: {
+            ids?: number[];
+        };
+        NotificationUnreadCountResult: {
+            /** Format: int64 */
+            count: number;
+        };
+        NotificationUnreadCountSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["NotificationUnreadCountResult"];
+            msg: string;
+        };
+        Page: {
+            /** Format: int64 */
+            current_page: number;
+            /** Format: int64 */
+            page_size: number;
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            total_page: number;
         };
         QueueMonitorGrantSuccessEnvelope: {
             /** @constant */
@@ -3120,11 +3708,116 @@ export interface components {
             };
             msg: string;
         };
+        StringOption: {
+            label: string;
+            value: string;
+        };
         SuccessEnvelope: {
             /** @constant */
             code: 0;
             data: unknown;
             msg: string;
+        };
+        /** @description Positive user IDs to delete. */
+        UserBatchDeleteRequest: {
+            ids: number[];
+        };
+        /** @description Exactly one field-specific variant is accepted. */
+        UserBatchProfileRequest: {
+            /** @constant */
+            field: "sex";
+            ids: number[];
+            /** @enum {integer} */
+            sex: 0 | 1 | 2;
+        } | {
+            /** Format: int64 */
+            address_id: number;
+            /** @constant */
+            field: "address_id";
+            ids: number[];
+        } | {
+            detail_address?: string;
+            /** @constant */
+            field: "detail_address";
+            ids: number[];
+        };
+        /** @description Positive user IDs included in this export task. */
+        UserExportRequest: {
+            ids: number[];
+        };
+        UserExportResult: {
+            /** Format: int64 */
+            id: number;
+            message: string;
+        };
+        UserExportSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["UserExportResult"];
+            msg: string;
+        };
+        UserListItem: {
+            /** Format: int64 */
+            address_id: number;
+            address_show: string;
+            avatar: string | null;
+            bio: string;
+            created_at: string;
+            detail_address: string;
+            email: string;
+            /** Format: int64 */
+            id: number;
+            phone: string;
+            /** Format: int64 */
+            role_id: number;
+            role_name: string;
+            /** @enum {integer} */
+            sex: 0 | 1 | 2;
+            sex_show: string;
+            /** @enum {integer} */
+            status: 1 | 2;
+            username: string;
+        };
+        UserListResult: {
+            list: components["schemas"]["UserListItem"][];
+            page: components["schemas"]["Page"];
+        };
+        UserListSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["UserListResult"];
+            msg: string;
+        };
+        UserPageInit: {
+            dict: components["schemas"]["UserPageInitDict"];
+        };
+        UserPageInitDict: {
+            auth_address_tree: components["schemas"]["AddressTreeNode"][];
+            platformArr: components["schemas"]["StringOption"][];
+            roleArr: components["schemas"]["IntOption"][];
+            sexArr: components["schemas"]["IntOption"][];
+        };
+        UserPageInitSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["UserPageInit"];
+            msg: string;
+        };
+        UserStatusRequest: {
+            /** @enum {integer} */
+            status: 1 | 2;
+        };
+        UserUpdateRequest: {
+            /** Format: int64 */
+            address_id: number;
+            avatar?: string;
+            bio?: string;
+            detail_address?: string;
+            /** Format: int64 */
+            role_id: number;
+            /** @enum {integer} */
+            sex?: 0 | 1 | 2;
+            username: string;
         };
     };
     responses: never;
@@ -3591,7 +4284,16 @@ export interface operations {
     };
     get_api_admin_v1_ai_conversations: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description Conversation cursor ID; must accompany before_time. */
+                before_id?: number;
+                /** @description Conversation cursor time; must accompany before_id. */
+                before_time?: string;
+                /** @description Maximum conversations returned. */
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3604,7 +4306,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIConversationListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3625,9 +4327,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["AIConversationCreateRequest"];
             };
         };
         responses: {
@@ -3637,7 +4339,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIConversationCreateSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3656,7 +4358,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3668,7 +4370,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIConversationDetailSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3687,13 +4389,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["AIConversationUpdateRequest"];
             };
         };
         responses: {
@@ -3703,7 +4405,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3722,15 +4424,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["GenericObject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -3738,7 +4436,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3754,10 +4452,15 @@ export interface operations {
     };
     get_api_admin_v1_ai_conversations_id_messages: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Message cursor ID. */
+                before_id?: number;
+                /** @description Maximum messages returned. */
+                limit?: number;
+            };
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3769,7 +4472,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIMessageListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3788,13 +4491,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["AIMessageSendRequest"];
             };
         };
         responses: {
@@ -3804,7 +4507,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIMessageSendSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -3823,13 +4526,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["AIMessageCancelRequest"];
             };
         };
         responses: {
@@ -3839,7 +4542,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIMessageCancelSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5045,7 +5748,28 @@ export interface operations {
     };
     get_api_admin_v1_ai_runs: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description One-based page number. */
+                current_page?: number;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Number of rows per page. */
+                page_size?: number;
+                /** @description Origin platform filter. */
+                platform?: "admin" | "app" | "canvas";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description Request ID search. */
+                request_id?: string;
+                /** @description Run status filter. */
+                status?: "running" | "success" | "failed" | "canceled" | "timeout";
+                /** @description User ID filter. */
+                user_id?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5058,7 +5782,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5077,7 +5801,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -5089,7 +5813,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunDetailSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5118,7 +5842,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunPageInitSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5134,7 +5858,20 @@ export interface operations {
     };
     get_api_admin_v1_ai_runs_stats: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Origin platform filter. */
+                platform?: "admin" | "app" | "canvas";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description User ID filter. */
+                user_id?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5147,7 +5884,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunStatsSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5163,7 +5900,24 @@ export interface operations {
     };
     get_api_admin_v1_ai_runs_stats_by_agent: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description One-based page number. */
+                current_page?: number;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Number of rows per page. */
+                page_size?: number;
+                /** @description Origin platform filter. */
+                platform?: "admin" | "app" | "canvas";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description User ID filter. */
+                user_id?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5176,7 +5930,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunStatsByAgentSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5192,7 +5946,24 @@ export interface operations {
     };
     get_api_admin_v1_ai_runs_stats_by_date: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description One-based page number. */
+                current_page?: number;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Number of rows per page. */
+                page_size?: number;
+                /** @description Origin platform filter. */
+                platform?: "admin" | "app" | "canvas";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description User ID filter. */
+                user_id?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5205,7 +5976,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunStatsByDateSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -5221,7 +5992,24 @@ export interface operations {
     };
     get_api_admin_v1_ai_runs_stats_by_user: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description One-based page number. */
+                current_page?: number;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Number of rows per page. */
+                page_size?: number;
+                /** @description Origin platform filter. */
+                platform?: "admin" | "app" | "canvas";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description User ID filter. */
+                user_id?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5234,7 +6022,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["AIRunStatsByUserSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -6575,7 +7363,22 @@ export interface operations {
     };
     get_api_admin_v1_export_tasks: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cursor ID for records before this export task. */
+                before_id?: number;
+                /** @description One-based page number. */
+                current_page?: number;
+                /** @description File-name search. */
+                file_name?: string;
+                /** @description Export kind filter. */
+                kind?: string;
+                /** @description Number of rows per page. */
+                page_size?: number;
+                /** @description Export status filter. */
+                status?: 1 | 2 | 3;
+                /** @description Export title search. */
+                title?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -6588,7 +7391,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["ExportTaskListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -6609,9 +7412,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["ExportTaskDeleteBatchRequest"];
             };
         };
         responses: {
@@ -6621,7 +7424,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -6640,15 +7443,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["GenericObject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -6656,7 +7455,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -6672,7 +7471,14 @@ export interface operations {
     };
     get_api_admin_v1_export_tasks_status_count: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description File-name search. */
+                file_name?: string;
+                /** @description Export kind filter. */
+                kind?: string;
+                /** @description Export title search. */
+                title?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -6685,7 +7491,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["ExportTaskStatusCountSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7343,7 +8149,22 @@ export interface operations {
     };
     get_api_admin_v1_notifications: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Cursor ID for records before this notification. */
+                before_id?: number;
+                /** @description One-based page number. */
+                current_page: number;
+                /** @description Read-state filter: 1 read, 2 unread. */
+                is_read?: 1 | 2;
+                /** @description Title/content keyword search. */
+                keyword?: string;
+                /** @description Notification level filter. */
+                level?: 1 | 2;
+                /** @description Number of rows per page. */
+                page_size: number;
+                /** @description Notification type filter. */
+                type?: 1 | 2 | 3 | 4;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -7356,7 +8177,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["NotificationListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7377,9 +8198,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["NotificationDeleteBatchRequest"];
             };
         };
         responses: {
@@ -7389,7 +8210,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7408,15 +8229,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["GenericObject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -7424,7 +8241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7443,15 +8260,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["GenericObject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -7459,7 +8272,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7488,7 +8301,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["NotificationPageInitSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7511,7 +8324,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["NotificationReadRequest"];
             };
         };
         responses: {
@@ -7521,7 +8334,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -7550,7 +8363,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["NotificationUnreadCountSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11049,7 +11862,32 @@ export interface operations {
     };
     get_api_admin_v1_users: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Comma-separated positive address IDs. */
+                address_id?: string;
+                /** @description One-based page number. */
+                current_page: number;
+                /** @description Comma-separated start/end creation-time pair; ignored when date_start or date_end is present. */
+                date?: string;
+                /** @description Inclusive creation-time upper bound. */
+                date_end?: string;
+                /** @description Inclusive creation-time lower bound. */
+                date_start?: string;
+                /** @description Detail-address search. */
+                detail_address?: string;
+                /** @description Email search. */
+                email?: string;
+                /** @description General user keyword search. */
+                keyword?: string;
+                /** @description Number of rows per page. */
+                page_size: number;
+                /** @description Role ID filter. */
+                role_id?: number;
+                /** @description Sex filter. */
+                sex?: 0 | 1 | 2;
+                /** @description Username search. */
+                username?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11062,7 +11900,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["UserListSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11083,9 +11921,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["UserBatchDeleteRequest"];
             };
         };
         responses: {
@@ -11095,7 +11933,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11116,9 +11954,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["UserBatchProfileRequest"];
             };
         };
         responses: {
@@ -11128,7 +11966,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11147,13 +11985,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["UserUpdateRequest"];
             };
         };
         responses: {
@@ -11163,7 +12001,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11182,15 +12020,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["GenericObject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -11198,7 +12032,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11248,13 +12082,13 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["UserStatusRequest"];
             };
         };
         responses: {
@@ -11264,7 +12098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["EmptySuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11285,9 +12119,9 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["GenericObject"];
+                "application/json": components["schemas"]["UserExportRequest"];
             };
         };
         responses: {
@@ -11297,7 +12131,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["UserExportSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -11413,7 +12247,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope"];
+                    "application/json": components["schemas"]["UserPageInitSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
