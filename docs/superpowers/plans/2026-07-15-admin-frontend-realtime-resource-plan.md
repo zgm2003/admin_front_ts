@@ -330,7 +330,7 @@ Expected: source-text suites are below 20%; all core modules meet both coverage 
 - Modify: only files reported by `npm run lint` for unused/default-prop/explicit-any/prop-mutation/useless-escape/no-v-html findings, with the changed path recorded in the matching wave before staging
 - Modify: `package.json` and `eslint.config.js` only to set `--max-warnings 0`, not to disable rules
 
-- [ ] **Step 1: Split by real behavior in five waves**
+- [x] **Step 1: Split by real behavior in five waves**
 
 Wave A — protocol/state-heavy:
 
@@ -396,15 +396,15 @@ src/i18n/locales/zh-CN.ts
 
 Locale splitting is completed in Task 7. Do not split a file only to move lines; each extracted file owns a named behavior, pure transformation, or interaction.
 
-- [ ] **Step 2: Remove semantic warnings**
+- [x] **Step 2: Remove semantic warnings**
 
 Replace prop mutation with local models/emits, explicit any with generated/domain types, missing defaults with `withDefaults` or required props, and unused destructuring with explicit property selection. Sanitize Markdown HTML through one tested renderer before `v-html`; do not suppress `vue/no-v-html` globally.
 
-- [ ] **Step 3: Switch the gate to zero**
+- [x] **Step 3: Switch the gate to zero**
 
 Set `lint` to `eslint . --max-warnings 0` and remove `lint:baseline`. Do not weaken recommended rules or add blanket file disables.
 
-- [ ] **Step 4: Verify and commit each wave**
+- [x] **Step 4: Verify and commit each wave**
 
 After every wave run `npm run lint && npm run typecheck && npm test`. Stage only the exact source paths named by that wave plus newly extracted files in the same component directories, then use these fixed commits:
 
@@ -425,6 +425,18 @@ npm test -- --coverage
 ```
 
 Expected: 0 errors and 0 warnings, with behavior/coverage unchanged or improved.
+
+#### P07 Task 6 checkpoint evidence (2026-07-20)
+
+- Execution boundary: direct `master` checkout only; no worktree, host Node runtime, browser automation, or GitHub Workflow was used. All Node checks ran in `node:22.23.1-alpine` Docker containers.
+- Wave commits: `c863919` (protocol/state), `d644418` (identity/navigation), `d853a93` (AI administration), `10cca02` (system/payment), and `51bd37d` (demos/locale sources).
+- `npm run lint`: passed with 0 errors and 0 warnings; `lint:baseline` was removed and the blocking command is `eslint . --max-warnings 0`.
+- `npm run typecheck`: passed.
+- `npm test -- --coverage`: 99 files / 410 tests passed; aggregate coverage was 89.71% statements and 83.90% branches, with every configured core threshold at or above 80%.
+- `npm run contract:check`: passed with locked manifest hash `d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa`.
+- `npm run check:browser-only`: passed for 541 tracked paths, 333 production files, and 6 contract files.
+- `npm run build`: passed after transforming 2308 modules.
+- `git diff --cached --check`: passed before every wave commit; the Task 6 working tree was clean after Wave E.
 
 ### Task 7: Lazy-load locale/heavy code and enforce bundle budgets
 
