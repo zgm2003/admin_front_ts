@@ -1,6 +1,6 @@
 # Admin Frontend Realtime, Resource, and Quality Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task directly on `master`. Do not use subagents or worktrees unless the user explicitly changes that rule. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add typed recoverable realtime, latest-wins ResourceQuery/mutations, migrate feature APIs and tables, replace source-heavy tests with behavior tests, and meet zero-warning, bundle, Docker-runtime, and WCAG 2.2 AA gates.
 
@@ -12,7 +12,7 @@
 
 ## Docker-only runtime and explicit browser-tool policy
 
-P07 starts only after the user accepts the P06 Docker build. API, worker, frontend, MySQL, and Redis runtime processes are started only by `admin_back_go/scripts/docker-platform.ps1`; no task starts Vite, Go binaries, MySQL, or Redis on the host. Static TypeScript/Vitest/build checks run through the pinned Node container introduced in Task 10.
+P07 Tasks 1–5 started after the user accepted P06 and are complete. Tasks 6–10 start only after P08R Browser-only retirement and the user's P08R functional acceptance. API, worker, frontend, MySQL, and Redis runtime processes are started only by `admin_back_go/scripts/docker-platform.ps1`; no task starts Vite, Go binaries, MySQL, or Redis on the host. Static TypeScript/Vitest/build checks run through `node:22.23.1-alpine`.
 
 Until Task 10 creates `scripts/docker-frontend-gate.ps1`, every `npm` or `node` command shown in Tasks 1-9 is the inner command for an equivalent `node:22.23.1-alpine` one-shot container mounted at `/workspace`; it is not permission to execute a host runtime. After Task 10, use the wrapper exclusively.
 
@@ -317,12 +317,14 @@ Expected: source-text suites are below 20%; all core modules meet both coverage 
 - `npm run test:architecture`: 97 suites, 67 direct-production behavior suites, 16 source-text guards, 16.49% source-text ratio.
 - `npm run build:check`: passed production TypeScript and Vite build.
 - `git diff --check`: passed. The only handwritten Admin path retained under `src/api` is the explicitly guarded queue-monitor HTML UI URL; its authorization grant is a generated typed operation.
-- Manual functional acceptance is intentionally pending. Per the agreed checkpoint, do not start P08 or P07 Tasks 6–10 until the user completes the stage review.
+- The user completed the Tasks 1–5 stage review before historical P08 began. That checkpoint is closed; the current barrier is P08R Browser-only retirement and user acceptance before P07 Tasks 6–10.
 
-### Task 6: Decompose mixed-responsibility pages and reach zero lint warnings
+### Task 6: Decompose remaining Browser-only pages and reach zero lint warnings
+
+**Prerequisite:** P08R is committed, its Browser-only static/contract/Docker gates pass, and the user has accepted `docs/acceptance/p08r-browser-only-manual.md`. Recompute line/warning evidence from that exact frontend revision; do not resurrect files deleted by P08R.
 
 **Files:**
-- Modify: the 36 exact max-line files enumerated in Step 1
+- Modify: the 33 exact Browser-only decomposition candidates enumerated in Step 1
 - Modify: only files reported by `npm run lint` for unused/default-prop/explicit-any/prop-mutation/useless-escape/no-v-html findings, with the changed path recorded in the matching wave before staging
 - Modify: `package.json` and `eslint.config.js` only to set `--max-warnings 0`, not to disable rules
 
@@ -331,12 +333,12 @@ Expected: source-text suites are below 20%; all core modules meet both coverage 
 Wave A — protocol/state-heavy:
 
 ```text
-src/components/DownloadManager/src/index.vue
 src/views/Main/ai/chat/components/MessageInput/index.vue
 src/views/Main/ai/chat/index.vue
 src/views/Main/ai/runs/components/RunList/index.vue
-src/views/Main/component/download/index.vue
 ```
+
+The Tauri download manager and client-version page were deleted by P08R and must not be recreated or included in any wave.
 
 Extract typed workflow/composable, pure normalization, and focused presentation components; keep the route component as local assembly.
 
@@ -370,7 +372,6 @@ src/views/Main/payment/config/components/PaymentConfigForm.vue
 src/views/Main/permission/permission/components/IconSelect.vue
 src/views/Main/permission/role/components/RolePermissionMatrix.vue
 src/views/Main/permission/role/index.vue
-src/views/Main/system/clientVersion/index.vue
 src/views/Main/system/cronTask/index.vue
 src/views/Main/system/mail/components/MailConfigPanel.vue
 src/views/Main/system/mail/components/MailTemplatePanel.vue
@@ -452,8 +453,6 @@ Expected: 0 errors and 0 warnings, with behavior/coverage unchanged or improved.
 - Modify: `src/components/MarkdownRenderer/src/index.vue`
 - Modify: `src/lib/upload/uploadClient.ts`
 - Modify: `src/views/Main/ai/chat/components/MessageList/index.vue`
-- Modify: `src/adapters/native.ts`
-- Modify: `src/components/DownloadManager/src/download.ts`
 - Create: `scripts/analyze-bundle.mjs`
 - Create: `performance/baseline.json`
 - Create: `performance/budgets.json`
@@ -470,7 +469,7 @@ Create `common/auth/layout/user/permission/system/payment/ai` domain files for e
 
 - [ ] **Step 3: Remove eager heavy imports**
 
-The default authenticated route manifest must not include `@wangeditor`, `cos-js-sdk-v5`, `markdown-it`, `highlight.js`, AI chat renderer, or any Tauri adapter. Load them in the route/interaction that uses them. Remove duplicate vendor copies rather than hiding them in another named chunk.
+The default authenticated route manifest must not include `@wangeditor`, `cos-js-sdk-v5`, `markdown-it`, `highlight.js`, or the AI chat renderer. Load them only in the route/interaction that uses them. P08R's `check:browser-only` gate separately proves that no Tauri/native adapter exists; Task 7 must not recreate one merely to satisfy a chunk boundary. Remove duplicate vendor copies rather than hiding them in another named chunk.
 
 - [ ] **Step 4: Enforce exact compressed budgets**
 
@@ -482,7 +481,7 @@ The default authenticated route manifest must not include `@wangeditor`, `cos-js
   "totalJs": {"gzip": 1572864, "brotli": 1258291},
   "forbiddenInitialModules": [
     "@wangeditor", "cos-js-sdk-v5", "markdown-it",
-    "highlight.js", "@tauri-apps"
+    "highlight.js"
   ]
 }
 ```
@@ -496,7 +495,7 @@ npm run build
 node scripts/generate-locale-types.mjs --check
 node scripts/analyze-bundle.mjs --check
 npm test -- tests/shared/build/bundle-boundary.test.ts
-git add -- src/i18n/index.ts src/i18n/locales/en-US/common.ts src/i18n/locales/en-US/auth.ts src/i18n/locales/en-US/layout.ts src/i18n/locales/en-US/user.ts src/i18n/locales/en-US/permission.ts src/i18n/locales/en-US/system.ts src/i18n/locales/en-US/payment.ts src/i18n/locales/en-US/ai.ts src/i18n/locales/zh-CN/common.ts src/i18n/locales/zh-CN/auth.ts src/i18n/locales/zh-CN/layout.ts src/i18n/locales/zh-CN/user.ts src/i18n/locales/zh-CN/permission.ts src/i18n/locales/zh-CN/system.ts src/i18n/locales/zh-CN/payment.ts src/i18n/locales/zh-CN/ai.ts src/i18n/locales/generated.ts scripts/generate-locale-types.mjs vite.config.ts src/views/Main/component/display/components/Editor.vue src/components/MarkdownRenderer/src/index.vue src/lib/upload/uploadClient.ts src/views/Main/ai/chat/components/MessageList/index.vue src/adapters/native.ts src/components/DownloadManager/src/download.ts scripts/analyze-bundle.mjs performance/baseline.json performance/budgets.json package.json tests/shared/build/bundle-boundary.test.ts
+git add -- src/i18n/index.ts src/i18n/locales/en-US/common.ts src/i18n/locales/en-US/auth.ts src/i18n/locales/en-US/layout.ts src/i18n/locales/en-US/user.ts src/i18n/locales/en-US/permission.ts src/i18n/locales/en-US/system.ts src/i18n/locales/en-US/payment.ts src/i18n/locales/en-US/ai.ts src/i18n/locales/zh-CN/common.ts src/i18n/locales/zh-CN/auth.ts src/i18n/locales/zh-CN/layout.ts src/i18n/locales/zh-CN/user.ts src/i18n/locales/zh-CN/permission.ts src/i18n/locales/zh-CN/system.ts src/i18n/locales/zh-CN/payment.ts src/i18n/locales/zh-CN/ai.ts src/i18n/locales/generated.ts scripts/generate-locale-types.mjs vite.config.ts src/views/Main/component/display/components/Editor.vue src/components/MarkdownRenderer/src/index.vue src/lib/upload/uploadClient.ts src/views/Main/ai/chat/components/MessageList/index.vue scripts/analyze-bundle.mjs performance/baseline.json performance/budgets.json package.json tests/shared/build/bundle-boundary.test.ts
 git add -u -- src/i18n/locales/en-US.ts src/i18n/locales/zh-CN.ts
 git diff --cached --check
 git commit -m "perf(frontend): enforce lazy boundaries and compressed budgets"
@@ -565,7 +564,7 @@ git commit -m "feat(accessibility): meet wcag 2.2 aa on critical flows"
 
 - [ ] **Step 1: Write the failing deployment-boundary test**
 
-The test reads `scripts/verify-docker-runtime.ps1` and requires it to invoke `E:/admin/admin_back_go/scripts/docker-platform.ps1 status`, require all five containers to be healthy, call `/healthz`, `/health`, and `/ready`, compare both image revision labels with repository HEAD, and accept smoke credentials only through `ADMIN_SMOKE_ACCOUNT` and `ADMIN_SMOKE_PASSWORD`. It also rejects `npm run dev`, Vite, `go run`, `Start-Process`, host MySQL, and host Redis startup.
+The test reads `scripts/verify-docker-runtime.ps1` and requires it to invoke `E:/admin/admin_back_go/scripts/docker-platform.ps1 status`, require all five containers to be healthy, call `/healthz`, `/health`, and `/ready`, compare both image revision labels with repository HEAD, invoke the P08R Browser-only retirement verifier, and accept smoke credentials only through `ADMIN_SMOKE_ACCOUNT` and `ADMIN_SMOKE_PASSWORD`. It also rejects `npm run dev`, Vite, `go run`, `Start-Process`, host MySQL, and host Redis startup.
 
 Run directly through the pinned Node container:
 
@@ -583,7 +582,7 @@ If either smoke credential environment variable is absent, stop with `ADMIN_SMOK
 
 - [ ] **Step 3: Write the versioned manual acceptance checklist**
 
-`docs/acceptance/p07-frontend-manual.md` records the frontend/backend revisions and leaves user-owned checkboxes for password login without captcha, send-code captcha, session restore/logout, first protected navigation, menu persistence, direct URL entry, CRUD/error/empty states, notification and AI reconnect, queue monitor, downloads, keyboard behavior, narrow viewport, 200% zoom, dark theme, reduced motion, and visible focus.
+`docs/acceptance/p07-frontend-manual.md` records the frontend/backend revisions plus the P08R bundle/retirement evidence and leaves user-owned checkboxes for password login without captcha, send-code captcha, Cookie session restore/logout, first protected navigation, menu persistence, direct URL entry, CRUD/error/empty states, notification and AI reconnect, queue monitor, browser download/external navigation, visible online/offline state, absence of the client-version menu/route, keyboard behavior, narrow viewport, 200% zoom, dark theme, reduced motion, and visible focus.
 
 The Agent may populate revision/evidence fields but must not mark user acceptance checkboxes.
 
@@ -610,7 +609,7 @@ Expected: automated Docker checks pass and the manual checklist remains pending 
 
 - [ ] **Step 1: Write the failing quality-gate contract test**
 
-Require the shared verifier to run contract and generated-route checks, ESLint with zero warnings, typecheck, unit/component/integration coverage, production build, locale generation check, bundle budgets, test-architecture audit, dependency audit, and `git diff --check`. Reject browser automation commands, host service startup, runtime mock fallback, and GitHub deployment workflow references.
+Require the shared verifier to run P08R `check:browser-only`, contract and generated-route checks, ESLint with zero warnings, typecheck, unit/component/integration coverage, production build, locale generation check, bundle budgets, test-architecture audit, dependency audit, and `git diff --check`. Reject browser automation commands, host service startup, runtime mock fallback, `.github`, Tauri/native/desktop dependencies, and deployment Workflow references.
 
 Require `docker-frontend-gate.ps1` to use exact image `node:22.23.1-alpine`, `npm ci`, a named npm cache volume, the repository lockfile, and a caller-supplied static command. It validates that the mounted repository is `E:/admin/admin_front_ts` and propagates the container exit code.
 
@@ -631,10 +630,12 @@ The Docker wrapper mounts the repository at `/workspace`, sets that working dire
 - [ ] **Step 3: Prove that browser tooling is absent**
 
 ```powershell
-git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
+npm run check:browser-only
+git grep -n -i playwright -- package.json src tests scripts
+git ls-files .github .worktrees
 ```
 
-Expected: no matches. Documentation may record the prohibition; runtime, dependency, test, script, and Workflow paths may not contain it.
+Expected: Browser-only check passes; both Git commands produce no output. Documentation may record the Playwright prohibition; runtime, dependency, test, and script paths may not contain it.
 
 - [ ] **Step 4: Run and commit**
 
@@ -657,9 +658,11 @@ pwsh -NoProfile -File scripts/docker-platform.ps1 status
 
 cd E:/admin/admin_front_ts
 pwsh -NoProfile -File scripts/verify-docker-runtime.ps1
-git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
+npm run check:browser-only
+git grep -n -i playwright -- package.json src tests scripts
+git ls-files .github .worktrees
 git status --short
 git -C E:/admin/admin_back_go status --short
 ```
 
-Expected: realtime recovery and latest-wins tests pass; source-text tests are below 20%; core coverage is at least 80% statements/branches; lint is 0/0; contract, type, bundle, WCAG component, Docker health/revision, authenticated HTTP, and realtime smoke gates pass; browser-tool search and both status commands produce no output. P07 is not accepted until the user separately confirms `docs/acceptance/p07-frontend-manual.md`.
+Expected: realtime recovery and latest-wins tests pass; source-text tests are below 20%; core coverage is at least 80% statements/branches; lint is 0/0; Browser-only, contract, type, bundle, WCAG component, Docker health/revision, authenticated HTTP, and realtime smoke gates pass; browser-tool/workflow/worktree searches and both status commands produce no output. P07 is not accepted until the user separately confirms `docs/acceptance/p07-frontend-manual.md`.

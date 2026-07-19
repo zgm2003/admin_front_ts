@@ -1,4 +1,8 @@
-# Admin Tauri Security Implementation Plan
+# [HISTORICAL — SUPERSEDED] Admin Tauri Security Implementation Plan
+
+> **Execution status:** All checked tasks below are retained as the historical P08 implementation record. The approved `E:/admin/admin_back_go/docs/superpowers/specs/2026-07-19-admin-browser-only-tauri-retirement-design.md` supersedes this architecture, and P08R removes its runtime result. Do not execute or extend this plan; do not restore Tauri/native/desktop code from it.
+>
+> **Active replacement:** `E:/admin/admin_back_go/docs/superpowers/plans/2026-07-19-admin-browser-only-tauri-retirement-plan.md`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

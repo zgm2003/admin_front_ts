@@ -1,6 +1,8 @@
 # Admin Frontend Super Refactor Design
 
-**Status:** Approved in conversation on 2026-07-15; written for final file review.
+**Status:** Historical frontend architecture baseline. Its Tauri/native/browser-desktop portions were superseded on 2026-07-19 by `E:/admin/admin_back_go/docs/superpowers/specs/2026-07-19-admin-browser-only-tauri-retirement-design.md`.
+
+> **Current amendment:** Admin is Browser-only. `NativeBridge`, Tauri/Rust/NSIS, desktop credentials, client variants, client-version UI/update delivery, P08.5, Playwright-as-a-fixed-gate, and GitHub deployment Workflow requirements in this document are no longer executable. The stable AppKernel/AuthSession/ApiClient/RuntimeRouteRegistry/RealtimeClient/ResourceQuery/Persistence architecture remains, with one Cookie/Origin browser credential adapter and focused browser navigation/download helpers. When this file conflicts with the 2026-07-19 Browser-only specification or P08R plan, those newer documents win.
 
 **Scope owner:** `admin_front_ts`
 
