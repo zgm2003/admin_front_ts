@@ -194,6 +194,16 @@ describe('ApiClient authentication replay policy', () => {
 })
 
 describe('ApiClient cancellation, timeout, and contract boundaries', () => {
+  it('classifies a documented required response field as missing', async () => {
+    server.use(http.get(`${origin}/api/admin/v1/users/me`, () => success({})))
+    const { client } = await authenticatedClient()
+
+    await expect(client.execute(safeGet, undefined)).rejects.toMatchObject({
+      kind: 'contract',
+      code: 'http.response_required_field_missing',
+    })
+  })
+
   it('propagates caller cancellation to the adapter as a closed canceled error', async () => {
     server.use(http.get(`${origin}/api/admin/v1/users/me`, async () => {
       await delay(1_000)

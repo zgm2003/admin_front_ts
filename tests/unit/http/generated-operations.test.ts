@@ -44,10 +44,25 @@ describe('generated Admin operation descriptors', () => {
     ])
   })
 
-  it('rejects a successful envelope whose data violates the formal response schema', async () => {
+  it('classifies a missing documented response field separately', async () => {
     const harness = installApiClientHarness({
       list: [],
       page: { current_page: 1, page_size: 20, total: 0 },
+    })
+    cleanups.push(harness.uninstall)
+
+    await expect(executeAdminOperation(adminOperations.get_api_admin_v1_users, {
+      query: { current_page: 1, page_size: 20 },
+    })).rejects.toMatchObject({
+      kind: 'contract',
+      code: 'http.response_required_field_missing',
+    })
+  })
+
+  it('keeps a wrong response field type as a schema error', async () => {
+    const harness = installApiClientHarness({
+      list: [],
+      page: { current_page: 1, page_size: 20, total: 0, total_page: 'invalid' },
     })
     cleanups.push(harness.uninstall)
 

@@ -182,11 +182,27 @@ function decodeResponse<TOutput>(
     if (!operation.responseSchema) return success.data.data as TOutput
     const parsed = operation.responseSchema.safeParse(success.data.data)
     if (parsed.success) return parsed.data
+    const requiredFieldMissing = parsed.error.issues.some((issue) => {
+      if (issue.code !== 'invalid_type' || issue.path.length === 0) return false
+      let value: unknown = success.data.data
+      for (const segment of issue.path) {
+        if ((typeof value !== 'object' && typeof value !== 'function') || value === null) {
+          value = undefined
+          break
+        }
+        value = Reflect.get(value, segment)
+      }
+      return value === undefined
+    })
     throw createApiError({
       kind: 'contract',
-      code: 'http.response_schema_invalid',
+      code: requiredFieldMissing
+        ? 'http.response_required_field_missing'
+        : 'http.response_schema_invalid',
       retryable: false,
-      messageKey: 'http.responseSchemaInvalid',
+      messageKey: requiredFieldMissing
+        ? 'http.responseRequiredFieldMissing'
+        : 'http.responseSchemaInvalid',
       status: response.status,
       cause: parsed.error,
     })

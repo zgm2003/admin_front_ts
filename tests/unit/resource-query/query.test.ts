@@ -88,6 +88,24 @@ describe('ResourceQuery', () => {
     expect(query.state.value).toEqual({ kind: 'success', data: [{ id: 3 }] })
   })
 
+  it('exposes a missing state and clears previously committed data', async () => {
+    const missing = createApiError({
+      kind: 'contract',
+      code: 'http.response_required_field_missing',
+      retryable: false,
+      messageKey: 'http.responseRequiredFieldMissing',
+    })
+    const request = vi.fn()
+      .mockResolvedValueOnce({ items: [{ id: 1 }] })
+      .mockRejectedValueOnce(missing)
+    const query = resource(request)
+
+    await query.execute({ term: 'current' })
+    await expect(query.refresh()).rejects.toBe(missing)
+
+    expect(query.state.value).toEqual({ kind: 'missing', data: [], error: missing })
+  })
+
   it('invalidates in-flight ownership on reset and rejects work after dispose', async () => {
     const pending = deferred<Page>()
     let signal: AbortSignal | undefined

@@ -86,6 +86,6 @@ describe('AI run API behavior', () => {
     })
     cleanups.push(harness.uninstall)
 
-    await expect(AiRunApi.pageInit()).rejects.toThrow(/http\.responseSchemaInvalid/)
+    await expect(AiRunApi.pageInit()).rejects.toThrow(/http\.responseRequiredFieldMissing/)
   })
 })

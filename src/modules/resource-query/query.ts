@@ -105,7 +105,10 @@ implements ResourceQuery<TItem, TParams, TPage> {
     } catch (error) {
       const mapped = mapResourceError(error, controller.signal)
       if (this.owns(requestId)) {
-        this.mutableState.value = { kind: 'error', data: visibleData, error: mapped }
+        this.mutableState.value = mapped.kind === 'contract'
+          && mapped.code === 'http.response_required_field_missing'
+          ? { kind: 'missing', data: [], error: mapped }
+          : { kind: 'error', data: visibleData, error: mapped }
       }
       throw mapped
     } finally {

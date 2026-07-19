@@ -7,6 +7,7 @@ export type ResourceState<T> =
   | { readonly kind: 'refreshing'; readonly data: readonly T[]; readonly requestId: number }
   | { readonly kind: 'success'; readonly data: readonly T[] }
   | { readonly kind: 'empty'; readonly data: readonly [] }
+  | { readonly kind: 'missing'; readonly data: readonly []; readonly error: ApiError }
   | { readonly kind: 'error'; readonly data: readonly T[]; readonly error: ApiError }
 
 export interface ResourceQuery<TItem, TParams, TPage> {

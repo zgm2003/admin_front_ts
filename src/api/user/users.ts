@@ -122,6 +122,13 @@ function setStringIfPresent(target: UserListQueryParams, key: 'keyword' | 'usern
   }
 }
 
+function positiveFilterID(value: number, label: string): number {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} id must be a positive integer`)
+  }
+  return value
+}
+
 function normalizeUsersListParams(params: UsersListParams): UserListQueryParams {
   const query: UserListQueryParams = {
     current_page: params.current_page,
@@ -140,12 +147,13 @@ function normalizeUsersListParams(params: UsersListParams): UserListQueryParams 
     query.sex = params.sex
   }
   if (Array.isArray(params.address_id)) {
-    const values = params.address_id.filter((value) => Number.isInteger(value) && value > 0)
-    if (values.length > 0) {
-      query.address_id = values.join(',')
+    if (params.address_id.length > 0) {
+      query.address_id = params.address_id
+        .map((value) => positiveFilterID(value, 'address'))
+        .join(',')
     }
-  } else if (typeof params.address_id === 'number' && params.address_id > 0) {
-    query.address_id = String(params.address_id)
+  } else if (typeof params.address_id === 'number') {
+    query.address_id = String(positiveFilterID(params.address_id, 'address'))
   }
   if (Array.isArray(params.date) && params.date.length >= 2 && params.date[0] && params.date[1]) {
     query.date = `${params.date[0]},${params.date[1]}`

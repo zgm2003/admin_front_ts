@@ -148,4 +148,19 @@ describe('user API behavior', () => {
       ['PATCH', '/api/admin/v1/user-sessions/revoke'],
     ])
   })
+
+  it('rejects the complete address filter when any id is invalid', async () => {
+    const harness = installApiClientHarness({
+      list: [],
+      page: { current_page: 1, page_size: 20, total: 0, total_page: 0 },
+    })
+    cleanups.push(harness.uninstall)
+
+    await expect(Promise.resolve().then(() => UsersListApi.list({
+      current_page: 1,
+      page_size: 20,
+      address_id: [7, 0, 9],
+    }))).rejects.toThrow(/address id must be a positive integer/i)
+    expect(harness.requests).toHaveLength(0)
+  })
 })
