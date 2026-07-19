@@ -129,6 +129,7 @@ const {
       :form="forgotForm"
       :is-submitting="isForgotSubmitting"
       @update:visible="forgotVisible = $event"
+      @update:form="Object.assign(forgotForm, $event)"
       @next="handleForgotNext"
       @back="forgotStep = 1"
       @reset="handleResetPassword"

@@ -1,0 +1,353 @@
+// ==================== 统一输入控件外观 ====================
+@mixin login-input-base {
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  height: 40px;
+  min-height: 40px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@mixin login-input-focus {
+  background: #fff;
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.1);
+}
+
+@mixin dirty-input-state {
+  background: var(--dirty-bg);
+  border-color: var(--dirty-border);
+  box-shadow: 0 0 0 3px var(--dirty-ring);
+}
+
+.base-info {
+  padding-bottom: 0;
+}
+
+.base-info-card {
+  --dirty-accent: var(--el-color-warning);
+  --dirty-border: rgba(230, 162, 60, 0.5);
+  --dirty-bg: var(--el-color-warning-light-9);
+  --dirty-ring: rgba(230, 162, 60, 0.14);
+
+  max-width: 920px;
+  margin: 0 auto;
+
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--el-text-color-regular);
+    line-height: 1.4;
+    padding-bottom: 5px;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
+
+  :deep(.is-dirty-item .el-form-item__label) {
+    display: flex;
+    align-items: center;
+    color: var(--dirty-accent);
+  }
+
+  :deep(.is-dirty-item .el-form-item__label::before) {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-right: 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: var(--dirty-accent);
+    box-shadow: 0 0 0 3px var(--dirty-ring);
+  }
+
+  // label-top 下拉控件对齐
+  :deep(.el-form-item--label-top .el-form-item__content) {
+    align-items: stretch;
+    line-height: normal;
+  }
+
+  .avatar-editor {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 10px 12px 10px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: none;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    box-sizing: border-box;
+
+    :deep(.up-media-container) {
+      gap: 0;
+    }
+
+    :deep(.media-uploader-wrapper) {
+      width: 76px !important;
+      height: 76px !important;
+      border-radius: 12px;
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      box-shadow: none;
+    }
+
+    :deep(.media-uploader-wrapper:hover) {
+      border-color: var(--el-color-primary);
+    }
+  }
+
+  .avatar-editor.is-dirty-avatar {
+    border-color: var(--dirty-border);
+    background: var(--dirty-bg);
+    box-shadow: 0 0 0 3px var(--dirty-ring);
+  }
+
+  .avatar-editor__meta {
+    min-width: 0;
+    max-width: 260px;
+  }
+
+  .avatar-editor__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .avatar-editor__badge {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 7px;
+    border-radius: 999px;
+    color: var(--dirty-accent);
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(230, 162, 60, 0.14);
+  }
+
+  .avatar-editor__hint {
+    margin: 0;
+    color: var(--el-text-color-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  :deep(.custom-input .el-input__wrapper) {
+    @include login-input-base;
+  }
+
+  :deep(.is-dirty-item .custom-input .el-input__wrapper) {
+    @include dirty-input-state;
+  }
+
+  :deep(.custom-input .el-input__wrapper.is-focus),
+  :deep(.custom-input .el-input__wrapper:focus-within) {
+    @include login-input-focus;
+  }
+
+  :deep(.custom-textarea .el-textarea__inner) {
+    @include login-input-base;
+    border-radius: 10px;
+    padding: 10px 12px;
+    height: auto;
+    min-height: unset;
+    line-height: 1.5;
+  }
+
+  :deep(.is-dirty-item .custom-textarea .el-textarea__inner) {
+    @include dirty-input-state;
+  }
+
+  :deep(.custom-textarea .el-textarea__inner:focus) {
+    @include login-input-focus;
+  }
+
+  :deep(.custom-date .el-input__wrapper) {
+    @include login-input-base;
+  }
+
+  :deep(.is-dirty-item .custom-date .el-input__wrapper) {
+    @include dirty-input-state;
+  }
+
+  :deep(.custom-date .el-input__wrapper.is-focus),
+  :deep(.custom-date .el-input__wrapper:focus-within) {
+    @include login-input-focus;
+  }
+
+  /* el-select-v2 根为 .el-select，实际描边/背景在 .el-select__wrapper；勿给根节点套壳，否则会与内层双框 */
+  :deep(.custom-select.el-select) {
+    display: block;
+    width: 100%;
+  }
+
+  :deep(.custom-select.el-select .el-select__wrapper) {
+    @include login-input-base;
+    width: 100%;
+
+    &.is-hovering:not(.is-focused) {
+      box-shadow: none;
+      border-color: #e2e8f0;
+      background: #f8fafc;
+    }
+  }
+
+  :deep(.is-dirty-item .custom-select.el-select .el-select__wrapper) {
+    @include dirty-input-state;
+  }
+
+  :deep(.custom-select.el-select .el-select__wrapper.is-focused) {
+    @include login-input-focus;
+  }
+
+  :deep(.custom-cascader.el-cascader) {
+    display: block;
+    width: 100%;
+  }
+
+  :deep(.custom-cascader.el-cascader .el-input__wrapper) {
+    @include login-input-base;
+    line-height: normal;
+  }
+
+  :deep(.is-dirty-item .custom-cascader.el-cascader .el-input__wrapper) {
+    @include dirty-input-state;
+  }
+
+  :deep(.custom-cascader.el-cascader .el-input__wrapper.is-focus),
+  :deep(.custom-cascader.el-cascader .el-input__wrapper:focus-within) {
+    @include login-input-focus;
+  }
+}
+
+.btn-item {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: 6px;
+  margin-bottom: 0;
+  padding: 12px 0 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--el-bg-color) 30%);
+
+  :deep(.el-form-item__content) {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+}
+
+%btn-base {
+  height: 40px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+}
+
+.submit-btn {
+  @extend %btn-base;
+  padding: 0 22px;
+  min-width: 112px;
+  background: var(--el-color-primary);
+  box-shadow: none;
+
+  &:hover {
+    background: var(--el-color-primary-light-3);
+    box-shadow: none;
+  }
+}
+
+.reset-btn {
+  @extend %btn-base;
+  padding: 0 18px;
+  min-width: 88px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color);
+
+  &:hover {
+    background: var(--el-fill-color);
+    border-color: var(--el-border-color-hover);
+    color: var(--el-text-color-primary);
+  }
+}
+
+@media (max-width: 768px) {
+  .base-info-card {
+    .form-row .el-col + .el-col {
+      margin-top: 24px;
+    }
+
+    :deep(.el-form-item) {
+      margin-bottom: 0;
+    }
+
+    .form-row + .form-row {
+      margin-top: 4px;
+    }
+
+    .base-form > .form-row + .el-form-item {
+      margin-top: 16px;
+    }
+
+    .avatar-editor {
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .avatar-editor__meta {
+      max-width: none;
+      padding-top: 4px;
+    }
+  }
+
+  .btn-item {
+    position: sticky;
+    bottom: 0;
+    margin-top: 8px;
+    padding: 10px 0 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--el-bg-color-page) 28%);
+
+    :deep(.el-form-item__content) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    :deep(.el-button + .el-button) {
+      margin-left: 0;
+    }
+  }
+
+  %btn-mobile {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 42px;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+
+  .submit-btn {
+    @extend %btn-mobile;
+    box-shadow: none;
+  }
+
+  .reset-btn {
+    @extend %btn-mobile;
+  }
+}

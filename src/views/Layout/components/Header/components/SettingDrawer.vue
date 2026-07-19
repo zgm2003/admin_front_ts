@@ -163,7 +163,6 @@
           {{ t('header.resetConfig') }}
         </el-button>
       </div>
-      
     </div>
   </el-drawer>
 </template>

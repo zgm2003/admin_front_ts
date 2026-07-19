@@ -1,157 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ElNotification } from 'element-plus'
+import { toRefs } from 'vue'
 import { Iphone, Lock, Message } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { SendCode } from '@/components/SendCode'
-import { UsersApi } from '@/api/user/users.ts'
-import { useIsMobile } from '@/hooks/useResponsive'
-import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
 import type { UserPersonalInfo, UserVerifyType } from '@/types/user'
+import { useSecuritySettings } from './use-security-settings'
 
 const props = defineProps<{
   userinfo: Pick<UserPersonalInfo, 'phone' | 'email' | 'has_password'>
   verifyTypeArr: Array<DictOption<UserVerifyType>>
 }>()
-
-const emit = defineEmits<{
-  refresh: []
-}>()
-
-const { t } = useI18n()
-const isMobile = useIsMobile()
-
-const phoneForm = ref({ phone: '', code: '' })
-const phoneLoading = ref(false)
-const isPhoneSendDisabled = computed(() => !/^1[3-9]\d{9}$/.test(phoneForm.value.phone.trim()))
-
-const savePhone = async () => {
-  if (!phoneForm.value.phone || !phoneForm.value.code) {
-    ElNotification.warning(t('personal.security.warning.fillComplete'))
-    return
-  }
-
-  phoneLoading.value = true
-  try {
-    await UsersApi.updatePhone(phoneForm.value)
-    ElNotification.success(t('common.success.operation'))
-    phoneForm.value = { phone: '', code: '' }
-    emit('refresh')
-  } finally {
-    phoneLoading.value = false
-  }
-}
-
-const emailForm = ref({ email: '', code: '' })
-const emailLoading = ref(false)
-const isEmailSendDisabled = computed(() => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForm.value.email.trim()))
-
-const saveEmail = async () => {
-  if (!emailForm.value.email || !emailForm.value.code) {
-    ElNotification.warning(t('personal.security.warning.fillComplete'))
-    return
-  }
-
-  emailLoading.value = true
-  try {
-    await UsersApi.updateEmail(emailForm.value)
-    ElNotification.success(t('common.success.operation'))
-    emailForm.value = { email: '', code: '' }
-    emit('refresh')
-  } finally {
-    emailLoading.value = false
-  }
-}
-
-const passwordDialogVisible = ref(false)
-const passwordForm = ref({
-  old_password: '',
-  new_password: '',
-  confirm_password: '',
-  code: '',
-})
-const passwordLoading = ref(false)
-const availableVerifyTypes = computed(() => props.verifyTypeArr.map((item) => item.value))
-const canUsePasswordVerify = computed(() => props.userinfo.has_password && availableVerifyTypes.value.includes('password'))
-const canUseCodeVerify = computed(() => availableVerifyTypes.value.includes('code'))
-const verifyType = ref<UserVerifyType>('password')
-const passwordAccount = computed(() => props.userinfo.email || props.userinfo.phone)
-
-const openPasswordDialog = () => {
-  passwordForm.value = {
-    old_password: '',
-    new_password: '',
-    confirm_password: '',
-    code: '',
-  }
-
-  verifyType.value = canUsePasswordVerify.value ? 'password' : 'code'
-  passwordDialogVisible.value = true
-}
-
-const switchVerifyType = () => {
-  if (!canUsePasswordVerify.value || !canUseCodeVerify.value) {
-    return
-  }
-
-  verifyType.value = verifyType.value === 'password' ? 'code' : 'password'
-  passwordForm.value.old_password = ''
-  passwordForm.value.code = ''
-}
-
-const savePassword = async () => {
-  if (!passwordForm.value.new_password || !passwordForm.value.confirm_password) {
-    ElNotification.warning(t('personal.security.warning.enterNewPassword'))
-    return
-  }
-
-  if (passwordForm.value.new_password !== passwordForm.value.confirm_password) {
-    ElNotification.warning(t('personal.security.warning.passwordNotMatch'))
-    return
-  }
-
-  if (passwordForm.value.new_password.length < 6) {
-    ElNotification.warning(t('personal.security.warning.passwordMinLength'))
-    return
-  }
-
-  passwordLoading.value = true
-  try {
-    if (verifyType.value === 'password') {
-      if (!passwordForm.value.old_password) {
-        ElNotification.warning(t('personal.security.warning.enterOldPassword'))
-        return
-      }
-
-      await UsersApi.updatePassword({
-        verify_type: 'password',
-        old_password: passwordForm.value.old_password,
-        new_password: passwordForm.value.new_password,
-        confirm_password: passwordForm.value.confirm_password,
-      })
-    } else {
-      if (!passwordForm.value.code) {
-        ElNotification.warning(t('personal.security.warning.enterCode'))
-        return
-      }
-
-      await UsersApi.updatePassword({
-        verify_type: 'code',
-        account: passwordAccount.value,
-        code: passwordForm.value.code,
-        new_password: passwordForm.value.new_password,
-        confirm_password: passwordForm.value.confirm_password,
-      })
-    }
-
-    ElNotification.success(t('common.success.operation'))
-    passwordDialogVisible.value = false
-    emit('refresh')
-  } finally {
-    passwordLoading.value = false
-  }
-}
+const emit = defineEmits<{ refresh: [] }>()
+const { userinfo, verifyTypeArr } = toRefs(props)
+const {
+  t, isMobile, phoneForm, phoneLoading, isPhoneSendDisabled, savePhone,
+  emailForm, emailLoading, isEmailSendDisabled, saveEmail,
+  passwordDialogVisible, passwordForm, passwordLoading, passwordAccount,
+  canUsePasswordVerify, canUseCodeVerify, verifyType,
+  openPasswordDialog, switchVerifyType, savePassword,
+} = useSecuritySettings(userinfo, verifyTypeArr, () => emit('refresh'))
 </script>
 
 <template>
@@ -446,68 +314,4 @@ const savePassword = async () => {
   </div>
 </template>
 
-<style scoped lang="scss">
-.security-section {
-  padding: 10px 0;
-}
-
-.security-item {
-  .item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .item-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .title {
-        font-weight: 500;
-        font-size: 15px;
-      }
-    }
-
-    .item-value {
-      color: #606266;
-    }
-
-    .item-desc {
-      color: #909399;
-      font-size: 13px;
-      width: 100%;
-    }
-  }
-
-  .item-value-mobile {
-    color: #606266;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-
-  .security-form {
-    max-width: 500px;
-  }
-
-  :deep(.el-collapse) {
-    border: none;
-
-    .el-collapse-item__header {
-      border: none;
-      height: 32px;
-      line-height: 32px;
-    }
-
-    .el-collapse-item__wrap {
-      border: none;
-    }
-
-    .el-collapse-item__content {
-      padding-bottom: 0;
-    }
-  }
-}
-</style>
+<style scoped lang="scss" src="./styles.scss"></style>

@@ -1,0 +1,11 @@
+.user-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
