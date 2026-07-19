@@ -22,15 +22,9 @@ describe('parseEnvironment', () => {
 
     expect(parsed.mode).toBe('development')
     expect(parsed.platform).toBe('admin')
-    expect(parsed.clientVariant).toBe('browser')
     expect(parsed.apiOrigin.href).toBe('http://localhost:5173/')
     expect(parsed.realtimeOrigin.href).toBe('ws://localhost:5173/api/admin/v1/realtime/ws')
-  })
-
-  it('accepts only an explicit packaged-desktop client variant', () => {
-    const parsed = parseEnvironment(environment({ VITE_ADMIN_CLIENT_VARIANT: 'desktop' }), location)
-
-    expect(parsed.clientVariant).toBe('desktop')
+    expect(Object.keys(parsed).sort()).toEqual(['apiOrigin', 'mode', 'platform', 'realtimeOrigin'])
   })
 
   it('uses an explicit local-Docker runtime mode instead of inferring from the build command', () => {
@@ -79,7 +73,6 @@ describe('parseEnvironment', () => {
 
   it.each([
     [{ VITE_PLATFORM: 'app' }, /VITE_PLATFORM/],
-    [{ VITE_ADMIN_CLIENT_VARIANT: 'mobile' }, /VITE_ADMIN_CLIENT_VARIANT/],
     [{ VITE_ADMIN_RUNTIME_MODE: 'staging' }, /VITE_ADMIN_RUNTIME_MODE/],
     [{ VITE_GO_API_BASE_URL: 'not-a-url' }, /VITE_GO_API_BASE_URL/],
     [{ VITE_WEB_SOCKET_URL: 'not-a-url' }, /VITE_WEB_SOCKET_URL/],

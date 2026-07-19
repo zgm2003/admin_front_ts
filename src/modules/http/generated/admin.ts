@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295
+// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -1076,127 +1076,6 @@ export interface paths {
         put?: never;
         /** POST /api/admin/v1/auth/send-code */
         post: operations["post_api_admin_v1_auth_send_code"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/client-versions */
-        get: operations["get_api_admin_v1_client_versions"];
-        put?: never;
-        /** POST /api/admin/v1/client-versions */
-        post: operations["post_api_admin_v1_client_versions"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** PUT /api/admin/v1/client-versions/:id */
-        put: operations["put_api_admin_v1_client_versions_id"];
-        post?: never;
-        /** DELETE /api/admin/v1/client-versions/:id */
-        delete: operations["delete_api_admin_v1_client_versions_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/{id}/force-update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** PATCH /api/admin/v1/client-versions/:id/force-update */
-        patch: operations["patch_api_admin_v1_client_versions_id_force_update"];
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/{id}/latest": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** PATCH /api/admin/v1/client-versions/:id/latest */
-        patch: operations["patch_api_admin_v1_client_versions_id_latest"];
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/current-check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/client-versions/current-check */
-        get: operations["get_api_admin_v1_client_versions_current_check"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/page-init": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/client-versions/page-init */
-        get: operations["get_api_admin_v1_client_versions_page_init"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/client-versions/update-json": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/client-versions/update-json */
-        get: operations["get_api_admin_v1_client_versions_update_json"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3603,12 +3482,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        delete_api_admin_v1_client_versions_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         delete_api_admin_v1_cron_tasks_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
@@ -4018,30 +3891,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_module_auth_platform_ListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_client_versions_current_check_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_clientversion_CurrentCheckResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_client_versions_page_init_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_clientversion_InitResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_client_versions_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_clientversion_ListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_client_versions_update_json_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_clientversion_ManifestPayload_Output"] | unknown[];
             msg: string;
         };
         get_api_admin_v1_cron_tasks_id_logs_ResponseEnvelope: {
@@ -4910,60 +4759,9 @@ export interface components {
             x?: number;
             y?: number;
         };
-        Go_internal_module_auth_transport_admin_LoginResponse_Output: {
+        Go_internal_module_auth_transport_admin_CredentialResponse_Output: {
             access_token: string;
             expires_in: number;
-            refresh_expires_in?: number;
-            refresh_token?: string;
-        };
-        Go_internal_module_clientversion_CurrentCheckResponse_Output: {
-            force_update: boolean;
-        };
-        Go_internal_module_clientversion_InitDict_Output: {
-            client_version_platform_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
-            common_yes_no_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
-        };
-        Go_internal_module_clientversion_InitResponse_Output: {
-            dict: components["schemas"]["Go_internal_module_clientversion_InitDict_Output"];
-        };
-        Go_internal_module_clientversion_ListItem_Output: {
-            created_at: string;
-            file_size: number;
-            file_size_text: string;
-            file_url: string;
-            force_update: number;
-            force_update_name: string;
-            id: number;
-            is_latest: number;
-            is_latest_name: string;
-            notes: string;
-            platform: string;
-            platform_name: string;
-            signature: string;
-            updated_at: string;
-            version: string;
-        };
-        Go_internal_module_clientversion_ListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_clientversion_ListItem_Output"][];
-            page: components["schemas"]["Go_internal_module_clientversion_Page_Output"];
-        };
-        Go_internal_module_clientversion_ManifestPayload_Output: {
-            notes: string;
-            platforms: {
-                [key: string]: components["schemas"]["Go_internal_module_clientversion_ManifestPlatform_Output"];
-            };
-            pub_date: string;
-            version: string;
-        };
-        Go_internal_module_clientversion_ManifestPlatform_Output: {
-            signature: string;
-            url: string;
-        };
-        Go_internal_module_clientversion_Page_Output: {
-            current_page: number;
-            page_size: number;
-            total: number;
-            total_page: number;
         };
         Go_internal_module_crontask_InitDict_Output: {
             cron_preset_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
@@ -5837,22 +5635,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        patch_api_admin_v1_client_versions_id_force_update_Request: {
-            /** @enum {integer} */
-            force_update: 1 | 2;
-        };
-        patch_api_admin_v1_client_versions_id_force_update_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        patch_api_admin_v1_client_versions_id_latest_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         patch_api_admin_v1_cron_tasks_id_status_Request: {
             /** @enum {integer} */
             status: 1 | 2;
@@ -6140,7 +5922,7 @@ export interface components {
         post_api_admin_v1_auth_login_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_auth_transport_admin_LoginResponse_Output"];
+            data: components["schemas"]["Go_internal_module_auth_transport_admin_CredentialResponse_Output"];
             msg: string;
         };
         post_api_admin_v1_auth_logout_ResponseEnvelope: {
@@ -6175,13 +5957,10 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
             msg: string;
         };
-        post_api_admin_v1_auth_refresh_Request: {
-            refresh_token: string;
-        };
         post_api_admin_v1_auth_refresh_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_auth_transport_admin_LoginResponse_Output"];
+            data: components["schemas"]["Go_internal_module_auth_transport_admin_CredentialResponse_Output"];
             msg: string;
         };
         post_api_admin_v1_auth_send_code_Request: {
@@ -6197,24 +5976,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_client_versions_Request: {
-            file_size?: number;
-            /** Format: uri */
-            file_url: string;
-            /** @enum {integer} */
-            force_update?: 1 | 2;
-            notes?: string;
-            /** @enum {string} */
-            platform: "windows-x86_64" | "darwin-x86_64";
-            signature: string;
-            version: string;
-        };
-        post_api_admin_v1_client_versions_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
             msg: string;
         };
         post_api_admin_v1_cron_tasks_Request: {
@@ -6465,7 +6226,7 @@ export interface components {
             file_name: string;
             file_size: number;
             /** @enum {string} */
-            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "releases" | "tauri_updater" | "exports" | "reconcile_reports";
+            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "exports" | "reconcile_reports";
         };
         post_api_admin_v1_upload_tokens_ResponseEnvelope: {
             /** @constant */
@@ -6630,24 +6391,6 @@ export interface components {
             single_session: 1 | 2;
         };
         put_api_admin_v1_auth_platforms_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        put_api_admin_v1_client_versions_id_Request: {
-            file_size?: number;
-            /** Format: uri */
-            file_url: string;
-            /** @enum {integer} */
-            force_update?: 1 | 2;
-            notes?: string;
-            /** @enum {string} */
-            platform: "windows-x86_64" | "darwin-x86_64";
-            signature: string;
-            version: string;
-        };
-        put_api_admin_v1_client_versions_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
@@ -9959,11 +9702,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_auth_refresh_Request"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful response */
             200: {
@@ -10005,296 +9744,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["post_api_admin_v1_auth_send_code_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_client_versions: {
-        parameters: {
-            query?: {
-                current_page?: number;
-                page_size?: number;
-                platform?: "windows-x86_64" | "darwin-x86_64";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_client_versions_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_client_versions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_client_versions_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_client_versions_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    put_api_admin_v1_client_versions_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["put_api_admin_v1_client_versions_id_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_client_versions_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    delete_api_admin_v1_client_versions_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_client_versions_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    patch_api_admin_v1_client_versions_id_force_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["patch_api_admin_v1_client_versions_id_force_update_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["patch_api_admin_v1_client_versions_id_force_update_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    patch_api_admin_v1_client_versions_id_latest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["patch_api_admin_v1_client_versions_id_latest_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_client_versions_current_check: {
-        parameters: {
-            query: {
-                platform?: "windows-x86_64" | "darwin-x86_64";
-                version: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_client_versions_current_check_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_client_versions_page_init: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_client_versions_page_init_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_client_versions_update_json: {
-        parameters: {
-            query?: {
-                platform?: "windows-x86_64" | "darwin-x86_64";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_client_versions_update_json_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */

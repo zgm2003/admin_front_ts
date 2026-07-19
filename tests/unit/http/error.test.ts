@@ -88,14 +88,14 @@ describe('critical Admin boundary schemas', () => {
     expect(errorEnvelopeSchema.safeParse({ ...valid, error: { ...valid.error, alias: 'x' } }).success).toBe(false)
   })
 
-  it('keeps browser and desktop credential fields explicit', () => {
+  it('accepts only the closed Browser-only credential fields', () => {
     expect(authCredentialSchema.safeParse({ access_token: 'a', expires_in: 60 }).success).toBe(true)
     expect(authCredentialSchema.safeParse({
       access_token: 'a',
       expires_in: 60,
       refresh_token: 'r',
       refresh_expires_in: 3600,
-    }).success).toBe(true)
+    }).success).toBe(false)
     expect(authCredentialSchema.safeParse({ token: 'guessed', expires_in: 60 }).success).toBe(false)
   })
 

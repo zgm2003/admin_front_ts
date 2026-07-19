@@ -11,24 +11,22 @@ import { registerRouterGuards } from './router/guards'
 import { AppKernel } from './app/kernel'
 import { parseEnvironment } from './app/environment'
 import { provideAppKernel } from './app/injection'
-import { BrowserCredentialAdapter } from './adapters/web/browser-credentials'
+import { CookieCredentialAdapter } from './adapters/browser/cookie-credentials'
 import { createBrowserRefreshCoordinator } from './adapters/web/browser-coordinator'
 import { createBrowserLocalStorageAdapter } from './adapters/web/storage'
 import { BrowserWebSocketTransport } from './adapters/web/websocket'
 import {
   createRuntimeNativeBridge,
-  DesktopCredentialAdapter,
   installNativeBridge,
 } from './adapters/native'
 import { AuthSession } from './modules/auth/session'
-import type { CredentialAdapter } from './modules/auth/types'
 import { issueRealtimeTicket } from './api/auth/browserGrant'
 import { ApiClient } from './modules/http/client'
 import { createAxiosTransport } from './modules/http/axios-adapter'
 import { getCurrentPrincipalOperation } from './modules/http/admin-operations'
 import { installApiClient } from './lib/http'
 import { createDeviceIdProvider, installDeviceIdProvider } from './lib/http/device'
-import { buildCommonHeaders, generateTraceId } from './lib/http/platform'
+import { buildCommonHeaders, generateTraceId } from './lib/http/headers'
 import { mapPrincipalRoutes } from './modules/routing/principal'
 import { RuntimeRouteRegistry } from './modules/routing/registry'
 import {
@@ -59,10 +57,7 @@ installDeviceIdProvider(deviceIdProvider)
 let environmentCache: ReturnType<typeof parseEnvironment> | null = null
 function environment() {
   if (!environmentCache) {
-    environmentCache = parseEnvironment({
-      ...import.meta.env,
-      VITE_ADMIN_CLIENT_VARIANT: nativeBridge.kind === 'tauri' ? 'desktop' : 'browser',
-    }, window.location)
+    environmentCache = parseEnvironment(import.meta.env, window.location)
   }
   return environmentCache
 }
@@ -72,37 +67,14 @@ function requestHeaders() {
   return buildCommonHeaders({
     language: preferredLanguage === 'en-US' ? 'en-US' : 'zh-CN',
     deviceId: deviceIdProvider.get(),
-    clientVariant: environment().clientVariant,
     traceId: generateTraceId(),
   })
 }
 
-let concreteCredentialAdapter: CredentialAdapter | null = null
-function credentialAdapter(): CredentialAdapter {
-  if (concreteCredentialAdapter) return concreteCredentialAdapter
-  concreteCredentialAdapter = environment().clientVariant === 'browser'
-    ? new BrowserCredentialAdapter({
-        apiOrigin: () => environment().apiOrigin,
-        headers: requestHeaders,
-      })
-    : new DesktopCredentialAdapter({
-        apiOrigin: () => environment().apiOrigin,
-        bridge: nativeBridge,
-        headers: requestHeaders,
-      })
-  return concreteCredentialAdapter
-}
-
-const lazyCredentialAdapter: CredentialAdapter = {
-  get variant() {
-    return environment().clientVariant
-  },
-  restore: (signal) => credentialAdapter().restore(signal),
-  login: (input, signal) => credentialAdapter().login(input, signal),
-  refresh: (signal) => credentialAdapter().refresh(signal),
-  revoke: (accessToken, signal) => credentialAdapter().revoke(accessToken, signal),
-  clear: () => concreteCredentialAdapter?.clear() ?? Promise.resolve(),
-}
+const credentialAdapter = new CookieCredentialAdapter({
+  apiOrigin: () => environment().apiOrigin,
+  headers: requestHeaders,
+})
 
 app.use(pinia)
 const stopMenuStorePersistence = setupMenuStorePersistence(pinia, persistence)
@@ -131,7 +103,7 @@ const routeRegistry = new RuntimeRouteRegistry({
 let realtimeClient: RealtimeClient | null = null
 
 const auth = new AuthSession({
-  adapter: lazyCredentialAdapter,
+  adapter: credentialAdapter,
   coordinator: createBrowserRefreshCoordinator(),
   logoutHooks: {
     async disconnectRealtime() {

@@ -84,7 +84,6 @@ function credential(accessToken: string): AccessCredential {
 
 async function authenticatedClient(overrides: Partial<CredentialAdapter> = {}) {
   const adapter: CredentialAdapter = {
-    variant: 'browser',
     restore: vi.fn(async () => credential('old-token')),
     login: vi.fn(async () => credential('old-token')),
     refresh: vi.fn(async () => credential('new-token')),

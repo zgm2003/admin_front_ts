@@ -23,7 +23,6 @@ function deferred<T>() {
 
 function adapter(overrides: Partial<CredentialAdapter> = {}): CredentialAdapter {
   return {
-    variant: 'browser',
     restore: vi.fn(async () => null),
     login: vi.fn(async () => credential),
     refresh: vi.fn(async () => credential),

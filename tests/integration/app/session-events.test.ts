@@ -8,7 +8,7 @@ describe('AppKernel session events', () => {
     const logout = vi.fn(async () => undefined)
     const kernel = new AppKernel({
       environment: () => ({
-        mode: 'test', platform: 'admin', clientVariant: 'browser',
+        mode: 'test', platform: 'admin',
         apiOrigin: new URL('http://localhost:5173'),
         realtimeOrigin: new URL('ws://localhost:5173/api/admin/v1/realtime/ws'),
       }),

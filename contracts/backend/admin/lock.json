@@ -1,12 +1,12 @@
 {
-  "backend_commit": "aff99f2c8a949f90c39f1149308591b8b5f1f51b",
+  "backend_commit": "5e6915c6d415daf0cc1fb53fe08767aff1ec77b6",
   "bundle_version": "admin-2026-07-15.1",
-  "manifest_sha256": "64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295",
+  "manifest_sha256": "d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa",
   "artifacts": {
-    "openapi.json": "3db932285afe4325315e7263fe81245334197e6c8385596901728e7d896ec509",
-    "permissions.json": "803c5f499c26a93ecd7950e24e52a30ff7e21b6ada3fb2938b199b39bb07e49a",
+    "openapi.json": "4e548d10d6ea36f1c5d80c1f148a9bad738ffdeae839425dc9d60653ec93a980",
+    "permissions.json": "cde4e20b14d8cb97120c0e45452ad9efbbe824b901824fb4fb32258266b11138",
     "realtime/envelope.schema.json": "16837ed458b0b63f4ec1e28d8ad19d91b2bbde4d610597cf115ce86f7564c903",
     "realtime/events.schema.json": "ad7c4dd5fba930074be079a4d917fd51f7ac24826379279599d182aecb47eddf",
-    "views.json": "c47f6aa73dc1f5a67b11c7c9ee65c08916561613aafcd419bca2a5a5b5f36644"
+    "views.json": "97c825e39802c7af6e599e9b9dbe1938dc61f03cd86a3c2fa904846d32813a4f"
   }
 }

@@ -37,16 +37,7 @@ export const successEnvelopeSchema = z.object({
 export const authCredentialSchema = z.object({
   access_token: z.string().min(1),
   expires_in: z.number().int().positive(),
-  refresh_token: z.string().min(1).optional(),
-  refresh_expires_in: z.number().int().positive().optional(),
-}).strict().superRefine((value, context) => {
-  if ((value.refresh_token === undefined) !== (value.refresh_expires_in === undefined)) {
-    context.addIssue({
-      code: 'custom',
-      message: 'refresh_token and refresh_expires_in must be present together',
-    })
-  }
-})
+}).strict()
 
 export interface PrincipalMenuItem {
   readonly index: string

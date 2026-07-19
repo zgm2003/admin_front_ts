@@ -27,7 +27,6 @@ export type AuthState =
   | { readonly kind: 'expired'; readonly reason: 'revoked' | 'rotation-failed' | 'timeout' }
 
 export interface CredentialAdapter {
-  readonly variant: 'browser' | 'desktop'
   restore(signal: AbortSignal): Promise<AccessCredential | null>
   login(input: LoginCommand, signal: AbortSignal): Promise<AccessCredential>
   refresh(signal: AbortSignal): Promise<AccessCredential>

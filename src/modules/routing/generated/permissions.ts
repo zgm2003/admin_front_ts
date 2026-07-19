@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295
+// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
 // Do not edit manually.
 
 export const permissionCodes = [
@@ -66,11 +66,6 @@ export const permissionCodes = [
   "permission_role_edit",
   "permission_role_setDefault",
   "profile_wallet",
-  "system_clientVersion_add",
-  "system_clientVersion_del",
-  "system_clientVersion_edit",
-  "system_clientVersion_forceUpdate",
-  "system_clientVersion_setLatest",
   "system_log_content",
   "system_log_files",
   "system_mail",

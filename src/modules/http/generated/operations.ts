@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295
+// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -3911,7 +3911,7 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_auth_transport_admin_LoginResponse_Output": {
+  "Go_internal_module_auth_transport_admin_CredentialResponse_Output": {
     "additionalProperties": false,
     "properties": {
       "access_token": {
@@ -3919,217 +3919,11 @@ const contractSchemas = {
       },
       "expires_in": {
         "type": "integer"
-      },
-      "refresh_expires_in": {
-        "type": "integer"
-      },
-      "refresh_token": {
-        "type": "string"
       }
     },
     "required": [
       "access_token",
       "expires_in"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_CurrentCheckResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "force_update": {
-        "type": "boolean"
-      }
-    },
-    "required": [
-      "force_update"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_InitDict_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "client_version_platform_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
-        },
-        "type": "array"
-      },
-      "common_yes_no_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
-        },
-        "type": "array"
-      }
-    },
-    "required": [
-      "client_version_platform_arr",
-      "common_yes_no_arr"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_InitResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "dict": {
-        "$ref": "#/components/schemas/Go_internal_module_clientversion_InitDict_Output"
-      }
-    },
-    "required": [
-      "dict"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_ListItem_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "created_at": {
-        "type": "string"
-      },
-      "file_size": {
-        "type": "integer"
-      },
-      "file_size_text": {
-        "type": "string"
-      },
-      "file_url": {
-        "type": "string"
-      },
-      "force_update": {
-        "type": "integer"
-      },
-      "force_update_name": {
-        "type": "string"
-      },
-      "id": {
-        "type": "integer"
-      },
-      "is_latest": {
-        "type": "integer"
-      },
-      "is_latest_name": {
-        "type": "string"
-      },
-      "notes": {
-        "type": "string"
-      },
-      "platform": {
-        "type": "string"
-      },
-      "platform_name": {
-        "type": "string"
-      },
-      "signature": {
-        "type": "string"
-      },
-      "updated_at": {
-        "type": "string"
-      },
-      "version": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "created_at",
-      "file_size",
-      "file_size_text",
-      "file_url",
-      "force_update",
-      "force_update_name",
-      "id",
-      "is_latest",
-      "is_latest_name",
-      "notes",
-      "platform",
-      "platform_name",
-      "signature",
-      "updated_at",
-      "version"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_ListResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_clientversion_ListItem_Output"
-        },
-        "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Go_internal_module_clientversion_Page_Output"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_ManifestPayload_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "notes": {
-        "type": "string"
-      },
-      "platforms": {
-        "additionalProperties": {
-          "$ref": "#/components/schemas/Go_internal_module_clientversion_ManifestPlatform_Output"
-        },
-        "type": "object"
-      },
-      "pub_date": {
-        "type": "string"
-      },
-      "version": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "notes",
-      "platforms",
-      "pub_date",
-      "version"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_ManifestPlatform_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "signature": {
-        "type": "string"
-      },
-      "url": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "signature",
-      "url"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_clientversion_Page_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "current_page": {
-        "type": "integer"
-      },
-      "page_size": {
-        "type": "integer"
-      },
-      "total": {
-        "type": "integer"
-      },
-      "total_page": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "current_page",
-      "page_size",
-      "total",
-      "total_page"
     ],
     "type": "object"
   },
@@ -7856,9 +7650,6 @@ const responseDataSchemas = {
   "delete_api_admin_v1_auth_platforms_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "delete_api_admin_v1_client_versions_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "delete_api_admin_v1_cron_tasks": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -8075,27 +7866,6 @@ const responseDataSchemas = {
   "get_api_admin_v1_auth_platforms_page_init": {
     "$ref": "#/components/schemas/Go_internal_module_auth_platform_InitResponse_Output"
   },
-  "get_api_admin_v1_client_versions": {
-    "$ref": "#/components/schemas/Go_internal_module_clientversion_ListResponse_Output"
-  },
-  "get_api_admin_v1_client_versions_current_check": {
-    "$ref": "#/components/schemas/Go_internal_module_clientversion_CurrentCheckResponse_Output"
-  },
-  "get_api_admin_v1_client_versions_page_init": {
-    "$ref": "#/components/schemas/Go_internal_module_clientversion_InitResponse_Output"
-  },
-  "get_api_admin_v1_client_versions_update_json": {
-    "oneOf": [
-      {
-        "$ref": "#/components/schemas/Go_internal_module_clientversion_ManifestPayload_Output"
-      },
-      {
-        "items": {},
-        "maxItems": 0,
-        "type": "array"
-      }
-    ]
-  },
   "get_api_admin_v1_cron_tasks": {
     "$ref": "#/components/schemas/Go_internal_module_crontask_ListResponse_Output"
   },
@@ -8306,12 +8076,6 @@ const responseDataSchemas = {
   "patch_api_admin_v1_auth_platforms_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "patch_api_admin_v1_client_versions_id_force_update": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "patch_api_admin_v1_client_versions_id_latest": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "patch_api_admin_v1_cron_tasks_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -8420,7 +8184,7 @@ const responseDataSchemas = {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "post_api_admin_v1_auth_login": {
-    "$ref": "#/components/schemas/Go_internal_module_auth_transport_admin_LoginResponse_Output"
+    "$ref": "#/components/schemas/Go_internal_module_auth_transport_admin_CredentialResponse_Output"
   },
   "post_api_admin_v1_auth_logout": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -8460,13 +8224,10 @@ const responseDataSchemas = {
     "type": "object"
   },
   "post_api_admin_v1_auth_refresh": {
-    "$ref": "#/components/schemas/Go_internal_module_auth_transport_admin_LoginResponse_Output"
+    "$ref": "#/components/schemas/Go_internal_module_auth_transport_admin_CredentialResponse_Output"
   },
   "post_api_admin_v1_auth_send_code": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "post_api_admin_v1_client_versions": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
   },
   "post_api_admin_v1_cron_tasks": {
     "$ref": "#/components/schemas/Go_internal_module_crontask_ListItem_Output"
@@ -8558,9 +8319,6 @@ const responseDataSchemas = {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "put_api_admin_v1_auth_platforms_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "put_api_admin_v1_client_versions_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "put_api_admin_v1_cron_tasks_id": {
@@ -8776,17 +8534,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_auth_platforms_id">>(responseDataSchemas["delete_api_admin_v1_auth_platforms_id"]),
     telemetryName: "admin.delete.api.admin.v1.auth.platforms.id",
-    encode: (input) => input,
-  }),
-  "delete_api_admin_v1_client_versions_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_client_versions_id">, AdminOperationOutput<"delete_api_admin_v1_client_versions_id">>({
-    id: "delete_api_admin_v1_client_versions_id",
-    method: "DELETE",
-    path: "/api/admin/v1/client-versions/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_client_versions_id">>(responseDataSchemas["delete_api_admin_v1_client_versions_id"]),
-    telemetryName: "admin.delete.api.admin.v1.client.versions.id",
     encode: (input) => input,
   }),
   "delete_api_admin_v1_cron_tasks": defineOperation<AdminOperationInput<"delete_api_admin_v1_cron_tasks">, AdminOperationOutput<"delete_api_admin_v1_cron_tasks">>({
@@ -9525,49 +9272,6 @@ export const adminOperations = {
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_auth_platforms_page_init">>(responseDataSchemas["get_api_admin_v1_auth_platforms_page_init"]),
     telemetryName: "admin.get.api.admin.v1.auth.platforms.page.init",
   }),
-  "get_api_admin_v1_client_versions": defineOperation<AdminOperationInput<"get_api_admin_v1_client_versions">, AdminOperationOutput<"get_api_admin_v1_client_versions">>({
-    id: "get_api_admin_v1_client_versions",
-    method: "GET",
-    path: "/api/admin/v1/client-versions",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_client_versions">>(responseDataSchemas["get_api_admin_v1_client_versions"]),
-    telemetryName: "admin.get.api.admin.v1.client.versions",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_client_versions_current_check": defineOperation<AdminOperationInput<"get_api_admin_v1_client_versions_current_check">, AdminOperationOutput<"get_api_admin_v1_client_versions_current_check">>({
-    id: "get_api_admin_v1_client_versions_current_check",
-    method: "GET",
-    path: "/api/admin/v1/client-versions/current-check",
-    auth: "public",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_client_versions_current_check">>(responseDataSchemas["get_api_admin_v1_client_versions_current_check"]),
-    telemetryName: "admin.get.api.admin.v1.client.versions.current.check",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_client_versions_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_client_versions_page_init">, AdminOperationOutput<"get_api_admin_v1_client_versions_page_init">>({
-    id: "get_api_admin_v1_client_versions_page_init",
-    method: "GET",
-    path: "/api/admin/v1/client-versions/page-init",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_client_versions_page_init">>(responseDataSchemas["get_api_admin_v1_client_versions_page_init"]),
-    telemetryName: "admin.get.api.admin.v1.client.versions.page.init",
-  }),
-  "get_api_admin_v1_client_versions_update_json": defineOperation<AdminOperationInput<"get_api_admin_v1_client_versions_update_json">, AdminOperationOutput<"get_api_admin_v1_client_versions_update_json">>({
-    id: "get_api_admin_v1_client_versions_update_json",
-    method: "GET",
-    path: "/api/admin/v1/client-versions/update-json",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_client_versions_update_json">>(responseDataSchemas["get_api_admin_v1_client_versions_update_json"]),
-    telemetryName: "admin.get.api.admin.v1.client.versions.update.json",
-    encode: (input) => input,
-  }),
   "get_api_admin_v1_cron_tasks": defineOperation<AdminOperationInput<"get_api_admin_v1_cron_tasks">, AdminOperationOutput<"get_api_admin_v1_cron_tasks">>({
     id: "get_api_admin_v1_cron_tasks",
     method: "GET",
@@ -10254,28 +9958,6 @@ export const adminOperations = {
     telemetryName: "admin.patch.api.admin.v1.auth.platforms.id.status",
     encode: (input) => input,
   }),
-  "patch_api_admin_v1_client_versions_id_force_update": defineOperation<AdminOperationInput<"patch_api_admin_v1_client_versions_id_force_update">, AdminOperationOutput<"patch_api_admin_v1_client_versions_id_force_update">>({
-    id: "patch_api_admin_v1_client_versions_id_force_update",
-    method: "PATCH",
-    path: "/api/admin/v1/client-versions/{id}/force-update",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_client_versions_id_force_update">>(responseDataSchemas["patch_api_admin_v1_client_versions_id_force_update"]),
-    telemetryName: "admin.patch.api.admin.v1.client.versions.id.force.update",
-    encode: (input) => input,
-  }),
-  "patch_api_admin_v1_client_versions_id_latest": defineOperation<AdminOperationInput<"patch_api_admin_v1_client_versions_id_latest">, AdminOperationOutput<"patch_api_admin_v1_client_versions_id_latest">>({
-    id: "patch_api_admin_v1_client_versions_id_latest",
-    method: "PATCH",
-    path: "/api/admin/v1/client-versions/{id}/latest",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_client_versions_id_latest">>(responseDataSchemas["patch_api_admin_v1_client_versions_id_latest"]),
-    telemetryName: "admin.patch.api.admin.v1.client.versions.id.latest",
-    encode: (input) => input,
-  }),
   "patch_api_admin_v1_cron_tasks_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_cron_tasks_id_status">, AdminOperationOutput<"patch_api_admin_v1_cron_tasks_id_status">>({
     id: "patch_api_admin_v1_cron_tasks_id_status",
     method: "PATCH",
@@ -10702,7 +10384,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_auth_refresh">>(responseDataSchemas["post_api_admin_v1_auth_refresh"]),
     telemetryName: "admin.post.api.admin.v1.auth.refresh",
-    encode: (input) => input,
   }),
   "post_api_admin_v1_auth_send_code": defineOperation<AdminOperationInput<"post_api_admin_v1_auth_send_code">, AdminOperationOutput<"post_api_admin_v1_auth_send_code">>({
     id: "post_api_admin_v1_auth_send_code",
@@ -10713,17 +10394,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_auth_send_code">>(responseDataSchemas["post_api_admin_v1_auth_send_code"]),
     telemetryName: "admin.post.api.admin.v1.auth.send.code",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_client_versions": defineOperation<AdminOperationInput<"post_api_admin_v1_client_versions">, AdminOperationOutput<"post_api_admin_v1_client_versions">>({
-    id: "post_api_admin_v1_client_versions",
-    method: "POST",
-    path: "/api/admin/v1/client-versions",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_client_versions">>(responseDataSchemas["post_api_admin_v1_client_versions"]),
-    telemetryName: "admin.post.api.admin.v1.client.versions",
     encode: (input) => input,
   }),
   "post_api_admin_v1_cron_tasks": defineOperation<AdminOperationInput<"post_api_admin_v1_cron_tasks">, AdminOperationOutput<"post_api_admin_v1_cron_tasks">>({
@@ -11057,17 +10727,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_auth_platforms_id">>(responseDataSchemas["put_api_admin_v1_auth_platforms_id"]),
     telemetryName: "admin.put.api.admin.v1.auth.platforms.id",
-    encode: (input) => input,
-  }),
-  "put_api_admin_v1_client_versions_id": defineOperation<AdminOperationInput<"put_api_admin_v1_client_versions_id">, AdminOperationOutput<"put_api_admin_v1_client_versions_id">>({
-    id: "put_api_admin_v1_client_versions_id",
-    method: "PUT",
-    path: "/api/admin/v1/client-versions/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_client_versions_id">>(responseDataSchemas["put_api_admin_v1_client_versions_id"]),
-    telemetryName: "admin.put.api.admin.v1.client.versions.id",
     encode: (input) => input,
   }),
   "put_api_admin_v1_cron_tasks_id": defineOperation<AdminOperationInput<"put_api_admin_v1_cron_tasks_id">, AdminOperationOutput<"put_api_admin_v1_cron_tasks_id">>({

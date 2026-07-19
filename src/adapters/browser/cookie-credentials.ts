@@ -7,27 +7,26 @@ import {
 } from '@/modules/auth/types'
 import { errorEnvelopeSchema, successEnvelopeSchema } from '@/modules/http/schema'
 
-const browserCredentialSchema = z.object({
+const credentialSchema = z.object({
   access_token: z.string().min(1),
   expires_in: z.number().int().positive(),
 }).strict()
+const logoutSchema = z.object({}).strict()
 
-interface BrowserCredentialAdapterOptions {
+interface CookieCredentialAdapterOptions {
   readonly apiOrigin: URL | (() => URL)
   readonly fetch?: typeof fetch
   readonly now?: () => number
   readonly headers?: () => Readonly<Record<string, string>>
 }
 
-export class BrowserCredentialAdapter implements CredentialAdapter {
-  readonly variant = 'browser' as const
-
+export class CookieCredentialAdapter implements CredentialAdapter {
   private readonly apiOrigin: () => string
   private readonly fetch: typeof fetch
   private readonly now: () => number
   private readonly commonHeaders: () => Readonly<Record<string, string>>
 
-  constructor(options: BrowserCredentialAdapterOptions) {
+  constructor(options: CookieCredentialAdapterOptions) {
     const apiOrigin = options.apiOrigin
     this.apiOrigin = typeof apiOrigin === 'function'
       ? () => apiOrigin().origin
@@ -57,7 +56,6 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
   async revoke(accessToken: string | null, signal: AbortSignal): Promise<void> {
     const headers: Record<string, string> = {
       ...this.commonHeaders(),
-      'X-Admin-Client-Variant': 'browser',
     }
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`
     const response = await this.fetch(`${this.apiOrigin()}/api/admin/v1/auth/logout`, {
@@ -66,7 +64,10 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
       headers,
       signal,
     })
-    await this.readEnvelope(response)
+    const data = await this.readEnvelope(response)
+    if (!logoutSchema.safeParse(data).success) {
+      throw new AuthSessionError('auth.logout_contract_invalid', 'logout response violates the Admin contract')
+    }
   }
 
   async clear(): Promise<void> {
@@ -80,24 +81,18 @@ export class BrowserCredentialAdapter implements CredentialAdapter {
   ): Promise<AccessCredential> {
     const headers: Record<string, string> = {
       ...this.commonHeaders(),
-      'X-Admin-Client-Variant': 'browser',
     }
     if (body) headers['Content-Type'] = 'application/json'
-    const response = await this.fetch(`${this.apiOrigin()}${path}`, {
+    const init: RequestInit = {
       method: 'POST',
       credentials: 'include',
       headers,
-      body: body ? JSON.stringify(body) : undefined,
       signal,
-    })
-    const data = await this.readEnvelope(response)
-    if (typeof data === 'object' && data !== null && ('refresh_token' in data || 'refresh_expires_in' in data)) {
-      throw new AuthSessionError(
-        'auth.browser_refresh_credential_leak',
-        'browser response exposed a desktop refresh credential',
-      )
     }
-    const parsed = browserCredentialSchema.safeParse(data)
+    if (body) init.body = JSON.stringify(body)
+    const response = await this.fetch(`${this.apiOrigin()}${path}`, init)
+    const data = await this.readEnvelope(response)
+    const parsed = credentialSchema.safeParse(data)
     if (!parsed.success) {
       throw new AuthSessionError('auth.credential_contract_invalid', 'credential response violates the Admin contract')
     }

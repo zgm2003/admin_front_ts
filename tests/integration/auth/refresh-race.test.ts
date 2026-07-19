@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { BrowserCredentialAdapter } from '@/adapters/web/browser-credentials'
+import { CookieCredentialAdapter } from '@/adapters/browser/cookie-credentials'
 import { BrowserRefreshCoordinator } from '@/adapters/web/browser-coordinator'
 
 function success(data: Record<string, unknown>) {
@@ -10,11 +10,11 @@ function success(data: Record<string, unknown>) {
 }
 
 describe('browser credential transport', () => {
-  it('uses the formal browser variant, credential cookie, and no refresh request body', async () => {
+  it('uses the formal cookie transport, exact common headers, and no refresh request body', async () => {
     const fetch = vi.fn()
       .mockResolvedValueOnce(success({ access_token: 'login-access', expires_in: 60 }))
       .mockResolvedValueOnce(success({ access_token: 'refresh-access', expires_in: 60 }))
-    const adapter = new BrowserCredentialAdapter({
+    const adapter = new CookieCredentialAdapter({
       apiOrigin: new URL('https://admin.example.test'),
       fetch,
       now: () => 1_000,
@@ -22,6 +22,7 @@ describe('browser credential transport', () => {
         platform: 'admin',
         'device-id': 'device-1',
         'Accept-Language': 'zh-CN',
+        'X-Trace-Id': 'trace-1',
       }),
     })
     const signal = new AbortController().signal
@@ -36,50 +37,52 @@ describe('browser credential transport', () => {
     expect(fetch).toHaveBeenNthCalledWith(1, 'https://admin.example.test/api/admin/v1/auth/login', expect.objectContaining({
       method: 'POST',
       credentials: 'include',
-      headers: expect.objectContaining({
-        'X-Admin-Client-Variant': 'browser',
+      headers: {
         platform: 'admin',
         'device-id': 'device-1',
         'Accept-Language': 'zh-CN',
-      }),
+        'X-Trace-Id': 'trace-1',
+        'Content-Type': 'application/json',
+      },
     }))
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
       login_type: 'email',
       login_account: 'admin@example.test',
       code: '123456',
     })
-    expect(fetch).toHaveBeenNthCalledWith(2, 'https://admin.example.test/api/admin/v1/auth/refresh', expect.objectContaining({
+    expect(fetch).toHaveBeenNthCalledWith(2, 'https://admin.example.test/api/admin/v1/auth/refresh', {
       method: 'POST',
       credentials: 'include',
-      body: undefined,
       headers: {
         platform: 'admin',
         'device-id': 'device-1',
         'Accept-Language': 'zh-CN',
-        'X-Admin-Client-Variant': 'browser',
+        'X-Trace-Id': 'trace-1',
       },
-    }))
+      signal,
+    })
+    expect(fetch.mock.calls[1]?.[1]).not.toHaveProperty('body')
+    expect(JSON.stringify(fetch.mock.calls)).not.toContain('X-Admin-Client-Variant')
   })
 
-  it('rejects a browser response that leaks a desktop refresh credential', async () => {
-    const adapter = new BrowserCredentialAdapter({
+  it('rejects every undocumented credential response field as a contract error', async () => {
+    const adapter = new CookieCredentialAdapter({
       apiOrigin: new URL('https://admin.example.test'),
       fetch: vi.fn(async () => success({
         access_token: 'access',
         expires_in: 60,
-        refresh_token: 'must-not-reach-browser',
-        refresh_expires_in: 3600,
+        undocumented: 'must-not-be-accepted',
       })),
     })
 
     await expect(adapter.refresh(new AbortController().signal)).rejects.toMatchObject({
-      code: 'auth.browser_refresh_credential_leak',
+      code: 'auth.credential_contract_invalid',
     })
   })
 
   it('revokes with bearer authentication and clears only through the cookie response', async () => {
     const fetch = vi.fn(async () => success({}))
-    const adapter = new BrowserCredentialAdapter({
+    const adapter = new CookieCredentialAdapter({
       apiOrigin: new URL('https://admin.example.test'),
       fetch,
     })
@@ -92,9 +95,19 @@ describe('browser credential transport', () => {
       credentials: 'include',
       headers: {
         Authorization: 'Bearer access-secret',
-        'X-Admin-Client-Variant': 'browser',
       },
       signal,
+    })
+  })
+
+  it('rejects undocumented logout response fields as a contract error', async () => {
+    const adapter = new CookieCredentialAdapter({
+      apiOrigin: new URL('https://admin.example.test'),
+      fetch: vi.fn(async () => success({ undocumented: true })),
+    })
+
+    await expect(adapter.revoke('access-secret', new AbortController().signal)).rejects.toMatchObject({
+      code: 'auth.logout_contract_invalid',
     })
   })
 })

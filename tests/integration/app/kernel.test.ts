@@ -8,7 +8,6 @@ const appEnvironment: AppEnvironment = {
   platform: 'admin',
   apiOrigin: new URL('http://localhost:5173'),
   realtimeOrigin: new URL('ws://localhost:5173/api/admin/v1/realtime/ws'),
-  clientVariant: 'browser',
 }
 
 const principal: PrincipalSnapshot = {

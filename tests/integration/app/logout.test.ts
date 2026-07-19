@@ -7,7 +7,6 @@ describe('AppKernel logout integration', () => {
   it('freezes the session and completes protected cleanup before becoming anonymous', async () => {
     const order: string[] = []
     const adapter: CredentialAdapter = {
-      variant: 'browser',
       restore: vi.fn(async () => ({ accessToken: 'access', expiresAt: Date.now() + 60_000 })),
       login: vi.fn(async () => ({ accessToken: 'access', expiresAt: Date.now() + 60_000 })),
       refresh: vi.fn(async () => ({ accessToken: 'access', expiresAt: Date.now() + 60_000 })),
@@ -31,7 +30,6 @@ describe('AppKernel logout integration', () => {
         platform: 'admin',
         apiOrigin: new URL('http://localhost:5173'),
         realtimeOrigin: new URL('ws://localhost:5173/api/admin/v1/realtime/ws'),
-        clientVariant: 'browser',
       }),
       auth,
       principal: {
@@ -86,7 +84,6 @@ describe('AppKernel logout integration', () => {
         platform: 'admin',
         apiOrigin: new URL('http://localhost:5173'),
         realtimeOrigin: new URL('ws://localhost:5173/api/admin/v1/realtime/ws'),
-        clientVariant: 'browser',
       }),
       auth: {
         restore: vi.fn(async () => ({ kind: 'anonymous' as const })),

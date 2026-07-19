@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295
+// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
 // Do not edit manually.
 
 export const backendViewKeys = [
@@ -19,7 +19,6 @@ export const backendViewKeys = [
   "permission/role",
   "personal",
   "profile/wallet",
-  "system/clientVersion",
   "system/cronTask",
   "system/exportTask",
   "system/log",
@@ -56,7 +55,6 @@ export const backendViewDescriptors = {
   "permission/role": {"path":"/permission/role","titleKey":"menu.permission_role","showMenu":true,"permissionCodes":[]},
   "personal": {"path":"/personal","titleKey":"menu.personal","showMenu":false,"permissionCodes":[]},
   "profile/wallet": {"path":"/profile/wallet","titleKey":"menu.profile_wallet","showMenu":false,"permissionCodes":["profile_wallet"]},
-  "system/clientVersion": {"path":"/system/clientVersion","titleKey":"menu.system_clientVersion","showMenu":true,"permissionCodes":[]},
   "system/cronTask": {"path":"/system/cronTask","titleKey":"menu.system_cronTask","showMenu":true,"permissionCodes":[]},
   "system/exportTask": {"path":"/system/exportTask","titleKey":"menu.system_exportTask","showMenu":true,"permissionCodes":[]},
   "system/log": {"path":"/system/log","titleKey":"menu.system_log","showMenu":true,"permissionCodes":[]},

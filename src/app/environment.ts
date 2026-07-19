@@ -3,7 +3,6 @@ export interface AppEnvironment {
   readonly platform: 'admin'
   readonly apiOrigin: URL
   readonly realtimeOrigin: URL
-  readonly clientVariant: 'browser' | 'desktop'
 }
 
 const loopbackNames = new Set(['localhost', '0.0.0.0', '::1', '[::1]'])
@@ -66,11 +65,6 @@ export function parseEnvironment(input: ImportMetaEnv, location: Location): AppE
     throw new Error('VITE_PLATFORM must be admin')
   }
 
-  const rawClientVariant = input.VITE_ADMIN_CLIENT_VARIANT ?? 'browser'
-  if (rawClientVariant !== 'browser' && rawClientVariant !== 'desktop') {
-    throw new Error('VITE_ADMIN_CLIENT_VARIANT must be browser or desktop')
-  }
-
   let apiOrigin = parseAbsoluteUrl(input, 'VITE_GO_API_BASE_URL')
   let realtimeOrigin = parseAbsoluteUrl(input, 'VITE_WEB_SOCKET_URL')
   if (mode !== 'production') {
@@ -110,6 +104,5 @@ export function parseEnvironment(input: ImportMetaEnv, location: Location): AppE
     platform: 'admin',
     apiOrigin,
     realtimeOrigin,
-    clientVariant: rawClientVariant,
   }
 }
