@@ -45,6 +45,21 @@ describe('approved Tauri operations', () => {
     expect(store).toContain('process.exitAfterUserConfirmation()')
   })
 
+  it('routes the tray exit menu through the user-confirmation event boundary', async () => {
+    const [lib, types, adapter, store] = await Promise.all([
+      source('src-tauri/src/lib.rs'),
+      source('src/modules/native/types.ts'),
+      source('src/adapters/tauri/native-bridge.ts'),
+      source('src/store/tauri.ts'),
+    ])
+
+    expect(lib).toContain('tray-exit-requested')
+    expect(lib).not.toMatch(/"quit"\s*=>\s*app\.exit\(0\)/)
+    expect(types).toContain('listenExitRequested(listener: () => void)')
+    expect(adapter).toContain("listenTracked('tray-exit-requested', listener)")
+    expect(store).toContain('native.window.listenExitRequested')
+  })
+
   it('validates updater metadata/events and never logs raw updater failures', async () => {
     const [types, adapter, manager] = await Promise.all([
       source('src/modules/native/types.ts'),

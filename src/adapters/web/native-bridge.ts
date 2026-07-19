@@ -70,6 +70,9 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
       async listenCloseRequested() {
         return noOpUnlisten
       },
+      async listenExitRequested() {
+        return noOpUnlisten
+      },
       openExternal(input) {
         const url = parsedUrl(input)
         if (url.protocol !== 'https:' || !externalHosts.has(url.hostname.toLowerCase())) {

@@ -79,6 +79,10 @@ export const useTauriStore = defineStore('tauri', {
         this.rememberChoice = false
         this.showCloseDialog = true
       })
+      await native.window.listenExitRequested(() => {
+        this.rememberChoice = false
+        this.showCloseDialog = true
+      })
     },
   },
 })

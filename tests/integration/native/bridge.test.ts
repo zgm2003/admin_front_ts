@@ -27,12 +27,13 @@ describe('NativeBridge lifecycle and denial boundary', () => {
   })
 
   it('disposes every native event listener exactly once even when disposal repeats', async () => {
-    const unlisteners = Array.from({ length: 5 }, () => vi.fn())
+    const unlisteners = Array.from({ length: 6 }, () => vi.fn())
     for (const unlisten of unlisteners) listen.mockResolvedValueOnce(unlisten)
     const bridge = createTauriNativeBridge()
 
     await bridge.window.listenResize(() => undefined)
     await bridge.window.listenCloseRequested(() => undefined)
+    await bridge.window.listenExitRequested(() => undefined)
     await bridge.downloads.listenProgress(() => undefined)
     await bridge.downloads.listenCompleted(() => undefined)
     await bridge.downloads.listenFailed(() => undefined)

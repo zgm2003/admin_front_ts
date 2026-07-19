@@ -474,6 +474,9 @@ export function createTauriNativeBridge(): NativeBridge {
       listenCloseRequested(listener) {
         return listenTracked('window-close-requested', listener)
       },
+      listenExitRequested(listener) {
+        return listenTracked('tray-exit-requested', listener)
+      },
       openExternal(url) {
         safeNavigator.openExternal(url)
       },

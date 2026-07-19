@@ -163,7 +163,10 @@ pub fn run() {
                 .tooltip("CloudAdmin")
                 .on_menu_event(|app: &AppHandle, event| match event.id.as_ref() {
                     "show" => notification::wake_window(app),
-                    "quit" => app.exit(0),
+                    "quit" => {
+                        notification::wake_window(app);
+                        let _ = app.emit("tray-exit-requested", ());
+                    }
                     _ => {}
                 })
                 .on_tray_icon_event(|tray: &TrayIcon, event| {
