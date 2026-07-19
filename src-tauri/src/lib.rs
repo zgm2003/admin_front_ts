@@ -125,6 +125,13 @@ pub fn run() {
     let download_manager = Arc::new(DownloadManager::new());
 
     tauri::Builder::default()
+        .plugin(
+            tauri::plugin::Builder::<_, ()>::new("local-navigation-policy")
+                .on_navigation(|webview, url| {
+                    window::is_authorized_navigation(webview.label(), url, cfg!(debug_assertions))
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(download_manager)

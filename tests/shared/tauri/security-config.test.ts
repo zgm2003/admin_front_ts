@@ -9,6 +9,10 @@ async function readJson(path: string): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(resolve(repositoryRoot, path), 'utf8')) as Record<string, unknown>
 }
 
+async function source(path: string): Promise<string> {
+  return readFile(resolve(repositoryRoot, path), 'utf8')
+}
+
 describe('Tauri local UI security configuration', () => {
   it('packages only the local dist and disables the global Tauri object', async () => {
     const config = await readJson('src-tauri/tauri.conf.json')
@@ -61,6 +65,17 @@ describe('Tauri local UI security configuration', () => {
     ])
     expect(JSON.stringify(capability)).not.toMatch(/(?:dialog|opener|process|shell|window):/)
     expect(JSON.stringify(capability)).not.toContain('*')
+  })
+
+  it('denies top-level navigation away from the packaged main-window origin', async () => {
+    const [lib, windowPolicy] = await Promise.all([
+      source('src-tauri/src/lib.rs'),
+      source('src-tauri/src/window.rs'),
+    ])
+
+    expect(lib).toContain('.on_navigation(')
+    expect(lib).toContain('is_authorized_navigation')
+    expect(windowPolicy).toContain('pub fn is_authorized_navigation')
   })
 
   it('keeps the exact signed updater endpoint and public verification key', async () => {

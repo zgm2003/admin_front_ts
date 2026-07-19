@@ -30,11 +30,13 @@ pub fn is_authorized_window_url(url: &url::Url, debug_build: bool) -> bool {
     packaged || docker_development
 }
 
+pub fn is_authorized_navigation(label: &str, url: &url::Url, debug_build: bool) -> bool {
+    is_main_window_label(label) && is_authorized_window_url(url, debug_build)
+}
+
 pub(crate) fn ensure_main_window(window: &WebviewWindow) -> Result<(), SafeError> {
     let url = window.url().map_err(|_| SafeError::native_policy())?;
-    if is_main_window_label(window.label())
-        && is_authorized_window_url(&url, cfg!(debug_assertions))
-    {
+    if is_authorized_navigation(window.label(), &url, cfg!(debug_assertions)) {
         Ok(())
     } else {
         Err(SafeError::native_policy())
@@ -86,7 +88,7 @@ pub fn request_window_close(window: WebviewWindow) -> Result<(), SafeError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_authorized_window_url, is_main_window_label};
+    use super::{is_authorized_navigation, is_authorized_window_url, is_main_window_label};
 
     #[test]
     fn only_the_packaged_main_window_is_authorized() {
@@ -116,6 +118,22 @@ mod tests {
         ));
         assert!(!is_authorized_window_url(
             &url::Url::parse("http://user:secret@tauri.localhost/dashboard").unwrap(),
+            false
+        ));
+
+        assert!(is_authorized_navigation(
+            "main",
+            &url::Url::parse("http://tauri.localhost/dashboard").unwrap(),
+            false
+        ));
+        assert!(!is_authorized_navigation(
+            "main",
+            &url::Url::parse("https://www.zgm2003.cn/dashboard").unwrap(),
+            false
+        ));
+        assert!(!is_authorized_navigation(
+            "settings",
+            &url::Url::parse("http://tauri.localhost/dashboard").unwrap(),
             false
         ));
     }

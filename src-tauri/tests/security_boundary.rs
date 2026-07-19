@@ -2,7 +2,7 @@ use cloudadmin_lib::{
     download::policy::{
         sanitize_filename, validate_download_url, validate_selected_target, RedirectBudget,
     },
-    window::{is_authorized_window_url, is_main_window_label},
+    window::is_authorized_navigation,
 };
 use proptest::prelude::*;
 
@@ -79,7 +79,7 @@ proptest! {
     fn window_identity_is_denied_or_exactly_local(label in arbitrary_text(32), raw_url in arbitrary_text(256)) {
         let authorized = url::Url::parse(&raw_url)
             .ok()
-            .is_some_and(|url| is_main_window_label(&label) && is_authorized_window_url(&url, false));
+            .is_some_and(|url| is_authorized_navigation(&label, &url, false));
         if authorized {
             let url = url::Url::parse(&raw_url).unwrap();
             prop_assert_eq!(label, "main");
