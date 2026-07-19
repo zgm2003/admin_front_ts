@@ -36,7 +36,6 @@ describe('pinned Tauri Rust toolchain', () => {
       tauri: '2.10.2',
       'tauri-plugin-dialog': '2.6.0',
       'tauri-plugin-updater': '2.10.0',
-      'tauri-plugin-process': '2.3.1',
       serde: '1.0.228',
       serde_json: '1.0.149',
       'notify-rust': '4.12.0',
@@ -62,7 +61,9 @@ describe('pinned Tauri Rust toolchain', () => {
       )
     }
     expect(cargo).not.toMatch(/^tauri-plugin-opener\s*=/m)
+    expect(cargo).not.toMatch(/^tauri-plugin-process\s*=/m)
     expect(nativeEntry).not.toContain('tauri_plugin_opener')
+    expect(nativeEntry).not.toContain('tauri_plugin_process')
     expect(capability).not.toContain('opener:')
   })
 

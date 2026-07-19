@@ -8,6 +8,7 @@ import { useTauriStore } from '@/store/tauri'
 import { ClientVersionApi, type ClientPlatform } from '@/api/system/clientVersion'
 import {
   getNativeBridge,
+  NativeUpdaterError,
   type NativeUpdate,
   type UpdaterDownloadEvent,
 } from '@/adapters/native'
@@ -28,7 +29,9 @@ const speed = ref(0)
 const errorMessage = ref('')
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+  return error instanceof NativeUpdaterError
+    ? error.message
+    : '更新操作失败，请稍后重试'
 }
 
 function getClientPlatform(value: string): ClientPlatform | '' {
@@ -82,9 +85,8 @@ const doDownloadAndInstall = async (update: NativeUpdate, isForce: boolean) => {
     await update.download(handleDownloadEvent)
     updateStatus.value = 'installing'
     await update.install()
-    await native.process.relaunch()
+    await native.process.relaunchAfterUpdate()
   } catch (error: unknown) {
-    console.error('Update failed:', error)
     updateStatus.value = 'failed'
     errorMessage.value = getErrorMessage(error)
 
@@ -128,8 +130,8 @@ const clientInit = async () => {
     if (tauriStore.forceUpdate) {
       showForceUpdateDialog()
     }
-  } catch (error) {
-    console.error('客户端初始化失败:', error)
+  } catch {
+    ElNotification.error({ title: '客户端初始化失败', message: '无法检查当前客户端版本', duration: 3000 })
   }
 }
 
@@ -151,7 +153,6 @@ const showForceUpdateDialog = async () => {
       await doDownloadAndInstall(update, true)
     }
   } catch (error: unknown) {
-    console.error('Force update check failed:', error)
     if (tauriStore.forceUpdate) {
       ElNotification.error({ title: '检查更新失败', message: getErrorMessage(error), duration: 3000 })
       setTimeout(() => showForceUpdateDialog(), 3000)
@@ -184,7 +185,6 @@ const checkUpdate = async () => {
 
     await doDownloadAndInstall(update, false)
   } catch (error: unknown) {
-    console.error('Update check failed:', error)
     ElNotification.error({
       title: '检查更新失败',
       message: getErrorMessage(error),

@@ -64,6 +64,34 @@ impl SafeError {
         }
     }
 
+    pub const fn native_policy() -> Self {
+        Self {
+            kind: "native_policy",
+            message: "原生操作不符合安全策略",
+        }
+    }
+
+    pub const fn native_operation() -> Self {
+        Self {
+            kind: "native_operation",
+            message: "原生操作暂时不可用",
+        }
+    }
+
+    pub const fn notification_policy() -> Self {
+        Self {
+            kind: "notification_policy",
+            message: "通知内容不符合安全策略",
+        }
+    }
+
+    pub const fn notification_unavailable() -> Self {
+        Self {
+            kind: "notification_unavailable",
+            message: "系统通知暂时不可用",
+        }
+    }
+
     pub const fn download_cancelled() -> Self {
         Self {
             kind: "download_cancelled",

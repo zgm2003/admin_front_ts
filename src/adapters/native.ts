@@ -12,6 +12,8 @@ import {
 import { createWebNativeBridge } from '@/adapters/web/native-bridge'
 import type { NativeBridge } from '@/modules/native/types'
 
+export { NativeUpdaterError } from '@/modules/native/types'
+
 export type {
   DesktopRefreshCredential,
   ManagedDownloadProgress,

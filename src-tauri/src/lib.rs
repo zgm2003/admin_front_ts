@@ -1,103 +1,22 @@
-use notify_rust::Notification;
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 use tauri::{
-    image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, State, UserAttentionType,
+    AppHandle, Emitter, Manager, State,
 };
 
 pub mod credentials;
 mod download;
 pub mod error;
 pub mod http_policy;
+mod notification;
+mod process;
+mod window;
 
 use credentials::{CredentialStore, RefreshCredentialInput};
 use download::{DownloadManager, DownloadProgress};
 use error::SafeError;
 use http_policy::{rotate_stored_refresh_credential, AccessCredential, AdminHttpClient};
-
-// ==================== 全局状态（原子操作，无锁） ====================
-
-/// 未读消息数
-static UNREAD_COUNT: AtomicU32 = AtomicU32::new(0);
-/// 是否正在闪烁
-static IS_BLINKING: AtomicBool = AtomicBool::new(false);
-/// 通知图标缓存（避免重复 decode）
-static NOTIFY_ICON: OnceLock<Option<Image<'static>>> = OnceLock::new();
-
-/// 获取缓存的通知图标
-fn get_notify_icon() -> Option<&'static Image<'static>> {
-    NOTIFY_ICON
-        .get_or_init(|| {
-            let ico_bytes = include_bytes!("../icons/icon_notify.ico");
-            image::load_from_memory(ico_bytes).ok().map(|img| {
-                let rgba = img.to_rgba8();
-                let (w, h) = rgba.dimensions();
-                Image::new_owned(rgba.into_raw(), w, h)
-            })
-        })
-        .as_ref()
-}
-
-// ==================== 托盘相关 ====================
-
-/// 恢复默认托盘图标
-fn restore_default_icon(app: &AppHandle) {
-    if let Some(tray) = app.tray_by_id("main") {
-        if let Some(icon) = app.default_window_icon() {
-            let _ = tray.set_icon(Some(icon.clone()));
-        }
-    }
-}
-
-/// 启动托盘图标闪烁（tokio 异步，不占系统线程）
-fn start_tray_blink(app: AppHandle) {
-    if IS_BLINKING.swap(true, Ordering::SeqCst) {
-        return; // 已经在闪烁
-    }
-
-    tokio::spawn(async move {
-        let mut show_normal = true;
-        let mut interval = tokio::time::interval(std::time::Duration::from_millis(500));
-
-        while IS_BLINKING.load(Ordering::SeqCst) {
-            interval.tick().await;
-
-            if let Some(tray) = app.tray_by_id("main") {
-                if show_normal {
-                    if let Some(icon) = app.default_window_icon() {
-                        let _ = tray.set_icon(Some(icon.clone()));
-                    }
-                } else if let Some(icon) = get_notify_icon() {
-                    let _ = tray.set_icon(Some(icon.clone()));
-                }
-            }
-            show_normal = !show_normal;
-        }
-
-        restore_default_icon(&app);
-    });
-}
-
-/// 唤醒窗口并清除未读状态
-fn wake_window(app: &AppHandle) {
-    UNREAD_COUNT.store(0, Ordering::SeqCst);
-    IS_BLINKING.store(false, Ordering::SeqCst);
-    restore_default_icon(app);
-
-    if let Some(tray) = app.tray_by_id("main") {
-        let _ = tray.set_tooltip(Some("CloudAdmin"));
-    }
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.request_user_attention(None::<UserAttentionType>);
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-        let _ = app.emit("tray-clicked", ());
-    }
-}
 
 // ==================== Tauri Commands ====================
 
@@ -121,43 +40,6 @@ async fn refresh_access_credential(
 #[tauri::command]
 fn clear_refresh_credential(store: State<'_, CredentialStore>) -> Result<(), SafeError> {
     store.clear()
-}
-
-/// 发送系统通知
-#[tauri::command]
-fn send_notification(app: AppHandle, title: String, body: String) {
-    let count = UNREAD_COUNT.fetch_add(1, Ordering::SeqCst) + 1;
-
-    if let Some(tray) = app.tray_by_id("main") {
-        let _ = tray.set_tooltip(Some(&format!("CloudAdmin - {} 条新消息", count)));
-    }
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.request_user_attention(Some(UserAttentionType::Critical));
-    }
-
-    start_tray_blink(app.clone());
-
-    // 系统通知是同步阻塞调用（Windows API），用 spawn_blocking 避免阻塞 tokio 线程池
-    tokio::task::spawn_blocking(move || {
-        let _ = Notification::new()
-            .summary(&title)
-            .body(&format!("{}\n\n点击托盘图标查看", body))
-            .appname("CloudAdmin")
-            .timeout(notify_rust::Timeout::Milliseconds(10000))
-            .show();
-    });
-}
-
-/// 清除未读数
-#[tauri::command]
-fn clear_unread(app: AppHandle) {
-    UNREAD_COUNT.store(0, Ordering::SeqCst);
-    IS_BLINKING.store(false, Ordering::SeqCst);
-    restore_default_icon(&app);
-
-    if let Some(tray) = app.tray_by_id("main") {
-        let _ = tray.set_tooltip(Some("CloudAdmin"));
-    }
 }
 
 /// 由 Rust 验证 URL、选择保存路径并生成任务 ID。
@@ -224,7 +106,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
         .manage(download_manager)
         .manage(CredentialStore::default())
         .manage(AdminHttpClient::default())
@@ -232,8 +113,15 @@ pub fn run() {
             seal_refresh_credential,
             refresh_access_credential,
             clear_refresh_credential,
-            send_notification,
-            clear_unread,
+            notification::send_notification,
+            window::get_window_state,
+            window::minimize_window,
+            window::toggle_maximize_window,
+            window::hide_window,
+            window::request_window_close,
+            process::get_app_version,
+            process::relaunch_app,
+            process::exit_app,
             start_managed_download,
             cancel_managed_download,
             get_managed_download_progress,
@@ -253,7 +141,7 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .tooltip("CloudAdmin")
                 .on_menu_event(|app: &AppHandle, event| match event.id.as_ref() {
-                    "show" => wake_window(app),
+                    "show" => notification::wake_window(app),
                     "quit" => app.exit(0),
                     _ => {}
                 })
@@ -264,7 +152,7 @@ pub fn run() {
                         ..
                     } = event
                     {
-                        wake_window(tray.app_handle());
+                        notification::wake_window(tray.app_handle());
                     }
                 });
 
@@ -281,13 +169,7 @@ pub fn run() {
                 let _ = window.app_handle().emit("window-close-requested", ());
             }
             tauri::WindowEvent::Focused(true) => {
-                let app = window.app_handle();
-                UNREAD_COUNT.store(0, Ordering::SeqCst);
-                IS_BLINKING.store(false, Ordering::SeqCst);
-                restore_default_icon(app);
-                if let Some(tray) = app.tray_by_id("main") {
-                    let _ = tray.set_tooltip(Some("CloudAdmin"));
-                }
+                notification::clear_unread_state(window.app_handle());
             }
             _ => {}
         })

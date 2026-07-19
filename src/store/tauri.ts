@@ -46,7 +46,7 @@ export const useTauriStore = defineStore('tauri', {
       await getNativeBridge().window.hide()
     },
     async exitApp() {
-      await getNativeBridge().process.exit(0)
+      await getNativeBridge().process.exitAfterUserConfirmation()
     },
     async handleMinimize() {
       this.showCloseDialog = false

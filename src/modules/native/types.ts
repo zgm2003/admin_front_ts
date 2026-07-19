@@ -22,7 +22,7 @@ export interface WindowBridge {
 export type UpdaterDownloadEvent =
   | { readonly event: 'Started'; readonly data: { readonly contentLength?: number } }
   | { readonly event: 'Progress'; readonly data: { readonly chunkLength: number } }
-  | { readonly event: 'Finished'; readonly data: Record<string, never> }
+  | { readonly event: 'Finished' }
 
 export interface NativeUpdate {
   readonly version: string
@@ -87,8 +87,8 @@ export interface ManagedDownloadBridge {
 }
 
 export interface ProcessBridge {
-  relaunch(): Promise<void>
-  exit(code: number): Promise<void>
+  relaunchAfterUpdate(): Promise<void>
+  exitAfterUserConfirmation(): Promise<void>
 }
 
 export interface NativeBridge {
@@ -126,5 +126,30 @@ export class NativeCancelledError extends Error {
   constructor(message = 'native operation was cancelled') {
     super(message)
     this.name = 'NativeCancelledError'
+  }
+}
+
+export type NativeUpdaterErrorCode =
+  | 'native.updater_contract_invalid'
+  | 'native.updater_state_invalid'
+  | 'native.updater_failed'
+
+export class NativeUpdaterError extends Error {
+  readonly code: NativeUpdaterErrorCode
+
+  constructor(code: NativeUpdaterErrorCode, message: string) {
+    super(message)
+    this.name = 'NativeUpdaterError'
+    this.code = code
+  }
+}
+
+export class NativeOperationError extends Error {
+  readonly code: string
+
+  constructor(code: string, message: string) {
+    super(message)
+    this.name = 'NativeOperationError'
+    this.code = code
   }
 }

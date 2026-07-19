@@ -6,18 +6,8 @@
   "permissions": [
     "core:event:allow-listen",
     "core:event:allow-unlisten",
-    "core:window:allow-hide",
-    "core:window:allow-minimize",
-    "core:window:allow-toggle-maximize",
-    "core:window:allow-is-maximized",
-    "core:window:allow-is-minimized",
-    "core:window:allow-is-focused",
-    "core:window:allow-is-visible",
-    "core:window:allow-close",
-    "dialog:allow-save",
     "updater:allow-check",
-    "updater:allow-download-and-install",
-    "process:allow-restart",
-    "process:allow-exit"
+    "updater:allow-download",
+    "updater:allow-install"
   ]
 }

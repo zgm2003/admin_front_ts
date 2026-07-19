@@ -2,13 +2,16 @@ import { createWebNativeBridge } from '@/adapters/web/native-bridge'
 import { AuthSessionError } from '@/modules/auth/types'
 import {
   NativeCancelledError,
+  NativeOperationError,
   NativePolicyError,
+  NativeUpdaterError,
   type ManagedDownloadProgress,
   type ManagedDownloadStatus,
   type NativeAccessCredential,
   type NativeBridge,
   type NativeUnlisten,
   type NativeUpdate,
+  type NativeWindowState,
   type UpdaterDownloadEvent,
 } from '@/modules/native/types'
 
@@ -70,6 +73,181 @@ const nativeCredentialErrors = {
 
 function exactObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+const nativeOperationErrors = {
+  native_policy: {
+    message: '原生操作不符合安全策略',
+    code: 'native.policy_rejected',
+    policy: true,
+  },
+  native_operation: {
+    message: '原生操作暂时不可用',
+    code: 'native.operation_unavailable',
+    policy: false,
+  },
+  notification_policy: {
+    message: '通知内容不符合安全策略',
+    code: 'native.notification_policy_rejected',
+    policy: true,
+  },
+  notification_unavailable: {
+    message: '系统通知暂时不可用',
+    code: 'native.notification_unavailable',
+    policy: false,
+  },
+} as const
+
+function mapNativeOperationError(error: unknown): Error {
+  if (exactObject(error)
+    && Object.keys(error).length === 2
+    && typeof error.kind === 'string'
+    && typeof error.message === 'string'
+    && Object.prototype.hasOwnProperty.call(nativeOperationErrors, error.kind)) {
+    const definition = nativeOperationErrors[error.kind as keyof typeof nativeOperationErrors]
+    if (error.message === definition.message) {
+      return definition.policy
+        ? new NativePolicyError(definition.message)
+        : new NativeOperationError(definition.code, definition.message)
+    }
+  }
+  return new NativeOperationError(
+    'native.command_contract_invalid',
+    'native command returned an invalid error contract',
+  )
+}
+
+const semverPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/
+
+function updaterContractError(): NativeUpdaterError {
+  return new NativeUpdaterError(
+    'native.updater_contract_invalid',
+    '更新服务返回了无效数据',
+  )
+}
+
+function updaterStateError(message = '更新操作顺序无效'): NativeUpdaterError {
+  return new NativeUpdaterError('native.updater_state_invalid', message)
+}
+
+function updaterFailure(): NativeUpdaterError {
+  return new NativeUpdaterError('native.updater_failed', '更新操作失败，请稍后重试')
+}
+
+function mapUpdaterError(error: unknown): NativeUpdaterError {
+  return error instanceof NativeUpdaterError ? error : updaterFailure()
+}
+
+function parseUpdaterVersion(value: unknown): string {
+  if (typeof value !== 'string' || value.length > 128 || !semverPattern.test(value)) {
+    throw updaterContractError()
+  }
+  return value
+}
+
+function parseUpdaterBody(value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string' || value.length > 65_536 || value.includes('\0')) {
+    throw updaterContractError()
+  }
+  return value
+}
+
+function parseUpdaterDownloadEvent(value: unknown): UpdaterDownloadEvent {
+  if (!exactObject(value) || typeof value.event !== 'string') {
+    throw updaterContractError()
+  }
+  if (value.event === 'Finished') {
+    if (Object.keys(value).length !== 1) throw updaterContractError()
+    return { event: 'Finished' }
+  }
+  if (Object.keys(value).sort().join('|') !== 'data|event' || !exactObject(value.data)) {
+    throw updaterContractError()
+  }
+  if (value.event === 'Started') {
+    const keys = Object.keys(value.data)
+    if (keys.length > 1 || (keys.length === 1 && keys[0] !== 'contentLength')) {
+      throw updaterContractError()
+    }
+    const rawContentLength = value.data.contentLength
+    if (rawContentLength === undefined || rawContentLength === null) {
+      return { event: 'Started', data: {} }
+    }
+    if (typeof rawContentLength !== 'number'
+      || !Number.isSafeInteger(rawContentLength)
+      || rawContentLength <= 0) {
+      throw updaterContractError()
+    }
+    return { event: 'Started', data: { contentLength: rawContentLength } }
+  }
+  if (value.event === 'Progress'
+    && Object.keys(value.data).length === 1
+    && typeof value.data.chunkLength === 'number'
+    && Number.isSafeInteger(value.data.chunkLength)
+    && value.data.chunkLength > 0) {
+    return { event: 'Progress', data: { chunkLength: value.data.chunkLength } }
+  }
+  throw updaterContractError()
+}
+
+function createUpdaterEventSequence(listener: (event: UpdaterDownloadEvent) => void) {
+  let phase: 'initial' | 'started' | 'finished' = 'initial'
+  let contentLength: number | undefined
+  let downloaded = 0
+  let failure: NativeUpdaterError | null = null
+  return {
+    accept(rawEvent: unknown): void {
+      if (failure) return
+      try {
+        const event = parseUpdaterDownloadEvent(rawEvent)
+        if (event.event === 'Started') {
+          if (phase !== 'initial') throw updaterContractError()
+          phase = 'started'
+          contentLength = event.data.contentLength
+        } else if (event.event === 'Progress') {
+          if (phase !== 'started') throw updaterContractError()
+          downloaded += event.data.chunkLength
+          if (!Number.isSafeInteger(downloaded)
+            || (contentLength !== undefined && downloaded > contentLength)) {
+            throw updaterContractError()
+          }
+        } else {
+          if (phase !== 'started'
+            || (contentLength !== undefined && downloaded !== contentLength)) {
+            throw updaterContractError()
+          }
+          phase = 'finished'
+        }
+        listener(event)
+      } catch (error) {
+        failure = mapUpdaterError(error)
+      }
+    },
+    assertFinished(): void {
+      if (failure) throw failure
+      if (phase !== 'finished') throw updaterContractError()
+    },
+  }
+}
+
+function parseNativeWindowState(value: unknown): NativeWindowState {
+  if (!exactObject(value)
+    || Object.keys(value).sort().join('|') !== 'focused|maximized|minimized|visible'
+    || typeof value.minimized !== 'boolean'
+    || typeof value.maximized !== 'boolean'
+    || typeof value.focused !== 'boolean'
+    || typeof value.visible !== 'boolean') {
+    throw new NativeOperationError(
+      'native.window_contract_invalid',
+      'native window command returned an invalid contract',
+    )
+  }
+  return {
+    minimized: value.minimized,
+    maximized: value.maximized,
+    focused: value.focused,
+    visible: value.visible,
+  }
 }
 
 const nativeDownloadErrors = {
@@ -216,18 +394,27 @@ export async function isTauriRuntime(): Promise<boolean> {
 
 export function createTauriNativeBridge(): NativeBridge {
   const listeners = new Set<NativeUnlisten>()
+  const updaterResources = new Set<{ close(): Promise<void> }>()
   const safeNavigator = createWebNativeBridge().window
 
-  async function currentWindowState() {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    const currentWindow = getCurrentWindow()
-    const [minimized, maximized, focused, visible] = await Promise.all([
-      currentWindow.isMinimized(),
-      currentWindow.isMaximized(),
-      currentWindow.isFocused(),
-      currentWindow.isVisible(),
-    ])
-    return { minimized, maximized, focused, visible }
+  async function currentWindowState(): Promise<NativeWindowState> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    let state: unknown
+    try {
+      state = await invoke('get_window_state')
+    } catch (error) {
+      throw mapNativeOperationError(error)
+    }
+    return parseNativeWindowState(state)
+  }
+
+  async function releaseUpdaterResource(resource: { close(): Promise<void> }): Promise<void> {
+    updaterResources.delete(resource)
+    try {
+      await resource.close()
+    } catch {
+      // Resource cleanup is best-effort and must never expose raw updater errors.
+    }
   }
 
   async function listenTracked<T>(eventName: string, listener: (payload: T) => void): Promise<NativeUnlisten> {
@@ -249,20 +436,36 @@ export function createTauriNativeBridge(): NativeBridge {
     window: {
       getState: currentWindowState,
       async minimize() {
-        const { getCurrentWindow } = await import('@tauri-apps/api/window')
-        await getCurrentWindow().minimize()
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('minimize_window')
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
       async toggleMaximize() {
-        const { getCurrentWindow } = await import('@tauri-apps/api/window')
-        await getCurrentWindow().toggleMaximize()
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('toggle_maximize_window')
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
       async hide() {
-        const { getCurrentWindow } = await import('@tauri-apps/api/window')
-        await getCurrentWindow().hide()
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('hide_window')
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
       async requestClose() {
-        const { getCurrentWindow } = await import('@tauri-apps/api/window')
-        await getCurrentWindow().close()
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('request_window_close')
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
       listenResize(listener) {
         return listenTracked('tauri://resize', listener)
@@ -279,23 +482,69 @@ export function createTauriNativeBridge(): NativeBridge {
     },
     updater: {
       async getCurrentVersion() {
-        const { getVersion } = await import('@tauri-apps/api/app')
-        return getVersion()
+        const { invoke } = await import('@tauri-apps/api/core')
+        let version: unknown
+        try {
+          version = await invoke('get_app_version')
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
+        return parseUpdaterVersion(version)
       },
       async check() {
         const { check } = await import('@tauri-apps/plugin-updater')
-        const update = await check()
+        let update: Awaited<ReturnType<typeof check>>
+        try {
+          update = await check()
+        } catch (error) {
+          throw mapUpdaterError(error)
+        }
         if (!update) return null
+        updaterResources.add(update)
+        let version: string
+        let body: string | undefined
+        try {
+          parseUpdaterVersion(update.currentVersion)
+          version = parseUpdaterVersion(update.version)
+          body = parseUpdaterBody(update.body)
+        } catch (error) {
+          await releaseUpdaterResource(update)
+          throw mapUpdaterError(error)
+        }
+        let state: 'available' | 'downloading' | 'downloaded' | 'installing' | 'installed' | 'failed' = 'available'
         const wrapped: NativeUpdate = {
-          version: update.version,
+          version,
           async download(listener: (event: UpdaterDownloadEvent) => void) {
-            await update.download((event) => listener(event as UpdaterDownloadEvent))
+            if (state !== 'available') throw updaterStateError()
+            state = 'downloading'
+            const sequence = createUpdaterEventSequence(listener)
+            try {
+              await update.download(sequence.accept)
+              sequence.assertFinished()
+              state = 'downloaded'
+            } catch (error) {
+              state = 'failed'
+              await releaseUpdaterResource(update)
+              throw mapUpdaterError(error)
+            }
           },
           async install() {
-            await update.install()
+            if (state !== 'downloaded') {
+              throw updaterStateError('update must be downloaded before installation')
+            }
+            state = 'installing'
+            try {
+              await update.install()
+              state = 'installed'
+            } catch (error) {
+              state = 'failed'
+              throw mapUpdaterError(error)
+            } finally {
+              await releaseUpdaterResource(update)
+            }
           },
         }
-        return typeof update.body === 'string' ? { ...wrapped, body: update.body } : wrapped
+        return body === undefined ? wrapped : { ...wrapped, body }
       },
     },
     notifications: {
@@ -305,7 +554,11 @@ export function createTauriNativeBridge(): NativeBridge {
       },
       async send(title, body) {
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('send_notification', { title, body })
+        try {
+          await invoke('send_notification', { title, body })
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
     },
     credentials: {
@@ -432,18 +685,27 @@ export function createTauriNativeBridge(): NativeBridge {
       },
     },
     process: {
-      async relaunch() {
-        const { relaunch } = await import('@tauri-apps/plugin-process')
-        await relaunch()
+      async relaunchAfterUpdate() {
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('relaunch_app', { intent: 'update-installed' })
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
-      async exit(code) {
-        const { exit } = await import('@tauri-apps/plugin-process')
-        await exit(code)
+      async exitAfterUserConfirmation() {
+        const { invoke } = await import('@tauri-apps/api/core')
+        try {
+          await invoke('exit_app', { intent: 'user-confirmed-close' })
+        } catch (error) {
+          throw mapNativeOperationError(error)
+        }
       },
     },
     async dispose() {
       for (const unlisten of [...listeners]) unlisten()
       listeners.clear()
+      await Promise.all([...updaterResources].map(releaseUpdaterResource))
     },
   }
 }

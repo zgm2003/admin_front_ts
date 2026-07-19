@@ -55,21 +55,24 @@ describe('Tauri local UI security configuration', () => {
     expect(permissions).toEqual([
       'core:event:allow-listen',
       'core:event:allow-unlisten',
-      'core:window:allow-hide',
-      'core:window:allow-minimize',
-      'core:window:allow-toggle-maximize',
-      'core:window:allow-is-maximized',
-      'core:window:allow-is-minimized',
-      'core:window:allow-is-focused',
-      'core:window:allow-is-visible',
-      'core:window:allow-close',
-      'dialog:allow-save',
       'updater:allow-check',
-      'updater:allow-download-and-install',
-      'process:allow-restart',
-      'process:allow-exit',
+      'updater:allow-download',
+      'updater:allow-install',
     ])
-    expect(JSON.stringify(capability)).not.toMatch(/(?:opener|shell):/)
+    expect(JSON.stringify(capability)).not.toMatch(/(?:dialog|opener|process|shell|window):/)
     expect(JSON.stringify(capability)).not.toContain('*')
+  })
+
+  it('keeps the exact signed updater endpoint and public verification key', async () => {
+    const config = await readJson('src-tauri/tauri.conf.json')
+    const plugins = config.plugins as Record<string, unknown>
+    const updater = plugins.updater as Record<string, unknown>
+
+    expect(updater.endpoints).toEqual([
+      'https://cos.zgm2003.cn/tauri_updater/{{target}}-{{arch}}.json',
+    ])
+    expect(updater.pubkey).toBe(
+      'dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDBCQkQxMTJDRDIwQTBEOUYKUldTZkRRclNMQkc5Q3grSGFhSFpwOEk2M3BxZDNtNUJNTXl6bVFxeVM1THBRenFMY1F5ZE1IREEK',
+    )
   })
 })

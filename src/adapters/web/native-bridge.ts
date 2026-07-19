@@ -119,8 +119,8 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
       },
     },
     process: {
-      relaunch: () => unavailable('process.relaunch'),
-      exit: () => unavailable('process.exit'),
+      relaunchAfterUpdate: () => unavailable('process.relaunchAfterUpdate'),
+      exitAfterUserConfirmation: () => unavailable('process.exitAfterUserConfirmation'),
     },
     async dispose() {},
   }
