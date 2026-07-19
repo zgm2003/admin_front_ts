@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, shallowRef} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {ElNotification} from 'element-plus'
 import {
-  AiRunApi,
   type AiRunInitResponse,
-  type AiRunStatsByAgentItem,
-  type AiRunStatsByDateItem,
   type AiRunStatsListParams,
-  type AiRunStatsMetricItem,
-  type AiRunStatsSummaryResponse,
 } from '@/api/ai/runs'
-import type { PaginatedResponse, RequestPayload } from '@/types/common'
+import type { RequestPayload } from '@/types/common'
 import {UsersListApi} from '@/api/user/users'
+import {useAppKernel} from '@/app/injection'
+import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
 
 const {t} = useI18n()
 const TOP_LIMIT = 10
+const workflow = createAIRunsWorkflow({realtime: useAppKernel().realtime})
+
+const errorMessage = (error: unknown) => error instanceof Error
+  ? error.message
+  : t('common.error.operation')
 
 // 字典数据
 const dict = ref<AiRunInitResponse['dict']>({
@@ -27,9 +30,11 @@ const dict = ref<AiRunInitResponse['dict']>({
 })
 const loadDict = async () => {
   try {
-    const res = await AiRunApi.pageInit()
+    const res = await workflow.loadPageInit()
     dict.value = res.dict
-  } catch { /* ignore */ }
+  } catch (error) {
+    ElNotification.error({message: errorMessage(error)})
+  }
 }
 
 // 筛选表单 — dateRange 是数组 [start, end]，Search 组件 date-range 类型绑定到单个 key
@@ -104,69 +109,37 @@ const searchFields = computed<SearchField[]>(() => [
 ])
 
 // ==================== 概览 ====================
-const summaryData = ref<AiRunStatsSummaryResponse | null>(null)
-const summaryLoading = ref(false)
+const summaryData = computed(() => workflow.stats.state.value.data[0] ?? null)
+const summaryLoading = computed(() => {
+  const kind = workflow.stats.state.value.kind
+  return kind === 'loading' || kind === 'refreshing'
+})
 
 const loadSummary = async () => {
-  summaryLoading.value = true
-  try {
-    summaryData.value = await AiRunApi.stats(buildParams())
-  } catch { /* ignore */ }
-  summaryLoading.value = false
+  await workflow.loadStats(buildParams())
 }
 
-// ==================== TopN 加载器 ====================
-interface TopState<T> {
-  data: T[]
-  loading: boolean
-}
-
-function createTopLoader<T extends AiRunStatsMetricItem>(
-  apiFn: (params: AiRunStatsListParams) => Promise<PaginatedResponse<T>>
-) {
-  const state = shallowRef<TopState<T>>({
-    data: [],
-    loading: false,
-  })
-
-  const load = async (): Promise<void> => {
-    state.value = {
-      ...state.value,
-      loading: true,
-    }
-
-    try {
-      const params: AiRunStatsListParams = {
-        ...buildParams(),
-        current_page: 1,
-        page_size: TOP_LIMIT,
-      }
-      const res = await apiFn(params)
-      state.value = {
-        ...state.value,
-        data: res.list,
-      }
-    } catch {
-      // request interceptor handles notification
-    } finally {
-      state.value = {
-        ...state.value,
-        loading: false,
-      }
-    }
-  }
-
-  return { state, load }
-}
-
-const dateLoader = createTopLoader<AiRunStatsByDateItem>(AiRunApi.statsByDate)
-const agentLoader = createTopLoader<AiRunStatsByAgentItem>(AiRunApi.statsByAgent)
+const topParams = (): AiRunStatsListParams => ({
+  ...buildParams(),
+  current_page: 1,
+  page_size: TOP_LIMIT,
+})
+const dateData = computed(() => [...workflow.statsByDate.state.value.data])
+const agentData = computed(() => [...workflow.statsByAgent.state.value.data])
+const dateLoading = computed(() => ['loading', 'refreshing'].includes(workflow.statsByDate.state.value.kind))
+const agentLoading = computed(() => ['loading', 'refreshing'].includes(workflow.statsByAgent.state.value.kind))
 
 // 统一搜索
-const onSearch = () => {
-  void loadSummary()
-  void dateLoader.load()
-  void agentLoader.load()
+const onSearch = async () => {
+  try {
+    await Promise.all([
+      loadSummary(),
+      workflow.loadStatsByDate(topParams()),
+      workflow.loadStatsByAgent(topParams()),
+    ])
+  } catch (error) {
+    ElNotification.error({message: errorMessage(error)})
+  }
 }
 
 // 格式化数字
@@ -226,8 +199,10 @@ const statsColumns = (nameKey: string, nameLabel: string) => [
 
 onMounted(async () => {
   await loadDict()
-  onSearch()
+  await onSearch()
 })
+
+onUnmounted(() => workflow.dispose())
 </script>
 
 <template>
@@ -285,8 +260,8 @@ onMounted(async () => {
         {{ t('aiRuns.stats.recentDates') }}
       </h3>
       <el-table
-        v-loading="dateLoader.state.value.loading"
-        :data="dateLoader.state.value.data"
+        v-loading="dateLoading"
+        :data="dateData"
         stripe
         size="small"
       >
@@ -306,8 +281,8 @@ onMounted(async () => {
         {{ t('aiRuns.stats.topAgents') }}
       </h3>
       <el-table
-        v-loading="agentLoader.state.value.loading"
-        :data="agentLoader.state.value.data"
+        v-loading="agentLoading"
+        :data="agentData"
         stripe
         size="small"
       >

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {
-  AiRunApi,
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
+  type AiRunListParams,
+  type AiRunListResponse,
   type AiRunPlatform,
   type AiRunStatus,
 } from '@/api/ai/runs'
@@ -18,12 +19,15 @@ import type {SearchField} from '@/components/Search/types'
 import {AppTable} from '@/components/Table'
 import {useIsMobile} from '@/hooks/useResponsive'
 import {useCopy} from '@/hooks/useCopy'
-import { useCrudTable } from '@/hooks/useCrudTable'
+import {useAppKernel} from '@/app/injection'
+import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
+import {useWorkflowTable} from '@/features/shared/use-workflow-table'
 import { resolveAiRunsDetailDialogLayout } from './detail-dialog'
 
 const {t} = useI18n()
 const isMobile = useIsMobile()
 const {copy} = useCopy()
+type AiRunTableParams = AiRunListParams & {current_page: number; page_size: number}
 const dict = ref<AiRunInitResponse['dict']>({
   status_arr: [],
   platform_arr: [],
@@ -49,6 +53,8 @@ const apiSearchForm = computed(() => {
   return {...rest, date_start, date_end}
 })
 
+const workflow = createAIRunsWorkflow({realtime: useAppKernel().realtime})
+
 const {
   loading: listLoading,
   data: listData,
@@ -57,8 +63,9 @@ const {
   refresh,
   getList,
   onSearch,
-} = useCrudTable({
-  api: AiRunApi,
+} = useWorkflowTable<AiRunItem, AiRunTableParams, AiRunListResponse>({
+  resource: workflow.list,
+  page: workflow.page,
   searchForm: apiSearchForm
 })
 
@@ -72,7 +79,7 @@ function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'de
 
 const init = async () => {
   try {
-    const data = await AiRunApi.pageInit()
+    const data = await workflow.loadPageInit()
     dict.value = data.dict
   } catch (e: unknown) {
     ElNotification.error({message: requireRunListErrorMessage(e, 'page init')})
@@ -182,7 +189,7 @@ const showDetail = async (row: AiRunItem) => {
   detailLoading.value = true
   detailVisible.value = true
   try {
-    const data = await AiRunApi.detail({id: row.id})
+    const data = await workflow.loadDetail(row.id)
     detailData.value = data
   } catch (e: unknown) {
     ElNotification.error({message: requireRunListErrorMessage(e, 'detail')})
@@ -249,6 +256,8 @@ onMounted(() => {
   init()
   getList()
 })
+
+onUnmounted(() => workflow.dispose())
 </script>
 
 <template>

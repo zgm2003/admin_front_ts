@@ -1,3 +1,4 @@
+import { shallowRef } from 'vue'
 import { AiConversationApi, type AiConversationItem, type AiConversationListResponse } from '@/api/ai/conversations'
 import {
   AiMessageApi,
@@ -49,6 +50,10 @@ export interface AIChatWorkflowHandlers {
   readonly onCompleted?: (payload: AICompletedPayload) => void | Promise<void>
   readonly onFailed?: (payload: AIFailedPayload) => void | Promise<void>
   readonly onCanceled?: (payload: AICanceledPayload) => void | Promise<void>
+  readonly onMessagesRecovered?: (
+    conversationID: number,
+    response: AiMessageListResponse,
+  ) => void | Promise<void>
 }
 
 export interface AIChatWorkflowOptions {
@@ -90,6 +95,7 @@ function refreshIfStarted(query: ResourceQuery<unknown, unknown, unknown>): Prom
 export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   const conversationApi = options.conversationApi ?? AiConversationApi
   const messageApi = options.messageApi ?? AiMessageApi
+  const lifecycle = new AbortController()
   let activeAgentID: number | null = null
   let activeConversationID: number | null = null
   let nextConversationTime = ''
@@ -97,9 +103,10 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   let hasMoreConversations = false
   let nextMessageID = 0
   let hasMoreMessages = false
+  const conversationCursor = shallowRef({ next_time: '', next_id: 0, has_more: false })
+  const messageCursor = shallowRef({ next_id: 0, has_more: false })
 
-  let conversations!: ResourceQuery<AiConversationItem, ConversationRequest, AiConversationListResponse>
-  conversations = createResourceQuery({
+  const conversations: ResourceQuery<AiConversationItem, ConversationRequest, AiConversationListResponse> = createResourceQuery({
     async request(params, context) {
       const response = await conversationApi.list({
         agent_id: params.agent_id,
@@ -117,12 +124,16 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
       nextConversationTime = response.next_time
       nextConversationID = response.next_id
       hasMoreConversations = response.has_more
+      conversationCursor.value = {
+        next_time: response.next_time,
+        next_id: response.next_id,
+        has_more: response.has_more,
+      }
       return { agent_id: params.agent_id, limit: params.limit, append: false, existing: [] }
     },
   })
 
-  let messages!: ResourceQuery<AiMessageItem, MessageRequest, AiMessageListResponse>
-  messages = createResourceQuery({
+  const messages: ResourceQuery<AiMessageItem, MessageRequest, AiMessageListResponse> = createResourceQuery({
     async request(params, context) {
       const response = await messageApi.list({
         conversation_id: params.conversation_id,
@@ -138,6 +149,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
       activeConversationID = params.conversation_id
       nextMessageID = response.next_id
       hasMoreMessages = response.has_more
+      messageCursor.value = { next_id: response.next_id, has_more: response.has_more }
       return { conversation_id: params.conversation_id, limit: params.limit, append: false, existing: [] }
     },
   })
@@ -175,17 +187,21 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     })
   }
 
-  function loadMoreMessages() {
-    if (!activeConversationID || !hasMoreMessages) return Promise.resolve(undefined)
-    if (nextMessageID <= 0) {
+  function loadMoreMessages(conversationID?: number, beforeID?: number) {
+    const targetConversationID = conversationID ?? activeConversationID
+    const targetBeforeID = beforeID ?? nextMessageID
+    if (!targetConversationID || (conversationID === undefined && !hasMoreMessages)) {
+      return Promise.resolve(undefined)
+    }
+    if (!targetBeforeID || targetBeforeID <= 0) {
       return Promise.reject(new TypeError('AI message response exposed an incomplete cursor'))
     }
     return messages.execute({
-      conversation_id: activeConversationID,
-      before_id: nextMessageID,
+      conversation_id: targetConversationID,
+      before_id: targetBeforeID,
       limit: MESSAGE_LIMIT,
-      append: true,
-      existing: messages.state.value.data,
+      append: conversationID === undefined,
+      existing: conversationID === undefined ? messages.state.value.data : [],
     })
   }
 
@@ -217,9 +233,20 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   })
 
   async function recoverTerminal(conversationID: number) {
+    const refreshConversationList = refreshIfStarted(conversations) ?? Promise.resolve()
     if (activeConversationID === conversationID && messages.state.value.kind !== 'idle') {
-      await messages.refresh()
+      const [, response] = await Promise.all([refreshConversationList, messages.refresh()])
+      await options.handlers?.onMessagesRecovered?.(conversationID, response)
+      return
     }
+    const [, response] = await Promise.all([
+      refreshConversationList,
+      messageApi.list(
+        { conversation_id: conversationID, limit: MESSAGE_LIMIT },
+        { signal: lifecycle.signal },
+      ),
+    ])
+    await options.handlers?.onMessagesRecovered?.(conversationID, response)
   }
 
   const unsubscribe = [
@@ -245,6 +272,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   })
 
   function dispose() {
+    lifecycle.abort(new DOMException('AI chat workflow disposed', 'AbortError'))
     unsubscribe.forEach((release) => release())
     unregisterRecovery()
     createConversation.dispose()
@@ -258,7 +286,9 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
 
   return {
     conversations,
+    conversationCursor,
     messages,
+    messageCursor,
     loadConversations,
     loadMoreConversations,
     loadMessages,

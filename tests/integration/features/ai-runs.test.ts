@@ -56,10 +56,28 @@ describe('AI runs workflow', () => {
       .mockResolvedValueOnce({ list: [run(1)], page: page() } satisfies AiRunListResponse)
       .mockRejectedValueOnce(new Error('refresh failed'))
     const api: AIRunsWorkflowApi = {
+      pageInit: vi.fn(async () => ({
+        dict: { status_arr: [], platform_arr: [], agentArr: [], providerArr: [] },
+      })),
       list,
       detail: vi.fn()
         .mockImplementationOnce(() => detailA.promise)
         .mockImplementationOnce(() => detailB.promise),
+      stats: vi.fn(async () => ({
+        date_range: { start: null, end: null },
+        summary: {
+          total_runs: 0,
+          success_rate: 0,
+          fail_runs: 0,
+          total_tokens: 0,
+          total_prompt_tokens: 0,
+          total_completion_tokens: 0,
+          avg_duration_ms: 0,
+        },
+      })),
+      statsByDate: vi.fn(async () => ({ list: [], page: page(1, 0) })),
+      statsByAgent: vi.fn(async () => ({ list: [], page: page(1, 0) })),
+      statsByUser: vi.fn(async () => ({ list: [], page: page(1, 0) })),
     }
     const workflow = createAIRunsWorkflow({ api })
     await workflow.list.execute({ current_page: 1, page_size: 20 })

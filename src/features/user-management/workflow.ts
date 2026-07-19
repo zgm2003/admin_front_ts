@@ -1,3 +1,4 @@
+import { shallowRef } from 'vue'
 import { UsersListApi } from '@/api/user/users'
 import { createMutation, type MutationExecutionOptions } from '@/modules/resource-query/mutation'
 import { createResourceQuery } from '@/modules/resource-query/query'
@@ -6,17 +7,21 @@ import type {
   UserBatchEditParams,
   UserEditParams,
   UserListItem,
+  UserListInitResponse,
   UserListResponse,
+  UserExportResponse,
   UsersListParams,
 } from '@/types/user'
 
 export interface UserManagementWorkflowApi {
+  pageInit(options: { readonly signal: AbortSignal }): Promise<UserListInitResponse>
   list(params: UsersListParams, options: { readonly signal: AbortSignal }): Promise<UserListResponse>
   update(params: UserEditParams, options: MutationExecutionOptions): Promise<void>
   batchEdit(params: UserBatchEditParams, options: MutationExecutionOptions): Promise<void>
   changeStatus(params: { id: Id; status: 1 | 2 }, options: MutationExecutionOptions): Promise<void>
   deleteOne(params: { id: Id }, options: MutationExecutionOptions): Promise<void>
   deleteBatch(params: { ids: Id[] }, options: MutationExecutionOptions): Promise<void>
+  export(params: { ids: number[] }, options: MutationExecutionOptions): Promise<UserExportResponse>
 }
 
 export interface UserManagementWorkflowOptions {
@@ -27,6 +32,11 @@ export interface UserManagementWorkflowOptions {
 
 export function createUserManagementWorkflow(options: UserManagementWorkflowOptions = {}) {
   const api = options.api ?? UsersListApi
+  const page = shallowRef({ current_page: 1, page_size: 20, total: 0, total_page: 0 })
+  const pageInit = createResourceQuery<UserListInitResponse, undefined, UserListInitResponse>({
+    request: (_params, context) => api.pageInit(context),
+    selectItems: (result) => [result],
+  })
   const list = createResourceQuery<UserListItem, UsersListParams, UserListResponse>({
     async request(params, context) {
       let result = await api.list(params, context)
@@ -40,11 +50,14 @@ export function createUserManagementWorkflow(options: UserManagementWorkflowOpti
       return result
     },
     selectItems: (result) => result.list,
-    onCommit: (result, params) => ({
-      ...params,
-      current_page: result.page.current_page,
-      page_size: result.page.page_size,
-    }),
+    onCommit(result, params) {
+      page.value = result.page
+      return {
+        ...params,
+        current_page: result.page.current_page,
+        page_size: result.page.page_size,
+      }
+    },
   })
 
   const update = createMutation({
@@ -77,6 +90,11 @@ export function createUserManagementWorkflow(options: UserManagementWorkflowOpti
     execute: (input, mutationOptions) => api.deleteBatch(input, mutationOptions),
     invalidate: [list],
   })
+  const exportUsers = createMutation({
+    key: (input: { ids: number[] }) => `user:export:${input.ids.join(',')}`,
+    execute: (input, mutationOptions) => api.export(input, mutationOptions),
+    invalidate: [],
+  })
 
   function dispose() {
     update.dispose()
@@ -84,8 +102,22 @@ export function createUserManagementWorkflow(options: UserManagementWorkflowOpti
     changeStatus.dispose()
     deleteOne.dispose()
     deleteBatch.dispose()
+    exportUsers.dispose()
     list.dispose()
+    pageInit.dispose()
   }
 
-  return { list, update, batchEdit, changeStatus, deleteOne, deleteBatch, dispose }
+  return {
+    pageInit,
+    loadPageInit: () => pageInit.execute(undefined),
+    list,
+    page,
+    update,
+    batchEdit,
+    changeStatus,
+    deleteOne,
+    deleteBatch,
+    exportUsers,
+    dispose,
+  }
 }

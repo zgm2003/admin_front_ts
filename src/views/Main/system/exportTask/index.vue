@@ -1,23 +1,58 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, watch} from 'vue'
-import {ElMessage} from 'element-plus'
+import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
+import {ElMessage, ElMessageBox} from 'element-plus'
 import {Close} from '@element-plus/icons-vue'
 import {useI18n} from 'vue-i18n'
 import {useRoute} from 'vue-router'
 import {AppTable} from '@/components/Table'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
-import { useCrudTable } from '@/hooks/useCrudTable'
 import {
-  ExportTaskApi,
+  type ExportTaskItem,
+  type ExportTaskListParams,
+  type ExportTaskListResponse,
   type ExportTaskStatusItem,
 } from '@/api/system/exportTask'
+import {createExportsWorkflow} from '@/features/exports/workflow'
+import {useWorkflowTable} from '@/features/shared/use-workflow-table'
 import {downloadFile} from '@/components/DownloadManager'
 
 const {t} = useI18n()
 const route = useRoute()
-const statusArr = ref<ExportTaskStatusItem[]>([])
-const searchForm = ref({status: '' as number | '', title: '', file_name: ''})
+type ExportTaskTableParams = ExportTaskListParams & {current_page: number; page_size: number}
+const searchForm = ref({status: '' as 1 | 2 | 3 | '', title: '', file_name: ''})
+
+const workflow = createExportsWorkflow({
+  async confirmDelete() {
+    try {
+      await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
+})
+const statusArr = computed<ExportTaskStatusItem[]>(() => workflow.statusCounts.value)
+const {
+  loading: listLoading,
+  data: listData,
+  page,
+  selectedIds,
+  onPageChange,
+  getList,
+  onSearch,
+  refresh,
+  onSelectionChange,
+  clearSelection,
+} = useWorkflowTable<ExportTaskItem, ExportTaskTableParams, ExportTaskListResponse>({
+  resource: workflow.list,
+  page: workflow.page,
+  searchForm,
+})
 
 const parseStatusQuery = (raw: unknown): number | null => {
   if (raw === undefined || raw === null) return null
@@ -38,8 +73,7 @@ const applyStatusFromQuery = (options: ExportTaskStatusItem[]) => {
 }
 
 const loadStatusCount = async () => {
-  const data = await ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name})
-  statusArr.value = data
+  const data = await workflow.loadStatusCounts({title: searchForm.value.title, file_name: searchForm.value.file_name})
   if (!applyStatusFromQuery(data)) {
     searchForm.value.status = data[0]?.value ?? ''
   }
@@ -47,34 +81,37 @@ const loadStatusCount = async () => {
 }
 
 const refreshStatusCount = async () => {
-  statusArr.value = await ExportTaskApi.statusCount({title: searchForm.value.title, file_name: searchForm.value.file_name})
+  await workflow.loadStatusCounts({title: searchForm.value.title, file_name: searchForm.value.file_name})
 }
 
 const handleSearch = async () => {
-  await getList()
+  await onSearch()
   await refreshStatusCount()
 }
 
 const handleRefresh = async () => {
-  await getList()
+  await refresh()
   await refreshStatusCount()
 }
 
-const {
-  loading: listLoading,
-  data: listData,
-  page,
-  selectedIds,
-  onPageChange,
-  getList,
-  onSelectionChange,
-  confirmDel,
-  batchDel
-} = useCrudTable({
-  api: ExportTaskApi,
-  searchForm,
-  afterDel: refreshStatusCount
-})
+const confirmDel = async (row: ExportTaskItem) => {
+  const result = await workflow.deleteOne.mutate({id: row.id})
+  if (result.kind === 'canceled') return
+  ElMessage.success(t('common.success.operation'))
+  await refreshStatusCount()
+}
+
+const batchDel = async () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning(t('common.selectAtLeastOne'))
+    return
+  }
+  const result = await workflow.deleteBatch.mutate({ids: [...selectedIds.value]})
+  if (result.kind === 'canceled') return
+  clearSelection()
+  ElMessage.success(t('common.success.operation'))
+  await refreshStatusCount()
+}
 
 const searchFields = computed<SearchField[]>(() => [
   {key: 'title', type: 'input', label: t('exportTask.title'), placeholder: t('exportTask.title'), width: 180},
@@ -105,6 +142,8 @@ const getStatusType = (status: number): 'warning' | 'success' | 'danger' | 'info
 onMounted(() => {
   void loadStatusCount()
 })
+
+onUnmounted(() => workflow.dispose())
 
 watch(() => route.query.status, () => {
   if (statusArr.value.length === 0) return

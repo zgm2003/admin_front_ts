@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { NotificationApi, type NotificationItem } from '@/api/system/notification'
+import { type NotificationItem } from '@/api/system/notification'
+import { useAppKernel } from '@/app/injection'
+import { createNotificationsWorkflow } from '@/features/notifications/workflow'
+import { useWorkflowTable } from '@/features/shared/use-workflow-table'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { CommonEnum, NotificationLevelEnum, NotificationTypeColorMap } from '@/enums'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
-import { useCrudTable } from '@/hooks/useCrudTable'
 import { DIcon } from '@/components/DIcon'
 import type { DictOption } from '@/types/common'
 
@@ -25,11 +27,27 @@ const dict = ref<DictState>({ notification_type_arr: [], notification_level_arr:
 
 interface SearchForm {
   keyword: string
-  type: number | string
-  level: number | string
-  is_read: number | string
+  type: 1 | 2 | 3 | 4 | ''
+  level: 1 | 2 | ''
+  is_read: 1 | 2 | ''
 }
 const searchForm = ref<SearchForm>({ keyword: '', type: '', level: '', is_read: '' })
+
+const workflow = createNotificationsWorkflow({
+  realtime: useAppKernel().realtime,
+  async confirmDelete() {
+    try {
+      await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
+})
 
 const {
   loading: listLoading,
@@ -41,9 +59,12 @@ const {
   getList,
   onSelectionChange,
   selectedIds,
-  confirmDel,
-  batchDel
-} = useCrudTable<NotificationItem>({ api: NotificationApi, searchForm })
+  clearSelection,
+} = useWorkflowTable({
+  resource: workflow.list,
+  page: workflow.page,
+  searchForm,
+})
 
 const isUnread = (row: NotificationItem) => row.is_read === CommonEnum.NO
 
@@ -68,8 +89,7 @@ const getTypeColor = (type: number) => NotificationTypeColorMap[type] || 'info'
 
 const handleMarkRead = async (row: NotificationItem) => {
   if (!isUnread(row)) return
-  await NotificationApi.read({ id: row.id })
-  row.is_read = CommonEnum.YES
+  await workflow.read.mutate({ id: row.id })
   ElNotification.success({ message: t('common.success.operation') })
 }
 
@@ -82,12 +102,29 @@ const handleBatchRead = async () => {
   }
 
   try {
-    await NotificationApi.read({ id: selectedIds.value })
+    await workflow.read.mutate({ id: [...selectedIds.value] })
+    clearSelection()
     ElNotification.success({ message: t('common.success.operation') })
-    getList()
   } catch (error) {
-    console.error('notification batch read failed', error)
+    ElNotification.error({ message: error instanceof Error ? error.message : t('common.error.operation') })
   }
+}
+
+const confirmDel = async (row: NotificationItem) => {
+  const result = await workflow.deleteOne.mutate({ id: row.id })
+  if (result.kind === 'canceled') return
+  ElNotification.success({ message: t('common.success.operation') })
+}
+
+const batchDel = async () => {
+  if (selectedIds.value.length === 0) {
+    ElNotification.warning({ message: t('common.selectAtLeastOne') })
+    return
+  }
+  const result = await workflow.deleteBatch.mutate({ ids: [...selectedIds.value] })
+  if (result.kind === 'canceled') return
+  clearSelection()
+  ElNotification.success({ message: t('common.success.operation') })
 }
 
 const handleDetail = (link?: string) => {
@@ -96,11 +133,16 @@ const handleDetail = (link?: string) => {
 }
 
 onMounted(() => {
-  NotificationApi.pageInit().then((data) => {
+  workflow.loadPageInit().then((data) => {
     dict.value = data.dict
+  }).catch((error: unknown) => {
+    ElNotification.error({ message: error instanceof Error ? error.message : t('common.error.operation') })
   })
-  getList()
+  void getList()
+  void workflow.loadUnreadCount()
 })
+
+onUnmounted(() => workflow.dispose())
 </script>
 
 <template>

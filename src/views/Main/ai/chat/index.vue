@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, shallowRef } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { ElNotification } from 'element-plus'
-import { AiMessageApi, type AiChatAttachment } from '@/api/ai/messages'
-import { AiChatApi, createAiRequestId } from '@/api/ai/chat'
+import { type AiChatAttachment, type AIRuntimeParams } from '@/api/ai/messages'
+import { createAiRequestId } from '@/api/ai/chat'
+import { useAppKernel } from '@/app/injection'
+import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
 import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
 import AgentList from './components/AgentList/index.vue'
 import ConversationDrawer from './components/ConversationDrawer/index.vue'
 import MessageList from './components/MessageList/index.vue'
 import MessageInput from './components/MessageInput/index.vue'
-import { useAgents, useConversations, useConversationSessions, useConversationSocket } from './composables'
+import { useAgents, useConversations, useConversationSessions } from './composables'
 import type { Agent, Conversation, Message } from './composables/types'
 
 const { t } = useI18n()
 const { copy } = useCopy()
 const isMobile = useIsMobile()
-
-const MESSAGE_PAGE_SIZE = 50
 
 interface ScrollbarRef {
   wrapRef?: HTMLElement
@@ -45,6 +45,47 @@ const {
   selectAgent,
 } = useAgents()
 
+const sessions = useConversationSessions()
+const chatWorkflow = createAIChatWorkflow({
+  realtime: useAppKernel().realtime,
+  handlers: {
+    onStart(payload) {
+      if (!sessions.isCanceled(payload.conversation_id, payload.request_id)) {
+        sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
+      }
+    },
+    onDelta(payload) {
+      if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
+      sessions.appendDelta(payload.conversation_id, payload.request_id, payload.delta)
+      if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+    },
+    onCompleted(payload) {
+      if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
+      sessions.complete(payload.conversation_id, payload.request_id, payload.assistant_message_id)
+      if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+    },
+    onFailed(payload) {
+      if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
+      sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
+      ElNotification.error({ message: payload.msg })
+      if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+    },
+    onCanceled(payload) {
+      sessions.cancel(payload.conversation_id, payload.request_id)
+      if (currentConversationId.value === payload.conversation_id) scrollToBottom()
+    },
+    onMessagesRecovered(conversationId, response) {
+      sessions.replaceMessages(
+        conversationId,
+        responseToMessages(response.list),
+        response.next_id,
+        response.has_more,
+      )
+      if (currentConversationId.value === conversationId) scrollToBottom()
+    },
+  },
+})
+
 const {
   conversations,
   loaded: conversationsLoaded,
@@ -58,11 +99,7 @@ const {
   remove: removeConversation,
   rename: renameConversation,
   search: searchConversations,
-  upsertConversation,
-  touchConversation,
-} = useConversations()
-
-const sessions = useConversationSessions()
+} = useConversations(chatWorkflow)
 
 const currentConversation = computed(() => conversations.value.find((conversation) => conversation.id === currentConversationId.value))
 const currentSession = computed(() => sessions.get(currentConversationId.value))
@@ -101,7 +138,7 @@ async function loadConversationMessages(conversationId: number) {
 
   sessions.setLoading(conversationId, true)
   try {
-    const response = await AiMessageApi.list({ conversation_id: conversationId, limit: MESSAGE_PAGE_SIZE })
+    const response = await chatWorkflow.loadMessages(conversationId)
     sessions.replaceMessages(conversationId, responseToMessages(response.list), response.next_id, response.has_more)
     scrollToBottom()
   } finally {
@@ -120,11 +157,8 @@ async function loadMoreMessages() {
   const oldHeight = wrap?.scrollHeight ?? 0
   sessions.setLoadingMore(conversationId, true)
   try {
-    const response = await AiMessageApi.list({
-      conversation_id: conversationId,
-      before_id: session.nextMessageId || undefined,
-      limit: MESSAGE_PAGE_SIZE,
-    })
+    const response = await chatWorkflow.loadMoreMessages(conversationId, session.nextMessageId)
+    if (!response) return
     sessions.prependMessages(conversationId, responseToMessages(response.list), response.next_id, response.has_more)
     nextTick(() => {
       const newHeight = wrap?.scrollHeight ?? 0
@@ -200,18 +234,6 @@ function firstTitle(content: string) {
   return normalized.length > 30 ? normalized.slice(0, 30) : normalized
 }
 
-function touchActiveConversation(conversationId: number, content: string) {
-  const now = new Date().toISOString()
-  const conversation = conversations.value.find((item) => item.id === conversationId)
-  if (!conversation || !selectedAgent.value) return
-
-  touchConversation(conversationId, {
-    title: conversation.title || firstTitle(content),
-    last_message_at: now,
-    updated_at: now,
-  })
-}
-
 async function ensureConversation(content: string) {
   if (currentConversationId.value) return currentConversationId.value
 
@@ -220,24 +242,15 @@ async function ensureConversation(content: string) {
   if (!agentId || !agent) throw new Error(t('aiChat.selectAgentFirst'))
 
   const conversationId = await createConversation(agentId, firstTitle(content))
-  const now = new Date().toISOString()
-  const created = conversations.value.find((item) => item.id === conversationId) ?? {
-    id: conversationId,
-    agent_id: agentId,
-    agent_name: agent.name,
-    title: firstTitle(content),
-    last_message_at: now,
-    created_at: now,
-    updated_at: now,
-  }
-  upsertConversation(created)
+  const created = conversations.value.find((item) => item.id === conversationId)
+  if (!created) throw new Error('Created AI conversation is missing from the authoritative list')
   currentConversationId.value = conversationId
   setSelectedConversationForAgent(agentId, conversationId)
   sessions.getOrCreate(conversationId)
   return conversationId
 }
 
-async function handleSendMessage(content: string, attachments?: AiChatAttachment[], runtimeParams?: Record<string, number>) {
+async function handleSendMessage(content: string, attachments?: AiChatAttachment[], runtimeParams?: AIRuntimeParams) {
   if (!selectedAgentId.value) {
     ElNotification.warning({ message: t('aiChat.selectAgentFirst') })
     return
@@ -249,10 +262,17 @@ async function handleSendMessage(content: string, attachments?: AiChatAttachment
     conversationId = await ensureConversation(content)
     messageInputRef.value?.clear()
     sessions.beginSend(conversationId, requestId, content, attachments)
-    touchActiveConversation(conversationId, content)
     scrollToBottom()
 
-    const response = await AiMessageApi.send({ conversation_id: conversationId, content, request_id: requestId, attachments, runtime_params: runtimeParams })
+    const result = await chatWorkflow.sendMessage.mutate({
+      conversation_id: conversationId,
+      content,
+      request_id: requestId,
+      attachments,
+      runtime_params: runtimeParams,
+    })
+    if (result.kind === 'canceled') return
+    const response = result.data
     sessions.markUserMessage(conversationId, response.request_id, response.user_message_id)
   } catch (error) {
     if (conversationId > 0) {
@@ -268,7 +288,8 @@ async function handleStopGeneration() {
   if (!conversationId || !requestId) return
 
   try {
-    await AiChatApi.cancel({ conversation_id: conversationId, request_id: requestId })
+    const result = await chatWorkflow.cancelMessage.mutate({ conversation_id: conversationId, request_id: requestId })
+    if (result.kind === 'canceled') return
     sessions.cancel(conversationId, requestId)
   } catch (error) {
     ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.stopFailed') })
@@ -303,39 +324,14 @@ function handleBackToAgentList() {
   selectedAgentId.value = null
 }
 
-useConversationSocket({
-  onStart(payload) {
-    if (!sessions.isCanceled(payload.conversation_id, payload.request_id)) sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
-  },
-  onDelta(payload) {
-    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
-    sessions.appendDelta(payload.conversation_id, payload.request_id, payload.delta)
-    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
-  },
-  onCompleted(payload) {
-    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
-    sessions.complete(payload.conversation_id, payload.request_id, payload.assistant_message_id)
-    touchConversation(payload.conversation_id, { last_message_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
-  },
-  onFailed(payload) {
-    if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
-    sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
-    ElNotification.error({ message: payload.msg })
-    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
-  },
-  onCanceled(payload) {
-    sessions.cancel(payload.conversation_id, payload.request_id)
-    if (currentConversationId.value === payload.conversation_id) scrollToBottom()
-  },
-})
-
 onMounted(async () => {
   await loadAgents()
   const agentId = selectedAgentId.value
   const agent = agents.value.find((item) => item.id === agentId)
   if (agent) await handleSelectAgent(agent)
 })
+
+onUnmounted(() => chatWorkflow.dispose())
 </script>
 
 <template>

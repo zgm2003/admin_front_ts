@@ -1,22 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElNotification } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { UpMedia } from '@/components/UpMedia'
-import { UsersListApi } from '@/api/user/users'
-import { useCrudTable } from '@/hooks/useCrudTable'
+import { createUserManagementWorkflow } from '@/features/user-management/workflow'
+import { useWorkflowTable } from '@/features/shared/use-workflow-table'
 import { useExportSubmit } from '@/hooks/useExportSubmit'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
 import type { DictOption } from '@/types/common'
-import type { AddressTreeNode, UserBatchEditParams, UserEditParams, UserListItem } from '@/types/user'
+import type {
+  AddressTreeNode,
+  UserBatchEditParams,
+  UserEditParams,
+  UserListItem,
+  UserListResponse,
+  UsersListParams,
+} from '@/types/user'
 
 interface UserEditDialogForm extends UserEditParams {
   phone: string
@@ -27,8 +34,38 @@ const userStore = useUserStore()
 const { t } = useI18n()
 const router = useRouter()
 const isMobile = useIsMobile()
+const workflow = createUserManagementWorkflow({
+  async confirmDelete() {
+    try {
+      await ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.del'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
+  async confirmStatus() {
+    try {
+      await ElMessageBox.confirm(t('common.confirmStatusChange'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.confirm'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
+})
 const { submitSelectedExport } = useExportSubmit({
-  submit: (ids) => UsersListApi.export({ ids }),
+  async submit(ids) {
+    const result = await workflow.exportUsers.mutate({ ids })
+    if (result.kind === 'canceled') throw new Error('User export was canceled')
+    return result.data
+  },
 })
 
 const sexArr = ref<DictOption<number>[]>([])
@@ -37,12 +74,12 @@ const roleArr = ref<DictOption<number>[]>([])
 
 const initList = async () => {
   try {
-    const data = await UsersListApi.pageInit()
+    const data = await workflow.loadPageInit()
     sexArr.value = data.dict.sexArr
     roleArr.value = data.dict.roleArr
     addressTree.value = data.dict.auth_address_tree
-  } catch {
-    // request interceptor handles notification
+  } catch (error) {
+    ElNotification.error({ message: error instanceof Error ? error.message : t('common.error.operation') })
   }
 }
 
@@ -50,7 +87,7 @@ const searchForm = ref({
   username: '',
   email: '',
   role_id: '' as number | '',
-  sex: '' as number | '',
+  sex: '' as 0 | 1 | 2 | '',
   address_id: [] as number[],
   detail_address: '',
 })
@@ -65,13 +102,35 @@ const {
   refresh,
   getList,
   onSelectionChange,
-  confirmDel,
-  batchDel,
-  toggleStatus,
-} = useCrudTable<UserListItem>({
-  api: UsersListApi,
+  clearSelection,
+} = useWorkflowTable<UserListItem, UsersListParams, UserListResponse>({
+  resource: workflow.list,
+  page: workflow.page,
   searchForm,
 })
+
+const confirmDel = async (row: UserListItem) => {
+  const result = await workflow.deleteOne.mutate({ id: row.id })
+  if (result.kind === 'canceled') return
+  ElNotification.success({ message: t('common.success.operation') })
+}
+
+const batchDel = async () => {
+  if (selectedIds.value.length === 0) {
+    ElNotification.warning({ message: t('common.selectAtLeastOne') })
+    return
+  }
+  const result = await workflow.deleteBatch.mutate({ ids: [...selectedIds.value] })
+  if (result.kind === 'canceled') return
+  clearSelection()
+  ElNotification.success({ message: t('common.success.operation') })
+}
+
+const toggleStatus = async (row: UserListItem, status: 1 | 2) => {
+  const result = await workflow.changeStatus.mutate({ id: row.id, status })
+  if (result.kind === 'canceled') return
+  ElNotification.success({ message: t('common.success.operation') })
+}
 
 const searchFields = computed<SearchField[]>(() => [
   { key: 'username', type: 'input', label: t('user.filter.username'), placeholder: t('user.filter.username'), width: 150 },
@@ -138,10 +197,9 @@ const confirmEdit = async () => {
     bio: editForm.value.bio,
   }
 
-  await UsersListApi.update(payload)
+  await workflow.update.mutate(payload)
   ElNotification.success({ message: t('common.success.operation') })
   editBoxShow.value = false
-  await getList()
 }
 
 const batchEditBoxShow = ref(false)
@@ -204,10 +262,9 @@ const confirmBatchEdit = async () => {
     payload = { ids, field, detail_address }
   }
 
-  await UsersListApi.batchEdit(payload)
+  await workflow.batchEdit.mutate(payload)
   ElNotification.success({ message: t('common.success.operation') })
   batchEditBoxShow.value = false
-  await getList()
 }
 
 const goToPersonal = (row: UserListItem) => {
@@ -222,6 +279,8 @@ onMounted(() => {
   void initList()
   void getList()
 })
+
+onUnmounted(() => workflow.dispose())
 </script>
 
 <template>

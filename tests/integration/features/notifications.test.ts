@@ -24,6 +24,13 @@ const item = (id: number): NotificationItem => ({
 
 function dependencies(list: NotificationsWorkflowApi['list']) {
   const api: NotificationsWorkflowApi = {
+    pageInit: vi.fn(async () => ({
+      dict: {
+        notification_type_arr: [],
+        notification_level_arr: [],
+        notification_read_status_arr: [],
+      },
+    })),
     list,
     unreadCount: vi.fn(async () => ({ count: 1 })),
     read: vi.fn(async () => undefined),

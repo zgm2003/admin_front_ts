@@ -7,6 +7,7 @@ import { DIcon } from '@/components/DIcon'
 import { EmojiPicker } from '@/components/EmojiPicker'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } from '@/lib/upload'
+import type { AIRuntimeParams } from '@/api/ai/messages'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
@@ -74,7 +75,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  send: [content: string, attachments?: Attachment[], runtimeParams?: Record<string, number>]
+  send: [content: string, attachments?: Attachment[], runtimeParams?: AIRuntimeParams]
   stop: []
   openHistory: []
 }>()
@@ -94,8 +95,8 @@ const runtimeMaxHistory = ref<number | null>(null)
 
 const hasCustomParams = computed(() => runtimeTemperature.value !== null || runtimeMaxTokens.value !== null || runtimeMaxHistory.value !== null)
 
-const getRequestParams = () => {
-  const result: Record<string, number> = {}
+const getRequestParams = (): AIRuntimeParams => {
+  const result: AIRuntimeParams = {}
   if (runtimeTemperature.value !== null) result.temperature = runtimeTemperature.value
   if (runtimeMaxTokens.value !== null) result.max_tokens = runtimeMaxTokens.value
   if (runtimeMaxHistory.value !== null) result.max_history = runtimeMaxHistory.value

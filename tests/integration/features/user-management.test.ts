@@ -26,12 +26,16 @@ const user = (id: number): UserListItem => ({
 
 function api(list: UserManagementWorkflowApi['list']): UserManagementWorkflowApi {
   return {
+    pageInit: vi.fn(async () => ({
+      dict: { roleArr: [], auth_address_tree: [], sexArr: [], platformArr: [] },
+    })),
     list,
     update: vi.fn(async () => undefined),
     batchEdit: vi.fn(async () => undefined),
     changeStatus: vi.fn(async () => undefined),
     deleteOne: vi.fn(async () => undefined),
     deleteBatch: vi.fn(async () => undefined),
+    export: vi.fn(async () => ({ id: 1, message: 'queued' })),
   }
 }
 

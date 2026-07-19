@@ -1,10 +1,11 @@
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import {
   NotificationApi,
   type NotificationDelParams,
   type NotificationItem,
   type NotificationListParams,
   type NotificationListResponse,
+  type NotificationInitResponse,
   type NotificationReadParams,
   type UnreadCountResponse,
 } from '@/api/system/notification'
@@ -14,6 +15,7 @@ import { createResourceQuery } from '@/modules/resource-query/query'
 import type { Id } from '@/types/common'
 
 export interface NotificationsWorkflowApi {
+  pageInit(options: { readonly signal: AbortSignal }): Promise<NotificationInitResponse>
   list(params: NotificationListParams, options: { readonly signal: AbortSignal }): Promise<NotificationListResponse>
   unreadCount(options: { readonly signal: AbortSignal }): Promise<UnreadCountResponse>
   read(params: NotificationReadParams | undefined, options: MutationExecutionOptions): Promise<void>
@@ -29,6 +31,11 @@ export interface NotificationsWorkflowOptions {
 
 export function createNotificationsWorkflow(options: NotificationsWorkflowOptions) {
   const api = options.api ?? NotificationApi
+  const page = shallowRef({ current_page: 1, page_size: 20, total: 0, total_page: 0 })
+  const pageInit = createResourceQuery<NotificationInitResponse, undefined, NotificationInitResponse>({
+    request: (_params, context) => api.pageInit(context),
+    selectItems: (result) => [result],
+  })
   const list = createResourceQuery<NotificationItem, NotificationListParams, NotificationListResponse>({
     async request(params, context) {
       let result = await api.list(params, context)
@@ -42,11 +49,14 @@ export function createNotificationsWorkflow(options: NotificationsWorkflowOption
       return result
     },
     selectItems: (result) => result.list,
-    onCommit: (result, params) => ({
-      ...params,
-      current_page: result.page.current_page,
-      page_size: result.page.page_size,
-    }),
+    onCommit(result, params) {
+      page.value = result.page
+      return {
+        ...params,
+        current_page: result.page.current_page,
+        page_size: result.page.page_size,
+      }
+    },
   })
   const unread = createResourceQuery<number, undefined, UnreadCountResponse>({
     request: (_params, context) => api.unreadCount(context),
@@ -112,10 +122,14 @@ export function createNotificationsWorkflow(options: NotificationsWorkflowOption
     deleteBatch.dispose()
     unread.dispose()
     list.dispose()
+    pageInit.dispose()
   }
 
   return {
+    pageInit,
+    loadPageInit: () => pageInit.execute(undefined),
     list,
+    page,
     unreadCount,
     loadUnreadCount,
     read,

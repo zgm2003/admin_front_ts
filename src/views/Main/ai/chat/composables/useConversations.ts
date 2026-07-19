@@ -1,12 +1,12 @@
-import { shallowRef } from 'vue'
+import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { AiConversationApi } from '@/api/ai/conversations'
+import type { createAIChatWorkflow } from '@/features/ai-chat/workflow'
 import type { Conversation } from './types'
 
-const PAGE_SIZE = 30
+type AIChatWorkflow = ReturnType<typeof createAIChatWorkflow>
 
-export function useConversations() {
+export function useConversations(workflow: AIChatWorkflow) {
   const { t } = useI18n()
   const conversations = shallowRef<Conversation[]>([])
   const loading = shallowRef(false)
@@ -15,34 +15,42 @@ export function useConversations() {
   const loaded = shallowRef(false)
   const searchKeyword = shallowRef('')
   const searched = shallowRef(false)
-  const nextId = shallowRef(0)
   const currentAgentId = shallowRef<number | null>(null)
+
+  function filterConversations(list: readonly Conversation[]) {
+    const keyword = searchKeyword.value.trim().toLowerCase()
+    if (!keyword) return [...list]
+    return list.filter((item) => item.title.toLowerCase().includes(keyword))
+  }
+
+  watch(
+    () => workflow.conversations.state.value.data,
+    (items) => {
+      conversations.value = filterConversations(items)
+      hasMore.value = workflow.conversationCursor.value.has_more
+    },
+    { flush: 'sync' },
+  )
 
   async function loadConversations(agentId: number | null) {
     currentAgentId.value = agentId
-    const searching = searchKeyword.value.trim().length > 0
     conversations.value = []
-    nextId.value = 0
     hasMore.value = false
-
-    if (!searching) loaded.value = false
+    loaded.value = false
     searched.value = false
-
-    if (!agentId) return
+    if (!agentId) {
+      workflow.conversations.reset()
+      return
+    }
 
     loading.value = true
     try {
-      const response = await AiConversationApi.list({ agent_id: agentId, limit: PAGE_SIZE })
-      conversations.value = filterConversations(response.list)
-      nextId.value = response.next_id
-      hasMore.value = response.has_more
-      if (searching) {
-        searched.value = true
-      } else {
-        loaded.value = true
-      }
+      await workflow.loadConversations(agentId)
+      if (currentAgentId.value !== agentId) return
+      if (searchKeyword.value.trim()) searched.value = true
+      else loaded.value = true
     } finally {
-      loading.value = false
+      if (currentAgentId.value === agentId) loading.value = false
     }
   }
 
@@ -52,23 +60,16 @@ export function useConversations() {
 
     loadingMore.value = true
     try {
-      const response = await AiConversationApi.list({
-        agent_id: currentAgentId.value,
-        before_id: nextId.value || undefined,
-        limit: PAGE_SIZE,
-      })
-      conversations.value = [...conversations.value, ...filterConversations(response.list)]
-      nextId.value = response.next_id
-      hasMore.value = response.has_more
+      await workflow.loadMoreConversations()
     } finally {
       loadingMore.value = false
     }
   }
 
   async function create(agentId: number, title = '') {
-    const response = await AiConversationApi.create({ agent_id: agentId, title })
-    await loadConversations(agentId)
-    return response.id
+    const result = await workflow.createConversation.mutate({ agent_id: agentId, title })
+    if (result.kind === 'canceled') throw new Error('AI conversation creation was canceled')
+    return result.data.id
   }
 
   async function remove(id: number) {
@@ -82,8 +83,8 @@ export function useConversations() {
       return false
     }
 
-    await AiConversationApi.deleteOne({ id })
-    conversations.value = conversations.value.filter((conversation) => conversation.id !== id)
+    const result = await workflow.deleteConversation.mutate({ id })
+    if (result.kind === 'canceled') return false
     ElNotification.success({ message: t('common.success.operation') })
     return true
   }
@@ -93,30 +94,28 @@ export function useConversations() {
     conversations.value = [conversation, ...next]
   }
 
-  function touchConversation(id: number, patch: Partial<Pick<Conversation, 'title' | 'last_message_at' | 'updated_at'>>) {
+  function touchConversation(
+    id: number,
+    patch: Partial<Pick<Conversation, 'title' | 'last_message_at' | 'updated_at'>>,
+  ) {
     const old = conversations.value.find((item) => item.id === id)
     if (!old) return
     upsertConversation({ ...old, ...patch })
   }
 
-  function filterConversations(list: Conversation[]) {
-    const keyword = searchKeyword.value.trim().toLowerCase()
-    if (!keyword) return list
-    return list.filter((item) => item.title.toLowerCase().includes(keyword))
-  }
-
   async function rename(id: number, title: string) {
     const normalized = title.trim()
     if (!normalized) return false
-    await AiConversationApi.update({ id, title: normalized })
-    touchConversation(id, { title: normalized, updated_at: new Date().toISOString() })
+    const result = await workflow.updateConversation.mutate({ id, title: normalized })
+    if (result.kind === 'canceled') return false
     ElNotification.success({ message: t('common.success.operation') })
     return true
   }
 
   async function search(keyword: string) {
     searchKeyword.value = keyword
-    if (currentAgentId.value) await loadConversations(currentAgentId.value)
+    conversations.value = filterConversations(workflow.conversations.state.value.data)
+    searched.value = keyword.trim().length > 0
   }
 
   return {

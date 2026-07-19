@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import {
   ExportTaskApi,
   type ExportTaskItem,
@@ -26,6 +26,7 @@ export interface ExportsWorkflowOptions {
 
 export function createExportsWorkflow(options: ExportsWorkflowOptions = {}) {
   const api = options.api ?? ExportTaskApi
+  const page = shallowRef({ current_page: 1, page_size: 20, total: 0, total_page: 0 })
   const list = createResourceQuery<ExportTaskItem, ExportTaskListParams, ExportTaskListResponse>({
     async request(params, context) {
       let result = await api.list(params, context)
@@ -39,11 +40,14 @@ export function createExportsWorkflow(options: ExportsWorkflowOptions = {}) {
       return result
     },
     selectItems: (result) => result.list,
-    onCommit: (result, params) => ({
-      ...params,
-      current_page: result.page.current_page,
-      page_size: result.page.page_size,
-    }),
+    onCommit(result, params) {
+      page.value = result.page
+      return {
+        ...params,
+        current_page: result.page.current_page,
+        page_size: result.page.page_size,
+      }
+    },
   })
   const statuses = createResourceQuery<ExportTaskStatusItem, StatusParams, ExportTaskStatusItem[]>({
     request: (params, context) => api.statusCount(params, context),
@@ -79,5 +83,5 @@ export function createExportsWorkflow(options: ExportsWorkflowOptions = {}) {
     list.dispose()
   }
 
-  return { list, statuses, statusCounts, loadStatusCounts, deleteOne, deleteBatch, dispose }
+  return { list, page, statuses, statusCounts, loadStatusCounts, deleteOne, deleteBatch, dispose }
 }
