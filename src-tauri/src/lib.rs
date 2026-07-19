@@ -1,12 +1,12 @@
+use notify_rust::Notification;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::{Arc, OnceLock};
 use tauri::{
-    AppHandle, Emitter, Manager, UserAttentionType, State,
     image::Image,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
+    AppHandle, Emitter, Manager, State, UserAttentionType,
 };
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::{Arc, OnceLock};
-use notify_rust::Notification;
 
 mod download;
 mod error;
@@ -25,14 +25,16 @@ static NOTIFY_ICON: OnceLock<Option<Image<'static>>> = OnceLock::new();
 
 /// 获取缓存的通知图标
 fn get_notify_icon() -> Option<&'static Image<'static>> {
-    NOTIFY_ICON.get_or_init(|| {
-        let ico_bytes = include_bytes!("../icons/icon_notify.ico");
-        image::load_from_memory(ico_bytes).ok().map(|img| {
-            let rgba = img.to_rgba8();
-            let (w, h) = rgba.dimensions();
-            Image::new_owned(rgba.into_raw(), w, h)
+    NOTIFY_ICON
+        .get_or_init(|| {
+            let ico_bytes = include_bytes!("../icons/icon_notify.ico");
+            image::load_from_memory(ico_bytes).ok().map(|img| {
+                let rgba = img.to_rgba8();
+                let (w, h) = rgba.dimensions();
+                Image::new_owned(rgba.into_raw(), w, h)
+            })
         })
-    }).as_ref()
+        .as_ref()
 }
 
 // ==================== 托盘相关 ====================
@@ -150,10 +152,7 @@ async fn start_download(
 
 /// 取消下载
 #[tauri::command]
-fn cancel_download(
-    manager: State<'_, Arc<DownloadManager>>,
-    id: String,
-) -> Result<(), AppError> {
+fn cancel_download(manager: State<'_, Arc<DownloadManager>>, id: String) -> Result<(), AppError> {
     manager.cancel_download(&id)
 }
 
@@ -168,18 +167,13 @@ fn get_download_progress(
 
 /// 获取所有下载任务
 #[tauri::command]
-fn get_all_downloads(
-    manager: State<'_, Arc<DownloadManager>>,
-) -> Vec<DownloadProgress> {
+fn get_all_downloads(manager: State<'_, Arc<DownloadManager>>) -> Vec<DownloadProgress> {
     manager.get_all_tasks()
 }
 
 /// 删除下载任务
 #[tauri::command]
-fn remove_download(
-    manager: State<'_, Arc<DownloadManager>>,
-    id: String,
-) -> Result<(), AppError> {
+fn remove_download(manager: State<'_, Arc<DownloadManager>>, id: String) -> Result<(), AppError> {
     manager.remove_task(&id)
 }
 
@@ -226,7 +220,6 @@ pub fn run() {
     let download_manager = Arc::new(DownloadManager::new());
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
@@ -275,23 +268,21 @@ pub fn run() {
             let _tray = tray_builder.build(app)?;
             Ok(())
         })
-        .on_window_event(|window, event| {
-            match event {
-                tauri::WindowEvent::CloseRequested { api, .. } => {
-                    api.prevent_close();
-                    let _ = window.app_handle().emit("window-close-requested", ());
-                }
-                tauri::WindowEvent::Focused(true) => {
-                    let app = window.app_handle();
-                    UNREAD_COUNT.store(0, Ordering::SeqCst);
-                    IS_BLINKING.store(false, Ordering::SeqCst);
-                    restore_default_icon(app);
-                    if let Some(tray) = app.tray_by_id("main") {
-                        let _ = tray.set_tooltip(Some("CloudAdmin"));
-                    }
-                }
-                _ => {}
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                api.prevent_close();
+                let _ = window.app_handle().emit("window-close-requested", ());
             }
+            tauri::WindowEvent::Focused(true) => {
+                let app = window.app_handle();
+                UNREAD_COUNT.store(0, Ordering::SeqCst);
+                IS_BLINKING.store(false, Ordering::SeqCst);
+                restore_default_icon(app);
+                if let Some(tray) = app.tray_by_id("main") {
+                    let _ = tray.set_tooltip(Some("CloudAdmin"));
+                }
+            }
+            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

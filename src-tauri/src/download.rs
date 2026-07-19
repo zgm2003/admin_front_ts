@@ -1,12 +1,12 @@
+use futures_util::StreamExt;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
-use futures_util::StreamExt;
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter};
 
 use crate::error::AppError;
@@ -116,21 +116,24 @@ impl DownloadManager {
             return Err(AppError::TaskExists(id));
         }
 
-        tasks.insert(id.clone(), DownloadTask {
-            id,
-            url,
-            save_path,
-            filename,
-            cancel_flag: Arc::new(AtomicBool::new(false)),
-            state: Arc::new(Mutex::new(TaskState {
-                status: DownloadStatus::Pending,
-                downloaded: 0,
-                total: 0,
-                speed: 0,
-                progress: 0.0,
-                error: None,
-            })),
-        });
+        tasks.insert(
+            id.clone(),
+            DownloadTask {
+                id,
+                url,
+                save_path,
+                filename,
+                cancel_flag: Arc::new(AtomicBool::new(false)),
+                state: Arc::new(Mutex::new(TaskState {
+                    status: DownloadStatus::Pending,
+                    downloaded: 0,
+                    total: 0,
+                    speed: 0,
+                    progress: 0.0,
+                    error: None,
+                })),
+            },
+        );
 
         Ok(())
     }
@@ -139,11 +142,16 @@ impl DownloadManager {
     pub async fn start_download(&self, id: String, app: AppHandle) -> Result<(), AppError> {
         let ctx = {
             let tasks = self.tasks.lock().unwrap();
-            let task = tasks.get(&id).ok_or_else(|| AppError::TaskNotFound(id.clone()))?;
+            let task = tasks
+                .get(&id)
+                .ok_or_else(|| AppError::TaskNotFound(id.clone()))?;
 
             {
                 let mut state = task.state.lock().unwrap();
-                if !matches!(state.status, DownloadStatus::Pending | DownloadStatus::Paused) {
+                if !matches!(
+                    state.status,
+                    DownloadStatus::Pending | DownloadStatus::Paused
+                ) {
                     return Err(AppError::InvalidState("任务状态不允许开始下载".into()));
                 }
                 state.status = DownloadStatus::Downloading;
@@ -216,8 +224,7 @@ impl DownloadManager {
             state.total = total_size;
         }
 
-        let mut file = File::create(&ctx.save_path)
-            .map_err(|e| AppError::io("创建文件失败", e))?;
+        let mut file = File::create(&ctx.save_path).map_err(|e| AppError::io("创建文件失败", e))?;
 
         let mut stream = response.bytes_stream();
         let mut downloaded: u64 = 0;
@@ -256,17 +263,20 @@ impl DownloadManager {
                     state.progress = progress;
                 }
 
-                let _ = ctx.app.emit("download-progress", DownloadProgress {
-                    id: ctx.task_id.clone(),
-                    status: DownloadStatus::Downloading,
-                    downloaded,
-                    total: total_size,
-                    speed,
-                    progress,
-                    filename: ctx.filename.clone(),
-                    save_path: ctx.save_path.to_string_lossy().to_string(),
-                    error: None,
-                });
+                let _ = ctx.app.emit(
+                    "download-progress",
+                    DownloadProgress {
+                        id: ctx.task_id.clone(),
+                        status: DownloadStatus::Downloading,
+                        downloaded,
+                        total: total_size,
+                        speed,
+                        progress,
+                        filename: ctx.filename.clone(),
+                        save_path: ctx.save_path.to_string_lossy().to_string(),
+                        error: None,
+                    },
+                );
 
                 last_update = now;
                 last_downloaded = downloaded;
@@ -281,17 +291,20 @@ impl DownloadManager {
         } else {
             100.0
         };
-        let _ = ctx.app.emit("download-progress", DownloadProgress {
-            id: ctx.task_id.clone(),
-            status: DownloadStatus::Completed,
-            downloaded,
-            total: total_size,
-            speed: 0,
-            progress: final_progress,
-            filename: ctx.filename.clone(),
-            save_path: ctx.save_path.to_string_lossy().to_string(),
-            error: None,
-        });
+        let _ = ctx.app.emit(
+            "download-progress",
+            DownloadProgress {
+                id: ctx.task_id.clone(),
+                status: DownloadStatus::Completed,
+                downloaded,
+                total: total_size,
+                speed: 0,
+                progress: final_progress,
+                filename: ctx.filename.clone(),
+                save_path: ctx.save_path.to_string_lossy().to_string(),
+                error: None,
+            },
+        );
 
         Ok(())
     }
@@ -299,10 +312,15 @@ impl DownloadManager {
     /// 取消下载
     pub fn cancel_download(&self, id: &str) -> Result<(), AppError> {
         let tasks = self.tasks.lock().unwrap();
-        let task = tasks.get(id).ok_or_else(|| AppError::TaskNotFound(id.into()))?;
+        let task = tasks
+            .get(id)
+            .ok_or_else(|| AppError::TaskNotFound(id.into()))?;
 
         let state = task.state.lock().unwrap();
-        if !matches!(state.status, DownloadStatus::Downloading | DownloadStatus::Paused) {
+        if !matches!(
+            state.status,
+            DownloadStatus::Downloading | DownloadStatus::Paused
+        ) {
             return Err(AppError::InvalidState("任务状态不允许取消".into()));
         }
         drop(state);
@@ -326,7 +344,9 @@ impl DownloadManager {
     /// 删除任务
     pub fn remove_task(&self, id: &str) -> Result<(), AppError> {
         let mut tasks = self.tasks.lock().unwrap();
-        tasks.remove(id).ok_or_else(|| AppError::TaskNotFound(id.into()))?;
+        tasks
+            .remove(id)
+            .ok_or_else(|| AppError::TaskNotFound(id.into()))?;
         Ok(())
     }
 }
