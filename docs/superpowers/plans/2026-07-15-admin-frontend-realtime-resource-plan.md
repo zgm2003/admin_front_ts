@@ -12,7 +12,7 @@
 
 ## Docker-only runtime and explicit browser-tool policy
 
-P07 Tasks 1–5 started after the user accepted P06 and are complete. Tasks 6–10 start only after P08R Browser-only retirement and the user's P08R functional acceptance. API, worker, frontend, MySQL, and Redis runtime processes are started only by `admin_back_go/scripts/docker-platform.ps1`; no task starts Vite, Go binaries, MySQL, or Redis on the host. Static TypeScript/Vitest/build checks run through `node:22.23.1-alpine`.
+P07 Tasks 1–5 started after the user accepted P06 and are complete. The P08R Browser-only retirement prerequisite and user acceptance are now complete; Tasks 6–10 are active next but have not started. API, worker, frontend, MySQL, and Redis runtime processes are started only by `admin_back_go/scripts/docker-platform.ps1`; no task starts Vite, Go binaries, MySQL, or Redis on the host. Static TypeScript/Vitest/build checks run through `node:22.23.1-alpine`.
 
 Until Task 10 creates `scripts/docker-frontend-gate.ps1`, every `npm` or `node` command shown in Tasks 1-9 is the inner command for an equivalent `node:22.23.1-alpine` one-shot container mounted at `/workspace`; it is not permission to execute a host runtime. After Task 10, use the wrapper exclusively.
 
@@ -317,7 +317,9 @@ Expected: source-text suites are below 20%; all core modules meet both coverage 
 - `npm run test:architecture`: 97 suites, 67 direct-production behavior suites, 16 source-text guards, 16.49% source-text ratio.
 - `npm run build:check`: passed production TypeScript and Vite build.
 - `git diff --check`: passed. The only handwritten Admin path retained under `src/api` is the explicitly guarded queue-monitor HTML UI URL; its authorization grant is a generated typed operation.
-- The user completed the Tasks 1–5 stage review before historical P08 began. That checkpoint is closed; the current barrier is P08R Browser-only retirement and user acceptance before P07 Tasks 6–10.
+- The user completed the Tasks 1–5 stage review before historical P08 began.
+  P08R and its user acceptance are also closed; Tasks 6–10 are the next phase
+  and remain unstarted until the user explicitly opens P07 again.
 
 ### Task 6: Decompose remaining Browser-only pages and reach zero lint warnings
 
