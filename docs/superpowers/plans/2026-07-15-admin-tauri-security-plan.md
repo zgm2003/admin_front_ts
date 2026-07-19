@@ -6,7 +6,7 @@
 
 **Architecture:** Remote pages receive no Tauri capability. TypeScript imports one injected NativeBridge; the Rust command layer is the final policy boundary. Credentials never return from OS storage, managed downloads use Rust-owned dialogs/records, and updater artifacts remain signature verified.
 
-**Tech Stack:** Windows x86_64, NSIS, Tauri 2, Rust 1.97.0, TypeScript/Vue, keyring 4.1.5, reqwest, URL 2.5.8, PowerShell 7.
+**Tech Stack:** Windows x86_64, NSIS, Tauri 2, cargo-tauri 2.10.0, Rust 1.97.0, TypeScript/Vue, keyring 4.1.5, reqwest, URL 2.5.8, PowerShell 7.
 
 ---
 
@@ -27,7 +27,7 @@
 - Create: `scripts/verify-tauri.ps1`
 - Create: `tests/shared/tauri/rust-toolchain.test.ts`
 
-- [ ] **Step 1: Pin toolchain and dependencies**
+- [x] **Step 1: Pin toolchain and dependencies**
 
 ```toml
 [toolchain]
@@ -38,7 +38,7 @@ profile = "minimal"
 
 Pin direct security dependencies exactly: `keyring=4.1.5`, `url=2.5.8`, `tempfile=3.27.0`, `sha2=0.11.0`, `uuid=1.23.5`, `thiserror=2.0.18`, `secrecy=0.10.3`, `zeroize=1.9.0`, `ipnet=2.12.0`, `reqwest=0.12.28`, `tokio=1.49.0`, and `futures-util=0.3.31`; add `proptest=1.11.0` as dev dependency. Pin the existing Tauri/serde/image/plugin versions to their committed lock values rather than broad major ranges, remove `tauri-plugin-opener`, and keep Cargo.lock committed.
 
-- [ ] **Step 2: Implement the shared Rust gate**
+- [x] **Step 2: Implement the shared Rust gate**
 
 ```powershell
 $ErrorActionPreference = "Stop"
@@ -54,7 +54,7 @@ try {
 }
 ```
 
-- [ ] **Step 3: Verify on the pinned Windows toolchain and commit**
+- [x] **Step 3: Verify on the pinned Windows toolchain and commit**
 
 Run `pwsh -NoProfile -File scripts/verify-tauri.ps1` on Windows with the `rust-toolchain.toml` toolchain. If `rustup`, `cargo`, Clippy, rustfmt, or pinned `cargo-audit` is unavailable, stop and install the declared tool rather than skip or weaken the gate. Do not start Vite or any backend/state service.
 
@@ -73,11 +73,11 @@ git commit -m "build(tauri): pin rust and native verification"
 - Modify: `src-tauri/Cargo.lock`
 - Create: `tests/shared/tauri/security-config.test.ts`
 
-- [ ] **Step 1: Write the configuration regression test**
+- [x] **Step 1: Write the configuration regression test**
 
 Require `frontendDist="../dist"`, `withGlobalTauri=false`, no `remote` capability block, no opener/shell default permission, no `unsafe-eval`, exact window `main`, and no wildcard URL capability.
 
-- [ ] **Step 2: Apply the measured local CSP**
+- [x] **Step 2: Apply the measured local CSP**
 
 Use:
 
@@ -97,11 +97,11 @@ frame-ancestors 'none'
 
 `unsafe-inline` is limited to styles because Element Plus/Vue currently emit inline style attributes; scripts remain self-only and `unsafe-eval` is forbidden. Bundle dependencies rather than runtime third-party scripts.
 
-- [ ] **Step 3: Narrow capabilities/plugins**
+- [x] **Step 3: Narrow capabilities/plugins**
 
 Keep only explicit main-window operations needed for window control, user-mediated dialog, updater check/download/install, and controlled process restart/exit. Remove `tauri-plugin-opener` and its default capability. Remote web content has no capability entry.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- tests/shared/tauri/security-config.test.ts
@@ -129,7 +129,7 @@ git commit -m "security(tauri): package local ui and remove remote privilege"
 - Modify: `src/components/TauriManager/src/index.vue`
 - Modify: `src/components/DownloadManager/src/download.ts`
 
-- [ ] **Step 1: Define the narrow bridge**
+- [x] **Step 1: Define the narrow bridge**
 
 ```ts
 export interface NativeBridge {
@@ -146,15 +146,15 @@ export interface NativeBridge {
 
 No catch-all `invoke(command,args)` method is exposed.
 
-- [ ] **Step 2: Implement explicit adapters**
+- [x] **Step 2: Implement explicit adapters**
 
 The web adapter uses safe browser APIs or returns typed `unavailable`. It validates any external URL as HTTPS plus an allowed host and uses `noopener,noreferrer`. The Tauri adapter dynamically imports exact commands inside this one file. No component/store/feature imports `@tauri-apps/*` or reads `window.__TAURI__`.
 
-- [ ] **Step 3: Add the architecture guard**
+- [x] **Step 3: Add the architecture guard**
 
 Reject `@tauri-apps` imports outside `src/adapters/tauri/native-bridge.ts`, `__TAURI__`, raw `invoke` outside that adapter, dynamic command names, `postMessage('*')`, and unvalidated `window.open`.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- tests/unit/native tests/shared/tauri/native-boundary.test.ts
@@ -175,15 +175,15 @@ git commit -m "refactor(tauri): isolate native calls behind one bridge"
 - Modify: `src/adapters/tauri/native-bridge.ts`
 - Create: `tests/integration/auth/desktop-credentials.test.ts`
 
-- [ ] **Step 1: Write Rust and TypeScript negative tests**
+- [x] **Step 1: Write Rust and TypeScript negative tests**
 
 Cover seal/replace/clear, refresh rotation, missing credential, keyring failure, malformed server envelope, disallowed origin, HTTP/loopback/private address, timeout, and redaction. Assert no command returns a refresh credential and serialized errors contain no token.
 
-- [ ] **Step 2: Define OS keyring identity**
+- [x] **Step 2: Define OS keyring identity**
 
 Use service `cn.zgm2003.admin.refresh` and account `current-session`. Store one rotating refresh credential because the packaged Admin app owns one active desktop session. Wrap memory in `SecretString` and zeroize request/response buffers after use.
 
-- [ ] **Step 3: Expose three commands only**
+- [x] **Step 3: Expose three commands only**
 
 ```rust
 pub struct RefreshCredentialInput(SecretString);
@@ -204,11 +204,11 @@ fn clear_refresh_credential(state: State<'_, CredentialStore>) -> Result<(), Saf
 
 `RefreshCredentialInput` implements custom deserialization directly into secret memory and the redacted `Debug` shown above; it never derives a plaintext `Debug`. Refresh reads keyring internally, posts to exact `https://www.zgm2003.cn/api/admin/v1/auth/refresh` with desktop variant/device headers, validates the response, stores the rotated refresh credential before returning only access token/expiry, then zeroizes temporary secret material.
 
-- [ ] **Step 4: Integrate AuthSession**
+- [x] **Step 4: Integrate AuthSession**
 
 Desktop login passes the one-time refresh field immediately to `sealRefreshCredential`, clears the JS reference in `finally`, and keeps only access credential in memory. Subsequent refresh calls the native command; logout clears keyring even when server revoke fails.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 npm test -- tests/integration/auth/desktop-credentials.test.ts
@@ -231,25 +231,25 @@ git commit -m "security(auth): seal desktop refresh credentials in the os"
 - Modify: `src/components/DownloadManager/src/download.ts`
 - Create: `tests/unit/native/managed-download.test.ts`
 
-- [ ] **Step 1: Write URL/path abuse tests**
+- [x] **Step 1: Write URL/path abuse tests**
 
 Reject HTTP, credentials in URL, fragments, non-allowlisted hosts, literal/private/loopback/link-local IPs, DNS resolving only private IPs, redirect to another/private host, more than five redirects, missing/oversized length, streamed bytes over 1 GiB, traversal names, separators/reserved names, symlink parent/target, and reveal of an unrecorded path.
 
-- [ ] **Step 2: Validate every network hop**
+- [x] **Step 2: Validate every network hop**
 
 Allow only HTTPS hosts `cos.zgm2003.cn` and `www.zgm2003.cn`. Resolve all A/AAAA addresses and reject loopback, private, link-local, multicast, unspecified, and documentation ranges. Pin each request connection to one validated address while preserving the allowlisted hostname for TLS/SNI, so reqwest cannot perform an unchecked second DNS resolution. Disable automatic redirects; for each of at most five Location hops, parse/resolve/revalidate before request. Use 10-second connect, 30-second idle, and 10-minute total deadlines.
 
-- [ ] **Step 3: Make Rust own save selection and paths**
+- [x] **Step 3: Make Rust own save selection and paths**
 
 `start_managed_download` accepts only URL and suggested filename, opens the native save dialog itself, sanitizes the filename, canonicalizes the selected parent, rejects symlinks/escape, creates a same-directory random temporary file with `create_new`, streams under the size limit, flushes/syncs, and atomically renames. On cancel/failure it deletes the partial file.
 
 Use random UUID task IDs, never caller-supplied incremental IDs. Store completed canonical paths in the managed task map. `reveal_managed_download(task_id)` operates only on a recorded completed task; remove arbitrary `open_file_folder(path)`.
 
-- [ ] **Step 4: Avoid panic/error disclosure**
+- [x] **Step 4: Avoid panic/error disclosure**
 
 Replace every user-controlled `unwrap` with poisoned-lock/safe error handling. `SafeError` serializes stable kind and localized-safe message only; internal URL/path/network causes go to redacted Rust logs. Do not expose signed query values.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 pwsh -NoProfile -File scripts/verify-tauri.ps1
@@ -270,15 +270,15 @@ git commit -m "security(download): constrain urls paths and managed files"
 - Modify: `src/components/TauriManager/src/index.vue`
 - Modify: `src-tauri/tauri.conf.json`
 
-- [ ] **Step 1: Enumerate approved operations**
+- [x] **Step 1: Enumerate approved operations**
 
 Window: minimize, toggle maximize, hide, request close, query state. Notification: bounded title/body with no HTML/URL. Process: controlled relaunch/exit after UI confirmation. Updater: check, signed download, signed install, relaunch. No shell command, arbitrary opener, filesystem path, or URL command remains.
 
-- [ ] **Step 2: Harden updater**
+- [x] **Step 2: Harden updater**
 
 Keep exact HTTPS endpoint `https://cos.zgm2003.cn/tauri_updater/{{target}}-{{arch}}.json` and existing public verification key. Reject unsigned/mismatched artifacts; record version/checksum outcome without signed query values. P08.5 owns private signing material and candidate publication outside the repository.
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 ```powershell
 pwsh -NoProfile -File scripts/verify-tauri.ps1
@@ -296,15 +296,15 @@ git commit -m "security(tauri): expose only approved native operations"
 - Create: `tests/integration/native/bridge.test.ts`
 - Create: `scripts/tests/tauri-security-source.tests.ps1`
 
-- [ ] **Step 1: Property-test parsers and sanitizers**
+- [x] **Step 1: Property-test parsers and sanitizers**
 
 Use proptest for URL strings, redirect chains, filenames, and paths. The invariant is deny or produce a canonical value inside the selected directory/host allowlist; never panic.
 
-- [ ] **Step 2: Test full native boundaries**
+- [x] **Step 2: Test full native boundaries**
 
 With local fake HTTPS endpoints and fake keyring/dialog adapters, prove credential rotation stores before return, failed rotation retains/clears according to server class, download redirects are revalidated, cancellation removes partial files, reveal needs completed task, remote content cannot invoke commands, and bridge disposal removes listeners.
 
-- [ ] **Step 3: Scan high-risk TypeScript/config patterns**
+- [x] **Step 3: Scan high-risk TypeScript/config patterns**
 
 The source guard rejects:
 
@@ -316,7 +316,7 @@ The source guard rejects:
 - `postMessage` with wildcard target or receiver without exact origin/schema;
 - dynamic script injection or runtime Vue template compilation.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 pwsh -NoProfile -File scripts/tests/tauri-security-source.tests.ps1
@@ -334,7 +334,7 @@ git commit -m "test(tauri): enforce native denial and cleanup behavior"
 - Create: `tests/shared/tauri/security-gate.test.ts`
 - Create: `docs/acceptance/p08-tauri-windows-manual.md`
 
-- [ ] **Step 1: Write the failing security-gate contract test**
+- [x] **Step 1: Write the failing security-gate contract test**
 
 Require `verify-tauri.ps1` to run exact-toolchain checks, fmt, Clippy with warnings denied, Rust tests, `cargo audit --deny warnings`, locked release build, Tauri config/source guards, TypeScript NativeBridge tests, and a Windows NSIS package build. Reject skipped commands, broad-version tool installation, remote `frontendDist`, remote capability, shell/opener defaults, signing-key output, candidate upload, updater-manifest publication, GitHub deployment references, and browser automation.
 
@@ -344,15 +344,15 @@ npm test -- tests/shared/tauri/security-gate.test.ts
 
 Expected: FAIL until the shared gate expresses every required check.
 
-- [ ] **Step 2: Complete the fail-closed Windows verifier**
+- [x] **Step 2: Complete the fail-closed Windows verifier**
 
 The verifier checks `rustc --version` against `rust-toolchain.toml`, checks the pinned `cargo-audit` version, and runs all commands from the repository root with `--locked` where supported. It builds only `x86_64-pc-windows-msvc` and confirms an NSIS artifact exists. It never reads the Tauri private key and never uploads or publishes a version.
 
-- [ ] **Step 3: Write the user-owned packaged-app checklist**
+- [x] **Step 3: Write the user-owned packaged-app checklist**
 
 The checklist records the frontend and Rust revisions and leaves user-owned checks for offline local UI loading, password login, browser-versus-desktop credential separation, restart/session restoration, Windows credential cleanup on logout, managed download allow/deny/cancel behavior, window close/minimize, notification permission, updater signature failure, and absence of remote native capability. The Agent cannot mark these checks accepted.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- tests/shared/tauri/security-gate.test.ts tests/integration/native

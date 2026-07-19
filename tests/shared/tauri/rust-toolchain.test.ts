@@ -72,8 +72,8 @@ describe('pinned Tauri Rust toolchain', () => {
 
     expect(verifier).toContain('$ErrorActionPreference = \'Stop\'')
     expect(verifier).toContain('cargo fmt --all -- --check')
-    expect(verifier).toContain('cargo clippy --all-targets --all-features -- -D warnings')
-    expect(verifier).toContain('cargo test --all-features')
+    expect(verifier).toContain('cargo clippy --locked --all-targets --all-features -- -D warnings')
+    expect(verifier).toContain('cargo test --locked --all-features')
     expect(verifier).toContain('cargo audit --deny warnings')
     expect(verifier).toContain('cargo build --locked --release')
   })
