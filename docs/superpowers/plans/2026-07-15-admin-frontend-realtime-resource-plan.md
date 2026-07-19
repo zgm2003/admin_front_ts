@@ -232,11 +232,11 @@ git commit -m "refactor(table): separate mutations and close extension types"
 - Create: `tests/integration/features/ai-chat.test.ts`
 - Create: `tests/integration/features/ai-runs.test.ts`
 
-- [ ] **Step 1: Generate and use operation descriptors**
+- [x] **Step 1: Generate and use operation descriptors**
 
 Generate `src/modules/http/generated/operations.ts` from OpenAPI operation IDs. Every existing API wrapper calls `kernel.api.execute` with one descriptor and typed input. Add a guard rejecting imports of raw Axios/service and literal `/api/` URLs outside generated descriptors.
 
-- [ ] **Step 2: Migrate representative workflows first**
+- [x] **Step 2: Migrate representative workflows first**
 
 For user list, notification list/read/delete, export list/delete, AI run list/detail, and AI conversation:
 
@@ -249,11 +249,11 @@ For user list, notification list/read/delete, export list/delete, AI run list/de
 
 Test reverse-order list results, failed mutation with preserved data, deletion page fallback, notification dedupe/resume, AI completion/cancel/reconnect, and contract failure.
 
-- [ ] **Step 3: Migrate remaining API wrappers**
+- [x] **Step 3: Migrate remaining API wrappers**
 
 Migrate AI agents/knowledge/prompts/providers/tools, payment config/recharges/wallet, auth platform/permission/role, client version/cron/log/mail/SMS/operation log/queue monitor/settings/upload, and login-log/profile APIs. Special pages may keep custom workflows; they must still use typed ApiClient and AbortSignal.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 npm test -- --project integration tests/integration/features
@@ -303,6 +303,21 @@ git commit -m "test: replace source assertions with executable behavior"
 ```
 
 Expected: source-text suites are below 20%; all core modules meet both coverage thresholds.
+
+#### P07 Tasks 1–5 checkpoint evidence (2026-07-19)
+
+- Execution boundary: `master` checkout only; no worktree, host runtime, or browser automation was used. All Node checks ran in `node:22.23.1-alpine` Docker containers.
+- Contract lock: backend `aff99f2c8a949f90c39f1149308591b8b5f1f51b`, manifest `64e6d06da13471b891bd165b8729d12802f575936ec1563607ae4eff736a9295`, OpenAPI `3db932285afe4325315e7263fe81245334197e6c8385596901728e7d896ec509`.
+- Task commits: `2aae720` (realtime), `0c1a887` (latest-wins query), `fd793c4` (mutations/closed UI types), `5a38b00` (behavior-test migration), `3158407` + `1be5170` + `c6fb927` + `eee1777` (typed feature/API migration and final contract closure).
+- `npm run contract:check`: passed with the locked manifest hash above; generated transport, operation descriptors, permissions, and views are byte-identical.
+- `npm test -- --project unit --project integration`: 89 files / 352 tests passed.
+- `npm test -- --coverage`: 97 files / 373 tests passed; all configured core statement and branch thresholds remained at or above 80%.
+- `npm run typecheck`: passed.
+- `npm run lint:baseline`: 0 errors / 61 warnings, below the pre-Task-6 ceiling of 82; zero-warning closure remains Task 6.
+- `npm run test:architecture`: 97 suites, 67 direct-production behavior suites, 16 source-text guards, 16.49% source-text ratio.
+- `npm run build:check`: passed production TypeScript and Vite build.
+- `git diff --check`: passed. The only handwritten Admin path retained under `src/api` is the explicitly guarded queue-monitor HTML UI URL; its authorization grant is a generated typed operation.
+- Manual functional acceptance is intentionally pending. Per the agreed checkpoint, do not start P08 or P07 Tasks 6–10 until the user completes the stage review.
 
 ### Task 6: Decompose mixed-responsibility pages and reach zero lint warnings
 
