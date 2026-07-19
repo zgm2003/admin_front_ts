@@ -1,0 +1,25 @@
+.tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tool-form-section {
+  padding: 12px 14px 0;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 10px;
+  background: var(--el-fill-color-blank);
+}
+
+.tool-form-section__title {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.json-input :deep(.el-textarea__inner) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
