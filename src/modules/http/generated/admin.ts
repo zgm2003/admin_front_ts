@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: aaef6d0070f1e579227b4f3c64c05795a52779c27242cd718e688b4804f4499b
+// Generated from Admin Contract Bundle manifest SHA-256: fd7878e7d401426ebaa2e5acda08f6c1c98c2613ff077408f80575138f8d34e9
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3211,14 +3211,13 @@ export interface components {
             type: "image";
             url: string;
         };
+        /** @description request_id is required; additionally, trimmed content must be non-empty or attachments must contain at least one image. The cross-field rule is also published on the operation. */
         AIMessageSendRequest: {
             attachments?: components["schemas"]["AIAttachmentRequest"][];
             /** @description Trimmed content must be non-empty when attachments is absent or empty. */
             content?: string;
             request_id: string;
             runtime_params?: components["schemas"]["AIRuntimeParams"];
-        } | unknown | {
-            attachments: unknown;
         };
         AIMessageSendResult: {
             /** Format: int64 */
