@@ -15,10 +15,6 @@ import { CookieCredentialAdapter } from './adapters/browser/cookie-credentials'
 import { createBrowserRefreshCoordinator } from './adapters/web/browser-coordinator'
 import { createBrowserLocalStorageAdapter } from './adapters/web/storage'
 import { BrowserWebSocketTransport } from './adapters/web/websocket'
-import {
-  createRuntimeNativeBridge,
-  installNativeBridge,
-} from './adapters/native'
 import { AuthSession } from './modules/auth/session'
 import { issueRealtimeTicket } from './api/auth/browserGrant'
 import { ApiClient } from './modules/http/client'
@@ -41,13 +37,10 @@ import { Persistence } from './modules/persistence/store'
 import { MenuIdentityPersistence } from './modules/persistence/menu-state'
 import { readDevicePreferences } from './modules/persistence/preferences'
 import { setupMenuStorePersistence } from './store/menu'
-import { setupTauriStorePersistence } from './store/tauri'
 import { useUserStore } from './store/user'
 import { toggleDarkMode } from './hooks/useTheme'
 import { RealtimeClient } from './modules/realtime/client'
 
-const nativeBridge = await createRuntimeNativeBridge()
-const uninstallNativeBridge = installNativeBridge(nativeBridge)
 const app = createApp(App)
 const pinia = createPinia()
 const persistence = new Persistence(createBrowserLocalStorageAdapter())
@@ -78,7 +71,6 @@ const credentialAdapter = new CookieCredentialAdapter({
 
 app.use(pinia)
 const stopMenuStorePersistence = setupMenuStorePersistence(pinia, persistence)
-const stopTauriStorePersistence = setupTauriStorePersistence(pinia, persistence)
 app.use(router)
 app.use(i18n)
 
@@ -199,10 +191,7 @@ const kernel = new AppKernel({
       unregisterRouterGuards = null
       menuPersistence.clearActive(false)
       stopMenuStorePersistence()
-      stopTauriStorePersistence()
       uninstallApiClient()
-      await nativeBridge.dispose()
-      uninstallNativeBridge()
     },
   }],
 })

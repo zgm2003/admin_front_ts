@@ -69,10 +69,6 @@ export const deviceIdentityCodec = defineCodec({
 const devicePreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
   language: z.enum(['zh-CN', 'en-US']).optional(),
-  desktopWindow: z.object({
-    maximized: z.boolean().optional(),
-    closeAction: z.enum(['minimize', 'exit']).optional(),
-  }).strict().optional(),
   rememberedLogin: z.object({
     account: z.string().max(320),
     type: z.enum(['password', 'email', 'phone']),
@@ -82,9 +78,18 @@ const devicePreferencesSchema = z.object({
 export type DevicePreferences = z.infer<typeof devicePreferencesSchema>
 
 export const devicePreferencesCodec = defineCodec({
-  version: 1,
+  version: 2,
   maxBytes: 8 * 1024,
   schema: devicePreferencesSchema,
+  migrate(version, value) {
+    if (version !== 1 || typeof value !== 'object' || value === null || Array.isArray(value)) return null
+    const source = value as Record<string, unknown>
+    return {
+      ...(source.theme === undefined ? {} : { theme: source.theme }),
+      ...(source.language === undefined ? {} : { language: source.language }),
+      ...(source.rememberedLogin === undefined ? {} : { rememberedLogin: source.rememberedLogin }),
+    }
+  },
 })
 
 export function readDevicePreferences(persistence: Persistence): DevicePreferences {

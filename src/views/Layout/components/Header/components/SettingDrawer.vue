@@ -145,28 +145,6 @@
         </div>
       </div>
       
-      <!-- 桌面应用设置（仅 Tauri 环境） -->
-      <div
-        v-if="tauriStore.isTauriEnv"
-        class="setting-section"
-      >
-        <div class="section-title">
-          {{ t('header.desktopApp') }}
-        </div>
-        <div class="setting-list">
-          <div class="setting-item">
-            <span>{{ t('header.onClose') }}</span>
-            <el-select-v2
-              v-model="closeActionValue"
-              :options="closeActionOptions"
-              style="width: 140px"
-              size="small"
-              @change="onCloseActionChange"
-            />
-          </div>
-        </div>
-      </div>
-      
       <!-- 操作按钮 -->
       <div class="setting-actions">
         <el-button
@@ -186,23 +164,15 @@
         </el-button>
       </div>
       
-      <!-- 版本信息 -->
-      <div
-        v-if="tauriStore.version"
-        class="version-section"
-      >
-        <span>{{ t('header.currentVersion', { version: tauriStore.version }) }}</span>
-      </div>
     </div>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMenuStore } from '@/store/menu.ts'
 import { useUserStore } from '@/store/user'
-import { useTauriStore } from '@/store/tauri'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { toggleDarkMode } from '@/hooks/useTheme'
@@ -220,20 +190,11 @@ const show = computed({ get: () => props.modelValue, set: (v: boolean) => emit('
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
-const tauriStore = useTauriStore()
 const kernel = useAppKernel()
 const route = useRoute()
 const { t } = useI18n()
 const isDark = ref(readDevicePreferences(kernel.persistence).theme === 'dark')
 const customColor = ref(menuStore.systemColor)
-const closeActionValue = ref<string>(tauriStore.closeAction ?? 'ask')
-
-// 抽屉打开时同步关闭行为偏好（可能被弹窗修改过）
-watch(show, (visible) => {
-  if (visible) {
-    closeActionValue.value = tauriStore.closeAction ?? 'ask'
-  }
-})
 
 const themeColors = computed(() => [
   { label: t('header.color.defaultBlue'), value: '#409EFF' },
@@ -250,12 +211,6 @@ const transitionOptions = computed(() => [
   { label: t('header.transitionOption.slideLeft'), value: 'slide-left' },
   { label: t('header.transitionOption.slideRight'), value: 'slide-right' },
   { label: t('header.transitionOption.zoom'), value: 'el-zoom-in-center' },
-])
-
-const closeActionOptions = computed(() => [
-  { label: t('header.closeAction.ask'), value: 'ask' },
-  { label: t('header.closeAction.minimize'), value: 'minimize' },
-  { label: t('header.closeAction.exit'), value: 'exit' },
 ])
 
 function onThemeChange(dark: boolean) {
@@ -289,14 +244,6 @@ function changeFooter(val: string | number | boolean) { menuStore.changeFooter(v
 function pageTransition(val: string | number | boolean) { menuStore.changePageTransition(val as boolean) }
 function transitionName(val: string) { menuStore.changeTransitionName(val) }
 
-function onCloseActionChange(val: string) {
-  if (val === 'ask') {
-    tauriStore.clearCloseAction()
-  } else {
-    tauriStore.setCloseAction(val as 'minimize' | 'exit')
-  }
-}
-
 function syncCurrentRouteUiState() {
   const menuId = typeof route.meta.menuId === 'string' ? route.meta.menuId : ''
   menuStore.selectedMenu = menuId
@@ -318,9 +265,7 @@ function clear() {
   menuStore.resetUiState()
   syncCurrentRouteUiState()
   toggleDarkMode(false)
-  tauriStore.clearCloseAction()
   isDark.value = false
-  closeActionValue.value = 'ask'
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
   customColor.value = menuStore.systemColor
   show.value = false
@@ -332,8 +277,6 @@ function resetTheme() {
   onThemeChange(false)
   systemColor('#409EFF')
   menuStore.applyDefaultSystemColor(false)
-  tauriStore.clearCloseAction()
-  closeActionValue.value = 'ask'
   ElNotification.success({ title: t('header.tip'), message: t('header.configResetMsg') })
 }
 </script>
@@ -352,7 +295,6 @@ function resetTheme() {
 .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--el-border-color-lighter); &:last-child { border-bottom: none; } span { font-size: 14px; color: var(--el-text-color-primary); } }
 .setting-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--el-border-color-lighter); }
 .action-btn { flex: 1; height: 40px; .el-icon { margin-right: 6px; } }
-.version-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--el-border-color-lighter); text-align: center; font-size: 12px; color: var(--el-text-color-placeholder); }
 :deep(.el-drawer__header) { padding: 16px 20px; margin-bottom: 0; border-bottom: 1px solid var(--el-border-color-lighter); }
 :deep(.el-drawer__body) { padding: 20px; }
 </style>

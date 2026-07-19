@@ -6,7 +6,6 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { visualizer } from 'rollup-plugin-visualizer'
 
-const host = process.env.TAURI_DEV_HOST
 const fallbackHost = '127.0.0.1'
 const isAnalyze = process.env.ANALYZE === 'true'
 
@@ -36,23 +35,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  // Tauri 需要固定端口
   clearScreen: false,
   server: {
     port: 5173,
     strictPort: true,
-    host: host || fallbackHost,
-    hmr: host
-      ? {
-          protocol: 'ws',
-          host,
-          port: 5174,
-        }
-      : undefined,
-    watch: {
-      ignored: ['**/src-tauri/**'],
-    },
-    open: !process.env.TAURI_ENV_DEBUG,
+    host: fallbackHost,
     // 预热常用文件
     warmup: {
       clientFiles: ['./src/main.ts', './src/router/index.ts', './src/App.vue'],

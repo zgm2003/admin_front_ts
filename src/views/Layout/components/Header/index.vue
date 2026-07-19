@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="header-bar"
-    :class="{ 'header-bar--draggable': isTauri }"
-  >
+  <div class="header-bar">
     <div class="header-left">
       <el-button
         v-if="menuStore.hamburger"
@@ -33,24 +30,6 @@
     </div>
 
     <div class="header-right">
-      <el-badge
-        v-if="isTauri"
-        :value="downloadCount"
-        :hidden="downloadCount === 0"
-        :max="99"
-      >
-        <el-button
-          text
-          :title="t('header.downloads')"
-          @click="showDownloadManager = true"
-        >
-          <DIcon
-            icon="Download"
-            :size="18"
-          />
-        </el-button>
-      </el-badge>
-
       <el-dropdown
         trigger="click"
         @command="setLang"
@@ -98,27 +77,20 @@
         />
       </el-button>
 
-      <WindowControls />
     </div>
   </div>
 
   <SettingDrawer v-model="drawer" />
   <SearchDialog v-model="searchOpen" />
-  <DownloadManager
-    v-if="isTauri"
-    v-model:visible="showDownloadManager"
-  />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, shallowRef } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
 import { Expand, Fold } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { DIcon } from '@/components/DIcon'
-import { downloadManager, DownloadManager } from '@/components/DownloadManager'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
-import { getNativeBridge } from '@/adapters/native'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/hooks/useTheme'
 import { useAppKernel } from '@/app/injection'
@@ -130,20 +102,16 @@ import { resolveMenuLabel } from '@/views/Layout/utils/menuLabel'
 import type { PermissionMenuItem } from '@/types/user'
 import SearchDialog from './components/SearchDialog.vue'
 import SettingDrawer from './components/SettingDrawer.vue'
-import WindowControls from './components/WindowControls.vue'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const kernel = useAppKernel()
 const isMobile = useIsMobile()
 const { t, locale } = useI18n()
-const isTauri = getNativeBridge().kind === 'tauri'
 
 const isDark = shallowRef(false)
 const drawer = shallowRef(false)
 const searchOpen = shallowRef(false)
-const showDownloadManager = shallowRef(false)
-const downloadCount = shallowRef(0)
 
 function findBreadcrumbPath(items: PermissionMenuItem[], target: string): PermissionMenuItem[] | null {
   for (const item of items) {
@@ -170,35 +138,8 @@ const breadcrumbs = computed(() => {
   return []
 })
 
-let downloadTimer: number | null = null
-
 function getBreadcrumbLabel(item: PermissionMenuItem) {
   return resolveMenuLabel(t, item)
-}
-
-async function updateDownloadCount() {
-  if (!isTauri) return
-
-  const downloads = await downloadManager.getAllDownloads()
-  const activeCount = downloads.filter(d => d.status === 'downloading').length
-  downloadCount.value = activeCount
-
-  if (activeCount > 0) {
-    startDownloadPolling()
-  } else {
-    stopDownloadPolling()
-  }
-}
-
-function startDownloadPolling() {
-  if (downloadTimer) return
-  downloadTimer = window.setInterval(updateDownloadCount, 2000)
-}
-
-function stopDownloadPolling() {
-  if (!downloadTimer) return
-  clearInterval(downloadTimer)
-  downloadTimer = null
 }
 
 function handleMenuToggle() {
@@ -219,15 +160,6 @@ onMounted(() => {
   toggleDarkMode(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 
-  if (isTauri) {
-    updateDownloadCount()
-    window.addEventListener('download-started', updateDownloadCount)
-  }
-})
-
-onUnmounted(() => {
-  stopDownloadPolling()
-  window.removeEventListener('download-started', updateDownloadCount)
 })
 </script>
 
@@ -264,10 +196,6 @@ onUnmounted(() => {
   background: var(--shell-panel-strong);
 }
 
-.header-bar--draggable {
-  -webkit-app-region: drag;
-}
-
 .header-left {
   flex: 1;
   min-width: 0;
@@ -275,14 +203,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   overflow: hidden;
-  -webkit-app-region: no-drag;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 4px;
-  -webkit-app-region: no-drag;
 
   :deep(.el-button + .el-button) {
     margin-left: 0;

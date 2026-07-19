@@ -1,61 +1,14 @@
 export type NativeUnlisten = () => void
 
-export interface NativeWindowState {
-  readonly minimized: boolean
-  readonly maximized: boolean
-  readonly focused: boolean
-  readonly visible: boolean
-}
-
 export interface WindowBridge {
-  getState(): Promise<NativeWindowState>
-  minimize(): Promise<void>
-  toggleMaximize(): Promise<void>
-  hide(): Promise<void>
-  requestClose(): Promise<void>
-  listenResize(listener: () => void): Promise<NativeUnlisten>
-  listenCloseRequested(listener: () => void): Promise<NativeUnlisten>
-  listenExitRequested(listener: () => void): Promise<NativeUnlisten>
   openExternal(url: string): void
   navigateExternal(url: string): void
   openSameOrigin(path: string): void
 }
 
-export type UpdaterDownloadEvent =
-  | { readonly event: 'Started'; readonly data: { readonly contentLength?: number } }
-  | { readonly event: 'Progress'; readonly data: { readonly chunkLength: number } }
-  | { readonly event: 'Finished' }
-
-export interface NativeUpdate {
-  readonly version: string
-  readonly body?: string
-  download(listener: (event: UpdaterDownloadEvent) => void): Promise<void>
-  install(): Promise<void>
-}
-
-export interface UpdaterBridge {
-  getCurrentVersion(): Promise<string>
-  check(): Promise<NativeUpdate | null>
-}
-
 export interface NotificationBridge {
   shouldUseNative(): Promise<boolean>
   send(title: string, body: string): Promise<void>
-}
-
-export interface DesktopRefreshCredential {
-  readonly refreshToken: string
-}
-
-export interface NativeAccessCredential {
-  readonly accessToken: string
-  readonly expiresAt: number
-}
-
-export interface DesktopCredentialBridge {
-  seal(credential: DesktopRefreshCredential): Promise<void>
-  refresh(deviceId: string): Promise<NativeAccessCredential>
-  clear(): Promise<void>
 }
 
 export type ManagedDownloadStatus =
@@ -88,19 +41,11 @@ export interface ManagedDownloadBridge {
   listenFailed(listener: (failure: { readonly taskId: string; readonly message: string }) => void): Promise<NativeUnlisten>
 }
 
-export interface ProcessBridge {
-  relaunchAfterUpdate(): Promise<void>
-  exitAfterUserConfirmation(): Promise<void>
-}
-
 export interface NativeBridge {
   readonly kind: 'web' | 'tauri'
   readonly window: WindowBridge
-  readonly updater: UpdaterBridge
   readonly notifications: NotificationBridge
-  readonly credentials: DesktopCredentialBridge
   readonly downloads: ManagedDownloadBridge
-  readonly process: ProcessBridge
   dispose(): Promise<void>
 }
 
@@ -128,21 +73,6 @@ export class NativeCancelledError extends Error {
   constructor(message = 'native operation was cancelled') {
     super(message)
     this.name = 'NativeCancelledError'
-  }
-}
-
-export type NativeUpdaterErrorCode =
-  | 'native.updater_contract_invalid'
-  | 'native.updater_state_invalid'
-  | 'native.updater_failed'
-
-export class NativeUpdaterError extends Error {
-  readonly code: NativeUpdaterErrorCode
-
-  constructor(code: NativeUpdaterErrorCode, message: string) {
-    super(message)
-    this.name = 'NativeUpdaterError'
-    this.code = code
   }
 }
 

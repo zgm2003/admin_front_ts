@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useIsMobile } from '@/hooks/useResponsive'
-import { getNativeBridge } from '@/adapters/native'
-import { SemiSelect, CloseBold } from '@element-plus/icons-vue'
 import { useLoginForm } from './composables/useLoginForm'
 import { useForgotPassword } from './composables/useForgotPassword'
 import { AppCaptchaOverlay } from '@/components/AppCaptcha'
@@ -14,8 +12,6 @@ import ForgotPasswordDialog from './components/ForgotPasswordDialog.vue'
 import LoginSuccessOverlay from './components/LoginSuccessOverlay.vue'
 
 const isMobile = useIsMobile()
-const native = getNativeBridge()
-const isTauriEnv = native.kind === 'tauri'
 
 const {
   loginTypes,
@@ -58,42 +54,13 @@ const {
   handleResetPassword,
 } = useForgotPassword()
 
-// Tauri 窗口操作
-async function tauriMinimize() {
-  await native.window.minimize()
-}
-async function tauriClose() {
-  await native.window.requestClose()
-}
 </script>
 
 <template>
   <div
     class="login-page login-container"
-    :class="{ 'is-mobile': isMobile, 'is-tauri-mobile': isMobile && isTauriEnv }"
+    :class="{ 'is-mobile': isMobile }"
   >
-    <!-- Tauri 无边框模式：顶部拖拽条 -->
-    <div
-      v-if="isTauriEnv"
-      class="tauri-drag-bar"
-    >
-      <div class="tauri-drag-controls">
-        <el-button
-          text
-          size="small"
-          :icon="SemiSelect"
-          @click="tauriMinimize"
-        />
-        <el-button
-          text
-          size="small"
-          type="danger"
-          :icon="CloseBold"
-          @click="tauriClose"
-        />
-      </div>
-    </div>
-
     <!-- 全局背景装饰 -->
     <LoginBackground />
 
@@ -195,26 +162,6 @@ async function tauriClose() {
   align-items: stretch;
 }
 
-.tauri-drag-bar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 9998;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  -webkit-app-region: drag;
-}
-
-.tauri-drag-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  -webkit-app-region: no-drag;
-}
-
 .content-wrapper {
   position: relative;
   z-index: 1;
@@ -265,10 +212,6 @@ async function tauriClose() {
   box-shadow:
     0 12px 36px -16px rgba(15, 23, 42, 0.14),
     inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-}
-
-.login-container.is-tauri-mobile .form-section.login-mobile-sheet {
-  padding-top: calc(36px + env(safe-area-inset-top, 0px));
 }
 
 @media (max-height: 500px) and (orientation: landscape) {

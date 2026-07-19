@@ -57,22 +57,6 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
   return {
     kind: 'web',
     window: {
-      async getState() {
-        return { minimized: false, maximized: false, focused: true, visible: true }
-      },
-      async minimize() {},
-      async toggleMaximize() {},
-      async hide() {},
-      async requestClose() {},
-      async listenResize() {
-        return noOpUnlisten
-      },
-      async listenCloseRequested() {
-        return noOpUnlisten
-      },
-      async listenExitRequested() {
-        return noOpUnlisten
-      },
       openExternal(input) {
         const url = parsedUrl(input)
         if (url.protocol !== 'https:' || !externalHosts.has(url.hostname.toLowerCase())) {
@@ -97,20 +81,11 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
         isolatedOpen(open, url)
       },
     },
-    updater: {
-      getCurrentVersion: () => unavailable('updater.getCurrentVersion'),
-      check: () => unavailable('updater.check'),
-    },
     notifications: {
       async shouldUseNative() {
         return false
       },
       send: () => unavailable('notifications.send'),
-    },
-    credentials: {
-      seal: () => unavailable('credentials.seal'),
-      refresh: () => unavailable('credentials.refresh'),
-      clear: () => unavailable('credentials.clear'),
     },
     downloads: {
       start: () => unavailable('downloads.start'),
@@ -132,10 +107,6 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
       async listenFailed() {
         return noOpUnlisten
       },
-    },
-    process: {
-      relaunchAfterUpdate: () => unavailable('process.relaunchAfterUpdate'),
-      exitAfterUserConfirmation: () => unavailable('process.exitAfterUserConfirmation'),
     },
     async dispose() {},
   }
