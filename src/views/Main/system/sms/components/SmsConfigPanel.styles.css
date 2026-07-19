@@ -1,0 +1,141 @@
+.sms-config {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.sms-config__notice {
+  margin-bottom: 16px;
+}
+
+.sms-config__card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sms-config__card + .sms-config__card {
+  margin-top: 16px;
+}
+
+.sms-config__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sms-config__header p {
+  margin: 6px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.sms-config__form {
+  width: 100%;
+  max-width: 1120px;
+  min-width: 0;
+}
+
+.sms-config__form :deep(.el-row) {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.sms-config__form :deep(.el-col),
+.sms-config__form :deep(.el-form-item__content),
+.sms-config__test :deep(.el-form-item__content) {
+  min-width: 0;
+}
+
+.sms-config__actions {
+  display: flex;
+  gap: 12px;
+  padding-left: 160px;
+}
+
+.sms-config__test {
+  width: 100%;
+  max-width: 640px;
+  min-width: 0;
+}
+
+.sms-config__select {
+  width: 100%;
+}
+
+.sms-config__form-item--ttl :deep(.el-form-item__label) {
+  white-space: nowrap;
+}
+
+.sms-config__field-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.sms-config__ttl-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sms-config__ttl-input {
+  width: 180px;
+}
+
+.sms-config__ttl-unit {
+  flex: none;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+}
+
+.sms-config__help {
+  width: 100%;
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sms-config__meta {
+  margin-top: 18px;
+}
+
+@media (max-width: 768px) {
+  .sms-config__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sms-config__actions {
+    flex-wrap: wrap;
+    padding-left: 0;
+  }
+
+  .sms-config__form :deep(.el-form-item),
+  .sms-config__test :deep(.el-form-item) {
+    display: block;
+  }
+
+  .sms-config__form :deep(.el-form-item__label),
+  .sms-config__test :deep(.el-form-item__label) {
+    justify-content: flex-start;
+    width: auto !important;
+    padding-right: 0;
+  }
+
+  .sms-config__form :deep(.el-form-item__content),
+  .sms-config__test :deep(.el-form-item__content) {
+    margin-left: 0 !important;
+  }
+
+  .sms-config__meta :deep(.el-descriptions__table) {
+    table-layout: fixed;
+  }
+}

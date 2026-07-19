@@ -1,0 +1,40 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto
+}
+
+.role-permission-editor {
+  width: 100%;
+  padding: 12px;
+  background: var(--el-fill-color-blank);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+}
+
+.role-permission-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.role-permission-editor__tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.fenye {
+  flex: 0 0 auto;
+  margin-left: 30%;
+  margin-top: 10px
+}

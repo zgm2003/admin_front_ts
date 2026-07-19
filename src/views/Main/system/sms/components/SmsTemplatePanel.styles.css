@@ -1,0 +1,47 @@
+.sms-template {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sms-template__table {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.sms-template__variables {
+  width: 100%;
+  justify-content: center;
+}
+
+.sms-template__select {
+  width: 100%;
+}
+
+.sms-template__samples {
+  width: 100%;
+}
+
+.sms-template__sample-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(220px, 2fr) auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sms-template__sample-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sms-template__sample-tip {
+  margin-top: 8px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}

@@ -1,0 +1,7 @@
+.box { display: flex; flex-direction: column; height: 100%; }
+.task-title { display: flex; flex-direction: column; gap: 2px; }
+.task-title .title { font-weight: 500; }
+.task-title .name { font-size: 12px; }
+.text-secondary { color: var(--el-text-color-secondary); }
+.task-type-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.handler-code { font-size: 12px; background: var(--el-fill-color-light); padding: 2px 6px; border-radius: 4px; }

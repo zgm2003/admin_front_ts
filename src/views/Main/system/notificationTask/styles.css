@@ -1,0 +1,4 @@
+.box { display: flex; flex-direction: column; height: 100% }
+.text-secondary { color: var(--el-text-color-secondary) }
+.cell-error { display: flex; align-items: center; gap: 4px }
+.error-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--el-color-danger) }
