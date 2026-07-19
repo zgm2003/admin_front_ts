@@ -363,16 +363,39 @@ git diff --cached --check
 git commit -m "build(tauri): block Windows security regressions"
 ```
 
+### Post-implementation security audit closure
+
+**Files:**
+- Modify: `src-tauri/build.rs`
+- Modify: `src-tauri/capabilities/default.json`
+- Modify: `src-tauri/tauri.conf.json`
+- Modify: `src-tauri/src/lib.rs`
+- Modify: `src-tauri/src/window.rs`
+- Modify: `src-tauri/src/download/policy.rs`
+- Modify: `scripts/verify-tauri.ps1`
+- Modify: `tests/shared/tauri/security-config.test.ts`
+- Modify: `tests/shared/tauri/security-gate.test.ts`
+- Modify: `src-tauri/tests/security_boundary.rs`
+
+- [x] Deny WebView-native downloads and child-window creation so remote frames cannot bypass the Rust-managed download boundary.
+- [x] Reject cross-host redirects even when both hosts are individually allowlisted.
+- [x] Generate an application ACL for every custom `#[tauri::command]` and grant it only to the local `main` window; no remote origin is present.
+- [x] Make the verifier compare Rust commands, generated `__app-acl__` permissions, and capability grants one-to-one.
+- [x] Re-run Docker TypeScript gates, Rust security gates, release build, and Windows x64 NSIS packaging.
+
 ## Plan completion gate
 
 ```powershell
 cd E:/admin/admin_front_ts
-npm ci
+# Both verifiers install and test frontend dependencies inside Docker; do not run host npm.
 pwsh -NoProfile -File scripts/tests/tauri-security-source.tests.ps1
 pwsh -NoProfile -File scripts/verify-frontend.ps1
 pwsh -NoProfile -File scripts/verify-tauri.ps1
-git grep -n -i playwright -- package.json package-lock.json src tests scripts .github
+# `security-gate.test.ts` structurally rejects declared or installed browser automation.
+# Keep the text search on owned source/config only: Vitest records optional browser peers
+# in its package-lock metadata even when those packages are not installed.
+git grep -n -i playwright -- package.json src tests scripts .github
 git status --short
 ```
 
-Expected: the Windows NSIS app loads only packaged local assets; global/remote capability and unsafe eval are absent; DOM code never persists a refresh credential; native URL/path/redirect/private-address abuse is denied; partial downloads are cleaned; unsigned updater artifacts are rejected; Rust/TypeScript gates pass; browser-tool search and status produce no output. P08 uploads no candidate and is accepted only after the user confirms `docs/acceptance/p08-tauri-windows-manual.md`.
+Expected: the Windows NSIS app loads only packaged local assets; global/remote capability and unsafe eval are absent; DOM code never persists a refresh credential; native URL/path/redirect/private-address abuse is denied; partial downloads are cleaned; unsigned updater artifacts are rejected; Rust/TypeScript gates pass; the structural browser-dependency test, owned-source search, and status check pass. P08 uploads no candidate and is accepted only after the user confirms `docs/acceptance/p08-tauri-windows-manual.md`.
