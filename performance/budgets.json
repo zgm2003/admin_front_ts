@@ -1,0 +1,24 @@
+{
+  "initialJs": {
+    "gzip": 307200,
+    "brotli": 256000
+  },
+  "initialCss": {
+    "gzip": 153600,
+    "brotli": 128000
+  },
+  "largestLazyJs": {
+    "gzip": 307200,
+    "brotli": 256000
+  },
+  "totalJs": {
+    "gzip": 1572864,
+    "brotli": 1258291
+  },
+  "forbiddenInitialModules": [
+    "@wangeditor",
+    "cos-js-sdk-v5",
+    "markdown-it",
+    "highlight.js"
+  ]
+}

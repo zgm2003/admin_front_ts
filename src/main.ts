@@ -4,7 +4,7 @@ import './style.css'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import App from './App.vue'
-import i18n from './i18n'
+import i18n, { registerLocaleRouteGuard } from './i18n'
 import router from './router'
 import { createCatchAllRoute } from './router/routes'
 import { registerRouterGuards } from './router/guards'
@@ -69,13 +69,14 @@ const credentialAdapter = new CookieCredentialAdapter({
   headers: requestHeaders,
 })
 
-app.use(pinia)
-const stopMenuStorePersistence = setupMenuStorePersistence(pinia, persistence)
-app.use(router)
-app.use(i18n)
-
 const storedDevicePreferences = readDevicePreferences(persistence)
 if (storedDevicePreferences.language) i18n.global.locale.value = storedDevicePreferences.language
+const unregisterLocaleRouteGuard = registerLocaleRouteGuard(router)
+
+app.use(pinia)
+const stopMenuStorePersistence = setupMenuStorePersistence(pinia, persistence)
+app.use(i18n)
+app.use(router)
 toggleDarkMode(storedDevicePreferences.theme === 'dark')
 
 const userStore = useUserStore(pinia)
@@ -189,6 +190,7 @@ const kernel = new AppKernel({
     async dispose() {
       unregisterRouterGuards?.()
       unregisterRouterGuards = null
+      unregisterLocaleRouteGuard()
       menuPersistence.clearActive(false)
       stopMenuStorePersistence()
       uninstallApiClient()

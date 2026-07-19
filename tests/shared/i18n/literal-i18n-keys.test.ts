@@ -1,6 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import zhCN from '../../../src/i18n/locales/zh-CN'
-import enUS from '../../../src/i18n/locales/en-US'
+import enCommon from '../../../src/i18n/locales/en-US/common'
+import enAuth from '../../../src/i18n/locales/en-US/auth'
+import enLayout from '../../../src/i18n/locales/en-US/layout'
+import enUser from '../../../src/i18n/locales/en-US/user'
+import enPermission from '../../../src/i18n/locales/en-US/permission'
+import enSystem from '../../../src/i18n/locales/en-US/system'
+import enPayment from '../../../src/i18n/locales/en-US/payment'
+import enAi from '../../../src/i18n/locales/en-US/ai'
+import zhCommon from '../../../src/i18n/locales/zh-CN/common'
+import zhAuth from '../../../src/i18n/locales/zh-CN/auth'
+import zhLayout from '../../../src/i18n/locales/zh-CN/layout'
+import zhUser from '../../../src/i18n/locales/zh-CN/user'
+import zhPermission from '../../../src/i18n/locales/zh-CN/permission'
+import zhSystem from '../../../src/i18n/locales/zh-CN/system'
+import zhPayment from '../../../src/i18n/locales/zh-CN/payment'
+import zhAi from '../../../src/i18n/locales/zh-CN/ai'
+
+const enUS = { ...enCommon, ...enAuth, ...enLayout, ...enUser, ...enPermission, ...enSystem, ...enPayment, ...enAi }
+const zhCN = { ...zhCommon, ...zhAuth, ...zhLayout, ...zhUser, ...zhPermission, ...zhSystem, ...zhPayment, ...zhAi }
 
 type LocaleTree = Record<string, unknown>
 

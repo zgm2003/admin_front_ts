@@ -87,6 +87,7 @@
 import { computed, onMounted, shallowRef } from 'vue'
 import { Expand, Fold } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { DIcon } from '@/components/DIcon'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
@@ -99,14 +100,16 @@ import {
 } from '@/modules/persistence/preferences'
 import { resolveMenuLabel } from '@/views/Layout/utils/menuLabel'
 import type { PermissionMenuItem } from '@/types/user'
+import { setAdminLocale } from '@/i18n'
 import SearchDialog from './components/SearchDialog.vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 const kernel = useAppKernel()
+const route = useRoute()
 const isMobile = useIsMobile()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const isDark = shallowRef(false)
 const drawer = shallowRef(false)
@@ -145,9 +148,9 @@ function handleMenuToggle() {
   menuStore.toggleCollapse(isMobile.value)
 }
 
-function setLang(lang: string) {
+async function setLang(lang: string) {
   if (lang !== 'zh-CN' && lang !== 'en-US') return
-  locale.value = lang
+  await setAdminLocale(lang, route.path)
   writeDevicePreferences(kernel.persistence, {
     ...readDevicePreferences(kernel.persistence),
     language: lang,

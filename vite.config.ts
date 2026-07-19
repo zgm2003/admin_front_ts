@@ -5,9 +5,11 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { bundleMetadataPlugin } from './scripts/lib/bundle-metadata.mjs'
 
 const fallbackHost = '127.0.0.1'
 const isAnalyze = process.env.ANALYZE === 'true'
+const projectRoot = fileURLToPath(new URL('.', import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -22,6 +24,7 @@ export default defineConfig({
       dts: 'src/types/components.d.ts',
       globs: ['src/components/*/index.vue'], // 只扫描组件根目录的 index.vue
     }),
+    bundleMetadataPlugin(projectRoot),
     // Bundle 可视化分析（ANALYZE=true npm run build 启用）
     isAnalyze && visualizer({
       open: true,
@@ -57,6 +60,7 @@ export default defineConfig({
     ],
   },
   build: {
+    manifest: true,
     // Rolldown 分包策略
     rolldownOptions: {
       // ali-oss 为可选依赖，未安装时不打包

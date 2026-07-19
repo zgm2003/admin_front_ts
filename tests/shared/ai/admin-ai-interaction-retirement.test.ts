@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
@@ -19,9 +19,13 @@ describe('admin AI interactive surfaces are retired', () => {
   })
 
   test('does not keep admin image or asset menu/i18n keys', () => {
-    const zhCN = readFileSync(join(root, 'src/i18n/locales/zh-CN.ts'), 'utf8')
-    const enUS = readFileSync(join(root, 'src/i18n/locales/en-US.ts'), 'utf8')
-    const combined = `${zhCN}\n${enUS}`
+    const combined = ['zh-CN', 'en-US'].flatMap((locale) => {
+      const directory = join(root, 'src/i18n/locales', locale)
+      return readdirSync(directory)
+        .filter((name) => name.endsWith('.ts'))
+        .sort()
+        .map((name) => readFileSync(join(directory, name), 'utf8'))
+    }).join('\n')
 
     for (const token of [
       'ai_image_playground',

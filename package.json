@@ -12,6 +12,10 @@
     "typecheck": "vue-tsc -b",
     "build:check": "vue-tsc -b && vite build",
     "build:analyze": "cross-env ANALYZE=true vite build",
+    "bundle:check": "node ./scripts/analyze-bundle.mjs --check",
+    "bundle:baseline": "node ./scripts/analyze-bundle.mjs --write-baseline",
+    "locale:generate": "node ./scripts/generate-locale-types.mjs",
+    "locale:check": "node ./scripts/generate-locale-types.mjs --check",
     "contract:sync": "node ./scripts/sync-admin-contract.mjs",
     "contract:generate": "node ./scripts/generate-admin-types.mjs",
     "contract:check": "node ./scripts/check-admin-contract.mjs",
@@ -22,51 +26,6 @@
     "test:architecture": "node ./scripts/audit-test-architecture.mjs",
     "preview": "vite preview",
     "test": "vitest run"
-  },
-  "perfBudget": {
-    "_comment": "性能预算基线 (Phase 0) - 用于 CI 检查和告警",
-    "bundles": {
-      "total": {
-        "maxSize": "5MB",
-        "maxGzip": "1.5MB",
-        "baseline": "5.2MB"
-      },
-      "icons": {
-        "maxSize": "500KB",
-        "baseline": "2957KB",
-        "target": "-80%"
-      },
-      "editor": {
-        "maxSize": "300KB",
-        "baseline": "810KB",
-        "note": "按需加载后不影响首屏"
-      },
-      "vue-vendor": {
-        "maxSize": "250KB",
-        "baseline": "213KB"
-      },
-      "initial": {
-        "maxSize": "300KB",
-        "note": "首屏关键 JS"
-      }
-    },
-    "api": {
-      "login": {
-        "p95": "300ms"
-      },
-      "list": {
-        "p95": "200ms"
-      },
-      "aiStream": {
-        "firstToken": "2000ms",
-        "note": "AI 供应商延迟不可控"
-      }
-    },
-    "lighthouse": {
-      "performance": 70,
-      "accessibility": 90,
-      "bestPractices": 90
-    }
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

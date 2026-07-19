@@ -20,4 +20,10 @@ describe('vite config', () => {
 
     expect(source).not.toContain('<link rel="modulepreload" href="/src/main.ts" />')
   })
+
+  it('emits a Vite manifest and deterministic module membership metadata', () => {
+    expect(viteConfig.build?.manifest).toBe(true)
+    expect(viteConfig.plugins?.some((plugin) => plugin && 'name' in plugin
+      && plugin.name === 'admin-bundle-metadata')).toBe(true)
+  })
 })
