@@ -1,0 +1,176 @@
+.message-input {
+  border-top: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.message-input.is-dragging {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+/* 工具栏 */
+.input-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px 2px;
+}
+
+.toolbar-left {
+  display: flex;
+  gap: 2px;
+}
+
+.toolbar-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  min-height: 32px;
+}
+
+/* 语音按钮录音态 */
+.voice-btn.is-recording {
+  color: #fff !important;
+  background: #07c160 !important;
+  animation: voice-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7); }
+  50% { box-shadow: 0 0 0 10px rgba(7, 193, 96, 0); }
+}
+
+/* 待发送附件预览区 */
+.input-body {
+  padding: 0 12px;
+}
+
+.chat-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--el-text-color-primary);
+  min-height: 24px;
+  max-height: 200px;
+  padding: 6px 4px;
+  font-family: inherit;
+}
+
+.chat-textarea::placeholder {
+  color: var(--el-text-color-placeholder);
+}
+
+.chat-textarea:disabled {
+  cursor: not-allowed;
+}
+
+/* 底部 */
+.input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 8px;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #07c160;
+}
+
+.recording-icon {
+  animation: recording-blink 1s ease-in-out infinite;
+}
+
+@keyframes recording-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* 停止按钮 */
+.stop-button {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: var(--el-color-danger);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.stop-button:hover {
+  background: var(--el-color-danger-dark-2);
+}
+
+.stop-icon {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+/* Emoji popover */
+:global(.emoji-popover) {
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 参数设置 */
+.params-active {
+  color: var(--el-color-primary) !important;
+}
+
+.char-count {
+  font-size: 11px;
+  color: var(--el-text-color-placeholder);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.char-count.near-limit {
+  color: var(--el-color-danger);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .input-toolbar {
+    padding: 4px 8px 0;
+  }
+
+  .toolbar-btn {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .input-body {
+    padding: 0 8px;
+  }
+
+  .input-footer {
+    padding: 2px 8px 6px;
+  }
+
+  .input-hint {
+    font-size: 11px;
+  }
+}

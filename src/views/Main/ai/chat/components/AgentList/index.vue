@@ -5,7 +5,7 @@ import type { Agent } from '../../composables/types'
 
 const { t } = useI18n()
 
-const props = defineProps<{
+defineProps<{
   agents: Agent[]
   loading: boolean
   selectedId: number | null

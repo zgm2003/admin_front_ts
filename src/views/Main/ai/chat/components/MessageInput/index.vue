@@ -1,405 +1,143 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onUnmounted } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { Picture, Close, Loading, ChatLineSquare, Microphone, Setting, RefreshRight } from '@element-plus/icons-vue'
+import { ChatLineSquare, Microphone, Picture, Setting } from '@element-plus/icons-vue'
 import { DIcon } from '@/components/DIcon'
 import { EmojiPicker } from '@/components/EmojiPicker'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { getUploadToken, validateFile, uploadFileToCloud, type UploadConfig } from '@/lib/upload'
 import type { AIRuntimeParams } from '@/api/ai/messages'
+import PendingAttachments from './PendingAttachments.vue'
+import RuntimeParamsPanel from './RuntimeParamsPanel.vue'
+import { createRuntimeParams } from './runtime-params'
+import { useImageAttachments, type Attachment } from './use-image-attachments'
+import { useSpeechInput } from './use-speech-input'
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-
-interface Attachment {
-  type: 'image'
-  url: string
-  name: string
-  size: number
-}
-
-interface PendingAttachment {
-  id: string
-  file: File
-  preview: string
-  status: 'pending' | 'uploading' | 'done' | 'error'
-  url?: string
-  error?: string
-}
-
-interface SpeechRecognitionAlternativeLike {
-  transcript: string
-}
-
-interface SpeechRecognitionResultLike {
-  isFinal: boolean
-  [index: number]: SpeechRecognitionAlternativeLike
-}
-
-interface SpeechRecognitionEventLike {
-  resultIndex: number
-  results: ArrayLike<SpeechRecognitionResultLike>
-}
-
-interface SpeechRecognitionErrorEventLike {
-  error: string
-}
-
-interface SpeechRecognitionLike {
-  lang: string
-  continuous: boolean
-  interimResults: boolean
-  onstart: (() => void) | null
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null
-  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null
-  onend: (() => void) | null
-  start: () => void
-  stop: () => void
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionLike
-}
-
-interface WindowWithSpeechRecognition extends Window {
-  SpeechRecognition?: SpeechRecognitionConstructor
-  webkitSpeechRecognition?: SpeechRecognitionConstructor
-}
-
 const props = defineProps<{
   sending: boolean
   disabled?: boolean
   isStreaming?: boolean
   showHistoryBtn?: boolean
 }>()
-
 const emit = defineEmits<{
   send: [content: string, attachments?: Attachment[], runtimeParams?: AIRuntimeParams]
   stop: []
   openHistory: []
 }>()
 
+const MAX_CONTENT_LENGTH = 30000
 const inputText = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
-const fileInputRef = ref<HTMLInputElement>()
-const pendingAttachments = ref<PendingAttachment[]>([])
-const isDragging = ref(false)
 const showEmojiPicker = ref(false)
 const showParamsPanel = ref(false)
-
-// ==================== Runtime Params ====================
 const runtimeTemperature = ref<number | null>(null)
 const runtimeMaxTokens = ref<number | null>(null)
 const runtimeMaxHistory = ref<number | null>(null)
+const hasCustomParams = computed(() => (
+  runtimeTemperature.value !== null
+  || runtimeMaxTokens.value !== null
+  || runtimeMaxHistory.value !== null
+))
+const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
 
-const hasCustomParams = computed(() => runtimeTemperature.value !== null || runtimeMaxTokens.value !== null || runtimeMaxHistory.value !== null)
-
-const getRequestParams = (): AIRuntimeParams => {
-  const result: AIRuntimeParams = {}
-  if (runtimeTemperature.value !== null) result.temperature = runtimeTemperature.value
-  if (runtimeMaxTokens.value !== null) result.max_tokens = runtimeMaxTokens.value
-  if (runtimeMaxHistory.value !== null) result.max_history = runtimeMaxHistory.value
-  return result
+function getRequestParams(): AIRuntimeParams {
+  return createRuntimeParams(
+    runtimeTemperature.value,
+    runtimeMaxTokens.value,
+    runtimeMaxHistory.value,
+  )
 }
 
-const resetParams = () => {
+function resetParams() {
   runtimeTemperature.value = null
   runtimeMaxTokens.value = null
   runtimeMaxHistory.value = null
 }
 
-const MAX_IMAGES = 5
-const MAX_CONTENT_LENGTH = 30000
-
-const supportsImage = computed(() => true)
-const isImageLimitReached = computed(() => pendingAttachments.value.length >= MAX_IMAGES)
-const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
-
-// ==================== textarea 自动高度 ====================
-
-const adjustHeight = () => {
+function adjustHeight() {
   const textarea = textareaRef.value
-  if (textarea) {
-    textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
-  }
+  if (!textarea) return
+  textarea.style.height = 'auto'
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`
 }
 
-// ==================== 语音转文字（Web Speech API） ====================
-
-const isRecording = ref(false)
-let recognition: SpeechRecognitionLike | null = null
-
-function toggleVoiceInput() {
-  if (isRecording.value) {
-    stopVoiceInput()
-  } else {
-    startVoiceInput()
-  }
-}
-
-function startVoiceInput() {
-  const win = window as WindowWithSpeechRecognition
-  const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition
-  if (!SpeechRecognition) {
-    ElNotification.error({ message: t('aiChat.voiceNotSupported') })
-    return
-  }
-
-  try {
-    recognition = new SpeechRecognition()
-    recognition.lang = 'zh-CN'
-    recognition.continuous = true
-    recognition.interimResults = true
-
-    recognition.onstart = () => {
-      isRecording.value = true
-    }
-
-    recognition.onresult = (event: SpeechRecognitionEventLike) => {
-      let finalTranscript = ''
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i]
-        const alternative = result?.[0]
-        if (result?.isFinal && alternative) {
-          finalTranscript += alternative.transcript
-        }
-      }
-      if (finalTranscript) {
-        inputText.value += finalTranscript
-        nextTick(adjustHeight)
-      }
-    }
-
-    recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
-      if (event.error === 'no-speech') {
-        ElNotification.warning({ message: t('aiChat.voiceNoSpeech') })
-      } else if (event.error === 'not-allowed') {
-        ElNotification.error({ message: t('aiChat.voiceDenied') })
-      } else {
-        ElNotification.error({ message: t('aiChat.voiceError') + ': ' + event.error })
-      }
-      stopVoiceInput()
-    }
-
-    recognition.onend = () => {
-      isRecording.value = false
-    }
-
-    recognition.start()
-  } catch (err: unknown) {
-    ElNotification.error({ message: err instanceof Error ? err.message : t('aiChat.voiceError') })
-    isRecording.value = false
-  }
-}
-
-function stopVoiceInput() {
-  if (recognition) {
-    recognition.stop()
-    recognition = null
-  }
-  isRecording.value = false
-}
-
-onUnmounted(() => {
-  if (recognition) { recognition.stop(); recognition = null }
-})
-
-// ==================== 图片上传 ====================
-
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
-
-const createPreview = (file: File): Promise<string> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target?.result as string)
-    reader.readAsDataURL(file)
-  })
-}
-
-const uploadFile = async (pending: PendingAttachment) => {
-  const item = pendingAttachments.value.find(a => a.id === pending.id)
-  if (!item) return
-
-  item.status = 'uploading'
-
-  let config: UploadConfig | null = null
-  try {
-    config = await getUploadToken({
-      folderName: 'ai_chat_images',
-      fileName: pending.file.name,
-      fileSize: pending.file.size,
-      fileKind: 'image',
-    })
-  } catch {
-    item.status = 'error'
-    item.error = t('aiChat.tokenError')
-    ElNotification.error({ message: item.error })
-    return
-  }
-
-  try {
-    validateFile(pending.file, config, 'image')
-  } catch (error: unknown) {
-    item.status = 'error'
-    item.error = error instanceof Error ? error.message : t('aiChat.uploadFailed')
-    ElNotification.error({ message: item.error })
-    return
-  }
-
-  try {
-    const result = await uploadFileToCloud(pending.file, config)
-    item.url = result.url
-    item.status = 'done'
-  } catch {
-    item.status = 'error'
-    item.error = t('aiChat.networkError')
-    ElNotification.error({ message: item.error })
-  }
-}
-
-const addImageFiles = async (files: FileList | File[]) => {
-  if (!supportsImage.value) {
-    ElNotification.warning({ message: t('aiChat.modelNotSupportImage') })
-    return
-  }
-
-  const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
-  const availableSlots = MAX_IMAGES - pendingAttachments.value.length
-
-  if (availableSlots <= 0) {
-    ElNotification.warning({ message: t('aiChat.maxImagesReached', { max: MAX_IMAGES }) })
-    return
-  }
-
-  const filesToAdd = imageFiles.slice(0, availableSlots)
-  if (filesToAdd.length < imageFiles.length) {
-    ElNotification.warning({ message: t('aiChat.maxImagesReached', { max: MAX_IMAGES }) })
-  }
-
-  for (const file of filesToAdd) {
-    const preview = await createPreview(file)
-    const pending: PendingAttachment = { id: generateId(), file, preview, status: 'pending' }
-    pendingAttachments.value.push(pending)
-    uploadFile(pending)
-  }
-}
-
-const handleUploadClick = () => { fileInputRef.value?.click() }
-
-const handleFileChange = (e: Event) => {
-  const input = e.target as HTMLInputElement
-  if (input.files?.length) {
-    addImageFiles(input.files)
-    input.value = ''
-  }
-}
-
-const removeAttachment = (id: string) => {
-  const idx = pendingAttachments.value.findIndex(a => a.id === id)
-  if (idx !== -1) pendingAttachments.value.splice(idx, 1)
-}
-
-// ==================== 粘贴 & 拖拽 ====================
-
-const handlePaste = (e: ClipboardEvent) => {
-  if (!supportsImage.value) return
-  const items = e.clipboardData?.items
-  if (!items) return
-
-  const imageFiles: File[] = []
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      const file = item.getAsFile()
-      if (file) imageFiles.push(file)
-    }
-  }
-  if (imageFiles.length > 0) {
-    e.preventDefault()
-    addImageFiles(imageFiles)
-  }
-}
-
-const handleDragOver = (e: DragEvent) => {
-  if (!supportsImage.value) return
-  e.preventDefault()
-  isDragging.value = true
-}
-
-const handleDragLeave = (e: DragEvent) => {
-  e.preventDefault()
-  isDragging.value = false
-}
-
-const handleDrop = (e: DragEvent) => {
-  e.preventDefault()
-  isDragging.value = false
-  if (!supportsImage.value) return
-  const files = e.dataTransfer?.files
-  if (files?.length) addImageFiles(files)
-}
-
-// ==================== Emoji ====================
+const { isRecording, toggleVoiceInput } = useSpeechInput(inputText, adjustHeight)
+const {
+  setFileInputRef,
+  pendingAttachments,
+  isDragging,
+  supportsImage,
+  isImageLimitReached,
+  handleUploadClick,
+  handleFileChange,
+  removeAttachment,
+  handlePaste,
+  handleDragOver,
+  handleDragLeave,
+  handleDrop,
+} = useImageAttachments()
 
 function handleEmojiSelect(emoji: string) {
   const textarea = textareaRef.value
-  if (textarea) {
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    inputText.value = inputText.value.substring(0, start) + emoji + inputText.value.substring(end)
-    nextTick(() => {
-      textarea.focus()
-      const newPos = start + emoji.length
-      textarea.setSelectionRange(newPos, newPos)
-      adjustHeight()
-    })
-  } else {
+  if (!textarea) {
     inputText.value += emoji
-  }
-  showEmojiPicker.value = false
-}
-
-// ==================== 发送 ====================
-
-const handleSend = () => {
-  if (props.sending || props.disabled) return
-
-  const content = inputText.value.trim()
-  const uploading = pendingAttachments.value.some(a => a.status === 'uploading')
-  if (uploading) {
-    ElNotification.warning({ message: t('aiChat.waitUpload') })
+    showEmojiPicker.value = false
     return
   }
 
-  const failed = pendingAttachments.value.some(a => a.status === 'error')
-  if (failed) {
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  inputText.value = inputText.value.substring(0, start) + emoji + inputText.value.substring(end)
+  nextTick(() => {
+    textarea.focus()
+    const newPosition = start + emoji.length
+    textarea.setSelectionRange(newPosition, newPosition)
+    adjustHeight()
+  })
+  showEmojiPicker.value = false
+}
+
+function handleSend() {
+  if (props.sending || props.disabled) return
+  const content = inputText.value.trim()
+  if (pendingAttachments.value.some((attachment) => attachment.status === 'uploading')) {
+    ElNotification.warning({ message: t('aiChat.waitUpload') })
+    return
+  }
+  if (pendingAttachments.value.some((attachment) => attachment.status === 'error')) {
     ElNotification.warning({ message: t('aiChat.uploadHasError') })
     return
   }
 
   const attachments: Attachment[] = pendingAttachments.value
-    .filter(a => a.status === 'done' && a.url)
-    .map(a => ({ type: 'image' as const, url: a.url!, name: a.file.name, size: a.file.size }))
-
+    .filter((attachment) => attachment.status === 'done' && attachment.url)
+    .map((attachment) => ({
+      type: 'image',
+      url: attachment.url as string,
+      name: attachment.file.name,
+      size: attachment.file.size,
+    }))
   if (!content && attachments.length === 0) return
-
-  emit('send', content, attachments.length > 0 ? attachments : undefined, hasCustomParams.value ? getRequestParams() : undefined)
+  emit(
+    'send',
+    content,
+    attachments.length > 0 ? attachments : undefined,
+    hasCustomParams.value ? getRequestParams() : undefined,
+  )
 }
 
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault()
-    handleSend()
-  }
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter' || event.shiftKey) return
+  event.preventDefault()
+  handleSend()
 }
 
-const handleInput = (e: Event) => {
-  inputText.value = (e.target as HTMLTextAreaElement).value
+function handleInput(event: Event) {
+  inputText.value = (event.target as HTMLTextAreaElement).value
   adjustHeight()
 }
-
-// ==================== 暴露方法 ====================
 
 defineExpose({
   clear: () => {
@@ -407,8 +145,8 @@ defineExpose({
     pendingAttachments.value = []
     if (textareaRef.value) textareaRef.value.style.height = 'auto'
   },
-  focus: () => { textareaRef.value?.focus() },
-  getRequestParams
+  focus: () => textareaRef.value?.focus(),
+  getRequestParams,
 })
 </script>
 
@@ -502,135 +240,20 @@ defineExpose({
       </div>
     </div>
 
-    <!-- 参数设置面板（v-if 懒加载，不常驻 DOM） -->
-    <div
+    <RuntimeParamsPanel
       v-if="showParamsPanel"
-      class="params-panel"
-    >
-      <div class="params-header">
-        <span class="params-title">{{ t('aiChat.runtimeParams') }}</span>
-        <button
-          class="params-reset-btn"
-          :class="{ active: hasCustomParams }"
-          @click="resetParams"
-        >
-          <el-icon :size="12">
-            <RefreshRight />
-          </el-icon>
-          {{ t('aiChat.resetParams') }}
-        </button>
-      </div>
-      <div class="params-items">
-        <div class="params-item">
-          <div class="params-item-header">
-            <span class="params-item-label">{{ t('aiChat.temperature') }}</span>
-            <span
-              class="params-item-value"
-              :class="{ custom: runtimeTemperature !== null }"
-            >
-              {{ runtimeTemperature !== null ? runtimeTemperature.toFixed(1) : t('aiChat.useDefault') }}
-            </span>
-          </div>
-          <el-slider
-            :model-value="runtimeTemperature ?? 1"
-            :min="0"
-            :max="2"
-            :step="0.1"
-            :show-tooltip="false"
-            size="small"
-            @update:model-value="(v: number | number[]) => runtimeTemperature = v as number"
-          />
-        </div>
-        <div class="params-item">
-          <div class="params-item-header">
-            <span class="params-item-label">{{ t('aiChat.maxTokens') }}</span>
-            <span
-              class="params-item-value"
-              :class="{ custom: runtimeMaxTokens !== null }"
-            >
-              {{ runtimeMaxTokens !== null ? runtimeMaxTokens.toLocaleString() : t('aiChat.useDefault') }}
-            </span>
-          </div>
-          <el-slider
-            :model-value="runtimeMaxTokens ?? 4096"
-            :min="256"
-            :max="32768"
-            :step="256"
-            :show-tooltip="false"
-            size="small"
-            @update:model-value="(v: number | number[]) => runtimeMaxTokens = v as number"
-          />
-        </div>
-      </div>
-      <div class="params-item params-item-full">
-        <div class="params-item-header">
-          <span class="params-item-label">{{ t('aiChat.maxHistory') }}</span>
-          <span
-            class="params-item-value"
-            :class="{ custom: runtimeMaxHistory !== null }"
-          >
-            {{ runtimeMaxHistory !== null ? runtimeMaxHistory : '20' }}
-          </span>
-        </div>
-        <el-slider
-          :model-value="runtimeMaxHistory ?? 20"
-          :min="1"
-          :max="50"
-          :step="1"
-          :show-tooltip="false"
-          size="small"
-          @update:model-value="(v: number | number[]) => runtimeMaxHistory = v as number"
-        />
-      </div>
-    </div>
+      v-model:temperature="runtimeTemperature"
+      v-model:max-tokens="runtimeMaxTokens"
+      v-model:max-history="runtimeMaxHistory"
+      :has-custom-params="hasCustomParams"
+      @reset="resetParams"
+    />
 
-    <!-- 待发送附件预览区 -->
-    <div
+    <PendingAttachments
       v-if="pendingAttachments.length"
-      class="pending-area"
-    >
-      <div
-        v-for="att in pendingAttachments"
-        :key="att.id"
-        class="pending-item"
-        :class="{ error: att.status === 'error' }"
-      >
-        <img
-          :src="att.preview"
-          :alt="att.file.name"
-          class="pending-thumb"
-        >
-        <!-- 上传中遮罩 -->
-        <div
-          v-if="att.status === 'uploading'"
-          class="pending-overlay"
-        >
-          <el-icon
-            class="is-loading"
-            :size="20"
-            color="#fff"
-          >
-            <Loading />
-          </el-icon>
-        </div>
-        <!-- 错误遮罩 -->
-        <div
-          v-if="att.status === 'error'"
-          class="pending-overlay error"
-        >
-          <span class="error-text">{{ att.error || t('aiChat.uploadFailed') }}</span>
-        </div>
-        <!-- 删除按钮 -->
-        <button
-          class="pending-remove"
-          @click="removeAttachment(att.id)"
-        >
-          <el-icon :size="12">
-            <Close />
-          </el-icon>
-        </button>
-      </div>
-    </div>
+      :attachments="pendingAttachments"
+      @remove="removeAttachment"
+    />
 
     <!-- 文本输入区 -->
     <div class="input-body">
@@ -696,7 +319,7 @@ defineExpose({
 
     <!-- 隐藏的文件选择器 -->
     <input
-      ref="fileInputRef"
+      :ref="setFileInputRef"
       type="file"
       accept="image/*"
       multiple
@@ -706,387 +329,4 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-.message-input {
-  border-top: 1px solid var(--el-border-color-lighter);
-  background: var(--el-bg-color);
-  display: flex;
-  flex-direction: column;
-}
-
-.message-input.is-dragging {
-  border-color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-}
-
-/* 工具栏 */
-.input-toolbar {
-  display: flex;
-  align-items: center;
-  padding: 6px 12px 2px;
-}
-
-.toolbar-left {
-  display: flex;
-  gap: 2px;
-}
-
-.toolbar-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  min-height: 32px;
-}
-
-/* 语音按钮录音态 */
-.voice-btn.is-recording {
-  color: #fff !important;
-  background: #07c160 !important;
-  animation: voice-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes voice-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7); }
-  50% { box-shadow: 0 0 0 10px rgba(7, 193, 96, 0); }
-}
-
-/* 待发送附件预览区 */
-.pending-area {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px 12px;
-}
-
-.pending-item {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 2px solid transparent;
-}
-
-.pending-item.error {
-  border-color: var(--el-color-danger);
-}
-
-.pending-thumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.pending-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pending-overlay.error {
-  background: rgba(245, 108, 108, 0.8);
-}
-
-.error-text {
-  font-size: 10px;
-  color: #fff;
-  text-align: center;
-  padding: 4px;
-}
-
-.pending-remove {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.pending-item:hover .pending-remove {
-  opacity: 1;
-}
-
-/* 输入区 */
-.input-body {
-  padding: 0 12px;
-}
-
-.chat-textarea {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  resize: none;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--el-text-color-primary);
-  min-height: 24px;
-  max-height: 200px;
-  padding: 6px 4px;
-  font-family: inherit;
-}
-
-.chat-textarea::placeholder {
-  color: var(--el-text-color-placeholder);
-}
-
-.chat-textarea:disabled {
-  cursor: not-allowed;
-}
-
-/* 底部 */
-.input-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 12px 8px;
-}
-
-.input-hint {
-  font-size: 12px;
-  color: var(--el-text-color-placeholder);
-}
-
-.recording-status {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #07c160;
-}
-
-.recording-icon {
-  animation: recording-blink 1s ease-in-out infinite;
-}
-
-@keyframes recording-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-/* 停止按钮 */
-.stop-button {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: var(--el-color-danger);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.stop-button:hover {
-  background: var(--el-color-danger-dark-2);
-}
-
-.stop-icon {
-  width: 10px;
-  height: 10px;
-  background: #fff;
-  border-radius: 2px;
-}
-
-/* Emoji popover */
-:global(.emoji-popover) {
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* 参数设置 */
-.params-active {
-  color: var(--el-color-primary) !important;
-}
-
-.params-panel {
-  margin: 4px 12px 2px;
-  padding: 10px 12px;
-  background: var(--el-fill-color-lighter);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.params-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.params-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
-}
-
-.params-reset-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  border: none;
-  background: none;
-  font-size: 11px;
-  color: var(--el-text-color-placeholder);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.params-reset-btn:hover {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-}
-
-.params-reset-btn.active {
-  color: var(--el-color-primary);
-}
-
-.params-items {
-  display: flex;
-  gap: 16px;
-}
-
-.params-item {
-  flex: 1;
-  min-width: 0;
-}
-
-.params-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.params-item-label {
-  font-size: 11px;
-  color: var(--el-text-color-regular);
-  font-weight: 500;
-}
-
-.params-item-value {
-  font-size: 11px;
-  color: var(--el-text-color-placeholder);
-  font-variant-numeric: tabular-nums;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--el-fill-color);
-  transition: all 0.2s;
-}
-
-.params-item-value.custom {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  font-weight: 500;
-}
-
-/* el-slider 微调 */
-:deep(.el-slider) {
-  --el-slider-height: 4px;
-  --el-slider-button-size: 14px;
-}
-
-/* 字数计数器 */
-.char-count {
-  font-size: 11px;
-  color: var(--el-text-color-placeholder);
-  font-variant-numeric: tabular-nums;
-  margin-left: auto;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.char-count.near-limit {
-  color: var(--el-color-danger);
-  font-weight: 500;
-}
-
-/* 移动端适配：参数面板竖排 + 整体紧凑 */
-@media (max-width: 768px) {
-  .params-items {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .params-panel {
-    margin: 2px 8px;
-    padding: 6px 8px;
-    gap: 6px;
-  }
-
-  .params-title {
-    font-size: 11px;
-  }
-
-  .params-reset-btn {
-    font-size: 10px;
-  }
-
-  .params-item-label {
-    font-size: 10px;
-  }
-
-  .params-item-value {
-    font-size: 10px;
-    padding: 0 4px;
-  }
-
-  .params-item-header {
-    margin-bottom: 2px;
-  }
-
-  .input-toolbar {
-    padding: 4px 8px 0;
-  }
-
-  .toolbar-btn {
-    width: 28px;
-    height: 28px;
-    min-height: 28px;
-  }
-
-  .input-body {
-    padding: 0 8px;
-  }
-
-  .input-footer {
-    padding: 2px 8px 6px;
-  }
-
-  .input-hint {
-    font-size: 11px;
-  }
-
-  .pending-area {
-    padding: 4px 8px;
-    gap: 6px;
-  }
-
-  .pending-item {
-    width: 48px;
-    height: 48px;
-  }
-}
-</style>
+<style scoped src="./styles.css"></style>
