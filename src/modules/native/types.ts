@@ -43,7 +43,6 @@ export interface NotificationBridge {
 
 export interface DesktopRefreshCredential {
   readonly refreshToken: string
-  readonly expiresAt: number
 }
 
 export interface NativeAccessCredential {
@@ -53,7 +52,7 @@ export interface NativeAccessCredential {
 
 export interface DesktopCredentialBridge {
   seal(credential: DesktopRefreshCredential): Promise<void>
-  refresh(): Promise<NativeAccessCredential>
+  refresh(deviceId: string): Promise<NativeAccessCredential>
   clear(): Promise<void>
 }
 

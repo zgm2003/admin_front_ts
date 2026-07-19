@@ -102,10 +102,7 @@ export class DesktopCredentialAdapter implements CredentialAdapter {
     }
     let refreshToken: string | null = parsed.data.refresh_token
     try {
-      await this.bridge.credentials.seal({
-        refreshToken,
-        expiresAt: this.now() + parsed.data.refresh_expires_in * 1_000,
-      })
+      await this.bridge.credentials.seal({ refreshToken })
     } finally {
       refreshToken = null
     }
@@ -117,7 +114,14 @@ export class DesktopCredentialAdapter implements CredentialAdapter {
 
   async refresh(): Promise<AccessCredential> {
     this.assertAvailable()
-    return this.bridge.credentials.refresh()
+    const deviceId = this.commonHeaders()['device-id']
+    if (!deviceId) {
+      throw new AuthSessionError(
+        'auth.desktop_device_contract_invalid',
+        'desktop refresh requires the documented device-id header',
+      )
+    }
+    return this.bridge.credentials.refresh(deviceId)
   }
 
   async revoke(accessToken: string | null, signal: AbortSignal): Promise<void> {

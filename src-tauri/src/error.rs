@@ -1,6 +1,78 @@
 use serde::Serialize;
 use std::fmt;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct SafeError {
+    pub kind: &'static str,
+    pub message: &'static str,
+}
+
+impl SafeError {
+    pub const fn credential_store() -> Self {
+        Self {
+            kind: "credential_store",
+            message: "系统安全凭证存储不可用",
+        }
+    }
+
+    pub const fn credential_missing() -> Self {
+        Self {
+            kind: "credential_missing",
+            message: "登录凭证不存在，请重新登录",
+        }
+    }
+
+    pub const fn policy() -> Self {
+        Self {
+            kind: "policy",
+            message: "请求目标不符合安全策略",
+        }
+    }
+
+    pub const fn timeout() -> Self {
+        Self {
+            kind: "timeout",
+            message: "认证服务请求超时",
+        }
+    }
+
+    pub const fn network() -> Self {
+        Self {
+            kind: "network",
+            message: "无法连接认证服务",
+        }
+    }
+
+    pub const fn response_contract() -> Self {
+        Self {
+            kind: "response_contract",
+            message: "认证服务响应不符合正式契约",
+        }
+    }
+
+    pub const fn authentication() -> Self {
+        Self {
+            kind: "authentication",
+            message: "登录凭证已失效，请重新登录",
+        }
+    }
+
+    pub const fn server() -> Self {
+        Self {
+            kind: "server",
+            message: "认证服务暂时不可用",
+        }
+    }
+}
+
+impl fmt::Display for SafeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.message)
+    }
+}
+
+impl std::error::Error for SafeError {}
+
 /// 统一错误类型
 #[derive(Debug, Serialize)]
 #[serde(tag = "kind", content = "message")]

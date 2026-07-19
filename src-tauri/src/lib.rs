@@ -8,11 +8,15 @@ use tauri::{
     AppHandle, Emitter, Manager, State, UserAttentionType,
 };
 
+pub mod credentials;
 mod download;
-mod error;
+pub mod error;
+pub mod http_policy;
 
+use credentials::{CredentialStore, RefreshCredentialInput};
 use download::{DownloadManager, DownloadProgress};
-use error::AppError;
+use error::{AppError, SafeError};
+use http_policy::{rotate_stored_refresh_credential, AccessCredential, AdminHttpClient};
 
 // ==================== 全局状态（原子操作，无锁） ====================
 
@@ -96,6 +100,28 @@ fn wake_window(app: &AppHandle) {
 }
 
 // ==================== Tauri Commands ====================
+
+#[tauri::command]
+fn seal_refresh_credential(
+    store: State<'_, CredentialStore>,
+    input: RefreshCredentialInput,
+) -> Result<(), SafeError> {
+    store.seal(input)
+}
+
+#[tauri::command]
+async fn refresh_access_credential(
+    store: State<'_, CredentialStore>,
+    client: State<'_, AdminHttpClient>,
+    device_id: String,
+) -> Result<AccessCredential, SafeError> {
+    rotate_stored_refresh_credential(store.inner(), client.inner(), &device_id).await
+}
+
+#[tauri::command]
+fn clear_refresh_credential(store: State<'_, CredentialStore>) -> Result<(), SafeError> {
+    store.clear()
+}
 
 /// 发送系统通知
 #[tauri::command]
@@ -224,7 +250,12 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .manage(download_manager)
+        .manage(CredentialStore::default())
+        .manage(AdminHttpClient::default())
         .invoke_handler(tauri::generate_handler![
+            seal_refresh_credential,
+            refresh_access_credential,
+            clear_refresh_credential,
             send_notification,
             clear_unread,
             start_download,

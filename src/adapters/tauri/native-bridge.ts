@@ -1,4 +1,5 @@
 import { createWebNativeBridge } from '@/adapters/web/native-bridge'
+import { AuthSessionError } from '@/modules/auth/types'
 import {
   NativeCancelledError,
   NativePolicyError,
@@ -26,6 +27,86 @@ interface RawDownloadProgress {
 interface RawAccessCredential {
   readonly accessToken: string
   readonly expiresAt: number
+}
+
+const nativeCredentialErrors = {
+  credential_store: {
+    message: '系统安全凭证存储不可用',
+    code: 'auth.credential_store_unavailable',
+  },
+  credential_missing: {
+    message: '登录凭证不存在，请重新登录',
+    code: 'auth.credential_missing',
+    status: 401,
+  },
+  policy: {
+    message: '请求目标不符合安全策略',
+    code: 'auth.native_policy_rejected',
+  },
+  timeout: {
+    message: '认证服务请求超时',
+    code: 'auth.native_timeout',
+    retryable: true,
+  },
+  network: {
+    message: '无法连接认证服务',
+    code: 'auth.native_network',
+    retryable: true,
+  },
+  response_contract: {
+    message: '认证服务响应不符合正式契约',
+    code: 'auth.response_invalid',
+  },
+  authentication: {
+    message: '登录凭证已失效，请重新登录',
+    code: 'auth.revoked',
+    status: 401,
+  },
+  server: {
+    message: '认证服务暂时不可用',
+    code: 'auth.server_unavailable',
+    retryable: true,
+  },
+} as const
+
+function exactObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export function mapNativeCredentialError(error: unknown): AuthSessionError {
+  if (exactObject(error)
+    && Object.keys(error).length === 2
+    && typeof error.kind === 'string'
+    && typeof error.message === 'string'
+    && Object.prototype.hasOwnProperty.call(nativeCredentialErrors, error.kind)) {
+    const definition = nativeCredentialErrors[error.kind as keyof typeof nativeCredentialErrors]
+    if (error.message === definition.message) {
+      return new AuthSessionError(definition.code, definition.message, {
+        retryable: 'retryable' in definition && definition.retryable === true,
+        ...('status' in definition ? { status: definition.status } : {}),
+      })
+    }
+  }
+  return new AuthSessionError(
+    'auth.native_command_contract_invalid',
+    'native credential command returned an invalid error contract',
+  )
+}
+
+function parseNativeAccessCredential(value: unknown): NativeAccessCredential {
+  if (!exactObject(value)
+    || Object.keys(value).length !== 2
+    || typeof value.accessToken !== 'string'
+    || value.accessToken.length === 0
+    || typeof value.expiresAt !== 'number'
+    || !Number.isFinite(value.expiresAt)
+    || value.expiresAt <= 0) {
+    throw new AuthSessionError(
+      'auth.native_command_contract_invalid',
+      'native credential command returned an invalid success contract',
+    )
+  }
+  return { accessToken: value.accessToken, expiresAt: value.expiresAt }
 }
 
 function managedStatus(status: RawDownloadProgress['status']): ManagedDownloadStatus {
@@ -153,16 +234,29 @@ export function createTauriNativeBridge(): NativeBridge {
     credentials: {
       async seal(credential) {
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('seal_refresh_credential', { input: credential })
+        try {
+          await invoke('seal_refresh_credential', { input: credential.refreshToken })
+        } catch (error) {
+          throw mapNativeCredentialError(error)
+        }
       },
-      async refresh(): Promise<NativeAccessCredential> {
+      async refresh(deviceId): Promise<NativeAccessCredential> {
         const { invoke } = await import('@tauri-apps/api/core')
-        const credential = await invoke<RawAccessCredential>('refresh_access_credential')
-        return credential
+        let credential: RawAccessCredential
+        try {
+          credential = await invoke<RawAccessCredential>('refresh_access_credential', { deviceId })
+        } catch (error) {
+          throw mapNativeCredentialError(error)
+        }
+        return parseNativeAccessCredential(credential)
       },
       async clear() {
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('clear_refresh_credential')
+        try {
+          await invoke('clear_refresh_credential')
+        } catch (error) {
+          throw mapNativeCredentialError(error)
+        }
       },
     },
     downloads: {
