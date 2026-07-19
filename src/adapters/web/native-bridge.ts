@@ -11,10 +11,12 @@ const externalHosts = new Set(['www.zgm2003.cn', 'cos.zgm2003.cn'])
 const noOpUnlisten: NativeUnlisten = () => undefined
 
 type OpenWindow = (url?: string | URL, target?: string, features?: string) => Window | null
+type NavigateWindow = (url: string) => void
 
 export interface WebNativeBridgeOptions {
   readonly origin?: string
   readonly open?: OpenWindow
+  readonly navigate?: NavigateWindow
 }
 
 function unavailable(operation: string): Promise<never> {
@@ -49,6 +51,8 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
   const origin = options.origin ?? globalThis.location?.origin ?? 'https://www.zgm2003.cn'
   const open: OpenWindow = options.open
     ?? (typeof globalThis.open === 'function' ? globalThis.open.bind(globalThis) : () => null)
+  const navigate: NavigateWindow = options.navigate
+    ?? ((url) => globalThis.location?.assign(url))
 
   return {
     kind: 'web',
@@ -72,6 +76,14 @@ export function createWebNativeBridge(options: WebNativeBridgeOptions = {}): Nat
           throw new NativePolicyError('external URL is not allowlisted')
         }
         isolatedOpen(open, url)
+      },
+      navigateExternal(input) {
+        if (input.length > 4_096) throw new NativePolicyError('external URL is too long')
+        const url = parsedUrl(input)
+        if (url.protocol !== 'https:') {
+          throw new NativePolicyError('external navigation requires HTTPS')
+        }
+        navigate(url.href)
       },
       openSameOrigin(input) {
         const base = parsedUrl(origin)

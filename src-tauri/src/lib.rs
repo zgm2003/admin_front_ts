@@ -2,98 +2,119 @@ use std::sync::Arc;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, State,
+    AppHandle, Emitter, Manager, State, WebviewWindow,
 };
 
 pub mod credentials;
-mod download;
+pub mod download;
 pub mod error;
 pub mod http_policy;
 mod notification;
 mod process;
-mod window;
+pub mod window;
 
 use credentials::{CredentialStore, RefreshCredentialInput};
 use download::{DownloadManager, DownloadProgress};
 use error::SafeError;
 use http_policy::{rotate_stored_refresh_credential, AccessCredential, AdminHttpClient};
+use window::ensure_main_window;
 
 // ==================== Tauri Commands ====================
 
 #[tauri::command]
 fn seal_refresh_credential(
+    window: WebviewWindow,
     store: State<'_, CredentialStore>,
     input: RefreshCredentialInput,
 ) -> Result<(), SafeError> {
+    ensure_main_window(&window)?;
     store.seal(input)
 }
 
 #[tauri::command]
 async fn refresh_access_credential(
+    window: WebviewWindow,
     store: State<'_, CredentialStore>,
     client: State<'_, AdminHttpClient>,
     device_id: String,
 ) -> Result<AccessCredential, SafeError> {
+    ensure_main_window(&window)?;
     rotate_stored_refresh_credential(store.inner(), client.inner(), &device_id).await
 }
 
 #[tauri::command]
-fn clear_refresh_credential(store: State<'_, CredentialStore>) -> Result<(), SafeError> {
+fn clear_refresh_credential(
+    window: WebviewWindow,
+    store: State<'_, CredentialStore>,
+) -> Result<(), SafeError> {
+    ensure_main_window(&window)?;
     store.clear()
 }
 
 /// 由 Rust 验证 URL、选择保存路径并生成任务 ID。
 #[tauri::command]
 async fn start_managed_download(
-    app: AppHandle,
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
     url: String,
     suggested_filename: String,
 ) -> Result<String, SafeError> {
+    ensure_main_window(&window)?;
+    let app = window.app_handle().clone();
     manager.inner().start(app, url, suggested_filename).await
 }
 
 /// 取消下载
 #[tauri::command]
 fn cancel_managed_download(
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
     task_id: String,
 ) -> Result<(), SafeError> {
+    ensure_main_window(&window)?;
     manager.cancel(&task_id)
 }
 
 /// 获取下载进度
 #[tauri::command]
 fn get_managed_download_progress(
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
     task_id: String,
 ) -> Result<Option<DownloadProgress>, SafeError> {
+    ensure_main_window(&window)?;
     manager.progress(&task_id)
 }
 
 /// 获取所有下载任务
 #[tauri::command]
 fn get_all_managed_downloads(
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
 ) -> Result<Vec<DownloadProgress>, SafeError> {
+    ensure_main_window(&window)?;
     manager.all()
 }
 
 /// 删除下载任务
 #[tauri::command]
 fn remove_managed_download(
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
     task_id: String,
 ) -> Result<(), SafeError> {
+    ensure_main_window(&window)?;
     manager.remove(&task_id)
 }
 
 /// 只显示由管理器记录为已完成的下载。
 #[tauri::command]
 fn reveal_managed_download(
+    window: WebviewWindow,
     manager: State<'_, Arc<DownloadManager>>,
     task_id: String,
 ) -> Result<(), SafeError> {
+    ensure_main_window(&window)?;
     manager.reveal(&task_id)
 }
 

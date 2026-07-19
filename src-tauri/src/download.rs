@@ -1,22 +1,20 @@
+pub mod file;
 mod http;
-mod policy;
-mod store;
+pub mod policy;
+pub mod store;
 
 #[cfg(test)]
 mod tests;
 
 use crate::error::SafeError;
+use file::ManagedTemporaryFile;
 use http::ManagedHttpClient;
-use policy::{
-    sanitize_filename, validate_completed_file, validate_download_url, validate_selected_target,
-    ValidatedTarget,
-};
+use policy::{sanitize_filename, validate_download_url, validate_selected_target, ValidatedTarget};
 use std::sync::Arc;
 use std::time::Instant;
 use store::DownloadStore;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_dialog::DialogExt;
-use tokio::io::AsyncWriteExt;
 
 pub use store::DownloadProgress;
 
@@ -71,18 +69,13 @@ impl DownloadManager {
         url: url::Url,
         target: ValidatedTarget,
     ) -> Result<String, SafeError> {
-        let temporary = tempfile::Builder::new()
-            .prefix(".cloudadmin-")
-            .suffix(".part")
-            .tempfile_in(&target.parent)
-            .map_err(|_| SafeError::download_filesystem())?;
-        let id = self.store.create(&target.filename)?;
+        let filename = target.filename().to_owned();
+        let temporary = ManagedTemporaryFile::create(target)?;
+        let id = self.store.create(&filename)?;
         let manager = Arc::clone(self);
         let task_id = id.clone();
         tokio::spawn(async move {
-            manager
-                .run_download(app, task_id, url, target, temporary)
-                .await;
+            manager.run_download(app, task_id, url, temporary).await;
         });
         Ok(id)
     }
@@ -92,22 +85,19 @@ impl DownloadManager {
         app: AppHandle,
         task_id: String,
         url: url::Url,
-        target: ValidatedTarget,
-        temporary: tempfile::NamedTempFile,
+        mut temporary: ManagedTemporaryFile,
     ) {
         let signal = match self.store.signal(&task_id) {
             Ok(signal) => signal,
             Err(_) => return,
         };
-        let (file, temporary_path) = temporary.into_parts();
-        let mut file = tokio::fs::File::from_std(file);
         let mut started = false;
         let mut last_emit = Instant::now();
         let mut last_downloaded = 0u64;
 
         let result = self
             .client
-            .download_to(url, &mut file, &signal, |downloaded, total| {
+            .download_to(url, temporary.file_mut(), &signal, |downloaded, total| {
                 if !started {
                     self.store.begin(&task_id, total)?;
                     started = true;
@@ -135,33 +125,15 @@ impl DownloadManager {
             if signal.is_cancelled() {
                 return Err(SafeError::download_cancelled());
             }
-            file.flush()
-                .await
-                .map_err(|_| SafeError::download_filesystem())?;
-            file.sync_all()
-                .await
-                .map_err(|_| SafeError::download_filesystem())?;
-            drop(file);
-            if signal.is_cancelled() {
-                return Err(SafeError::download_cancelled());
-            }
-            let target = validate_selected_target(&target.path)?;
-            let final_path = target.path.clone();
-            temporary_path
-                .persist_noclobber(&final_path)
-                .map_err(|_| SafeError::download_filesystem())?;
+            let final_path = temporary.commit().await?;
             if signal.is_cancelled() {
                 let _ = std::fs::remove_file(&final_path);
                 return Err(SafeError::download_cancelled());
             }
-            let canonical = match validate_completed_file(&final_path, &target.parent) {
-                Ok(path) => path,
-                Err(error) => {
-                    let _ = std::fs::remove_file(&final_path);
-                    return Err(error);
-                }
-            };
-            let progress = match self.store.complete(&task_id, canonical, downloaded) {
+            let progress = match self
+                .store
+                .complete(&task_id, final_path.clone(), downloaded)
+            {
                 Ok(progress) => progress,
                 Err(error) => {
                     let _ = std::fs::remove_file(&final_path);

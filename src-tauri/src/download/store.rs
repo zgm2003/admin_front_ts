@@ -31,17 +31,17 @@ pub struct DownloadProgress {
 }
 
 #[derive(Clone)]
-pub(super) struct CancellationSignal {
+pub struct CancellationSignal {
     cancelled: Arc<AtomicBool>,
     notify: Arc<Notify>,
 }
 
 impl CancellationSignal {
-    pub(super) fn is_cancelled(&self) -> bool {
+    pub fn is_cancelled(&self) -> bool {
         self.cancelled.load(Ordering::Acquire)
     }
 
-    pub(super) async fn cancelled(&self) {
+    pub async fn cancelled(&self) {
         if self.is_cancelled() {
             return;
         }
@@ -99,12 +99,12 @@ impl DownloadTask {
 }
 
 #[derive(Default)]
-pub(super) struct DownloadStore {
+pub struct DownloadStore {
     tasks: Mutex<HashMap<String, Arc<DownloadTask>>>,
 }
 
 impl DownloadStore {
-    pub(super) fn create(&self, filename: &str) -> Result<String, SafeError> {
+    pub fn create(&self, filename: &str) -> Result<String, SafeError> {
         let mut tasks = self
             .tasks
             .lock()
@@ -142,7 +142,7 @@ impl DownloadStore {
             .ok_or_else(SafeError::download_task_missing)
     }
 
-    pub(super) fn begin(&self, id: &str, total: u64) -> Result<CancellationSignal, SafeError> {
+    pub fn begin(&self, id: &str, total: u64) -> Result<CancellationSignal, SafeError> {
         let task = self.task(id)?;
         let mut state = task
             .state
@@ -157,11 +157,11 @@ impl DownloadStore {
         Ok(task.signal.clone())
     }
 
-    pub(super) fn signal(&self, id: &str) -> Result<CancellationSignal, SafeError> {
+    pub fn signal(&self, id: &str) -> Result<CancellationSignal, SafeError> {
         Ok(self.task(id)?.signal.clone())
     }
 
-    pub(super) fn update(
+    pub fn update(
         &self,
         id: &str,
         downloaded: u64,
@@ -183,7 +183,7 @@ impl DownloadStore {
         task.progress()
     }
 
-    pub(super) fn complete(
+    pub fn complete(
         &self,
         id: &str,
         canonical_path: PathBuf,
@@ -206,7 +206,7 @@ impl DownloadStore {
         task.progress()
     }
 
-    pub(super) fn fail(&self, id: &str, error: SafeError) -> Result<DownloadProgress, SafeError> {
+    pub fn fail(&self, id: &str, error: SafeError) -> Result<DownloadProgress, SafeError> {
         let task = self.task(id)?;
         let mut state = task
             .state
@@ -231,7 +231,7 @@ impl DownloadStore {
         task.progress()
     }
 
-    pub(super) fn cancel(&self, id: &str) -> Result<(), SafeError> {
+    pub fn cancel(&self, id: &str) -> Result<(), SafeError> {
         let task = self.task(id)?;
         let mut state = task
             .state
@@ -251,7 +251,7 @@ impl DownloadStore {
         Ok(())
     }
 
-    pub(super) fn progress(&self, id: &str) -> Result<Option<DownloadProgress>, SafeError> {
+    pub fn progress(&self, id: &str) -> Result<Option<DownloadProgress>, SafeError> {
         let task = self
             .tasks
             .lock()
@@ -261,7 +261,7 @@ impl DownloadStore {
         task.map(|task| task.progress()).transpose()
     }
 
-    pub(super) fn all(&self) -> Result<Vec<DownloadProgress>, SafeError> {
+    pub fn all(&self) -> Result<Vec<DownloadProgress>, SafeError> {
         let tasks: Vec<Arc<DownloadTask>> = self
             .tasks
             .lock()
@@ -272,7 +272,7 @@ impl DownloadStore {
         tasks.into_iter().map(|task| task.progress()).collect()
     }
 
-    pub(super) fn remove(&self, id: &str) -> Result<(), SafeError> {
+    pub fn remove(&self, id: &str) -> Result<(), SafeError> {
         let task = self.task(id)?;
         let state = task
             .state
@@ -293,7 +293,7 @@ impl DownloadStore {
         Ok(())
     }
 
-    pub(super) fn reveal_path(&self, id: &str) -> Result<PathBuf, SafeError> {
+    pub fn reveal_path(&self, id: &str) -> Result<PathBuf, SafeError> {
         let task = self.task(id)?;
         let state = task
             .state

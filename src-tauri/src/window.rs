@@ -13,11 +13,11 @@ pub struct WindowState {
     visible: bool,
 }
 
-pub(crate) fn is_main_window_label(label: &str) -> bool {
+pub fn is_main_window_label(label: &str) -> bool {
     label == MAIN_WINDOW_LABEL
 }
 
-pub(crate) fn is_authorized_window_url(url: &url::Url, debug_build: bool) -> bool {
+pub fn is_authorized_window_url(url: &url::Url, debug_build: bool) -> bool {
     if !url.username().is_empty() || url.password().is_some() {
         return false;
     }

@@ -16,6 +16,7 @@ export interface WindowBridge {
   listenResize(listener: () => void): Promise<NativeUnlisten>
   listenCloseRequested(listener: () => void): Promise<NativeUnlisten>
   openExternal(url: string): void
+  navigateExternal(url: string): void
   openSameOrigin(path: string): void
 }
 

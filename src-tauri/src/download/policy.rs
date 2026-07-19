@@ -14,13 +14,27 @@ const MAX_REDIRECTS: u8 = 5;
 const ALLOWED_DOWNLOAD_HOSTS: [&str; 2] = ["cos.zgm2003.cn", "www.zgm2003.cn"];
 
 #[derive(Clone)]
-pub(super) struct ValidatedTarget {
+pub struct ValidatedTarget {
     pub(super) parent: PathBuf,
     pub(super) path: PathBuf,
     pub(super) filename: String,
 }
 
-pub(super) fn validate_download_url(input: &str) -> Result<Url, SafeError> {
+impl ValidatedTarget {
+    pub fn parent(&self) -> &Path {
+        &self.parent
+    }
+
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    pub fn filename(&self) -> &str {
+        &self.filename
+    }
+}
+
+pub fn validate_download_url(input: &str) -> Result<Url, SafeError> {
     let url = Url::parse(input).map_err(|_| SafeError::download_policy())?;
     let host = url.host_str().ok_or_else(SafeError::download_policy)?;
     if url.scheme() != "https"
@@ -48,16 +62,16 @@ pub(super) fn validate_resolved_addresses(addresses: &[IpAddr]) -> Result<(), Sa
 }
 
 #[derive(Default)]
-pub(super) struct RedirectBudget {
+pub struct RedirectBudget {
     followed: u8,
 }
 
 impl RedirectBudget {
-    pub(super) fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    pub(super) fn follow(&mut self, current: &Url, location: &str) -> Result<Url, SafeError> {
+    pub fn follow(&mut self, current: &Url, location: &str) -> Result<Url, SafeError> {
         if self.followed >= MAX_REDIRECTS {
             return Err(SafeError::download_policy());
         }
@@ -92,7 +106,7 @@ pub(super) fn checked_downloaded(
     Ok(next)
 }
 
-pub(super) fn sanitize_filename(input: &str) -> Result<String, SafeError> {
+pub fn sanitize_filename(input: &str) -> Result<String, SafeError> {
     if input.is_empty()
         || input.trim() != input
         || input == "."
@@ -142,7 +156,7 @@ fn is_symlink_or_reparse(metadata: &fs::Metadata) -> bool {
     false
 }
 
-pub(super) fn validate_selected_target(path: &Path) -> Result<ValidatedTarget, SafeError> {
+pub fn validate_selected_target(path: &Path) -> Result<ValidatedTarget, SafeError> {
     if !path.is_absolute()
         || path
             .components()

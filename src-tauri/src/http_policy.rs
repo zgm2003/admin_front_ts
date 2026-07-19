@@ -35,21 +35,25 @@ struct RefreshRotation {
     refresh: SecretString,
 }
 
-struct RefreshHttpRequest {
+#[doc(hidden)]
+pub struct RefreshHttpRequest {
     endpoint: Url,
     headers: HeaderMap,
     body: Zeroizing<Vec<u8>>,
 }
 
-struct RefreshHttpResponse {
+#[doc(hidden)]
+pub struct RefreshHttpResponse {
     status: StatusCode,
     body: Zeroizing<Vec<u8>>,
 }
 
-type TransportFuture<'a> =
+#[doc(hidden)]
+pub type TransportFuture<'a> =
     Pin<Box<dyn Future<Output = Result<RefreshHttpResponse, SafeError>> + Send + 'a>>;
 
-trait RefreshTransport: Send + Sync {
+#[doc(hidden)]
+pub trait RefreshTransport: Send + Sync {
     fn execute<'a>(&'a self, request: RefreshHttpRequest) -> TransportFuture<'a>;
 }
 
@@ -129,6 +133,11 @@ impl Default for AdminHttpClient {
 }
 
 impl AdminHttpClient {
+    #[doc(hidden)]
+    pub fn from_transport(transport: Arc<dyn RefreshTransport>) -> Self {
+        Self { transport }
+    }
+
     async fn rotate(
         &self,
         current: &SecretString,
@@ -153,9 +162,43 @@ pub async fn rotate_stored_refresh_credential(
         .as_millis()
         .try_into()
         .map_err(|_| SafeError::server())?;
-    let rotation = client.rotate(&current, device_id, now_ms).await?;
+    let rotation = match client.rotate(&current, device_id, now_ms).await {
+        Ok(rotation) => rotation,
+        Err(error) if error == SafeError::authentication() => {
+            store.clear()?;
+            return Err(error);
+        }
+        Err(error) => return Err(error),
+    };
     store.replace(rotation.refresh)?;
     Ok(rotation.access)
+}
+
+impl RefreshHttpRequest {
+    #[doc(hidden)]
+    pub fn endpoint(&self) -> &Url {
+        &self.endpoint
+    }
+
+    #[doc(hidden)]
+    pub fn headers(&self) -> &HeaderMap {
+        &self.headers
+    }
+
+    #[doc(hidden)]
+    pub fn body(&self) -> &[u8] {
+        self.body.as_slice()
+    }
+}
+
+impl RefreshHttpResponse {
+    #[doc(hidden)]
+    pub fn json(status: StatusCode, body: Vec<u8>) -> Self {
+        Self {
+            status,
+            body: Zeroizing::new(body),
+        }
+    }
 }
 
 fn classify_reqwest_error(error: reqwest::Error) -> SafeError {

@@ -9,42 +9,44 @@ pub const CREDENTIAL_SERVICE: &str = "cn.zgm2003.admin.refresh";
 pub const CREDENTIAL_ACCOUNT: &str = "current-session";
 
 #[derive(Debug, Clone, Copy)]
-struct BackendFailure;
+pub struct CredentialBackendError;
 
-trait CredentialBackend: Send + Sync {
-    fn set(&self, value: &str) -> Result<(), BackendFailure>;
-    fn get(&self) -> Result<Option<String>, BackendFailure>;
-    fn delete(&self) -> Result<(), BackendFailure>;
+#[doc(hidden)]
+pub trait CredentialBackend: Send + Sync {
+    fn set(&self, value: &str) -> Result<(), CredentialBackendError>;
+    fn get(&self) -> Result<Option<String>, CredentialBackendError>;
+    fn delete(&self) -> Result<(), CredentialBackendError>;
 }
 
 #[derive(Debug, Default)]
 struct WindowsCredentialBackend;
 
 impl WindowsCredentialBackend {
-    fn entry(&self) -> Result<keyring::Entry, BackendFailure> {
-        keyring::Entry::new(CREDENTIAL_SERVICE, CREDENTIAL_ACCOUNT).map_err(|_| BackendFailure)
+    fn entry(&self) -> Result<keyring::Entry, CredentialBackendError> {
+        keyring::Entry::new(CREDENTIAL_SERVICE, CREDENTIAL_ACCOUNT)
+            .map_err(|_| CredentialBackendError)
     }
 }
 
 impl CredentialBackend for WindowsCredentialBackend {
-    fn set(&self, value: &str) -> Result<(), BackendFailure> {
+    fn set(&self, value: &str) -> Result<(), CredentialBackendError> {
         self.entry()?
             .set_password(value)
-            .map_err(|_| BackendFailure)
+            .map_err(|_| CredentialBackendError)
     }
 
-    fn get(&self) -> Result<Option<String>, BackendFailure> {
+    fn get(&self) -> Result<Option<String>, CredentialBackendError> {
         match self.entry()?.get_password() {
             Ok(value) => Ok(Some(value)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(_) => Err(BackendFailure),
+            Err(_) => Err(CredentialBackendError),
         }
     }
 
-    fn delete(&self) -> Result<(), BackendFailure> {
+    fn delete(&self) -> Result<(), CredentialBackendError> {
         match self.entry()?.delete_credential() {
             Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-            Err(_) => Err(BackendFailure),
+            Err(_) => Err(CredentialBackendError),
         }
     }
 }
@@ -63,8 +65,8 @@ impl Default for CredentialStore {
 }
 
 impl CredentialStore {
-    #[cfg(test)]
-    fn from_backend(backend: Arc<dyn CredentialBackend>) -> Self {
+    #[doc(hidden)]
+    pub fn from_backend(backend: Arc<dyn CredentialBackend>) -> Self {
         Self { backend }
     }
 
@@ -164,24 +166,24 @@ mod tests {
     }
 
     impl CredentialBackend for MemoryBackend {
-        fn set(&self, value: &str) -> Result<(), BackendFailure> {
+        fn set(&self, value: &str) -> Result<(), CredentialBackendError> {
             if *self.fail.lock().unwrap() {
-                return Err(BackendFailure);
+                return Err(CredentialBackendError);
             }
             *self.value.lock().unwrap() = Some(value.to_owned());
             Ok(())
         }
 
-        fn get(&self) -> Result<Option<String>, BackendFailure> {
+        fn get(&self) -> Result<Option<String>, CredentialBackendError> {
             if *self.fail.lock().unwrap() {
-                return Err(BackendFailure);
+                return Err(CredentialBackendError);
             }
             Ok(self.value.lock().unwrap().clone())
         }
 
-        fn delete(&self) -> Result<(), BackendFailure> {
+        fn delete(&self) -> Result<(), CredentialBackendError> {
             if *self.fail.lock().unwrap() {
-                return Err(BackendFailure);
+                return Err(CredentialBackendError);
             }
             *self.value.lock().unwrap() = None;
             Ok(())

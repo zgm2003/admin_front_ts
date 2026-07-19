@@ -4,6 +4,7 @@ import {
   NativeCancelledError,
   NativeOperationError,
   NativePolicyError,
+  NativeUnavailableError,
   NativeUpdaterError,
   type ManagedDownloadProgress,
   type ManagedDownloadStatus,
@@ -475,6 +476,9 @@ export function createTauriNativeBridge(): NativeBridge {
       },
       openExternal(url) {
         safeNavigator.openExternal(url)
+      },
+      navigateExternal() {
+        throw new NativeUnavailableError('window.navigateExternal')
       },
       openSameOrigin(path) {
         safeNavigator.openSameOrigin(path)

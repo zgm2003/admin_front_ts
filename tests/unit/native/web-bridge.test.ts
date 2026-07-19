@@ -75,6 +75,27 @@ describe('web NativeBridge', () => {
       .toThrow(NativePolicyError)
   })
 
+  it('permits browser-only top-level payment navigation only for absolute HTTPS URLs', async () => {
+    const { createWebNativeBridge, NativePolicyError } = await loadBridgeModule()
+    const navigate = vi.fn()
+    const bridge = createWebNativeBridge({
+      origin: 'https://www.zgm2003.cn',
+      open: vi.fn(),
+      navigate,
+    })
+
+    bridge.window.navigateExternal('https://openapi.alipay.com/gateway.do?order=1')
+    expect(navigate).toHaveBeenCalledWith('https://openapi.alipay.com/gateway.do?order=1')
+    expect(() => bridge.window.navigateExternal('http://openapi.alipay.com/order'))
+      .toThrow(NativePolicyError)
+    expect(() => bridge.window.navigateExternal('javascript:alert(1)'))
+      .toThrow(NativePolicyError)
+    expect(() => bridge.window.navigateExternal('https://user:secret@openapi.alipay.com/order'))
+      .toThrow(NativePolicyError)
+    expect(() => bridge.window.navigateExternal('/relative-payment'))
+      .toThrow(NativePolicyError)
+  })
+
   it('returns typed unavailability for desktop-only operations', async () => {
     const { createWebNativeBridge, NativeUnavailableError } = await loadBridgeModule()
     const bridge = createWebNativeBridge({
