@@ -74,14 +74,14 @@
                   <CircleCheck />
                 </el-icon>
                 <el-icon
-                  v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)"
+                  v-else-if="item.status === 'failed'"
                   class="error"
                   :size="24"
                 >
                   <CircleClose />
                 </el-icon>
                 <el-icon
-                  v-else-if="item.status === 'downloading' && item.downloaded > 0"
+                  v-else-if="item.status === 'pending' || item.status === 'downloading'"
                   class="loading"
                   :size="24"
                 >
@@ -99,12 +99,11 @@
 
             <!-- 进度条 -->
             <div
-              v-if="item.status === 'downloading' || item.status === 'paused'"
+              v-if="item.status === 'pending' || item.status === 'downloading'"
               class="progress-wrapper"
             >
               <el-progress
                 :percentage="Math.round(item.progress)"
-                :status="item.status === 'paused' ? 'warning' : undefined"
                 :stroke-width="8"
                 :show-text="false"
               />
@@ -113,7 +112,7 @@
 
             <!-- 状态信息 -->
             <div
-              v-if="item.status !== 'downloading' || item.downloaded === 0"
+              v-if="item.status !== 'pending' && item.status !== 'downloading'"
               class="status-message"
             >
               <span
@@ -123,7 +122,7 @@
                 {{ t('download.completed') }}
               </span>
               <span
-                v-else-if="item.status === 'failed' || (item.status === 'downloading' && item.downloaded === 0)"
+                v-else-if="item.status === 'failed'"
                 class="error-text"
               >
                 {{ item.error || t('download.failed') }}
@@ -138,9 +137,9 @@
 
             <!-- 操作按钮 -->
             <div class="actions">
-              <!-- 只有真正在下载中的任务才显示取消按钮 -->
+              <!-- 待响应和下载中的任务都可以安全取消 -->
               <el-button
-                v-if="item.status === 'downloading' && item.downloaded > 0"
+                v-if="item.status === 'pending' || item.status === 'downloading'"
                 size="small"
                 type="danger"
                 text
@@ -171,9 +170,9 @@
                 </el-button>
               </template>
 
-              <!-- 失败、取消、或卡在 0 字节的任务，直接显示删除 -->
+              <!-- 仅终态失败或取消的任务可以删除 -->
               <el-button
-                v-if="item.status === 'failed' || item.status === 'cancelled' || (item.status === 'downloading' && item.downloaded === 0)"
+                v-if="item.status === 'failed' || item.status === 'cancelled'"
                 size="small"
                 type="info"
                 text
@@ -202,6 +201,7 @@
         <el-button
           type="danger"
           plain
+          :disabled="hasActiveDownloads"
           @click="handleClearAll"
         >
           <el-icon><Delete /></el-icon>

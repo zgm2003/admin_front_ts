@@ -15,7 +15,7 @@ pub mod http_policy;
 
 use credentials::{CredentialStore, RefreshCredentialInput};
 use download::{DownloadManager, DownloadProgress};
-use error::{AppError, SafeError};
+use error::SafeError;
 use http_policy::{rotate_stored_refresh_credential, AccessCredential, AdminHttpClient};
 
 // ==================== 全局状态（原子操作，无锁） ====================
@@ -160,83 +160,59 @@ fn clear_unread(app: AppHandle) {
     }
 }
 
-/// 开始下载文件
+/// 由 Rust 验证 URL、选择保存路径并生成任务 ID。
 #[tauri::command]
-async fn start_download(
+async fn start_managed_download(
     app: AppHandle,
     manager: State<'_, Arc<DownloadManager>>,
-    id: String,
     url: String,
-    save_path: String,
-    filename: String,
-) -> Result<(), AppError> {
-    let path = std::path::PathBuf::from(save_path);
-    manager.create_task(id.clone(), url, path, filename)?;
-    manager.start_download(id, app).await?;
-    Ok(())
+    suggested_filename: String,
+) -> Result<String, SafeError> {
+    manager.inner().start(app, url, suggested_filename).await
 }
 
 /// 取消下载
 #[tauri::command]
-fn cancel_download(manager: State<'_, Arc<DownloadManager>>, id: String) -> Result<(), AppError> {
-    manager.cancel_download(&id)
+fn cancel_managed_download(
+    manager: State<'_, Arc<DownloadManager>>,
+    task_id: String,
+) -> Result<(), SafeError> {
+    manager.cancel(&task_id)
 }
 
 /// 获取下载进度
 #[tauri::command]
-fn get_download_progress(
+fn get_managed_download_progress(
     manager: State<'_, Arc<DownloadManager>>,
-    id: String,
-) -> Option<DownloadProgress> {
-    manager.get_progress(&id)
+    task_id: String,
+) -> Result<Option<DownloadProgress>, SafeError> {
+    manager.progress(&task_id)
 }
 
 /// 获取所有下载任务
 #[tauri::command]
-fn get_all_downloads(manager: State<'_, Arc<DownloadManager>>) -> Vec<DownloadProgress> {
-    manager.get_all_tasks()
+fn get_all_managed_downloads(
+    manager: State<'_, Arc<DownloadManager>>,
+) -> Result<Vec<DownloadProgress>, SafeError> {
+    manager.all()
 }
 
 /// 删除下载任务
 #[tauri::command]
-fn remove_download(manager: State<'_, Arc<DownloadManager>>, id: String) -> Result<(), AppError> {
-    manager.remove_task(&id)
+fn remove_managed_download(
+    manager: State<'_, Arc<DownloadManager>>,
+    task_id: String,
+) -> Result<(), SafeError> {
+    manager.remove(&task_id)
 }
 
-/// 打开文件所在文件夹
+/// 只显示由管理器记录为已完成的下载。
 #[tauri::command]
-fn open_file_folder(path: String) -> Result<(), AppError> {
-    #[cfg(target_os = "windows")]
-    {
-        std::process::Command::new("explorer")
-            .args(["/select,", &path])
-            .spawn()
-            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        let folder = std::path::Path::new(&path)
-            .parent()
-            .unwrap_or(std::path::Path::new(&path));
-        std::process::Command::new("open")
-            .arg(folder)
-            .spawn()
-            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let folder = std::path::Path::new(&path)
-            .parent()
-            .unwrap_or(std::path::Path::new(&path));
-        std::process::Command::new("xdg-open")
-            .arg(folder)
-            .spawn()
-            .map_err(|e| AppError::Io("打开文件夹失败".into(), e.to_string()))?;
-    }
-
-    Ok(())
+fn reveal_managed_download(
+    manager: State<'_, Arc<DownloadManager>>,
+    task_id: String,
+) -> Result<(), SafeError> {
+    manager.reveal(&task_id)
 }
 
 // ==================== App Entry ====================
@@ -258,12 +234,12 @@ pub fn run() {
             clear_refresh_credential,
             send_notification,
             clear_unread,
-            start_download,
-            cancel_download,
-            get_download_progress,
-            get_all_downloads,
-            remove_download,
-            open_file_folder,
+            start_managed_download,
+            cancel_managed_download,
+            get_managed_download_progress,
+            get_all_managed_downloads,
+            remove_managed_download,
+            reveal_managed_download,
         ])
         .setup(|app| {
             // 创建托盘菜单

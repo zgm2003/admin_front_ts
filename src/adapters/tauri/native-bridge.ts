@@ -14,13 +14,12 @@ import {
 
 interface RawDownloadProgress {
   readonly id: string
-  readonly status: 'pending' | 'downloading' | 'paused' | 'completed' | 'failed' | 'cancelled'
+  readonly status: 'pending' | 'downloading' | 'completed' | 'failed' | 'cancelled'
   readonly downloaded: number
   readonly total: number
   readonly speed: number
   readonly progress: number
   readonly filename: string
-  readonly save_path: string
   readonly error?: string
 }
 
@@ -73,6 +72,37 @@ function exactObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+const nativeDownloadErrors = {
+  download_cancelled: '已取消下载',
+  download_policy: '下载请求不符合安全策略',
+  download_timeout: '下载请求超时',
+  download_network: '无法连接下载服务',
+  download_response: '下载服务响应不符合安全要求',
+  download_filesystem: '无法安全保存下载文件',
+  download_task_missing: '下载任务不存在',
+  download_task_state: '下载任务状态不允许此操作',
+} as const
+
+function mapNativeDownloadError(error: unknown): Error {
+  if (exactObject(error)
+    && Object.keys(error).length === 2
+    && typeof error.kind === 'string'
+    && typeof error.message === 'string'
+    && Object.prototype.hasOwnProperty.call(nativeDownloadErrors, error.kind)) {
+    const message = nativeDownloadErrors[error.kind as keyof typeof nativeDownloadErrors]
+    if (error.message === message) {
+      if (error.kind === 'download_cancelled') return new NativeCancelledError(message)
+      if (error.kind === 'download_policy') return new NativePolicyError(message)
+      const mapped = new Error(message)
+      mapped.name = 'NativeDownloadError'
+      return mapped
+    }
+  }
+  const mapped = new Error('native download command returned an invalid error contract')
+  mapped.name = 'NativeDownloadContractError'
+  return mapped
+}
+
 export function mapNativeCredentialError(error: unknown): AuthSessionError {
   if (exactObject(error)
     && Object.keys(error).length === 2
@@ -109,14 +139,67 @@ function parseNativeAccessCredential(value: unknown): NativeAccessCredential {
   return { accessToken: value.accessToken, expiresAt: value.expiresAt }
 }
 
-function managedStatus(status: RawDownloadProgress['status']): ManagedDownloadStatus {
-  return status
+const managedDownloadStatuses = new Set<ManagedDownloadStatus>([
+  'pending',
+  'downloading',
+  'completed',
+  'failed',
+  'cancelled',
+])
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function validTaskId(value: unknown): value is string {
+  return typeof value === 'string' && uuidPattern.test(value)
 }
 
-function toManagedProgress(progress: RawDownloadProgress): ManagedDownloadProgress {
+function assertTaskId(value: string): void {
+  if (!validTaskId(value)) {
+    throw new NativePolicyError('managed download task id is invalid')
+  }
+}
+
+function toManagedProgress(value: unknown): ManagedDownloadProgress {
+  if (!exactObject(value)) {
+    throw new Error('native download progress violates the managed contract')
+  }
+  const keys = Object.keys(value)
+  const expectedKeys = value.error === undefined
+    ? ['downloaded', 'filename', 'id', 'progress', 'speed', 'status', 'total']
+    : ['downloaded', 'error', 'filename', 'id', 'progress', 'speed', 'status', 'total']
+  if (keys.sort().join('|') !== expectedKeys.join('|')
+    || !validTaskId(value.id)
+    || typeof value.status !== 'string'
+    || !managedDownloadStatuses.has(value.status as ManagedDownloadStatus)
+    || typeof value.downloaded !== 'number'
+    || !Number.isSafeInteger(value.downloaded)
+    || value.downloaded < 0
+    || typeof value.total !== 'number'
+    || !Number.isSafeInteger(value.total)
+    || value.total < 0
+    || value.downloaded > value.total
+    || typeof value.speed !== 'number'
+    || !Number.isSafeInteger(value.speed)
+    || value.speed < 0
+    || typeof value.progress !== 'number'
+    || !Number.isFinite(value.progress)
+    || value.progress < 0
+    || value.progress > 100
+    || typeof value.filename !== 'string'
+    || value.filename.length === 0
+    || (value.error !== undefined && typeof value.error !== 'string')) {
+    throw new Error('native download progress violates the managed contract')
+  }
+  const terminalError = value.status === 'failed' || value.status === 'cancelled'
+  if ((terminalError && typeof value.error !== 'string')
+    || (!terminalError && value.error !== undefined)
+    || (value.status === 'completed'
+      && (value.downloaded !== value.total || value.progress !== 100))) {
+    throw new Error('native download progress violates the managed contract')
+  }
+  const progress = value as unknown as RawDownloadProgress
   const mapped = {
     id: progress.id,
-    status: managedStatus(progress.status),
+    status: progress.status,
     downloaded: progress.downloaded,
     total: progress.total,
     speed: progress.speed,
@@ -126,11 +209,6 @@ function toManagedProgress(progress: RawDownloadProgress): ManagedDownloadProgre
   return progress.error === undefined ? mapped : { ...mapped, error: progress.error }
 }
 
-function selectedFilename(path: string, fallback: string): string {
-  const filename = path.split(/[/\\]/).pop()?.trim()
-  return filename || fallback
-}
-
 export async function isTauriRuntime(): Promise<boolean> {
   const { isTauri } = await import('@tauri-apps/api/core')
   return isTauri()
@@ -138,7 +216,6 @@ export async function isTauriRuntime(): Promise<boolean> {
 
 export function createTauriNativeBridge(): NativeBridge {
   const listeners = new Set<NativeUnlisten>()
-  const savePaths = new Map<string, string>()
   const safeNavigator = createWebNativeBridge().window
 
   async function currentWindowState() {
@@ -261,61 +338,95 @@ export function createTauriNativeBridge(): NativeBridge {
     },
     downloads: {
       async start(input) {
-        const { save } = await import('@tauri-apps/plugin-dialog')
-        const savePath = await save({ defaultPath: input.suggestedFilename })
-        if (!savePath) throw new NativeCancelledError('managed download was cancelled')
-        const id = crypto.randomUUID()
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('start_download', {
-          id,
-          url: input.url,
-          savePath,
-          filename: selectedFilename(savePath, input.suggestedFilename),
-        })
-        savePaths.set(id, savePath)
+        let id: unknown
+        try {
+          id = await invoke('start_managed_download', input)
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
+        if (!validTaskId(id)) {
+          throw new Error('native download command returned an invalid task id')
+        }
         return id
       },
       async cancel(taskId) {
+        assertTaskId(taskId)
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('cancel_download', { id: taskId })
+        try {
+          await invoke('cancel_managed_download', { taskId })
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
       },
       async getProgress(taskId) {
+        assertTaskId(taskId)
         const { invoke } = await import('@tauri-apps/api/core')
-        const progress = await invoke<RawDownloadProgress | null>('get_download_progress', { id: taskId })
-        if (!progress) return null
-        savePaths.set(progress.id, progress.save_path)
+        let progress: unknown
+        try {
+          progress = await invoke('get_managed_download_progress', { taskId })
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
+        if (progress === null) return null
         return toManagedProgress(progress)
       },
       async getAll() {
         const { invoke } = await import('@tauri-apps/api/core')
-        const downloads = await invoke<RawDownloadProgress[]>('get_all_downloads')
-        return downloads.map((progress) => {
-          savePaths.set(progress.id, progress.save_path)
-          return toManagedProgress(progress)
-        })
+        let downloads: unknown
+        try {
+          downloads = await invoke('get_all_managed_downloads')
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
+        if (!Array.isArray(downloads)) {
+          throw new Error('native download list violates the managed contract')
+        }
+        return downloads.map(toManagedProgress)
       },
       async remove(taskId) {
+        assertTaskId(taskId)
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('remove_download', { id: taskId })
-        savePaths.delete(taskId)
+        try {
+          await invoke('remove_managed_download', { taskId })
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
       },
       async reveal(taskId) {
-        const path = savePaths.get(taskId)
-        if (!path) throw new NativePolicyError('managed download is not completed or recorded')
+        assertTaskId(taskId)
         const { invoke } = await import('@tauri-apps/api/core')
-        await invoke('open_file_folder', { path })
+        try {
+          await invoke('reveal_managed_download', { taskId })
+        } catch (error) {
+          throw mapNativeDownloadError(error)
+        }
       },
       listenProgress(listener) {
         return listenTracked<RawDownloadProgress>('download-progress', (progress) => {
-          savePaths.set(progress.id, progress.save_path)
           listener(toManagedProgress(progress))
         })
       },
       listenCompleted(listener) {
-        return listenTracked<string>('download-completed', listener)
+        return listenTracked<unknown>('download-completed', (taskId) => {
+          if (!validTaskId(taskId)) {
+            throw new Error('native download completion event violates the managed contract')
+          }
+          listener(taskId)
+        })
       },
       listenFailed(listener) {
-        return listenTracked<[string, string]>('download-failed', ([taskId, message]) => {
+        return listenTracked<unknown>('download-failed', (failure) => {
+          if (!Array.isArray(failure)
+            || failure.length !== 2
+            || !validTaskId(failure[0])
+            || typeof failure[1] !== 'string'
+            || !Object.values(nativeDownloadErrors).includes(
+              failure[1] as typeof nativeDownloadErrors[keyof typeof nativeDownloadErrors],
+            )) {
+            throw new Error('native download failure event violates the managed contract')
+          }
+          const [taskId, message] = failure
           listener({ taskId, message })
         })
       },
@@ -333,7 +444,6 @@ export function createTauriNativeBridge(): NativeBridge {
     async dispose() {
       for (const unlisten of [...listeners]) unlisten()
       listeners.clear()
-      savePaths.clear()
     },
   }
 }

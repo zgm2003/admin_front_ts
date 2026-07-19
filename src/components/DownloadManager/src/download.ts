@@ -108,7 +108,7 @@ class DownloadManager {
     })
     const failedListener = await native.downloads.listenFailed(({ taskId, message }) => {
       const progress = this.downloads.get(taskId)
-      if (progress?.status === 'cancelled' || message.includes('取消')) return
+      if (progress?.status === 'cancelled') return
       ElNotification({
         title: t('download.failed'),
         message: progress ? `${progress.filename}: ${message}` : message,

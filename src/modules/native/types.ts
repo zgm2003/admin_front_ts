@@ -59,7 +59,6 @@ export interface DesktopCredentialBridge {
 export type ManagedDownloadStatus =
   | 'pending'
   | 'downloading'
-  | 'paused'
   | 'completed'
   | 'failed'
   | 'cancelled'
