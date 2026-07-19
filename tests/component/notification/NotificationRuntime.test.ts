@@ -17,9 +17,15 @@ vi.mock('@/app/injection', () => ({
   useAppKernel: () => ({ realtime: { subscribe: mocks.subscribe } }),
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: mocks.routerPush }) }))
-vi.mock('@/platform/tauri', () => ({
-  shouldUseNative: mocks.shouldUseNative,
-  sendNativeNotification: mocks.sendNativeNotification,
+vi.mock('@/adapters/native', () => ({
+  getNativeBridge: () => ({
+    kind: 'tauri',
+    window: { openExternal: vi.fn() },
+    notifications: {
+      shouldUseNative: mocks.shouldUseNative,
+      send: mocks.sendNativeNotification,
+    },
+  }),
 }))
 vi.mock('element-plus', () => ({ ElNotification: mocks.notification }))
 

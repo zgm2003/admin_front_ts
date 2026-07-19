@@ -17,9 +17,10 @@ import {
   DownloadManager,
   type DownloadProgress 
 } from '@/components/DownloadManager'
-import { isTauri } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 
 const activeTab = ref('basic')
+const isTauri = () => getNativeBridge().kind === 'tauri'
 const showDownloadManager = ref(false)
 
 // 基础下载演示
@@ -116,7 +117,7 @@ const handleDownloadWithProgress = async () => {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
-      onCompleted: (_savePath) => {
+      onCompleted: () => {
         ElMessage.success('下载完成')
         setTimeout(() => {
           currentDownload.value = null
@@ -172,7 +173,7 @@ const downloadFileApi = [
 
 const downloadOptionsApi = [
   { name: 'onProgress', type: '(progress: DownloadProgress) => void', required: false, desc: '下载进度回调' },
-  { name: 'onCompleted', type: '(savePath: string) => void', required: false, desc: '下载完成回调' },
+  { name: 'onCompleted', type: '(taskId: string) => void', required: false, desc: '下载完成回调' },
   { name: 'onFailed', type: '(error: string) => void', required: false, desc: '下载失败回调' }
 ]
 
@@ -184,7 +185,6 @@ const downloadProgressApi = [
   { name: 'speed', type: 'number', desc: '下载速度（字节/秒）' },
   { name: 'progress', type: 'number', desc: '下载进度百分比（0-100）' },
   { name: 'filename', type: 'string', desc: '文件名' },
-  { name: 'save_path', type: 'string', desc: '保存路径' },
   { name: 'error', type: 'string | undefined', desc: '错误信息' }
 ]
 
@@ -194,7 +194,7 @@ const downloadManagerApi = [
   { name: 'getProgress(id)', type: 'Promise<DownloadProgress | null>', desc: '获取指定任务进度' },
   { name: 'getAllDownloads()', type: 'Promise<DownloadProgress[]>', desc: '获取所有下载任务' },
   { name: 'remove(id)', type: 'Promise<void>', desc: '删除指定任务记录' },
-  { name: 'openFolder(path)', type: 'Promise<void>', desc: '打开文件所在文件夹' },
+  { name: 'reveal(id)', type: 'Promise<void>', desc: '显示已完成任务的文件位置' },
   { name: 'formatSize(bytes)', type: 'string', desc: '格式化文件大小' },
   { name: 'formatSpeed(bytesPerSecond)', type: 'string', desc: '格式化下载速度' }
 ]
@@ -234,8 +234,8 @@ await downloadFile('https://example.com/file.pdf', 'report.pdf')`
     console.log(\`进度: \${progress.progress}%\`)
     console.log(\`速度: \${progress.speed} bytes/s\`)
   },
-  onCompleted: (_savePath) => {
-    console.log('下载完成:', savePath)
+  onCompleted: (taskId) => {
+    console.log('下载完成:', taskId)
   },
   onFailed: (error) => {
     console.error('下载失败:', error)
@@ -443,7 +443,7 @@ await downloadFile('{{ testUrl }}', '{{ testFilename }}')</code></pre>
     console.log(`进度: ${progress.progress}%`)
     console.log(`速度: ${formatSpeed(progress.speed)}`)
   },
-  onCompleted: (_savePath) => {
+  onCompleted: () => {
     ElMessage.success('下载完成')
   },
   onFailed: (error) => {

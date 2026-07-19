@@ -155,7 +155,7 @@
                   size="small"
                   type="primary"
                   text
-                  @click="handleOpenFolder(item.save_path)"
+                  @click="handleOpenFolder(item.id)"
                 >
                   <el-icon><FolderOpened /></el-icon>
                   {{ t('download.openFolder') }}
@@ -314,12 +314,6 @@ const handleCancel = async (id: string) => {
       cancelButtonText: t('common.actions.cancel'),
     })
     
-    // 立即更新 UI 状态
-    const task = downloads.value.find(d => d.id === id)
-    if (task) {
-      task.status = 'cancelled'
-    }
-    
     // 调用取消接口
     await downloadManager.cancel(id)
     
@@ -331,8 +325,8 @@ const handleCancel = async (id: string) => {
 }
 
 // 打开文件夹
-const handleOpenFolder = async (savePath: string) => {
-  await downloadManager.openFolder(savePath)
+const handleOpenFolder = async (taskId: string) => {
+  await downloadManager.reveal(taskId)
 }
 
 // 删除任务

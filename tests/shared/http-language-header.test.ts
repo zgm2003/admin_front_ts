@@ -6,8 +6,8 @@ import {
 
 describe('HTTP common headers', () => {
   it('identifies browser and packaged desktop clients explicitly', () => {
-    expect(getAdminClientVariant({})).toBe('browser')
-    expect(getAdminClientVariant({ __TAURI__: {} })).toBe('desktop')
+    expect(getAdminClientVariant('web')).toBe('browser')
+    expect(getAdminClientVariant('tauri')).toBe('desktop')
   })
 
   it('builds the explicit Admin context without reading or adding a credential', () => {

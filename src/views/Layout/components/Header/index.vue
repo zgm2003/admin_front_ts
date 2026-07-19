@@ -1,7 +1,7 @@
 <template>
   <div
     class="header-bar"
-    :class="{ 'header-bar--draggable': isTauri() }"
+    :class="{ 'header-bar--draggable': isTauri }"
   >
     <div class="header-left">
       <el-button
@@ -34,7 +34,7 @@
 
     <div class="header-right">
       <el-badge
-        v-if="isTauri()"
+        v-if="isTauri"
         :value="downloadCount"
         :hidden="downloadCount === 0"
         :max="99"
@@ -105,7 +105,7 @@
   <SettingDrawer v-model="drawer" />
   <SearchDialog v-model="searchOpen" />
   <DownloadManager
-    v-if="isTauri()"
+    v-if="isTauri"
     v-model:visible="showDownloadManager"
   />
 </template>
@@ -118,7 +118,7 @@ import { DIcon } from '@/components/DIcon'
 import { downloadManager, DownloadManager } from '@/components/DownloadManager'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useMenuStore, HOME_MENU_ITEM } from '@/store/menu.ts'
-import { isTauri } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 import { useUserStore } from '@/store/user'
 import { toggleDarkMode } from '@/hooks/useTheme'
 import { useAppKernel } from '@/app/injection'
@@ -137,6 +137,7 @@ const userStore = useUserStore()
 const kernel = useAppKernel()
 const isMobile = useIsMobile()
 const { t, locale } = useI18n()
+const isTauri = getNativeBridge().kind === 'tauri'
 
 const isDark = shallowRef(false)
 const drawer = shallowRef(false)
@@ -176,7 +177,7 @@ function getBreadcrumbLabel(item: PermissionMenuItem) {
 }
 
 async function updateDownloadCount() {
-  if (!isTauri()) return
+  if (!isTauri) return
 
   const downloads = await downloadManager.getAllDownloads()
   const activeCount = downloads.filter(d => d.status === 'downloading').length
@@ -218,7 +219,7 @@ onMounted(() => {
   toggleDarkMode(isDark.value)
   document.documentElement.style.setProperty('--el-color-primary', menuStore.systemColor)
 
-  if (isTauri()) {
+  if (isTauri) {
     updateDownloadCount()
     window.addEventListener('download-started', updateDownloadCount)
   }

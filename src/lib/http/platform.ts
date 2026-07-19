@@ -1,9 +1,7 @@
-import { isTauriRuntime } from '@/platform/tauri/env'
+import type { NativeBridge } from '@/modules/native/types'
 
 export type AdminClientVariant = 'browser' | 'desktop'
 export type AdminRequestLanguage = 'zh-CN' | 'en-US'
-
-type TauriRuntime = { __TAURI__?: unknown }
 
 export interface CommonHeaderContext {
   readonly language: AdminRequestLanguage
@@ -13,9 +11,9 @@ export interface CommonHeaderContext {
 }
 
 export function getAdminClientVariant(
-  runtime: TauriRuntime | undefined | null = globalThis as typeof globalThis & TauriRuntime,
+  runtime: NativeBridge['kind'] = 'web',
 ): AdminClientVariant {
-  return isTauriRuntime(runtime) ? 'desktop' : 'browser'
+  return runtime === 'tauri' ? 'desktop' : 'browser'
 }
 
 export function generateTraceId(): string {

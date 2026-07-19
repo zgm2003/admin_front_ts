@@ -5,7 +5,7 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import enUs from 'element-plus/dist/locale/en.mjs'
 import { TauriManager } from '@/components/TauriManager'
 import { NetworkStatusNotice } from '@/components/NetworkStatusNotice'
-import { isTauri } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useAppKernel } from '@/app/injection'
 import LoginView from '@/views/Login/index.vue'
@@ -16,6 +16,7 @@ const bootstrapState = kernel.state
 const isMobile = useIsMobile()
 const elementLocale = computed(() => (locale.value === 'en-US' ? enUs : zhCn))
 const elementSize = computed(() => (isMobile.value ? 'small' : 'default'))
+const isTauri = getNativeBridge().kind === 'tauri'
 const fatalMessage = computed(() => bootstrapState.value.kind === 'failed'
   ? bootstrapState.value.error.messageKey
   : '')
@@ -48,7 +49,7 @@ const fatalMessage = computed(() => bootstrapState.value.kind === 'failed'
     <LoginView v-else-if="bootstrapState.kind === 'anonymous'" />
 
     <template v-else-if="bootstrapState.kind === 'ready'">
-      <TauriManager v-if="isTauri()" />
+      <TauriManager v-if="isTauri" />
       <NetworkStatusNotice />
       <router-view />
     </template>

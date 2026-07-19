@@ -4,10 +4,11 @@ import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import { useAppKernel } from '@/app/injection'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
-import { sendNativeNotification, shouldUseNative } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 
 const router = useRouter()
 const kernel = useAppKernel()
+const native = getNativeBridge()
 
 function navigateTo(link: string) {
   if (!link) {
@@ -17,7 +18,7 @@ function navigateTo(link: string) {
   const normalizedLink = normalizeNotificationLink(link)
 
   if (normalizedLink.startsWith('http')) {
-    window.open(normalizedLink, '_blank')
+    native.window.openExternal(normalizedLink)
     return
   }
 
@@ -28,8 +29,8 @@ let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
   unsubscribe = kernel.realtime.subscribe('notification.created.v1', async ({ data }) => {
-    if (await shouldUseNative()) {
-      await sendNativeNotification(data.title, data.content)
+    if (await native.notifications.shouldUseNative()) {
+      await native.notifications.send(data.title, data.content)
     }
 
     const notification = ElNotification({

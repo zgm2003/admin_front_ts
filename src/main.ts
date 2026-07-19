@@ -16,8 +16,9 @@ import { createBrowserRefreshCoordinator } from './adapters/web/browser-coordina
 import { createBrowserLocalStorageAdapter } from './adapters/web/storage'
 import { BrowserWebSocketTransport } from './adapters/web/websocket'
 import {
-  createUnavailableNativeBridge,
+  createRuntimeNativeBridge,
   DesktopCredentialAdapter,
+  installNativeBridge,
 } from './adapters/native'
 import { AuthSession } from './modules/auth/session'
 import type { CredentialAdapter } from './modules/auth/types'
@@ -47,6 +48,8 @@ import { useUserStore } from './store/user'
 import { toggleDarkMode } from './hooks/useTheme'
 import { RealtimeClient } from './modules/realtime/client'
 
+const nativeBridge = await createRuntimeNativeBridge()
+const uninstallNativeBridge = installNativeBridge(nativeBridge)
 const app = createApp(App)
 const pinia = createPinia()
 const persistence = new Persistence(createBrowserLocalStorageAdapter())
@@ -55,7 +58,12 @@ installDeviceIdProvider(deviceIdProvider)
 
 let environmentCache: ReturnType<typeof parseEnvironment> | null = null
 function environment() {
-  if (!environmentCache) environmentCache = parseEnvironment(import.meta.env, window.location)
+  if (!environmentCache) {
+    environmentCache = parseEnvironment({
+      ...import.meta.env,
+      VITE_ADMIN_CLIENT_VARIANT: nativeBridge.kind === 'tauri' ? 'desktop' : 'browser',
+    }, window.location)
+  }
   return environmentCache
 }
 
@@ -69,7 +77,6 @@ function requestHeaders() {
   })
 }
 
-const nativeBridge = createUnavailableNativeBridge()
 let concreteCredentialAdapter: CredentialAdapter | null = null
 function credentialAdapter(): CredentialAdapter {
   if (concreteCredentialAdapter) return concreteCredentialAdapter
@@ -222,6 +229,8 @@ const kernel = new AppKernel({
       stopMenuStorePersistence()
       stopTauriStorePersistence()
       uninstallApiClient()
+      await nativeBridge.dispose()
+      uninstallNativeBridge()
     },
   }],
 })

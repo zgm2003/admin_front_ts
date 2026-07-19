@@ -266,7 +266,7 @@ const handleDownloadWithProgress = async () => {
       onProgress: (progress) => {
         currentDownload.value = progress
       },
-      onCompleted: (_savePath) => {
+      onCompleted: () => {
         ElMessage.success(t('devTest.downloadDone'))
         setTimeout(() => {
           currentDownload.value = null

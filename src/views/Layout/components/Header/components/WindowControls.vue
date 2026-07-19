@@ -1,29 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useTauriStore } from '@/store/tauri'
-import {
-  isCurrentAppWindowMaximized,
-  isTauri,
-  listenWindowResize,
-  minimizeAppWindow,
-  toggleMaximizeAppWindow,
-} from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 import { SemiSelect, FullScreen, CopyDocument, Close } from '@element-plus/icons-vue'
 
 const tauriStore = useTauriStore()
+const native = getNativeBridge()
+const isTauri = native.kind === 'tauri'
 const isMaximized = ref(false)
 let unlisten: (() => void) | null = null
 
 async function updateMaxState() {
-  isMaximized.value = await isCurrentAppWindowMaximized()
+  isMaximized.value = (await native.window.getState()).maximized
 }
 
 async function minimize() {
-  await minimizeAppWindow()
+  await native.window.minimize()
 }
 
 async function toggleMaximize() {
-  await toggleMaximizeAppWindow()
+  await native.window.toggleMaximize()
 }
 
 async function handleClose() {
@@ -35,9 +31,9 @@ async function handleClose() {
 }
 
 onMounted(async () => {
-  if (!isTauri()) return
+  if (!isTauri) return
   await updateMaxState()
-  unlisten = await listenWindowResize(updateMaxState)
+  unlisten = await native.window.listenResize(updateMaxState)
 })
 
 onUnmounted(() => {
@@ -47,7 +43,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    v-if="isTauri()"
+    v-if="isTauri"
     class="window-controls"
   >
     <div class="window-controls__divider" />

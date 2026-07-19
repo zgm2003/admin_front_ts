@@ -3,13 +3,15 @@ import { DesktopCredentialAdapter, type NativeBridge } from '@/adapters/native'
 
 describe('desktop credential handoff', () => {
   it('seals the rotating refresh credential and returns only the access credential', async () => {
-    const bridge: NativeBridge = {
-      available: true,
-      sealRefreshCredential: vi.fn(async () => undefined),
-      refreshAccessCredential: vi.fn(),
-      revokeAccessCredential: vi.fn(async () => undefined),
-      clearRefreshCredential: vi.fn(async () => undefined),
-    }
+    const seal = vi.fn(async () => undefined)
+    const bridge = {
+      kind: 'tauri',
+      credentials: {
+        seal,
+        refresh: vi.fn(),
+        clear: vi.fn(async () => undefined),
+      },
+    } as unknown as NativeBridge
     const fetch = vi.fn(async () => new Response(JSON.stringify({
       code: 0,
       data: {
@@ -36,7 +38,7 @@ describe('desktop credential handoff', () => {
       accessToken: 'desktop-access',
       expiresAt: 61_000,
     })
-    expect(bridge.sealRefreshCredential).toHaveBeenCalledWith({
+    expect(seal).toHaveBeenCalledWith({
       refreshToken: 'desktop-refresh',
       expiresAt: 3_601_000,
     })

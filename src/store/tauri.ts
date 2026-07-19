@@ -5,14 +5,7 @@ import {
   writeDevicePreferences,
 } from '@/modules/persistence/preferences'
 import type { Persistence } from '@/modules/persistence/store'
-import {
-  exitAppProcess,
-  getTauriAppVersion,
-  hideAppWindow,
-  isTauri,
-  listenWindowCloseRequested,
-  resolveDesktopPlatform,
-} from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 
 export type CloseAction = 'minimize' | 'exit'
 
@@ -27,14 +20,15 @@ export const useTauriStore = defineStore('tauri', {
     closeAction: null as CloseAction | null,
   }),
   getters: {
-    isTauriEnv: () => isTauri(),
+    isTauriEnv: () => getNativeBridge().kind === 'tauri',
   },
   actions: {
     async init() {
-      if (!isTauri()) return
+      const native = getNativeBridge()
+      if (native.kind !== 'tauri') return
 
-      this.version = await getTauriAppVersion()
-      this.platform = resolveDesktopPlatform()
+      this.version = await native.updater.getCurrentVersion()
+      this.platform = 'windows-x86_64'
 
       // 初始化窗口关闭事件监听
       await this.setupCloseHandler()
@@ -49,10 +43,10 @@ export const useTauriStore = defineStore('tauri', {
       this.closeAction = null
     },
     async hideWindow() {
-      await hideAppWindow()
+      await getNativeBridge().window.hide()
     },
     async exitApp() {
-      await exitAppProcess(0)
+      await getNativeBridge().process.exit(0)
     },
     async handleMinimize() {
       this.showCloseDialog = false
@@ -65,10 +59,11 @@ export const useTauriStore = defineStore('tauri', {
       await this.exitApp()
     },
     async setupCloseHandler() {
-      if (!isTauri() || this._closeHandlerReady) return
+      const native = getNativeBridge()
+      if (native.kind !== 'tauri' || this._closeHandlerReady) return
       this._closeHandlerReady = true
 
-      await listenWindowCloseRequested(async () => {
+      await native.window.listenCloseRequested(async () => {
         const saved = this.closeAction
 
         if (saved === 'minimize') {

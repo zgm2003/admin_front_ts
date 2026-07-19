@@ -1,5 +1,8 @@
 export function isDownloadUserCancelled(error: unknown, cancelMessage: string): boolean {
-  return error instanceof Error && error.message === cancelMessage
+  return error instanceof Error && (
+    error.message === cancelMessage
+    || ('code' in error && error.code === 'native.cancelled')
+  )
 }
 
 export function requireDownloadError(error: unknown, operation: string): Error {

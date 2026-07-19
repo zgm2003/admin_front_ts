@@ -9,18 +9,37 @@ import {
   errorEnvelopeSchema,
   successEnvelopeSchema,
 } from '@/modules/http/schema'
+import { createWebNativeBridge } from '@/adapters/web/native-bridge'
+import type { NativeBridge } from '@/modules/native/types'
 
-export interface DesktopRefreshCredential {
-  readonly refreshToken: string
-  readonly expiresAt: number
+export type {
+  DesktopRefreshCredential,
+  ManagedDownloadProgress,
+  NativeBridge,
+  NativeUpdate,
+  NativeWindowState,
+  UpdaterDownloadEvent,
+} from '@/modules/native/types'
+
+let installedBridge: NativeBridge = createWebNativeBridge()
+
+export async function createRuntimeNativeBridge(): Promise<NativeBridge> {
+  const adapter = await import('@/adapters/tauri/native-bridge')
+  return await adapter.isTauriRuntime()
+    ? adapter.createTauriNativeBridge()
+    : createWebNativeBridge()
 }
 
-export interface NativeBridge {
-  readonly available: boolean
-  sealRefreshCredential(credential: DesktopRefreshCredential): Promise<void>
-  refreshAccessCredential(apiOrigin: URL, signal: AbortSignal): Promise<AccessCredential>
-  revokeAccessCredential(apiOrigin: URL, accessToken: string | null, signal: AbortSignal): Promise<void>
-  clearRefreshCredential(): Promise<void>
+export function installNativeBridge(bridge: NativeBridge): () => void {
+  const previous = installedBridge
+  installedBridge = bridge
+  return () => {
+    if (installedBridge === bridge) installedBridge = previous
+  }
+}
+
+export function getNativeBridge(): NativeBridge {
+  return installedBridge
 }
 
 export interface DesktopCredentialAdapterOptions {
@@ -51,9 +70,9 @@ export class DesktopCredentialAdapter implements CredentialAdapter {
     this.commonHeaders = options.headers ?? (() => ({}))
   }
 
-  async restore(signal: AbortSignal): Promise<AccessCredential | null> {
+  async restore(): Promise<AccessCredential | null> {
     try {
-      return await this.refresh(signal)
+      return await this.refresh()
     } catch (error) {
       if (error instanceof AuthSessionError && error.status === 401) return null
       throw error
@@ -81,33 +100,49 @@ export class DesktopCredentialAdapter implements CredentialAdapter {
         'desktop credential response violates the Admin contract',
       )
     }
-    await this.bridge.sealRefreshCredential({
-      refreshToken: parsed.data.refresh_token,
-      expiresAt: this.now() + parsed.data.refresh_expires_in * 1_000,
-    })
+    let refreshToken: string | null = parsed.data.refresh_token
+    try {
+      await this.bridge.credentials.seal({
+        refreshToken,
+        expiresAt: this.now() + parsed.data.refresh_expires_in * 1_000,
+      })
+    } finally {
+      refreshToken = null
+    }
     return {
       accessToken: parsed.data.access_token,
       expiresAt: this.now() + parsed.data.expires_in * 1_000,
     }
   }
 
-  refresh(signal: AbortSignal): Promise<AccessCredential> {
+  async refresh(): Promise<AccessCredential> {
     this.assertAvailable()
-    return this.bridge.refreshAccessCredential(new URL(this.apiOrigin()), signal)
+    return this.bridge.credentials.refresh()
   }
 
-  revoke(accessToken: string | null, signal: AbortSignal): Promise<void> {
+  async revoke(accessToken: string | null, signal: AbortSignal): Promise<void> {
     this.assertAvailable()
-    return this.bridge.revokeAccessCredential(new URL(this.apiOrigin()), accessToken, signal)
+    const headers: Record<string, string> = {
+      ...this.commonHeaders(),
+      'X-Admin-Client-Variant': 'desktop',
+    }
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`
+    const response = await this.fetch(`${this.apiOrigin()}/api/admin/v1/auth/logout`, {
+      method: 'POST',
+      credentials: 'omit',
+      headers,
+      signal,
+    })
+    await this.readEnvelope(response)
   }
 
-  clear(): Promise<void> {
-    if (!this.bridge.available) return Promise.resolve()
-    return this.bridge.clearRefreshCredential()
+  async clear(): Promise<void> {
+    if (this.bridge.kind !== 'tauri') return
+    await this.bridge.credentials.clear()
   }
 
   private assertAvailable(): void {
-    if (!this.bridge.available) {
+    if (this.bridge.kind !== 'tauri') {
       throw new AuthSessionError('auth.native_unavailable', 'native credential bridge is unavailable')
     }
   }
@@ -133,18 +168,5 @@ export class DesktopCredentialAdapter implements CredentialAdapter {
     throw new AuthSessionError('auth.response_invalid', 'authentication response violates the Admin contract', {
       status: response.status,
     })
-  }
-}
-
-export function createUnavailableNativeBridge(): NativeBridge {
-  const unavailable = () => Promise.reject(
-    new AuthSessionError('auth.native_unavailable', 'native credential bridge is unavailable'),
-  )
-  return {
-    available: false,
-    sealRefreshCredential: unavailable,
-    refreshAccessCredential: unavailable,
-    revokeAccessCredential: unavailable,
-    clearRefreshCredential: unavailable,
   }
 }

@@ -1,250 +1,191 @@
-/**
- * 统一下载工具 - 自动适配浏览器和 Tauri 环境
- * Tauri 环境提供完整的桌面下载体验（进度、暂停、取消）
- */
-import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ElMessage, ElNotification } from 'element-plus'
-import { isTauri } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 import i18n from '@/i18n'
+import {
+  NativePolicyError,
+  type ManagedDownloadProgress,
+  type NativeBridge,
+  type NativeUnlisten,
+} from '@/modules/native/types'
 import { isDownloadUserCancelled, requireDownloadError } from './errors'
 
 const t = i18n.global.t
 const DEFAULT_DOWNLOAD_FILENAME = 'download'
-
-// 动态导入 Tauri API，避免 Web 环境加载失败
-const tauriCore = () => import('@tauri-apps/api/core')
-const tauriEvent = () => import('@tauri-apps/api/event')
-const tauriDialog = () => import('@tauri-apps/plugin-dialog')
+const webDownloadHosts = new Set(['www.zgm2003.cn', 'cos.zgm2003.cn'])
 
 function filenameFromURL(url: string): string | null {
-  const lastPathSegment = url.split('/').pop()
-  if (lastPathSegment === undefined) return null
-
-  const queryIndex = lastPathSegment.indexOf('?')
-  const filename = (queryIndex === -1 ? lastPathSegment : lastPathSegment.slice(0, queryIndex)).trim()
-  if (filename.length === 0) return null
-
-  return filename
+  let parsed: URL
+  try {
+    parsed = new URL(url, globalThis.location?.href)
+  } catch {
+    return null
+  }
+  const filename = parsed.pathname.split('/').pop()?.trim()
+  return filename || null
 }
 
 function resolveSuggestedDownloadFilename(url: string, filename?: string): string {
   const requestedFilename = filename?.trim()
-  if (requestedFilename !== undefined && requestedFilename.length > 0) {
-    return requestedFilename
-  }
-
-  const urlFilename = filenameFromURL(url)
-  if (urlFilename !== null) {
-    return urlFilename
-  }
-
-  return DEFAULT_DOWNLOAD_FILENAME
+  if (requestedFilename) return requestedFilename
+  return filenameFromURL(url) ?? DEFAULT_DOWNLOAD_FILENAME
 }
 
-function resolveSavePathFilename(savePath: string, suggestedFilename: string): string {
-  const savePathFilename = savePath.split(/[/\\]/).pop()?.trim()
-  if (savePathFilename !== undefined && savePathFilename.length > 0) {
-    return savePathFilename
+function validatedWebDownloadUrl(input: string): URL {
+  const base = new URL(globalThis.location.href)
+  let url: URL
+  try {
+    url = new URL(input, base)
+  } catch {
+    throw new NativePolicyError('download URL is invalid')
   }
-
-  return suggestedFilename
+  if (url.username || url.password) {
+    throw new NativePolicyError('download URL credentials are forbidden')
+  }
+  const sameOrigin = url.origin === base.origin
+  const allowlistedHttps = url.protocol === 'https:' && webDownloadHosts.has(url.hostname.toLowerCase())
+  if (!sameOrigin && !allowlistedHttps) {
+    throw new NativePolicyError('download URL is not allowlisted')
+  }
+  return url
 }
 
-// ==================== 类型定义 ====================
-
-export interface DownloadProgress {
-  id: string
-  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'failed' | 'cancelled'
-  downloaded: number
-  total: number
-  speed: number
-  progress: number
-  filename: string
-  save_path: string
-  error?: string
-}
+export type DownloadProgress = ManagedDownloadProgress
 
 export interface DownloadOptions {
-  url: string
-  filename?: string
-  onProgress?: (progress: DownloadProgress) => void
-  onCompleted?: (savePath: string) => void
-  onFailed?: (error: string) => void
+  readonly url: string
+  readonly filename?: string
+  readonly onProgress?: (progress: DownloadProgress) => void
+  readonly onCompleted?: (taskId: string) => void
+  readonly onFailed?: (error: string) => void
 }
 
-// ==================== 下载管理器类 ====================
-
 class DownloadManager {
-  private listeners: UnlistenFn[] = []
+  private listeners: NativeUnlisten[] = []
+  private listenerBridge: NativeBridge | null = null
+  private listenerFlight: Promise<void> | null = null
   private downloads = new Map<string, DownloadProgress>()
   private callbacks = new Map<string, {
     onProgress?: (progress: DownloadProgress) => void
-    onCompleted?: (savePath: string) => void
+    onCompleted?: (taskId: string) => void
     onFailed?: (error: string) => void
   }>()
 
-  constructor() {
-    if (isTauri()) {
-      this.initListeners()
-    }
+  private ensureListeners(): Promise<void> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri' || this.listenerBridge === native) return Promise.resolve()
+    if (this.listenerFlight) return this.listenerFlight
+    this.listenerFlight = this.initListeners(native).finally(() => {
+      this.listenerFlight = null
+    })
+    return this.listenerFlight
   }
 
-  private async initListeners() {
-    const { listen } = await tauriEvent()
-    const progressListener = await listen<DownloadProgress>('download-progress', (event) => {
-      const progress = event.payload
+  private async initListeners(native: NativeBridge): Promise<void> {
+    for (const unlisten of this.listeners.splice(0)) unlisten()
+    this.listenerBridge = native
+
+    const progressListener = await native.downloads.listenProgress((progress) => {
       this.downloads.set(progress.id, progress)
       this.callbacks.get(progress.id)?.onProgress?.(progress)
     })
-
-    const completedListener = await listen<string>('download-completed', (event) => {
-      const id = event.payload
-      const progress = this.downloads.get(id)
-      
-      if (progress) {
-        ElNotification({
-          title: t('download.completed'),
-          message: `${progress.filename} ${t('download.savedTo')} ${progress.save_path}\n${t('download.clickToOpen')}`,
-          type: 'success',
-          duration: 5000,
-          onClick: () => this.openFolder(progress.save_path),
-          customClass: 'download-notification-clickable',
-        })
-        this.callbacks.get(id)?.onCompleted?.(progress.save_path)
-      }
+    const completedListener = await native.downloads.listenCompleted(async (id) => {
+      const progress = await native.downloads.getProgress(id)
+      if (progress) this.downloads.set(id, progress)
+      const known = progress ?? this.downloads.get(id)
+      if (!known) return
+      const notification = ElNotification({
+        title: t('download.completed'),
+        message: `${known.filename} ${t('download.completed')}，${t('download.clickToOpen')}`,
+        type: 'success',
+        duration: 5000,
+        onClick: () => {
+          notification.close()
+          void this.reveal(id)
+        },
+        customClass: 'download-notification-clickable',
+      })
+      this.callbacks.get(id)?.onCompleted?.(id)
     })
-
-    const failedListener = await listen<[string, string]>('download-failed', (event) => {
-      const [id, error] = event.payload
-      const progress = this.downloads.get(id)
-      
-      if (progress && !error.includes('取消')) {
-        ElNotification({
-          title: t('download.failed'),
-          message: `${progress.filename}: ${error}`,
-          type: 'error',
-          duration: 5000,
-        })
-        this.callbacks.get(id)?.onFailed?.(error)
-      }
+    const failedListener = await native.downloads.listenFailed(({ taskId, message }) => {
+      const progress = this.downloads.get(taskId)
+      if (progress?.status === 'cancelled' || message.includes('取消')) return
+      ElNotification({
+        title: t('download.failed'),
+        message: progress ? `${progress.filename}: ${message}` : message,
+        type: 'error',
+        duration: 5000,
+      })
+      this.callbacks.get(taskId)?.onFailed?.(message)
     })
-
     this.listeners.push(progressListener, completedListener, failedListener)
   }
 
   async download(options: DownloadOptions): Promise<string> {
-    if (!isTauri()) {
-      window.open(options.url, '_blank')
-      throw new Error(t('download.webNotSupported'))
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') {
+      throw new NativePolicyError(t('download.webNotSupported'))
     }
-
-    const { save } = await tauriDialog()
-    const { invoke } = await tauriCore()
-    const suggestedFilename = resolveSuggestedDownloadFilename(options.url, options.filename)
-
-    const savePath = await save({
-      defaultPath: suggestedFilename,
-      filters: this.getFileFilters(suggestedFilename),
+    await this.ensureListeners()
+    const id = await native.downloads.start({
+      url: options.url,
+      suggestedFilename: resolveSuggestedDownloadFilename(options.url, options.filename),
     })
-
-    if (!savePath) throw new Error(t('download.userCancelled'))
-
-    const id = `download_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     this.callbacks.set(id, {
       onProgress: options.onProgress,
       onCompleted: options.onCompleted,
       onFailed: options.onFailed,
     })
-
-    const filename = resolveSavePathFilename(savePath, suggestedFilename)
-    await invoke('start_download', { id, url: options.url, savePath, filename })
-
-    // 通知 Header 等组件有新下载开始，触发 badge 更新
-    window.dispatchEvent(new CustomEvent('download-started'))
-
+    globalThis.dispatchEvent(new CustomEvent('download-started'))
     return id
   }
 
-  async cancel(id: string) {
-    if (!isTauri()) return
-    try {
-      const { invoke } = await tauriCore()
-      await invoke('cancel_download', { id })
-      this.downloads.delete(id)
-      this.callbacks.delete(id)
-    } catch (error) {
-      console.error('[cancel] Error:', error)
-    }
-  }
-
-  async getProgress(id: string): Promise<DownloadProgress | null> {
-    if (!isTauri()) return null
-    try {
-      const { invoke } = await tauriCore()
-      const progress = await invoke<DownloadProgress | null>('get_download_progress', { id })
-      if (progress) this.downloads.set(id, progress)
-      return progress
-    } catch {
-      return null
-    }
-  }
-
-  async getAllDownloads(): Promise<DownloadProgress[]> {
-    if (!isTauri()) return []
-    try {
-      const { invoke } = await tauriCore()
-      const downloads = await invoke<DownloadProgress[]>('get_all_downloads')
-      downloads.forEach(d => this.downloads.set(d.id, d))
-      return downloads
-    } catch {
-      return []
-    }
-  }
-
-  async remove(id: string) {
-    if (!isTauri()) return
-    const { invoke } = await tauriCore()
-    await invoke('remove_download', { id })
+  async cancel(id: string): Promise<void> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') return
+    await native.downloads.cancel(id)
     this.downloads.delete(id)
     this.callbacks.delete(id)
   }
 
-  async openFolder(savePath: string) {
-    if (!isTauri()) return
-    try {
-      const { invoke } = await tauriCore()
-      await invoke('open_file_folder', { path: savePath })
-      ElMessage.success(t('download.folderOpened'))
-    } catch (error) {
-      console.error('[openFolder] Error:', error)
-      ElMessage.error(t('download.folderOpenFailed'))
-    }
+  async getProgress(id: string): Promise<DownloadProgress | null> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') return null
+    await this.ensureListeners()
+    const progress = await native.downloads.getProgress(id)
+    if (progress) this.downloads.set(id, progress)
+    return progress
   }
 
-  private getFileFilters(filename: string) {
-    const ext = filename.split('.').pop()?.toLowerCase()
-    const filterMap: Record<string, { name: string; extensions: string[] }> = {
-      'pdf': { name: t('download.fileType.pdf'), extensions: ['pdf'] },
-      'doc': { name: t('download.fileType.word'), extensions: ['doc', 'docx'] },
-      'docx': { name: t('download.fileType.word'), extensions: ['doc', 'docx'] },
-      'xls': { name: t('download.fileType.excel'), extensions: ['xls', 'xlsx'] },
-      'xlsx': { name: t('download.fileType.excel'), extensions: ['xls', 'xlsx'] },
-      'zip': { name: t('download.fileType.archive'), extensions: ['zip', 'rar', '7z'] },
-      'jpg': { name: t('download.fileType.image'), extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
-      'png': { name: t('download.fileType.image'), extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
-      'mp4': { name: t('download.fileType.video'), extensions: ['mp4', 'avi', 'mkv', 'mov'] },
-      'mp3': { name: t('download.fileType.audio'), extensions: ['mp3', 'wav', 'flac'] },
-    }
-    const filter = ext ? filterMap[ext] : undefined
-    return filter ? [filter, { name: t('download.fileType.all'), extensions: ['*'] }] : [{ name: t('download.fileType.all'), extensions: ['*'] }]
+  async getAllDownloads(): Promise<DownloadProgress[]> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') return []
+    await this.ensureListeners()
+    const downloads = await native.downloads.getAll()
+    downloads.forEach((download) => this.downloads.set(download.id, download))
+    return downloads
+  }
+
+  async remove(id: string): Promise<void> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') return
+    await native.downloads.remove(id)
+    this.downloads.delete(id)
+    this.callbacks.delete(id)
+  }
+
+  async reveal(id: string): Promise<void> {
+    const native = getNativeBridge()
+    if (native.kind !== 'tauri') return
+    await native.downloads.reveal(id)
+    ElMessage.success(t('download.folderOpened'))
   }
 
   formatSize(bytes: number): string {
     if (bytes === 0) return '0 B'
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+    const index = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)))
+    return `${(bytes / Math.pow(k, index)).toFixed(2)} ${sizes[index]}`
   }
 
   formatSpeed(bytesPerSecond: number): string {
@@ -252,63 +193,44 @@ class DownloadManager {
   }
 }
 
-// ==================== 导出单例 ====================
-
 export const downloadManager = new DownloadManager()
-
-// ==================== 便捷方法 ====================
 
 export const downloadFile = async (
   url: string,
   filename?: string,
-  options?: Omit<DownloadOptions, 'url' | 'filename'>
+  options?: Omit<DownloadOptions, 'url' | 'filename'>,
 ): Promise<string | undefined> => {
-  if (isTauri()) {
+  if (getNativeBridge().kind === 'tauri') {
     try {
       return await downloadManager.download({ url, filename, ...options })
     } catch (error: unknown) {
-      // 用户取消下载，直接返回，不做任何操作
-      if (isDownloadUserCancelled(error, t('download.userCancelled'))) {
-        return undefined
-      }
-      // 其他错误，记录日志并抛出
-      const downloadError = requireDownloadError(error, 'download')
-      console.error('[download] Error:', downloadError)
-      throw downloadError
+      if (isDownloadUserCancelled(error, t('download.userCancelled'))) return undefined
+      throw requireDownloadError(error, 'download')
     }
   }
 
-  // Web 环境：通过 fetch blob 强制下载（解决跨域 COS 链接 <a download> 无效的问题）
   try {
-    const resp = await fetch(url)
-    if (!resp.ok) throw new Error(`${t('download.failed')}: ${resp.status}`)
-    const blob = await resp.blob()
+    const safeUrl = validatedWebDownloadUrl(url)
+    const response = await fetch(safeUrl)
+    if (!response.ok) throw new Error(`${t('download.failed')}: ${response.status}`)
+    const blob = await response.blob()
     const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = resolveSuggestedDownloadFilename(url, filename)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(blobUrl)
+    try {
+      link.href = blobUrl
+      link.download = resolveSuggestedDownloadFilename(safeUrl.href, filename)
+      document.body.appendChild(link)
+      link.click()
+    } finally {
+      link.remove()
+      URL.revokeObjectURL(blobUrl)
+    }
   } catch (error: unknown) {
-    const downloadError = requireDownloadError(error, 'web download')
-    console.error('[downloadFile] Web fetch error:', downloadError)
-    throw downloadError
+    throw requireDownloadError(error, 'web download')
   }
   return undefined
 }
 
-export const openUrl = async (url: string) => {
-  if (isTauri()) {
-    try {
-      const { invoke } = await tauriCore()
-      await invoke('plugin:opener|open_url', { url })
-    } catch (e) {
-      console.error('[openUrl] Error:', e)
-      window.open(url, '_blank')
-    }
-  } else {
-    window.open(url, '_blank')
-  }
+export const openUrl = async (url: string): Promise<void> => {
+  getNativeBridge().window.openExternal(url)
 }

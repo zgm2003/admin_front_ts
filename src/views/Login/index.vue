@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useIsMobile } from '@/hooks/useResponsive'
-import { closeAppWindow, isTauri as isTauriEnv, minimizeAppWindow } from '@/platform/tauri'
+import { getNativeBridge } from '@/adapters/native'
 import { SemiSelect, CloseBold } from '@element-plus/icons-vue'
 import { useLoginForm } from './composables/useLoginForm'
 import { useForgotPassword } from './composables/useForgotPassword'
@@ -14,6 +14,8 @@ import ForgotPasswordDialog from './components/ForgotPasswordDialog.vue'
 import LoginSuccessOverlay from './components/LoginSuccessOverlay.vue'
 
 const isMobile = useIsMobile()
+const native = getNativeBridge()
+const isTauriEnv = native.kind === 'tauri'
 
 const {
   loginTypes,
@@ -58,21 +60,21 @@ const {
 
 // Tauri 窗口操作
 async function tauriMinimize() {
-  await minimizeAppWindow()
+  await native.window.minimize()
 }
 async function tauriClose() {
-  await closeAppWindow()
+  await native.window.requestClose()
 }
 </script>
 
 <template>
   <div
     class="login-page login-container"
-    :class="{ 'is-mobile': isMobile, 'is-tauri-mobile': isMobile && isTauriEnv() }"
+    :class="{ 'is-mobile': isMobile, 'is-tauri-mobile': isMobile && isTauriEnv }"
   >
     <!-- Tauri 无边框模式：顶部拖拽条 -->
     <div
-      v-if="isTauriEnv()"
+      v-if="isTauriEnv"
       class="tauri-drag-bar"
     >
       <div class="tauri-drag-controls">

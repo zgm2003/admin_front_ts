@@ -7,14 +7,14 @@ import { AppDialog } from '@/components/AppDialog'
 import { useTauriStore } from '@/store/tauri'
 import { ClientVersionApi, type ClientPlatform } from '@/api/system/clientVersion'
 import {
-  checkForAppUpdate,
-  relaunchAppProcess,
-  type DownloadEvent,
-  type Update,
-} from '@/platform/tauri'
+  getNativeBridge,
+  type NativeUpdate,
+  type UpdaterDownloadEvent,
+} from '@/adapters/native'
 
 const { t } = useI18n()
 const tauriStore = useTauriStore()
+const native = getNativeBridge()
 
 // 更新进度状态
 const showUpdateDialog = ref(false)
@@ -51,7 +51,7 @@ const formatSize = (bytes: number): string => {
 const formatSpeed = (bytesPerSecond: number): string => `${formatSize(bytesPerSecond)}/s`
 
 // 处理下载事件回调
-const handleDownloadEvent = (event: DownloadEvent) => {
+const handleDownloadEvent = (event: UpdaterDownloadEvent) => {
   if (event.event === 'Started') {
     contentLength.value = event.data.contentLength ?? 0
     downloaded.value = 0
@@ -74,7 +74,7 @@ const handleDownloadEvent = (event: DownloadEvent) => {
 }
 
 // 执行下载并安装
-const doDownloadAndInstall = async (update: Update, isForce: boolean) => {
+const doDownloadAndInstall = async (update: NativeUpdate, isForce: boolean) => {
   updateStatus.value = 'downloading'
   showUpdateDialog.value = true
 
@@ -82,7 +82,7 @@ const doDownloadAndInstall = async (update: Update, isForce: boolean) => {
     await update.download(handleDownloadEvent)
     updateStatus.value = 'installing'
     await update.install()
-    await relaunchAppProcess()
+    await native.process.relaunch()
   } catch (error: unknown) {
     console.error('Update failed:', error)
     updateStatus.value = 'failed'
@@ -105,7 +105,7 @@ const retryUpdate = async () => {
   updateStatus.value = 'downloading'
 
   try {
-    const update = await checkForAppUpdate()
+    const update = await native.updater.check()
     if (update) {
       await doDownloadAndInstall(update, false)
     }
@@ -145,7 +145,7 @@ const showForceUpdateDialog = async () => {
       type: 'warning'
     })
 
-    const update = await checkForAppUpdate()
+    const update = await native.updater.check()
     if (update) {
       updateInfo.value = { version: update.version, body: update.body }
       await doDownloadAndInstall(update, true)
@@ -162,13 +162,13 @@ const showForceUpdateDialog = async () => {
 // 普通更新
 const checkUpdate = async () => {
   try {
-    const update = await checkForAppUpdate()
+    const update = await native.updater.check()
     if (!update) return
 
     updateInfo.value = { version: update.version, body: update.body }
 
     const message = update.body
-      ? `${t('updater.newVersion', { version: update.version })}<br><br>${update.body.replace(/\n/g, '<br>')}`
+      ? `${t('updater.newVersion', { version: update.version })}\n\n${update.body}`
       : t('updater.newVersion', { version: update.version })
 
     const action = await ElMessageBox.confirm(
@@ -177,7 +177,6 @@ const checkUpdate = async () => {
       {
         confirmButtonText: t('updater.updateNow'),
         cancelButtonText: t('updater.later'),
-        dangerouslyUseHTMLString: true
       }
     ).catch(() => null)
 
