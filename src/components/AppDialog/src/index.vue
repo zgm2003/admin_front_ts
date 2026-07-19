@@ -31,7 +31,11 @@ const props = withDefaults(defineProps<{
   showClose?: boolean
   alignCenter?: boolean
 }>(), {
+  title: '',
+  width: undefined,
   mobileWidth: DEFAULT_APP_DIALOG_MOBILE_WIDTH,
+  height: undefined,
+  bodyPadding: undefined,
   appendToBody: true,
   destroyOnClose: true,
   draggable: undefined,

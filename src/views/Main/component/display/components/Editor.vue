@@ -70,6 +70,7 @@ const ensureEditorRegistered = () => {
 const props = withDefaults(defineProps<Props>(), {
   editorId: 'wangeditor-1',
   height: '500px',
+  editorConfig: undefined,
   modelValue: '',
   uploadFolder: 'article',
   useCosUpload: true,

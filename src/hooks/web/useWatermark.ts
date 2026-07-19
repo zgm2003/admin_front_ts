@@ -22,7 +22,7 @@ export function useWatermark(appendEl: HTMLElement | null = document.body) {
     const domId = document.getElementById(id)
     if (domId) {
       const el = appendEl
-      el && el.removeChild(domId)
+      if (el) el.removeChild(domId)
     }
     window.removeEventListener('resize', func)
     if (observer) {

@@ -1,8 +1,14 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, join, resolve } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import { validateBundle } from './sync-admin-contract.mjs'
+import {
+  assertSortedUniqueStrings,
+  generatedHeader as header,
+  literalArray,
+  writeGenerated,
+} from './lib/generated-files.mjs'
 
 const adminTypesOutput = 'src/modules/http/generated/admin.ts'
 const adminOperationsOutput = 'src/modules/http/generated/operations.ts'
@@ -15,40 +21,6 @@ export const generatedAdminOutputs = Object.freeze([
   permissionsOutput,
   viewsOutput,
 ])
-
-function assertSortedUniqueStrings(values, label) {
-  if (!Array.isArray(values) || values.some((value) => typeof value !== 'string' || !value)) {
-    throw new Error(`${label} must be a non-empty string array`)
-  }
-  const sorted = [...values].sort()
-  if (new Set(sorted).size !== sorted.length) {
-    throw new Error(`${label} contains duplicate values`)
-  }
-  return sorted
-}
-
-function header(manifestSha) {
-  return [
-    `// Generated from Admin Contract Bundle manifest SHA-256: ${manifestSha}`,
-    '// Do not edit manually.',
-    '',
-  ].join('\n')
-}
-
-function literalArray(name, values) {
-  return [
-    `export const ${name} = [`,
-    ...values.map((value) => `  ${JSON.stringify(value)},`),
-    '] as const',
-    '',
-  ].join('\n')
-}
-
-async function writeGenerated(frontendRoot, relativePath, contents) {
-  const destination = resolve(frontendRoot, relativePath)
-  await mkdir(dirname(destination), { recursive: true })
-  await writeFile(destination, contents.endsWith('\n') ? contents : `${contents}\n`, 'utf8')
-}
 
 function responseContract(operation, label) {
   const successful = Object.entries(operation?.responses ?? {})

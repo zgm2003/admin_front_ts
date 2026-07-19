@@ -13,6 +13,7 @@ export default defineConfig({
     },
   },
   test: {
+    maxWorkers: 4,
     coverage: {
       provider: 'v8',
       include: [

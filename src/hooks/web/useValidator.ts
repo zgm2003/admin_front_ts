@@ -41,7 +41,7 @@ export const useValidator = () => {
   }
 
   const notSpecialCharacters = (val: ValidatorValue, callback: Callback, message?: string) => {
-    if (/[`~!@#$%^&*()_+<>?:"{},.\/;'[\]]/gi.test(val)) {
+    if (/[`~!@#$%^&*()_+<>?:"{},./;'[\]]/gi.test(val)) {
       callback(new Error(resolveValidatorMessage(message, t('common.notSpecialCharacters'))))
     } else {
       callback()
@@ -57,7 +57,7 @@ export const useValidator = () => {
   }
 
   const isEmail = (val: ValidatorValue, callback: Callback, message?: string) => {
-    const reg = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    const reg = /^(([^<>()[]\\.,;:\s@"]+(\.[^<>()[]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     if (!reg.test(val)) {
       callback(new Error(resolveValidatorMessage(message, t('common.emailError'))))
     } else {

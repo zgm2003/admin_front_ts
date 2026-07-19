@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue'
+import { computed } from 'vue'
 import MarkdownIt from 'markdown-it'
 // 按需导入 highlight.js 核心 + 常用语言（从 1MB 降到 ~100KB）
 import hljs from 'highlight.js/lib/core'
@@ -27,6 +27,7 @@ import scss from 'highlight.js/lib/languages/scss'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
 import nginx from 'highlight.js/lib/languages/nginx'
 import 'highlight.js/styles/github-dark.css'
+import { vSafeHtml } from '@/shared/security/safe-html'
 
 // 注册语言
 hljs.registerLanguage('javascript', javascript)
@@ -89,7 +90,6 @@ const renderedHtml = computed(() => {
   return md.render(props.content || '')
 })
 
-const containerRef = ref<HTMLElement | null>(null)
 
 // 处理复制按钮点击
 const handleClick = (e: Event) => {
@@ -105,16 +105,13 @@ const handleClick = (e: Event) => {
   }
 }
 
-onMounted(() => {
-  containerRef.value?.addEventListener('click', handleClick)
-})
 </script>
 
 <template>
   <div
-    ref="containerRef"
+    v-safe-html="renderedHtml"
     class="markdown-body"
-    v-html="renderedHtml"
+    @click="handleClick"
   />
 </template>
 

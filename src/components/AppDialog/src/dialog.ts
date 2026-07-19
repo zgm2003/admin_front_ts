@@ -66,6 +66,7 @@ export function resolveAppDialogDraggable(params: {
 }
 
 export function filterAppDialogAttrs(attrs: Record<string, unknown>) {
-  const { fullscreen: _fullscreen, ...rest } = attrs
+  const rest = { ...attrs }
+  delete rest.fullscreen
   return rest
 }
