@@ -473,19 +473,19 @@ Expected: 0 errors and 0 warnings, with behavior/coverage unchanged or improved.
 - Create: `tests/shared/build/bundle-boundary.test.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: Capture the reproducible baseline**
+- [x] **Step 1: Capture the reproducible baseline**
 
 Run production build with Vite manifest, calculate raw/gzip/Brotli for each entry/lazy chunk, record module membership, and commit the generated `baseline.json` with commit, Node version, Vite version, and environment profile. The analyzer sorts keys and excludes source maps.
 
-- [ ] **Step 2: Split locale domains with parity**
+- [x] **Step 2: Split locale domains with parity**
 
 Create `common/auth/layout/user/permission/system/payment/ai` domain files for each locale. Load `common/auth/layout` at bootstrap and feature domains on route activation. Generate a key union and fail when Chinese/English key sets differ. Only the fatal startup shell may use a tested literal fallback.
 
-- [ ] **Step 3: Remove eager heavy imports**
+- [x] **Step 3: Remove eager heavy imports**
 
 The default authenticated route manifest must not include `@wangeditor`, `cos-js-sdk-v5`, `markdown-it`, `highlight.js`, or the AI chat renderer. Load them only in the route/interaction that uses them. P08R's `check:browser-only` gate separately proves that no Tauri/native adapter exists; Task 7 must not recreate one merely to satisfy a chunk boundary. Remove duplicate vendor copies rather than hiding them in another named chunk.
 
-- [ ] **Step 4: Enforce exact compressed budgets**
+- [x] **Step 4: Enforce exact compressed budgets**
 
 ```json
 {
@@ -502,7 +502,7 @@ The default authenticated route manifest must not include `@wangeditor`, `cos-js
 
 `analyze-bundle.mjs --check` exits nonzero on any byte or boundary violation and prints the responsible chunks/modules.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 npm run build
@@ -514,6 +514,18 @@ git add -u -- src/i18n/locales/en-US.ts src/i18n/locales/zh-CN.ts
 git diff --cached --check
 git commit -m "perf(frontend): enforce lazy boundaries and compressed budgets"
 ```
+
+#### P07 Task 7 checkpoint evidence (2026-07-20)
+
+- Commit: `a75989b` (`perf(frontend): enforce lazy boundaries and compressed budgets`).
+- Baseline: frontend `c8e8245fbf0bfc916c6b9deba1139a13eaa7241b`, Node `v22.23.1`, Vite `8.0.3`; initial JS measured 310207 gzip / 267137 Brotli bytes.
+- Final bundle gate: initial JS 289069 gzip / 251632 Brotli, initial CSS 55422 gzip / 43384 Brotli, largest lazy JS 278400 gzip / 182607 Brotli, total JS 1148512 gzip / 946014 Brotli bytes.
+- Initial JS improved by 21138 gzip and 15505 Brotli bytes versus the recorded baseline; every exact compressed budget passed.
+- Module membership metadata proved that `@wangeditor`, `cos-js-sdk-v5`, `markdown-it`, and `highlight.js` are absent from the initial graph.
+- Locale generation/check passed with 1543 parity-checked keys; `common/auth/layout` remain bootstrap domains and `user/permission/system/payment/ai` load before matching route activation.
+- `npm run lint`: 0 errors / 0 warnings; `npm run typecheck` passed.
+- Full Vitest run: 102 files / 417 tests passed.
+- All build, analyzer, locale, lint, type, and test commands ran in the pinned `node:22.23.1-alpine` Docker container; no host Node runtime or browser automation was used.
 
 ### Task 8: Meet WCAG 2.2 AA on critical Admin flows
 
