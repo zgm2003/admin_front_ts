@@ -7,7 +7,7 @@
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
     "beforeBuildCommand": "",
-    "frontendDist": "https://zgm2003.cn"
+    "frontendDist": "../dist"
   },
   "plugins": {
     "updater": {
@@ -16,9 +16,10 @@
     }
   },
   "app": {
-    "withGlobalTauri": true,
+    "withGlobalTauri": false,
     "windows": [
       {
+        "label": "main",
         "title": "CloudAdmin",
         "width": 1280,
         "height": 800,
@@ -31,7 +32,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' https://zgm2003.cn https://*.zgm2003.cn; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://zgm2003.cn https://*.zgm2003.cn; style-src 'self' 'unsafe-inline' https://zgm2003.cn https://*.zgm2003.cn https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://zgm2003.cn https://*.zgm2003.cn wss://www.zgm2003.cn https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com; frame-src 'self' https: blob:"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.zgm2003.cn https://cos.zgm2003.cn; font-src 'self' data:; connect-src 'self' https://www.zgm2003.cn https://cos.zgm2003.cn wss://www.zgm2003.cn; frame-src https://www.zgm2003.cn; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none';"
     }
   },
   "bundle": {
