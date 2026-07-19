@@ -1,39 +1,30 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { Id } from '@/types/common'
 
-export interface ExportTaskStatusItem {
-  label: string
-  value: number
-  num: number
-}
+export type ExportTaskStatusItem = components['schemas']['ExportTaskStatusCountItem']
 
-export interface ExportTaskListParams extends RequestPayload {
+export interface ExportTaskListParams {
   current_page?: number
   page_size?: number
-  status?: number | ''
+  before_id?: number
+  status?: 1 | 2 | 3 | ''
   kind?: string
   title?: string
   file_name?: string
 }
 
-export interface ExportTaskItem {
-  id: number
-  kind: string
-  kind_text: string
-  title: string
-  file_name?: string | null
-  file_url?: string | null
-  file_size_text: string
-  row_count?: number | null
-  status: number
-  status_text: string
-  error_msg?: string | null
-  expire_at?: string | null
-  created_at: string
-}
+export type ExportTaskItem = components['schemas']['ExportTaskItem']
+export type ExportTaskListResponse = components['schemas']['ExportTaskListResult']
+type ExportTaskListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_export_tasks'>['query']>
+type ExportTaskStatusQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_export_tasks_status_count'>['query']>
 
-function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
+function normalizePositiveIDs(id: Id | Id[], label: string): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -49,27 +40,60 @@ function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
     ids.push(value)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error(`${label} ids must not be empty`)
+
+  return [first, ...ids.slice(1)]
+}
+
+function normalizeListParams(params: ExportTaskListParams): ExportTaskListQuery {
+  const query: ExportTaskListQuery = {}
+  if (params.current_page !== undefined) query.current_page = params.current_page
+  if (params.page_size !== undefined) query.page_size = params.page_size
+  if (params.before_id !== undefined) query.before_id = params.before_id
+  if (params.status !== '' && params.status !== undefined) query.status = params.status
+  if (params.kind) query.kind = params.kind
+  if (params.title) query.title = params.title
+  if (params.file_name) query.file_name = params.file_name
+  return query
+}
+
+function normalizeStatusParams(
+  params: Pick<ExportTaskListParams, 'kind' | 'title' | 'file_name'>,
+): ExportTaskStatusQuery {
+  const query: ExportTaskStatusQuery = {}
+  if (params.kind) query.kind = params.kind
+  if (params.title) query.title = params.title
+  if (params.file_name) query.file_name = params.file_name
+  return query
 }
 
 export const ExportTaskApi = {
-  statusCount: (params: Pick<ExportTaskListParams, 'kind' | 'title' | 'file_name'>) =>
-    request.get<ExportTaskStatusItem[]>(`${ADMIN_API_PREFIX}/export-tasks/status-count`, { params }),
+  statusCount: (
+    params: Pick<ExportTaskListParams, 'kind' | 'title' | 'file_name'>,
+    options: ExecuteOptions = {},
+  ): Promise<ExportTaskStatusItem[]> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_export_tasks_status_count,
+    { query: normalizeStatusParams(params) },
+    options,
+  ),
 
-  list: (params: ExportTaskListParams) =>
-    request.get<PaginatedResponse<ExportTaskItem>>(`${ADMIN_API_PREFIX}/export-tasks`, { params }),
+  list: (params: ExportTaskListParams, options: ExecuteOptions = {}): Promise<ExportTaskListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_export_tasks, {
+      query: normalizeListParams(params),
+    }, options),
 
-  deleteOne: (params: { id: Id }) => {
-    const ids = normalizePositiveIDs(params.id, 'export task')
-    const [firstID] = ids
-    if (typeof firstID !== 'number') {
-      throw new Error('export task id must be a positive integer')
-    }
-    return request.delete<void>(`${ADMIN_API_PREFIX}/export-tasks/${firstID}`)
+  async deleteOne(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
+    const [id] = normalizePositiveIDs(params.id, 'export task')
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_export_tasks_id, {
+      path: { id },
+    }, options)
   },
 
-  deleteBatch: (params: { ids: Id[] }) => {
-    const normalizedIDs = normalizePositiveIDs(params.ids, 'export task')
-    return request.delete<void, { ids: number[] }>(`${ADMIN_API_PREFIX}/export-tasks`, { data: { ids: normalizedIDs } })
+  async deleteBatch(params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> {
+    const ids = normalizePositiveIDs(params.ids, 'export task')
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_export_tasks, {
+      body: { ids },
+    }, options)
   },
 }

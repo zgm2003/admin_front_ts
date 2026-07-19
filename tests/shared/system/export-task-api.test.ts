@@ -10,7 +10,11 @@ describe('export task API behavior', () => {
     const harness = installApiClientHarness([])
     cleanups.push(harness.uninstall)
     await ExportTaskApi.statusCount({})
-    harness.respondWith({ list: [], page: { current_page: 1, page_size: 20, total: 0 } })
+    harness.respondWith({
+      list: [],
+      next_id: 0,
+      page: { current_page: 1, page_size: 20, total: 0, total_page: 0 },
+    })
     await ExportTaskApi.list({ current_page: 1, page_size: 20 })
     harness.respondWith({})
     await ExportTaskApi.deleteOne({ id: 7 })
@@ -27,7 +31,7 @@ describe('export task API behavior', () => {
   it('rejects an invalid export identity before transport', async () => {
     const harness = installApiClientHarness()
     cleanups.push(harness.uninstall)
-    expect(() => ExportTaskApi.deleteOne({ id: 0 })).toThrow(/positive integer/i)
+    await expect(ExportTaskApi.deleteOne({ id: 0 })).rejects.toThrow(/positive integer/i)
     expect(harness.requests).toEqual([])
   })
 })

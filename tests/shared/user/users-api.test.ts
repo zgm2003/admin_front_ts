@@ -43,13 +43,27 @@ describe('user API behavior', () => {
   })
 
   it('executes user-management and session resource operations', async () => {
-    const harness = installApiClientHarness({})
+    const harness = installApiClientHarness({
+      dict: {
+        roleArr: [],
+        auth_address_tree: [],
+        sexArr: [],
+        platformArr: [],
+      },
+    })
     cleanups.push(harness.uninstall)
     await UsersListApi.pageInit()
+    harness.respondWith({
+      list: [],
+      page: { current_page: 1, page_size: 20, total: 0, total_page: 0 },
+    })
     await UsersListApi.list({ current_page: 1, page_size: 20 })
+    harness.respondWith({})
     await UsersListApi.changeStatus({ id: 7, status: 1 })
     await UsersListApi.deleteOne({ id: 7 })
+    harness.respondWith({ id: 11, message: 'queued' })
     await UsersListApi.export({ ids: [7] })
+    harness.respondWith({})
     await UserSessionApi.pageInit()
     await UserSessionApi.list({ current_page: 1, page_size: 20 })
     await UserSessionApi.stats()

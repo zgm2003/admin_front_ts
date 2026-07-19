@@ -1,5 +1,6 @@
 import type { DictOption, Id, PaginatedResponse } from './common'
 import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from './captcha'
+import type { components } from '@/modules/http/generated/admin'
 
 export type UserScene =
   | 'login'
@@ -135,23 +136,7 @@ export interface UserEmailUpdateParams {
   code: string
 }
 
-export interface UserListItem {
-  id: number
-  username: string
-  email: string
-  phone: string
-  avatar: string | null
-  sex: number
-  sex_show: string
-  role_id: number
-  role_name: string
-  bio: string
-  address_show: string
-  address_id: number
-  detail_address: string
-  status: number
-  created_at: string
-}
+export type UserListItem = components['schemas']['UserListItem']
 
 export type UserItem = UserListItem
 
@@ -163,34 +148,21 @@ export interface UsersListParams {
   email?: string
   detail_address?: string
   address_id?: number | number[]
-  role_id?: number | string
-  sex?: number | string
+  role_id?: number | ''
+  sex?: 0 | 1 | 2 | ''
   date?: string[]
 }
 
-export interface AddressTreeNode {
-  id: number
-  parent_id: number
-  label: string
-  value: number
-  children?: AddressTreeNode[]
-}
+export type AddressTreeNode = components['schemas']['AddressTreeNode']
 
-export interface UserListInitResponse {
-  dict: {
-    roleArr: DictOption<number>[]
-    auth_address_tree: AddressTreeNode[]
-    sexArr: DictOption<number>[]
-    platformArr: DictOption<string>[]
-  }
-}
+export type UserListInitResponse = components['schemas']['UserPageInit']
 
 export interface UserEditParams {
   id: number
   username: string
   role_id: number
   avatar?: string
-  sex: number
+  sex: 0 | 1 | 2
   address_id: number
   detail_address?: string
   bio?: string
@@ -200,7 +172,7 @@ export type UserBatchEditParams =
   | {
       ids: number[]
       field: 'sex'
-      sex: number
+      sex: 0 | 1 | 2
     }
   | {
       ids: number[]
@@ -213,10 +185,7 @@ export type UserBatchEditParams =
       detail_address: string
     }
 
-export interface UserExportResponse {
-  id: number
-  message: string
-}
+export type UserExportResponse = components['schemas']['UserExportResult']
 
 export interface UserSessionListParams {
   page_size: number
@@ -311,7 +280,7 @@ export interface UserLoginLogInitResponse {
   }
 }
 
-export type UserListResponse = PaginatedResponse<UserListItem>
+export type UserListResponse = components['schemas']['UserListResult']
 export type UserSessionListResponse = PaginatedResponse<UserSessionItem>
 export type UserLoginLogListResponse = PaginatedResponse<UserLoginLogItem>
 

@@ -1,6 +1,11 @@
 import { createApiError } from '@/modules/http/error'
-import type { ApiClient } from '@/modules/http/client'
-import { defineOperation, type HttpMethod, type QueryValue } from '@/modules/http/operations'
+import type { ApiClient, ExecuteOptions } from '@/modules/http/client'
+import {
+  defineOperation,
+  type HttpMethod,
+  type Operation,
+  type QueryValue,
+} from '@/modules/http/operations'
 
 export interface RequestConfig<D = unknown> {
   readonly params?: object
@@ -45,6 +50,14 @@ function requireClient(): ApiClient {
     })
   }
   return installedClient
+}
+
+export function executeAdminOperation<TInput, TOutput>(
+  operation: Operation<TInput, TOutput>,
+  input: TInput,
+  options: ExecuteOptions = {},
+): Promise<TOutput> {
+  return requireClient().execute(operation, input, options)
 }
 
 function queryFrom(params: object | undefined): Readonly<Record<string, QueryValue>> | undefined {

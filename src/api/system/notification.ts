@@ -1,44 +1,31 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { Id } from '@/types/common'
 
 /** 通知项 */
-export interface NotificationItem {
-  id: number
-  title: string
-  content: string
-  type: number
-  type_text: string
-  level: number
-  level_text: string
-  link: string
-  is_read: number
-  created_at: string
-}
+export type NotificationItem = components['schemas']['NotificationItem']
 
 /** 通知列表查询参数 */
 export interface NotificationListParams {
   page_size: number
   current_page: number
+  before_id?: number
   keyword?: string
-  type?: number | string
-  level?: number | string
-  is_read?: number | string
+  type?: 1 | 2 | 3 | 4 | ''
+  level?: 1 | 2 | ''
+  is_read?: 1 | 2 | ''
 }
 
 /** 字典响应 */
-export interface NotificationInitResponse {
-  dict: {
-    notification_type_arr: DictOption<number>[]
-    notification_level_arr: DictOption<number>[]
-    notification_read_status_arr: DictOption<number>[]
-  }
-}
+export type NotificationInitResponse = components['schemas']['NotificationPageInit']
 
 /** 未读数量响应 */
-export interface UnreadCountResponse {
-  count: number
-}
+export type UnreadCountResponse = components['schemas']['NotificationUnreadCountResult']
 
 /** 标记已读参数：传 id(单个/数组) 或不传(全部) */
 export interface NotificationReadParams {
@@ -50,29 +37,9 @@ export interface NotificationDelParams {
   id: Id | Id[]
 }
 
-interface NotificationListQueryParams {
-  page_size: number
-  current_page: number
-  keyword?: string
-  type?: number
-  level?: number
-  is_read?: number
-}
+export type NotificationListResponse = components['schemas']['NotificationListResult']
 
-interface NotificationBatchPayload {
-  ids: number[]
-}
-
-function normalizeOptionalNumber(value: number | string | undefined): number | undefined {
-  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
-    return value
-  }
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value)
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
-  }
-  return undefined
-}
+type NotificationListQueryParams = AdminOperationInput<'get_api_admin_v1_notifications'>['query']
 
 function normalizeListParams(params: NotificationListParams): NotificationListQueryParams {
   const query: NotificationListQueryParams = {
@@ -80,30 +47,21 @@ function normalizeListParams(params: NotificationListParams): NotificationListQu
     page_size: params.page_size,
   }
 
+  if (params.before_id !== undefined) query.before_id = params.before_id
+
   const keyword = params.keyword?.trim()
   if (keyword) {
     query.keyword = keyword
   }
 
-  const type = normalizeOptionalNumber(params.type)
-  if (type !== undefined) {
-    query.type = type
-  }
-
-  const level = normalizeOptionalNumber(params.level)
-  if (level !== undefined) {
-    query.level = level
-  }
-
-  const isRead = normalizeOptionalNumber(params.is_read)
-  if (isRead !== undefined) {
-    query.is_read = isRead
-  }
+  if (params.type !== '' && params.type !== undefined) query.type = params.type
+  if (params.level !== '' && params.level !== undefined) query.level = params.level
+  if (params.is_read !== '' && params.is_read !== undefined) query.is_read = params.is_read
 
   return query
 }
 
-function normalizeNotificationIDs(id: Id | Id[]): number[] {
+function normalizeNotificationIDs(id: Id | Id[]): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -119,39 +77,61 @@ function normalizeNotificationIDs(id: Id | Id[]): number[] {
     ids.push(value)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error('notification ids must not be empty')
+
+  return [first, ...ids.slice(1)]
 }
 
-const pageInit = () => request.get<NotificationInitResponse>(`${ADMIN_API_PREFIX}/notifications/page-init`)
-const deleteOne = (params: { id: Id }) => request.delete<void>(`${ADMIN_API_PREFIX}/notifications/${normalizeNotificationIDs(params.id)[0]}`)
-const deleteBatch = (params: { ids: Id[] }) => {
-  const body: NotificationBatchPayload = { ids: normalizeNotificationIDs(params.ids) }
-  return request.delete<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications`, { data: body })
+const pageInit = (options: ExecuteOptions = {}): Promise<NotificationInitResponse> =>
+  executeAdminOperation(adminOperations.get_api_admin_v1_notifications_page_init, {}, options)
+
+const deleteOne = async (params: { id: Id }, options: ExecuteOptions = {}): Promise<void> => {
+  const [id] = normalizeNotificationIDs(params.id)
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_notifications_id, {
+    path: { id },
+  }, options)
+}
+
+const deleteBatch = async (params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> => {
+  await executeAdminOperation(adminOperations.delete_api_admin_v1_notifications, {
+    body: { ids: normalizeNotificationIDs(params.ids) },
+  }, options)
 }
 
 export const NotificationApi = {
   /** 初始化（字典） */
   pageInit,
   /** 获取通知列表（普通分页） */
-  list: (params: NotificationListParams) =>
-    request.get<PaginatedResponse<NotificationItem>>(`${ADMIN_API_PREFIX}/notifications`, { params: normalizeListParams(params) }),
+  list: (params: NotificationListParams, options: ExecuteOptions = {}): Promise<NotificationListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_notifications, {
+      query: normalizeListParams(params),
+    }, options),
 
   /** 获取未读数量 */
-  unreadCount: () => request.get<UnreadCountResponse>(`${ADMIN_API_PREFIX}/notifications/unread-count`),
+  unreadCount: (options: ExecuteOptions = {}): Promise<UnreadCountResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_notifications_unread_count, {}, options),
 
   /** 标记已读（支持单个/批量/全部） */
-  read: (params?: NotificationReadParams) => {
+  async read(params?: NotificationReadParams, options: ExecuteOptions = {}): Promise<void> {
     if (params?.id === undefined) {
-      return request.patch<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications/read`, { ids: [] })
+      await executeAdminOperation(adminOperations.patch_api_admin_v1_notifications_read, {
+        body: { ids: [] },
+      }, options)
+      return
     }
 
     const ids = normalizeNotificationIDs(params.id)
     if (ids.length === 1) {
-      return request.patch<void>(`${ADMIN_API_PREFIX}/notifications/${ids[0]}/read`)
+      await executeAdminOperation(adminOperations.patch_api_admin_v1_notifications_id_read, {
+        path: { id: ids[0] },
+      }, options)
+      return
     }
 
-    const body: NotificationBatchPayload = { ids }
-    return request.patch<void, NotificationBatchPayload>(`${ADMIN_API_PREFIX}/notifications/read`, body)
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_notifications_read, {
+      body: { ids },
+    }, options)
   },
 
   /** 删除通知（支持单个/批量） */

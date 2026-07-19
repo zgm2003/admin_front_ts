@@ -6,13 +6,12 @@ import {
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
-  type AiRunMessageMeta,
   type AiRunPlatform,
   type AiRunStatus,
 } from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
-import {CopyDocument, Loading, Picture} from '@element-plus/icons-vue'
+import {CopyDocument} from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
@@ -191,17 +190,6 @@ const showDetail = async (row: AiRunItem) => {
     detailLoading.value = false
   }
 }
-
-const getAttachmentPreviewUrls = (detail: AiRunDetailResponse) =>
-  {
-    if (detail.user_message === null) return []
-    if (!detail.user_message.meta_json) return []
-    if (!detail.user_message.meta_json.attachments) return []
-    return detail.user_message.meta_json.attachments.map((attachment) => attachment.url)
-  }
-
-const hasAssistantMeta = (meta: AiRunMessageMeta) =>
-  Boolean(meta.run_request_id || meta.provider_request_id)
 
 const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 
@@ -640,35 +628,6 @@ onMounted(() => {
             <div class="message-content">
               {{ detailData.user_message.content }}
             </div>
-            <!-- 图片附件 -->
-            <div
-              v-if="detailData.user_message.meta_json?.attachments?.length"
-              class="message-attachments"
-            >
-              <el-image
-                v-for="(attachment, idx) in detailData.user_message.meta_json.attachments"
-                :key="idx"
-                :src="attachment.url"
-                :preview-src-list="getAttachmentPreviewUrls(detailData)"
-                :initial-index="Number(idx)"
-                fit="cover"
-                class="attachment-thumb"
-                lazy
-              >
-                <template #placeholder>
-                  <div class="image-placeholder">
-                    <el-icon class="is-loading">
-                      <Loading />
-                    </el-icon>
-                  </div>
-                </template>
-                <template #error>
-                  <div class="image-error">
-                    <el-icon><Picture /></el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </div>
             <div class="message-meta">
               {{ detailData.user_message.created_at }}
             </div>
@@ -686,25 +645,6 @@ onMounted(() => {
             </div>
             <div class="message-meta">
               <span>{{ detailData.assistant_message.created_at }}</span>
-            </div>
-            <div
-              v-if="detailData.assistant_message.meta_json && hasAssistantMeta(detailData.assistant_message.meta_json)"
-              class="meta-json"
-            >
-              <div
-                v-if="detailData.assistant_message.meta_json.run_request_id"
-                class="meta-item"
-              >
-                <span class="meta-label">Run Request ID:</span>
-                <code>{{ detailData.assistant_message.meta_json.run_request_id }}</code>
-              </div>
-              <div
-                v-if="detailData.assistant_message.meta_json.provider_request_id"
-                class="meta-item"
-              >
-                <span class="meta-label">Provider Request ID:</span>
-                <code>{{ detailData.assistant_message.meta_json.provider_request_id }}</code>
-              </div>
             </div>
           </div>
         </template>
@@ -776,40 +716,6 @@ onMounted(() => {
   line-height: 1.6;
 }
 
-.message-attachments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.attachment-thumb {
-  width: 120px;
-  height: 120px;
-  border-radius: 8px;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.image-placeholder,
-.image-error {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  color: #999;
-}
-
-.image-placeholder .el-icon {
-  font-size: 24px;
-}
-
-.image-error .el-icon {
-  font-size: 32px;
-}
-
 .message-meta {
   margin-top: 8px;
   font-size: 12px;
@@ -818,43 +724,6 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
 }
-
-.meta-json {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: #fafafa;
-  border-radius: 4px;
-  border: 1px solid #eee;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.meta-item:last-child {
-  margin-bottom: 0;
-}
-
-.meta-label {
-  font-size: 12px;
-  color: #666;
-  white-space: nowrap;
-}
-
-.meta-json code {
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 11px;
-  color: #476582;
-  background: #fff;
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid #e8e8e8;
-  word-break: break-all;
-}
-
 
 .event-item {
   padding: 8px 0;

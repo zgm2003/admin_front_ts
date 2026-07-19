@@ -1,36 +1,36 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
-import type { DictOption, Id, PaginatedResponse, RequestPayload } from '@/types/common'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
+import type { Id } from '@/types/common'
 
-export type JsonPrimitive = string | number | boolean | null
-export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
-export interface JsonObject { [key: string]: JsonValue }
+export type JsonValue = components['schemas']['JSONValue']
+export type AiRunStatus = components['schemas']['AIRunListItem']['status']
+export type AiRunPlatform = components['schemas']['AIRunListItem']['platform']
+export type AiRunToolCallStatus = components['schemas']['AIRunToolCall']['status']
+export type AiRunInitResponse = components['schemas']['AIRunPageInit']
+export type AiRunItem = components['schemas']['AIRunListItem']
+export type AiRunListResponse = components['schemas']['AIRunListResult']
+export type AiRunMessageSummary = components['schemas']['AIRunMessageSummary']
+export type AiRunMessageMeta = components['schemas']['AIRunMessageSummary']['meta_json']
+export type AiRunToolCallItem = components['schemas']['AIRunToolCall']
+export type AiRunKnowledgeHitItem = components['schemas']['AIRunKnowledgeHit']
+export type AiRunKnowledgeRetrievalItem = components['schemas']['AIRunKnowledgeRetrieval']
+export type AiRunDetailResponse = components['schemas']['AIRunDetail']
+export type AiRunEventItem = components['schemas']['AIRunEvent']
+export type AiRunStatsSummaryResponse = components['schemas']['AIRunStatsResult']
+export type AiRunStatsMetricItem = components['schemas']['AIRunStatsMetric']
+export type AiRunStatsByDateItem = components['schemas']['AIRunStatsByDateItem']
+export type AiRunStatsByAgentItem = components['schemas']['AIRunStatsByAgentItem']
+export type AiRunStatsByUserItem = components['schemas']['AIRunStatsByUserItem']
+export type AiRunStatsByDateResponse = components['schemas']['AIRunStatsByDateResult']
+export type AiRunStatsByAgentResponse = components['schemas']['AIRunStatsByAgentResult']
+export type AiRunStatsByUserResponse = components['schemas']['AIRunStatsByUserResult']
 
-export interface AiRunMessageAttachment {
-  url: string
-}
-
-export interface AiRunMessageMeta {
-  attachments?: AiRunMessageAttachment[]
-  run_request_id?: string
-  provider_request_id?: string
-  [key: string]: unknown
-}
-
-export type AiRunStatus = 'running' | 'success' | 'failed' | 'canceled' | 'timeout'
-export type AiRunPlatform = 'admin' | 'app' | 'canvas'
-export type AiRunToolCallStatus = 'running' | 'success' | 'failed' | 'timeout'
-
-export interface AiRunInitResponse {
-  dict: {
-    status_arr: DictOption<AiRunStatus>[]
-    platform_arr: DictOption<AiRunPlatform>[]
-    agentArr: DictOption<number>[]
-    providerArr: DictOption<number>[]
-  }
-}
-
-export interface AiRunListParams extends RequestPayload {
+export interface AiRunListParams {
   current_page?: number
   page_size?: number
   platform?: AiRunPlatform | ''
@@ -43,170 +43,7 @@ export interface AiRunListParams extends RequestPayload {
   date_end?: string
 }
 
-export interface AiRunItem {
-  id: number
-  request_id: string
-  user_id: number
-  agent_id: number
-  agent_name: string
-  provider_id: number
-  provider_name: string
-  platform: AiRunPlatform
-  input_snapshot: string
-  conversation_id: number | null
-  conversation_title: string
-  status: AiRunStatus
-  status_name: string
-  model_id: string
-  model_display_name: string
-  prompt_tokens: number
-  completion_tokens: number
-  total_tokens: number
-  duration_ms?: number | null
-  duration_text: string
-  error_message: string
-  created_at: string
-}
-
-export interface AiRunMessageSummary {
-  id: number
-  content: string
-  meta_json?: AiRunMessageMeta
-  created_at: string
-}
-
-export interface AiRunToolCallItem {
-  id: number
-  tool_id: number
-  tool_code: string
-  tool_name: string
-  call_id?: string | null
-  status: AiRunToolCallStatus
-  arguments_json: JsonObject
-  result_json?: JsonObject | null
-  error_message: string
-  duration_ms?: number | null
-  started_at: string
-  finished_at: string
-}
-
-export interface AiRunKnowledgeHitItem {
-  id: number
-  knowledge_base_id: number
-  knowledge_base_name: string
-  document_id: number
-  document_title: string
-  chunk_id: number
-  chunk_index: number
-  score: number
-  rank_no: number
-  content_snapshot: string
-  status: number
-  status_name: string
-  skip_reason: string
-  created_at: string
-}
-
-export interface AiRunKnowledgeRetrievalItem {
-  id: number
-  run_id: number
-  query: string
-  status: string
-  status_name: string
-  total_hits: number
-  selected_hits: number
-  duration_ms?: number | null
-  duration_text: string
-  error_message: string
-  created_at: string
-  hits: AiRunKnowledgeHitItem[]
-}
-
-export interface AiRunDetailResponse {
-  id: number
-  request_id: string
-  user_id: number
-  username: string
-  agent_id: number
-  agent_name: string
-  provider_id: number
-  provider_name: string
-  platform: AiRunPlatform
-  input_snapshot: string
-  conversation_id: number | null
-  conversation_title: string
-  status: AiRunStatus
-  status_name: string
-  model_id: string
-  model_display_name: string
-  prompt_tokens: number
-  completion_tokens: number
-  total_tokens: number
-  duration_ms?: number | null
-  duration_text: string
-  error_message: string
-  user_message: AiRunMessageSummary | null
-  assistant_message: AiRunMessageSummary | null
-  events: AiRunEventItem[]
-  knowledge_retrievals: AiRunKnowledgeRetrievalItem[]
-  tool_calls: AiRunToolCallItem[]
-  started_at: string
-  finished_at: string
-  created_at: string
-  updated_at: string
-}
-
-export interface AiRunEventItem {
-  id: number
-  seq: number
-  event_type: string
-  event_type_name: string
-  message: string
-  elapsed_ms?: number | null
-  elapsed_text: string
-  created_at: string
-}
-
-export interface AiRunStatsSummaryResponse {
-  date_range: {
-    start: string | null
-    end: string | null
-  }
-  summary: {
-    total_runs: number
-    success_rate: number
-    fail_runs: number
-    total_tokens: number
-    total_prompt_tokens: number
-    total_completion_tokens: number
-    avg_duration_ms: number
-  }
-}
-
-export interface AiRunStatsMetricItem {
-  total_runs: number
-  total_tokens: number
-  total_prompt_tokens: number
-  total_completion_tokens: number
-  avg_duration_ms: number
-}
-
-export interface AiRunStatsByDateItem extends AiRunStatsMetricItem {
-  date: string
-}
-
-export interface AiRunStatsByAgentItem extends AiRunStatsMetricItem {
-  agent_id: number
-  agent_name: string
-}
-
-export interface AiRunStatsByUserItem extends AiRunStatsMetricItem {
-  username: string
-}
-
-export interface AiRunStatsListParams extends RequestPayload {
-  current_page: number
-  page_size: number
+export interface AiRunStatsParams {
   date_start?: string
   date_end?: string
   platform?: AiRunPlatform | ''
@@ -215,32 +52,14 @@ export interface AiRunStatsListParams extends RequestPayload {
   user_id?: number | ''
 }
 
-interface AiRunListQueryParams {
-  current_page?: number
-  page_size?: number
-  platform?: AiRunPlatform
-  status?: AiRunStatus
-  user_id?: number
-  request_id?: string
-  agent_id?: number
-  provider_id?: number
-  date_start?: string
-  date_end?: string
+export interface AiRunStatsListParams extends AiRunStatsParams {
+  current_page: number
+  page_size: number
 }
 
-interface AiRunStatsQueryParams {
-  date_start?: string
-  date_end?: string
-  platform?: AiRunPlatform
-  agent_id?: number
-  provider_id?: number
-  user_id?: number
-}
-
-interface AiRunStatsListQueryParams extends AiRunStatsQueryParams {
-  current_page?: number
-  page_size?: number
-}
+type AiRunListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs'>['query']>
+type AiRunStatsQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_stats'>['query']>
+type AiRunStatsListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_stats_by_date'>['query']>
 
 function positiveID(value: Id | number): number {
   const id = typeof value === 'number' ? value : Number(value)
@@ -248,34 +67,33 @@ function positiveID(value: Id | number): number {
   return id
 }
 
-function normalizeListParams(params: AiRunListParams): AiRunListQueryParams {
-  const query: AiRunListQueryParams = {}
-  if (typeof params.current_page === 'number') query.current_page = params.current_page
-  if (typeof params.page_size === 'number') query.page_size = params.page_size
-  if (params.platform) query.platform = params.platform
-  if (params.status) query.status = params.status
-  if (typeof params.user_id === 'number') query.user_id = params.user_id
+function normalizeListParams(params: AiRunListParams): AiRunListQuery {
+  const query: AiRunListQuery = {}
+  if (params.current_page !== undefined) query.current_page = params.current_page
+  if (params.page_size !== undefined) query.page_size = params.page_size
+  if (params.platform !== '' && params.platform !== undefined) query.platform = params.platform
+  if (params.status !== '' && params.status !== undefined) query.status = params.status
+  if (params.user_id !== '' && params.user_id !== undefined) query.user_id = params.user_id
   if (params.request_id) query.request_id = params.request_id
-  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
-  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
+  if (params.agent_id !== '' && params.agent_id !== undefined) query.agent_id = params.agent_id
+  if (params.provider_id !== '' && params.provider_id !== undefined) query.provider_id = params.provider_id
   if (params.date_start) query.date_start = params.date_start
   if (params.date_end) query.date_end = params.date_end
   return query
 }
 
-function normalizeStatsParams(params?: RequestPayload): AiRunStatsQueryParams {
-  const query: AiRunStatsQueryParams = {}
-  if (!params) return query
-  if (typeof params.date_start === 'string' && params.date_start) query.date_start = params.date_start
-  if (typeof params.date_end === 'string' && params.date_end) query.date_end = params.date_end
-  if (isAiRunPlatform(params.platform)) query.platform = params.platform
-  if (typeof params.agent_id === 'number') query.agent_id = params.agent_id
-  if (typeof params.provider_id === 'number') query.provider_id = params.provider_id
-  if (typeof params.user_id === 'number') query.user_id = params.user_id
+function normalizeStatsParams(params: AiRunStatsParams = {}): AiRunStatsQuery {
+  const query: AiRunStatsQuery = {}
+  if (params.date_start) query.date_start = params.date_start
+  if (params.date_end) query.date_end = params.date_end
+  if (params.platform !== '' && params.platform !== undefined) query.platform = params.platform
+  if (params.agent_id !== '' && params.agent_id !== undefined) query.agent_id = params.agent_id
+  if (params.provider_id !== '' && params.provider_id !== undefined) query.provider_id = params.provider_id
+  if (params.user_id !== '' && params.user_id !== undefined) query.user_id = params.user_id
   return query
 }
 
-function normalizeStatsListParams(params: AiRunStatsListParams): AiRunStatsListQueryParams {
+function normalizeStatsListParams(params: AiRunStatsListParams): AiRunStatsListQuery {
   return {
     ...normalizeStatsParams(params),
     current_page: params.current_page,
@@ -283,44 +101,57 @@ function normalizeStatsListParams(params: AiRunStatsListParams): AiRunStatsListQ
   }
 }
 
-function isAiRunPlatform(value: unknown): value is AiRunPlatform {
-  return value === 'admin' || value === 'app' || value === 'canvas'
-}
-
-
-function requireAiRunOptionArray<T extends string | number>(value: unknown, field: string): DictOption<T>[] {
-  if (!Array.isArray(value)) {
-    throw new Error(`${field} must be an array`)
-  }
-
-  return value as DictOption<T>[]
-}
-
-function normalizeAiRunInitResponse(response: AiRunInitResponse): AiRunInitResponse {
-  if (!response.dict || typeof response.dict !== 'object') {
-    throw new Error('ai-runs.page-init.dict must be an object')
-  }
-
-  return {
-    dict: {
-      status_arr: requireAiRunOptionArray<AiRunStatus>(response.dict.status_arr, 'ai-runs.page-init.dict.status_arr'),
-      platform_arr: requireAiRunOptionArray<AiRunPlatform>(response.dict.platform_arr, 'ai-runs.page-init.dict.platform_arr'),
-      agentArr: requireAiRunOptionArray<number>(response.dict.agentArr, 'ai-runs.page-init.dict.agentArr'),
-      providerArr: requireAiRunOptionArray<number>(response.dict.providerArr, 'ai-runs.page-init.dict.providerArr'),
-    },
-  }
-}
-
-const pageInit = async () => normalizeAiRunInitResponse(
-  await request.get<AiRunInitResponse>(`${ADMIN_API_PREFIX}/ai-runs/page-init`)
-)
-
 export const AiRunApi = {
-  pageInit,
-  list: (params: AiRunListParams) => request.get<PaginatedResponse<AiRunItem>>(`${ADMIN_API_PREFIX}/ai-runs`, { params: normalizeListParams(params) }),
-  detail: (params: { id: Id }) => request.get<AiRunDetailResponse>(`${ADMIN_API_PREFIX}/ai-runs/${positiveID(params.id)}`),
-  stats: (params?: RequestPayload) => request.get<AiRunStatsSummaryResponse>(`${ADMIN_API_PREFIX}/ai-runs/stats`, { params: normalizeStatsParams(params) }),
-  statsByDate: (params: AiRunStatsListParams) => request.get<PaginatedResponse<AiRunStatsByDateItem>>(`${ADMIN_API_PREFIX}/ai-runs/stats/by-date`, { params: normalizeStatsListParams(params) }),
-  statsByAgent: (params: AiRunStatsListParams) => request.get<PaginatedResponse<AiRunStatsByAgentItem>>(`${ADMIN_API_PREFIX}/ai-runs/stats/by-agent`, { params: normalizeStatsListParams(params) }),
-  statsByUser: (params: AiRunStatsListParams) => request.get<PaginatedResponse<AiRunStatsByUserItem>>(`${ADMIN_API_PREFIX}/ai-runs/stats/by-user`, { params: normalizeStatsListParams(params) }),
+  pageInit: (options: ExecuteOptions = {}): Promise<AiRunInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs_page_init, {}, options),
+
+  list: (params: AiRunListParams, options: ExecuteOptions = {}): Promise<AiRunListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs, {
+      query: normalizeListParams(params),
+    }, options),
+
+  detail: (
+    params: { id: Id },
+    options: ExecuteOptions = {},
+  ): Promise<AiRunDetailResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_id,
+    { path: { id: positiveID(params.id) } },
+    options,
+  ),
+
+  stats: (
+    params: AiRunStatsParams = {},
+    options: ExecuteOptions = {},
+  ): Promise<AiRunStatsSummaryResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_stats,
+    { query: normalizeStatsParams(params) },
+    options,
+  ),
+
+  statsByDate: (
+    params: AiRunStatsListParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiRunStatsByDateResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_stats_by_date,
+    { query: normalizeStatsListParams(params) },
+    options,
+  ),
+
+  statsByAgent: (
+    params: AiRunStatsListParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiRunStatsByAgentResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_stats_by_agent,
+    { query: normalizeStatsListParams(params) },
+    options,
+  ),
+
+  statsByUser: (
+    params: AiRunStatsListParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiRunStatsByUserResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_stats_by_user,
+    { query: normalizeStatsListParams(params) },
+    options,
+  ),
 }

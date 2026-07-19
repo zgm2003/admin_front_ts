@@ -1,38 +1,21 @@
-import request from '@/lib/http'
-import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import { executeAdminOperation } from '@/lib/http'
+import type { ExecuteOptions } from '@/modules/http/client'
+import type { components } from '@/modules/http/generated/admin'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 import type { Id } from '@/types/common'
 
-export type AiMessageContentType = 'text'
-
-export interface AiChatAttachment {
-  type: 'image'
-  url: string
-  name: string
-  size: number
-}
-
-export type MessageBlock =
-  | { type: 'text'; text: string }
-  | { type: 'image'; url: string; alt?: string; meta?: Record<string, unknown> }
-  | { type: 'tool'; name: string; status?: string; meta?: Record<string, unknown> }
-  | { type: 'error'; message: string; meta?: Record<string, unknown> }
-
-export interface AiMessageMeta {
-  attachments?: AiChatAttachment[]
-  blocks?: MessageBlock[]
-  feedback?: number
-  [key: string]: unknown
-}
-
-export interface AiMessageItem {
-  id: number
-  role: number
-  content_type: AiMessageContentType
-  content: string
-  created_at: string
-  updated_at: string
-  meta_json?: AiMessageMeta
-}
+export type AiMessageContentType = components['schemas']['AIMessageItem']['content_type']
+export type AiChatAttachment = components['schemas']['AIMessageMetaAttachment']
+export type AiMessageAttachmentRequest = components['schemas']['AIAttachmentRequest']
+export type AiMessageMeta = components['schemas']['AIMessageMeta']
+export type AiMessageItem = components['schemas']['AIMessageItem']
+export type AiMessageListResponse = components['schemas']['AIMessageListResult']
+export type AiMessageSendResponse = components['schemas']['AIMessageSendResult']
+export type AiMessageCancelResponse = components['schemas']['AIMessageCancelResult']
+export type AIRuntimeParams = components['schemas']['AIRuntimeParams']
 
 export interface AiMessageListParams {
   conversation_id: number
@@ -40,37 +23,20 @@ export interface AiMessageListParams {
   limit?: number
 }
 
-export interface AiMessageListResponse {
-  list: AiMessageItem[]
-  next_id: number
-  has_more: boolean
-}
-
 export interface AiMessageSendParams {
   conversation_id: number
-  content: string
+  content?: string
   request_id: string
-  attachments?: AiChatAttachment[]
-  runtime_params?: Record<string, number>
+  attachments?: AiMessageAttachmentRequest[]
+  runtime_params?: AIRuntimeParams
 }
 
-export interface AiMessageSendResponse {
+export interface AiMessageCancelParams {
   conversation_id: number
-  user_message_id: number
   request_id: string
 }
 
-interface AiMessageListQueryParams {
-  before_id?: number
-  limit?: number
-}
-
-interface AiMessageSendBody {
-  content: string
-  request_id: string
-  attachments?: AiChatAttachment[]
-  runtime_params?: Record<string, number>
-}
+type AiMessageListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_conversations_id_messages'>['query']>
 
 function positiveID(value: Id | number, label = 'AI message id'): number {
   const id = typeof value === 'number' ? value : Number(value)
@@ -86,11 +52,44 @@ function normalizeListParams(params: AiMessageListParams): AiMessageListQueryPar
 }
 
 export const AiMessageApi = {
-  list: (params: AiMessageListParams) => request.get<AiMessageListResponse>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, { params: normalizeListParams(params) }),
-  send: (params: AiMessageSendParams) => request.post<AiMessageSendResponse, AiMessageSendBody>(`${ADMIN_API_PREFIX}/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`, {
-    content: params.content,
-    request_id: params.request_id,
-    attachments: params.attachments,
-    runtime_params: params.runtime_params,
-  }),
+  list: (
+    params: AiMessageListParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageListResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_conversations_id_messages,
+    {
+      path: { id: positiveID(params.conversation_id, 'conversation id') },
+      query: normalizeListParams(params),
+    },
+    options,
+  ),
+
+  send: (
+    params: AiMessageSendParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageSendResponse> => executeAdminOperation(
+    adminOperations.post_api_admin_v1_ai_conversations_id_messages,
+    {
+      path: { id: positiveID(params.conversation_id, 'conversation id') },
+      body: {
+        content: params.content,
+        request_id: params.request_id,
+        attachments: params.attachments,
+        runtime_params: params.runtime_params,
+      },
+    },
+    options,
+  ),
+
+  cancel: (
+    params: AiMessageCancelParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageCancelResponse> => executeAdminOperation(
+    adminOperations.post_api_admin_v1_ai_conversations_id_messages_cancel,
+    {
+      path: { id: positiveID(params.conversation_id, 'conversation id') },
+      body: { request_id: params.request_id },
+    },
+    options,
+  ),
 }

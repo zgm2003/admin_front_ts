@@ -1,5 +1,10 @@
-import request from '@/lib/http'
+import request, { executeAdminOperation } from '@/lib/http'
 import { ADMIN_API_PREFIX } from '@/lib/http/api-prefix'
+import type { ExecuteOptions } from '@/modules/http/client'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 import type { Id } from '@/types/common'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
 import type {
@@ -28,17 +33,10 @@ import type {
   UserBatchEditParams,
 } from '@/types/user'
 
-type UserListQueryParams = Omit<UsersListParams, 'address_id' | 'date'> & {
-  address_id?: string
-  date?: string
-}
-
-type UserStatusBody = { status: number }
-type UserEditBody = Omit<UserEditParams, 'id'>
-type UserBatchDeletePayload = { ids: number[] }
+type UserListQueryParams = AdminOperationInput<'get_api_admin_v1_users'>['query']
 type UserSessionBatchKickPayload = { ids: number[] }
 
-function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
+function normalizePositiveIDs(id: Id | Id[], label: string): [number, ...number[]] {
   const values = Array.isArray(id) ? id : [id]
   const ids: number[] = []
   const seen = new Set<number>()
@@ -54,7 +52,10 @@ function normalizePositiveIDs(id: Id | Id[], label: string): number[] {
     ids.push(value)
   }
 
-  return ids
+  const first = ids[0]
+  if (first === undefined) throw new Error(`${label} ids must not be empty`)
+
+  return [first, ...ids.slice(1)]
 }
 
 function setStringIfPresent(target: UserListQueryParams, key: 'keyword' | 'username' | 'email' | 'detail_address', value: string | undefined) {
@@ -151,37 +152,54 @@ export const UsersApi = {
 }
 
 export const UsersListApi = {
-  pageInit: () =>
-    request.get<UserListInitResponse>(`${ADMIN_API_PREFIX}/users/page-init`),
+  pageInit: (options: ExecuteOptions = {}): Promise<UserListInitResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_users_page_init, {}, options),
 
-  list: (params: UsersListParams) =>
-    request.get<UserListResponse>(`${ADMIN_API_PREFIX}/users`, { params: normalizeUsersListParams(params) }),
+  list: (params: UsersListParams, options: ExecuteOptions = {}): Promise<UserListResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_users, {
+      query: normalizeUsersListParams(params),
+    }, options),
 
-  update: (params: UserEditParams) => {
+  async update(params: UserEditParams, options: ExecuteOptions = {}): Promise<void> {
     const { id, ...body } = params
-    return request.put<void, UserEditBody>(`${ADMIN_API_PREFIX}/users/${id}`, body)
+    await executeAdminOperation(adminOperations.put_api_admin_v1_users_id, {
+      path: { id },
+      body,
+    }, options)
   },
 
-  batchEdit: (params: UserBatchEditParams) =>
-    request.patch<void, UserBatchEditParams>(`${ADMIN_API_PREFIX}/users`, params),
+  async batchEdit(params: UserBatchEditParams, options: ExecuteOptions = {}): Promise<void> {
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_users, {
+      body: params,
+    }, options)
+  },
 
-  changeStatus: (params: { id: Id; status: number }) => {
+  async changeStatus(params: { id: Id; status: 1 | 2 }, options: ExecuteOptions = {}): Promise<void> {
     const ids = normalizePositiveIDs(params.id, 'user')
-    const body: UserStatusBody = { status: params.status }
-    return request.patch<void, UserStatusBody>(`${ADMIN_API_PREFIX}/users/${ids[0]}/status`, body)
+    await executeAdminOperation(adminOperations.patch_api_admin_v1_users_id_status, {
+      path: { id: ids[0] },
+      body: { status: params.status },
+    }, options)
   },
 
-  deleteOne: (params: { id: Id | Id[] }) => {
-    const ids = normalizePositiveIDs(params.id, 'user')
-    if (ids.length === 1) {
-      return request.delete<void>(`${ADMIN_API_PREFIX}/users/${ids[0]}`)
-    }
-    const body: UserBatchDeletePayload = { ids }
-    return request.delete<void, UserBatchDeletePayload>(`${ADMIN_API_PREFIX}/users`, { data: body })
+  async deleteOne(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
+    const [id] = normalizePositiveIDs(params.id, 'user')
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_users_id, {
+      path: { id },
+    }, options)
   },
 
-  export: (params: { ids: number[] }) =>
-    request.post<UserExportResponse, { ids: number[] }>(`${ADMIN_API_PREFIX}/users/export`, params),
+  async deleteBatch(params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> {
+    const ids = normalizePositiveIDs(params.ids, 'user')
+    await executeAdminOperation(adminOperations.delete_api_admin_v1_users, {
+      body: { ids },
+    }, options)
+  },
+
+  export: (params: { ids: number[] }, options: ExecuteOptions = {}): Promise<UserExportResponse> =>
+    executeAdminOperation(adminOperations.post_api_admin_v1_users_export, {
+      body: { ids: normalizePositiveIDs(params.ids, 'user') },
+    }, options),
 }
 
 export const UserSessionApi = {

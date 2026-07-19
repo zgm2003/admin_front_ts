@@ -154,7 +154,7 @@ const batchFieldOptions = computed(() => [
 const batchEditForm = ref<{
   ids: number[]
   field: '' | UserBatchEditParams['field']
-  sex: number | null
+  sex: 0 | 1 | 2 | null
   address_id: number | null
   detail_address: string
 }>({
