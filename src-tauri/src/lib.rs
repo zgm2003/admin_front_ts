@@ -2,7 +2,8 @@ use std::sync::Arc;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, State, WebviewWindow,
+    webview::NewWindowResponse,
+    AppHandle, Emitter, Manager, State, WebviewWindow, WebviewWindowBuilder,
 };
 
 pub mod credentials;
@@ -158,6 +159,25 @@ pub fn run() {
             reveal_managed_download,
         ])
         .setup(|app| {
+            let main_window_config = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|config| window::is_main_window_label(&config.label))
+                .cloned()
+                .ok_or_else(|| {
+                    std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "missing exact main window configuration",
+                    )
+                })?;
+            let _main_window =
+                WebviewWindowBuilder::from_config(app.handle(), &main_window_config)?
+                    .on_new_window(|_, _| NewWindowResponse::Deny)
+                    .on_download(|_, _| window::should_allow_unmanaged_download())
+                    .build()?;
+
             // 创建托盘菜单
             let show = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;

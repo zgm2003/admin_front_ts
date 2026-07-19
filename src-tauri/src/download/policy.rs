@@ -79,6 +79,9 @@ impl RedirectBudget {
             .join(location)
             .map_err(|_| SafeError::download_policy())?;
         let next = validate_download_url(next.as_str())?;
+        if next.host_str() != current.host_str() {
+            return Err(SafeError::download_policy());
+        }
         self.followed += 1;
         Ok(next)
     }

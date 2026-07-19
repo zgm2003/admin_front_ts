@@ -2,13 +2,18 @@ use cloudadmin_lib::{
     download::policy::{
         sanitize_filename, validate_download_url, validate_selected_target, RedirectBudget,
     },
-    window::is_authorized_navigation,
+    window::{is_authorized_navigation, should_allow_unmanaged_download},
 };
 use proptest::prelude::*;
 
 fn arbitrary_text(max_chars: usize) -> impl Strategy<Value = String> {
     proptest::collection::vec(any::<char>(), 0..=max_chars)
         .prop_map(|characters| characters.into_iter().collect())
+}
+
+#[test]
+fn webview_downloads_cannot_bypass_the_managed_download_boundary() {
+    assert!(!should_allow_unmanaged_download());
 }
 
 proptest! {
@@ -50,12 +55,13 @@ proptest! {
         let mut budget = RedirectBudget::new();
         let mut accepted = 0usize;
         for location in locations {
+            let current_host = current.host_str().map(str::to_owned);
             match budget.follow(&current, &location) {
                 Ok(next) => {
                     accepted += 1;
                     prop_assert!(accepted <= 5);
                     prop_assert_eq!(next.scheme(), "https");
-                    prop_assert!(matches!(next.host_str(), Some("cos.zgm2003.cn" | "www.zgm2003.cn")));
+                    prop_assert_eq!(next.host_str(), current_host.as_deref());
                     current = next;
                 }
                 Err(_) => break,

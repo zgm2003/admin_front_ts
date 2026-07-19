@@ -57,6 +57,9 @@ fn dns_and_every_redirect_hop_remain_inside_the_public_allowlist() {
         .follow(&current, "https://evil.example/file")
         .is_err());
     assert!(RedirectBudget::new()
+        .follow(&current, "https://www.zgm2003.cn/releases/file")
+        .is_err());
+    assert!(RedirectBudget::new()
         .follow(&current, "http://127.0.0.1/private")
         .is_err());
 }

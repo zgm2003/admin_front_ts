@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -13,6 +13,35 @@ async function source(path: string): Promise<string> {
   return readFile(resolve(repositoryRoot, path), 'utf8')
 }
 
+async function rustCommandNames(): Promise<string[]> {
+  const sourceRoot = resolve(repositoryRoot, 'src-tauri/src')
+  const rustFiles: string[] = []
+
+  async function visit(directory: string): Promise<void> {
+    const entries = await readdir(directory, { withFileTypes: true })
+    for (const entry of entries) {
+      const path = resolve(directory, entry.name)
+      if (entry.isDirectory()) {
+        await visit(path)
+      } else if (entry.isFile() && entry.name.endsWith('.rs')) {
+        rustFiles.push(path)
+      }
+    }
+  }
+
+  await visit(sourceRoot)
+  const commands = new Set<string>()
+  const commandPattern = /#\s*\[\s*tauri::command(?:\([^\]]*\))?\s*\]\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+([a-z][a-z0-9_]*)/g
+  for (const path of rustFiles) {
+    const rust = await readFile(path, 'utf8')
+    for (const match of rust.matchAll(commandPattern)) {
+      commands.add(match[1]!)
+    }
+  }
+
+  return [...commands].sort()
+}
+
 describe('Tauri local UI security configuration', () => {
   it('packages only the local dist and disables the global Tauri object', async () => {
     const config = await readJson('src-tauri/tauri.conf.json')
@@ -24,6 +53,7 @@ describe('Tauri local UI security configuration', () => {
     expect(app.withGlobalTauri).toBe(false)
     expect(windows).toHaveLength(1)
     expect(windows[0]?.label).toBe('main')
+    expect(windows[0]?.create).toBe(false)
   })
 
   it('uses the measured CSP without script eval, script inline, or wildcard sources', async () => {
@@ -57,6 +87,24 @@ describe('Tauri local UI security configuration', () => {
     expect(capability.windows).toEqual(['main'])
     expect(capability).not.toHaveProperty('remote')
     expect(permissions).toEqual([
+      'allow-seal-refresh-credential',
+      'allow-refresh-access-credential',
+      'allow-clear-refresh-credential',
+      'allow-send-notification',
+      'allow-get-window-state',
+      'allow-minimize-window',
+      'allow-toggle-maximize-window',
+      'allow-hide-window',
+      'allow-request-window-close',
+      'allow-get-app-version',
+      'allow-relaunch-app',
+      'allow-exit-app',
+      'allow-start-managed-download',
+      'allow-cancel-managed-download',
+      'allow-get-managed-download-progress',
+      'allow-get-all-managed-downloads',
+      'allow-remove-managed-download',
+      'allow-reveal-managed-download',
       'core:event:allow-listen',
       'core:event:allow-unlisten',
       'updater:allow-check',
@@ -65,6 +113,32 @@ describe('Tauri local UI security configuration', () => {
     ])
     expect(JSON.stringify(capability)).not.toMatch(/(?:dialog|opener|process|shell|window):/)
     expect(JSON.stringify(capability)).not.toContain('*')
+  })
+
+  it('puts every custom command behind the local-only application ACL', async () => {
+    const [buildScript, capability, commands] = await Promise.all([
+      source('src-tauri/build.rs'),
+      readJson('src-tauri/capabilities/default.json'),
+      rustCommandNames(),
+    ])
+    const manifestCommands = buildScript.match(
+      /AppManifest::new\(\)\s*\.commands\(\s*&\[(?<commands>[\s\S]*?)\]\s*\)/,
+    )
+
+    expect(buildScript).toContain('tauri_build::try_build(')
+    expect(manifestCommands?.groups?.commands).toBeDefined()
+    const registeredCommands = [
+      ...(manifestCommands?.groups?.commands ?? '').matchAll(/"([a-z][a-z0-9_]*)"/g),
+    ].map((match) => match[1]!).sort()
+    expect(registeredCommands).toEqual(commands)
+
+    const permissions = capability.permissions as string[]
+    const appPermissions = permissions.filter((permission) => !permission.includes(':')).sort()
+    expect(appPermissions).toEqual(
+      commands.map((command) => `allow-${command.replaceAll('_', '-')}`).sort(),
+    )
+    expect(capability.windows).toEqual(['main'])
+    expect(capability).not.toHaveProperty('remote')
   })
 
   it('denies top-level navigation away from the packaged main-window origin', async () => {
@@ -76,6 +150,20 @@ describe('Tauri local UI security configuration', () => {
     expect(lib).toContain('.on_navigation(')
     expect(lib).toContain('is_authorized_navigation')
     expect(windowPolicy).toContain('pub fn is_authorized_navigation')
+  })
+
+  it('denies unmanaged WebView downloads and child-window creation', async () => {
+    const [lib, windowPolicy] = await Promise.all([
+      source('src-tauri/src/lib.rs'),
+      source('src-tauri/src/window.rs'),
+    ])
+
+    expect(lib).toContain('WebviewWindowBuilder::from_config')
+    expect(lib).toContain('.on_download(')
+    expect(lib).toContain('should_allow_unmanaged_download')
+    expect(lib).toContain('.on_new_window(')
+    expect(lib).toContain('NewWindowResponse::Deny')
+    expect(windowPolicy).toContain('pub const fn should_allow_unmanaged_download')
   })
 
   it('keeps the exact signed updater endpoint and public verification key', async () => {

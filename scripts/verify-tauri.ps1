@@ -56,6 +56,81 @@ function Assert-VersionOutput {
   }
 }
 
+function Assert-AppAclManifest {
+  param([Parameter(Mandatory = $true)][string]$RepositoryRoot)
+
+  $rustSourceRoot = Join-Path $RepositoryRoot 'src-tauri\src'
+  $capabilityPath = Join-Path $RepositoryRoot 'src-tauri\capabilities\default.json'
+  $manifestPath = Join-Path $RepositoryRoot 'src-tauri\gen\schemas\acl-manifests.json'
+  if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+    throw "Tauri did not generate the ACL manifest at $manifestPath"
+  }
+
+  $commandNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+  $commandPattern = '#\s*\[\s*tauri::command(?:\([^\]]*\))?\s*\]\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?fn\s+(?<name>[a-z][a-z0-9_]*)'
+  foreach ($file in Get-ChildItem -LiteralPath $rustSourceRoot -Recurse -File -Filter '*.rs') {
+    $rustSource = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+    foreach ($match in [regex]::Matches($rustSource, $commandPattern)) {
+      $null = $commandNames.Add($match.Groups['name'].Value)
+    }
+  }
+  $commands = @($commandNames | Sort-Object)
+  if ($commands.Count -eq 0) {
+    throw 'No custom Tauri commands were found for the application ACL'
+  }
+
+  $acl = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+  if (-not $acl.ContainsKey('__app-acl__')) {
+    throw 'Generated Tauri ACL manifest does not contain __app-acl__'
+  }
+  $generatedPermissions = $acl['__app-acl__']['permissions']
+
+  $capability = Get-Content -LiteralPath $capabilityPath -Raw -Encoding UTF8 |
+    ConvertFrom-Json -AsHashtable
+  if ($capability.ContainsKey('remote')) {
+    throw 'The main capability must not grant any remote origin'
+  }
+  $windows = @($capability['windows'])
+  if ($windows.Count -ne 1 -or [string]$windows[0] -cne 'main') {
+    throw 'The application ACL must be restricted to the exact main window'
+  }
+
+  $capabilityPermissions = @($capability['permissions'] | ForEach-Object { [string]$_ })
+  $expectedAppPermissions = @()
+  foreach ($command in $commands) {
+    $permissionId = "allow-$($command.Replace('_', '-'))"
+    $expectedAppPermissions += $permissionId
+    if (-not $generatedPermissions.ContainsKey($permissionId)) {
+      throw "Generated application ACL is missing $permissionId"
+    }
+    $allowedCommands = @($generatedPermissions[$permissionId]['commands']['allow'])
+    if ($allowedCommands.Count -ne 1 -or [string]$allowedCommands[0] -cne $command) {
+      throw "Generated permission $permissionId does not map only to $command"
+    }
+    if ($capabilityPermissions -cnotcontains $permissionId) {
+      throw "The local main capability does not grant $permissionId"
+    }
+  }
+
+  $actualAppPermissions = @(
+    $capabilityPermissions |
+      Where-Object { -not $_.Contains(':') } |
+      Sort-Object
+  )
+  $expectedAppPermissions = @($expectedAppPermissions | Sort-Object)
+  $permissionDelta = @(
+    Compare-Object `
+      -ReferenceObject $expectedAppPermissions `
+      -DifferenceObject $actualAppPermissions `
+      -CaseSensitive
+  )
+  if ($permissionDelta.Count -ne 0) {
+    throw 'The local main capability application permissions do not exactly match the Rust commands'
+  }
+
+  Write-Output "verified application ACL for $($commands.Count) custom commands"
+}
+
 if (-not $IsWindows -or [Runtime.InteropServices.RuntimeInformation]::OSArchitecture -ne 'X64') {
   throw 'P08 verification requires Windows x86_64'
 }
@@ -148,6 +223,8 @@ command npm run build
   } finally {
     Pop-Location
   }
+
+  Assert-AppAclManifest -RepositoryRoot $repositoryRoot
 
   $buildStartedAt = [DateTime]::UtcNow
   $localBundleConfig = '{"bundle":{"createUpdaterArtifacts":false}}'

@@ -34,6 +34,10 @@ pub fn is_authorized_navigation(label: &str, url: &url::Url, debug_build: bool) 
     is_main_window_label(label) && is_authorized_window_url(url, debug_build)
 }
 
+pub const fn should_allow_unmanaged_download() -> bool {
+    false
+}
+
 pub(crate) fn ensure_main_window(window: &WebviewWindow) -> Result<(), SafeError> {
     let url = window.url().map_err(|_| SafeError::native_policy())?;
     if is_authorized_navigation(window.label(), &url, cfg!(debug_assertions)) {

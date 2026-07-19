@@ -41,6 +41,18 @@ describe('blocking Windows Tauri security gate', () => {
     expect(hostNpmLines).toEqual([])
   })
 
+  it('proves the built application ACL covers every custom Rust command', async () => {
+    const verifier = await source('scripts/verify-tauri.ps1')
+
+    expect(verifier).toContain('Assert-AppAclManifest')
+    expect(verifier).toContain('acl-manifests.json')
+    expect(verifier).toContain("'__app-acl__'")
+    expect(verifier).toContain("'src-tauri\\src'")
+    expect(verifier).toContain("'src-tauri\\capabilities\\default.json'")
+    expect(verifier).toContain("allow-$($command.Replace('_', '-'))")
+    expect(verifier).toMatch(/cargo build[\s\S]*Assert-AppAclManifest/)
+  })
+
   it('builds only a fresh unsigned-local Windows NSIS package without publishing', async () => {
     const verifier = await source('scripts/verify-tauri.ps1')
 
