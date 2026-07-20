@@ -550,27 +550,27 @@ git commit -m "perf(frontend): enforce lazy boundaries and compressed budgets"
 - Create: `tests/component/accessibility/ai-chat.test.ts`
 - Create: `docs/accessibility/manual-test-matrix.md`
 
-- [ ] **Step 1: Write keyboard/focus/announcement tests**
+- [x] **Step 1: Write keyboard/focus/announcement tests**
 
 Test skip-to-main, logical tab order, Escape close, dialog focus trap and return, form label/error association, async loading/result announcements, AI delta suppression plus terminal announcement, visible focus, and reduced-motion styles.
 
-- [ ] **Step 2: Implement semantic structure**
+- [x] **Step 2: Implement semantic structure**
 
 Use native buttons/inputs/links before ARIA. Layout has one header/nav/main, a visible-on-focus skip link to `#main-content`, and `main tabindex="-1"` for route focus. Dialogs set `role=dialog`, `aria-modal=true`, labelled title/description, trap focus, close on Escape when allowed, and return focus to the trigger.
 
-- [ ] **Step 3: Make dynamic state perceivable**
+- [x] **Step 3: Make dynamic state perceivable**
 
 Add one application announcer with polite/assertive channels. ResourceQuery announces result count/error; forms associate `label`, `aria-invalid`, and error description; buttons expose busy/disabled; notification/AI terminal states announce once. Do not announce every streaming delta.
 
-- [ ] **Step 4: Meet visual/mobile criteria**
+- [x] **Step 4: Meet visual/mobile criteria**
 
 Enforce text contrast 4.5:1, large text and component boundaries 3:1, visible focus in light/dark/high-contrast, WCAG minimum 24x24 CSS-pixel targets and 44x44 for primary/mobile actions, 200% zoom without two-dimensional page scrolling, gesture alternatives, and `prefers-reduced-motion`/`prefers-contrast`. Decorative images are hidden; meaningful images have localized alt text.
 
-- [ ] **Step 5: Verify automated and manual matrix**
+- [x] **Step 5: Verify automated and manual matrix**
 
 Mount critical components and run axe with zero serious/critical violations. The manual matrix records keyboard, NVDA/Windows, VoiceOver/macOS/iOS, TalkBack/Android, 200% zoom, high contrast, and reduced motion for login, Layout, data table/form, dialog, notification, and AI chat.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 npm test -- --project component tests/component/accessibility
@@ -580,6 +580,19 @@ git add -- src/shared/accessibility/Announcer.vue src/shared/accessibility/SkipL
 git diff --cached --check
 git commit -m "feat(accessibility): meet wcag 2.2 aa on critical flows"
 ```
+
+#### P07 Task 8 checkpoint evidence (2026-07-20)
+
+- Commit: `870cc79` (`feat(accessibility): meet wcag 2.2 aa on critical flows`).
+- Critical-flow accessibility suite: 6 files / 11 tests passed; axe-core 4.12.0 reported zero serious or critical violations in the mounted fixtures.
+- Full Vitest run: 108 files / 428 tests passed.
+- Dialog naming was verified against Element Plus title-slot semantics; custom headers and visually hidden labels now bind the generated `aria-labelledby` target, Escape remains policy-controlled, and trigger focus is restored after close.
+- Tables distinguish `success`, `empty`, `missing`, and `error`; notification-list failures are visible and assertive rather than being announced as empty data.
+- Locale parity passed with 1563 keys; lint passed with 0 errors / 0 warnings; typecheck and production build passed.
+- Bundle gate passed: initial JS 290527 gzip / 252917 Brotli, initial CSS 55854 gzip / 43709 Brotli, largest lazy JS 278399 gzip / 182862 Brotli, total JS 1152484 gzip / 949835 Brotli bytes.
+- Browser-only and Admin contract gates passed; contract manifest remained `d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa`.
+- All Node, test, type, build, locale, bundle, contract, and architecture commands ran in `node:22.23.1-alpine`; no host Node runtime or browser automation was used.
+- The versioned assistive-technology matrix exists at `docs/accessibility/manual-test-matrix.md`; its environment-specific boxes remain user-owned and were not marked by the Agent.
 
 ### Task 9: Add Docker runtime smoke and the user-owned acceptance checklist
 
