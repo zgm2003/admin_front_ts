@@ -2,6 +2,10 @@
   "schemaVersion": 1,
   "entries": [
     {
+      "source": "tests/component/accessibility/layout.test.ts",
+      "action": "retain-guard"
+    },
+    {
       "source": "tests/layout/header-source-quality.test.ts",
       "action": "delete"
     },
@@ -98,7 +102,15 @@
       "action": "retain-guard"
     },
     {
+      "source": "tests/shared/deployment/docker-runtime-smoke.test.ts",
+      "action": "retain-guard"
+    },
+    {
       "source": "tests/shared/deployment/frontend-deploy-env.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/deployment/quality-gates.test.ts",
       "action": "retain-guard"
     },
     {
@@ -129,7 +141,7 @@
     {
       "source": "tests/shared/download-manager/download-manager-source-quality.test.ts",
       "action": "replace",
-      "replacement": "tests/shared/download-manager/download-manager-source-quality.test.ts"
+      "replacement": "tests/unit/browser/download.test.ts"
     },
     {
       "source": "tests/shared/editor/editor-source-quality.test.ts",

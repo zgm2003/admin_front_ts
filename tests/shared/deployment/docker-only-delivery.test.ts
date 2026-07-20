@@ -18,15 +18,11 @@ describe('Docker-only frontend delivery', () => {
 
   it('runs source gates before one revision-labelled Docker image build', () => {
     const verifier = read(frontendRoot, 'scripts/verify-frontend.ps1')
+    const wrapper = read(frontendRoot, 'scripts/docker-frontend-gate.ps1')
     const commands = [
-      'npm ci',
-      'npm run check:browser-only',
-      'npm run contract:check',
-      'npm run routes:generate',
-      'npm run lint:baseline',
-      'npm run typecheck',
-      'npm test -- --coverage',
-      'npm run build:check',
+      'git diff --check',
+      'git diff --cached --check',
+      "'npm run verify:frontend'",
       "@('build'",
       "@('image', 'inspect'",
     ]
@@ -37,16 +33,17 @@ describe('Docker-only frontend delivery', () => {
       previous = index
     }
 
-    expect(verifier).toContain('node:22.23.1-alpine')
-    expect(verifier).toContain('type=volume,dst=/workspace/node_modules')
-    expect(verifier).toContain("Invoke-Docker @('run'")
+    expect(wrapper).toContain('node:22.23.1-alpine')
+    expect(verifier).toContain('scripts\\docker-frontend-gate.ps1')
+    expect(wrapper).toContain('admin-front-node-modules')
+    expect(wrapper).toContain('admin-front-npm-cache')
+    expect(wrapper).toContain('npm ci --no-audit --no-fund')
     expect(verifier).not.toMatch(/^\s*&?\s*npm(?:\.cmd)?\s/gmu)
     expect(verifier).toContain('BUILD_REVISION=$GitSha')
     expect(verifier).toContain("[string]$ImageName = 'admin-frontend'")
     expect(verifier).toContain('$imageTag = "${ImageName}:$GitSha"')
     expect(verifier).toContain('org.opencontainers.image.revision')
     expect(verifier).toContain('127.0.0.1:8080/healthz')
-    expect(verifier).not.toMatch(/npm run build(?:\s|$)/u)
     expect(verifier).not.toMatch(/package-web-artifact|dist\.tar|scp\s/i)
   })
 })

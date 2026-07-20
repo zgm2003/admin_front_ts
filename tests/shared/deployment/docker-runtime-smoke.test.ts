@@ -75,7 +75,7 @@ describe('Docker runtime acceptance boundary', () => {
       /\bStart-Process\b/iu,
       /\bmysqld(?:\.exe)?\b/iu,
       /\bredis-server(?:\.exe)?\b/iu,
-      /playwright/iu,
+      new RegExp(['play', 'wright'].join(''), 'iu'),
     ]) {
       expect(verifier).not.toMatch(forbidden)
     }

@@ -10,6 +10,7 @@ Set-StrictMode -Version Latest
 
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $defaultDocker = 'E:\Docker\Docker\resources\bin\docker.exe'
+$dockerGate = Join-Path $repositoryRoot 'scripts\docker-frontend-gate.ps1'
 
 function Resolve-Executable {
   param(
@@ -62,9 +63,19 @@ function Read-ProductionValue {
 
 $script:DockerExecutable = Resolve-Executable -Preferred $defaultDocker -Fallback 'docker.exe'
 $gitExecutable = Resolve-Executable -Preferred '' -Fallback 'git.exe'
+$powerShellExecutable = Resolve-Executable -Preferred '' -Fallback 'pwsh.exe'
 
 Push-Location $repositoryRoot
 try {
+  git diff --check
+  if ($LASTEXITCODE -ne 0) {
+    throw 'git diff --check failed'
+  }
+  git diff --cached --check
+  if ($LASTEXITCODE -ne 0) {
+    throw 'git diff --cached --check failed'
+  }
+
   $head = (& $gitExecutable rev-parse --verify HEAD).Trim().ToLowerInvariant()
   if ($LASTEXITCODE -ne 0 -or $head -notmatch '^[0-9a-f]{40}$') {
     throw 'could not resolve the frontend Git revision'
@@ -86,24 +97,10 @@ try {
     throw 'frontend checkout must be clean before Docker image verification'
   }
 
-  $qualityCommands = @(
-    'npm ci --no-audit --no-fund',
-    'npm run check:browser-only',
-    'npm run contract:check',
-    'npm run routes:generate',
-    'npm run lint:baseline',
-    'npm run typecheck',
-    'npm test -- --coverage',
-    'npm run build:check'
-  ) -join ' && '
-  Invoke-Docker @('run',
-    '--rm',
-    '--mount', "type=bind,src=$repositoryRoot,dst=/workspace",
-    '--mount', 'type=volume,dst=/workspace/node_modules',
-    '--workdir', '/workspace',
-    'node:22.23.1-alpine',
-    'sh', '-lc', $qualityCommands
-  )
+  & $powerShellExecutable -NoProfile -File $dockerGate -Command 'npm run verify:frontend'
+  if ($LASTEXITCODE -ne 0) {
+    throw "frontend quality gate exited with code $LASTEXITCODE"
+  }
 
   $apiOrigin = Read-ProductionValue -Name 'VITE_GO_API_BASE_URL'
   $realtimeOrigin = Read-ProductionValue -Name 'VITE_WEB_SOCKET_URL'

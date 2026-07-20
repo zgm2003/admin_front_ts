@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url'
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const viewsRoot = resolve(repositoryRoot, 'src/views/Main')
 const outputPath = resolve(repositoryRoot, 'src/modules/routing/generated/local-views.ts')
+const checkOnly = process.argv.includes('--check')
+const unsupportedArguments = process.argv.slice(2).filter((argument) => argument !== '--check')
+
+if (unsupportedArguments.length > 0) {
+  throw new Error(`unsupported arguments: ${unsupportedArguments.join(', ')}`)
+}
 
 async function collectIndexViews(directory) {
   const entries = await readdir(directory, { withFileTypes: true })
@@ -58,5 +64,10 @@ const keys = (await collectIndexViews(viewsRoot)).map(viewKey).sort((left, right
 assertUnique(keys)
 const output = render(keys)
 const current = await readFile(outputPath, 'utf8').catch(() => null)
-if (current !== output) await writeFile(outputPath, output, 'utf8')
-process.stdout.write(`generated ${keys.length} local Admin view loaders\n`)
+if (current !== output) {
+  if (checkOnly) {
+    throw new Error('generated local Admin view registry is stale; run npm run routes:generate')
+  }
+  await writeFile(outputPath, output, 'utf8')
+}
+process.stdout.write(`${checkOnly ? 'verified' : 'generated'} ${keys.length} local Admin view loaders\n`)

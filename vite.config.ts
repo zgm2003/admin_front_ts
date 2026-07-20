@@ -36,6 +36,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'linkify-it': fileURLToPath(new URL('./src/lib/markdown/linkify-it-v6-compat.ts', import.meta.url)),
+      'linkify-it-v6-source': fileURLToPath(new URL('./node_modules/linkify-it/build/index.mjs', import.meta.url)),
     },
   },
   clearScreen: false,

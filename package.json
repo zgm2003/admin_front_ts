@@ -21,9 +21,12 @@
     "contract:check": "node ./scripts/check-admin-contract.mjs",
     "check:browser-only": "node ./scripts/check-browser-only.mjs",
     "routes:generate": "node ./scripts/generate-view-registry.mjs",
+    "routes:check": "node ./scripts/generate-view-registry.mjs --check",
     "lint": "eslint . --max-warnings 0",
     "lint:quality": "node ./scripts/quality-checks.mjs",
     "test:architecture": "node ./scripts/audit-test-architecture.mjs",
+    "audit:dependencies": "npm audit --omit=dev --audit-level=high",
+    "verify:frontend": "npm run check:browser-only && npm run contract:check && npm run routes:check && npm run locale:check && npm run lint -- --max-warnings 0 && npm run lint:quality && npm run typecheck && npm test -- --coverage && npm run build && npm run bundle:check && npm run test:architecture && npm run audit:dependencies",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -33,13 +36,13 @@
     "@vueuse/core": "^11.0.3",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "@wangeditor/plugin-md": "^1.0.0",
-    "axios": "^1.8.4",
+    "axios": "^1.18.1",
     "cos-js-sdk-v5": "^1.8.7",
     "dompurify": "3.4.12",
     "element-plus": "^2.13.0",
     "go-captcha-vue": "^2.0.6",
     "highlight.js": "^11.11.1",
-    "markdown-it": "^14.1.0",
+    "markdown-it": "^14.3.0",
     "pinia": "^3.0.2",
     "qrcode": "^1.5.4",
     "vue": "^3.5.24",
@@ -73,5 +76,17 @@
     "vite": "^8.0.3",
     "vitest": "^4.0.7",
     "vue-tsc": "^3.1.4"
+  },
+  "overrides": {
+    "cos-js-sdk-v5": {
+      "fast-xml-parser": "5.10.1"
+    },
+    "follow-redirects": "1.16.0",
+    "form-data": "4.0.6",
+    "linkify-it": "6.0.0",
+    "lodash": "4.18.1",
+    "lodash-es": "4.18.1",
+    "postcss": "8.5.20",
+    "preact": "10.29.7"
   }
 }

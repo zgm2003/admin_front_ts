@@ -40,7 +40,7 @@ export interface LegacyUploadTokenRequest {
 
 export type UploadTokenParams = UploadTokenRequest | LegacyUploadTokenRequest
 
-const loadCOS = () => import('cos-js-sdk-v5').then(module => module.default as CosConstructor)
+const loadCOS = () => import('cos-js-sdk-v5/index.js').then(module => module.default as CosConstructor)
 const t = i18n.global.t
 
 export const getUploadToken = (params: UploadTokenParams): Promise<UploadTokenResponse> => {
