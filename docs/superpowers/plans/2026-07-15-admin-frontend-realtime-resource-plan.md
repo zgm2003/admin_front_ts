@@ -601,7 +601,7 @@ git commit -m "feat(accessibility): meet wcag 2.2 aa on critical flows"
 - Create: `tests/shared/deployment/docker-runtime-smoke.test.ts`
 - Create: `docs/acceptance/p07-frontend-manual.md`
 
-- [ ] **Step 1: Write the failing deployment-boundary test**
+- [x] **Step 1: Write the failing deployment-boundary test**
 
 The test reads `scripts/verify-docker-runtime.ps1` and requires it to invoke `E:/admin/admin_back_go/scripts/docker-platform.ps1 status`, require all five containers to be healthy, call `/healthz`, `/health`, and `/ready`, compare both image revision labels with repository HEAD, invoke the P08R Browser-only retirement verifier, and accept smoke credentials only through `ADMIN_SMOKE_ACCOUNT` and `ADMIN_SMOKE_PASSWORD`. It also rejects `npm run dev`, Vite, `go run`, `Start-Process`, host MySQL, and host Redis startup.
 
@@ -613,19 +613,19 @@ docker run --rm --mount "type=bind,src=$((Get-Location).Path),dst=/workspace" --
 
 Expected: FAIL because the runtime smoke script does not exist.
 
-- [ ] **Step 2: Implement fail-closed Docker runtime verification**
+- [x] **Step 2: Implement fail-closed Docker runtime verification**
 
 `verify-docker-runtime.ps1` validates resolved backend/frontend roots, invokes only the backend Docker platform script, and exits nonzero on an unhealthy/missing container, non-2xx health response, revision mismatch, authentication failure, missing realtime ticket, WebSocket failure, or secret-like output. It runs authenticated HTTP and realtime-ticket/WebSocket smoke without printing credentials or tokens.
 
 If either smoke credential environment variable is absent, stop with `ADMIN_SMOKE_CREDENTIALS_REQUIRED`; never silently skip authenticated checks or use a mock response.
 
-- [ ] **Step 3: Write the versioned manual acceptance checklist**
+- [x] **Step 3: Write the versioned manual acceptance checklist**
 
 `docs/acceptance/p07-frontend-manual.md` records the frontend/backend revisions plus the P08R bundle/retirement evidence and leaves user-owned checkboxes for password login without captcha, send-code captcha, Cookie session restore/logout, first protected navigation, menu persistence, direct URL entry, CRUD/error/empty states, notification and AI reconnect, queue monitor, browser download/external navigation, visible online/offline state, absence of the client-version menu/route, keyboard behavior, narrow viewport, 200% zoom, dark theme, reduced motion, and visible focus.
 
 The Agent may populate revision/evidence fields but must not mark user acceptance checkboxes.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 docker run --rm --mount "type=bind,src=$((Get-Location).Path),dst=/workspace" --workdir /workspace node:22.23.1-alpine sh -lc "npm ci && npm test -- tests/shared/deployment/docker-runtime-smoke.test.ts"
@@ -637,6 +637,18 @@ git commit -m "test(docker): add frontend runtime acceptance gate"
 ```
 
 Expected: automated Docker checks pass and the manual checklist remains pending user confirmation.
+
+#### P07 Task 9 checkpoint evidence (2026-07-20)
+
+- Commit: `74e98fd` (`test(docker): add frontend runtime acceptance gate`).
+- Static deployment-boundary suite: 1 file / 4 tests passed after its initial missing-script failure.
+- The only platform lifecycle entry was `E:/admin/admin_back_go/scripts/docker-platform.ps1`; it rebuilt and started MySQL, Redis, Admin API, Admin worker, and frontend with all five containers healthy.
+- Runtime image evidence before the Task 9 source-only commit: frontend `sha256:f164a2c14cde6a264ddc72254e3737a398399cc95b9c8acd7d23a96569ed57bc` labelled `f7bcf959942f2cf6480170b299d1d7171ab89beb`; API/worker `sha256:51cec099929ff6b44128cf0b205420cfe122548dfd43a832935ba99647f75ac8` labelled backend `27b85c20730d1cba4d534fc670328818fefed24b`.
+- `verify-docker-runtime.ps1` passed `/healthz`, `/health`, `/ready`, password login without captcha, authenticated `users/me`, realtime-ticket issuance, WebSocket `connected.v1`, and ping/pong without printing credentials, tokens, or tickets.
+- The broader P08R Docker regression fixture also passed captcha enforcement, Cookie rotation/logout, queue monitor grant/UI, realtime, retired-route absence, temporary-user cleanup, and ended with zero active Admin smoke sessions.
+- Missing environment credentials fail immediately with `ADMIN_SMOKE_CREDENTIALS_REQUIRED`; the verifier has no account/password parameters, defaults, runtime mock, or host service startup.
+- `docs/acceptance/p07-frontend-manual.md` records immutable revisions and the user's explicit `验收通过` stage-review statement. Per-item boxes remain user-owned and were not marked by the Agent.
+- Docker-only lint and typecheck passed; `git diff --cached --check` passed before commit. No worktree, GitHub Workflow, browser automation, or host Node runtime was used.
 
 ### Task 10: Make containerized frontend quality gates blocking
 
