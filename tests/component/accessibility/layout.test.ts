@@ -75,7 +75,15 @@ describe('accessible application layout', () => {
     const skipLink = wrapper.get('a[href="#main-content"]')
     const main = wrapper.get('main#main-content')
     expect(main.attributes('tabindex')).toBe('-1')
-    expect(wrapper.get('nav').attributes('aria-label')).toBeTruthy()
+    const navigation = wrapper.get('nav')
+    expect(navigation.attributes('aria-label')).toBeTruthy()
+    expect(navigation.classes()).toContain('layout-navigation')
+
+    const layoutSource = readFileSync(resolve(process.cwd(), 'src/views/Layout/index.vue'), 'utf8')
+    expect(layoutSource).toContain(`.layout-navigation {
+  height: 100%;
+  min-height: 0;
+}`)
     expect(wrapper.get('[aria-live="polite"]').attributes('aria-atomic')).toBe('true')
     expect(wrapper.get('[aria-live="assertive"]').attributes('aria-atomic')).toBe('true')
 

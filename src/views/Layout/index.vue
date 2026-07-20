@@ -48,7 +48,10 @@ watch(() => route.fullPath, async () => {
       :with-header="false"
       class="mobile-drawer"
     >
-      <nav :aria-label="t('accessibility.mainNavigation')">
+      <nav
+        class="layout-navigation"
+        :aria-label="t('accessibility.mainNavigation')"
+      >
         <Aside />
       </nav>
     </el-drawer>
@@ -59,7 +62,10 @@ watch(() => route.fullPath, async () => {
       class="layout-aside"
       :class="{ 'layout-aside--collapse': menuStore.collapse }"
     >
-      <nav :aria-label="t('accessibility.mainNavigation')">
+      <nav
+        class="layout-navigation"
+        :aria-label="t('accessibility.mainNavigation')"
+      >
         <Aside />
       </nav>
     </el-aside>
@@ -140,6 +146,11 @@ watch(() => route.fullPath, async () => {
 .layout-aside--collapse {
   width: 80px;
   flex-basis: 80px;
+}
+
+.layout-navigation {
+  height: 100%;
+  min-height: 0;
 }
 
 .layout-main {
