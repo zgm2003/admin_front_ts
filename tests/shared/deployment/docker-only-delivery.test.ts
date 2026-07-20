@@ -33,7 +33,7 @@ describe('Docker-only frontend delivery', () => {
       previous = index
     }
 
-    expect(wrapper).toContain('node:22.23.1-alpine')
+    expect(wrapper).toContain('node:24.18.0-alpine')
     expect(verifier).toContain('scripts\\docker-frontend-gate.ps1')
     expect(wrapper).toContain('admin-front-node-modules')
     expect(wrapper).toContain('admin-front-npm-cache')

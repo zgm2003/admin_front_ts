@@ -1,4 +1,4 @@
-ARG NODE_IMAGE=node:22.23.1-alpine
+ARG NODE_IMAGE=node:24.18.0-alpine
 ARG NGINX_IMAGE=nginxinc/nginx-unprivileged:1.31.3-alpine
 ARG BUILD_REVISION=unknown
 

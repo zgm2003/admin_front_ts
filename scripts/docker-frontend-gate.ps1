@@ -37,7 +37,7 @@ $containerCommand = "npm ci --no-audit --no-fund && $Command"
   '--mount', 'type=volume,src=admin-front-node-modules,dst=/workspace/node_modules',
   '--mount', 'type=volume,src=admin-front-npm-cache,dst=/root/.npm',
   '--workdir', '/workspace',
-  'node:22.23.1-alpine',
+  'node:24.18.0-alpine',
   'sh', '-lc', $containerCommand
 )
 $exitCode = $LASTEXITCODE

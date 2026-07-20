@@ -38,7 +38,7 @@ describe('Docker runtime acceptance boundary', () => {
     expect(verifier).toContain('org.opencontainers.image.revision')
     expect(verifier).toContain('rev-parse')
     expect(verifier).toContain('npm run check:browser-only')
-    expect(verifier).toContain('node:22.23.1-alpine')
+    expect(verifier).toContain('node:24.18.0-alpine')
 
     expect(verifier).toContain('/api/admin/v1/auth/login')
     expect(verifier).toContain("login_type = 'password'")

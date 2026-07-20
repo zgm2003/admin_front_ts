@@ -6,6 +6,19 @@ const root = resolve(process.cwd())
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8')
 
 describe('blocking containerized frontend quality gates', () => {
+  it('pins the supported Node and npm toolchain', () => {
+    const packageJson = JSON.parse(read('package.json')) as {
+      engines?: Record<string, string>
+      packageManager?: string
+    }
+
+    expect(packageJson.engines).toEqual({
+      node: '>=24.18.0 <25',
+      npm: '11.16.0',
+    })
+    expect(packageJson.packageManager).toBe('npm@11.16.0')
+  })
+
   it('defines one ordered, fail-closed verification script', () => {
     const packageJson = JSON.parse(read('package.json')) as {
       scripts?: Record<string, string>
@@ -42,7 +55,7 @@ describe('blocking containerized frontend quality gates', () => {
     const wrapper = read('scripts/docker-frontend-gate.ps1')
 
     expect(wrapper).toContain("'E:\\admin\\admin_front_ts'")
-    expect(wrapper).toContain("'node:22.23.1-alpine'")
+    expect(wrapper).toContain("'node:24.18.0-alpine'")
     expect(wrapper).toContain('npm ci --no-audit --no-fund')
     expect(wrapper).toContain('package-lock.json')
     expect(wrapper).toContain('admin-front-npm-cache')

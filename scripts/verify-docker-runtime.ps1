@@ -392,7 +392,7 @@ try {
       'run', '--rm',
       '--mount', "type=bind,src=$frontendRoot,dst=/workspace",
       '--workdir', '/workspace',
-      'node:22.23.1-alpine',
+  'node:24.18.0-alpine',
       'sh', '-lc', 'npm run check:browser-only'
     ) `
     -Label 'P08R Browser-only retirement verifier' | Out-Null
