@@ -656,9 +656,11 @@ Expected: automated Docker checks pass and the manual checklist remains pending 
 - Create: `scripts/docker-frontend-gate.ps1`
 - Modify: `scripts/verify-frontend.ps1`
 - Create: `tests/shared/deployment/quality-gates.test.ts`
-- Modify: `package.json`
+- Modify: `package.json`, `package-lock.json`, `scripts/generate-view-registry.mjs`, `scripts/test-migration-manifest.json`
+- Modify: `src/lib/upload/uploadClient.ts`, `vite.config.ts`, `vitest.config.ts`
+- Create: `src/lib/markdown/linkify-it-v6-compat.ts`, `tests/component/markdown/MarkdownRenderer.test.ts`
 
-- [ ] **Step 1: Write the failing quality-gate contract test**
+- [x] **Step 1: Write the failing quality-gate contract test**
 
 Require the shared verifier to run P08R `check:browser-only`, contract and generated-route checks, ESLint with zero warnings, typecheck, unit/component/integration coverage, production build, locale generation check, bundle budgets, test-architecture audit, dependency audit, and `git diff --check`. Reject browser automation commands, host service startup, runtime mock fallback, `.github`, Tauri/native/desktop dependencies, and deployment Workflow references.
 
@@ -667,41 +669,52 @@ Require `docker-frontend-gate.ps1` to use exact image `node:22.23.1-alpine`, `np
 Run:
 
 ```powershell
-npm test -- tests/shared/deployment/quality-gates.test.ts
+docker run --rm --mount "type=bind,src=$((Get-Location).Path),dst=/workspace" --mount "type=volume,src=admin-front-node-modules,dst=/workspace/node_modules" --workdir /workspace node:22.23.1-alpine sh -lc "npm test -- tests/shared/deployment/quality-gates.test.ts"
 ```
 
 Expected: FAIL until both scripts express the complete gate.
 
-- [ ] **Step 2: Implement the pinned container gate**
+- [x] **Step 2: Implement the pinned container gate**
 
 The Docker wrapper mounts the repository at `/workspace`, sets that working directory, installs exactly from `package-lock.json`, and runs only the requested static command. It publishes no ports and starts no dev/preview server.
 
-`verify-frontend.ps1` becomes the single in-container gate and uses `npm run lint -- --max-warnings 0`; it removes the temporary P06 warning baseline. Dependency audit failures remain blocking and cannot be converted into warnings.
+`verify-frontend.ps1` is the host PowerShell composition root: it runs both Git whitespace checks, requires a clean revision, delegates the static `npm run verify:frontend` command to the pinned Node wrapper, then builds and inspects the revision-labelled runtime image. The Node Alpine image contains no PowerShell, so PowerShell never runs inside it. The package gate uses `npm run lint -- --max-warnings 0`, removes the temporary P06 warning baseline, and keeps dependency-audit failures blocking.
 
-- [ ] **Step 3: Prove that browser tooling is absent**
+- [x] **Step 3: Prove that browser tooling is absent**
 
 ```powershell
-npm run check:browser-only
+pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command 'npm run check:browser-only'
 git grep -n -i playwright -- package.json src tests scripts
 git ls-files .github .worktrees
 ```
 
 Expected: Browser-only check passes; both Git commands produce no output. Documentation may record the Playwright prohibition; runtime, dependency, test, and script paths may not contain it.
 
-- [ ] **Step 4: Run and commit**
+- [x] **Step 4: Run and commit**
 
 ```powershell
-pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command "pwsh -NoProfile -File scripts/verify-frontend.ps1"
+pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command 'npm run verify:frontend'
 git add -- scripts/docker-frontend-gate.ps1 scripts/verify-frontend.ps1 tests/shared/deployment/quality-gates.test.ts package.json package-lock.json
 git diff --cached --check
 git commit -m "build(frontend): block containerized quality regressions"
 ```
 
+#### P07 Task 10 checkpoint evidence (2026-07-20)
+
+- Commit: `0858edd` (`build(frontend): block containerized quality regressions`).
+- TDD red evidence: the new quality-gate suite initially failed all 5 tests because the wrapper, ordered package gate, host composition, repository boundaries, and audited COS source path were absent; the focused suite then passed 5/5.
+- The pinned `node:22.23.1-alpine` gate completed Browser-only, Admin contract, generated-route and locale checks, ESLint 0/0, quality lint, typecheck, coverage, production build, bundle budgets, test-architecture audit, and a blocking high-severity production dependency audit.
+- Full automated result: 111 files / 438 tests; coverage 89.71% statements, 83.90% branches, 91.27% functions, and 92.03% lines.
+- Bundle result: initial JS 293533 gzip / 255496 Brotli bytes, initial CSS 55869 gzip / 43723 Brotli bytes, largest lazy chunk 278400 gzip / 182789 Brotli bytes, total JS 1168907 gzip / 963701 Brotli bytes.
+- Test architecture result: 19/111 source-text suites (17.12%) and 76 direct production-behavior suites. The stale P08R DownloadManager manifest entry now points to its browser-download behavior replacement.
+- Production dependency audit reports 0 vulnerabilities. The COS runtime is built from `cos-js-sdk-v5/src/*` against `fast-xml-parser@5.10.1`, not the SDK's embedded vulnerable distribution; the Markdown renderer retains URL linkification through a tested LinkifyIt v6 adapter.
+- `git diff --check`, `git diff --cached --check`, the npm dependency tree, generated-route check, and bundle module evidence passed. Browser-tool and `.github`/`.worktrees` tracked-path searches produced no output.
+
 ## Plan completion gate
 
 ```powershell
 cd E:/admin/admin_front_ts
-pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command "pwsh -NoProfile -File scripts/verify-frontend.ps1"
+pwsh -NoProfile -File scripts/verify-frontend.ps1
 
 cd E:/admin/admin_back_go
 pwsh -NoProfile -File scripts/docker-platform.ps1 up
@@ -709,7 +722,7 @@ pwsh -NoProfile -File scripts/docker-platform.ps1 status
 
 cd E:/admin/admin_front_ts
 pwsh -NoProfile -File scripts/verify-docker-runtime.ps1
-npm run check:browser-only
+pwsh -NoProfile -File scripts/docker-frontend-gate.ps1 -Command 'npm run check:browser-only'
 git grep -n -i playwright -- package.json src tests scripts
 git ls-files .github .worktrees
 git status --short

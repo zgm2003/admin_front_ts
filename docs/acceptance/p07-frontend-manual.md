@@ -14,14 +14,16 @@ This checklist belongs to the user. The Agent records immutable revisions and au
 | P07 decomposition commit | `51bd37d` |
 | P07 performance commit | `a75989b` |
 | P07 accessibility commit | `870cc79` |
+| P07 blocking quality-gate commit | `0858edd` |
 | Frontend Docker image / revision | `sha256:f164a2c14cde6a264ddc72254e3737a398399cc95b9c8acd7d23a96569ed57bc` / `f7bcf959942f2cf6480170b299d1d7171ab89beb` |
 | Backend API/worker image / revision | `sha256:51cec099929ff6b44128cf0b205420cfe122548dfd43a832935ba99647f75ac8` / `27b85c20730d1cba4d534fc670328818fefed24b` |
 | Docker runtime gate | passed: five healthy containers, `/healthz`, `/health`, `/ready`, authenticated `users/me`, realtime ticket + WebSocket ping/pong, no secret output |
 | P08R runtime regression smoke | passed: captcha enforcement, password login, Cookie rotation/logout, queue monitor, realtime, retired route, fixture cleanup; active Admin sessions after smoke: 0 |
 | Accessibility automated evidence | 6 files / 11 tests; axe serious or critical violations: 0 |
-| Full test evidence | 108 files / 428 tests |
-| Initial JS budget | 290527 gzip / 252917 Brotli bytes |
-| Browser-only evidence | 583 tracked paths / 362 production files / 6 contract files |
+| Full test evidence | 111 files / 438 tests; 89.71% statements / 83.90% branches |
+| Initial JS budget | 293533 gzip / 255496 Brotli bytes |
+| Browser-only evidence | 596 tracked paths / 365 production files / 6 contract files |
+| Blocking quality gate | passed: lint 0/0, typecheck, coverage, build, bundle, test architecture 17.12%, dependency audit 0 vulnerabilities |
 
 The user stated `验收通过` in the current session on 2026-07-20. That statement is recorded as the stage-review decision; the per-item boxes below remain user-owned as required by the plan.
 
