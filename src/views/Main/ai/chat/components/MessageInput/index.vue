@@ -154,12 +154,19 @@ defineExpose({
   <div
     class="message-input"
     :class="{ 'is-dragging': isDragging }"
+    role="region"
+    :aria-label="t('accessibility.chatComposer')"
+    :aria-busy="sending"
     @drop="handleDrop"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
   >
     <!-- 工具栏 -->
-    <div class="input-toolbar">
+    <div
+      class="input-toolbar"
+      role="toolbar"
+      :aria-label="t('accessibility.chatToolbar')"
+    >
       <div class="toolbar-left">
         <!-- 历史会话 -->
         <el-button
@@ -168,6 +175,7 @@ defineExpose({
           class="toolbar-btn"
           :disabled="disabled"
           :title="t('aiChat.historyConversations')"
+          :aria-label="t('aiChat.historyConversations')"
           @click="emit('openHistory')"
         >
           <el-icon :size="18">
@@ -181,6 +189,7 @@ defineExpose({
           class="toolbar-btn"
           :disabled="sending || disabled || isImageLimitReached || isRecording"
           :title="t('aiChat.uploadImage')"
+          :aria-label="t('aiChat.uploadImage')"
           @click="handleUploadClick"
         >
           <el-icon :size="18">
@@ -194,6 +203,8 @@ defineExpose({
           :class="{ 'is-recording': isRecording }"
           :disabled="sending || disabled"
           :title="t('aiChat.voiceInput')"
+          :aria-label="t('aiChat.voiceInput')"
+          :aria-pressed="isRecording"
           @click="toggleVoiceInput"
         >
           <el-icon :size="18">
@@ -215,6 +226,7 @@ defineExpose({
               class="toolbar-btn"
               :disabled="sending || disabled || isRecording"
               :title="t('aiChat.insertEmoji')"
+              :aria-label="t('aiChat.insertEmoji')"
             >
               <DIcon
                 icon="fluent-emoji:grinning-face"
@@ -231,6 +243,9 @@ defineExpose({
           :class="{ 'params-active': hasCustomParams }"
           :disabled="sending || disabled"
           :title="t('aiChat.runtimeParams')"
+          :aria-label="t('aiChat.runtimeParams')"
+          :aria-expanded="showParamsPanel"
+          aria-controls="ai-chat-runtime-params"
           @click="showParamsPanel = !showParamsPanel"
         >
           <el-icon :size="18">
@@ -242,6 +257,7 @@ defineExpose({
 
     <RuntimeParamsPanel
       v-if="showParamsPanel"
+      id="ai-chat-runtime-params"
       v-model:temperature="runtimeTemperature"
       v-model:max-tokens="runtimeMaxTokens"
       v-model:max-history="runtimeMaxHistory"
@@ -257,7 +273,12 @@ defineExpose({
 
     <!-- 文本输入区 -->
     <div class="input-body">
+      <label
+        class="sr-only"
+        for="ai-chat-input"
+      >{{ t('accessibility.inputLabel') }}</label>
       <textarea
+        id="ai-chat-input"
         ref="textareaRef"
         :value="inputText"
         :placeholder="disabled ? t('aiChat.selectAgentFirst') : t('aiChat.inputPlaceholder')"
@@ -265,6 +286,8 @@ defineExpose({
         :maxlength="MAX_CONTENT_LENGTH"
         rows="1"
         class="chat-textarea"
+        :aria-describedby="showCharCount ? 'ai-chat-hint ai-chat-count' : 'ai-chat-hint'"
+        aria-keyshortcuts="Enter"
         @input="handleInput"
         @keydown="handleKeydown"
         @paste="handlePaste"
@@ -275,7 +298,9 @@ defineExpose({
     <div class="input-footer">
       <span
         v-if="isRecording"
+        id="ai-chat-hint"
         class="recording-status"
+        role="status"
       >
         <el-icon
           class="recording-icon"
@@ -285,6 +310,7 @@ defineExpose({
       </span>
       <span
         v-else
+        id="ai-chat-hint"
         class="input-hint"
       >
         {{ isMobile ? t('aiChat.inputHintMobile') : t('aiChat.inputHint') }}
@@ -292,6 +318,7 @@ defineExpose({
       </span>
       <span
         v-if="showCharCount"
+        id="ai-chat-count"
         class="char-count"
         :class="{ 'near-limit': inputText.length >= MAX_CONTENT_LENGTH }"
       >
@@ -300,7 +327,9 @@ defineExpose({
       <!-- 停止按钮 -->
       <button
         v-if="isStreaming"
+        type="button"
         class="stop-button"
+        :aria-label="t('accessibility.stopGenerating')"
         @click="emit('stop')"
       >
         <div class="stop-icon" />
@@ -311,6 +340,7 @@ defineExpose({
         type="primary"
         size="small"
         :disabled="(!inputText.trim() && pendingAttachments.every((item) => item.status !== 'done')) || sending || disabled || isRecording"
+        :aria-busy="sending"
         @click="handleSend"
       >
         {{ t('aiChat.send') }}
@@ -323,6 +353,8 @@ defineExpose({
       type="file"
       accept="image/*"
       multiple
+      tabindex="-1"
+      aria-hidden="true"
       style="display:none"
       @change="handleFileChange"
     >

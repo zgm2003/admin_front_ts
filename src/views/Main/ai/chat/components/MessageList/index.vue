@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CopyDocument, Loading } from '@element-plus/icons-vue'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { AiRoleEnum } from '@/enums'
 import type { Message } from '../../composables/types'
+import { announcePolite } from '@/shared/accessibility/announcer'
 
 const { t } = useI18n()
 
-defineProps<{
+const props = defineProps<{
   messages: Message[]
   loading: boolean
   sending?: boolean
@@ -21,6 +22,32 @@ const emit = defineEmits<{
 const previewVisible = ref(false)
 const previewImages = ref<string[]>([])
 const previewIndex = ref(0)
+const announcedTerminalMessages = new Set<string>()
+let historyInitialized = false
+
+function messageAnnouncementKey(message: Message) {
+  return `${message.id}:${message.request_id}`
+}
+
+watch(() => [props.loading, props.messages] as const, ([loading, messages]) => {
+  if (loading) return
+  const completed = messages.filter((message) => (
+    message.role === AiRoleEnum.ASSISTANT
+    && !message.isStreaming
+    && message.content.trim().length > 0
+  ))
+  if (!historyInitialized) {
+    completed.forEach((message) => announcedTerminalMessages.add(messageAnnouncementKey(message)))
+    historyInitialized = true
+    return
+  }
+  for (const message of completed) {
+    const key = messageAnnouncementKey(message)
+    if (announcedTerminalMessages.has(key)) continue
+    announcedTerminalMessages.add(key)
+    announcePolite(t('accessibility.responseComplete'))
+  }
+}, { deep: true, flush: 'post', immediate: true })
 
 function getAttachments(message: Message) {
   return message.meta_json?.attachments ?? []
@@ -34,10 +61,18 @@ function handleImageClick(message: Message, index: number) {
 </script>
 
 <template>
-  <div class="message-list">
+  <div
+    class="message-list"
+    role="log"
+    aria-live="off"
+    aria-relevant="additions"
+    :aria-label="t('accessibility.chatMessages')"
+    :aria-busy="loading || sending"
+  >
     <div
       v-if="loading && messages.length === 0"
       class="state-tip"
+      role="status"
     >
       <el-icon
         class="is-loading"
@@ -67,7 +102,12 @@ function handleImageClick(message: Message, index: number) {
             fit="cover"
             lazy
             class="attachment-image"
+            role="button"
+            tabindex="0"
+            :aria-label="t('accessibility.openImage', { name: attachment.name })"
             @click="handleImageClick(message, index)"
+            @keydown.enter="handleImageClick(message, index)"
+            @keydown.space.prevent="handleImageClick(message, index)"
           >
             <template #placeholder>
               <div class="attachment-placeholder">
@@ -95,10 +135,12 @@ function handleImageClick(message: Message, index: number) {
           <div
             v-else-if="message.role === AiRoleEnum.ASSISTANT && message.isStreaming"
             class="typing-dots"
+            role="status"
+            :aria-label="t('accessibility.loading')"
           >
-            <span />
-            <span />
-            <span />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
           </div>
           <span
             v-else-if="message.role === AiRoleEnum.ASSISTANT"
@@ -112,6 +154,7 @@ function handleImageClick(message: Message, index: number) {
           <el-button
             text
             size="small"
+            :aria-label="t('aiChat.copyMessage')"
             @click="emit('copy', message)"
           >
             <el-icon :size="15">

@@ -5,6 +5,7 @@ import { ElNotification } from 'element-plus'
 import { useAppKernel } from '@/app/injection'
 import { normalizeNotificationLink } from '@/lib/navigation/notification-link'
 import { openExternalUrl } from '@/lib/browser/navigation'
+import { announcePolite } from '@/shared/accessibility/announcer'
 
 const router = useRouter()
 const kernel = useAppKernel()
@@ -28,6 +29,7 @@ let unsubscribe: (() => void) | null = null
 
 onMounted(() => {
   unsubscribe = kernel.realtime.subscribe('notification.created.v1', ({ data }) => {
+    announcePolite(`${data.title}: ${data.content}`)
     const notification = ElNotification({
       title: data.title,
       message: data.content,

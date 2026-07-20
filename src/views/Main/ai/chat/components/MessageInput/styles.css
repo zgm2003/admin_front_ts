@@ -23,10 +23,10 @@
 }
 
 .toolbar-btn {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  min-height: 32px;
+  min-height: 44px;
 }
 
 /* 语音按钮录音态 */
@@ -59,6 +59,12 @@
   max-height: 200px;
   padding: 6px 4px;
   font-family: inherit;
+}
+
+.chat-textarea:focus-visible {
+  border-radius: 6px;
+  outline: 3px solid var(--shell-focus-ring);
+  outline-offset: 2px;
 }
 
 .chat-textarea::placeholder {
@@ -102,8 +108,8 @@
 /* 停止按钮 */
 .stop-button {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 8px;
   background: var(--el-color-danger);
@@ -157,9 +163,9 @@
   }
 
   .toolbar-btn {
-    width: 28px;
-    height: 28px;
-    min-height: 28px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .input-body {

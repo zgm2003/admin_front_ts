@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed, nextTick, useAttrs, useId, watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import {
   DEFAULT_APP_DIALOG_MOBILE_WIDTH,
@@ -20,6 +20,8 @@ defineOptions({
 const props = withDefaults(defineProps<{
   modelValue: boolean
   title?: string
+  ariaLabel?: string
+  description?: string
   width?: AppDialogSize
   mobileWidth?: AppDialogSize
   height?: AppDialogSize
@@ -30,8 +32,11 @@ const props = withDefaults(defineProps<{
   top?: string
   showClose?: boolean
   alignCenter?: boolean
+  closeOnPressEscape?: boolean
 }>(), {
   title: '',
+  ariaLabel: '',
+  description: '',
   width: undefined,
   mobileWidth: DEFAULT_APP_DIALOG_MOBILE_WIDTH,
   height: undefined,
@@ -40,6 +45,7 @@ const props = withDefaults(defineProps<{
   destroyOnClose: true,
   draggable: undefined,
   showClose: true,
+  closeOnPressEscape: true,
   top: '5vh',
 })
 
@@ -49,6 +55,21 @@ const emit = defineEmits<{
 
 const attrs = useAttrs()
 const isMobile = useIsMobile()
+const descriptionId = `app-dialog-description-${useId()}`
+let returnFocusTarget: HTMLElement | null = null
+
+watch(() => props.modelValue, (visible, wasVisible) => {
+  if (visible && !wasVisible && document.activeElement instanceof HTMLElement) {
+    returnFocusTarget = document.activeElement
+  }
+})
+
+function restoreTriggerFocus() {
+  const target = returnFocusTarget
+  returnFocusTarget = null
+  if (!target) return
+  void nextTick(() => target.focus())
+}
 
 const dialogAttrs = computed(() => filterAppDialogAttrs(attrs))
 const resolvedWidth = computed(() => resolveAppDialogWidth({
@@ -86,14 +107,34 @@ const bodyStyle = computed(() => ({
     :top="top"
     :show-close="showClose"
     :align-center="resolvedAlignCenter"
+    :close-on-press-escape="closeOnPressEscape"
     class="app-dialog"
     @update:model-value="emit('update:modelValue', $event)"
+    @closed="restoreTriggerFocus"
   >
-    <template
-      v-if="$slots.header"
-      #header
+    <p
+      v-if="description"
+      :id="descriptionId"
+      class="sr-only"
     >
-      <slot name="header" />
+      {{ description }}
+    </p>
+    <template
+      v-if="$slots.header || (!title && ariaLabel)"
+      #header="{ titleId, titleClass }"
+    >
+      <div
+        v-if="$slots.header"
+        :id="titleId"
+        class="app-dialog__header-content"
+      >
+        <slot name="header" />
+      </div>
+      <span
+        v-else
+        :id="titleId"
+        :class="[titleClass, 'sr-only']"
+      >{{ ariaLabel }}</span>
     </template>
 
     <div
@@ -145,6 +186,11 @@ const bodyStyle = computed(() => ({
 
 .app-dialog__content {
   width: 100%;
+}
+
+.app-dialog__header-content {
+  width: 100%;
+  min-width: 0;
 }
 
 .app-dialog__scrollbar {

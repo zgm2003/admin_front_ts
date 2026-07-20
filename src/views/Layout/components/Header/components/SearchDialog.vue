@@ -1,6 +1,7 @@
 <template>
   <AppDialog
     v-model="show"
+    :aria-label="t('search.placeholder')"
     :width="dialogLayout.width"
     class="search-dialog"
     :show-close="false"
@@ -16,6 +17,7 @@
         v-if="isMobile"
         class="close-btn"
         circle
+        :aria-label="t('common.actions.close')"
         @click="show = false"
       >
         <el-icon>
@@ -26,10 +28,12 @@
         <img
           src="/logo.png"
           class="logo"
-          alt="logo"
+          alt=""
+          aria-hidden="true"
         >
         <el-input
           v-model="keyword"
+          :aria-label="t('search.placeholder')"
           :placeholder="t('search.placeholder')"
           clearable
           :prefix-icon="Search"

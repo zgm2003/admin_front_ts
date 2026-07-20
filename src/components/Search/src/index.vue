@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, useId, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { useResizeObserver } from '@vueuse/core'
@@ -155,25 +155,33 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
   return typeof width === 'string' ? width : `${width ?? fallback}px`
 }
+const searchFieldsId = `search-fields-${useId()}`
+const searchControlId = (key: string) => `search-${key}`
 </script>
 
 <template>
-  <div ref="wrapRef">
+  <div
+    :id="searchFieldsId"
+    ref="wrapRef"
+  >
     <el-form
       ref="formRef"
       :inline="isMobile ? false : props.inline"
       :model="form"
       :size="props.size"
+      :aria-label="t('accessibility.searchForm')"
       @submit.prevent="onQuery"
     >
       <el-form-item
         v-for="field in visibleFields"
         :key="field.key"
-        :label="isMobile ? undefined : field.label"
+        :label="field.label"
         :prop="field.key"
+        :for="searchControlId(field.key)"
       >
         <template v-if="field.type === 'input'">
           <el-input
+            :id="searchControlId(field.key)"
             :model-value="inputModelValue(field.key)"
             :placeholder="field.placeholder"
             :disabled="field.disabled"
@@ -186,6 +194,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="field.type === 'select-v2'">
           <el-select-v2
+            :id="searchControlId(field.key)"
             v-model="form[field.key]"
             :options="field.options"
             filterable
@@ -199,6 +208,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="field.type === 'cascader'">
           <el-cascader
+            :id="searchControlId(field.key)"
             v-model="form[field.key]"
             :options="field.options"
             :props="field.cascaderProps"
@@ -213,6 +223,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="field.type === 'date-range'">
           <el-date-picker
+            :id="searchControlId(field.key)"
             v-model="form[field.key]"
             type="daterange"
             :range-separator="t('common.to')"
@@ -228,6 +239,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="field.type === 'date'">
           <el-date-picker
+            :id="searchControlId(field.key)"
             v-model="form[field.key]"
             type="date"
             :placeholder="field.placeholder"
@@ -241,6 +253,7 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
 
         <template v-else-if="isRemoteSelectField(field)">
           <RemoteSelect
+            :id="searchControlId(field.key)"
             :model-value="remoteSelectModelValue(field.key)"
             :fetch-method="field.fetchMethod"
             :label-field="field.labelField"
@@ -276,6 +289,8 @@ const resolveWidth = (width: SearchField['width'], fallback: number) => {
         <el-button
           v-if="showToggle"
           text
+          :aria-expanded="!collapsed"
+          :aria-controls="searchFieldsId"
           @click="toggleCollapsed"
         >
           <el-icon style="margin-right: 4px">

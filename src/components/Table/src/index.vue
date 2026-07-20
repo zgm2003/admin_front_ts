@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="Row extends TableRow">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -15,6 +15,9 @@ import {
   type TablePaginationState,
   type TableRow,
 } from './types'
+import { announceAssertive, announcePolite } from '@/shared/accessibility/announcer'
+
+type TableResultState = 'idle' | 'loading' | 'refreshing' | 'success' | 'empty' | 'missing' | 'error'
 
 interface AppTableProps<Row extends TableRow> {
   columns?: TableColumn<Row>[]
@@ -31,6 +34,9 @@ interface AppTableProps<Row extends TableRow> {
   refreshLoading?: boolean
   showIndex?: boolean
   fixedFooter?: boolean
+  ariaLabel?: string
+  resultState?: TableResultState
+  statusMessage?: string
 }
 
 const props = withDefaults(defineProps<AppTableProps<Row>>(), {
@@ -48,6 +54,9 @@ const props = withDefaults(defineProps<AppTableProps<Row>>(), {
   refreshLoading: false,
   showIndex: false,
   fixedFooter: true,
+  ariaLabel: '',
+  resultState: undefined,
+  statusMessage: '',
 })
 const { t } = useI18n()
 const emit = defineEmits<{
@@ -91,12 +100,50 @@ const onSelectionChange = (selection: Row[]) => emit('selection-change', selecti
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
+const tableStatusId = `app-table-status-${useId()}`
+const accessibleLabel = computed(() => props.ariaLabel || t('accessibility.dataTable'))
+const isFailureState = computed(() => props.resultState === 'missing' || props.resultState === 'error')
+const isBusy = computed(() => props.loading
+  || props.resultState === 'loading'
+  || props.resultState === 'refreshing')
+const tableStatus = computed(() => {
+  if (isBusy.value) return t('accessibility.loading')
+  if (isFailureState.value) return props.statusMessage || t('accessibility.requestFailed')
+  if (props.resultState === 'idle') return ''
+  if (props.resultState === 'empty') return t('accessibility.noResults')
+  return props.data.length > 0
+    ? t('accessibility.results', { count: props.data.length })
+    : t('accessibility.noResults')
+})
+watch(() => [props.loading, props.data.length, props.resultState, props.statusMessage] as const, () => {
+  if (isBusy.value || !tableStatus.value) return
+  if (isFailureState.value) {
+    announceAssertive(tableStatus.value)
+    return
+  }
+  announcePolite(tableStatus.value)
+}, { flush: 'post' })
 </script>
 <template>
   <div
     class="table-wrapper"
     :class="{ 'fixed-footer': props.fixedFooter }"
+    role="region"
+    :aria-label="accessibleLabel"
+    :aria-busy="isBusy"
+    :aria-describedby="tableStatusId"
   >
+    <span
+      :id="tableStatusId"
+      class="sr-only table-status"
+    >{{ tableStatus }}</span>
+    <div
+      v-if="isFailureState"
+      class="table-error"
+      role="alert"
+    >
+      {{ tableStatus }}
+    </div>
     <div class="table-toolbar">
       <div class="toolbar-left">
         <ElSpace>
@@ -203,6 +250,15 @@ const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ..
   justify-content: space-between;
   min-width: 0;
   margin-bottom: 8px;
+}
+
+.table-error {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--el-color-danger-light-5);
+  border-radius: 8px;
+  color: var(--el-color-danger);
+  background: var(--el-color-danger-light-9);
 }
 
 .toolbar-left,

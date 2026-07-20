@@ -31,15 +31,17 @@ const {
       @select="handleSelectAgent"
     />
 
-    <main
+    <section
       v-show="!isMobile || selectedAgentId"
       class="main-area"
+      aria-labelledby="ai-chat-title"
     >
       <header class="main-header">
         <el-button
           v-if="isMobile"
           text
           class="back-btn"
+          :aria-label="t('accessibility.backToAgents')"
           @click="handleBackToAgentList"
         >
           <el-icon :size="20">
@@ -47,7 +49,12 @@ const {
           </el-icon>
         </el-button>
         <div class="header-content">
-          <span class="header-title">{{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}</span>
+          <h1
+            id="ai-chat-title"
+            class="header-title"
+          >
+            {{ currentConversation?.title || selectedAgent?.name || t('aiChat.welcome') }}
+          </h1>
           <span
             v-if="selectedAgent"
             class="header-agent"
@@ -58,11 +65,14 @@ const {
       <el-scrollbar
         :ref="setMessageScrollRef"
         class="message-area"
+        role="region"
+        :aria-label="t('accessibility.chatMessages')"
         @scroll="handleMessageScroll"
       >
         <div
           v-if="switchingAgent"
           class="welcome-area"
+          role="status"
         >
           <el-icon
             class="is-loading"
@@ -156,7 +166,7 @@ const {
         @stop="handleStopGeneration"
         @open-history="handleOpenDrawer"
       />
-    </main>
+    </section>
 
     <ConversationDrawer
       v-model:visible="showConversationDrawer"
@@ -184,6 +194,7 @@ const {
     >
       <el-input
         v-model="renameTitle"
+        :aria-label="t('aiChat.newTitle')"
         :placeholder="t('aiChat.newTitle')"
         maxlength="50"
         show-word-limit

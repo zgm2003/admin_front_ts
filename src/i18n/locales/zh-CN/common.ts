@@ -184,5 +184,27 @@ export default {
       downloadDone: '文件已交给浏览器下载',
       downloadFailed: '下载失败: {error}',
       editorWelcome: '<p>欢迎使用富文本编辑器</p>'
+    },
+  accessibility: {
+      skipToMain: '跳到主要内容',
+      mainNavigation: '主导航',
+      loginMethods: '登录方式',
+      dataTable: '数据表格',
+      searchForm: '搜索与筛选',
+      loading: '加载中',
+      requestFailed: '请求失败',
+      results: '共 {count} 条结果',
+      noResults: '暂无结果',
+      chatMessages: '会话消息',
+      chatComposer: '消息编辑器',
+      chatToolbar: '消息工具栏',
+      inputLabel: '消息内容',
+      stopGenerating: '停止生成',
+      backToAgents: '返回智能体列表',
+      showPassword: '显示密码',
+      hidePassword: '隐藏密码',
+      responseComplete: '助手回复完成',
+      openImage: '打开图片预览：{name}',
+      unread: '未读'
     }
 }

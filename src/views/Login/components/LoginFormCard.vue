@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, type Component, useTemplateRef, watchPostEffect } from 'vue'
+import { computed, nextTick, onBeforeUnmount, type Component, useTemplateRef, watchPostEffect } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { SendCode } from '@/components/SendCode'
@@ -65,6 +65,12 @@ const typeConfig = computed<Record<UserLoginType, { label: string; icon: Compone
 }))
 
 const activeTypeConfig = computed(() => typeConfig.value[props.activeType] ?? typeConfig.value.password)
+const accountAutocomplete = computed(() => props.activeType === 'password'
+  ? 'username'
+  : props.activeType === 'email' ? 'email' : 'tel')
+const accountInputMode = computed(() => props.activeType === 'phone'
+  ? 'tel'
+  : props.activeType === 'email' ? 'email' : 'text')
 const loginAccount = computed({
   get: () => props.loginForm.login_account,
   set: (value: string) => emit('update:loginAccount', value),
@@ -92,6 +98,25 @@ const isLoginCodeAccountInvalid = computed(() => {
   return true
 })
 
+async function handleMethodKeydown(event: KeyboardEvent, index: number) {
+  const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End']
+  if (!keys.includes(event.key)) return
+  event.preventDefault()
+  const lastIndex = props.loginTypes.length - 1
+  const nextIndex = event.key === 'Home'
+    ? 0
+    : event.key === 'End'
+      ? lastIndex
+      : event.key === 'ArrowRight'
+        ? (index + 1) % props.loginTypes.length
+        : (index - 1 + props.loginTypes.length) % props.loginTypes.length
+  const method = props.loginTypes[nextIndex]
+  if (!method) return
+  emit('tabChange', method.value)
+  await nextTick()
+  document.getElementById(`login-method-${method.value}`)?.focus()
+}
+
 watchPostEffect(() => {
   props.registerForm?.(elFormRef.value)
   props.registerSendCode?.(sendCodeRef.value ?? null)
@@ -114,13 +139,23 @@ onBeforeUnmount(() => {
       </p>
     </div>
 
-    <div class="method-tabs">
+    <div
+      class="method-tabs"
+      role="tablist"
+      :aria-label="t('accessibility.loginMethods')"
+    >
       <button
-        v-for="type in loginTypes"
+        v-for="(type, index) in loginTypes"
+        :id="`login-method-${type.value}`"
         :key="type.value"
         type="button"
+        role="tab"
+        :aria-selected="activeType === type.value"
+        :aria-controls="`login-panel-${type.value}`"
+        :tabindex="activeType === type.value ? 0 : -1"
         :class="['tab-btn', { active: activeType === type.value }]"
         @click="$emit('tabChange', type.value)"
+        @keydown="handleMethodKeydown($event, index)"
       >
         {{ type.label }}
       </button>
@@ -132,19 +167,29 @@ onBeforeUnmount(() => {
       :rules="rules"
       :validate-on-rule-change="false"
       class="login-form"
+      :aria-busy="isSubmitting"
       @submit.prevent="$emit('submit')"
     >
       <div class="form-content-area">
         <div class="method-container">
           <div
+            :id="`login-panel-${activeType}`"
             :key="activeType"
             class="method-content is-active"
+            role="tabpanel"
+            :aria-labelledby="`login-method-${activeType}`"
           >
             <div class="input-group">
-              <label class="input-label">{{ activeTypeConfig.label }}</label>
+              <label
+                class="input-label"
+                for="login-account"
+              >{{ activeTypeConfig.label }}</label>
               <el-form-item prop="login_account">
                 <el-input
+                  id="login-account"
                   v-model="loginAccount"
+                  :autocomplete="accountAutocomplete"
+                  :inputmode="accountInputMode"
                   :placeholder="activeTypeConfig.placeholder"
                   class="custom-input"
                 >
@@ -157,10 +202,15 @@ onBeforeUnmount(() => {
 
             <div class="input-group">
               <template v-if="activeType === 'password'">
-                <label class="input-label">{{ t('auth.login.password') }}</label>
+                <label
+                  class="input-label"
+                  for="login-password"
+                >{{ t('auth.login.password') }}</label>
                 <el-form-item prop="password">
                   <el-input
+                    id="login-password"
                     v-model="password"
+                    autocomplete="current-password"
                     :type="showPassword ? 'text' : 'password'"
                     :placeholder="t('auth.login.passwordPlaceholder')"
                     class="custom-input"
@@ -169,8 +219,11 @@ onBeforeUnmount(() => {
                       <el-icon><Lock /></el-icon>
                     </template>
                     <template #suffix>
-                      <div
+                      <button
+                        type="button"
                         class="password-toggle"
+                        :aria-label="showPassword ? t('accessibility.hidePassword') : t('accessibility.showPassword')"
+                        :aria-pressed="showPassword"
                         @click="$emit('togglePassword')"
                       >
                         <el-icon v-if="!showPassword">
@@ -179,17 +232,21 @@ onBeforeUnmount(() => {
                         <el-icon v-else>
                           <Hide />
                         </el-icon>
-                      </div>
+                      </button>
                     </template>
                   </el-input>
                 </el-form-item>
               </template>
               <template v-else>
-                <label class="input-label">{{ t('auth.register.code') }}</label>
+                <label
+                  class="input-label"
+                  for="login-code"
+                >{{ t('auth.register.code') }}</label>
                 <el-form-item prop="code">
                   <SendCode
                     ref="sendCode"
                     v-model="code"
+                    input-id="login-code"
                     class="login-send-code"
                     :account="loginAccount"
                     scene="login"
@@ -212,13 +269,16 @@ onBeforeUnmount(() => {
             :label="t('auth.login.remember')"
             :class="{ 'is-invisible': !isPasswordLogin }"
           />
-          <span
+          <button
+            type="button"
             class="forget-pwd"
             :class="{ 'is-invisible': !isPasswordLogin }"
+            :tabindex="isPasswordLogin ? 0 : -1"
+            :aria-hidden="!isPasswordLogin"
             @click="$emit('forgotPassword')"
           >
             {{ t('auth.login.toForget') }}
-          </span>
+          </button>
         </div>
 
         <div class="terms-checkbox">
@@ -227,16 +287,22 @@ onBeforeUnmount(() => {
             @update:model-value="emit('update:agreePolicy', Boolean($event))"
           >
             {{ t('loginPage.form.agreePrefix') }}
-            <span
-              class="term-btn"
-              @click.prevent.stop="$emit('openService')"
-            >{{ t('loginPage.form.serviceTerms') }}</span>
-            {{ t('loginPage.form.and') }}
-            <span
-              class="term-btn"
-              @click.prevent.stop="$emit('openPolicy')"
-            >{{ t('loginPage.form.privacyPolicy') }}</span>
           </el-checkbox>
+          <button
+            type="button"
+            class="term-btn"
+            @click="$emit('openService')"
+          >
+            {{ t('loginPage.form.serviceTerms') }}
+          </button>
+          <span>{{ t('loginPage.form.and') }}</span>
+          <button
+            type="button"
+            class="term-btn"
+            @click="$emit('openPolicy')"
+          >
+            {{ t('loginPage.form.privacyPolicy') }}
+          </button>
         </div>
       </div>
 
@@ -245,6 +311,7 @@ onBeforeUnmount(() => {
         type="primary"
         class="submit-btn"
         :loading="isSubmitting"
+        :aria-busy="isSubmitting"
       >
         {{ isSubmitting ? t('loginPage.form.loggingIn') : t('auth.login.submit') }}
       </el-button>

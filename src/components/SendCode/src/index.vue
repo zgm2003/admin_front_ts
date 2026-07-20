@@ -14,6 +14,8 @@ const props = withDefaults(defineProps<{
   scene: UserScene
   /** 输入框占位符 */
   placeholder?: string
+  /** 输入框 ID，用于外部 label 关联 */
+  inputId?: string
   /** 是否禁用发送按钮（额外条件） */
   sendDisabled?: boolean
   /** 外部发送流程是否进行中 */
@@ -26,6 +28,7 @@ const props = withDefaults(defineProps<{
   size?: 'large' | 'default' | 'small'
 }>(), {
   placeholder: '',
+  inputId: '',
   sendDisabled: false,
   sending: false,
   countdown: 60,
@@ -140,7 +143,9 @@ defineExpose({ reset, sendCode, completeSend })
     :class="{ 'is-mobile': useMobileLayout }"
   >
     <el-input 
+      :id="inputId || undefined"
       v-model="modelValue" 
+      autocomplete="one-time-code"
       :placeholder="placeholder || t('personal.security.codePlaceholder')" 
       :size="size"
       clearable

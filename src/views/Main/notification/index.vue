@@ -14,6 +14,7 @@ import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { DIcon } from '@/components/DIcon'
 import type { DictOption } from '@/types/common'
+import { announceAssertive, announcePolite } from '@/shared/accessibility/announcer'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -50,6 +51,7 @@ const workflow = createNotificationsWorkflow({
 })
 
 const {
+  state: listState,
   loading: listLoading,
   data: listData,
   page,
@@ -64,6 +66,11 @@ const {
   resource: workflow.list,
   page: workflow.page,
   searchForm,
+})
+
+const listStatusMessage = computed(() => {
+  const state = listState.value
+  return state.kind === 'error' || state.kind === 'missing' ? state.error.message : ''
 })
 
 const isUnread = (row: NotificationItem) => row.is_read === CommonEnum.NO
@@ -90,7 +97,9 @@ const getTypeColor = (type: number) => NotificationTypeColorMap[type] || 'info'
 const handleMarkRead = async (row: NotificationItem) => {
   if (!isUnread(row)) return
   await workflow.read.mutate({ id: row.id })
-  ElNotification.success({ message: t('common.success.operation') })
+  const message = t('common.success.operation')
+  ElNotification.success({ message })
+  announcePolite(message)
 }
 
 const handleBatchRead = async () => {
@@ -104,16 +113,22 @@ const handleBatchRead = async () => {
   try {
     await workflow.read.mutate({ id: [...selectedIds.value] })
     clearSelection()
-    ElNotification.success({ message: t('common.success.operation') })
+    const message = t('common.success.operation')
+    ElNotification.success({ message })
+    announcePolite(message)
   } catch (error) {
-    ElNotification.error({ message: error instanceof Error ? error.message : t('common.error.operation') })
+    const message = error instanceof Error ? error.message : t('common.error.operation')
+    ElNotification.error({ message })
+    announceAssertive(message)
   }
 }
 
 const confirmDel = async (row: NotificationItem) => {
   const result = await workflow.deleteOne.mutate({ id: row.id })
   if (result.kind === 'canceled') return
-  ElNotification.success({ message: t('common.success.operation') })
+  const message = t('common.success.operation')
+  ElNotification.success({ message })
+  announcePolite(message)
 }
 
 const batchDel = async () => {
@@ -124,7 +139,9 @@ const batchDel = async () => {
   const result = await workflow.deleteBatch.mutate({ ids: [...selectedIds.value] })
   if (result.kind === 'canceled') return
   clearSelection()
-  ElNotification.success({ message: t('common.success.operation') })
+  const message = t('common.success.operation')
+  ElNotification.success({ message })
+  announcePolite(message)
 }
 
 const handleDetail = (link?: string) => {
@@ -136,7 +153,9 @@ onMounted(() => {
   workflow.loadPageInit().then((data) => {
     dict.value = data.dict
   }).catch((error: unknown) => {
-    ElNotification.error({ message: error instanceof Error ? error.message : t('common.error.operation') })
+    const message = error instanceof Error ? error.message : t('common.error.operation')
+    ElNotification.error({ message })
+    announceAssertive(message)
   })
   void getList()
   void workflow.loadUnreadCount()
@@ -158,8 +177,11 @@ onUnmounted(() => workflow.dispose())
         :columns="columns"
         :data="listData"
         :loading="listLoading"
+        :result-state="listState.kind"
+        :status-message="listStatusMessage"
         row-key="id"
         :pagination="page"
+        :aria-label="t('notification.title')"
         selectable
         @refresh="refresh"
         @update:pagination="onPageChange"
@@ -192,7 +214,12 @@ onUnmounted(() => workflow.dispose())
             <span
               v-if="isUnread(row)"
               class="unread-dot"
+              aria-hidden="true"
             />
+            <span
+              v-if="isUnread(row)"
+              class="sr-only"
+            >{{ t('accessibility.unread') }}</span>
             <span>{{ row.title }}</span>
           </div>
         </template>

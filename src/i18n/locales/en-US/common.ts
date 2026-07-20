@@ -184,5 +184,27 @@ export default {
       downloadDone: 'File handed to the browser for download',
       downloadFailed: 'Download failed: {error}',
       editorWelcome: '<p>Welcome to the rich text editor</p>'
+    },
+  accessibility: {
+      skipToMain: 'Skip to main content',
+      mainNavigation: 'Main navigation',
+      loginMethods: 'Sign-in methods',
+      dataTable: 'Data table',
+      searchForm: 'Search and filters',
+      loading: 'Loading',
+      requestFailed: 'The request failed',
+      results: '{count} results',
+      noResults: 'No results',
+      chatMessages: 'Conversation messages',
+      chatComposer: 'Message composer',
+      chatToolbar: 'Message tools',
+      inputLabel: 'Message',
+      stopGenerating: 'Stop generating',
+      backToAgents: 'Back to agent list',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
+      responseComplete: 'Assistant response complete',
+      openImage: 'Open image preview: {name}',
+      unread: 'Unread'
     }
 }

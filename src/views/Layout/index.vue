@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { watch, computed } from 'vue'
+import { watch, computed, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { NotificationRuntime } from '@/components/NotificationRuntime'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -9,10 +10,13 @@ import TabTag from '@/views/Layout/components/TabTag/index.vue'
 import Footer from '@/views/Layout/components/Footer/index.vue'
 import { useMenuStore } from '@/store/menu'
 import { resolvePageLayout } from '@/views/Layout/utils/page-layout'
+import Announcer from '@/shared/accessibility/Announcer.vue'
+import SkipLink from '@/shared/accessibility/SkipLink.vue'
 
 const menuStore = useMenuStore()
 const isMobile = useIsMobile()
 const route = useRoute()
+const { t } = useI18n()
 
 const pageLayout = computed(() => resolvePageLayout(route.meta))
 const layoutViewClass = computed(() => ({
@@ -23,9 +27,16 @@ const layoutViewClass = computed(() => ({
 watch(isMobile, (val) => {
   if (val) menuStore.mobile()
 }, { immediate: true })
+
+watch(() => route.fullPath, async () => {
+  await nextTick()
+  document.getElementById('main-content')?.focus()
+})
 </script>
 
 <template>
+  <SkipLink />
+  <Announcer />
   <el-container class="layout-container">
     <NotificationRuntime />
 
@@ -37,7 +48,9 @@ watch(isMobile, (val) => {
       :with-header="false"
       class="mobile-drawer"
     >
-      <Aside />
+      <nav :aria-label="t('accessibility.mainNavigation')">
+        <Aside />
+      </nav>
     </el-drawer>
 
     <el-aside
@@ -46,7 +59,9 @@ watch(isMobile, (val) => {
       class="layout-aside"
       :class="{ 'layout-aside--collapse': menuStore.collapse }"
     >
-      <Aside />
+      <nav :aria-label="t('accessibility.mainNavigation')">
+        <Aside />
+      </nav>
     </el-aside>
 
     <el-container class="layout-main">
@@ -64,7 +79,11 @@ watch(isMobile, (val) => {
         class="layout-tabs"
       />
 
-      <el-main class="layout-content">
+      <el-main
+        id="main-content"
+        class="layout-content"
+        tabindex="-1"
+      >
         <router-view v-slot="{ Component }">
           <transition
             v-if="menuStore.pageTransition"
