@@ -94,6 +94,10 @@
       "action": "retain-guard"
     },
     {
+      "source": "tests/shared/deployment/admin-release.test.ts",
+      "action": "retain-guard"
+    },
+    {
       "source": "tests/shared/deployment/docker-container.test.ts",
       "action": "retain-guard"
     },
