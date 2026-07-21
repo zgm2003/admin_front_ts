@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
+// Generated from Admin Contract Bundle manifest SHA-256: ce118f200614f740b0da52c48b47d36de1178e92cad5c24ad0e86406eab02b43
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -405,78 +405,6 @@ export interface paths {
         head?: never;
         /** PATCH /api/admin/v1/ai-knowledge-documents/:id/status */
         patch: operations["patch_api_admin_v1_ai_knowledge_documents_id_status"];
-        trace?: never;
-    };
-    "/api/admin/v1/ai-prompts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-prompts */
-        get: operations["get_api_admin_v1_ai_prompts"];
-        put?: never;
-        /** POST /api/admin/v1/ai-prompts */
-        post: operations["post_api_admin_v1_ai_prompts"];
-        /** DELETE /api/admin/v1/ai-prompts */
-        delete: operations["delete_api_admin_v1_ai_prompts"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-prompts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-prompts/:id */
-        get: operations["get_api_admin_v1_ai_prompts_id"];
-        /** PUT /api/admin/v1/ai-prompts/:id */
-        put: operations["put_api_admin_v1_ai_prompts_id"];
-        post?: never;
-        /** DELETE /api/admin/v1/ai-prompts/:id */
-        delete: operations["delete_api_admin_v1_ai_prompts_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-prompts/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** PATCH /api/admin/v1/ai-prompts/:id/status */
-        patch: operations["patch_api_admin_v1_ai_prompts_id_status"];
-        trace?: never;
-    };
-    "/api/admin/v1/ai-prompts/page-init": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-prompts/page-init */
-        get: operations["get_api_admin_v1_ai_prompts_page_init"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/admin/v1/ai-providers": {
@@ -3137,7 +3065,7 @@ export interface components {
             model_display_name: string;
             model_id: string;
             /** @enum {string} */
-            platform: "admin" | "app" | "canvas";
+            platform: "admin";
             /** Format: int64 */
             prompt_tokens: number;
             /** Format: int64 */
@@ -3236,7 +3164,7 @@ export interface components {
             model_display_name: string;
             model_id: string;
             /** @enum {string} */
-            platform: "admin" | "app" | "canvas";
+            platform: "admin";
             /** Format: int64 */
             prompt_tokens: number;
             /** Format: int64 */
@@ -3435,21 +3363,6 @@ export interface components {
             msg: string;
         };
         delete_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        delete_api_admin_v1_ai_prompts_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        delete_api_admin_v1_ai_prompts_Request: {
-            ids: number[];
-        };
-        delete_api_admin_v1_ai_prompts_ResponseEnvelope: {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
@@ -3813,24 +3726,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_module_ai_knowledge_DocumentDetailResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_prompts_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_prompt_Item_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_prompts_page_init_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_prompt_PageInitResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_prompts_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_prompt_ListResponse_Output"];
             msg: string;
         };
         get_api_admin_v1_ai_providers_id_models_ResponseEnvelope: {
@@ -4456,33 +4351,6 @@ export interface components {
             rank_no: number;
             ref: string;
             score: number;
-        };
-        Go_internal_module_ai_prompt_Item_Output: {
-            category: string;
-            cover_url: string;
-            created_at: string;
-            id: number;
-            preview: string;
-            prompt: string;
-            slug: string;
-            source_url: string;
-            status: number;
-            tags_json: string;
-            title: string;
-            updated_at: string;
-        };
-        Go_internal_module_ai_prompt_ListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_ai_prompt_Item_Output"][];
-            page: components["schemas"]["Go_internal_module_ai_prompt_Page_Output"];
-        };
-        Go_internal_module_ai_prompt_Page_Output: {
-            current_page: number;
-            page_size: number;
-            total: number;
-            total_page: number;
-        };
-        Go_internal_module_ai_prompt_PageInitResponse_Output: {
-            common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
         };
         Go_internal_module_ai_provider_InitDict_Output: {
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
@@ -5595,16 +5463,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        patch_api_admin_v1_ai_prompts_id_status_Request: {
-            /** @enum {integer} */
-            status: 1 | 2;
-        };
-        patch_api_admin_v1_ai_prompts_id_status_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         patch_api_admin_v1_ai_providers_id_status_Request: {
             /** @enum {integer} */
             status: 1 | 2;
@@ -5802,24 +5660,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_ai_prompts_Request: {
-            category?: string;
-            cover_url?: string;
-            preview?: string;
-            prompt: string;
-            slug: string;
-            source_url?: string;
-            /** @enum {integer} */
-            status?: 0 | 1 | 2;
-            tags_json?: string;
-            title: string;
-        };
-        post_api_admin_v1_ai_prompts_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
             msg: string;
         };
         post_api_admin_v1_ai_providers_id_model_options_ResponseEnvelope: {
@@ -6029,7 +5869,7 @@ export interface components {
             level?: 1 | 2;
             link?: string;
             /** @enum {string} */
-            platform?: "all" | "admin" | "app";
+            platform?: "all" | "admin";
             send_at?: string;
             target_ids?: number[];
             /** @enum {integer} */
@@ -6115,7 +5955,7 @@ export interface components {
             parent_id?: number;
             path?: string;
             /** @enum {string} */
-            platform: "admin" | "app" | "canvas";
+            platform: "admin";
             /** @enum {integer} */
             show_menu?: 1 | 2;
             sort: number;
@@ -6301,24 +6141,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        put_api_admin_v1_ai_prompts_id_Request: {
-            category?: string;
-            cover_url?: string;
-            preview?: string;
-            prompt: string;
-            slug: string;
-            source_url?: string;
-            /** @enum {integer} */
-            status?: 0 | 1 | 2;
-            tags_json?: string;
-            title: string;
-        };
-        put_api_admin_v1_ai_prompts_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         put_api_admin_v1_ai_providers_id_models_Request: {
             model_display_names?: {
                 [key: string]: string;
@@ -6484,7 +6306,7 @@ export interface components {
             parent_id?: number;
             path?: string;
             /** @enum {string} */
-            platform: "admin" | "app" | "canvas";
+            platform: "admin";
             /** @enum {integer} */
             show_menu?: 1 | 2;
             sort: number;
@@ -8043,268 +7865,6 @@ export interface operations {
             };
         };
     };
-    get_api_admin_v1_ai_prompts: {
-        parameters: {
-            query?: {
-                category?: string;
-                current_page?: number;
-                keyword?: string;
-                page_size?: number;
-                status?: 1 | 2;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_prompts_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_ai_prompts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_ai_prompts_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_ai_prompts_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    delete_api_admin_v1_ai_prompts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["delete_api_admin_v1_ai_prompts_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_ai_prompts_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_prompts_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_prompts_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    put_api_admin_v1_ai_prompts_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["put_api_admin_v1_ai_prompts_id_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_ai_prompts_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    delete_api_admin_v1_ai_prompts_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_ai_prompts_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    patch_api_admin_v1_ai_prompts_id_status: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["patch_api_admin_v1_ai_prompts_id_status_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["patch_api_admin_v1_ai_prompts_id_status_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_prompts_page_init: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_prompts_page_init_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
     get_api_admin_v1_ai_providers: {
         parameters: {
             query?: {
@@ -8709,7 +8269,7 @@ export interface operations {
                 /** @description Number of rows per page. */
                 page_size?: number;
                 /** @description Origin platform filter. */
-                platform?: "admin" | "app" | "canvas";
+                platform?: "admin";
                 /** @description Provider ID filter. */
                 provider_id?: number;
                 /** @description Request ID search. */
@@ -8815,7 +8375,7 @@ export interface operations {
                 /** @description Inclusive creation-time lower bound. */
                 date_start?: string;
                 /** @description Origin platform filter. */
-                platform?: "admin" | "app" | "canvas";
+                platform?: "admin";
                 /** @description Provider ID filter. */
                 provider_id?: number;
                 /** @description User ID filter. */
@@ -8861,7 +8421,7 @@ export interface operations {
                 /** @description Number of rows per page. */
                 page_size?: number;
                 /** @description Origin platform filter. */
-                platform?: "admin" | "app" | "canvas";
+                platform?: "admin";
                 /** @description Provider ID filter. */
                 provider_id?: number;
                 /** @description User ID filter. */
@@ -8907,7 +8467,7 @@ export interface operations {
                 /** @description Number of rows per page. */
                 page_size?: number;
                 /** @description Origin platform filter. */
-                platform?: "admin" | "app" | "canvas";
+                platform?: "admin";
                 /** @description Provider ID filter. */
                 provider_id?: number;
                 /** @description User ID filter. */
@@ -8953,7 +8513,7 @@ export interface operations {
                 /** @description Number of rows per page. */
                 page_size?: number;
                 /** @description Origin platform filter. */
-                platform?: "admin" | "app" | "canvas";
+                platform?: "admin";
                 /** @description Provider ID filter. */
                 provider_id?: number;
                 /** @description User ID filter. */
@@ -11724,7 +11284,7 @@ export interface operations {
             query: {
                 name?: string;
                 path?: string;
-                platform: "admin" | "app" | "canvas";
+                platform: "admin";
                 type?: 1 | 2 | 3;
             };
             header?: never;

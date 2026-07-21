@@ -5,14 +5,16 @@ import { describe, expect, test } from 'vitest'
 const root = process.cwd()
 
 const retiredPaths = [
+  'src/views/Main/ai/prompts',
   'src/views/Main/ai/image-playground',
   'src/views/Main/ai/assets',
+  'src/api/ai/prompts.ts',
   'src/api/ai/images.ts',
   'src/api/ai/assets.ts'
 ]
 
 describe('admin AI interactive surfaces are retired', () => {
-  test('does not ship image workspace or asset management files', () => {
+  test('does not ship Prompt, image workspace, or asset management files', () => {
     for (const path of retiredPaths) {
       expect(existsSync(join(root, path))).toBe(false)
     }

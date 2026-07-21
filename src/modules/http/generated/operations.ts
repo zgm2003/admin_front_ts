@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d0a7649f4fe22ac5a095a108e7c8969fa1a626dea50fdf82f1fa19dfc0b8b1fa
+// Generated from Admin Contract Bundle manifest SHA-256: ce118f200614f740b0da52c48b47d36de1178e92cad5c24ad0e86406eab02b43
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -394,9 +394,7 @@ const contractSchemas = {
       },
       "platform": {
         "enum": [
-          "admin",
-          "app",
-          "canvas"
+          "admin"
         ],
         "type": "string"
       },
@@ -789,9 +787,7 @@ const contractSchemas = {
       },
       "platform": {
         "enum": [
-          "admin",
-          "app",
-          "canvas"
+          "admin"
         ],
         "type": "string"
       },
@@ -2612,120 +2608,6 @@ const contractSchemas = {
       "rank_no",
       "ref",
       "score"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_prompt_Item_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "category": {
-        "type": "string"
-      },
-      "cover_url": {
-        "type": "string"
-      },
-      "created_at": {
-        "type": "string"
-      },
-      "id": {
-        "type": "integer"
-      },
-      "preview": {
-        "type": "string"
-      },
-      "prompt": {
-        "type": "string"
-      },
-      "slug": {
-        "type": "string"
-      },
-      "source_url": {
-        "type": "string"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "tags_json": {
-        "type": "string"
-      },
-      "title": {
-        "type": "string"
-      },
-      "updated_at": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "category",
-      "cover_url",
-      "created_at",
-      "id",
-      "preview",
-      "prompt",
-      "slug",
-      "source_url",
-      "status",
-      "tags_json",
-      "title",
-      "updated_at"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_prompt_ListResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_prompt_Item_Output"
-        },
-        "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_prompt_Page_Output"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_prompt_PageInitResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "common_status_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
-        },
-        "type": "array"
-      }
-    },
-    "required": [
-      "common_status_arr"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_prompt_Page_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "current_page": {
-        "type": "integer"
-      },
-      "page_size": {
-        "type": "integer"
-      },
-      "total": {
-        "type": "integer"
-      },
-      "total_page": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "current_page",
-      "page_size",
-      "total",
-      "total_page"
     ],
     "type": "object"
   },
@@ -7632,12 +7514,6 @@ const responseDataSchemas = {
   "delete_api_admin_v1_ai_knowledge_documents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "delete_api_admin_v1_ai_prompts": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "delete_api_admin_v1_ai_prompts_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "delete_api_admin_v1_ai_providers_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -7805,15 +7681,6 @@ const responseDataSchemas = {
   },
   "get_api_admin_v1_ai_knowledge_documents_id_chunks": {
     "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_ChunkListResponse_Output"
-  },
-  "get_api_admin_v1_ai_prompts": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_prompt_ListResponse_Output"
-  },
-  "get_api_admin_v1_ai_prompts_id": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_prompt_Item_Output"
-  },
-  "get_api_admin_v1_ai_prompts_page_init": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_prompt_PageInitResponse_Output"
   },
   "get_api_admin_v1_ai_providers": {
     "$ref": "#/components/schemas/Go_internal_module_ai_provider_ListResponse_Output"
@@ -8064,9 +7931,6 @@ const responseDataSchemas = {
   "patch_api_admin_v1_ai_knowledge_documents_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "patch_api_admin_v1_ai_prompts_id_status": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "patch_api_admin_v1_ai_providers_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -8155,9 +8019,6 @@ const responseDataSchemas = {
   },
   "post_api_admin_v1_ai_knowledge_documents_id_reindex": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "post_api_admin_v1_ai_prompts": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
   },
   "post_api_admin_v1_ai_providers": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
@@ -8304,9 +8165,6 @@ const responseDataSchemas = {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "put_api_admin_v1_ai_knowledge_documents_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "put_api_admin_v1_ai_prompts_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "put_api_admin_v1_ai_providers_id": {
@@ -8468,28 +8326,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_documents_id">>(responseDataSchemas["delete_api_admin_v1_ai_knowledge_documents_id"]),
     telemetryName: "admin.delete.api.admin.v1.ai.knowledge.documents.id",
-    encode: (input) => input,
-  }),
-  "delete_api_admin_v1_ai_prompts": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_prompts">, AdminOperationOutput<"delete_api_admin_v1_ai_prompts">>({
-    id: "delete_api_admin_v1_ai_prompts",
-    method: "DELETE",
-    path: "/api/admin/v1/ai-prompts",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_prompts">>(responseDataSchemas["delete_api_admin_v1_ai_prompts"]),
-    telemetryName: "admin.delete.api.admin.v1.ai.prompts",
-    encode: (input) => input,
-  }),
-  "delete_api_admin_v1_ai_prompts_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_prompts_id">, AdminOperationOutput<"delete_api_admin_v1_ai_prompts_id">>({
-    id: "delete_api_admin_v1_ai_prompts_id",
-    method: "DELETE",
-    path: "/api/admin/v1/ai-prompts/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_prompts_id">>(responseDataSchemas["delete_api_admin_v1_ai_prompts_id"]),
-    telemetryName: "admin.delete.api.admin.v1.ai.prompts.id",
     encode: (input) => input,
   }),
   "delete_api_admin_v1_ai_providers_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_providers_id">, AdminOperationOutput<"delete_api_admin_v1_ai_providers_id">>({
@@ -9059,38 +8895,6 @@ export const adminOperations = {
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_documents_id_chunks">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_documents_id_chunks"]),
     telemetryName: "admin.get.api.admin.v1.ai.knowledge.documents.id.chunks",
     encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_prompts": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_prompts">, AdminOperationOutput<"get_api_admin_v1_ai_prompts">>({
-    id: "get_api_admin_v1_ai_prompts",
-    method: "GET",
-    path: "/api/admin/v1/ai-prompts",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_prompts">>(responseDataSchemas["get_api_admin_v1_ai_prompts"]),
-    telemetryName: "admin.get.api.admin.v1.ai.prompts",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_prompts_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_prompts_id">, AdminOperationOutput<"get_api_admin_v1_ai_prompts_id">>({
-    id: "get_api_admin_v1_ai_prompts_id",
-    method: "GET",
-    path: "/api/admin/v1/ai-prompts/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_prompts_id">>(responseDataSchemas["get_api_admin_v1_ai_prompts_id"]),
-    telemetryName: "admin.get.api.admin.v1.ai.prompts.id",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_prompts_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_prompts_page_init">, AdminOperationOutput<"get_api_admin_v1_ai_prompts_page_init">>({
-    id: "get_api_admin_v1_ai_prompts_page_init",
-    method: "GET",
-    path: "/api/admin/v1/ai-prompts/page-init",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_prompts_page_init">>(responseDataSchemas["get_api_admin_v1_ai_prompts_page_init"]),
-    telemetryName: "admin.get.api.admin.v1.ai.prompts.page.init",
   }),
   "get_api_admin_v1_ai_providers": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_providers">, AdminOperationOutput<"get_api_admin_v1_ai_providers">>({
     id: "get_api_admin_v1_ai_providers",
@@ -9914,17 +9718,6 @@ export const adminOperations = {
     telemetryName: "admin.patch.api.admin.v1.ai.knowledge.documents.id.status",
     encode: (input) => input,
   }),
-  "patch_api_admin_v1_ai_prompts_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_ai_prompts_id_status">, AdminOperationOutput<"patch_api_admin_v1_ai_prompts_id_status">>({
-    id: "patch_api_admin_v1_ai_prompts_id_status",
-    method: "PATCH",
-    path: "/api/admin/v1/ai-prompts/{id}/status",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_ai_prompts_id_status">>(responseDataSchemas["patch_api_admin_v1_ai_prompts_id_status"]),
-    telemetryName: "admin.patch.api.admin.v1.ai.prompts.id.status",
-    encode: (input) => input,
-  }),
   "patch_api_admin_v1_ai_providers_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_ai_providers_id_status">, AdminOperationOutput<"patch_api_admin_v1_ai_providers_id_status">>({
     id: "patch_api_admin_v1_ai_providers_id_status",
     method: "PATCH",
@@ -10220,17 +10013,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_knowledge_documents_id_reindex">>(responseDataSchemas["post_api_admin_v1_ai_knowledge_documents_id_reindex"]),
     telemetryName: "admin.post.api.admin.v1.ai.knowledge.documents.id.reindex",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_ai_prompts": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_prompts">, AdminOperationOutput<"post_api_admin_v1_ai_prompts">>({
-    id: "post_api_admin_v1_ai_prompts",
-    method: "POST",
-    path: "/api/admin/v1/ai-prompts",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_prompts">>(responseDataSchemas["post_api_admin_v1_ai_prompts"]),
-    telemetryName: "admin.post.api.admin.v1.ai.prompts",
     encode: (input) => input,
   }),
   "post_api_admin_v1_ai_providers": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_providers">, AdminOperationOutput<"post_api_admin_v1_ai_providers">>({
@@ -10672,17 +10454,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_knowledge_documents_id">>(responseDataSchemas["put_api_admin_v1_ai_knowledge_documents_id"]),
     telemetryName: "admin.put.api.admin.v1.ai.knowledge.documents.id",
-    encode: (input) => input,
-  }),
-  "put_api_admin_v1_ai_prompts_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_prompts_id">, AdminOperationOutput<"put_api_admin_v1_ai_prompts_id">>({
-    id: "put_api_admin_v1_ai_prompts_id",
-    method: "PUT",
-    path: "/api/admin/v1/ai-prompts/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_prompts_id">>(responseDataSchemas["put_api_admin_v1_ai_prompts_id"]),
-    telemetryName: "admin.put.api.admin.v1.ai.prompts.id",
     encode: (input) => input,
   }),
   "put_api_admin_v1_ai_providers_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_providers_id">, AdminOperationOutput<"put_api_admin_v1_ai_providers_id">>({
