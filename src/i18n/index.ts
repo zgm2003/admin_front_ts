@@ -69,6 +69,7 @@ export function localeDomainForPath(path: string): FeatureLocaleDomain | null {
   if (hasPathPrefix(path, '/payment')) return 'payment'
   if (hasPathPrefix(path, '/permission')) return 'permission'
   if (hasPathPrefix(path, '/system') || hasPathPrefix(path, '/notification')) return 'system'
+  if (hasPathPrefix(path, '/profile/wallet')) return 'payment'
   if (hasPathPrefix(path, '/user')
     || hasPathPrefix(path, '/personal')
     || hasPathPrefix(path, '/profile')) return 'user'

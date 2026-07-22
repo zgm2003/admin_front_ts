@@ -13,9 +13,21 @@ describe('lazy locale domains', () => {
     expect(localeModule.localeDomainForPath('/system/mail')).toBe('system')
     expect(localeModule.localeDomainForPath('/user/userManager')).toBe('user')
     expect(localeModule.localeDomainForPath('/personal')).toBe('user')
-    expect(localeModule.localeDomainForPath('/profile/wallet')).toBe('user')
+    expect(localeModule.localeDomainForPath('/profile/wallet')).toBe('payment')
+    expect(localeModule.localeDomainForPath('/profile/wallet/ledger')).toBe('payment')
+    expect(localeModule.localeDomainForPath('/profile/security')).toBe('user')
+    expect(localeModule.localeDomainForPath('/profile/wallets')).toBe('user')
     expect(localeModule.localeDomainForPath('/notification')).toBe('system')
     expect(localeModule.localeDomainForPath('/home')).toBeNull()
+  })
+
+  it('loads payment messages for the profile wallet route', async () => {
+    const localeModule = await import('@/i18n')
+
+    await localeModule.ensureLocaleForRoute('zh-CN', '/profile/wallet')
+
+    expect(localeModule.default.global.t('wallet.summary')).toBe('钱包概览')
+    expect(localeModule.default.global.t('wallet.balance')).toBe('当前余额')
   })
 
   it('loads a feature domain once before activating its route', async () => {
