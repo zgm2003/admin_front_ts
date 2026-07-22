@@ -45,32 +45,6 @@
   }
 }
 
-@mixin send-code-control(
-  $height: 46px,
-  $radius: 16px,
-  $padding-y: 10px,
-  $padding-x: 14px,
-  $input-font-size: null,
-  $button-font-size: null,
-  $button-padding: null
-) {
-  @include input-control($height, $radius, $padding-y, $padding-x, $input-font-size);
-
-  :deep(.el-button) {
-    height: $height !important;
-    border-radius: $radius !important;
-    font-weight: 600;
-
-    @if $button-font-size != null {
-      font-size: $button-font-size;
-    }
-
-    @if $button-padding != null {
-      padding: $button-padding;
-    }
-  }
-}
-
 @mixin primary-submit-button(
   $height: 52px,
   $radius: 16px,
@@ -294,16 +268,107 @@
 }
 
 .login-form-card.is-mobile .custom-input {
-  @include input-control(42px, 12px, 8px, 12px, 16px);
+  @include input-control(44px, 12px, 8px, 12px, 16px);
 }
 
-.login-send-code {
+:global(.login-send-code) {
+  display: flex;
+  flex-direction: row !important;
+  gap: 0 !important;
   width: 100%;
-  @include send-code-control();
+  height: 46px !important;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.login-form-card.is-mobile .login-send-code {
-  @include send-code-control(42px, 12px, 8px, 12px, 16px, 13px, 0 12px);
+:global(.login-send-code:focus-within) {
+  border-color: var(--el-color-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.1);
+}
+
+:global(.login-send-code .el-input) {
+  flex: 1;
+  min-width: 0;
+  height: 100% !important;
+}
+
+:global(.login-send-code .el-input__wrapper) {
+  height: 100% !important;
+  box-sizing: border-box;
+  padding: 10px 14px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:global(.login-send-code .el-input__wrapper.is-focus) {
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+:global(.login-send-code .el-input__inner) {
+  height: 24px;
+}
+
+:global(.login-send-code .el-input__inner:-webkit-autofill),
+:global(.login-send-code .el-input__inner:-webkit-autofill:hover),
+:global(.login-send-code .el-input__inner:-webkit-autofill:focus) {
+  -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
+  -webkit-text-fill-color: var(--el-text-color-primary) !important;
+  caret-color: var(--el-text-color-primary);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:global(.login-send-code .el-button) {
+  flex: 0 0 auto;
+  min-width: 112px;
+  min-height: 44px;
+  height: 100% !important;
+  border: 0 !important;
+  border-left: 1px solid #dbeafe !important;
+  border-radius: 0 !important;
+  background: #eff6ff !important;
+  color: var(--el-color-primary) !important;
+  font-weight: 600;
+  box-shadow: none !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+:global(.login-send-code .el-button:hover:not(.is-disabled)) {
+  background: #dbeafe !important;
+  color: var(--el-color-primary-dark-2) !important;
+}
+
+:global(.login-send-code .el-button.is-disabled) {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+}
+
+:global(.login-form-card.is-mobile .login-send-code) {
+  height: 44px !important;
+  border-radius: 12px;
+}
+
+:global(.login-form-card.is-mobile .login-send-code .el-input__wrapper) {
+  padding: 8px 12px !important;
+}
+
+:global(.login-form-card.is-mobile .login-send-code .el-input__inner) {
+  font-size: 16px;
+}
+
+:global(.login-form-card.is-mobile .login-send-code .el-button) {
+  width: auto !important;
+  min-width: 96px;
+  padding: 0 12px;
+  font-size: 13px;
 }
 
 .login-form {

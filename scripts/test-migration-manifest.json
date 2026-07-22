@@ -18,6 +18,14 @@
       "action": "retain-guard"
     },
     {
+      "source": "tests/shared/ui/action-column-layout.test.ts",
+      "action": "retain-guard"
+    },
+    {
+      "source": "tests/shared/ui/login-code-control-layout.test.ts",
+      "action": "retain-guard"
+    },
+    {
       "source": "tests/shared/ai/ai-agent-api.test.ts",
       "action": "delete"
     },
