@@ -1,5 +1,6 @@
 import { shallowRef } from 'vue'
 import { UsersApi } from '@/api/user/users'
+import { isCaptchaChallengeError } from '@/modules/auth/captcha-error'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
 import type { UserScene, UserSendCodeContext } from '@/types/user'
 
@@ -44,15 +45,18 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
     clearChallenge()
   }
 
-  const refreshCaptcha = async () => {
+  const refreshCaptcha = async (): Promise<boolean> => {
     clearChallenge()
     captchaLoading.value = true
     try {
       const challenge = await UsersApi.getCaptcha()
       captchaChallenge.value = challenge
       captchaX.value = challenge.tile_x
+      return true
     } catch (error: unknown) {
       options.onError?.(error, 'captcha')
+      resetCaptcha()
+      return false
     } finally {
       captchaLoading.value = false
     }
@@ -84,7 +88,11 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
       })
     } catch (error: unknown) {
       options.onError?.(error, 'send')
-      await refreshCaptcha()
+      if (isCaptchaChallengeError(error)) {
+        await refreshCaptcha()
+      } else {
+        resetCaptcha()
+      }
       return
     } finally {
       sending.value = false
