@@ -49,7 +49,7 @@ function effectivePort(url: URL): string {
 function normalizeDevelopmentLoopback(url: URL, location: Location): URL {
   if (!isLoopback(url.hostname)) return url
   const locationUrl = new URL(location.href)
-  if (!locationUrl.hostname || isLoopback(locationUrl.hostname)) return url
+  if (!locationUrl.hostname) return url
   const normalized = new URL(url.href)
   normalized.hostname = locationUrl.hostname
   return normalized

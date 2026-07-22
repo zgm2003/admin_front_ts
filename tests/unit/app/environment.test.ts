@@ -48,6 +48,15 @@ describe('parseEnvironment', () => {
     expect(parsed.realtimeOrigin.hostname).toBe('admin.internal.test')
   })
 
+  it('normalizes localhost endpoints to a 127.0.0.1 browser host', () => {
+    const parsed = parseEnvironment(environment(), {
+      href: 'http://127.0.0.1:5173/home',
+    } as Location)
+
+    expect(parsed.apiOrigin.hostname).toBe('127.0.0.1')
+    expect(parsed.realtimeOrigin.hostname).toBe('127.0.0.1')
+  })
+
   it.each([
     [{ MODE: undefined }, /MODE is required/],
     [{ VITE_PLATFORM: '   ' }, /VITE_PLATFORM is required/],
