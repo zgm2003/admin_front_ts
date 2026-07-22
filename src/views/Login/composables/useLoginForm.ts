@@ -7,8 +7,10 @@ import {
   readDevicePreferences,
   writeDevicePreferences,
 } from '@/modules/persistence/preferences'
+import { isCaptchaChallengeError } from '@/modules/auth/captcha-error'
+import { useLoginCaptchaLifecycle } from './useLoginCaptchaLifecycle'
 import i18n from '@/i18n'
-import type { SlideCaptchaAnswer, SlideCaptchaChallenge } from '@/types/captcha'
+import type { SlideCaptchaAnswer } from '@/types/captcha'
 import type {
   LoginConfigResponse,
   UserLoginParams,
@@ -27,11 +29,22 @@ export function useLoginForm() {
   const formRef = ref<FormInstance>()
   const sendCodeRef = ref<SendCodeRef | null>(null)
   const loginTypes = ref<LoginTypeItem[]>([])
-  const captchaChallenge = shallowRef<SlideCaptchaChallenge | null>(null)
-  const captchaX = shallowRef(0)
   const captchaEnabled = shallowRef(false)
-  const captchaLoading = shallowRef(false)
-  const captchaDialogVisible = shallowRef(false)
+  const {
+    captchaChallenge,
+    captchaX,
+    captchaLoading,
+    captchaDialogVisible,
+    openCaptchaDialog,
+    refreshCaptcha,
+    resetCaptchaDialog,
+    captureGeneration: captureCaptchaFlow,
+    isCurrentGeneration: isCurrentCaptchaFlow,
+  } = useLoginCaptchaLifecycle({
+    enabled: captchaEnabled,
+    loadChallenge: () => UsersApi.getCaptcha(),
+    onLoadError: () => ElMessage.error(t('login.validation.captchaLoadFailed')),
+  })
 
   const loginForm = reactive({
     login_account: '',
@@ -139,20 +152,6 @@ export function useLoginForm() {
     setTimeout(() => (isShaking.value = false), 500)
   }
 
-  const refreshCaptcha = async () => {
-    if (!captchaEnabled.value) return
-    captchaChallenge.value = null
-    captchaX.value = 0
-    captchaLoading.value = true
-    try {
-      const challenge = await UsersApi.getCaptcha()
-      captchaChallenge.value = challenge
-      captchaX.value = challenge.tile_x
-    } finally {
-      captchaLoading.value = false
-    }
-  }
-
   const buildCaptchaAnswer = (): { captcha_id: string; captcha_answer: SlideCaptchaAnswer } | null => {
     const challenge = captchaChallenge.value
     if (!challenge || !hasCompletedCaptcha.value) {
@@ -181,16 +180,6 @@ export function useLoginForm() {
       ElMessage.error(message)
     } finally {
       isSubmitting.value = false
-    }
-  }
-
-  const openCaptchaDialog = async () => {
-    captchaDialogVisible.value = true
-    try {
-      await refreshCaptcha()
-    } catch (error) {
-      console.error('captcha load failed:', error)
-      ElMessage.error(t('login.validation.captchaLoadFailed'))
     }
   }
 
@@ -245,6 +234,7 @@ export function useLoginForm() {
   }
 
   const requestLoginCode = async () => {
+    if (isSendingCode.value) return
     const currentLoginType = loginType.value
     if (currentLoginType !== 'email' && currentLoginType !== 'phone') {
       return
@@ -273,12 +263,14 @@ export function useLoginForm() {
   }
 
   const completeCaptchaSendCode = async () => {
+    if (isSendingCode.value) return
     const captchaPayload = buildCaptchaAnswer()
     const currentLoginType = loginType.value
     if (!captchaPayload || (currentLoginType !== 'email' && currentLoginType !== 'phone')) {
       return
     }
 
+    const sendGeneration = captureCaptchaFlow()
     isSendingCode.value = true
     try {
       await UsersApi.sendCode({
@@ -288,18 +280,30 @@ export function useLoginForm() {
         captcha_id: captchaPayload.captcha_id,
         captcha_answer: captchaPayload.captcha_answer,
       })
-      sendCodeRef.value?.completeSend?.()
-      captchaDialogVisible.value = false
-      captchaChallenge.value = null
-      captchaX.value = 0
     } catch (error) {
+      if (!isCurrentCaptchaFlow(sendGeneration)) return
       const message = error instanceof Error && error.message.trim()
         ? error.message
         : t('common.fail.operation')
-      ElMessage.error(message)
-      await refreshCaptcha()
+      try {
+        ElMessage.error(message)
+      } finally {
+        if (isCaptchaChallengeError(error)) {
+          await refreshCaptcha()
+        } else {
+          resetCaptchaDialog()
+        }
+      }
+      return
     } finally {
       isSendingCode.value = false
+    }
+
+    if (!isCurrentCaptchaFlow(sendGeneration)) return
+    try {
+      sendCodeRef.value?.completeSend?.()
+    } finally {
+      resetCaptchaDialog()
     }
   }
 
@@ -332,7 +336,7 @@ export function useLoginForm() {
   }
 
   const handleTabChange = (method: UserLoginType) => {
-    captchaDialogVisible.value = false
+    resetCaptchaDialog()
     activeAccountType.value = method
     resetLoginForm()
   }
