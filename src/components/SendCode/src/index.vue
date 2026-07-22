@@ -7,6 +7,8 @@ import { AppCaptchaOverlay } from '@/components/AppCaptcha'
 import type { UserScene } from '@/types/user'
 import { isSendCodeAccountValid, useCaptchaSendCode } from './useCaptchaSendCode'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(defineProps<{
   /** 发送目标账号（邮箱/手机号） */
   account: string
@@ -133,12 +135,31 @@ onUnmounted(() => {
 // 是否使用移动端布局
 const useMobileLayout = computed(() => props.mobile || isMobile.value)
 
+const textKeys = computed(() => {
+  if (props.scene === 'login' || props.scene === 'forget') {
+    return {
+      placeholder: props.scene === 'login'
+        ? 'auth.login.codePlaceholder'
+        : 'auth.forget.codePlaceholder',
+      getCode: 'auth.register.sendCode',
+      retryAfter: 'auth.register.resend',
+    }
+  }
+
+  return {
+    placeholder: 'personal.security.codePlaceholder',
+    getCode: 'personal.security.getCode',
+    retryAfter: 'personal.security.retryAfter',
+  }
+})
+
 // 暴露方法
 defineExpose({ reset, sendCode, completeSend })
 </script>
 
 <template>
   <div
+    v-bind="$attrs"
     class="send-code-wrapper"
     :class="{ 'is-mobile': useMobileLayout }"
   >
@@ -146,7 +167,7 @@ defineExpose({ reset, sendCode, completeSend })
       :id="inputId || undefined"
       v-model="modelValue" 
       autocomplete="one-time-code"
-      :placeholder="placeholder || t('personal.security.codePlaceholder')" 
+      :placeholder="placeholder || t(textKeys.placeholder)"
       :size="size"
       clearable
     />
@@ -158,7 +179,7 @@ defineExpose({ reset, sendCode, completeSend })
       :style="{ width: useMobileLayout ? '100%' : 'auto' }"
       @click="sendCode"
     >
-      {{ timer > 0 ? t('personal.security.retryAfter', { timer }) : t('personal.security.getCode') }}
+      {{ timer > 0 ? t(textKeys.retryAfter, { timer }) : t(textKeys.getCode) }}
     </el-button>
   </div>
   <Teleport to="body">
