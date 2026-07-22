@@ -37,7 +37,6 @@ export function useLoginForm() {
     login_account: '',
     password: '',
     code: '',
-    remember: true,
   })
 
   const activeAccountType = ref<UserLoginType>('password')
@@ -172,7 +171,7 @@ export function useLoginForm() {
     isSubmitting.value = true
     try {
       await kernel.login(params)
-      rememberPwd()
+      rememberLoginAccount()
       isLoginSuccess.value = true
       ElNotification.success(t('login.validation.loginSuccess'))
     } catch (error) {
@@ -308,21 +307,15 @@ export function useLoginForm() {
     await completeCaptchaSendCode()
   }
 
-  const rememberPwd = () => {
+  const rememberLoginAccount = () => {
     const current = readDevicePreferences(kernel.persistence)
-    if (loginForm.remember) {
-      writeDevicePreferences(kernel.persistence, {
-        ...current,
-        rememberedLogin: {
-          account: loginForm.login_account.trim(),
-          type: activeAccountType.value,
-        },
-      })
-    } else {
-      const withoutRememberedLogin = { ...current }
-      delete withoutRememberedLogin.rememberedLogin
-      writeDevicePreferences(kernel.persistence, withoutRememberedLogin)
-    }
+    writeDevicePreferences(kernel.persistence, {
+      ...current,
+      rememberedLogin: {
+        account: loginForm.login_account.trim(),
+        type: activeAccountType.value,
+      },
+    })
   }
 
   const getLoginFormCache = () => {
@@ -334,7 +327,6 @@ export function useLoginForm() {
     }
 
     loginForm.login_account = remembered.account
-    loginForm.remember = true
     hasRememberedAccount.value = Boolean(loginForm.login_account)
     rememberedLoginType.value = remembered.type
   }

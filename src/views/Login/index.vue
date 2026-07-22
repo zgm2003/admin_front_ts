@@ -93,7 +93,6 @@ const {
           @update:login-account="loginForm.login_account = $event"
           @update:password="loginForm.password = $event"
           @update:code="loginForm.code = $event"
-          @update:remember="loginForm.remember = $event"
           @toggle-password="showPassword = !showPassword"
           @forgot-password="openForgotDialog"
           @open-service="openService"

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 059c97cb6d26ed385144c365b5c4c7a2f7144bed8a7df0f1d89f1227a9810f26
+// Generated from Admin Contract Bundle manifest SHA-256: 904e26a5cbee47c65b8890f5bab90502586ef9182f8d829ad5a9833510ef7c88
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -4556,7 +4556,6 @@ export interface components {
             max_sessions: number;
             name: string;
             refresh_ttl: number;
-            single_session: number;
             status: number;
             status_name: string;
             updated_at: string;
@@ -5788,8 +5787,6 @@ export interface components {
             max_sessions?: number;
             name: string;
             refresh_ttl: number;
-            /** @enum {integer} */
-            single_session: 1 | 2;
         };
         post_api_admin_v1_auth_platforms_ResponseEnvelope: {
             /** @constant */
@@ -6209,8 +6206,6 @@ export interface components {
             max_sessions?: number;
             name: string;
             refresh_ttl: number;
-            /** @enum {integer} */
-            single_session: 1 | 2;
         };
         put_api_admin_v1_auth_platforms_id_ResponseEnvelope: {
             /** @constant */

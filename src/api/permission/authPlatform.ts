@@ -28,7 +28,7 @@ type AuthPlatformListQueryParams = NonNullable<AdminOperationInput<'get_api_admi
 type AuthPlatformContractItem = components['schemas']['Go_internal_module_auth_platform_ListItem_Output']
 type AuthPlatformEditableFields = Pick<
   AuthPlatformCreateBody,
-  'login_types' | 'captcha_type' | 'bind_platform' | 'bind_device' | 'bind_ip' | 'single_session' | 'allow_register'
+  'login_types' | 'captcha_type' | 'bind_platform' | 'bind_device' | 'bind_ip' | 'allow_register'
 >
 export type AuthPlatformItem = Omit<AuthPlatformContractItem, keyof AuthPlatformEditableFields | 'status'>
   & AuthPlatformEditableFields
@@ -108,7 +108,6 @@ function toAuthPlatformItem(item: AuthPlatformContractItem): AuthPlatformItem {
     || !isBinaryStatus(item.bind_platform)
     || !isBinaryStatus(item.bind_device)
     || !isBinaryStatus(item.bind_ip)
-    || !isBinaryStatus(item.single_session)
     || !isBinaryStatus(item.allow_register)
     || !isBinaryStatus(item.status)
   ) {
@@ -121,7 +120,6 @@ function toAuthPlatformItem(item: AuthPlatformContractItem): AuthPlatformItem {
     bind_platform: item.bind_platform,
     bind_device: item.bind_device,
     bind_ip: item.bind_ip,
-    single_session: item.single_session,
     allow_register: item.allow_register,
     status: item.status,
   }

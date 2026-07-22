@@ -13,7 +13,7 @@ type SendCodeInstance = InstanceType<typeof SendCode>
 const props = defineProps<{
   loginTypes: LoginTypeItem[]
   activeType: UserLoginType
-  loginForm: { login_account: string; password: string; code: string; remember: boolean }
+  loginForm: { login_account: string; password: string; code: string }
   rules: FormRules
   showPassword: boolean
   isPasswordLogin: boolean
@@ -40,7 +40,6 @@ const emit = defineEmits<{
   (e: 'update:loginAccount', value: string): void
   (e: 'update:password', value: string): void
   (e: 'update:code', value: string): void
-  (e: 'update:remember', value: boolean): void
 }>()
 
 const elFormRef = useTemplateRef<FormInstance>('elForm')
@@ -82,10 +81,6 @@ const password = computed({
 const code = computed({
   get: () => props.loginForm.code,
   set: (value: string) => emit('update:code', value),
-})
-const remember = computed({
-  get: () => props.loginForm.remember,
-  set: (value: boolean) => emit('update:remember', value),
 })
 const isLoginCodeAccountInvalid = computed(() => {
   const account = props.loginForm.login_account.trim()
@@ -264,11 +259,6 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="form-options">
-          <el-checkbox
-            v-model="remember"
-            :label="t('auth.login.remember')"
-            :class="{ 'is-invisible': !isPasswordLogin }"
-          />
           <button
             type="button"
             class="forget-pwd"

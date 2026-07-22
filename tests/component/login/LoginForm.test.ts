@@ -99,8 +99,9 @@ describe('kernel-owned login form', () => {
     login.setFormRef({ validateField: vi.fn(async () => true), clearValidate: vi.fn() } as never)
     login.loginForm.login_account = 'admin@example.test'
     login.loginForm.password = 'correct-password'
-    login.loginForm.remember = true
     login.agreePolicy.value = true
+
+    expect('remember' in login.loginForm).toBe(false)
 
     await login.handleSubmit()
 

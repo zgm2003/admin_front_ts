@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 059c97cb6d26ed385144c365b5c4c7a2f7144bed8a7df0f1d89f1227a9810f26
+// Generated from Admin Contract Bundle manifest SHA-256: 904e26a5cbee47c65b8890f5bab90502586ef9182f8d829ad5a9833510ef7c88
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -3716,9 +3716,6 @@ const contractSchemas = {
       "refresh_ttl": {
         "type": "integer"
       },
-      "single_session": {
-        "type": "integer"
-      },
       "status": {
         "type": "integer"
       },
@@ -3743,7 +3740,6 @@ const contractSchemas = {
       "max_sessions",
       "name",
       "refresh_ttl",
-      "single_session",
       "status",
       "status_name",
       "updated_at"

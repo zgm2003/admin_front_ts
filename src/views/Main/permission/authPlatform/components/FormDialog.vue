@@ -6,7 +6,12 @@ import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import type { AuthPlatformInitResponse } from '@/api/permission/authPlatform'
-import type { AuthPlatformForm } from '../helpers'
+import {
+  maxSessionsForMode,
+  sessionModeFromMaxSessions,
+  type AuthPlatformForm,
+  type SessionMode,
+} from '../helpers'
 
 const visible = defineModel<boolean>({ required: true })
 const form = defineModel<AuthPlatformForm>('form', { required: true })
@@ -38,8 +43,26 @@ const yesNoOptions = computed(() => [
   { label: t('common.no'), value: CommonEnum.NO },
 ])
 
+const sessionModeOptions = computed(() => [
+  { label: t('authPlatform.sessionMode.single'), value: 'single' },
+  { label: t('authPlatform.sessionMode.limited'), value: 'limited' },
+  { label: t('authPlatform.sessionMode.unlimited'), value: 'unlimited' },
+] satisfies Array<{ label: string; value: SessionMode }>)
+const lastLimitedMaxSessions = ref(2)
+const sessionMode = computed<SessionMode>({
+  get: () => sessionModeFromMaxSessions(form.value.max_sessions),
+  set: mode => {
+    form.value.max_sessions = maxSessionsForMode(mode, lastLimitedMaxSessions.value)
+  },
+})
+
+watch(() => form.value.max_sessions, (value) => {
+  if (value >= 2) lastLimitedMaxSessions.value = value
+}, { immediate: true })
+
 watch(visible, (value) => {
   if (!value) return
+  lastLimitedMaxSessions.value = form.value.max_sessions >= 2 ? form.value.max_sessions : 2
   void nextTick(() => formRef.value?.clearValidate())
 })
 
@@ -240,32 +263,23 @@ async function confirmSubmit() {
           </el-form-item>
         </el-col>
         <el-col
-          :md="12"
+          :md="24"
           :span="24"
         >
-          <el-form-item :label="t('authPlatform.form.single_session')">
-            <el-select-v2
-              v-model="form.single_session"
-              :options="yesNoOptions"
-              style="width:100%"
+          <el-form-item :label="t('authPlatform.form.session_policy')">
+            <el-segmented
+              v-model="sessionMode"
+              :options="sessionModeOptions"
+              class="session-mode"
             />
-          </el-form-item>
-        </el-col>
-        <el-col
-          :md="12"
-          :span="24"
-        >
-          <el-form-item :label="t('authPlatform.form.max_sessions')">
             <el-input-number
+              v-if="sessionMode === 'limited'"
               v-model="form.max_sessions"
-              :min="0"
+              :min="2"
               :max="100"
-              :controls="false"
-              style="width:100%"
+              controls-position="right"
+              class="session-limit"
             />
-            <div class="form-help">
-              {{ t('authPlatform.form.max_sessions_help') }}
-            </div>
           </el-form-item>
         </el-col>
         <el-col
@@ -299,4 +313,6 @@ async function confirmSubmit() {
 
 <style scoped>
 .form-help { font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.4; margin-top: 4px }
+.session-mode { width: 100%; }
+.session-limit { width: 160px; margin-top: 12px; }
 </style>

@@ -51,7 +51,7 @@ function mountLogin() {
         { label: 'Phone', value: 'phone' },
       ],
       activeType: 'password',
-      loginForm: { login_account: '', password: '', code: '', remember: false },
+      loginForm: { login_account: '', password: '', code: '' },
       rules: {},
       showPassword: false,
       isPasswordLogin: true,
@@ -88,6 +88,7 @@ describe('accessible login form', () => {
     expect(wrapper.get('#login-password').attributes('autocomplete')).toBe('current-password')
     expect(wrapper.get('button.password-toggle').attributes('aria-label')).toBeTruthy()
     expect(wrapper.get('button.forget-pwd').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('auth.login.remember')
 
     await tabs[0].trigger('keydown', { key: 'ArrowRight' })
     expect(wrapper.emitted('tabChange')).toContainEqual(['email'])

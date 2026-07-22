@@ -17,7 +17,11 @@ import { useCrudTable } from '@/hooks/useCrudTable'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import FormDialog from './components/FormDialog.vue'
-import { createAuthPlatformDefaultForm, type AuthPlatformForm } from './helpers'
+import {
+  createAuthPlatformDefaultForm,
+  sessionModeFromMaxSessions,
+  type AuthPlatformForm,
+} from './helpers'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -75,8 +79,7 @@ const columns = computed(() => [
   { key: 'bind_platform', label: t('authPlatform.table.bind_platform'), width: 100 },
   { key: 'bind_device', label: t('authPlatform.table.bind_device'), width: 100 },
   { key: 'bind_ip', label: t('authPlatform.table.bind_ip'), width: 90 },
-  { key: 'single_session', label: t('authPlatform.table.single_session'), width: 100 },
-  { key: 'max_sessions', label: t('authPlatform.table.max_sessions'), width: 110 },
+  { key: 'max_sessions', label: t('authPlatform.table.session_policy'), width: 130 },
   { key: 'allow_register', label: t('authPlatform.table.allow_register'), width: 100 },
   { key: 'status', label: t('authPlatform.table.status'), width: 100 },
   { key: 'updated_at', label: t('authPlatform.table.updated_at'), width: 160 },
@@ -108,7 +111,6 @@ const edit = (row: AuthPlatformItem) => {
     bind_platform: row.bind_platform,
     bind_device: row.bind_device,
     bind_ip: row.bind_ip,
-    single_session: row.single_session,
     max_sessions: row.max_sessions,
     allow_register: row.allow_register,
   }
@@ -127,7 +129,6 @@ const confirmSubmit = async (submittedForm: AuthPlatformForm) => {
       bind_platform: submittedForm.bind_platform,
       bind_device: submittedForm.bind_device,
       bind_ip: submittedForm.bind_ip,
-      single_session: submittedForm.single_session,
       max_sessions: submittedForm.max_sessions,
       allow_register: submittedForm.allow_register,
     }
@@ -143,7 +144,6 @@ const confirmSubmit = async (submittedForm: AuthPlatformForm) => {
       bind_platform: submittedForm.bind_platform,
       bind_device: submittedForm.bind_device,
       bind_ip: submittedForm.bind_ip,
-      single_session: submittedForm.single_session,
       max_sessions: submittedForm.max_sessions,
       allow_register: submittedForm.allow_register,
     }
@@ -178,6 +178,14 @@ const captchaTypeLabelMap = computed(() => {
 
 const getCaptchaTypeLabel = (val: string): string => {
   return captchaTypeLabelMap.value.get(val) ?? ''
+}
+
+const getSessionPolicyLabel = (maxSessions: number): string => {
+  const mode = sessionModeFromMaxSessions(maxSessions)
+  if (mode === 'limited') {
+    return t('authPlatform.sessionMode.limitedCount', { count: maxSessions })
+  }
+  return t(`authPlatform.sessionMode.${mode}`)
 }
 
 onMounted(() => { init(); getList() })
@@ -266,12 +274,9 @@ onMounted(() => { init(); getList() })
             {{ row.bind_ip === CommonEnum.YES ? t('common.yes') : t('common.no') }}
           </el-tag>
         </template>
-        <template #cell-single_session="{ row }">
-          <el-tag
-            :type="row.single_session === CommonEnum.YES ? 'warning' : 'info'"
-            size="small"
-          >
-            {{ row.single_session === CommonEnum.YES ? t('common.yes') : t('common.no') }}
+        <template #cell-max_sessions="{ row }">
+          <el-tag size="small">
+            {{ getSessionPolicyLabel(row.max_sessions) }}
           </el-tag>
         </template>
         <template #cell-allow_register="{ row }">
