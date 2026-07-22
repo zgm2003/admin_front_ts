@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: ce118f200614f740b0da52c48b47d36de1178e92cad5c24ad0e86406eab02b43
+// Generated from Admin Contract Bundle manifest SHA-256: 059c97cb6d26ed385144c365b5c4c7a2f7144bed8a7df0f1d89f1227a9810f26
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'

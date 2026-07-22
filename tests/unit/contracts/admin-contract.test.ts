@@ -173,6 +173,19 @@ describe('Admin Contract Bundle consumer', () => {
     expect(viewKeys).not.toContain('ai/prompts')
   })
 
+  it('publishes every component demo view accepted from users/me', async () => {
+    const views = await readLockedObject('views.json')
+    const viewKeys = collectStringEnums(views).flat()
+
+    expect(viewKeys).toEqual(expect.arrayContaining([
+      'component/display',
+      'component/download',
+      'component/effect',
+      'component/form',
+      'component/upload',
+    ]))
+  })
+
   it('exposes only current Admin platform enums while preserving platform-kernel fields', async () => {
     const openapi = await readLockedObject('openapi.json')
     const platformEnums = collectStringEnums(openapi)

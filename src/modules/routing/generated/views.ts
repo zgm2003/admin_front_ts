@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: ce118f200614f740b0da52c48b47d36de1178e92cad5c24ad0e86406eab02b43
+// Generated from Admin Contract Bundle manifest SHA-256: 059c97cb6d26ed385144c365b5c4c7a2f7144bed8a7df0f1d89f1227a9810f26
 // Do not edit manually.
 
 export const backendViewKeys = [
@@ -8,6 +8,11 @@ export const backendViewKeys = [
   "ai/providers",
   "ai/runs",
   "ai/tools",
+  "component/display",
+  "component/download",
+  "component/effect",
+  "component/form",
+  "component/upload",
   "notification",
   "payment/config",
   "payment/ledger",
@@ -43,6 +48,11 @@ export const backendViewDescriptors = {
   "ai/providers": {"path":"/ai/providers","titleKey":"menu.ai_providers","showMenu":true,"permissionCodes":[]},
   "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":[]},
   "ai/tools": {"path":"/ai/tools","titleKey":"menu.ai_tools","showMenu":true,"permissionCodes":[]},
+  "component/display": {"path":"/component/display","titleKey":"menu.component_display","showMenu":true,"permissionCodes":[]},
+  "component/download": {"path":"/component/download","titleKey":"menu.component_download","showMenu":true,"permissionCodes":[]},
+  "component/effect": {"path":"/component/effect","titleKey":"menu.component_effect","showMenu":true,"permissionCodes":[]},
+  "component/form": {"path":"/component/form","titleKey":"menu.component_form","showMenu":true,"permissionCodes":[]},
+  "component/upload": {"path":"/component/upload","titleKey":"menu.component_upload","showMenu":true,"permissionCodes":[]},
   "notification": {"path":"/notification","titleKey":"menu.notification","showMenu":false,"permissionCodes":[]},
   "payment/config": {"path":"/payment/config","titleKey":"menu.payment_config","showMenu":true,"permissionCodes":["payment_config_list"]},
   "payment/ledger": {"path":"/payment/ledger","titleKey":"menu.payment_ledger","showMenu":true,"permissionCodes":["payment_ledger_list"]},
