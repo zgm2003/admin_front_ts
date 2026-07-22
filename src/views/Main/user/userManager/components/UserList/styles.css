@@ -9,3 +9,15 @@
   min-height: 0;
   overflow: auto;
 }
+
+.user-list-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.user-list-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}

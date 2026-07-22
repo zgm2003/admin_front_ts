@@ -78,7 +78,7 @@ function formatRelativeTime(value: string) {
         type="primary"
         @click="$emit('open')"
       >
-        {{ $t('notification.page.viewAll') }}
+        {{ $t('home.viewAllNotifications') }}
       </el-button>
     </div>
 

@@ -57,7 +57,7 @@ export function usePaymentConfigPage() {
     { key: 'status_text', label: t('paymentConfig.columns.status'), width: 90 },
     { key: 'created_at', label: t('paymentConfig.columns.createdAt'), minWidth: 170 },
     { key: 'updated_at', label: t('paymentConfig.columns.updatedAt'), minWidth: 170 },
-    { key: 'actions', label: t('paymentConfig.columns.actions'), width: 280, fixed: 'right' },
+    { key: 'actions', label: t('paymentConfig.columns.actions'), width: 340, fixed: 'right' },
   ])
   const searchFields = computed<SearchField[]>(() => [
     { key: 'name', type: 'input', label: t('paymentConfig.filters.name'), placeholder: t('paymentConfig.filters.namePlaceholder'), width: 190 },

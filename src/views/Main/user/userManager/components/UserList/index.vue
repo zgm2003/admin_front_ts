@@ -40,7 +40,7 @@ const {
           { key: 'address_show', label: t('user.table.address'), width: 180, overflowTooltip: true },
           { key: 'bio', label: t('user.table.desc'), width: 180, overflowTooltip: true },
           { key: 'status', label: t('user.table.status'), width: 110 },
-          { key: 'actions', label: t('common.actions.action'), width: 180 },
+          { key: 'actions', label: t('common.actions.action'), width: 220, fixed: 'right' },
         ]"
         :data="listData"
         :loading="listLoading"
@@ -110,38 +110,40 @@ const {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <el-button
-            v-if="userStore.can('user_userManager_edit')"
-            type="primary"
-            text
-            @click="edit(row)"
-          >
-            {{ t('common.actions.edit') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.NO"
-            type="warning"
-            text
-            @click="toggleStatus(row, CommonEnum.YES)"
-          >
-            {{ t('common.actions.enable') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.YES"
-            type="warning"
-            text
-            @click="toggleStatus(row, CommonEnum.NO)"
-          >
-            {{ t('common.actions.disable') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('user_userManager_del')"
-            type="danger"
-            text
-            @click="confirmDel(row)"
-          >
-            {{ t('common.actions.del') }}
-          </el-button>
+          <div class="user-list-actions">
+            <el-button
+              v-if="userStore.can('user_userManager_edit')"
+              type="primary"
+              text
+              @click="edit(row)"
+            >
+              {{ t('common.actions.edit') }}
+            </el-button>
+            <el-button
+              v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.NO"
+              type="warning"
+              text
+              @click="toggleStatus(row, CommonEnum.YES)"
+            >
+              {{ t('common.actions.enable') }}
+            </el-button>
+            <el-button
+              v-if="userStore.can('user_userManager_edit') && row.status === CommonEnum.YES"
+              type="warning"
+              text
+              @click="toggleStatus(row, CommonEnum.NO)"
+            >
+              {{ t('common.actions.disable') }}
+            </el-button>
+            <el-button
+              v-if="userStore.can('user_userManager_del')"
+              type="danger"
+              text
+              @click="confirmDel(row)"
+            >
+              {{ t('common.actions.del') }}
+            </el-button>
+          </div>
         </template>
       </AppTable>
     </div>
