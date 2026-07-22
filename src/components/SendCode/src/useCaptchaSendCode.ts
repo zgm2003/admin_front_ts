@@ -33,6 +33,7 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
   const captchaDialogVisible = shallowRef(false)
   const sending = shallowRef(false)
   const pendingRequest = shallowRef<UserSendCodeContext | null>(null)
+  let captchaRequestGeneration = 0
 
   const clearChallenge = () => {
     captchaChallenge.value = null
@@ -40,29 +41,40 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
   }
 
   const resetCaptcha = () => {
+    captchaRequestGeneration++
+    captchaLoading.value = false
     captchaDialogVisible.value = false
     pendingRequest.value = null
     clearChallenge()
   }
 
   const refreshCaptcha = async (): Promise<boolean> => {
+    const requestGeneration = ++captchaRequestGeneration
     clearChallenge()
     captchaLoading.value = true
     try {
       const challenge = await UsersApi.getCaptcha()
+      if (requestGeneration !== captchaRequestGeneration) return false
       captchaChallenge.value = challenge
       captchaX.value = challenge.tile_x
       return true
     } catch (error: unknown) {
-      options.onError?.(error, 'captcha')
-      resetCaptcha()
+      if (requestGeneration !== captchaRequestGeneration) return false
+      try {
+        options.onError?.(error, 'captcha')
+      } finally {
+        resetCaptcha()
+      }
       return false
     } finally {
-      captchaLoading.value = false
+      if (requestGeneration === captchaRequestGeneration) {
+        captchaLoading.value = false
+      }
     }
   }
 
   const openCaptcha = async () => {
+    if (sending.value) return
     const request = options.buildRequest()
     if (!request || !isSendCodeAccountValid(request.account, request.scene)) return
 
@@ -72,6 +84,7 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
   }
 
   const completeCaptcha = async () => {
+    if (sending.value) return
     const request = pendingRequest.value
     const challenge = captchaChallenge.value
     if (!request || !challenge || captchaX.value < challenge.tile_x + CAPTCHA_MIN_MOVE_OFFSET) return
@@ -87,19 +100,25 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
         },
       })
     } catch (error: unknown) {
-      options.onError?.(error, 'send')
-      if (isCaptchaChallengeError(error)) {
-        await refreshCaptcha()
-      } else {
-        resetCaptcha()
+      try {
+        options.onError?.(error, 'send')
+      } finally {
+        if (isCaptchaChallengeError(error)) {
+          await refreshCaptcha()
+        } else {
+          resetCaptcha()
+        }
       }
       return
     } finally {
       sending.value = false
     }
 
-    options.onSent()
-    resetCaptcha()
+    try {
+      options.onSent()
+    } finally {
+      resetCaptcha()
+    }
   }
 
   return {
