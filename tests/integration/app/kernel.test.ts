@@ -130,6 +130,47 @@ describe('AppKernel bootstrap', () => {
     realtimeConnect.resolve()
   })
 
+  it('refreshes the principal without reconnecting the same realtime identity', async () => {
+    const refreshedPrincipal = { ...principal, username: 'renamed-admin' }
+    const load = vi.fn<AppKernelDependencies['principal']['load']>()
+      .mockResolvedValueOnce(principal)
+      .mockResolvedValueOnce(refreshedPrincipal)
+    const install = vi.fn(async () => undefined)
+    const connect = vi.fn()
+    const deps = dependencies({
+      auth: {
+        restore: vi.fn(async () => ({ kind: 'authenticated' as const })),
+        dispose: vi.fn(async () => undefined),
+      },
+      principal: {
+        load,
+        clear: vi.fn(async () => undefined),
+      },
+      routes: {
+        install,
+        clear: vi.fn(async () => undefined),
+      },
+      realtime: {
+        connect,
+        disconnect: vi.fn(async () => undefined),
+        dispose: vi.fn(async () => undefined),
+        subscribe: vi.fn(() => () => undefined),
+        retainTopic: vi.fn(() => () => undefined),
+        registerRecovery: vi.fn(() => () => undefined),
+      },
+    })
+    const kernel = new AppKernel(deps)
+
+    await kernel.bootstrap()
+    await kernel.refreshPrincipal('manual')
+
+    expect(load.mock.calls.map(([, reason]) => reason)).toEqual(['bootstrap', 'manual'])
+    expect(install).toHaveBeenCalledTimes(2)
+    expect(install).toHaveBeenNthCalledWith(2, refreshedPrincipal, expect.any(AbortSignal))
+    expect(kernel.state.value).toEqual({ kind: 'ready', principal: refreshedPrincipal })
+    expect(connect).toHaveBeenCalledTimes(1)
+  })
+
   it('maps invalid startup configuration to the failed state', async () => {
     const kernel = new AppKernel(dependencies({
       environment: () => {
