@@ -12,10 +12,7 @@ vi.mock('@/api/user/users', () => ({
   },
 }))
 
-import {
-  isSendCodeAccountValid,
-  useCaptchaSendCode,
-} from '@/components/SendCode/src/useCaptchaSendCode'
+import { isSendCodeAccountValid, useCaptchaSendCode } from '@/components/SendCode/src/useCaptchaSendCode'
 import { createApiError, type ApiErrorKind } from '@/modules/http/error'
 
 const challenge = {
@@ -35,26 +32,18 @@ const challenge = {
 const replacementChallenge = {
   ...challenge,
   captcha_id: 'captcha-replacement',
-  master_image: 'replacement-master',
-  tile_image: 'replacement-tile',
   tile_x: 80,
 }
 
 function apiError(code: string, kind: ApiErrorKind = 'validation') {
-  return createApiError({
-    kind,
-    code,
-    retryable: false,
-    messageKey: code,
-  })
+  return createApiError({ kind, code, retryable: false, messageKey: code })
 }
 
 function deferred<T>() {
   let resolve!: (value: T) => void
   let reject!: (reason?: unknown) => void
   const promise = new Promise<T>((resolvePromise, rejectPromise) => {
-    resolve = resolvePromise
-    reject = rejectPromise
+    [resolve, reject] = [resolvePromise, rejectPromise]
   })
   return { promise, resolve, reject }
 }
@@ -84,14 +73,11 @@ describe('shared send-code captcha flow', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mocks.getCaptcha.mockResolvedValue(challenge)
-    mocks.sendCode.mockResolvedValue(undefined)
   })
 
   it.each([
-    ['15671628271', 'bind_phone', true],
-    ['user@example.com', 'bind_phone', false],
-    ['user@example.com', 'bind_email', true],
-    ['15671628271', 'bind_email', false],
+    ['15671628271', 'bind_phone', true], ['user@example.com', 'bind_phone', false],
+    ['user@example.com', 'bind_email', true], ['15671628271', 'bind_email', false],
     ['15671628271', 'forget', true],
     ['user@example.com', 'forget', true],
     ['15671628271', 'change_password', true],
@@ -122,8 +108,7 @@ describe('shared send-code captcha flow', () => {
       captcha_answer: { x: 124, y: 12 },
     })
     expect(onSent).toHaveBeenCalledTimes(1)
-    expect(flow.captchaDialogVisible.value).toBe(false)
-    expect(flow.captchaChallenge.value).toBeNull()
+    expectCaptchaReset(flow)
   })
 
   it('resets a successful send before propagating an onSent failure', async () => {
@@ -221,6 +206,27 @@ describe('shared send-code captcha flow', () => {
     expectCaptchaReset(flow)
   })
 
+  it.each(['resolve', 'reject'] as const)(
+    'resets pending state when v-model closes before a captcha fetch %s', async (outcome) => {
+      const pendingFetch = deferred<typeof challenge>()
+      const onError = vi.fn()
+      mocks.getCaptcha.mockImplementationOnce(() => pendingFetch.promise)
+      const flow = createFlow({ onError })
+
+      const opening = flow.openCaptcha()
+      flow.captchaDialogVisible.value = false
+      if (outcome === 'resolve') pendingFetch.resolve(challenge)
+      else pendingFetch.reject(apiError('http.network', 'network'))
+      await opening
+
+      expect(onError).not.toHaveBeenCalled()
+      expectCaptchaReset(flow)
+      flow.captchaChallenge.value = challenge
+      flow.captchaX.value = challenge.tile_x + 16
+      await flow.completeCaptcha()
+      expect(mocks.sendCode).not.toHaveBeenCalled()
+  })
+
   it('does not send before the slider has moved far enough', async () => {
     const flow = createFlow({
       buildRequest: () => ({ account: '15671628271', scene: 'bind_phone' }),
@@ -248,8 +254,7 @@ describe('shared send-code captcha flow', () => {
 
     expect(mocks.sendCode).toHaveBeenCalledTimes(1)
     expect(onSent).toHaveBeenCalledTimes(1)
-    expect(flow.sending.value).toBe(false)
-    expect(flow.captchaDialogVisible.value).toBe(false)
+    expectCaptchaReset(flow)
   })
 
   it('ignores a new open while a captcha send is pending', async () => {
@@ -270,8 +275,7 @@ describe('shared send-code captcha flow', () => {
     expect(buildRequest).toHaveBeenCalledTimes(1)
     expect(mocks.getCaptcha).toHaveBeenCalledTimes(1)
     expect(mocks.sendCode).toHaveBeenCalledTimes(1)
-    expect(flow.sending.value).toBe(false)
-    expect(flow.captchaDialogVisible.value).toBe(false)
+    expectCaptchaReset(flow)
   })
 
   it.each(['captcha.required', 'captcha.invalid_or_expired'])(

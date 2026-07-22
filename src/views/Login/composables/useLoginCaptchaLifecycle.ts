@@ -1,4 +1,4 @@
-import { shallowRef, type Ref } from 'vue'
+import { computed, shallowRef, type Ref } from 'vue'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
 
 interface LoginCaptchaLifecycleOptions {
@@ -11,7 +11,7 @@ export function useLoginCaptchaLifecycle(options: LoginCaptchaLifecycleOptions) 
   const captchaChallenge = shallowRef<SlideCaptchaChallenge | null>(null)
   const captchaX = shallowRef(0)
   const captchaLoading = shallowRef(false)
-  const captchaDialogVisible = shallowRef(false)
+  const captchaDialogOpen = shallowRef(false)
   let generation = 0
 
   const clearChallenge = () => {
@@ -22,9 +22,17 @@ export function useLoginCaptchaLifecycle(options: LoginCaptchaLifecycleOptions) 
   const resetCaptchaDialog = () => {
     generation++
     captchaLoading.value = false
-    captchaDialogVisible.value = false
+    captchaDialogOpen.value = false
     clearChallenge()
   }
+
+  const captchaDialogVisible = computed({
+    get: () => captchaDialogOpen.value,
+    set: (visible: boolean) => {
+      if (visible) captchaDialogOpen.value = true
+      else resetCaptchaDialog()
+    },
+  })
 
   const refreshCaptcha = async (): Promise<boolean> => {
     if (!options.enabled.value) return false
@@ -51,7 +59,7 @@ export function useLoginCaptchaLifecycle(options: LoginCaptchaLifecycleOptions) 
   }
 
   const openCaptchaDialog = async (): Promise<boolean> => {
-    captchaDialogVisible.value = true
+    captchaDialogOpen.value = true
     return refreshCaptcha()
   }
 

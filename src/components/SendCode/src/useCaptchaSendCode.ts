@@ -1,4 +1,4 @@
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { UsersApi } from '@/api/user/users'
 import { isCaptchaChallengeError } from '@/modules/auth/captcha-error'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
@@ -30,7 +30,7 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
   const captchaChallenge = shallowRef<SlideCaptchaChallenge | null>(null)
   const captchaX = shallowRef(0)
   const captchaLoading = shallowRef(false)
-  const captchaDialogVisible = shallowRef(false)
+  const captchaDialogOpen = shallowRef(false)
   const sending = shallowRef(false)
   const pendingRequest = shallowRef<UserSendCodeContext | null>(null)
   let captchaRequestGeneration = 0
@@ -43,10 +43,18 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
   const resetCaptcha = () => {
     captchaRequestGeneration++
     captchaLoading.value = false
-    captchaDialogVisible.value = false
+    captchaDialogOpen.value = false
     pendingRequest.value = null
     clearChallenge()
   }
+
+  const captchaDialogVisible = computed({
+    get: () => captchaDialogOpen.value,
+    set: (visible: boolean) => {
+      if (visible) captchaDialogOpen.value = true
+      else resetCaptcha()
+    },
+  })
 
   const refreshCaptcha = async (): Promise<boolean> => {
     const requestGeneration = ++captchaRequestGeneration
@@ -79,7 +87,7 @@ export function useCaptchaSendCode(options: UseCaptchaSendCodeOptions) {
     if (!request || !isSendCodeAccountValid(request.account, request.scene)) return
 
     pendingRequest.value = request
-    captchaDialogVisible.value = true
+    captchaDialogOpen.value = true
     await refreshCaptcha()
   }
 

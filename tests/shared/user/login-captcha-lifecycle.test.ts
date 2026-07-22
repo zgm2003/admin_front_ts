@@ -133,6 +133,34 @@ describe('login captcha lifecycle', () => {
     expectReset(lifecycle)
   })
 
+  it('treats a v-model close as reset and ignores an in-flight success', async () => {
+    const { lifecycle, loadChallenge, onLoadError } = createLifecycle()
+    const pendingLoad = deferred<typeof firstChallenge>()
+    loadChallenge.mockImplementationOnce(() => pendingLoad.promise)
+
+    const opening = lifecycle.openCaptchaDialog()
+    lifecycle.captchaDialogVisible.value = false
+    pendingLoad.resolve(firstChallenge)
+    await expect(opening).resolves.toBe(false)
+
+    expect(onLoadError).not.toHaveBeenCalled()
+    expectReset(lifecycle)
+  })
+
+  it('treats an in-flight failure after a v-model close as stale', async () => {
+    const { lifecycle, loadChallenge, onLoadError } = createLifecycle()
+    const pendingLoad = deferred<typeof firstChallenge>()
+    loadChallenge.mockImplementationOnce(() => pendingLoad.promise)
+
+    const opening = lifecycle.openCaptchaDialog()
+    lifecycle.captchaDialogVisible.value = false
+    pendingLoad.reject(new Error('stale network failure'))
+    await expect(opening).resolves.toBe(false)
+
+    expect(onLoadError).not.toHaveBeenCalled()
+    expectReset(lifecycle)
+  })
+
   it('resets before propagating a synchronous load-error callback failure', async () => {
     const { lifecycle, loadChallenge, onLoadError } = createLifecycle()
     const callbackError = new Error('message renderer failed')
