@@ -98,7 +98,8 @@ describe('mail diagnostic contract', () => {
   })
 
   it.each([
-    ['lower Gregorian boundary', '1000-01-01 00:00:00'],
+    ['lower Gregorian boundary', '0001-01-01 00:00:00'],
+    ['MySQL DATETIME lower boundary', '1000-01-01 00:00:00'],
     ['ordinary Gregorian date', '2026-07-24 10:00:00'],
     ['Gregorian leap day', '2024-02-29 23:59:59'],
     ['upper Gregorian boundary', '9999-12-31 23:59:59'],
