@@ -64,9 +64,11 @@ const {
       class="main-area"
       aria-labelledby="ai-chat-title"
     >
-      <header class="main-header">
+      <header
+        v-if="isMobile"
+        class="main-header"
+      >
         <el-button
-          v-if="isMobile"
           text
           class="back-btn"
           :aria-label="t('accessibility.backToAgents')"

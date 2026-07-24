@@ -185,6 +185,10 @@ watch(() => route.fullPath, async () => {
   background: transparent;
 }
 
+.layout-content:focus {
+  outline: none;
+}
+
 .layout-view {
   min-height: 100%;
   height: 100%;

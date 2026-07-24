@@ -27,7 +27,10 @@ const handleSelect = (agent: Agent) => {
     :class="{ compact }"
   >
     <!-- 标题 -->
-    <div class="sidebar-header">
+    <div
+      v-if="!compact"
+      class="sidebar-header"
+    >
       <h3 class="sidebar-title">
         {{ t('aiChat.agentList') }}
       </h3>
@@ -108,16 +111,11 @@ const handleSelect = (agent: Agent) => {
 .agent-sidebar.compact {
   width: 100%;
   min-width: 0;
-  max-height: 220px;
+  max-height: 178px;
   flex: 0 0 auto;
   border-right: 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: transparent;
-}
-
-.agent-sidebar.compact .sidebar-header {
-  min-height: 52px;
-  padding: 0 14px;
 }
 
 .agent-sidebar.compact .agent-list {
