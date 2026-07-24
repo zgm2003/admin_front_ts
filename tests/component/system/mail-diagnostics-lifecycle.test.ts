@@ -1,5 +1,5 @@
 /* eslint-disable max-lines, vue/one-component-per-file */
-import { computed, defineComponent, inject, nextTick, provide, ref } from 'vue'
+import { computed, defineComponent, inject, nextTick, provide, ref, watch } from 'vue'
 import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -20,7 +20,20 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 vi.mock('@/i18n', () => ({ default: { global: { t: (key: string) => key } } }))
 vi.mock('@/hooks/useResponsive', () => ({ useIsMobile: () => ref(false) }))
 vi.mock('@/components/Search', () => ({
-  Search: { name: 'Search', emits: ['query', 'reset', 'update:modelValue'], template: '<div data-testid="mail-search" />' },
+  Search: {
+    name: 'Search',
+    props: { fields: { type: Array, default: () => [] } },
+    emits: ['query', 'reset', 'update:modelValue'],
+    computed: {
+      optionLabels() {
+        return (this.fields as Array<{ options?: Array<{ label: string }> }>)
+          .flatMap((field) => field.options ?? [])
+          .map((option) => option.label)
+          .join('|')
+      },
+    },
+    template: '<div data-testid="mail-search-options">{{ optionLabels }}</div>',
+  },
 }))
 vi.mock('@/components/Table', () => ({
   AppTable: {
@@ -71,11 +84,16 @@ const ElTabPaneStub = defineComponent({
   name: 'ElTabPane',
   inheritAttrs: false,
   props: { label: { type: String, default: '' }, name: { type: [String, Number], required: true } },
-  setup() {
-    return inject<{ active: { value: string | number }, switchTab: SwitchTab }>(tabKey)!
+  setup(props) {
+    const tabs = inject<{ active: { value: string | number }, switchTab: SwitchTab }>(tabKey)!
+    const loaded = ref(tabs.active.value === props.name)
+    watch(tabs.active, (active) => {
+      if (active === props.name) loaded.value = true
+    })
+    return { ...tabs, loaded }
   },
   template: `<div><button v-bind="$attrs" @click="switchTab(name)">{{ label }}</button>
-    <div v-if="active === name"><slot /></div></div>`,
+    <div v-if="loaded" v-show="active === name"><slot /></div></div>`,
 })
 const ElButtonStub = defineComponent({
   name: 'ElButton',
@@ -326,20 +344,47 @@ describe('secure mail diagnostics lifecycle', () => {
     expect(wrapper.find('[data-testid="mail-log-dialog"]').exists()).toBe(false)
   })
 
-  it('clears on tab departure and gets a fresh page-init and list on return', async () => {
+  it('clears retained diagnostics and aborts active work on tab departure before fresh return', async () => {
     permit(true)
     api.pageInit.mockResolvedValue(pageInit())
-    api.logs.mockResolvedValue(list([log(1)]))
+    const item = log(1, diagnostics('sending', '112233'))
+    const pendingList = deferred<ReturnType<typeof list>>()
+    const pendingDetail = deferred<ReturnType<typeof log>>()
+    api.logs
+      .mockResolvedValueOnce(list([item]))
+      .mockReturnValueOnce(pendingList.promise)
+      .mockResolvedValueOnce(list([log(2, diagnostics('expired', '445566'))]))
+    api.log.mockResolvedValueOnce(item).mockReturnValueOnce(pendingDetail.promise)
     const wrapper = mountPage()
     await activate(wrapper)
+    const detailButton = wrapper.get('[data-testid="view-mail-log-detail"]')
+    await detailButton.trigger('click')
     await flushPromises()
-    expect(wrapper.text()).toContain('012345')
+    expect(wrapper.get('[data-testid="mail-log-dialog"]').text()).toContain('112233')
+    expect(wrapper.get('[data-testid="diagnostic-status"]').text()).toBe('Sending label')
+
+    await detailButton.trigger('click')
+    const detailSignal = api.log.mock.calls[1]?.[1]?.signal as AbortSignal
+    const listPromise = exposed(wrapper).refreshLogs()
+    const listSignal = api.logs.mock.calls[1]?.[1]?.signal as AbortSignal
     await wrapper.get('[data-testid="mail-tab-config"]').trigger('click')
-    await nextTick()
+    expect(detailSignal.aborted).toBe(true)
+    expect(listSignal.aborted).toBe(true)
+    expect(panel(wrapper).exists()).toBe(true)
+    expect(wrapper.findAll('[data-testid="log-row"]')).toHaveLength(0)
+    expect(wrapper.find('[data-testid="mail-log-dialog"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="mail-search-options"]').text()).toBe('')
+    expect(wrapper.text()).not.toContain('112233')
+    expect(wrapper.text()).not.toContain('Sending label')
+
+    pendingList.resolve(list([item]))
+    pendingDetail.resolve(item)
+    await expect(listPromise).resolves.toBeUndefined()
     await activate(wrapper)
     await flushPromises()
     expect(api.pageInit).toHaveBeenCalledTimes(2)
-    expect(api.logs).toHaveBeenCalledTimes(2)
+    expect(api.logs).toHaveBeenCalledTimes(3)
+    expect(wrapper.text()).toContain('445566')
   })
 
   it('clears on route deactivation and unmount, then freshly activates cached log state', async () => {
