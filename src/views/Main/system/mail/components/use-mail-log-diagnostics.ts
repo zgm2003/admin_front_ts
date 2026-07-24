@@ -29,7 +29,10 @@ export function useMailLogDiagnostics(options: {
   }
 
   function isCancellation(error: unknown, controller?: AbortController | null) {
-    return controller?.signal.aborted === true || (isApiError(error) && error.kind === 'canceled')
+    if (isApiError(error)) return error.kind === 'canceled'
+    return controller?.signal.aborted === true
+      && error instanceof DOMException
+      && error.name === 'AbortError'
   }
 
   const table = useCrudTable<MailLogItem, MailLogListParams>({

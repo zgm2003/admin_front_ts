@@ -115,27 +115,17 @@ const columns = computed(() => [
   { key: 'actions', label: t('common.actions.action'), width: 160, fixed: 'right', overflowTooltip: false },
 ])
 
-function sceneLabel(scene: MailLogScene) {
-  return dict.value.mail_log_scene_arr.find((item) => item.value === scene)?.label || scene
-}
-
-function statusLabel(status: MailLogStatus) {
-  return dict.value.mail_log_status_arr.find((item) => item.value === status)?.label || String(status)
-}
+const sceneLabel = (scene: MailLogScene) => dict.value.mail_log_scene_arr.find((item) => item.value === scene)?.label || scene
+const statusLabel = (status: MailLogStatus) => dict.value.mail_log_status_arr.find((item) => item.value === status)?.label || String(status)
 
 function statusType(status: MailLogStatus) {
-  if (status === 2) {
-    return 'success'
-  }
-  if (status === 3) {
-    return 'danger'
-  }
+  if (status === 2) return 'success'
+  if (status === 3) return 'danger'
   return 'warning'
 }
 
 function diagnosticStatusLabel(status: MailLogItem['verification_code_status']) {
-  if (status === null) return '-'
-  return dict.value.mail_verification_code_status_arr.find((item) => item.value === status)?.label ?? '-'
+  return status === null ? '-' : dict.value.mail_verification_code_status_arr.find((item) => item.value === status)?.label ?? '-'
 }
 
 async function searchLogs() {
@@ -201,26 +191,41 @@ function clearClosedDetail(visible: boolean) {
         </template>
 
         <template #cell-status="{ row }">
-          <el-tag :type="statusType(row.status)">
-            {{ statusLabel(row.status) }}
-          </el-tag>
+          <span
+            data-testid="delivery-status"
+            :data-log-id="row.id"
+          >
+            <el-tag :type="statusType(row.status)">
+              {{ statusLabel(row.status) }}
+            </el-tag>
+          </span>
         </template>
 
         <template #cell-verification_code="{ row }">
-          <span data-testid="diagnostic-code">{{ row.verification_code ?? '-' }}</span>
+          <span
+            data-testid="diagnostic-code"
+            :data-log-id="row.id"
+          >{{ row.verification_code ?? '-' }}</span>
         </template>
 
         <template #cell-verification_code_status="{ row }">
-          <span data-testid="diagnostic-status">{{ diagnosticStatusLabel(row.verification_code_status) }}</span>
+          <span
+            data-testid="diagnostic-status"
+            :data-log-id="row.id"
+          >{{ diagnosticStatusLabel(row.verification_code_status) }}</span>
         </template>
 
         <template #cell-verification_code_expires_at="{ row }">
-          <span data-testid="diagnostic-expiry">{{ row.verification_code_expires_at ?? '-' }}</span>
+          <span
+            data-testid="diagnostic-expiry"
+            :data-log-id="row.id"
+          >{{ row.verification_code_expires_at ?? '-' }}</span>
         </template>
 
         <template #cell-actions="{ row }">
           <el-button
             data-testid="view-mail-log-detail"
+            :data-log-id="row.id"
             type="primary"
             text
             @click="openDetail(row)"
@@ -269,9 +274,11 @@ function clearClosedDetail(visible: boolean) {
             {{ detail.subject || '-' }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('mail.log.status')">
-            <el-tag :type="statusType(detail.status)">
-              {{ statusLabel(detail.status) }}
-            </el-tag>
+            <span data-testid="detail-delivery-status">
+              <el-tag :type="statusType(detail.status)">
+                {{ statusLabel(detail.status) }}
+              </el-tag>
+            </span>
           </el-descriptions-item>
           <el-descriptions-item :label="t('mail.log.verificationCode')">
             <span data-testid="detail-diagnostic-code">{{ detail.verification_code ?? '-' }}</span>

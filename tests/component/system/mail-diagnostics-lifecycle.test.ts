@@ -1,4 +1,4 @@
-/* eslint-disable vue/one-component-per-file */
+/* eslint-disable max-lines, vue/one-component-per-file */
 import { computed, defineComponent, inject, nextTick, provide, ref } from 'vue'
 import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MailPage from '@/views/Main/system/mail/index.vue'
 import MailLogPanel from '@/views/Main/system/mail/components/MailLogPanel.vue'
 import { useUserStore } from '@/store/user'
+import { createApiError } from '@/modules/http/error'
 
 const api = vi.hoisted(() => ({
   pageInit: vi.fn(),
@@ -148,6 +149,13 @@ function panel(wrapper: VueWrapper) {
   if (component.exists()) expect(component.findComponent(MailLogPanel).exists() || component.type() === MailLogPanel).toBe(true)
   return component
 }
+function exposed(wrapper: VueWrapper) {
+  return panel(wrapper).vm as unknown as {
+    activate(): Promise<void>
+    clearDiagnostics(): void
+    refreshLogs(): Promise<void>
+  }
+}
 
 describe('secure mail diagnostics lifecycle', () => {
   beforeEach(() => {
@@ -174,8 +182,7 @@ describe('secure mail diagnostics lifecycle', () => {
     const wrapper = mountPage()
     expect(api.pageInit).not.toHaveBeenCalled()
     await activate(wrapper)
-    const exposed = panel(wrapper).vm as unknown as { activate(): Promise<void> }
-    const duplicate = exposed.activate()
+    const duplicate = exposed(wrapper).activate()
     expect(api.pageInit).toHaveBeenCalledTimes(1)
     init.resolve(pageInit())
     await flushPromises()
@@ -183,6 +190,36 @@ describe('secure mail diagnostics lifecycle', () => {
     rows.resolve(list([log(1)]))
     await duplicate
     expect(wrapper.text()).toContain('012345')
+  })
+
+  it('propagates non-canceled typed errors after abort and silences only typed cancellation', async () => {
+    permit(true)
+    const denied = deferred<ReturnType<typeof pageInit>>()
+    api.pageInit.mockReturnValueOnce(denied.promise)
+    const wrapper = mount(MailLogPanel, { global: globals })
+    const lifecycle = wrapper.vm as unknown as {
+      activate(): Promise<void>
+      clearDiagnostics(): void
+    }
+    const activation = lifecycle.activate()
+    lifecycle.clearDiagnostics()
+    expect((api.pageInit.mock.calls[0]?.[0]?.signal as AbortSignal).aborted).toBe(true)
+    const authorization = createApiError({
+      kind: 'authorization', retryable: false, messageKey: 'http.forbidden',
+    })
+    denied.reject(authorization)
+    await expect(activation).rejects.toBe(authorization)
+
+    const canceledRequest = deferred<ReturnType<typeof pageInit>>()
+    api.pageInit.mockReturnValueOnce(canceledRequest.promise)
+    const canceledActivation = lifecycle.activate()
+    lifecycle.clearDiagnostics()
+    expect((api.pageInit.mock.calls[1]?.[0]?.signal as AbortSignal).aborted).toBe(true)
+    const canceled = createApiError({
+      kind: 'canceled', retryable: false, messageKey: 'http.canceled',
+    })
+    canceledRequest.reject(canceled)
+    await expect(canceledActivation).resolves.toBeUndefined()
   })
 
   it('synchronously clears and unmounts on permission loss and ignores late activation responses', async () => {
@@ -203,6 +240,52 @@ describe('secure mail diagnostics lifecycle', () => {
     expect(wrapper.text()).not.toContain('012345')
   })
 
+  it('removes existing list and detail plaintext when permission is lost', async () => {
+    const store = permit(true)
+    const item = log(1, diagnostics('not_expired', '246810'))
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValue(list([item]))
+    api.log.mockResolvedValue(item)
+    const wrapper = mountPage()
+    await activate(wrapper)
+    await wrapper.get('[data-testid="view-mail-log-detail"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('246810')
+    expect(wrapper.get('[data-testid="mail-log-dialog"]').text()).toContain('246810')
+
+    store.buttonCodes = new Set()
+    await nextTick()
+    expect(panel(wrapper).exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('246810')
+    expect(wrapper.find('[data-testid="mail-log-dialog"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="config-panel"]').exists()).toBe(true)
+  })
+
+  it('synchronously aborts active list and detail requests when permission is lost', async () => {
+    const store = permit(true)
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(1)]))
+    const wrapper = mountPage()
+    await activate(wrapper)
+    const pendingList = deferred<ReturnType<typeof list>>()
+    const pendingDetail = deferred<ReturnType<typeof log>>()
+    api.logs.mockReturnValueOnce(pendingList.promise)
+    api.log.mockReturnValueOnce(pendingDetail.promise)
+    const listPromise = exposed(wrapper).refreshLogs()
+    await wrapper.get('[data-testid="view-mail-log-detail"]').trigger('click')
+    const listSignal = api.logs.mock.calls[1]?.[1]?.signal as AbortSignal
+    const detailSignal = api.log.mock.calls[0]?.[1]?.signal as AbortSignal
+
+    store.buttonCodes = new Set()
+    expect(listSignal.aborted).toBe(true)
+    expect(detailSignal.aborted).toBe(true)
+    pendingList.resolve(list([]))
+    pendingDetail.resolve(log(1))
+    await expect(listPromise).resolves.toBeUndefined()
+    await nextTick()
+    expect(panel(wrapper).exists()).toBe(false)
+  })
+
   it('rejects late list and detail commits and aborts superseded detail requests', async () => {
     permit(true)
     api.pageInit.mockResolvedValue(pageInit())
@@ -211,14 +294,14 @@ describe('secure mail diagnostics lifecycle', () => {
     const wrapper = mountPage()
     await activate(wrapper)
     await flushPromises()
-    const exposed = panel(wrapper).vm as unknown as { clearDiagnostics(): void, activate(): Promise<void> }
-    exposed.clearDiagnostics()
+    const lifecycle = exposed(wrapper)
+    lifecycle.clearDiagnostics()
     pendingList.resolve(list([log(1)]))
     await flushPromises()
     expect(wrapper.text()).not.toContain('012345')
 
     api.logs.mockResolvedValueOnce(list([log(1), log(2, diagnostics('expired', '654321'))]))
-    await exposed.activate()
+    await lifecycle.activate()
     await flushPromises()
     const first = deferred<ReturnType<typeof log>>()
     const second = deferred<ReturnType<typeof log>>()
@@ -262,8 +345,11 @@ describe('secure mail diagnostics lifecycle', () => {
   it('clears on route deactivation and unmount, then freshly activates cached log state', async () => {
     permit(true)
     api.pageInit.mockResolvedValue(pageInit())
+    const firstItem = log(1, diagnostics('sending', '135790'))
+    const activeDetail = deferred<ReturnType<typeof log>>()
     const reactivationList = deferred<ReturnType<typeof list>>()
-    api.logs.mockResolvedValueOnce(list([log(1)])).mockReturnValueOnce(reactivationList.promise)
+    api.logs.mockResolvedValueOnce(list([firstItem])).mockReturnValueOnce(reactivationList.promise)
+    api.log.mockReturnValueOnce(activeDetail.promise)
     const Harness = defineComponent({
       components: { MailPage },
       setup() { return { show: ref(true) } },
@@ -272,8 +358,13 @@ describe('secure mail diagnostics lifecycle', () => {
     const wrapper = mount(Harness, { global: globals })
     await activate(wrapper)
     await flushPromises()
+    expect(wrapper.text()).toContain('135790')
+    await wrapper.get('[data-testid="view-mail-log-detail"]').trigger('click')
+    const detailSignal = api.log.mock.calls[0]?.[1]?.signal as AbortSignal
     ;(wrapper.vm as unknown as { show: boolean }).show = false
     await nextTick()
+    expect(detailSignal.aborted).toBe(true)
+    expect(wrapper.text()).not.toContain('135790')
     ;(wrapper.vm as unknown as { show: boolean }).show = true
     await flushPromises()
     expect(api.pageInit).toHaveBeenCalledTimes(2)
@@ -283,26 +374,44 @@ describe('secure mail diagnostics lifecycle', () => {
     expect(activeSignal.aborted).toBe(true)
   })
 
-  it('renders identical diagnostic values with dictionary-only labels in list and detail', async () => {
+  it('renders identical delivery and diagnostic values for every list row and detail', async () => {
     permit(true)
     const labels = ['opaque-a', 'opaque-b', 'opaque-c', 'opaque-d']
     const items = ['sending', 'not_expired', 'expired', 'send_failed']
-      .map((status, index) => log(index + 1, diagnostics(status, `12345${index}`)))
-    api.pageInit.mockResolvedValue(pageInit(labels))
+      .map((status, index) => ({
+        ...log(index + 1, diagnostics(status, `12345${index}`)),
+        status: (index % 3) + 1,
+      }))
+    const init = pageInit(labels)
+    init.dict.mail_log_status_arr = [
+      { label: 'Queued delivery', value: 1 },
+      { label: 'Delivered mail', value: 2 },
+      { label: 'Failed delivery', value: 3 },
+    ]
+    api.pageInit.mockResolvedValue(init)
     api.logs.mockResolvedValue(list(items))
     api.log.mockImplementation((id: number) => Promise.resolve(items[id - 1]))
     const wrapper = mountPage()
     await activate(wrapper)
     await flushPromises()
-    expect(wrapper.findAll('[data-testid="diagnostic-status"]')).toHaveLength(4)
-    for (const label of labels) expect(wrapper.text()).toContain(label)
     for (const status of ['sending', 'not_expired', 'expired', 'send_failed']) expect(wrapper.text()).not.toContain(status)
     for (let index = 0; index < items.length; index++) {
-      await wrapper.findAll('[data-testid="view-mail-log-detail"]')[index]!.trigger('click')
+      const item = items[index]!
+      const selector = `[data-log-id="${item.id}"]`
+      const listValues = {
+        delivery: wrapper.get(`[data-testid="delivery-status"]${selector}`).text(),
+        code: wrapper.get(`[data-testid="diagnostic-code"]${selector}`).text(),
+        status: wrapper.get(`[data-testid="diagnostic-status"]${selector}`).text(),
+        expiry: wrapper.get(`[data-testid="diagnostic-expiry"]${selector}`).text(),
+      }
+      expect(listValues.expiry).toBe('2026-07-24 10:05:00')
+      expect(listValues.status).toBe(labels[index])
+      await wrapper.get(`[data-testid="view-mail-log-detail"]${selector}`).trigger('click')
       await flushPromises()
-      const dialog = wrapper.get('[data-testid="mail-log-dialog"]').text()
-      expect(dialog).toContain(`12345${index}`)
-      expect(dialog).toContain(labels[index]!)
+      expect(wrapper.get('[data-testid="detail-delivery-status"]').text()).toBe(listValues.delivery)
+      expect(wrapper.get('[data-testid="detail-diagnostic-code"]').text()).toBe(listValues.code)
+      expect(wrapper.get('[data-testid="detail-diagnostic-status"]').text()).toBe(listValues.status)
+      expect(wrapper.get('[data-testid="detail-diagnostic-expiry"]').text()).toBe(listValues.expiry)
     }
   })
 
