@@ -2,10 +2,33 @@
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--el-bg-color-page);
+  overflow: hidden;
+  background: var(--el-bg-color);
+}
+
+:global(.el-main.layout-content .layout-view.page-card:has(.chat-container)) {
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--el-bg-color);
+  box-shadow: none;
+}
+
+.consumer-sidebar {
+  width: 276px;
+  min-width: 276px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-extra-light);
 }
 
 .main-area {
+  --chat-content-width: 820px;
+
   flex: 1;
   min-width: 0;
   display: flex;
@@ -14,45 +37,52 @@
 }
 
 .main-header {
-  height: 60px;
+  position: relative;
+  flex: 0 0 58px;
+  min-height: 58px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 20px;
+  justify-content: center;
+  padding: 0 64px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
 }
 
 .back-btn {
-  margin-left: -8px;
+  position: absolute;
+  left: 10px;
+  margin: 0;
 }
 
 .header-content {
-  flex: 1;
+  width: min(520px, 100%);
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
+  text-align: center;
 }
 
 .header-title {
+  max-width: 100%;
   overflow: hidden;
   color: var(--el-text-color-primary);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .header-agent {
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
+  color: var(--el-text-color-placeholder);
+  font-size: 11px;
 }
 
 .message-area {
   flex: 1;
   min-height: 0;
-  background: var(--el-bg-color-page);
+  background: var(--el-bg-color);
 }
 
 .message-area :deep(.el-scrollbar__view) {
@@ -68,21 +98,22 @@
 }
 
 .welcome-content {
-  width: min(420px, 100%);
+  width: min(460px, 100%);
   text-align: center;
 }
 
 .welcome-avatar {
-  background: var(--el-color-primary-light-7);
+  border: 1px solid var(--el-color-primary-light-7);
+  background: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
   font-size: 24px;
   font-weight: 700;
 }
 
 .welcome-title {
-  margin: 18px 0 8px;
+  margin: 16px 0 7px;
   color: var(--el-text-color-primary);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 650;
 }
 
@@ -97,7 +128,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
+  width: min(var(--chat-content-width), calc(100% - 40px));
+  margin: 0 auto;
+  padding: 16px 0 0;
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {
@@ -107,5 +141,16 @@
 
   .main-area {
     height: 100%;
+  }
+
+  .main-header {
+    min-height: 58px;
+    flex-basis: 58px;
+    padding: 0 52px;
+  }
+
+  .history-tip {
+    width: calc(100% - 24px);
+    padding-top: 12px;
   }
 }

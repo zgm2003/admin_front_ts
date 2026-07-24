@@ -3,6 +3,7 @@ import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import AgentList from './components/AgentList/index.vue'
 import ConversationDrawer from './components/ConversationDrawer/index.vue'
+import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
 import MessageInput from './components/MessageInput/index.vue'
 import { useChatPage } from './use-chat-page'
@@ -23,8 +24,35 @@ const {
 
 <template>
   <div class="chat-container">
+    <aside
+      v-if="!isMobile"
+      class="consumer-sidebar"
+    >
+      <AgentList
+        compact
+        :agents="agents"
+        :loading="agentsLoading"
+        :selected-id="selectedAgentId"
+        @select="handleSelectAgent"
+      />
+      <ConversationList
+        :conversations="conversations"
+        :loading="conversationsLoading"
+        :loading-more="conversationsLoadingMore"
+        :has-more="conversationsHasMore"
+        :current-id="currentConversationId"
+        @select="selectConversation"
+        @create="handleCreateConversation"
+        @rename="handleRenameConversation"
+        @delete="handleDeleteConversation"
+        @load-more="loadMoreConversations"
+        @search="searchConversations"
+      />
+    </aside>
+
     <AgentList
-      v-show="!isMobile || !selectedAgentId"
+      v-else
+      v-show="!selectedAgentId"
       :agents="agents"
       :loading="agentsLoading"
       :selected-id="selectedAgentId"
@@ -161,7 +189,7 @@ const {
         :sending="sending"
         :disabled="!selectedAgentId"
         :is-streaming="isStreaming"
-        :show-history-btn="true"
+        :show-history-btn="isMobile"
         @send="handleSendMessage"
         @stop="handleStopGeneration"
         @open-history="handleOpenDrawer"
@@ -169,6 +197,7 @@ const {
     </section>
 
     <ConversationDrawer
+      v-if="isMobile"
       v-model:visible="showConversationDrawer"
       :conversations="conversations"
       :loading="conversationsLoading"

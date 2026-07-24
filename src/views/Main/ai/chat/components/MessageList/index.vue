@@ -154,13 +154,14 @@ function handleImageClick(message: Message, index: number) {
           <el-button
             text
             size="small"
+            class="copy-button"
+            :title="t('aiChat.copyMessage')"
             :aria-label="t('aiChat.copyMessage')"
             @click="emit('copy', message)"
           >
             <el-icon :size="15">
               <CopyDocument />
             </el-icon>
-            {{ t('aiChat.copyMessage') }}
           </el-button>
         </div>
       </article>
@@ -176,9 +177,9 @@ function handleImageClick(message: Message, index: number) {
 
 <style scoped>
 .message-list {
-  width: min(860px, calc(100% - 32px));
+  width: min(var(--chat-content-width, 900px), calc(100% - 40px));
   margin: 0 auto;
-  padding: 24px 0 40px;
+  padding: 36px 0 30px;
 }
 
 .state-tip {
@@ -194,7 +195,7 @@ function handleImageClick(message: Message, index: number) {
 .message-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
   margin-bottom: 22px;
 }
 
@@ -207,17 +208,17 @@ function handleImageClick(message: Message, index: number) {
 }
 
 .message-card {
-  max-width: min(720px, 100%);
-  padding: 12px 14px;
-  border-radius: 14px;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
+  max-width: 100%;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .message-attachments {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-width: min(720px, 100%);
+  max-width: 72%;
 }
 
 .user-row .message-attachments {
@@ -225,9 +226,9 @@ function handleImageClick(message: Message, index: number) {
 }
 
 .attachment-image {
-  width: 144px;
-  height: 108px;
-  border-radius: 10px;
+  width: 132px;
+  height: 100px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: zoom-in;
   border: 1px solid var(--el-border-color-lighter);
@@ -235,8 +236,8 @@ function handleImageClick(message: Message, index: number) {
 }
 
 .attachment-placeholder {
-  width: 144px;
-  height: 108px;
+  width: 132px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,35 +247,73 @@ function handleImageClick(message: Message, index: number) {
 }
 
 .user-row .message-card {
-  color: #fff;
-  background: var(--el-color-primary);
-  border-bottom-right-radius: 4px;
+  max-width: 72%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-light);
 }
 
 .assistant-row .message-card {
+  max-width: 100%;
+  padding: 2px 0;
   color: var(--el-text-color-primary);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-bottom-left-radius: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .message-content {
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
   word-break: break-word;
 }
 
-.user-row .message-content :deep(*) {
-  color: inherit;
+.message-content :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.message-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.user-row .message-content {
+  line-height: 1.6;
 }
 
 .message-actions {
   display: flex;
   justify-content: flex-start;
-  min-height: 24px;
+  min-height: 28px;
+  margin-top: 2px;
+  opacity: 0;
+  transition: opacity 140ms ease;
 }
 
 .user-row .message-actions {
   justify-content: flex-end;
+}
+
+.message-row:hover .message-actions,
+.message-row:focus-within .message-actions {
+  opacity: 1;
+}
+
+.copy-button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 6px;
+  color: var(--el-text-color-secondary);
+}
+
+.copy-button:hover,
+.copy-button:focus-visible {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 .empty-content {
@@ -308,5 +347,41 @@ function handleImageClick(message: Message, index: number) {
 @keyframes typing {
   0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
   40% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (hover: none) {
+  .message-actions {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-actions {
+    transition: none;
+  }
+
+  .typing-dots span {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-list {
+    width: calc(100% - 24px);
+    padding: 20px 0 24px;
+  }
+
+  .message-card,
+  .message-attachments {
+    max-width: 88%;
+  }
+
+  .assistant-row .message-card {
+    max-width: 100%;
+  }
+
+  .message-row {
+    margin-bottom: 14px;
+  }
 }
 </style>

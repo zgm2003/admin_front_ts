@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue'
+import { computed, onUnmounted, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChatDotRound, Delete, Loading, Plus } from '@element-plus/icons-vue'
+import { ChatDotRound, Delete, Edit, Loading, MoreFilled, Plus, Search } from '@element-plus/icons-vue'
 import { groupByTimeRange } from '@/utils/date'
 import type { Conversation } from '../../composables/types'
 
@@ -12,6 +12,8 @@ interface ScrollWrapRef {
 }
 
 const scrollbarRef = shallowRef<ScrollWrapRef | null>(null)
+const searchInput = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const props = defineProps<{
   conversations: Conversation[]
@@ -24,8 +26,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [conversation: Conversation]
   create: []
+  rename: [conversation: Conversation]
   delete: [conversation: Conversation]
   loadMore: []
+  search: [keyword: string]
 }>()
 
 const groupedConversations = computed(() => groupByTimeRange(
@@ -47,6 +51,15 @@ function handleScroll() {
   const distance = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight
   if (distance < 60) emit('loadMore')
 }
+
+function handleSearchInput(value: string) {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => emit('search', value.trim()), 300)
+}
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 </script>
 
 <template>
@@ -61,6 +74,15 @@ function handleScroll() {
         </el-icon>
         <span>{{ t('aiChat.newConversation') }}</span>
       </el-button>
+      <el-input
+        v-model="searchInput"
+        class="conversation-search"
+        :placeholder="t('aiChat.searchPlaceholder')"
+        :prefix-icon="Search"
+        clearable
+        @input="handleSearchInput"
+        @clear="emit('search', '')"
+      />
     </div>
 
     <el-scrollbar
@@ -101,33 +123,54 @@ function handleScroll() {
           <div class="group-label">
             {{ group.label }}
           </div>
-          <button
+          <div
             v-for="conversation in group.items"
             :key="conversation.id"
             class="conversation-item"
             :class="{ active: conversation.id === currentId }"
-            type="button"
-            @click="emit('select', conversation)"
           >
-            <el-icon
-              class="conversation-icon"
-              :size="16"
+            <button
+              type="button"
+              class="conversation-main"
+              @click="emit('select', conversation)"
             >
-              <ChatDotRound />
-            </el-icon>
-            <span class="conversation-title">{{ conversation.title || t('aiChat.untitled') }}</span>
-            <span class="conversation-time">{{ conversation.last_message_at || conversation.updated_at }}</span>
-            <el-button
-              text
-              size="small"
-              class="delete-btn"
-              @click.stop="emit('delete', conversation)"
-            >
-              <el-icon :size="15">
-                <Delete />
+              <el-icon
+                class="conversation-icon"
+                :size="16"
+              >
+                <ChatDotRound />
               </el-icon>
-            </el-button>
-          </button>
+              <span class="conversation-title">{{ conversation.title || t('aiChat.untitled') }}</span>
+            </button>
+            <el-dropdown
+              trigger="click"
+              @click.stop
+            >
+              <el-button
+                text
+                class="conversation-menu"
+                :title="t('common.actions.action')"
+                :aria-label="t('common.actions.action')"
+                @click.stop
+              >
+                <el-icon :size="16">
+                  <MoreFilled />
+                </el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="emit('rename', conversation)">
+                    <el-icon><Edit /></el-icon>
+                    {{ t('aiChat.rename') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="emit('delete', conversation)">
+                    <el-icon><Delete /></el-icon>
+                    {{ t('aiChat.delete') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </section>
 
         <div
@@ -155,28 +198,52 @@ function handleScroll() {
 
 <style scoped>
 .conversation-sidebar {
-  width: 280px;
-  min-width: 280px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color-lighter);
+  background: transparent;
 }
 
 .conversation-header {
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 10px 8px;
 }
 
 .new-chat-btn {
   width: 100%;
-  height: 42px;
-  border: 1px dashed var(--el-border-color);
-  border-radius: 10px;
-  background: transparent;
+  height: 40px;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.new-chat-btn:hover,
+.new-chat-btn:focus-visible {
+  border-color: var(--el-color-primary-light-6);
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.conversation-search :deep(.el-input__wrapper) {
+  min-height: 36px;
+  border-radius: 8px;
+  background: var(--el-bg-color);
+  box-shadow: 0 0 0 1px var(--el-border-color-lighter) inset;
 }
 
 .conversation-list {
   flex: 1;
+  min-height: 0;
   padding: 0 8px 12px;
 }
 
@@ -192,7 +259,7 @@ function handleScroll() {
 }
 
 .empty-tip {
-  min-height: 240px;
+  min-height: 180px;
   flex-direction: column;
   text-align: center;
 }
@@ -203,66 +270,107 @@ function handleScroll() {
 }
 
 .conversation-group {
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .group-label {
-  padding: 8px 10px 4px;
-  font-size: 12px;
+  padding: 8px 9px 4px;
   color: var(--el-text-color-placeholder);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .conversation-item {
   width: 100%;
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
-  gap: 2px 8px;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  padding: 9px 8px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
+  gap: 2px;
+  margin: 2px 0;
+  padding: 3px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   color: var(--el-text-color-primary);
-  text-align: left;
-  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
 }
 
-.conversation-item:hover,
-.conversation-item.active {
+.conversation-item:hover {
   background: var(--el-fill-color-light);
 }
 
 .conversation-item.active {
+  border-color: var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.conversation-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conversation-main:focus-visible {
+  outline: 3px solid var(--el-color-primary-light-8);
+  outline-offset: 0;
+}
+
+.conversation-item.active .conversation-icon {
   color: var(--el-color-primary);
 }
 
 .conversation-icon {
-  grid-row: 1 / span 2;
-}
-
-.conversation-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-}
-
-.conversation-time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
+  flex: 0 0 auto;
   color: var(--el-text-color-placeholder);
 }
 
-.delete-btn {
-  grid-row: 1 / span 2;
+.conversation-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-menu {
+  flex: 0 0 auto;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 6px;
   opacity: 0;
 }
 
-.conversation-item:hover .delete-btn {
+.conversation-item:hover .conversation-menu,
+.conversation-item:focus-within .conversation-menu,
+.conversation-item.active .conversation-menu {
   opacity: 1;
+}
+
+@media (hover: none) {
+  .conversation-menu {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversation-item {
+    transition: none;
+  }
 }
 
 @media (max-width: 768px) {

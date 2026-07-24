@@ -1,70 +1,49 @@
 .message-input {
-  border-top: 1px solid var(--el-border-color-lighter);
+  flex: 0 0 auto;
+  padding: 10px 24px 20px;
   background: var(--el-bg-color);
-  display: flex;
-  flex-direction: column;
 }
 
-.message-input.is-dragging {
+.composer-shell {
+  width: min(var(--chat-content-width, 900px), 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--el-color-primary-light-6);
+  border-radius: 8px;
+  background: var(--el-bg-color);
+  box-shadow: 0 10px 32px rgb(15 23 42 / 8%);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.message-input:focus-within .composer-shell {
+  border-color: var(--el-color-primary-light-3);
+  box-shadow: 0 0 0 3px var(--el-color-primary-light-9), 0 12px 32px rgb(15 23 42 / 10%);
+}
+
+.message-input.is-dragging .composer-shell {
   border-color: var(--el-color-primary);
   background: var(--el-color-primary-light-9);
+  box-shadow: 0 0 0 3px var(--el-color-primary-light-8);
 }
 
-/* 工具栏 */
-.input-toolbar {
-  display: flex;
-  align-items: center;
-  padding: 6px 12px 2px;
-}
-
-.toolbar-left {
-  display: flex;
-  gap: 2px;
-}
-
-.toolbar-btn {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  min-height: 44px;
-}
-
-/* 语音按钮录音态 */
-.voice-btn.is-recording {
-  color: #fff !important;
-  background: #07c160 !important;
-  animation: voice-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes voice-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7); }
-  50% { box-shadow: 0 0 0 10px rgba(7, 193, 96, 0); }
-}
-
-/* 待发送附件预览区 */
 .input-body {
-  padding: 0 12px;
+  padding: 13px 16px 3px;
 }
 
 .chat-textarea {
+  display: block;
   width: 100%;
-  border: none;
-  outline: none;
+  min-height: 54px;
+  max-height: 180px;
+  padding: 3px 2px 8px;
+  border: 0;
+  outline: 0;
   background: transparent;
-  resize: none;
-  font-size: 14px;
-  line-height: 1.6;
   color: var(--el-text-color-primary);
-  min-height: 24px;
-  max-height: 200px;
-  padding: 6px 4px;
   font-family: inherit;
-}
-
-.chat-textarea:focus-visible {
-  border-radius: 6px;
-  outline: 3px solid var(--shell-focus-ring);
-  outline-offset: 2px;
+  font-size: 14px;
+  line-height: 1.65;
+  resize: none;
 }
 
 .chat-textarea::placeholder {
@@ -75,81 +54,138 @@
   cursor: not-allowed;
 }
 
-/* 底部 */
 .input-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 12px 8px;
+  gap: 6px;
+  min-height: 48px;
+  padding: 4px 10px 10px;
 }
 
-.input-hint {
-  font-size: 12px;
-  color: var(--el-text-color-placeholder);
+.input-toolbar,
+.toolbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-left {
+  gap: 2px;
+}
+
+.toolbar-left :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.toolbar-btn {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  color: var(--el-text-color-secondary);
+}
+
+.toolbar-btn:hover,
+.toolbar-btn:focus-visible {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.input-status {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.voice-btn.is-recording {
+  color: #fff !important;
+  background: #16a46c !important;
+  animation: voice-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(22 164 108 / 45%); }
+  50% { box-shadow: 0 0 0 8px rgb(22 164 108 / 0%); }
 }
 
 .recording-status {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  overflow: hidden;
+  color: #16865c;
   font-size: 12px;
-  color: #07c160;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .recording-icon {
+  flex: 0 0 auto;
   animation: recording-blink 1s ease-in-out infinite;
 }
 
 @keyframes recording-blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.35; }
 }
 
-/* 停止按钮 */
+.send-button,
 .stop-button {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border: none;
+  flex: 0 0 auto;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
   border-radius: 8px;
-  background: var(--el-color-danger);
-  cursor: pointer;
+}
+
+.stop-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  border: 0;
+  background: var(--el-color-danger);
+  cursor: pointer;
+  transition: background 160ms ease, box-shadow 160ms ease;
 }
 
 .stop-button:hover {
   background: var(--el-color-danger-dark-2);
 }
 
+.stop-button:focus-visible {
+  outline: 3px solid var(--el-color-danger-light-7);
+  outline-offset: 2px;
+}
+
 .stop-icon {
   width: 10px;
   height: 10px;
-  background: #fff;
   border-radius: 2px;
+  background: #fff;
 }
 
-/* Emoji popover */
 :global(.emoji-popover) {
   padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
+  border: 0 !important;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 14%) !important;
 }
 
-/* 参数设置 */
 .params-active {
   color: var(--el-color-primary) !important;
+  background: var(--el-color-primary-light-9) !important;
 }
 
 .char-count {
-  font-size: 11px;
+  flex: 0 0 auto;
   color: var(--el-text-color-placeholder);
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
-  margin-left: auto;
-  margin-right: 8px;
-  flex-shrink: 0;
 }
 
 .char-count.near-limit {
@@ -157,26 +193,53 @@
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
-  .input-toolbar {
-    padding: 4px 8px 0;
+@media (prefers-reduced-motion: reduce) {
+  .composer-shell,
+  .stop-button {
+    transition: none;
   }
 
-  .toolbar-btn {
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
+  .voice-btn.is-recording,
+  .recording-icon {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-input {
+    padding: 8px 10px 12px;
   }
 
   .input-body {
-    padding: 0 8px;
+    padding: 9px 12px 2px;
+  }
+
+  .chat-textarea {
+    min-height: 44px;
+    max-height: 144px;
+    font-size: 14px;
   }
 
   .input-footer {
-    padding: 2px 8px 6px;
+    gap: 4px;
+    min-height: 52px;
+    padding: 4px 6px 6px;
   }
 
-  .input-hint {
-    font-size: 11px;
+  .toolbar-left {
+    gap: 0;
+  }
+
+  .toolbar-btn,
+  .send-button,
+  .stop-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .char-count {
+    display: none;
   }
 }

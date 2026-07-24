@@ -9,6 +9,7 @@ defineProps<{
   agents: Agent[]
   loading: boolean
   selectedId: number | null
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -21,7 +22,10 @@ const handleSelect = (agent: Agent) => {
 </script>
 
 <template>
-  <div class="agent-sidebar">
+  <div
+    class="agent-sidebar"
+    :class="{ compact }"
+  >
     <!-- 标题 -->
     <div class="sidebar-header">
       <h3 class="sidebar-title">
@@ -61,9 +65,10 @@ const handleSelect = (agent: Agent) => {
 
       <!-- 智能体列表 -->
       <template v-else>
-        <div
+        <button
           v-for="agent in agents"
           :key="agent.id"
+          type="button"
           class="agent-item"
           :class="{ active: agent.id === selectedId }"
           @click="handleSelect(agent)"
@@ -76,7 +81,7 @@ const handleSelect = (agent: Agent) => {
             {{ agent.name?.charAt(0) || '?' }}
           </el-avatar>
           <span class="agent-name">{{ agent.name }}</span>
-        </div>
+        </button>
       </template>
     </el-scrollbar>
   </div>
@@ -84,8 +89,8 @@ const handleSelect = (agent: Agent) => {
 
 <style scoped>
 .agent-sidebar {
-  width: 260px;
-  min-width: 260px;
+  width: 238px;
+  min-width: 238px;
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color);
@@ -93,20 +98,47 @@ const handleSelect = (agent: Agent) => {
 }
 
 .sidebar-header {
-  padding: 16px 16px 12px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
   border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.agent-sidebar.compact {
+  width: 100%;
+  min-width: 0;
+  max-height: 220px;
+  flex: 0 0 auto;
+  border-right: 0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: transparent;
+}
+
+.agent-sidebar.compact .sidebar-header {
+  min-height: 52px;
+  padding: 0 14px;
+}
+
+.agent-sidebar.compact .agent-list {
+  max-height: 168px;
+  padding: 4px 8px 10px;
+}
+
+.agent-sidebar.compact .agent-item {
+  padding: 8px 9px;
 }
 
 .sidebar-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 650;
   color: var(--el-text-color-primary);
 }
 
 .agent-list {
   flex: 1;
-  padding: 8px;
+  padding: 10px;
 }
 
 .loading-tip {
@@ -133,24 +165,34 @@ const handleSelect = (agent: Agent) => {
 }
 
 .agent-item {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  margin: 4px 0;
-  border-radius: 10px;
+  gap: 10px;
+  padding: 9px 10px;
+  margin: 2px 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
 }
 
 .agent-item:hover {
   background: var(--el-fill-color-light);
 }
 
+.agent-item:focus-visible {
+  outline: 3px solid var(--el-color-primary-light-8);
+  outline-offset: 1px;
+}
+
 .agent-item.active {
   background: var(--el-color-primary-light-9);
-  border-left: 3px solid var(--el-color-primary);
-  padding-left: 9px;
+  border-color: var(--el-color-primary-light-7);
 }
 
 .agent-item.active .agent-name {
@@ -160,6 +202,7 @@ const handleSelect = (agent: Agent) => {
 
 .agent-avatar {
   flex-shrink: 0;
+  border: 1px solid var(--el-border-color-lighter);
   background: var(--el-color-primary-light-7);
   color: var(--el-color-primary);
   font-weight: 600;
@@ -167,6 +210,7 @@ const handleSelect = (agent: Agent) => {
 
 .agent-item.active .agent-avatar {
   background: var(--el-color-primary);
+  border-color: var(--el-color-primary);
   color: #fff;
 }
 
@@ -182,5 +226,9 @@ const handleSelect = (agent: Agent) => {
 
 @media (max-width: 768px) {
   .agent-sidebar { width: 100%; min-width: 100%; }
+
+  .sidebar-header {
+    min-height: 58px;
+  }
 }
 </style>
