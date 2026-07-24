@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AppDialog } from '@/components/AppDialog'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
-import { useCrudTable } from '@/hooks/useCrudTable'
 import { useUserStore } from '@/store/user'
 import {
-  MailApi,
   type MailLogItem,
-  type MailLogListParams,
   type MailLogScene,
   type MailLogStatus,
 } from '@/api/system/mail'
-import { createDefaultMailDict, normalizeMailDict } from '../mailDict'
+import { useMailLogDiagnostics } from './use-mail-log-diagnostics'
 
 interface MailLogSearchForm {
   scene: MailLogScene | ''
@@ -25,23 +22,13 @@ interface MailLogSearchForm {
 
 const { t } = useI18n()
 const userStore = useUserStore()
-const detailLoading = shallowRef(false)
-const detailVisible = shallowRef(false)
-const detail = ref<MailLogItem | null>(null)
 const searchForm = ref<MailLogSearchForm>({
   scene: '',
   status: '',
   to_email: '',
   dateRange: [],
 })
-const dict = ref(createDefaultMailDict())
-
-const mailLogCrudApi = {
-  list: MailApi.logs,
-  deleteOne: MailApi.deleteLogs,
-  deleteBatch: ({ ids }: { ids: number[] }) => MailApi.deleteLogs({ id: ids }),
-}
-
+const canViewLogs = computed(() => userStore.can('system_mail_logView'))
 const canDelete = computed(() => userStore.can('system_mail_logDel'))
 const apiSearchForm = computed(() => {
   const [start, end] = searchForm.value.dateRange
@@ -63,21 +50,24 @@ const {
   onPageChange,
   onSelectionChange,
   onSearch,
-  refresh,
-  getList,
   batchDel,
   confirmDel,
-} = useCrudTable<MailLogItem, MailLogListParams>({
-  api: mailLogCrudApi,
+  dict,
+  detail,
+  detailLoading,
+  detailVisible,
+  isActive,
+  activate,
+  clearDetail,
+  clearDiagnostics,
+  openDetail,
+  refreshLogs,
+} = useMailLogDiagnostics({
+  canViewLogs,
   searchForm: apiSearchForm,
-  immediate: true,
 })
 
-async function refreshLogs() {
-  await getList()
-}
-
-defineExpose({ refreshLogs })
+defineExpose({ activate, clearDiagnostics, refreshLogs })
 
 const searchFields = computed<SearchField[]>(() => [
   {
@@ -116,6 +106,9 @@ const columns = computed(() => [
   { key: 'to_email', label: t('mail.log.toEmail'), minWidth: 210 },
   { key: 'subject', label: t('mail.log.subject'), minWidth: 180 },
   { key: 'status', label: t('mail.log.status'), width: 120, overflowTooltip: false },
+  { key: 'verification_code', label: t('mail.log.verificationCode'), width: 150 },
+  { key: 'verification_code_status', label: t('mail.log.verificationCodeStatus'), minWidth: 180 },
+  { key: 'verification_code_expires_at', label: t('mail.log.verificationCodeExpiry'), width: 180 },
   { key: 'error_code', label: t('mail.log.errorCode'), minWidth: 180 },
   { key: 'duration_ms', label: t('mail.log.duration'), width: 120 },
   { key: 'created_at', label: t('mail.log.createdAt'), width: 180 },
@@ -140,24 +133,24 @@ function statusType(status: MailLogStatus) {
   return 'warning'
 }
 
-async function loadDict() {
-  const initData = await MailApi.pageInit()
-  dict.value = normalizeMailDict(initData.dict)
+function diagnosticStatusLabel(status: MailLogItem['verification_code_status']) {
+  if (status === null) return '-'
+  return dict.value.mail_verification_code_status_arr.find((item) => item.value === status)?.label ?? '-'
 }
 
-async function openDetail(row: MailLogItem) {
-  detailVisible.value = true
-  detailLoading.value = true
-  try {
-    detail.value = await MailApi.log(row.id)
-  } finally {
-    detailLoading.value = false
-  }
+async function searchLogs() {
+  if (!isActive()) return
+  await onSearch()
 }
 
-onMounted(() => {
-  void loadDict()
-})
+async function changePage(nextPage: Parameters<typeof onPageChange>[0]) {
+  if (!isActive()) return
+  await onPageChange(nextPage)
+}
+
+function clearClosedDetail(visible: boolean) {
+  if (!visible) clearDetail()
+}
 </script>
 
 <template>
@@ -166,8 +159,8 @@ onMounted(() => {
       v-model="searchForm"
       :fields="searchFields"
       :collapse-count="3"
-      @query="onSearch"
-      @reset="onSearch"
+      @query="searchLogs"
+      @reset="searchLogs"
     >
       <template #dateRange="{ form }">
         <el-date-picker
@@ -189,8 +182,8 @@ onMounted(() => {
         row-key="id"
         selectable
         @selection-change="onSelectionChange"
-        @update:pagination="onPageChange"
-        @refresh="refresh"
+        @update:pagination="changePage"
+        @refresh="refreshLogs"
       >
         <template #toolbar-left>
           <el-button
@@ -213,8 +206,21 @@ onMounted(() => {
           </el-tag>
         </template>
 
+        <template #cell-verification_code="{ row }">
+          <span data-testid="diagnostic-code">{{ row.verification_code ?? '-' }}</span>
+        </template>
+
+        <template #cell-verification_code_status="{ row }">
+          <span data-testid="diagnostic-status">{{ diagnosticStatusLabel(row.verification_code_status) }}</span>
+        </template>
+
+        <template #cell-verification_code_expires_at="{ row }">
+          <span data-testid="diagnostic-expiry">{{ row.verification_code_expires_at ?? '-' }}</span>
+        </template>
+
         <template #cell-actions="{ row }">
           <el-button
+            data-testid="view-mail-log-detail"
             type="primary"
             text
             @click="openDetail(row)"
@@ -237,6 +243,8 @@ onMounted(() => {
       v-model="detailVisible"
       :title="t('mail.log.detailTitle')"
       width="760px"
+      @update:model-value="clearClosedDetail"
+      @closed="clearDetail"
     >
       <el-skeleton
         v-if="detailLoading"
@@ -264,6 +272,15 @@ onMounted(() => {
             <el-tag :type="statusType(detail.status)">
               {{ statusLabel(detail.status) }}
             </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.verificationCode')">
+            <span data-testid="detail-diagnostic-code">{{ detail.verification_code ?? '-' }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.verificationCodeStatus')">
+            <span data-testid="detail-diagnostic-status">{{ diagnosticStatusLabel(detail.verification_code_status) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('mail.log.verificationCodeExpiry')">
+            <span data-testid="detail-diagnostic-expiry">{{ detail.verification_code_expires_at ?? '-' }}</span>
           </el-descriptions-item>
           <el-descriptions-item :label="t('mail.log.duration')">
             {{ detail.duration_ms }}

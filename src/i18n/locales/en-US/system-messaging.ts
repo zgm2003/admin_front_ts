@@ -170,6 +170,9 @@ export default {
         status: 'Status',
         toEmail: 'Recipient',
         subject: 'Subject',
+        verificationCode: 'Verification Code',
+        verificationCodeStatus: 'Verification Code Status',
+        verificationCodeExpiry: 'Verification Code Expiry',
         createdAt: 'Created At',
         startTime: 'Start Time',
         endTime: 'End Time',
@@ -183,7 +186,7 @@ export default {
         templateTitle: 'Send Template Context',
         templateScene: 'Template Scene',
         templateName: 'Template Name',
-        securityNotice: 'This system records only Tencent template ID, variable names, and delivery result. Mail body is maintained in Tencent Cloud, and plaintext verification codes or full TemplateData are not stored.'
+        securityNotice: 'An encrypted diagnostic snapshot is retained. Only authorized administrators can view plaintext. Mail bodies and full TemplateData are not stored.'
       }
     }
 }

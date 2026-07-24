@@ -170,6 +170,9 @@ export default {
         status: '状态',
         toEmail: '收件邮箱',
         subject: '邮件主题',
+        verificationCode: '验证码明文',
+        verificationCodeStatus: '验证码状态',
+        verificationCodeExpiry: '验证码过期时间',
         createdAt: '创建时间',
         startTime: '开始时间',
         endTime: '结束时间',
@@ -183,7 +186,7 @@ export default {
         templateTitle: '发送模板上下文',
         templateScene: '模板场景',
         templateName: '模板名称',
-        securityNotice: '本系统只记录腾讯模板 ID、变量名和发送结果；邮件正文在腾讯云模板里维护，验证码明文和完整 TemplateData 不入库。'
+        securityNotice: '系统保留加密的诊断快照；仅获授权的管理员可查看明文；邮件正文和完整 TemplateData 不会存储。'
       }
     }
 }

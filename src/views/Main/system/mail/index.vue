@@ -1,19 +1,33 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, shallowRef } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  shallowRef,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { useUserStore } from '@/store/user'
 
 type MailTab = 'config' | 'template' | 'log'
 
 interface MailLogPanelExpose {
-  refreshLogs: () => Promise<void>
+  activate(): Promise<void>
+  clearDiagnostics(): void
+  refreshLogs(): Promise<void>
 }
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
+const userStore = useUserStore()
 const activeTab = shallowRef<MailTab>('config')
 const mailLogPanelRef = shallowRef<MailLogPanelExpose | null>(null)
 const hasActivatedLogTab = shallowRef(false)
+const canViewLogs = computed(() => userStore.can('system_mail_logView'))
 
 const MailConfigPanel = defineAsyncComponent(() => import('./components/MailConfigPanel.vue'))
 const MailTemplatePanel = defineAsyncComponent(() => import('./components/MailTemplatePanel.vue'))
@@ -21,15 +35,41 @@ const MailLogPanel = defineAsyncComponent(() => import('./components/MailLogPane
 
 async function handleTabChange(name: string | number) {
   if (name !== 'log') {
+    mailLogPanelRef.value?.clearDiagnostics()
     return
   }
-  if (!hasActivatedLogTab.value) {
-    hasActivatedLogTab.value = true
+  if (!canViewLogs.value) {
+    activeTab.value = 'config'
     return
   }
+  hasActivatedLogTab.value = true
   await nextTick()
-  await mailLogPanelRef.value?.refreshLogs()
+  await mailLogPanelRef.value?.activate()
 }
+
+function clearDiagnostics() {
+  mailLogPanelRef.value?.clearDiagnostics()
+}
+
+watch(canViewLogs, (allowed) => {
+  if (allowed) return
+  clearDiagnostics()
+  if (activeTab.value === 'log') activeTab.value = 'config'
+  hasActivatedLogTab.value = false
+}, { flush: 'sync' })
+
+watch(mailLogPanelRef, (panel) => {
+  if (!panel || activeTab.value !== 'log' || !canViewLogs.value) return
+  void panel.activate()
+}, { flush: 'post' })
+
+onActivated(() => {
+  if (activeTab.value !== 'log' || !canViewLogs.value) return
+  hasActivatedLogTab.value = true
+  void nextTick().then(() => mailLogPanelRef.value?.activate())
+})
+onDeactivated(clearDiagnostics)
+onBeforeUnmount(clearDiagnostics)
 </script>
 
 <template>
@@ -41,6 +81,7 @@ async function handleTabChange(name: string | number) {
       @tab-change="handleTabChange"
     >
       <el-tab-pane
+        data-testid="mail-tab-config"
         :label="t('mail.tabs.config')"
         name="config"
         lazy
@@ -48,6 +89,7 @@ async function handleTabChange(name: string | number) {
         <MailConfigPanel />
       </el-tab-pane>
       <el-tab-pane
+        data-testid="mail-tab-template"
         :label="t('mail.tabs.template')"
         name="template"
         lazy
@@ -55,11 +97,16 @@ async function handleTabChange(name: string | number) {
         <MailTemplatePanel />
       </el-tab-pane>
       <el-tab-pane
+        v-if="canViewLogs"
+        data-testid="mail-tab-log"
         :label="t('mail.tabs.log')"
         name="log"
         lazy
       >
-        <MailLogPanel ref="mailLogPanelRef" />
+        <MailLogPanel
+          v-if="hasActivatedLogTab"
+          ref="mailLogPanelRef"
+        />
       </el-tab-pane>
     </el-tabs>
   </div>
