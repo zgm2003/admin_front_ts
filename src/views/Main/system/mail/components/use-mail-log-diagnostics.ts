@@ -35,6 +35,20 @@ export function useMailLogDiagnostics(options: {
       && error.name === 'AbortError'
   }
 
+  function linkAbortSignals(...signals: AbortSignal[]) {
+    const controller = new AbortController()
+    const listeners = signals.map((source) => {
+      const abort = () => controller.abort(source.reason)
+      if (source.aborted) abort()
+      else source.addEventListener('abort', abort, { once: true })
+      return { source, abort }
+    })
+    return {
+      signal: controller.signal,
+      cleanup: () => listeners.forEach(({ source, abort }) => source.removeEventListener('abort', abort)),
+    }
+  }
+
   const table = useCrudTable<MailLogItem, MailLogListParams>({
     api: {
       async list(params, requestOptions) {
@@ -42,17 +56,22 @@ export function useMailLogDiagnostics(options: {
           throw new DOMException('Mail diagnostics are inactive', 'AbortError')
         }
         const requestGeneration = generation
-        const signal = activationController
-          ? AbortSignal.any([requestOptions.signal, activationController.signal])
-          : requestOptions.signal
-        const result = await MailApi.logs(params, { signal })
-        if (!isCurrent(requestGeneration) || signal.aborted) {
-          throw new DOMException('Mail diagnostics request is stale', 'AbortError')
+        const linked = activationController
+          ? linkAbortSignals(requestOptions.signal, activationController.signal)
+          : null
+        const signal = linked?.signal ?? requestOptions.signal
+        try {
+          const result = await MailApi.logs(params, { signal })
+          if (!isCurrent(requestGeneration) || signal.aborted) {
+            throw new DOMException('Mail diagnostics request is stale', 'AbortError')
+          }
+          return result
+        } finally {
+          linked?.cleanup()
         }
-        return result
       },
       deleteOne: MailApi.deleteLogs,
-      deleteBatch: ({ ids }: { ids: number[] }) => MailApi.deleteLogs({ id: ids }),
+      deleteBatch: ({ ids }: { ids: number[] }, requestOptions) => MailApi.deleteLogs({ id: ids }, requestOptions),
     },
     searchForm: options.searchForm,
     immediate: false,
@@ -73,6 +92,7 @@ export function useMailLogDiagnostics(options: {
     activationController = null
     activationPromise = null
     clearDetail()
+    table.cancelMutations()
     table.reset()
     table.page.value = { current_page: 1, page_size: 20, total: 0 }
     table.selectedIds.value = []

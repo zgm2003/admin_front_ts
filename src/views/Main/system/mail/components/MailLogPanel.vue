@@ -5,6 +5,7 @@ import { AppDialog } from '@/components/AppDialog'
 import { Search } from '@/components/Search'
 import type { SearchField } from '@/components/Search/types'
 import { AppTable } from '@/components/Table'
+import { isApiError } from '@/modules/http/error'
 import { useUserStore } from '@/store/user'
 import {
   type MailLogItem,
@@ -119,28 +120,27 @@ const sceneLabel = (scene: MailLogScene) => dict.value.mail_log_scene_arr.find((
 const statusLabel = (status: MailLogStatus) => dict.value.mail_log_status_arr.find((item) => item.value === status)?.label || String(status)
 
 function statusType(status: MailLogStatus) {
-  if (status === 2) return 'success'
-  if (status === 3) return 'danger'
-  return 'warning'
+  return status === 2 ? 'success' : status === 3 ? 'danger' : 'warning'
 }
 
-function diagnosticStatusLabel(status: MailLogItem['verification_code_status']) {
-  return status === null ? '-' : dict.value.mail_verification_code_status_arr.find((item) => item.value === status)?.label ?? '-'
+function diagnosticStatusLabel(status: MailLogItem['verification_code_status']) { return status === null ? '-' : dict.value.mail_verification_code_status_arr.find((item) => item.value === status)?.label ?? '-' }
+
+const isCanceled = (error: unknown) => isApiError(error) && error.kind === 'canceled'
+async function runQuery(task: () => Promise<unknown>) {
+  try { await task() } catch (error) { if (!isCanceled(error)) throw error }
 }
 
 async function searchLogs() {
   if (!isActive()) return
-  await onSearch()
+  await runQuery(onSearch)
 }
 
 async function changePage(nextPage: Parameters<typeof onPageChange>[0]) {
   if (!isActive()) return
-  await onPageChange(nextPage)
+  await runQuery(() => onPageChange(nextPage))
 }
 
-function clearClosedDetail(visible: boolean) {
-  if (!visible) clearDetail()
-}
+function clearClosedDetail(visible: boolean) { if (!visible) clearDetail() }
 </script>
 
 <template>
@@ -179,6 +179,7 @@ function clearClosedDetail(visible: boolean) {
           <el-button
             v-if="canDelete"
             type="danger"
+            data-testid="batch-delete-mail-logs"
             :disabled="selectedIds.length === 0"
             @click="batchDel"
           >

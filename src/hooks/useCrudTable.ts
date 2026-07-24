@@ -1,6 +1,7 @@
 import { getCurrentScope, onScopeDispose } from 'vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import i18n from '@/i18n'
+import { isApiError } from '@/modules/http/error'
 import { useTable, type PaginationParams, type TableApiModule, type UseTableOptions } from '@/components/Table/src/useTable'
 import { createMutation, type MutationExecutionOptions } from '@/modules/resource-query/mutation'
 import type { Id, Identifiable } from '@/types/common'
@@ -85,7 +86,13 @@ export function useCrudTable<
     }
     const input = { id: row.id }
     const duplicate = deleteOneMutation.isPending(input)
-    const result = await deleteOneMutation.mutate(input)
+    let result
+    try {
+      result = await deleteOneMutation.mutate(input)
+    } catch (error) {
+      if (isApiError(error) && error.kind === 'canceled') return
+      throw error
+    }
     if (duplicate || result.kind === 'canceled') return
     ElNotification.success({ message: t('common.success.operation') })
     afterDel?.()
@@ -102,7 +109,13 @@ export function useCrudTable<
     }
     const input = { ids: [...table.selectedIds.value] }
     const duplicate = deleteBatchMutation.isPending(input)
-    const result = await deleteBatchMutation.mutate(input)
+    let result
+    try {
+      result = await deleteBatchMutation.mutate(input)
+    } catch (error) {
+      if (isApiError(error) && error.kind === 'canceled') return
+      throw error
+    }
     if (duplicate || result.kind === 'canceled') return
     table.clearSelection()
     ElNotification.success({ message: t('common.success.operation') })
@@ -116,7 +129,13 @@ export function useCrudTable<
     }
     const input = { id: row.id, status: newStatus }
     const duplicate = statusMutation.isPending(input)
-    const result = await statusMutation.mutate(input)
+    let result
+    try {
+      result = await statusMutation.mutate(input)
+    } catch (error) {
+      if (isApiError(error) && error.kind === 'canceled') return
+      throw error
+    }
     if (duplicate || result.kind === 'canceled') return
     ElNotification.success({ message: t('common.success.operation') })
   }
@@ -127,6 +146,11 @@ export function useCrudTable<
     statusMutation?.dispose()
     table.dispose()
   }
+  function cancelMutations() {
+    deleteOneMutation?.cancel()
+    deleteBatchMutation?.cancel()
+    statusMutation?.cancel()
+  }
   if (getCurrentScope()) onScopeDispose(dispose)
 
   return {
@@ -135,6 +159,7 @@ export function useCrudTable<
     confirmDel,
     batchDel,
     toggleStatus,
+    cancelMutations,
     dispose,
   }
 }

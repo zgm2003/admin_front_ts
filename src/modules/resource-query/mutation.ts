@@ -21,6 +21,7 @@ export type MutationResult<TOutput> =
 export interface Mutation<TInput, TOutput> {
   mutate(input: TInput): Promise<MutationResult<TOutput>>
   isPending(input: TInput): boolean
+  cancel(): void
   dispose(): void
 }
 
@@ -62,6 +63,7 @@ function invalidConfiguration(code: string, message: string): ApiError {
 class MutationController<TInput, TOutput> implements Mutation<TInput, TOutput> {
   private readonly spec: MutationSpec<TInput, TOutput>
   private readonly pending = new Map<string, PendingMutation<TOutput>>()
+  private readonly canceled = new WeakSet<AbortController>()
   private disposed = false
 
   constructor(spec: MutationSpec<TInput, TOutput>) {
@@ -93,6 +95,14 @@ class MutationController<TInput, TOutput> implements Mutation<TInput, TOutput> {
     return this.pending.has(this.mutationKey(input))
   }
 
+  cancel(): void {
+    for (const pending of this.pending.values()) {
+      this.canceled.add(pending.controller)
+      pending.controller.abort(new DOMException('Mutation canceled', 'AbortError'))
+    }
+    this.pending.clear()
+  }
+
   dispose(): void {
     if (this.disposed) return
     this.disposed = true
@@ -118,6 +128,7 @@ class MutationController<TInput, TOutput> implements Mutation<TInput, TOutput> {
       await Promise.all(this.spec.invalidate.map((query) => query.refresh()))
       return { kind: 'success', data }
     } catch (error) {
+      if (this.canceled.has(controller)) return { kind: 'canceled' }
       throw mutationError(error, controller.signal)
     }
   }

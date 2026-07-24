@@ -38,8 +38,10 @@ vi.mock('@/components/Search', () => ({
 vi.mock('@/components/Table', () => ({
   AppTable: {
     name: 'AppTable',
+    emits: ['selection-change', 'update:pagination', 'refresh'],
     props: { columns: { type: Array, default: () => [] }, data: { type: Array, default: () => [] } },
     template: `<section data-testid="mail-log-table">
+      <slot name="toolbar-left" />
       <span v-for="column in columns" :key="column.key" data-testid="column-label">{{ column.label }}</span>
       <article v-for="row in data" :key="row.id" data-testid="log-row">
         <slot name="cell-status" :row="row" />
@@ -48,6 +50,7 @@ vi.mock('@/components/Table', () => ({
         <slot name="cell-verification_code_expires_at" :row="row" />
         <slot name="cell-actions" :row="row" />
       </article>
+      <button data-testid="mail-page-change" @click="$emit('update:pagination', { current_page: 1, page_size: 20, total: 0 })">page</button>
     </section>`,
   },
 }))
@@ -61,6 +64,10 @@ vi.mock('@/components/AppDialog', () => ({
       <slot />
     </section>`,
   },
+}))
+vi.mock('element-plus', () => ({
+  ElMessageBox: { confirm: vi.fn(async () => true) },
+  ElNotification: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }))
 
 type SwitchTab = (name: string | number) => void
@@ -240,6 +247,53 @@ describe('secure mail diagnostics lifecycle', () => {
     await expect(canceledActivation).resolves.toBeUndefined()
   })
 
+  it('silences canceled search and page requests after clear but propagates typed search errors', async () => {
+    permit(true)
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(1)]))
+    const wrapper = mountPage()
+    await activate(wrapper)
+    const search = wrapper.findComponent({ name: 'Search' })
+    const queryHandler = search.vm.$.vnode.props?.onQuery as () => Promise<void>
+    const pendingSearch = deferred<ReturnType<typeof list>>()
+    api.logs.mockReturnValueOnce(pendingSearch.promise)
+    const searchPromise = queryHandler()
+    exposed(wrapper).clearDiagnostics()
+    pendingSearch.resolve(list([]))
+    await expect(searchPromise).resolves.toBeUndefined()
+
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(1)]))
+    await exposed(wrapper).activate()
+    const pageHandler = wrapper.findComponent({ name: 'AppTable' }).vm.$.vnode.props?.['onUpdate:pagination'] as (page: unknown) => Promise<void>
+    const pendingPage = deferred<ReturnType<typeof list>>()
+    api.logs.mockReturnValueOnce(pendingPage.promise)
+    const pagePromise = pageHandler({ current_page: 1, page_size: 20, total: 1 })
+    exposed(wrapper).clearDiagnostics()
+    pendingPage.resolve(list([]))
+    await expect(pagePromise).resolves.toBeUndefined()
+
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(1)]))
+    await exposed(wrapper).activate()
+    const failure = createApiError({ kind: 'authorization', retryable: false, messageKey: 'http.forbidden' })
+    api.logs.mockRejectedValueOnce(failure)
+    await expect(queryHandler()).rejects.toBe(failure)
+  })
+
+  it('does not require AbortSignal.any for activation request linking', async () => {
+    permit(true)
+    const any = vi.spyOn(AbortSignal, 'any').mockImplementation(() => {
+      throw new TypeError('AbortSignal.any unavailable')
+    })
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValue(list([log(1)]))
+    const wrapper = mount(MailLogPanel, { global: globals })
+    await expect((wrapper.vm as unknown as { activate(): Promise<void> }).activate()).resolves.toBeUndefined()
+    expect(any).not.toHaveBeenCalled()
+    any.mockRestore()
+  })
+
   it('synchronously clears and unmounts on permission loss and ignores late activation responses', async () => {
     const store = permit(true)
     const init = deferred<ReturnType<typeof pageInit>>()
@@ -302,6 +356,35 @@ describe('secure mail diagnostics lifecycle', () => {
     await expect(listPromise).resolves.toBeUndefined()
     await nextTick()
     expect(panel(wrapper).exists()).toBe(false)
+  })
+
+  it('cancels pending delete mutation without refreshing after clear and allows reactivation', async () => {
+    const store = permit(true)
+    store.buttonCodes.add('system_mail_logDel')
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(1)]))
+    const pendingDelete = deferred<void>()
+    api.deleteLogs.mockReturnValueOnce(pendingDelete.promise)
+    const wrapper = mountPage()
+    await activate(wrapper)
+    const table = wrapper.findComponent({ name: 'AppTable' })
+    table.vm.$.vnode.props?.onSelectionChange?.([log(1)])
+    await nextTick()
+    const deleteButton = wrapper.get('[data-testid="batch-delete-mail-logs"]')
+    const deletePromise = deleteButton.trigger('click')
+    await flushPromises()
+    const deleteSignal = api.deleteLogs.mock.calls[0]?.[1]?.signal as AbortSignal
+    expect(deleteSignal.aborted).toBe(false)
+    await wrapper.get('[data-testid="mail-tab-config"]').trigger('click')
+    expect(deleteSignal.aborted).toBe(true)
+    pendingDelete.resolve()
+    await deletePromise
+    expect(api.logs).toHaveBeenCalledTimes(1)
+
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValueOnce(list([log(2)]))
+    await activate(wrapper)
+    expect(api.logs).toHaveBeenCalledTimes(2)
   })
 
   it('rejects late list and detail commits and aborts superseded detail requests', async () => {
@@ -417,6 +500,40 @@ describe('secure mail diagnostics lifecycle', () => {
     const activeSignal = api.logs.mock.calls[1]?.[1]?.signal as AbortSignal
     wrapper.unmount()
     expect(activeSignal.aborted).toBe(true)
+  })
+
+  it('reports dropped activation failures and silences dropped cancellation', async () => {
+    permit(true)
+    const report = vi.fn()
+    vi.stubGlobal('reportError', report)
+    const Harness = defineComponent({
+      components: { MailPage },
+      setup() { return { show: ref(true) } },
+      template: '<KeepAlive><MailPage v-if="show" /></KeepAlive>',
+    })
+    const wrapper = mount(Harness, { global: globals })
+    api.pageInit.mockResolvedValue(pageInit())
+    api.logs.mockResolvedValue(list([log(1)]))
+    await activate(wrapper)
+    ;(wrapper.vm as unknown as { show: boolean }).show = false
+    await nextTick()
+
+    const failure = createApiError({ kind: 'authorization', retryable: false, messageKey: 'http.forbidden' })
+    api.pageInit.mockRejectedValueOnce(failure)
+    ;(wrapper.vm as unknown as { show: boolean }).show = true
+    await flushPromises()
+    expect(report).toHaveBeenCalledWith(failure)
+
+    report.mockClear()
+    ;(wrapper.vm as unknown as { show: boolean }).show = false
+    await nextTick()
+    const canceled = createApiError({ kind: 'canceled', retryable: false, messageKey: 'http.canceled' })
+    api.pageInit.mockRejectedValueOnce(canceled)
+    ;(wrapper.vm as unknown as { show: boolean }).show = true
+    await flushPromises()
+    expect(report).not.toHaveBeenCalled()
+    wrapper.unmount()
+    vi.unstubAllGlobals()
   })
 
   it('renders identical delivery and diagnostic values for every list row and detail', async () => {

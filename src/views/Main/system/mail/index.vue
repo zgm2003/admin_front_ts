@@ -11,6 +11,7 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { isApiError } from '@/modules/http/error'
 import { useUserStore } from '@/store/user'
 
 type MailTab = 'config' | 'template' | 'log'
@@ -28,6 +29,17 @@ const activeTab = shallowRef<MailTab>('config')
 const mailLogPanelRef = shallowRef<MailLogPanelExpose | null>(null)
 const hasActivatedLogTab = shallowRef(false)
 const canViewLogs = computed(() => userStore.can('system_mail_logView'))
+
+function reportActivationError(error: unknown) {
+  if (isApiError(error) && error.kind === 'canceled') return
+  const report = (globalThis as typeof globalThis & { reportError?: (error: unknown) => void }).reportError
+  if (typeof report === 'function') report(error)
+  else console.error(error)
+}
+
+function activatePanel(panel: MailLogPanelExpose) {
+  void panel.activate().catch(reportActivationError)
+}
 
 const MailConfigPanel = defineAsyncComponent(() => import('./components/MailConfigPanel.vue'))
 const MailTemplatePanel = defineAsyncComponent(() => import('./components/MailTemplatePanel.vue'))
@@ -60,13 +72,16 @@ watch(canViewLogs, (allowed) => {
 
 watch(mailLogPanelRef, (panel) => {
   if (!panel || activeTab.value !== 'log' || !canViewLogs.value) return
-  void panel.activate()
+  activatePanel(panel)
 }, { flush: 'post' })
 
 onActivated(() => {
   if (activeTab.value !== 'log' || !canViewLogs.value) return
   hasActivatedLogTab.value = true
-  void nextTick().then(() => mailLogPanelRef.value?.activate())
+  void nextTick().then(() => {
+    const panel = mailLogPanelRef.value
+    if (panel) activatePanel(panel)
+  }).catch(reportActivationError)
 })
 onDeactivated(clearDiagnostics)
 onBeforeUnmount(clearDiagnostics)

@@ -125,4 +125,26 @@ describe('Mutation', () => {
     await expect(flight).rejects.toMatchObject({ kind: 'canceled', code: 'http.canceled' })
     await expect(mutation.mutate({ id: 2 })).rejects.toThrow(/disposed/i)
   })
+
+  it('cancels pending work without disposing the mutation', async () => {
+    const pending = deferred<string>()
+    const execute = vi.fn((_input, options: { signal: AbortSignal }) => new Promise<string>((resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true })
+      pending.promise.then(resolve, reject)
+    }))
+    const mutation = createMutation({
+      key: (input: { id: number }) => `save:${input.id}`,
+      execute,
+      invalidate: [],
+    })
+
+    const flight = mutation.mutate({ id: 1 })
+    const signal = execute.mock.calls[0]?.[1]?.signal
+    mutation.cancel()
+    expect(signal?.aborted).toBe(true)
+    await expect(flight).resolves.toEqual({ kind: 'canceled' })
+
+    execute.mockResolvedValueOnce('ok')
+    await expect(mutation.mutate({ id: 2 })).resolves.toEqual({ kind: 'success', data: 'ok' })
+  })
 })
