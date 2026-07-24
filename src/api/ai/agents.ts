@@ -8,7 +8,7 @@ import {
 import type { DictOption, Id, RequestPayload } from '@/types/common'
 import type { AiProviderDriver, AiProviderModelItem } from './providers'
 
-export type AiAgentScene = 'chat' | 'agent_generate' | 'canvas_text_generate' | 'canvas_image_generate' | 'canvas_video_generate' | 'canvas_audio_generate'
+export type AiAgentScene = 'chat' | 'agent_generate' | 'text_generate' | 'image_generate' | 'video_generate' | 'audio_generate'
 export type AiAgentStatus = 1 | 2
 
 export interface AiAgentProviderModelOption extends DictOption<string> {
@@ -233,10 +233,10 @@ async function listOptions(options: ExecuteOptions = {}): Promise<AiAgentOptions
 function isAgentScene(value: string): value is AiAgentScene {
   return value === 'chat'
     || value === 'agent_generate'
-    || value === 'canvas_text_generate'
-    || value === 'canvas_image_generate'
-    || value === 'canvas_video_generate'
-    || value === 'canvas_audio_generate'
+    || value === 'text_generate'
+    || value === 'image_generate'
+    || value === 'video_generate'
+    || value === 'audio_generate'
 }
 
 function isAgentStatus(value: number): value is AiAgentStatus {

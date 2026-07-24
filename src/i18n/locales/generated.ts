@@ -26,7 +26,7 @@ export const localeKeys = [
   'aiAgents.form.model', 'aiAgents.form.name', 'aiAgents.form.provider', 'aiAgents.form.scenes', 'aiAgents.form.status', 'aiAgents.form.systemPrompt',
   'aiAgents.knowledge.addBinding', 'aiAgents.knowledge.agent', 'aiAgents.knowledge.base', 'aiAgents.knowledge.contextChars', 'aiAgents.knowledge.empty', 'aiAgents.knowledge.minScore',
   'aiAgents.knowledge.saveNoPermission', 'aiAgents.knowledge.selectBase', 'aiAgents.knowledge.status', 'aiAgents.knowledge.title', 'aiAgents.knowledge.topK', 'aiAgents.scene.agentGenerate',
-  'aiAgents.scene.canvasAudioGenerate', 'aiAgents.scene.canvasImageGenerate', 'aiAgents.scene.canvasTextGenerate', 'aiAgents.scene.canvasVideoGenerate', 'aiAgents.scene.chat', 'aiAgents.table.avatar',
+  'aiAgents.scene.audioGenerate', 'aiAgents.scene.chat', 'aiAgents.scene.imageGenerate', 'aiAgents.scene.textGenerate', 'aiAgents.scene.videoGenerate', 'aiAgents.table.avatar',
   'aiAgents.table.model', 'aiAgents.table.name', 'aiAgents.table.provider', 'aiAgents.table.scenes', 'aiAgents.table.status', 'aiAgents.table.updatedAt',
   'aiAgents.testDone', 'aiAgents.tools.activeTools', 'aiAgents.tools.agent', 'aiAgents.tools.selectAgent', 'aiAgents.tools.selectTools', 'aiAgents.tools.title',
   'aiAgents.tools.tools', 'aiChat.agentList', 'aiChat.archived', 'aiChat.assistant', 'aiChat.confirmDelete', 'aiChat.confirmDeleteMessage',

@@ -121,10 +121,10 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       scene_arr: data.dict.scene_arr.length > 0 ? data.dict.scene_arr : [
         { label: t('aiAgents.scene.chat'), value: 'chat' },
         { label: t('aiAgents.scene.agentGenerate'), value: 'agent_generate' },
-        { label: t('aiAgents.scene.canvasTextGenerate'), value: 'canvas_text_generate' },
-        { label: t('aiAgents.scene.canvasImageGenerate'), value: 'canvas_image_generate' },
-        { label: t('aiAgents.scene.canvasVideoGenerate'), value: 'canvas_video_generate' },
-        { label: t('aiAgents.scene.canvasAudioGenerate'), value: 'canvas_audio_generate' },
+        { label: t('aiAgents.scene.textGenerate'), value: 'text_generate' },
+        { label: t('aiAgents.scene.imageGenerate'), value: 'image_generate' },
+        { label: t('aiAgents.scene.videoGenerate'), value: 'video_generate' },
+        { label: t('aiAgents.scene.audioGenerate'), value: 'audio_generate' },
       ],
     }
     modelOptions.value = buildModelOptions()
