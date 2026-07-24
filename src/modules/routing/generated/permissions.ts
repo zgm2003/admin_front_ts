@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 904e26a5cbee47c65b8890f5bab90502586ef9182f8d829ad5a9833510ef7c88
+// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
 // Do not edit manually.
 
 export const permissionCodes = [
@@ -67,6 +67,7 @@ export const permissionCodes = [
   "system_mail_configDel",
   "system_mail_configEdit",
   "system_mail_logDel",
+  "system_mail_logView",
   "system_mail_templateAdd",
   "system_mail_templateDel",
   "system_mail_templateEdit",

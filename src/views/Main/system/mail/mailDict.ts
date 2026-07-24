@@ -6,6 +6,7 @@ export function createDefaultMailDict(): MailPageInitResponse['dict'] {
     mail_scene_arr: [],
     mail_log_scene_arr: [],
     mail_log_status_arr: [],
+    mail_verification_code_status_arr: [],
     mail_region_arr: [
       { label: '广州', value: 'ap-guangzhou' },
       { label: '香港', value: 'ap-hongkong' },

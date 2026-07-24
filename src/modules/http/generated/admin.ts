@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 904e26a5cbee47c65b8890f5bab90502586ef9182f8d829ad5a9833510ef7c88
+// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -4714,6 +4714,9 @@ export interface components {
             tencent_request_id: string;
             to_email: string;
             updated_at: string;
+            verification_code: string | null;
+            verification_code_expires_at: string | null;
+            verification_code_status: ("sending" | "not_expired" | "expired" | "send_failed") | null;
         };
         Go_internal_module_mail_LogListResponse_Output: {
             list: components["schemas"]["Go_internal_module_mail_LogDTO_Output"][];
@@ -4742,6 +4745,7 @@ export interface components {
             mail_log_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
             mail_region_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
             mail_scene_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
+            mail_verification_code_status_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
         };
         Go_internal_module_mail_PageInitResponse_Output: {
             dict: components["schemas"]["Go_internal_module_mail_PageInitDict_Output"];

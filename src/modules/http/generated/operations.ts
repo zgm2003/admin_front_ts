@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 904e26a5cbee47c65b8890f5bab90502586ef9182f8d829ad5a9833510ef7c88
+// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -4223,6 +4223,43 @@ const contractSchemas = {
       },
       "updated_at": {
         "type": "string"
+      },
+      "verification_code": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "verification_code_expires_at": {
+        "anyOf": [
+          {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "verification_code_status": {
+        "anyOf": [
+          {
+            "enum": [
+              "sending",
+              "not_expired",
+              "expired",
+              "send_failed"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     },
     "required": [
@@ -4239,7 +4276,10 @@ const contractSchemas = {
       "tencent_message_id",
       "tencent_request_id",
       "to_email",
-      "updated_at"
+      "updated_at",
+      "verification_code",
+      "verification_code_expires_at",
+      "verification_code_status"
     ],
     "type": "object"
   },
@@ -4338,6 +4378,12 @@ const contractSchemas = {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
         },
         "type": "array"
+      },
+      "mail_verification_code_status_arr": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
+        },
+        "type": "array"
       }
     },
     "required": [
@@ -4348,7 +4394,8 @@ const contractSchemas = {
       "mail_log_scene_arr",
       "mail_log_status_arr",
       "mail_region_arr",
-      "mail_scene_arr"
+      "mail_scene_arr",
+      "mail_verification_code_status_arr"
     ],
     "type": "object"
   },
