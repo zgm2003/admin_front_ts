@@ -1,7 +1,11 @@
+/* eslint-disable max-lines -- Mail API contract adapters are intentionally co-located. */
 import { executeAdminOperation } from '@/lib/http'
 import type { ExecuteOptions } from '@/modules/http/client'
 import type { components } from '@/modules/http/generated/admin'
-import { adminOperations, type AdminOperationInput } from '@/modules/http/generated/operations'
+import {
+  adminOperations,
+  type AdminOperationInput,
+} from '@/modules/http/generated/operations'
 import type { DictOption, Id } from '@/types/common'
 
 export type MailCommonStatus = 1 | 2
@@ -11,7 +15,12 @@ export type MailLogScene = MailTemplateScene | 'test'
 export type MailRegion = 'ap-guangzhou' | 'ap-hongkong'
 type MailVerificationCodeStatus = NonNullable<components['schemas']['Go_internal_module_mail_LogDTO_Output']['verification_code_status']>
 
-const mailVerificationCodeStatuses: readonly MailVerificationCodeStatus[] = ['sending', 'not_expired', 'expired', 'send_failed']
+const mailVerificationCodeStatuses: readonly MailVerificationCodeStatus[] = [
+  'sending',
+  'not_expired',
+  'expired',
+  'send_failed',
+]
 const mailVerificationCodeStatusSet = new Set<string>(mailVerificationCodeStatuses)
 
 export interface MailPageInitResponse {
@@ -186,12 +195,29 @@ function normalizeLogParams(params: MailLogListParams): MailLogQueryParams {
   return query
 }
 
-function isCommonStatus(value: number): value is MailCommonStatus { return value === 1 || value === 2 }
-function isLogStatus(value: number): value is MailLogStatus { return value === 1 || value === 2 || value === 3 }
-function isTemplateScene(value: string): value is MailTemplateScene { return value === 'login' || value === 'forget' || value === 'bind_email' || value === 'change_password' }
-function isLogScene(value: string): value is MailLogScene { return value === 'test' || isTemplateScene(value) }
-function isMailRegion(value: string): value is MailRegion { return value === 'ap-guangzhou' || value === 'ap-hongkong' }
-function isMailVerificationCodeStatus(value: string): value is MailVerificationCodeStatus { return mailVerificationCodeStatusSet.has(value) }
+function isCommonStatus(value: number): value is MailCommonStatus {
+  return value === 1 || value === 2
+}
+
+function isLogStatus(value: number): value is MailLogStatus {
+  return value === 1 || value === 2 || value === 3
+}
+
+function isTemplateScene(value: string): value is MailTemplateScene {
+  return value === 'login' || value === 'forget' || value === 'bind_email' || value === 'change_password'
+}
+
+function isLogScene(value: string): value is MailLogScene {
+  return value === 'test' || isTemplateScene(value)
+}
+
+function isMailRegion(value: string): value is MailRegion {
+  return value === 'ap-guangzhou' || value === 'ap-hongkong'
+}
+
+function isMailVerificationCodeStatus(value: string): value is MailVerificationCodeStatus {
+  return mailVerificationCodeStatusSet.has(value)
+}
 
 function isValidVerificationCodeExpiry(value: string): boolean {
   const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$/.exec(value)
@@ -205,7 +231,14 @@ function isValidVerificationCodeExpiry(value: string): boolean {
     return false
   }
 
-  const [year = Number.NaN, month = Number.NaN, day = Number.NaN, hour = Number.NaN, minute = Number.NaN, second = Number.NaN] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number)
+  const [
+    year = Number.NaN,
+    month = Number.NaN,
+    day = Number.NaN,
+    hour = Number.NaN,
+    minute = Number.NaN,
+    second = Number.NaN,
+  ] = [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number)
   if (year < 1 || month < 1 || month > 12 || hour > 23 || minute > 59 || second > 59) {
     return false
   }
@@ -278,14 +311,29 @@ function toMailLog(item: components['schemas']['Go_internal_module_mail_LogDTO_O
 }
 
 function toMailPageInit(response: components['schemas']['Go_internal_module_mail_PageInitResponse_Output']): MailPageInitResponse {
-  const commonStatus = response.dict.common_status_arr.map((option) => { if (!isCommonStatus(option.value)) throw new Error('mail common status dictionary violates the contract'); return { label: option.label, value: option.value as MailCommonStatus } })
-  const scenes = response.dict.mail_scene_arr.map((option) => { if (!isTemplateScene(option.value)) throw new Error('mail scene dictionary violates the contract'); return { label: option.label, value: option.value as MailTemplateScene } })
-  const logScenes = response.dict.mail_log_scene_arr.map((option) => { if (!isLogScene(option.value)) throw new Error('mail log scene dictionary violates the contract'); return { label: option.label, value: option.value as MailLogScene } })
-  const logStatuses = response.dict.mail_log_status_arr.map((option) => { if (!isLogStatus(option.value)) throw new Error('mail log status dictionary violates the contract'); return { label: option.label, value: option.value as MailLogStatus } })
+  const commonStatus = response.dict.common_status_arr.map((option) => {
+    if (!isCommonStatus(option.value)) throw new Error('mail common status dictionary violates the contract')
+    return { label: option.label, value: option.value as MailCommonStatus }
+  })
+  const scenes = response.dict.mail_scene_arr.map((option) => {
+    if (!isTemplateScene(option.value)) throw new Error('mail scene dictionary violates the contract')
+    return { label: option.label, value: option.value as MailTemplateScene }
+  })
+  const logScenes = response.dict.mail_log_scene_arr.map((option) => {
+    if (!isLogScene(option.value)) throw new Error('mail log scene dictionary violates the contract')
+    return { label: option.label, value: option.value as MailLogScene }
+  })
+  const logStatuses = response.dict.mail_log_status_arr.map((option) => {
+    if (!isLogStatus(option.value)) throw new Error('mail log status dictionary violates the contract')
+    return { label: option.label, value: option.value as MailLogStatus }
+  })
   const verificationCodeStatuses = toMailVerificationCodeStatusOptions(
     response.dict.mail_verification_code_status_arr,
   )
-  const regions = response.dict.mail_region_arr.map((option) => { if (!isMailRegion(option.value)) throw new Error('mail region dictionary violates the contract'); return { label: option.label, value: option.value as MailRegion } })
+  const regions = response.dict.mail_region_arr.map((option) => {
+    if (!isMailRegion(option.value)) throw new Error('mail region dictionary violates the contract')
+    return { label: option.label, value: option.value as MailRegion }
+  })
   return {
     dict: {
       common_status_arr: commonStatus,

@@ -102,6 +102,7 @@ describe('mail diagnostic contract', () => {
     ['MySQL DATETIME lower boundary', '1000-01-01 00:00:00'],
     ['ordinary Gregorian date', '2026-07-24 10:00:00'],
     ['Gregorian leap day', '2024-02-29 23:59:59'],
+    ['Gregorian century leap day', '2000-02-29 23:59:59'],
     ['upper Gregorian boundary', '9999-12-31 23:59:59'],
   ])('accepts the %s verification-code expiry timestamp', async (_name, verification_code_expires_at) => {
     const diagnostic = {
@@ -130,6 +131,7 @@ describe('mail diagnostic contract', () => {
     [{ verification_code: '123456', verification_code_status: 'not_used', verification_code_expires_at: '2026-07-24 10:00:00' }],
     [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '2026-07-24T10:00:00Z' }],
     [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '2026-02-29 10:00:00' }],
+    [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '1900-02-29 10:00:00' }],
     [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '2026-13-01 10:00:00' }],
     [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '2026-01-00 10:00:00' }],
     [{ verification_code: '123456', verification_code_status: 'sending', verification_code_expires_at: '2024-04-31 10:00:00' }],
