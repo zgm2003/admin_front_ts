@@ -126,6 +126,8 @@ class MutationController<TInput, TOutput> implements Mutation<TInput, TOutput> {
       const data = await this.spec.execute(input, options)
       if (controller.signal.aborted) throw controller.signal.reason
       await Promise.all(this.spec.invalidate.map((query) => query.refresh()))
+      if (this.canceled.has(controller)) return { kind: 'canceled' }
+      if (controller.signal.aborted) throw controller.signal.reason
       return { kind: 'success', data }
     } catch (error) {
       if (this.canceled.has(controller)) return { kind: 'canceled' }

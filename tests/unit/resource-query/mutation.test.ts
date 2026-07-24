@@ -147,4 +147,20 @@ describe('Mutation', () => {
     execute.mockResolvedValueOnce('ok')
     await expect(mutation.mutate({ id: 2 })).resolves.toEqual({ kind: 'success', data: 'ok' })
   })
+
+  it('does not report success when canceled during invalidation', async () => {
+    const refresh = deferred<void>()
+    const mutation = createMutation({
+      key: (input: { id: number }) => `save:${input.id}`,
+      execute: async () => 'ok',
+      invalidate: [{ refresh: () => refresh.promise }],
+    })
+
+    const flight = mutation.mutate({ id: 1 })
+    await Promise.resolve()
+    mutation.cancel()
+    refresh.resolve()
+
+    await expect(flight).resolves.toEqual({ kind: 'canceled' })
+  })
 })
