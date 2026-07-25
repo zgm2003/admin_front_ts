@@ -2,12 +2,15 @@
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { Ticket } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
 import { useTable } from '@/components/Table'
-import { WalletApi, type WalletDirection, type WalletSourceType, type WalletSummaryResponse, type WalletTransactionItem, type WalletTransactionListParams } from '@/api/wallet'
+import { WalletApi, type WalletDirection, type WalletRedemptionResponse, type WalletSourceType, type WalletSummaryResponse, type WalletTransactionItem, type WalletTransactionListParams } from '@/api/wallet'
 import type { SearchField, SearchFormModel } from '@/components/Search/types'
 import type { DictOption } from '@/types/common'
+import RedeemCodeDialog from './components/RedeemCodeDialog.vue'
 
 type WalletTransactionSearchForm = WalletTransactionListParams & SearchFormModel & {
   dateRange: string[]
@@ -16,6 +19,7 @@ type WalletTransactionSearchForm = WalletTransactionListParams & SearchFormModel
 const { t } = useI18n()
 const router = useRouter()
 const activeTab = shallowRef('wallet')
+const redeemDialogVisible = ref(false)
 const summary = ref<WalletSummaryResponse>(emptySummary())
 const searchForm = ref<WalletTransactionSearchForm>({
   current_page: 1,
@@ -60,6 +64,7 @@ const directionOptions = computed<DictOption<WalletDirection>[]>(() => [
 
 const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => [
   { label: t('wallet.sourceRecharge'), value: 'recharge' },
+  { label: t('wallet.sourceRedeemCode'), value: 'redeem_code' },
   { label: t('wallet.sourceAiGenerate'), value: 'ai_generate' },
   { label: t('wallet.sourceAiRefund'), value: 'ai_refund' },
 ])
@@ -95,6 +100,25 @@ function tagType(direction: WalletDirection) {
 
 function goRecharge() {
   void router.push({ path: '/payment/recharge' })
+}
+
+function openRedeemDialog() {
+  redeemDialogVisible.value = true
+}
+
+async function onRedeemed(result: WalletRedemptionResponse) {
+  summary.value = result.wallet
+  ElMessage.success(t('wallet.redeem.messages.success', { amount: result.amount }))
+
+  const refreshResults = await Promise.allSettled([
+    Promise.resolve().then(() => WalletApi.summary()),
+    Promise.resolve().then(() => getList()),
+  ])
+  const [summaryResult] = refreshResults
+  if (summaryResult?.status === 'fulfilled') summary.value = summaryResult.value
+  if (refreshResults.some(({ status }) => status === 'rejected')) {
+    ElMessage.warning(t('wallet.redeem.messages.partialRefresh'))
+  }
 }
 
 async function refreshAll() {
@@ -145,6 +169,13 @@ function emptySummary(): WalletSummaryResponse {
           >
             {{ t('wallet.recharge') }}
           </el-button>
+          <el-button
+            data-test="open-redeem-code"
+            :icon="Ticket"
+            @click="openRedeemDialog"
+          >
+            {{ t('wallet.redeem.action') }}
+          </el-button>
         </div>
       </el-tab-pane>
       <el-tab-pane
@@ -184,6 +215,11 @@ function emptySummary(): WalletSummaryResponse {
         </section>
       </el-tab-pane>
     </el-tabs>
+
+    <RedeemCodeDialog
+      v-model="redeemDialogVisible"
+      @redeemed="onRedeemed"
+    />
   </div>
 </template>
 
@@ -243,6 +279,9 @@ function emptySummary(): WalletSummaryResponse {
 }
 
 .personal-wallet-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
 }
 
