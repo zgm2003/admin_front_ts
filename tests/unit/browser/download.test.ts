@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   deriveDownloadFilename,
   downloadFile,
+  downloadTextFile,
   formatFileSize,
 } from '@/lib/browser/download'
 
@@ -99,5 +100,27 @@ describe('browser download policy', () => {
 
     await expect(downloadFile('/report.csv')).rejects.toThrow('anchor unavailable')
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:download-1')
+  })
+
+  it('downloads in-memory text with the requested MIME type and always releases resources', () => {
+    downloadTextFile('code\nREDEEM-SECRET\n', 'redeem-codes.csv', 'text/csv;charset=utf-8')
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    const blob = createObjectURL.mock.calls[0]?.[0]
+    expect(blob).toBeInstanceOf(Blob)
+    expect(blob).toMatchObject({ type: 'text/csv;charset=utf-8' })
+    expect(anchor).toMatchObject({ href: 'blob:download-1', download: 'redeem-codes.csv' })
+    expect(click).toHaveBeenCalledTimes(1)
+    expect(remove).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:download-1')
+
+    click.mockImplementationOnce(() => { throw new Error('click failed') })
+    expect(() => downloadTextFile('secret', 'codes.txt', 'text/plain')).toThrow('click failed')
+    expect(remove).toHaveBeenCalledTimes(2)
+    expect(revokeObjectURL).toHaveBeenCalledTimes(2)
+
+    remove.mockImplementationOnce(() => { throw new Error('remove failed') })
+    expect(() => downloadTextFile('secret', 'codes.txt', 'text/plain')).toThrow('remove failed')
+    expect(revokeObjectURL).toHaveBeenCalledTimes(3)
   })
 })

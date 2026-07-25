@@ -71,6 +71,7 @@ export default {
       payment_recharge: 'Recharge',
       payment_ledger: 'Ledger',
       payment_wallets: 'User Wallets',
+      payment_redeem_codes: 'Redeem Codes',
       wallet_center: 'Wallet Center',
       wallet_transaction: 'Funds Detail',
       wallet_manage: 'Wallet Management',

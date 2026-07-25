@@ -39,6 +39,24 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 ** unitIndex)).toFixed(2)} ${units[unitIndex]}`
 }
 
+export function downloadTextFile(content: string, filename: string, mime: string): void {
+  const blobUrl = URL.createObjectURL(new Blob([content], { type: mime }))
+  let anchor: HTMLAnchorElement | undefined
+  try {
+    anchor = document.createElement('a')
+    anchor.href = blobUrl
+    anchor.download = filename.trim() || defaultFilename
+    document.body.appendChild(anchor)
+    anchor.click()
+  } finally {
+    try {
+      anchor?.remove()
+    } finally {
+      URL.revokeObjectURL(blobUrl)
+    }
+  }
+}
+
 export async function downloadFile(input: string, filename?: string): Promise<void> {
   const url = parseDownloadUrl(input)
   const response = await globalThis.fetch(url.href, { credentials: 'same-origin' })

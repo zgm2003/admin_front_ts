@@ -71,6 +71,7 @@ export default {
       payment_recharge: '充值/记录',
       payment_ledger: '收支明细',
       payment_wallets: '用户钱包',
+      payment_redeem_codes: '兑换码管理',
       wallet_center: '钱包中心',
       wallet_transaction: '资金明细',
       wallet_manage: '钱包管理',

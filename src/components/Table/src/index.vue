@@ -25,6 +25,7 @@ interface AppTableProps<Row extends TableRow> {
   loading?: boolean
   rowKey?: string
   selectable?: boolean
+  selectionSelectable?: (row: Row, index: number) => boolean
   rowClickSelect?: boolean
   pagination?: TablePaginationState | null
   tableProps?: Record<string, unknown>
@@ -95,7 +96,12 @@ const onCurrentChange = (cur: number) => {
   page.value = { ...page.value, current_page: cur }
   emit('update:pagination', { ...page.value })
 }
-const onRowClick = (row: Row) => { if (!props.selectable || props.rowClickSelect === false) return; tableRef.value?.toggleRowSelection(row) }
+const onRowClick = (row: Row) => {
+  if (!props.selectable || props.rowClickSelect === false) return
+  const index = props.data.indexOf(row)
+  if (props.selectionSelectable && !props.selectionSelectable(row, index)) return
+  tableRef.value?.toggleRowSelection(row)
+}
 const onSelectionChange = (selection: Row[]) => emit('selection-change', selection)
 const paginationLayout = computed(() => isMobile.value ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper')
 const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
@@ -180,6 +186,7 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
       <ElTableColumn
         v-if="props.selectable"
         type="selection"
+        :selectable="props.selectionSelectable"
         width="48"
         align="center"
         header-align="center"
