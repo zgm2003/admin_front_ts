@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d07827bc42ba1747eb90eae4647ce5cfa76da02ce5da6191a132ba0ec2bb2b52
+// Generated from Admin Contract Bundle manifest SHA-256: a83bb1a40059cf324612f1b228bf3e87e4f87ebc7143fdf86be3dfe9762f46a9
 // Do not edit manually.
 
 export const backendViewKeys = [
@@ -17,6 +17,7 @@ export const backendViewKeys = [
   "payment/config",
   "payment/ledger",
   "payment/recharge",
+  "payment/redeem-codes",
   "payment/wallets",
   "permission/authPlatform",
   "permission/permission",
@@ -57,6 +58,7 @@ export const backendViewDescriptors = {
   "payment/config": {"path":"/payment/config","titleKey":"menu.payment_config","showMenu":true,"permissionCodes":["payment_config_list"]},
   "payment/ledger": {"path":"/payment/ledger","titleKey":"menu.payment_ledger","showMenu":true,"permissionCodes":["payment_ledger_list"]},
   "payment/recharge": {"path":"/payment/recharge","titleKey":"menu.payment_recharge","showMenu":false,"permissionCodes":["payment_recharge_add","payment_recharge_list","payment_recharge_pay"]},
+  "payment/redeem-codes": {"path":"/payment/redeem-codes","titleKey":"menu.payment_redeem_codes","showMenu":true,"permissionCodes":["payment_redeem_code_generate","payment_redeem_code_list","payment_redeem_code_void"]},
   "payment/wallets": {"path":"/payment/wallets","titleKey":"menu.payment_wallets","showMenu":true,"permissionCodes":["payment_wallet_list"]},
   "permission/authPlatform": {"path":"/permission/authPlatform","titleKey":"menu.permission_authPlatform","showMenu":true,"permissionCodes":[]},
   "permission/permission": {"path":"/permission/permission","titleKey":"menu.permission_permission","showMenu":true,"permissionCodes":[]},
