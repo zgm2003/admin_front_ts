@@ -181,6 +181,34 @@ describe('redeem code page workflow', () => {
     wrapper.unmount()
   })
 
+  it('serializes concurrent batch generation and permits a manual submission after completion', async () => {
+    const { page, wrapper } = mountPage()
+    await flushPromises()
+    let resolveGenerate!: (value: Record<string, unknown>) => void
+    mocks.generateBatch.mockReturnValueOnce(new Promise((resolve) => {
+      resolveGenerate = resolve
+    }))
+
+    const first = page.generateBatch(form)
+    const concurrent = page.generateBatch({ ...form })
+
+    await expect(concurrent).resolves.toBeUndefined()
+    expect(mocks.generateBatch).toHaveBeenCalledTimes(1)
+    expect(mocks.randomUUID).toHaveBeenCalledTimes(1)
+
+    resolveGenerate({ batch: { batch_no: 'BATCH-1' }, codes: [] })
+    await expect(first).resolves.toMatchObject({ batch: { batch_no: 'BATCH-1' } })
+
+    mocks.generateBatch.mockResolvedValueOnce({ batch: { batch_no: 'BATCH-2' }, codes: [] })
+    await page.generateBatch(form)
+    expect(mocks.generateBatch).toHaveBeenCalledTimes(2)
+    expect(mocks.generateBatch.mock.calls.map(([payload]) => payload.request_id)).toEqual([
+      'request-1',
+      'request-2',
+    ])
+    wrapper.unmount()
+  })
+
   it('rotates a conflicting request ID without automatically resubmitting', async () => {
     const { page, wrapper } = mountPage()
     await flushPromises()
@@ -373,10 +401,44 @@ describe('redeem code page workflow', () => {
     ])
     wrapper.unmount()
   })
+
+  it('ignores abandonment while a failed generation request is being retried', async () => {
+    const { page, wrapper } = mountPage()
+    await flushPromises()
+    mocks.generateBatch.mockRejectedValueOnce(new Error('first timeout'))
+    await expect(page.generateBatch(form)).rejects.toThrow('first timeout')
+
+    let rejectRetry!: (reason: Error) => void
+    mocks.generateBatch.mockReturnValueOnce(new Promise((_, reject) => {
+      rejectRetry = reject
+    }))
+    const retry = page.generateBatch(form)
+
+    await page.abandonPendingGeneration()
+    expect(mocks.confirm).not.toHaveBeenCalled()
+    rejectRetry(new Error('retry timeout'))
+    await expect(retry).rejects.toThrow('retry timeout')
+
+    mocks.generateBatch.mockResolvedValueOnce({ batch: { batch_no: 'BATCH-1' }, codes: [] })
+    await page.generateBatch(form)
+    expect(mocks.generateBatch.mock.calls.map(([payload]) => payload.request_id)).toEqual([
+      'request-1',
+      'request-1',
+      'request-1',
+    ])
+    wrapper.unmount()
+  })
 })
 
 const ElDialogStub = defineComponent({
-  props: { modelValue: Boolean },
+  name: 'ElDialog',
+  inheritAttrs: false,
+  props: {
+    modelValue: Boolean,
+    closeOnClickModal: { type: Boolean, default: true },
+    closeOnPressEscape: { type: Boolean, default: true },
+    showClose: { type: Boolean, default: true },
+  },
   emits: ['update:modelValue'],
   setup(props, { slots }) {
     return () => props.modelValue
@@ -385,6 +447,7 @@ const ElDialogStub = defineComponent({
   },
 })
 const ElFormStub = defineComponent({
+  props: { disabled: Boolean },
   setup(_, { expose, slots }) {
     expose({ validate: () => Promise.resolve(true), clearValidate: vi.fn() })
     return () => h('form', slots.default?.())
@@ -422,12 +485,16 @@ const ElInputNumberStub = defineComponent({
 })
 const ElButtonStub = defineComponent({
   inheritAttrs: false,
+  props: { disabled: Boolean, loading: Boolean },
   emits: ['click'],
-  setup(_, { attrs, emit, slots }) {
+  setup(props, { attrs, emit, slots }) {
     return () => h('button', {
       ...attrs,
+      disabled: props.disabled || props.loading,
       type: 'button',
-      onClick: (event: MouseEvent) => emit('click', event),
+      onClick: (event: MouseEvent) => {
+        if (!props.disabled && !props.loading) emit('click', event)
+      },
     }, slots.default?.())
   },
 })
@@ -537,6 +604,53 @@ describe('redeem code generation dialog', () => {
 
     expect(generate).not.toHaveBeenCalled()
     expect(abandonPending).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  it('keeps the dialog open and presents the result when close is attempted during generation', async () => {
+    let resolveGenerate!: (value: Record<string, unknown>) => void
+    const generate = vi.fn(() => new Promise<Record<string, unknown>>((resolve) => {
+      resolveGenerate = resolve
+    }))
+    const abandonPending = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mountGenerateDialog({
+      generate,
+      exportBatch: vi.fn(),
+      abandonPending,
+      hasPendingRequest: true,
+    })
+    await wrapper.get('[data-test="generate-amount"]').setValue('10.00')
+    const submit = wrapper.get('[data-test="generate-submit"]')
+    const firstClick = submit.trigger('click')
+    const concurrentClick = submit.trigger('click')
+    await Promise.all([firstClick, concurrentClick])
+    await flushPromises()
+    expect(generate).toHaveBeenCalledTimes(1)
+    await wrapper.setProps({ generating: true })
+
+    const dialog = wrapper.getComponent(ElDialogStub)
+    expect(dialog.props()).toMatchObject({
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
+      showClose: false,
+    })
+    expect(wrapper.getComponent(ElFormStub).props('disabled')).toBe(true)
+    expect(wrapper.get('[data-test="abandon-pending-request"]').attributes('disabled')).toBeDefined()
+
+    await wrapper.get('[data-test="abandon-pending-request"]').trigger('click')
+    await wrapper.get('[data-test="generate-close"]').trigger('click')
+    dialog.vm.$emit('update:modelValue', false)
+    await nextTick()
+    expect(abandonPending).not.toHaveBeenCalled()
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+
+    resolveGenerate({
+      batch: { batch_no: 'BATCH-IN-FLIGHT' },
+      codes: [{ id: 1, code: 'VISIBLE-FULL-CODE' }],
+    })
+    await flushPromises()
+    await wrapper.setProps({ generating: false })
+    expect(wrapper.text()).toContain('VISIBLE-FULL-CODE')
     wrapper.unmount()
   })
 

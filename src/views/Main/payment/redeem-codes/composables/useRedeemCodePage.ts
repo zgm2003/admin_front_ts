@@ -102,6 +102,7 @@ export function useRedeemCodePage() {
   async function generateBatch(
     form: RedeemCodeGenerateForm,
   ): Promise<PaymentRedeemCodeGenerateBatchResponse | undefined> {
+    if (generating.value) return undefined
     const payload = normalizeGeneratePayload(form)
     const key = JSON.stringify(payload)
     if (generationKey !== key || generationRequestId === '') {
@@ -139,7 +140,7 @@ export function useRedeemCodePage() {
   }
 
   async function abandonPendingGeneration() {
-    if (!hasPendingGeneration.value) return
+    if (generating.value || !hasPendingGeneration.value) return
     await ElMessageBox.confirm(
       t('paymentRedeemCode.messages.abandonConfirm'),
       t('common.confirmTitle'),

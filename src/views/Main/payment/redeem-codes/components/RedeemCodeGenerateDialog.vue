@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CopyDocument, Delete, Download, Plus } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
@@ -21,6 +21,8 @@ const { t } = useI18n()
 const { copy } = useCopy()
 const formRef = ref<FormInstance>()
 const exporting = ref(false)
+const submitting = ref(false)
+const busy = computed(() => props.generating || submitting.value)
 const form = reactive<RedeemCodeGenerateForm>({
   amount: '',
   quantity: 1,
@@ -45,18 +47,24 @@ function validForm() {
 }
 
 async function submit() {
-  if (!validForm()) {
-    ElMessage.warning(t('paymentRedeemCode.validation.invalid'))
-    return
-  }
-  const valid = await formRef.value?.validate().catch(() => false)
-  if (valid === false) return
-  const version = ++generationVersion
+  if (busy.value) return
+  submitting.value = true
   try {
-    const result = await props.generate({ ...form })
-    if (result && props.modelValue && version === generationVersion) generated.value = result
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : t('paymentRedeemCode.messages.generateFailed'))
+    if (!validForm()) {
+      ElMessage.warning(t('paymentRedeemCode.validation.invalid'))
+      return
+    }
+    const valid = await formRef.value?.validate().catch(() => false)
+    if (valid === false) return
+    const version = ++generationVersion
+    try {
+      const result = await props.generate({ ...form })
+      if (result && props.modelValue && version === generationVersion) generated.value = result
+    } catch (error) {
+      ElMessage.error(error instanceof Error ? error.message : t('paymentRedeemCode.messages.generateFailed'))
+    }
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -77,6 +85,7 @@ async function exportGeneratedBatch() {
 }
 
 async function abandonPending() {
+  if (busy.value) return
   await props.abandonPending()
 }
 
@@ -86,7 +95,13 @@ function clearGenerated() {
 }
 
 function close() {
+  if (busy.value) return
   emit('update:modelValue', false)
+}
+
+function updateVisible(visible: boolean) {
+  if (!visible && busy.value) return
+  emit('update:modelValue', visible)
 }
 
 watch(
@@ -106,13 +121,17 @@ onBeforeUnmount(clearGenerated)
     width="min(760px, calc(100vw - 32px))"
     append-to-body
     destroy-on-close
+    :close-on-click-modal="!busy"
+    :close-on-press-escape="!busy"
+    :show-close="!busy"
     @closed="clearGenerated"
-    @update:model-value="emit('update:modelValue', $event)"
+    @update:model-value="updateVisible"
   >
     <el-form
       ref="formRef"
       :model="form"
       :rules="rules"
+      :disabled="busy"
       label-position="top"
       @submit.prevent="submit"
     >
@@ -222,19 +241,25 @@ onBeforeUnmount(clearGenerated)
           type="danger"
           plain
           :icon="Delete"
+          :disabled="busy"
           @click="abandonPending"
         >
           {{ t('paymentRedeemCode.actions.abandonPending') }}
         </el-button>
         <span class="redeem-generate-footer__spacer" />
-        <el-button @click="close">
+        <el-button
+          data-test="generate-close"
+          :disabled="busy"
+          @click="close"
+        >
           {{ t('common.actions.close') }}
         </el-button>
         <el-button
           data-test="generate-submit"
           type="primary"
           :icon="Plus"
-          :loading="props.generating"
+          :loading="busy"
+          :disabled="busy"
           @click="submit"
         >
           {{ t('paymentRedeemCode.actions.generate') }}
