@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
+// Generated from Admin Contract Bundle manifest SHA-256: d07827bc42ba1747eb90eae4647ce5cfa76da02ce5da6191a132ba0ec2bb2b52
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -5361,6 +5361,354 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "Go_internal_module_payment_redeemcode_CodeItem_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "amount": {
+        "type": "string"
+      },
+      "amount_cents": {
+        "type": "integer"
+      },
+      "batch_id": {
+        "type": "integer"
+      },
+      "batch_no": {
+        "type": "string"
+      },
+      "code": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string"
+      },
+      "created_by": {
+        "type": "integer"
+      },
+      "creator_username": {
+        "type": "string"
+      },
+      "expires_at": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      },
+      "note": {
+        "type": "string"
+      },
+      "state": {
+        "type": "string"
+      },
+      "used_account": {
+        "type": "string"
+      },
+      "used_at": {
+        "type": "string"
+      },
+      "used_by": {
+        "type": "integer"
+      },
+      "used_username": {
+        "type": "string"
+      },
+      "wallet_transaction_no": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "amount",
+      "amount_cents",
+      "batch_id",
+      "batch_no",
+      "code",
+      "created_at",
+      "created_by",
+      "creator_username",
+      "expires_at",
+      "id",
+      "note",
+      "state",
+      "used_account",
+      "used_at",
+      "used_by",
+      "used_username",
+      "wallet_transaction_no"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_ExportResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "content": {
+        "type": "string"
+      },
+      "filename": {
+        "type": "string"
+      },
+      "row_count": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "content",
+      "filename",
+      "row_count"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_GenerateBatchResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "batch": {
+        "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_GeneratedBatchItem_Output"
+      },
+      "codes": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_GeneratedCodeItem_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "batch",
+      "codes"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_GeneratedBatchItem_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "amount": {
+        "type": "string"
+      },
+      "batch_no": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string"
+      },
+      "created_by": {
+        "type": "integer"
+      },
+      "expires_at": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      },
+      "note": {
+        "type": "string"
+      },
+      "quantity": {
+        "type": "integer"
+      },
+      "replayed": {
+        "type": "boolean"
+      },
+      "request_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "amount",
+      "batch_no",
+      "created_at",
+      "created_by",
+      "expires_at",
+      "id",
+      "note",
+      "quantity",
+      "replayed",
+      "request_id"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_GeneratedCodeItem_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "code",
+      "id"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_ListResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "list": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_CodeItem_Output"
+        },
+        "type": "array"
+      },
+      "page": {
+        "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_Page_Output"
+      }
+    },
+    "required": [
+      "list",
+      "page"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_LookupResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "item": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_CodeItem_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "item"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_PageInitResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "states": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "states"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_Page_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "current_page": {
+        "type": "integer"
+      },
+      "page_size": {
+        "type": "integer"
+      },
+      "total": {
+        "type": "integer"
+      },
+      "total_page": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "current_page",
+      "page_size",
+      "total",
+      "total_page"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_VoidResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "voided": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "voided"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "amount": {
+        "type": "string"
+      },
+      "replayed": {
+        "type": "boolean"
+      },
+      "transaction": {
+        "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output"
+      },
+      "wallet": {
+        "$ref": "#/components/schemas/Go_internal_module_payment_wallet_SummaryResponse_Output"
+      }
+    },
+    "required": [
+      "amount",
+      "replayed",
+      "transaction",
+      "wallet"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "amount_cents": {
+        "type": "integer"
+      },
+      "amount_text": {
+        "type": "string"
+      },
+      "balance_after_cents": {
+        "type": "integer"
+      },
+      "balance_after_text": {
+        "type": "string"
+      },
+      "balance_before_cents": {
+        "type": "integer"
+      },
+      "balance_before_text": {
+        "type": "string"
+      },
+      "created_at": {
+        "type": "string"
+      },
+      "direction": {
+        "type": "string"
+      },
+      "direction_text": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "source_type_text": {
+        "type": "string"
+      },
+      "transaction_no": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "amount_cents",
+      "amount_text",
+      "balance_after_cents",
+      "balance_after_text",
+      "balance_before_cents",
+      "balance_before_text",
+      "created_at",
+      "direction",
+      "direction_text",
+      "source_type",
+      "source_type_text",
+      "transaction_no"
+    ],
+    "type": "object"
+  },
   "Go_internal_module_payment_wallet_LedgerPageInitResponse_Output": {
     "additionalProperties": false,
     "properties": {
@@ -7860,6 +8208,12 @@ const responseDataSchemas = {
   "get_api_admin_v1_payment_recharges_page_init": {
     "$ref": "#/components/schemas/Go_internal_module_payment_RechargePageInitResponse_Output"
   },
+  "get_api_admin_v1_payment_redeem_codes": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_ListResponse_Output"
+  },
+  "get_api_admin_v1_payment_redeem_codes_page_init": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_PageInitResponse_Output"
+  },
   "get_api_admin_v1_payment_wallets": {
     "$ref": "#/components/schemas/Go_internal_module_payment_wallet_WalletUserListResponse_Output"
   },
@@ -8004,6 +8358,9 @@ const responseDataSchemas = {
   },
   "patch_api_admin_v1_payment_configs_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
+  },
+  "patch_api_admin_v1_payment_redeem_codes": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_VoidResponse_Output"
   },
   "patch_api_admin_v1_permissions_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -8160,6 +8517,15 @@ const responseDataSchemas = {
   "post_api_admin_v1_payment_recharges_id_pay": {
     "$ref": "#/components/schemas/Go_internal_module_payment_RechargePayResponse_Output"
   },
+  "post_api_admin_v1_payment_redeem_code_batches": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_GenerateBatchResponse_Output"
+  },
+  "post_api_admin_v1_payment_redeem_code_exports": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_ExportResponse_Output"
+  },
+  "post_api_admin_v1_payment_redeem_code_lookups": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_LookupResponse_Output"
+  },
   "post_api_admin_v1_permissions": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
   },
@@ -8189,6 +8555,9 @@ const responseDataSchemas = {
   },
   "post_api_admin_v1_users_export": {
     "$ref": "#/components/schemas/UserExportResult"
+  },
+  "post_api_admin_v1_wallet_redemptions": {
+    "$ref": "#/components/schemas/Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output"
   },
   "put_api_admin_v1_ai_agents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -9383,6 +9752,27 @@ export const adminOperations = {
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_payment_recharges_page_init">>(responseDataSchemas["get_api_admin_v1_payment_recharges_page_init"]),
     telemetryName: "admin.get.api.admin.v1.payment.recharges.page.init",
   }),
+  "get_api_admin_v1_payment_redeem_codes": defineOperation<AdminOperationInput<"get_api_admin_v1_payment_redeem_codes">, AdminOperationOutput<"get_api_admin_v1_payment_redeem_codes">>({
+    id: "get_api_admin_v1_payment_redeem_codes",
+    method: "GET",
+    path: "/api/admin/v1/payment/redeem-codes",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_payment_redeem_codes">>(responseDataSchemas["get_api_admin_v1_payment_redeem_codes"]),
+    telemetryName: "admin.get.api.admin.v1.payment.redeem.codes",
+    encode: (input) => input,
+  }),
+  "get_api_admin_v1_payment_redeem_codes_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_payment_redeem_codes_page_init">, AdminOperationOutput<"get_api_admin_v1_payment_redeem_codes_page_init">>({
+    id: "get_api_admin_v1_payment_redeem_codes_page_init",
+    method: "GET",
+    path: "/api/admin/v1/payment/redeem-codes/page-init",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_payment_redeem_codes_page_init">>(responseDataSchemas["get_api_admin_v1_payment_redeem_codes_page_init"]),
+    telemetryName: "admin.get.api.admin.v1.payment.redeem.codes.page.init",
+  }),
   "get_api_admin_v1_payment_wallets": defineOperation<AdminOperationInput<"get_api_admin_v1_payment_wallets">, AdminOperationOutput<"get_api_admin_v1_payment_wallets">>({
     id: "get_api_admin_v1_payment_wallets",
     method: "GET",
@@ -9860,6 +10250,17 @@ export const adminOperations = {
     telemetryName: "admin.patch.api.admin.v1.payment.configs.id.status",
     encode: (input) => input,
   }),
+  "patch_api_admin_v1_payment_redeem_codes": defineOperation<AdminOperationInput<"patch_api_admin_v1_payment_redeem_codes">, AdminOperationOutput<"patch_api_admin_v1_payment_redeem_codes">>({
+    id: "patch_api_admin_v1_payment_redeem_codes",
+    method: "PATCH",
+    path: "/api/admin/v1/payment/redeem-codes",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_payment_redeem_codes">>(responseDataSchemas["patch_api_admin_v1_payment_redeem_codes"]),
+    telemetryName: "admin.patch.api.admin.v1.payment.redeem.codes",
+    encode: (input) => input,
+  }),
   "patch_api_admin_v1_permissions_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_permissions_id_status">, AdminOperationOutput<"patch_api_admin_v1_permissions_id_status">>({
     id: "patch_api_admin_v1_permissions_id_status",
     method: "PATCH",
@@ -10323,6 +10724,39 @@ export const adminOperations = {
     telemetryName: "admin.post.api.admin.v1.payment.recharges.id.pay",
     encode: (input) => input,
   }),
+  "post_api_admin_v1_payment_redeem_code_batches": defineOperation<AdminOperationInput<"post_api_admin_v1_payment_redeem_code_batches">, AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_batches">>({
+    id: "post_api_admin_v1_payment_redeem_code_batches",
+    method: "POST",
+    path: "/api/admin/v1/payment/redeem-code-batches",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_batches">>(responseDataSchemas["post_api_admin_v1_payment_redeem_code_batches"]),
+    telemetryName: "admin.post.api.admin.v1.payment.redeem.code.batches",
+    encode: (input) => input,
+  }),
+  "post_api_admin_v1_payment_redeem_code_exports": defineOperation<AdminOperationInput<"post_api_admin_v1_payment_redeem_code_exports">, AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_exports">>({
+    id: "post_api_admin_v1_payment_redeem_code_exports",
+    method: "POST",
+    path: "/api/admin/v1/payment/redeem-code-exports",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_exports">>(responseDataSchemas["post_api_admin_v1_payment_redeem_code_exports"]),
+    telemetryName: "admin.post.api.admin.v1.payment.redeem.code.exports",
+    encode: (input) => input,
+  }),
+  "post_api_admin_v1_payment_redeem_code_lookups": defineOperation<AdminOperationInput<"post_api_admin_v1_payment_redeem_code_lookups">, AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_lookups">>({
+    id: "post_api_admin_v1_payment_redeem_code_lookups",
+    method: "POST",
+    path: "/api/admin/v1/payment/redeem-code-lookups",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_payment_redeem_code_lookups">>(responseDataSchemas["post_api_admin_v1_payment_redeem_code_lookups"]),
+    telemetryName: "admin.post.api.admin.v1.payment.redeem.code.lookups",
+    encode: (input) => input,
+  }),
   "post_api_admin_v1_permissions": defineOperation<AdminOperationInput<"post_api_admin_v1_permissions">, AdminOperationOutput<"post_api_admin_v1_permissions">>({
     id: "post_api_admin_v1_permissions",
     method: "POST",
@@ -10431,6 +10865,17 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_users_export">>(responseDataSchemas["post_api_admin_v1_users_export"]),
     telemetryName: "admin.post.api.admin.v1.users.export",
+    encode: (input) => input,
+  }),
+  "post_api_admin_v1_wallet_redemptions": defineOperation<AdminOperationInput<"post_api_admin_v1_wallet_redemptions">, AdminOperationOutput<"post_api_admin_v1_wallet_redemptions">>({
+    id: "post_api_admin_v1_wallet_redemptions",
+    method: "POST",
+    path: "/api/admin/v1/wallet/redemptions",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_wallet_redemptions">>(responseDataSchemas["post_api_admin_v1_wallet_redemptions"]),
+    telemetryName: "admin.post.api.admin.v1.wallet.redemptions",
     encode: (input) => input,
   }),
   "put_api_admin_v1_ai_agents_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_agents_id">, AdminOperationOutput<"put_api_admin_v1_ai_agents_id">>({

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
+// Generated from Admin Contract Bundle manifest SHA-256: d07827bc42ba1747eb90eae4647ce5cfa76da02ce5da6191a132ba0ec2bb2b52
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -1740,6 +1740,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/v1/payment/redeem-code-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/payment/redeem-code-batches */
+        post: operations["post_api_admin_v1_payment_redeem_code_batches"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/payment/redeem-code-exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/payment/redeem-code-exports */
+        post: operations["post_api_admin_v1_payment_redeem_code_exports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/payment/redeem-code-lookups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/payment/redeem-code-lookups */
+        post: operations["post_api_admin_v1_payment_redeem_code_lookups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/payment/redeem-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/payment/redeem-codes */
+        get: operations["get_api_admin_v1_payment_redeem_codes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** PATCH /api/admin/v1/payment/redeem-codes */
+        patch: operations["patch_api_admin_v1_payment_redeem_codes"];
+        trace?: never;
+    };
+    "/api/admin/v1/payment/redeem-codes/page-init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/payment/redeem-codes/page-init */
+        get: operations["get_api_admin_v1_payment_redeem_codes_page_init"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/v1/payment/wallets": {
         parameters: {
             query?: never;
@@ -2796,6 +2882,23 @@ export interface paths {
         get: operations["get_api_admin_v1_users_page_init"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/wallet/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/wallet/redemptions */
+        post: operations["post_api_admin_v1_wallet_redemptions"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3908,6 +4011,18 @@ export interface components {
             data: components["schemas"]["Go_internal_module_payment_RechargeListResponse_Output"];
             msg: string;
         };
+        get_api_admin_v1_payment_redeem_codes_page_init_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_PageInitResponse_Output"];
+            msg: string;
+        };
+        get_api_admin_v1_payment_redeem_codes_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_ListResponse_Output"];
+            msg: string;
+        };
         get_api_admin_v1_payment_wallets_page_init_ResponseEnvelope: {
             /** @constant */
             code: 0;
@@ -4956,6 +5071,89 @@ export interface components {
             recharge_no: string;
             status: string;
         };
+        Go_internal_module_payment_redeemcode_CodeItem_Output: {
+            amount: string;
+            amount_cents: number;
+            batch_id: number;
+            batch_no: string;
+            code: string;
+            created_at: string;
+            created_by: number;
+            creator_username: string;
+            expires_at: string;
+            id: number;
+            note: string;
+            state: string;
+            used_account: string;
+            used_at: string;
+            used_by: number;
+            used_username: string;
+            wallet_transaction_no: string;
+        };
+        Go_internal_module_payment_redeemcode_ExportResponse_Output: {
+            content: string;
+            filename: string;
+            row_count: number;
+        };
+        Go_internal_module_payment_redeemcode_GenerateBatchResponse_Output: {
+            batch: components["schemas"]["Go_internal_module_payment_redeemcode_GeneratedBatchItem_Output"];
+            codes: components["schemas"]["Go_internal_module_payment_redeemcode_GeneratedCodeItem_Output"][];
+        };
+        Go_internal_module_payment_redeemcode_GeneratedBatchItem_Output: {
+            amount: string;
+            batch_no: string;
+            created_at: string;
+            created_by: number;
+            expires_at: string;
+            id: number;
+            note: string;
+            quantity: number;
+            replayed: boolean;
+            request_id: string;
+        };
+        Go_internal_module_payment_redeemcode_GeneratedCodeItem_Output: {
+            code: string;
+            id: number;
+        };
+        Go_internal_module_payment_redeemcode_ListResponse_Output: {
+            list: components["schemas"]["Go_internal_module_payment_redeemcode_CodeItem_Output"][];
+            page: components["schemas"]["Go_internal_module_payment_redeemcode_Page_Output"];
+        };
+        Go_internal_module_payment_redeemcode_LookupResponse_Output: {
+            item: components["schemas"]["Go_internal_module_payment_redeemcode_CodeItem_Output"] | null;
+        };
+        Go_internal_module_payment_redeemcode_Page_Output: {
+            current_page: number;
+            page_size: number;
+            total: number;
+            total_page: number;
+        };
+        Go_internal_module_payment_redeemcode_PageInitResponse_Output: {
+            states: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
+        };
+        Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output: {
+            amount: string;
+            replayed: boolean;
+            transaction: components["schemas"]["Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output"];
+            wallet: components["schemas"]["Go_internal_module_payment_wallet_SummaryResponse_Output"];
+        };
+        Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output: {
+            amount_cents: number;
+            amount_text: string;
+            balance_after_cents: number;
+            balance_after_text: string;
+            balance_before_cents: number;
+            balance_before_text: string;
+            created_at: string;
+            direction: string;
+            direction_text: string;
+            source_type: string;
+            source_type_text: string;
+            transaction_no: string;
+        };
+        Go_internal_module_payment_redeemcode_VoidResponse_Output: {
+            voided: number;
+        };
         Go_internal_module_payment_wallet_LedgerPageInitResponse_Output: {
             dict: components["schemas"]["Go_internal_module_payment_wallet_WalletDict_Output"];
         };
@@ -5532,6 +5730,15 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
+        patch_api_admin_v1_payment_redeem_codes_Request: {
+            ids?: number[];
+        };
+        patch_api_admin_v1_payment_redeem_codes_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_VoidResponse_Output"];
+            msg: string;
+        };
         patch_api_admin_v1_permissions_id_status_Request: {
             /** @enum {integer} */
             status: 1 | 2;
@@ -5947,6 +6154,46 @@ export interface components {
             data: components["schemas"]["Go_internal_module_payment_RechargePayResponse_Output"];
             msg: string;
         };
+        post_api_admin_v1_payment_redeem_code_batches_Request: {
+            amount?: string;
+            expires_at?: string | null;
+            note?: string;
+            quantity?: number;
+            request_id?: string;
+        };
+        post_api_admin_v1_payment_redeem_code_batches_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_GenerateBatchResponse_Output"];
+            msg: string;
+        };
+        post_api_admin_v1_payment_redeem_code_exports_Request: {
+            batch_no?: string;
+            created_by?: number;
+            created_from?: string | null;
+            created_to?: string | null;
+            expires_from?: string | null;
+            expires_to?: string | null;
+            note?: string;
+            state?: string;
+            used_by?: number;
+            used_user?: string;
+        };
+        post_api_admin_v1_payment_redeem_code_exports_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_ExportResponse_Output"];
+            msg: string;
+        };
+        post_api_admin_v1_payment_redeem_code_lookups_Request: {
+            code?: string;
+        };
+        post_api_admin_v1_payment_redeem_code_lookups_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_LookupResponse_Output"];
+            msg: string;
+        };
         post_api_admin_v1_permissions_Request: {
             code?: string;
             component?: string;
@@ -6073,6 +6320,15 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_module_uploadtoken_CreateResponse_Output"];
+            msg: string;
+        };
+        post_api_admin_v1_wallet_redemptions_Request: {
+            code?: string;
+        };
+        post_api_admin_v1_wallet_redemptions_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output"];
             msg: string;
         };
         put_api_admin_v1_ai_agents_id_knowledge_bases_Request: {
@@ -11215,6 +11471,209 @@ export interface operations {
             };
         };
     };
+    post_api_admin_v1_payment_redeem_code_batches: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_batches_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_batches_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_api_admin_v1_payment_redeem_code_exports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_exports_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_exports_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_api_admin_v1_payment_redeem_code_lookups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_lookups_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["post_api_admin_v1_payment_redeem_code_lookups_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_payment_redeem_codes: {
+        parameters: {
+            query?: {
+                batch_no?: string;
+                created_by?: number;
+                created_from?: string;
+                created_to?: string;
+                current_page?: number;
+                expires_from?: string;
+                expires_to?: string;
+                note?: string;
+                page_size?: number;
+                state?: string;
+                used_by?: number;
+                used_user?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["get_api_admin_v1_payment_redeem_codes_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    patch_api_admin_v1_payment_redeem_codes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["patch_api_admin_v1_payment_redeem_codes_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["patch_api_admin_v1_payment_redeem_codes_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_payment_redeem_codes_page_init: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["get_api_admin_v1_payment_redeem_codes_page_init_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     get_api_admin_v1_payment_wallets: {
         parameters: {
             query?: {
@@ -14500,6 +14959,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPageInitSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_api_admin_v1_wallet_redemptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["post_api_admin_v1_wallet_redemptions_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["post_api_admin_v1_wallet_redemptions_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */

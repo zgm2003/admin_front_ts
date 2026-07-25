@@ -38,6 +38,9 @@ export interface WalletUserListParams {
 export type WalletUsersPageInitResponse = components['schemas']['Go_internal_module_payment_wallet_WalletUsersPageInitResponse_Output']
 export type WalletLedgerPageInitResponse = components['schemas']['Go_internal_module_payment_wallet_LedgerPageInitResponse_Output']
 
+export type WalletRedemptionPayload = NonNullable<AdminOperationInput<'post_api_admin_v1_wallet_redemptions'>['body']>
+export type WalletRedemptionResponse = components['schemas']['Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output']
+
 type WalletTransactionQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_wallet_transactions'>['query']>
 type WalletLedgerQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_payment_ledger'>['query']>
 type WalletUsersQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_payment_wallets'>['query']>
@@ -98,6 +101,8 @@ const ledgerList = (params: WalletTransactionListParams, options: ExecuteOptions
   executeAdminOperation(adminOperations.get_api_admin_v1_payment_ledger, {
     query: normalizeLedgerParams(params),
   }, options)
+const redeem = (payload: WalletRedemptionPayload, options: ExecuteOptions = {}): Promise<WalletRedemptionResponse> =>
+  executeAdminOperation(adminOperations.post_api_admin_v1_wallet_redemptions, { body: payload }, options)
 
 export const WalletApi = {
   summary,
@@ -106,6 +111,7 @@ export const WalletApi = {
   walletUsersList,
   ledgerPageInit,
   ledgerList,
+  redeem,
 
   usersInit: walletUsersPageInit,
   users: walletUsersList,

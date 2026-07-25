@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 626a021849519dcdb1046405c0f69a64774bc4cc2237f49283c594d1cca73066
+// Generated from Admin Contract Bundle manifest SHA-256: d07827bc42ba1747eb90eae4647ce5cfa76da02ce5da6191a132ba0ec2bb2b52
 // Do not edit manually.
 
 export const permissionCodes = [
@@ -47,6 +47,9 @@ export const permissionCodes = [
   "payment_recharge_add",
   "payment_recharge_list",
   "payment_recharge_pay",
+  "payment_redeem_code_generate",
+  "payment_redeem_code_list",
+  "payment_redeem_code_void",
   "payment_wallet_list",
   "permission_authPlatform_add",
   "permission_authPlatform_del",
