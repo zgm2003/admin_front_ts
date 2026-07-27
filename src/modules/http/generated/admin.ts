@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 56a43d8eaef9c32216cc77c1149b398b8b33168a748d249019ee3b8c0b4d92c6
+// Generated from Admin Contract Bundle manifest SHA-256: d45a96132e31b6c893f5037ca09dfd0e78e9cdeb49964200d750185362f83b1e
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -457,6 +457,75 @@ export interface paths {
         head?: never;
         /** PATCH /api/admin/v1/ai-knowledge-documents/:id/status */
         patch: operations["patch_api_admin_v1_ai_knowledge_documents_id_status"];
+        trace?: never;
+    };
+    "/api/admin/v1/ai-model-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-model-prices */
+        get: operations["get_api_admin_v1_ai_model_prices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-model-prices/{model_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-model-prices/:model_id */
+        get: operations["get_api_admin_v1_ai_model_prices_model_id"];
+        /** PUT /api/admin/v1/ai-model-prices/:model_id */
+        put: operations["put_api_admin_v1_ai_model_prices_model_id"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-model-prices/{model_id}/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** DELETE /api/admin/v1/ai-model-prices/:model_id/override */
+        delete: operations["delete_api_admin_v1_ai_model_prices_model_id_override"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-model-prices/page-init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-model-prices/page-init */
+        get: operations["get_api_admin_v1_ai_model_prices_page_init"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/v1/ai-providers": {
@@ -3654,6 +3723,12 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
+        delete_api_admin_v1_ai_model_prices_model_id_override_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_modelpricing_MutationResponse_Output"];
+            msg: string;
+        };
         delete_api_admin_v1_ai_providers_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
@@ -4012,6 +4087,24 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_module_ai_knowledge_DocumentDetailResponse_Output"];
+            msg: string;
+        };
+        get_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"];
+            msg: string;
+        };
+        get_api_admin_v1_ai_model_prices_page_init_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_modelpricing_PageInitResponse_Output"];
+            msg: string;
+        };
+        get_api_admin_v1_ai_model_prices_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_modelpricing_ListResponse_Output"];
             msg: string;
         };
         get_api_admin_v1_ai_providers_id_models_ResponseEnvelope: {
@@ -4405,6 +4498,7 @@ export interface components {
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
             catalog_version?: string;
+            context_tier_threshold_tokens: number;
             created_at: string;
             engine_type: string;
             id: number;
@@ -4412,6 +4506,11 @@ export interface components {
             model_display_name: string;
             model_id: string;
             name: string;
+            override_version: number;
+            price_source?: string;
+            price_source_url?: string;
+            price_verified_at?: string;
+            pricing_version?: string;
             provider_id: number;
             provider_name: string;
             scene_names: string[];
@@ -4444,6 +4543,7 @@ export interface components {
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
             catalog_version?: string;
+            context_tier_threshold_tokens: number;
             created_at: string;
             engine_type: string;
             id: number;
@@ -4451,6 +4551,11 @@ export interface components {
             model_display_name: string;
             model_id: string;
             name: string;
+            override_version: number;
+            price_source?: string;
+            price_source_url?: string;
+            price_verified_at?: string;
+            pricing_version?: string;
             provider_id: number;
             provider_name: string;
             scene_names: string[];
@@ -4486,10 +4591,16 @@ export interface components {
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
             catalog_version?: string;
+            context_tier_threshold_tokens: number;
             display_name: string;
             label: string;
             max_output_tokens: number;
             model_id: string;
+            override_version: number;
+            price_source?: string;
+            price_source_url?: string;
+            price_verified_at?: string;
+            pricing_version?: string;
             provider_id: number;
             value: string;
         };
@@ -4676,6 +4787,60 @@ export interface components {
             rank_no: number;
             ref: string;
             score: number;
+        };
+        Go_internal_module_ai_modelpricing_ListResponse_Output: {
+            list: components["schemas"]["Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"][];
+        };
+        Go_internal_module_ai_modelpricing_ModelPriceDTO_Output: {
+            aliases: string[];
+            catalog_vendor: string;
+            catalog_version: string;
+            context_tier_threshold_tokens: number;
+            effective: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+            max_output_tokens: number;
+            model_family: string;
+            model_id: string;
+            official: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+            pricing_profile: string;
+            review_after: string;
+        };
+        Go_internal_module_ai_modelpricing_MutationResponse_Output: {
+            after: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+            before: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+        };
+        Go_internal_module_ai_modelpricing_OptionDTO_Output: {
+            label: string;
+            value: string;
+        };
+        Go_internal_module_ai_modelpricing_PageInitDict_Output: {
+            family_options: components["schemas"]["Go_internal_module_ai_modelpricing_OptionDTO_Output"][];
+        };
+        Go_internal_module_ai_modelpricing_PageInitResponse_Output: {
+            dict: components["schemas"]["Go_internal_module_ai_modelpricing_PageInitDict_Output"];
+        };
+        Go_internal_module_ai_modelpricing_PriceDTO_Output: {
+            available: boolean;
+            override_version: number;
+            pricing_version: string;
+            rates: components["schemas"]["Go_internal_module_ai_modelpricing_RateDTO_Output"][];
+            source: string;
+            source_url: string;
+            verified_at: string;
+        };
+        Go_internal_module_ai_modelpricing_RateDTO_Output: {
+            category: string;
+            price: string;
+            tier_key: string;
+            unit: string;
+            unit_scale: number;
+        };
+        Go_internal_module_ai_modelpricing_transport_admin_rateRequest_Input: {
+            /** @enum {string} */
+            category: "input" | "output" | "cache_read" | "cache_write";
+            price: string;
+            tier_key: string | null;
+            unit: string;
+            unit_scale: number;
         };
         Go_internal_module_ai_provider_InitDict_Output: {
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
@@ -6603,6 +6768,18 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
+        put_api_admin_v1_ai_model_prices_model_id_Request: {
+            expected_version: number | null;
+            rates: components["schemas"]["Go_internal_module_ai_modelpricing_transport_admin_rateRequest_Input"][];
+            source_url: string;
+            verified_at: string;
+        };
+        put_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_modelpricing_MutationResponse_Output"];
+            msg: string;
+        };
         put_api_admin_v1_ai_providers_id_models_Request: {
             model_display_names?: {
                 [key: string]: string;
@@ -8454,6 +8631,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["patch_api_admin_v1_ai_knowledge_documents_id_status_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_ai_model_prices: {
+        parameters: {
+            query?: {
+                family?: "gpt" | "claude";
+                model_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_ai_model_prices_model_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    put_api_admin_v1_ai_model_prices_model_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["put_api_admin_v1_ai_model_prices_model_id_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["put_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    delete_api_admin_v1_ai_model_prices_model_id_override: {
+        parameters: {
+            query: {
+                expected_version: number;
+            };
+            header?: never;
+            path: {
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["delete_api_admin_v1_ai_model_prices_model_id_override_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_ai_model_prices_page_init: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_page_init_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */

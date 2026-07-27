@@ -39,7 +39,24 @@ export default {
       filter: { name: 'Agent Name', scene: 'Scene', provider: 'Provider', status: 'Status' },
       table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', billingMultiplier: 'Billing Multiplier', maxOutput: 'Max Output', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
       form: { name: 'Agent Name', provider: 'Provider', model: 'Model', billingMultiplier: 'Billing Multiplier', maxOutput: 'Max Output Tokens', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
-      catalog: { title: 'Official Catalog Pricing', transportModel: 'Transport Model', catalogModel: 'Catalog Model', publishedMaxOutput: 'Published Max Output', category: 'Category', tier: 'Tier', officialPrice: 'Official Price', unit: 'Unit' },
+      catalog: {
+        title: 'Current Model Pricing',
+        transportModel: 'Transport Model',
+        catalogModel: 'Catalog Model',
+        publishedMaxOutput: 'Max Output',
+        category: 'Category',
+        tier: 'Tier',
+        officialPrice: 'Official Price',
+        basePrice: 'Current Base Price',
+        referencePrice: 'Price After Multiplier',
+        unit: 'Billing Unit',
+        source: 'Price Source',
+        verifiedAt: 'Verified At',
+        multiplier: 'Agent Multiplier',
+        unavailable: 'No pricing is available for this model',
+        referenceHint: 'Reference prices are previews only. Final billing uses the server-side Run price snapshot and unified rounding.',
+        sources: { official: 'Official', override: 'Custom' }
+      },
       scene: { chat: 'Chat', agentGenerate: 'Tool Generation', textGenerate: 'Text Generation', imageGenerate: 'Image Generation' },
       actions: { test: 'Test', tools: 'Tool Config', knowledge: 'Knowledge' },
       tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
@@ -47,6 +64,49 @@ export default {
       addTitle: 'Add AI Agent',
       editTitle: 'Edit AI Agent',
       testDone: 'Agent connection test completed'
+    },
+  aiModelPricing: {
+      filters: { family: 'Model Family', model: 'Model ID', modelPlaceholder: 'Search canonical model ID' },
+      columns: { model: 'Model', official: 'Official Baseline', effective: 'Current Price', source: 'Source', verifiedAt: 'Verified At' },
+      labels: { aliases: 'Aliases', unavailable: 'Unavailable', readonly: 'Read only' },
+      categories: { input: 'Input', output: 'Output', cache_read: 'Cache Read', cache_write: 'Cache Write' },
+      tiers: { default: 'Default Tier' },
+      units: {
+        millionTokens: 'per 1M tokens',
+        millionTokensShort: '1M tokens',
+        scaled: 'per {scale} {unit}',
+        scaledShort: '{scale} {unit}'
+      },
+      sources: { official: 'Official', override: 'Custom' },
+      fields: { sourceUrl: 'Pricing Source URL', verifiedAt: 'Verified At' },
+      actions: { restore: 'Restore Official' },
+      drawer: {
+        title: 'Edit {model} Pricing',
+        fallbackTitle: 'Edit Model Pricing',
+        vendor: 'Catalog Vendor',
+        catalogVersion: 'Catalog Version',
+        currentSource: 'Current Source',
+        rates: 'Complete Rate Set',
+        fixedKeys: 'Rate categories, tiers, and units are locked by the catalog. Only prices can change.',
+        rateCount: '{count} rates',
+        officialBaseline: 'Official Baseline',
+        currentPrice: 'Current Price',
+        verification: 'Price Verification',
+        verificationHint: 'Keep the source and verification date for future reviews and audits.'
+      },
+      validation: {
+        date: 'Select a valid verification date',
+        priceRequired: 'Enter a price',
+        price: 'Enter a non-negative decimal price',
+        sourceUrl: 'Enter an HTTPS source URL on the official vendor domain',
+        unsupportedRate: 'The rate set contains an unsupported category and cannot be saved'
+      },
+      messages: {
+        saved: 'Model pricing updated',
+        restored: 'Official pricing restored',
+        restoreConfirm: 'Restore official pricing for {model}?',
+        versionConflict: 'Another administrator updated this price. The latest data has been reloaded.'
+      }
     },
   aiPrompts: {
       filter: { keyword: 'Keyword', category: 'Category', status: 'Status' },

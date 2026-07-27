@@ -58,6 +58,7 @@ export default {
       // AI module
       ai_providers: 'Providers',
       ai_agents: 'AI Agents',
+      ai_model_pricing: 'Model Pricing',
       ai_knowledge: 'Knowledge Base',
       ai_chat: 'AI Chat',
       ai_runs: 'Run Monitor',

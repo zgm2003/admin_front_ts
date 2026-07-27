@@ -15,6 +15,7 @@ import {
   type AiAgentScene,
   type AiAgentStatus,
 } from '@/api/ai/agents'
+import { multiplyDecimalStrings } from '@/utils/fixed-decimal'
 
 type ModelPath = [number, string]
 
@@ -132,6 +133,21 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       model.provider_id === providerID && model.model_id === modelID
     )) ?? null
   })
+
+  const displayedCatalogRates = computed(() => (
+    selectedModel.value?.catalog_rates?.map((rate) => ({
+      ...rate,
+      reference_price: multipliedPrice(rate.price, form.value.billing_multiplier),
+    })) ?? []
+  ))
+
+  function multipliedPrice(price: string, multiplier: string): string {
+    try {
+      return multiplyDecimalStrings(price, multiplier)
+    } catch {
+      return ''
+    }
+  }
 
   async function init() {
     const data = await AiAgentApi.pageInit()
@@ -282,7 +298,7 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
     modelLoading, modelOptions, toolDialogVisible, toolAgent,
     knowledgeDialogVisible, knowledgeAgent, loadModelOptions,
-    selectedModel, onModelChange,
+    selectedModel, displayedCatalogRates, onModelChange,
     add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
   }
 }

@@ -9,6 +9,7 @@ import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
 import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
+import AgentModelPricingPanel from './components/AgentModelPricingPanel.vue'
 import { useAgentAdminPage } from './use-agent-admin-page'
 
 const userStore = useUserStore()
@@ -19,7 +20,7 @@ const {
   confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
   modelLoading, modelOptions, toolDialogVisible, toolAgent,
   knowledgeDialogVisible, knowledgeAgent,
-  selectedModel, onModelChange,
+  selectedModel, displayedCatalogRates, onModelChange,
   add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
 } = useAgentAdminPage(formRef)
 </script>
@@ -233,57 +234,12 @@ const {
           v-if="selectedModel"
           :span="24"
         >
-          <section class="ai-agent-page__catalog">
-            <div class="ai-agent-page__catalog-heading">
-              <strong>{{ t('aiAgents.catalog.title') }}</strong>
-              <span v-if="selectedModel.catalog_vendor && selectedModel.catalog_version">
-                {{ selectedModel.catalog_vendor }} / {{ selectedModel.catalog_version }}
-              </span>
-            </div>
-            <el-descriptions
-              :column="isMobile ? 1 : 2"
-              border
-              size="small"
-            >
-              <el-descriptions-item :label="t('aiAgents.catalog.transportModel')">
-                {{ selectedModel.display_name }} ({{ selectedModel.model_id }})
-              </el-descriptions-item>
-              <el-descriptions-item :label="t('aiAgents.catalog.catalogModel')">
-                {{ selectedModel.catalog_model_id }}
-              </el-descriptions-item>
-              <el-descriptions-item :label="t('aiAgents.catalog.publishedMaxOutput')">
-                {{ selectedModel.max_output_tokens }}
-              </el-descriptions-item>
-            </el-descriptions>
-            <el-table
-              v-if="selectedModel.catalog_rates?.length"
-              :data="selectedModel.catalog_rates"
-              size="small"
-              class="ai-agent-page__catalog-rates"
-            >
-              <el-table-column
-                prop="category"
-                :label="t('aiAgents.catalog.category')"
-              />
-              <el-table-column
-                prop="tier_key"
-                :label="t('aiAgents.catalog.tier')"
-              />
-              <el-table-column
-                prop="price"
-                :label="t('aiAgents.catalog.officialPrice')"
-              >
-                <template #default="{ row }">
-                  ¥{{ row.price }}
-                </template>
-              </el-table-column>
-              <el-table-column :label="t('aiAgents.catalog.unit')">
-                <template #default="{ row }">
-                  {{ row.unit }} / {{ row.unit_scale }}
-                </template>
-              </el-table-column>
-            </el-table>
-          </section>
+          <AgentModelPricingPanel
+            :model="selectedModel"
+            :rates="displayedCatalogRates"
+            :multiplier="form.billing_multiplier"
+            :mobile="isMobile"
+          />
         </el-col>
         <el-col :span="24">
           <el-form-item
@@ -355,31 +311,3 @@ const {
 </template>
 
 <style scoped src="./styles.css"></style>
-
-<style scoped>
-.ai-agent-page__catalog {
-  margin-bottom: 18px;
-  padding: 12px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 8px;
-  background: var(--el-fill-color-lighter);
-}
-
-.ai-agent-page__catalog-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
-
-.ai-agent-page__catalog-heading strong {
-  color: var(--el-text-color-primary);
-}
-
-.ai-agent-page__catalog-rates {
-  margin-top: 10px;
-}
-</style>

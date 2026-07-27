@@ -6,7 +6,7 @@ const cleanups: Array<() => void> = []
 afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
 describe('AI agent billing configuration contract', () => {
-  it('keeps generated pricing defaults and official catalog metadata from page-init', async () => {
+  it('keeps generated pricing defaults and current effective catalog metadata from page-init', async () => {
     const dict = {
       billing_multiplier_default: '1.25',
       max_output_tokens_default: 4096,
@@ -25,10 +25,16 @@ describe('AI agent billing configuration contract', () => {
         }],
         catalog_vendor: 'openai',
         catalog_version: '2026-07-01',
+        context_tier_threshold_tokens: 272000,
         display_name: 'GPT 5.4',
         label: 'GPT 5.4',
         max_output_tokens: 8192,
         model_id: 'gpt-5.4',
+        override_version: 2,
+        price_source: 'override',
+        price_source_url: 'https://example.com/reviewed-pricing',
+        price_verified_at: '2026-07-27',
+        pricing_version: 'custom-2',
         provider_id: 10,
         value: 'gpt-5.4',
       }],

@@ -39,7 +39,24 @@ export default {
       filter: { name: '智能体名称', scene: '场景', provider: '供应商', status: '状态' },
       table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', billingMultiplier: '消耗倍率', maxOutput: '最大输出', scenes: '场景', status: '状态', updatedAt: '更新时间' },
       form: { name: '智能体名称', provider: '供应商', model: '关联模型', billingMultiplier: '消耗倍率', maxOutput: '最大输出 Tokens', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
-      catalog: { title: '官方模型定价', transportModel: '调用模型', catalogModel: '计价模型', publishedMaxOutput: '官方最大输出', category: '类别', tier: '阶梯', officialPrice: '官方价格', unit: '单位' },
+      catalog: {
+        title: '当前模型价格',
+        transportModel: '调用模型',
+        catalogModel: '计价模型',
+        publishedMaxOutput: '最大输出',
+        category: '类别',
+        tier: '阶梯',
+        officialPrice: '官方价格',
+        basePrice: '当前基础价',
+        referencePrice: '倍率后参考价',
+        unit: '计价单位',
+        source: '价格来源',
+        verifiedAt: '核验日期',
+        multiplier: '智能体倍率',
+        unavailable: '当前模型没有可用定价',
+        referenceHint: '参考价仅用于配置预览；最终账单以后端冻结的 Run 价格快照和统一取整结果为准。',
+        sources: { official: '官方', override: '自定义' }
+      },
       scene: { chat: '对话', agentGenerate: '工具生成', textGenerate: '文本生成', imageGenerate: '图片生成' },
       actions: { test: '测试连接', tools: '工具配置', knowledge: '知识库' },
       tools: {
@@ -66,6 +83,49 @@ export default {
       addTitle: '新增 AI 智能体',
       editTitle: '编辑 AI 智能体',
       testDone: '智能体连接测试完成'
+    },
+  aiModelPricing: {
+      filters: { family: '模型系列', model: '模型标识', modelPlaceholder: '搜索 canonical model ID' },
+      columns: { model: '模型', official: '官方基线', effective: '当前生效价', source: '来源', verifiedAt: '核验日期' },
+      labels: { aliases: '别名', unavailable: '暂无定价', readonly: '只读' },
+      categories: { input: '输入', output: '输出', cache_read: '缓存读取', cache_write: '缓存写入' },
+      tiers: { default: '默认阶梯' },
+      units: {
+        millionTokens: '每百万 Token',
+        millionTokensShort: '百万 Token',
+        scaled: '每 {scale} {unit}',
+        scaledShort: '{scale} {unit}'
+      },
+      sources: { official: '官方', override: '自定义' },
+      fields: { sourceUrl: '价格来源链接', verifiedAt: '核验日期' },
+      actions: { restore: '恢复官方价' },
+      drawer: {
+        title: '编辑 {model} 定价',
+        fallbackTitle: '编辑模型定价',
+        vendor: '目录厂商',
+        catalogVersion: '目录版本',
+        currentSource: '当前来源',
+        rates: '完整费率集',
+        fixedKeys: '费率类别、阶梯和单位由官方目录锁定，只能修改价格。',
+        rateCount: '{count} 条费率',
+        officialBaseline: '官方基线',
+        currentPrice: '当前价格',
+        verification: '价格核验',
+        verificationHint: '保存来源和核验日期，便于后续审计与更新。'
+      },
+      validation: {
+        date: '请选择有效核验日期',
+        priceRequired: '请输入价格',
+        price: '请输入非负十进制价格',
+        sourceUrl: '请输入对应厂商官方域名的 HTTPS 来源链接',
+        unsupportedRate: '存在不支持的费率类别，无法保存'
+      },
+      messages: {
+        saved: '模型定价已更新',
+        restored: '已恢复官方定价',
+        restoreConfirm: '确定将 {model} 恢复为官方定价吗？',
+        versionConflict: '价格已被其他管理员更新，已重新载入最新数据。'
+      }
     },
   aiPrompts: {
       filter: { keyword: '关键词', category: '分类', status: '状态' },

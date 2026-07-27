@@ -58,6 +58,7 @@ export default {
       // AI助手模块
       ai_providers: '供应商配置',
       ai_agents: '智能体配置',
+      ai_model_pricing: '模型定价',
       ai_knowledge: '知识库',
       ai_chat: 'AI 对话',
       ai_runs: '运行监控',
