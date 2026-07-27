@@ -200,7 +200,7 @@ const {
           :span="24"
         >
           <el-form-item
-            label="Billing multiplier"
+            :label="t('aiAgents.form.billingMultiplier')"
             prop="billing_multiplier"
             required
           >
@@ -216,7 +216,7 @@ const {
           :span="24"
         >
           <el-form-item
-            label="Max output tokens"
+            :label="t('aiAgents.form.maxOutput')"
             prop="max_output_tokens"
             required
           >
@@ -235,7 +235,7 @@ const {
         >
           <section class="ai-agent-page__catalog">
             <div class="ai-agent-page__catalog-heading">
-              <strong>Official catalog pricing</strong>
+              <strong>{{ t('aiAgents.catalog.title') }}</strong>
               <span v-if="selectedModel.catalog_vendor && selectedModel.catalog_version">
                 {{ selectedModel.catalog_vendor }} / {{ selectedModel.catalog_version }}
               </span>
@@ -245,13 +245,13 @@ const {
               border
               size="small"
             >
-              <el-descriptions-item label="Transport model">
+              <el-descriptions-item :label="t('aiAgents.catalog.transportModel')">
                 {{ selectedModel.display_name }} ({{ selectedModel.model_id }})
               </el-descriptions-item>
-              <el-descriptions-item label="Catalog model">
+              <el-descriptions-item :label="t('aiAgents.catalog.catalogModel')">
                 {{ selectedModel.catalog_model_id }}
               </el-descriptions-item>
-              <el-descriptions-item label="Published max output">
+              <el-descriptions-item :label="t('aiAgents.catalog.publishedMaxOutput')">
                 {{ selectedModel.max_output_tokens }}
               </el-descriptions-item>
             </el-descriptions>
@@ -263,21 +263,21 @@ const {
             >
               <el-table-column
                 prop="category"
-                label="Category"
+                :label="t('aiAgents.catalog.category')"
               />
               <el-table-column
                 prop="tier_key"
-                label="Tier"
+                :label="t('aiAgents.catalog.tier')"
               />
               <el-table-column
                 prop="price"
-                label="Official price"
+                :label="t('aiAgents.catalog.officialPrice')"
               >
                 <template #default="{ row }">
                   ¥{{ row.price }}
                 </template>
               </el-table-column>
-              <el-table-column label="Unit">
+              <el-table-column :label="t('aiAgents.catalog.unit')">
                 <template #default="{ row }">
                   {{ row.unit }} / {{ row.unit_scale }}
                 </template>

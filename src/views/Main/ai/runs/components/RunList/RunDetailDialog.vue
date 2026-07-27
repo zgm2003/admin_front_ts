@@ -120,12 +120,12 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
         </el-descriptions>
 
         <el-divider content-position="left">
-          Billing settlement
+          {{ t('aiRuns.detail.billingSettlement') }}
         </el-divider>
         <el-alert
           v-if="isFailedSettled"
           class="billing-settled-failure"
-          title="The run failed, but completed provider usage was settled."
+          :title="t('aiRuns.detail.failedSettled')"
           type="warning"
           :closable="false"
           show-icon
@@ -135,7 +135,7 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
           border
           class="billing-summary"
         >
-          <el-descriptions-item label="Billing status">
+          <el-descriptions-item :label="t('aiRuns.detail.billingStatus')">
             <el-tag
               :type="runBillingStatusTagType(detailData.billing_status)"
               size="small"
@@ -143,44 +143,44 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
               {{ detailData.billing_status }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="Settlement reason">
+          <el-descriptions-item :label="t('aiRuns.detail.settlementReason')">
             <code>{{ detailData.billing_reason }}</code>
           </el-descriptions-item>
-          <el-descriptions-item label="Held amount">
+          <el-descriptions-item :label="t('aiRuns.detail.heldAmount')">
             {{ formatRunAmount(detailData.held_amount) }}
           </el-descriptions-item>
-          <el-descriptions-item label="Actual amount">
+          <el-descriptions-item :label="t('aiRuns.detail.actualAmount')">
             <strong>{{ formatRunAmount(detailData.actual_amount) }}</strong>
           </el-descriptions-item>
         </el-descriptions>
 
         <template v-if="detailData.pricing">
           <el-divider content-position="left">
-            Closed pricing snapshot
+            {{ t('aiRuns.detail.pricingSnapshot') }}
           </el-divider>
           <el-descriptions
             :column="isMobile ? 1 : 2"
             border
           >
-            <el-descriptions-item label="Catalog vendor">
+            <el-descriptions-item :label="t('aiRuns.detail.catalogVendor')">
               {{ detailData.pricing.catalog_vendor }}
             </el-descriptions-item>
-            <el-descriptions-item label="Transport engine">
+            <el-descriptions-item :label="t('aiRuns.detail.transportEngine')">
               {{ detailData.pricing.transport_engine }}
             </el-descriptions-item>
-            <el-descriptions-item label="Model">
+            <el-descriptions-item :label="t('aiRuns.detail.model')">
               {{ detailData.pricing.model_id }}
             </el-descriptions-item>
-            <el-descriptions-item label="Resolved alias">
+            <el-descriptions-item :label="t('aiRuns.detail.resolvedAlias')">
               {{ detailData.pricing.resolved_alias }}
             </el-descriptions-item>
-            <el-descriptions-item label="Catalog version">
+            <el-descriptions-item :label="t('aiRuns.detail.catalogVersion')">
               {{ detailData.pricing.version }}
             </el-descriptions-item>
-            <el-descriptions-item label="Billing multiplier">
+            <el-descriptions-item :label="t('aiRuns.detail.billingMultiplier')">
               {{ detailData.pricing.billing_multiplier }}
             </el-descriptions-item>
-            <el-descriptions-item label="Max output tokens">
+            <el-descriptions-item :label="t('aiRuns.detail.maxOutputTokens')">
               {{ detailData.pricing.max_output_tokens }}
             </el-descriptions-item>
           </el-descriptions>
@@ -191,18 +191,18 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
           >
             <el-table-column
               prop="category"
-              label="Category"
+              :label="t('aiRuns.detail.category')"
             />
             <el-table-column
               prop="tier_key"
-              label="Tier"
+              :label="t('aiRuns.detail.tier')"
             />
-            <el-table-column label="Price">
+            <el-table-column :label="t('aiRuns.detail.price')">
               <template #default="{ row }">
                 {{ formatRunAmount(row.price) }}
               </template>
             </el-table-column>
-            <el-table-column label="Unit">
+            <el-table-column :label="t('aiRuns.detail.unit')">
               <template #default="{ row }">
                 {{ row.unit }} / {{ row.unit_scale }}
               </template>
@@ -211,16 +211,16 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
         </template>
         <template v-else>
           <el-divider content-position="left">
-            Closed pricing snapshot
+            {{ t('aiRuns.detail.pricingSnapshot') }}
           </el-divider>
           <el-text type="info">
-            pricing: null
+            {{ t('aiRuns.detail.pricingUnavailable') }}
           </el-text>
         </template>
 
         <template v-if="usageGroups.length > 0">
           <el-divider content-position="left">
-            Billed usage
+            {{ t('aiRuns.detail.billedUsage') }}
           </el-divider>
           <section class="usage-groups">
             <article
@@ -235,43 +235,43 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
               >
                 <el-table-column
                   prop="attempt_no"
-                  label="Attempt"
+                  :label="t('aiRuns.detail.attempt')"
                   width="82"
                 />
                 <el-table-column
                   prop="category"
-                  label="Category"
+                  :label="t('aiRuns.detail.category')"
                   min-width="110"
                 />
                 <el-table-column
                   prop="quantity"
-                  label="Quantity"
+                  :label="t('aiRuns.detail.quantity')"
                   min-width="96"
                 />
                 <el-table-column
                   prop="tier_key"
-                  label="Tier"
+                  :label="t('aiRuns.detail.tier')"
                   min-width="90"
                 />
-                <el-table-column label="Unit" min-width="120">
+                <el-table-column :label="t('aiRuns.detail.unit')" min-width="120">
                   <template #default="{ row }">
                     {{ row.unit }} / {{ row.unit_scale }}
                   </template>
                 </el-table-column>
-                <el-table-column label="Unit price" min-width="132">
+                <el-table-column :label="t('aiRuns.detail.unitPrice')" min-width="132">
                   <template #default="{ row }">
                     {{ formatRunAmount(row.unit_price) }}
                   </template>
                 </el-table-column>
-                <el-table-column label="Amount" min-width="132">
+                <el-table-column :label="t('aiRuns.detail.amount')" min-width="132">
                   <template #default="{ row }">
                     {{ formatRunAmount(row.amount) }}
                   </template>
                 </el-table-column>
-                <el-table-column label="Billable" width="88">
+                <el-table-column :label="t('aiRuns.detail.billable')" width="88">
                   <template #default="{ row }">
                     <el-tag :type="row.billable ? 'success' : 'info'" size="small">
-                      {{ row.billable ? 'yes' : 'no' }}
+                      {{ row.billable ? t('aiRuns.detail.yes') : t('aiRuns.detail.no') }}
                     </el-tag>
                   </template>
                 </el-table-column>
@@ -282,7 +282,7 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 
         <template v-if="detailData.provider_attempts.length > 0">
           <el-divider content-position="left">
-            Provider attempts
+            {{ t('aiRuns.detail.providerAttempts') }}
           </el-divider>
           <el-table
             :data="detailData.provider_attempts"
@@ -291,22 +291,22 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
           >
             <el-table-column
               prop="attempt_no"
-              label="Attempt"
+              :label="t('aiRuns.detail.attempt')"
               width="90"
             />
             <el-table-column
               prop="state"
-              label="State"
+              :label="t('aiRuns.detail.attemptState')"
               width="140"
             />
             <el-table-column
               prop="usage_status"
-              label="Usage"
+              :label="t('aiRuns.detail.usageStatus')"
               width="120"
             />
             <el-table-column
               prop="provider_request_id"
-              label="Provider request ID"
+              :label="t('aiRuns.detail.providerRequestId')"
               min-width="220"
             >
               <template #default="{ row }">

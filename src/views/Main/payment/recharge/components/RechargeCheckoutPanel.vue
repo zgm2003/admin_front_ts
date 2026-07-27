@@ -83,7 +83,7 @@ const hintText = computed(() => (
     <div class="recharge-checkout-panel__summary">
       <div class="recharge-checkout-panel__row">
         <span>{{ t('paymentRecharge.checkout.currentBalance') }}</span>
-        <b>{{ props.wallet.balance_text }}</b>
+        <b>¥{{ props.wallet.balance }}</b>
       </div>
       <div class="recharge-checkout-panel__row">
         <span>{{ t('paymentRecharge.checkout.balanceAfter') }}</span>
@@ -91,7 +91,7 @@ const hintText = computed(() => (
       </div>
       <div class="recharge-checkout-panel__row">
         <span>{{ t('paymentRecharge.checkout.totalRecharge') }}</span>
-        <b>{{ props.wallet.total_recharge_text }}</b>
+        <b>¥{{ props.wallet.total_recharge }}</b>
       </div>
     </div>
 

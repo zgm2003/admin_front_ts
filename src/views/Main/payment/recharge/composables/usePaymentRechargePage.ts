@@ -65,8 +65,8 @@ export function usePaymentRechargePage() {
   const selectedPackage = computed(() => packages.value.find((item) => item.code === selectedPackageCode.value))
   const canCreateRecharge = computed(() => userStore.can('payment_recharge_add'))
   const balanceAfterText = computed(() => {
-    const amount = selectedPackage.value?.amount_cents ?? 0
-    return centsText(wallet.value.balance_cents + amount)
+    const amount = selectedPackage.value?.amount_text ?? '0'
+    return `¥${addMoneyStrings(wallet.value.balance, amount)}`
   })
   const canSubmit = computed(() => Boolean(canCreateRecharge.value && selectedPackage.value && paymentMethod.value.enabled && !submitting.value))
   const columns = computed(() => [
@@ -211,19 +211,40 @@ function browserPayMethod(): PaymentRechargePayMethod {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent) ? 'h5' : 'web'
 }
 
-function centsText(cents: number) {
-  const sign = cents < 0 ? '-' : ''
-  const value = Math.abs(cents)
-  return `${sign}${Math.floor(value / 100)}.${String(value % 100).padStart(2, '0')}`
+function addMoneyStrings(left: string, right: string) {
+  const pattern = /^(0|[1-9]\d*)(?:\.(\d{1,8}))?$/
+  const leftMatch = pattern.exec(left)
+  const rightMatch = pattern.exec(right)
+  if (!leftMatch || !rightMatch) throw new Error('money amount violates the canonical RMB contract')
+
+  const scale = Math.max(leftMatch[2]?.length ?? 0, rightMatch[2]?.length ?? 0)
+  const leftDigits = `${leftMatch[1]}${(leftMatch[2] ?? '').padEnd(scale, '0')}`
+  const rightDigits = `${rightMatch[1]}${(rightMatch[2] ?? '').padEnd(scale, '0')}`
+  const width = Math.max(leftDigits.length, rightDigits.length)
+  const first = leftDigits.padStart(width, '0')
+  const second = rightDigits.padStart(width, '0')
+  let carry = 0
+  let result = ''
+  for (let index = width - 1; index >= 0; index--) {
+    const sum = Number(first[index]) + Number(second[index]) + carry
+    result = `${sum % 10}${result}`
+    carry = Math.floor(sum / 10)
+  }
+  if (carry > 0) result = `${carry}${result}`
+
+  if (scale === 0) return result.replace(/^0+(?=\d)/, '')
+  const padded = result.padStart(scale + 1, '0')
+  const whole = padded.slice(0, -scale).replace(/^0+(?=\d)/, '')
+  const fraction = padded.slice(-scale).replace(/0+$/, '')
+  return fraction ? `${whole}.${fraction}` : whole
 }
 
 function emptyWallet(): PaymentRechargeInitResponse['wallet'] {
   return {
-    balance_cents: 0,
-    balance_text: '¥0.00',
-    total_recharge_cents: 0,
-    total_recharge_text: '¥0.00',
-    total_consume_cents: 0,
-    total_consume_text: '¥0.00',
+    available_balance: '0',
+    balance: '0',
+    held_amount: '0',
+    total_consume: '0',
+    total_recharge: '0',
   }
 }

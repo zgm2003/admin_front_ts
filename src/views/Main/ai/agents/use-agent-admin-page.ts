@@ -93,8 +93,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     model_path: [{ required: true, type: 'array', min: 2, message: t('aiAgents.form.model') + t('common.required'), trigger: 'change' }],
     scenes: [{ required: true, type: 'array', min: 1, message: t('aiAgents.form.scenes') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiAgents.form.status') + t('common.required'), trigger: 'change' }],
-    billing_multiplier: [{ required: true, message: 'billing_multiplier is required', trigger: 'blur' }],
-    max_output_tokens: [{ required: true, type: 'number', min: 1, message: 'max_output_tokens must be positive', trigger: 'change' }],
+    billing_multiplier: [{ required: true, message: t('aiAgents.form.billingMultiplier') + t('common.required'), trigger: 'blur' }],
+    max_output_tokens: [{ required: true, type: 'number', min: 1, message: t('aiAgents.form.maxOutput') + t('common.required'), trigger: 'change' }],
   }))
 
   const searchFields = computed<SearchField[]>(() => [
@@ -109,8 +109,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     { key: 'name', label: t('aiAgents.table.name'), minWidth: 160 },
     { key: 'provider_name', label: t('aiAgents.table.provider'), width: 160 },
     { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 180, overflowTooltip: true },
-    { key: 'billing_multiplier', label: 'Billing multiplier', width: 140 },
-    { key: 'max_output_tokens', label: 'Max output', width: 120 },
+    { key: 'billing_multiplier', label: t('aiAgents.table.billingMultiplier'), width: 140 },
+    { key: 'max_output_tokens', label: t('aiAgents.table.maxOutput'), width: 120 },
     { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
     { key: 'status', label: t('aiAgents.table.status'), width: 90 },
     { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },

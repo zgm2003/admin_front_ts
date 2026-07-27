@@ -227,6 +227,8 @@ export default {
   wallet: {
       summary: 'Wallet Summary',
       balance: 'Balance',
+      availableBalance: 'Available Balance',
+      heldAmount: 'Held Amount',
       totalRecharge: 'Total Recharge',
       totalConsume: 'Total Consume',
       fundsDetail: 'Funds Detail',
@@ -243,7 +245,6 @@ export default {
       sourceRecharge: 'Recharge',
       sourceRedeemCode: 'Redeem code recharge',
       sourceAiGenerate: 'AI Generate',
-      sourceAiRefund: 'AI Refund',
       recharge: 'Recharge',
       redeem: {
         action: 'Redeem code',

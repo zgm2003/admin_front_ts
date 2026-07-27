@@ -53,8 +53,8 @@ const { loading, data, page, onPageChange, refresh, resetPage, getList } = useTa
 
 const summaryCards = computed(() => [
   { key: 'balance', label: t('wallet.balance'), value: summary.value.balance },
-  { key: 'availableBalance', label: 'Available balance', value: summary.value.available_balance },
-  { key: 'heldAmount', label: 'Held amount', value: summary.value.held_amount },
+  { key: 'availableBalance', label: t('wallet.availableBalance'), value: summary.value.available_balance },
+  { key: 'heldAmount', label: t('wallet.heldAmount'), value: summary.value.held_amount },
   { key: 'totalRecharge', label: t('wallet.totalRecharge'), value: summary.value.total_recharge },
   { key: 'totalConsume', label: t('wallet.totalConsume'), value: summary.value.total_consume },
 ])

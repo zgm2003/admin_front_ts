@@ -70,7 +70,7 @@ watch(
 function redeemErrorKey(error: unknown) {
   if (!isApiError(error)) return 'wallet.redeem.errors.resultUncertain'
 
-  const code = error.code?.split('.').at(-1)
+  const code = error.code?.split('.').pop()
   if (
     error.status === 503
     || code === 'rate_limit_unavailable'

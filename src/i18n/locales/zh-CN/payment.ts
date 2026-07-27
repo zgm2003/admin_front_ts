@@ -227,6 +227,8 @@ export default {
   wallet: {
       summary: '钱包概览',
       balance: '当前余额',
+      availableBalance: '可用余额',
+      heldAmount: '冻结金额',
       totalRecharge: '累计充值',
       totalConsume: '累计消费',
       fundsDetail: '资金明细',
@@ -243,7 +245,6 @@ export default {
       sourceRecharge: '充值',
       sourceRedeemCode: '兑换码充值',
       sourceAiGenerate: 'AI 生成',
-      sourceAiRefund: 'AI 退款',
       recharge: '充值',
       redeem: {
         action: '兑换码',

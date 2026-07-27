@@ -8,6 +8,8 @@ afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 describe('AI agent API behavior', () => {
   it('accepts the current generation scene dictionary from page-init', async () => {
     const dict = {
+      billing_multiplier_default: '1',
+      max_output_tokens_default: 4096,
       scene_arr: [
         { label: 'Chat', value: 'chat' },
         { label: 'Tool Generation', value: 'agent_generate' },
@@ -30,6 +32,8 @@ describe('AI agent API behavior', () => {
           provider_id: 10,
           model_id: 'gpt-5.4',
           display_name: 'gpt-5.4',
+          billing_multiplier: '1',
+          max_output_tokens: 4096,
         },
       ],
     }
