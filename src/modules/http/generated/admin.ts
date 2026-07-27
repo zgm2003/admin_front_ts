@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: a493e49f0f97c7a7af85c9fc539f74e156a5dd8f3ec9e7408867983a0c7e5e66
+// Generated from Admin Contract Bundle manifest SHA-256: be03bf2c367bf266c9fb50409f86b929c34d7a55c7804238d6a68f0656edf162
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {

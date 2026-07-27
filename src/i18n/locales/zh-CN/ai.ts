@@ -40,7 +40,7 @@ export default {
       table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', billingMultiplier: '消耗倍率', maxOutput: '最大输出', scenes: '场景', status: '状态', updatedAt: '更新时间' },
       form: { name: '智能体名称', provider: '供应商', model: '关联模型', billingMultiplier: '消耗倍率', maxOutput: '最大输出 Tokens', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
       catalog: { title: '官方模型定价', transportModel: '调用模型', catalogModel: '计价模型', publishedMaxOutput: '官方最大输出', category: '类别', tier: '阶梯', officialPrice: '官方价格', unit: '单位' },
-      scene: { chat: '对话', agentGenerate: '工具生成', textGenerate: '文本生成', imageGenerate: '图片生成', videoGenerate: '视频生成', audioGenerate: '音频生成' },
+      scene: { chat: '对话', agentGenerate: '工具生成', textGenerate: '文本生成', imageGenerate: '图片生成' },
       actions: { test: '测试连接', tools: '工具配置', knowledge: '知识库' },
       tools: {
         title: '配置智能体工具',

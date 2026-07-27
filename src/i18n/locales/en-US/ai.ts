@@ -40,7 +40,7 @@ export default {
       table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', billingMultiplier: 'Billing Multiplier', maxOutput: 'Max Output', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
       form: { name: 'Agent Name', provider: 'Provider', model: 'Model', billingMultiplier: 'Billing Multiplier', maxOutput: 'Max Output Tokens', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
       catalog: { title: 'Official Catalog Pricing', transportModel: 'Transport Model', catalogModel: 'Catalog Model', publishedMaxOutput: 'Published Max Output', category: 'Category', tier: 'Tier', officialPrice: 'Official Price', unit: 'Unit' },
-      scene: { chat: 'Chat', agentGenerate: 'Tool Generation', textGenerate: 'Text Generation', imageGenerate: 'Image Generation', videoGenerate: 'Video Generation', audioGenerate: 'Audio Generation' },
+      scene: { chat: 'Chat', agentGenerate: 'Tool Generation', textGenerate: 'Text Generation', imageGenerate: 'Image Generation' },
       actions: { test: 'Test', tools: 'Tool Config', knowledge: 'Knowledge' },
       tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools' },
       knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },

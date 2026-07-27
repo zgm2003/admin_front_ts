@@ -142,8 +142,6 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
         { label: t('aiAgents.scene.agentGenerate'), value: 'agent_generate' },
         { label: t('aiAgents.scene.textGenerate'), value: 'text_generate' },
         { label: t('aiAgents.scene.imageGenerate'), value: 'image_generate' },
-        { label: t('aiAgents.scene.videoGenerate'), value: 'video_generate' },
-        { label: t('aiAgents.scene.audioGenerate'), value: 'audio_generate' },
       ],
     }
     modelOptions.value = buildModelOptions()

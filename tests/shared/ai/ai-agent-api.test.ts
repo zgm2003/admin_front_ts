@@ -15,8 +15,6 @@ describe('AI agent API behavior', () => {
         { label: 'Tool Generation', value: 'agent_generate' },
         { label: 'Text Generation', value: 'text_generate' },
         { label: 'Image Generation', value: 'image_generate' },
-        { label: 'Video Generation', value: 'video_generate' },
-        { label: 'Audio Generation', value: 'audio_generate' },
       ],
       common_status_arr: [
         { label: 'Enabled', value: 1 },
@@ -44,5 +42,21 @@ describe('AI agent API behavior', () => {
     expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
       ['GET', '/api/admin/v1/ai-agents/page-init'],
     ])
+  })
+
+  it.each(['video_generate', 'audio_generate'])('rejects retired scene %s from page-init', async (scene) => {
+    const harness = installApiClientHarness({
+      dict: {
+        billing_multiplier_default: '1',
+        max_output_tokens_default: 4096,
+        scene_arr: [{ label: 'Retired', value: scene }],
+        common_status_arr: [{ label: 'Enabled', value: 1 }],
+        provider_options: [],
+        provider_model_options: [],
+      },
+    })
+    cleanups.push(harness.uninstall)
+
+    await expect(AiAgentApi.pageInit()).rejects.toThrow('AI agent scene dictionary violates the contract')
   })
 })

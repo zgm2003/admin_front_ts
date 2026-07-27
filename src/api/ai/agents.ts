@@ -8,7 +8,7 @@ import {
 import type { DictOption, Id, RequestPayload } from '@/types/common'
 import type { AiProviderDriver } from './providers'
 
-export type AiAgentScene = 'chat' | 'agent_generate' | 'text_generate' | 'image_generate' | 'video_generate' | 'audio_generate'
+export type AiAgentScene = 'chat' | 'agent_generate' | 'text_generate' | 'image_generate'
 export type AiAgentStatus = 1 | 2
 
 export type AiAgentCatalogRate = components['schemas']['Go_internal_module_ai_agent_CatalogRateDTO_Output']
@@ -231,8 +231,6 @@ function isAgentScene(value: string): value is AiAgentScene {
     || value === 'agent_generate'
     || value === 'text_generate'
     || value === 'image_generate'
-    || value === 'video_generate'
-    || value === 'audio_generate'
 }
 
 function isAgentStatus(value: number): value is AiAgentStatus {
