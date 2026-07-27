@@ -140,11 +140,6 @@ export default {
         balanceAfter: '预计充值后',
         totalRecharge: '累计充值',
       },
-      recent: {
-        title: '最近充值',
-        limitHint: '只展示最近 5 条',
-        empty: '暂无充值记录',
-      },
       messages: {
         created: '充值单已创建',
       },

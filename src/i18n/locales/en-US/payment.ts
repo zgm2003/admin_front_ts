@@ -140,11 +140,6 @@ export default {
         balanceAfter: 'Balance After',
         totalRecharge: 'Total Recharge',
       },
-      recent: {
-        title: 'Recent Recharges',
-        limitHint: 'Latest 5 only',
-        empty: 'No recharge records',
-      },
       messages: {
         created: 'Recharge created',
       },

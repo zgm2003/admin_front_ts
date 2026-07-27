@@ -4,6 +4,7 @@ import {
   downloadFile,
   downloadTextFile,
   formatFileSize,
+  resolveTrustedFileURL,
 } from '@/lib/browser/download'
 
 describe('browser download policy', () => {
@@ -83,6 +84,24 @@ describe('browser download policy', () => {
     fetch.mockResolvedValue(new Response('missing', { status: 404 }))
     await expect(downloadFile('/missing.csv')).rejects.toThrow('404')
     expect(createObjectURL).not.toHaveBeenCalled()
+  })
+
+  it('resolves only same-origin and no-port allowlisted HTTPS URLs for previews', () => {
+    expect(resolveTrustedFileURL('/uploads/input.png'))
+      .toBe('https://www.zgm2003.cn/uploads/input.png')
+    expect(resolveTrustedFileURL('https://cos.zgm2003.cn/chat/input.png'))
+      .toBe('https://cos.zgm2003.cn/chat/input.png')
+
+    for (const input of [
+      'http://cos.zgm2003.cn/input.png',
+      'https://cos.zgm2003.cn:8443/input.png',
+      'https://evil.example/input.png',
+      'https://user:secret@cos.zgm2003.cn/input.png',
+      'javascript:alert(1)',
+      'data:image/png;base64,AAAA',
+    ]) {
+      expect(() => resolveTrustedFileURL(input)).toThrow()
+    }
   })
 
   it('removes the anchor and revokes the Blob URL when clicking fails', async () => {

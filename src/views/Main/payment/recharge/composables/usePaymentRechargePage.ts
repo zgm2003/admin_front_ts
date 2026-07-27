@@ -35,7 +35,6 @@ export function usePaymentRechargePage() {
     enabled: false,
   })
   const dict = shallowRef<PaymentRechargeInitResponse['dict']>({ status_arr: [] })
-  const recent = shallowRef<PaymentRechargeListItem[]>([])
   const selectedPackageCode = ref('')
   const searchForm = ref<PaymentRechargeSearchForm>({
     current_page: 1,
@@ -94,7 +93,6 @@ export function usePaymentRechargePage() {
       packages.value = result.packages
       paymentMethod.value = result.payment_method
       dict.value = result.dict
-      recent.value = result.recent
       const firstPackage = result.packages[0]
       if (!selectedPackageCode.value && firstPackage) {
         selectedPackageCode.value = firstPackage.code
@@ -106,7 +104,7 @@ export function usePaymentRechargePage() {
 
   async function refreshAll() {
     await init()
-    await table.getList()
+    if (activeTab.value === 'records') await table.getList()
   }
 
   function selectPackage(code: string) {
@@ -165,17 +163,26 @@ export function usePaymentRechargePage() {
   }
 
   watch(
+    activeTab,
+    (tab) => {
+      if (tab === 'records') void table.getList()
+    },
+  )
+
+  watch(
     () => route.query,
     (query) => {
       if (query.tab === 'records') {
+        const recordsAlreadyActive = activeTab.value === 'records'
         activeTab.value = 'records'
+        if (recordsAlreadyActive) void table.getList()
       }
     },
     { immediate: true },
   )
 
   onMounted(() => {
-    void refreshAll()
+    void init()
   })
 
   return {
@@ -186,7 +193,6 @@ export function usePaymentRechargePage() {
     wallet,
     packages,
     paymentMethod,
-    recent,
     selectedPackageCode,
     selectedPackage,
     canCreateRecharge,

@@ -1,7 +1,7 @@
 const defaultFilename = 'download'
 const externalDownloadHosts = new Set(['www.zgm2003.cn', 'cos.zgm2003.cn'])
 
-function parseDownloadUrl(input: string): URL {
+export function resolveTrustedFileURL(input: string): string {
   const base = new URL(globalThis.location.href)
   let url: URL
   try {
@@ -15,13 +15,13 @@ function parseDownloadUrl(input: string): URL {
     && url.port === ''
     && externalDownloadHosts.has(url.hostname.toLowerCase())
   if (!sameOrigin && !allowlistedHttps) throw new Error('download URL is not allowlisted')
-  return url
+  return url.href
 }
 
 export function deriveDownloadFilename(input: string, filename?: string): string {
   const explicit = filename?.trim()
   if (explicit) return explicit
-  const url = parseDownloadUrl(input)
+  const url = new URL(resolveTrustedFileURL(input))
   const basename = url.pathname.split('/').pop()?.trim()
   if (!basename) return defaultFilename
   try {
@@ -58,8 +58,8 @@ export function downloadTextFile(content: string, filename: string, mime: string
 }
 
 export async function downloadFile(input: string, filename?: string): Promise<void> {
-  const url = parseDownloadUrl(input)
-  const response = await globalThis.fetch(url.href, { credentials: 'same-origin' })
+  const url = resolveTrustedFileURL(input)
+  const response = await globalThis.fetch(url, { credentials: 'same-origin' })
   if (!response.ok) throw new Error(`download failed with HTTP ${response.status}`)
 
   const blobUrl = URL.createObjectURL(await response.blob())
@@ -67,7 +67,7 @@ export async function downloadFile(input: string, filename?: string): Promise<vo
   try {
     anchor = document.createElement('a')
     anchor.href = blobUrl
-    anchor.download = deriveDownloadFilename(url.href, filename)
+    anchor.download = deriveDownloadFilename(url, filename)
     document.body.appendChild(anchor)
     anchor.click()
   } finally {

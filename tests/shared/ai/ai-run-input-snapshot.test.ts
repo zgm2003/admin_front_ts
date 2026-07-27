@@ -1,0 +1,89 @@
+import { describe, expect, it } from 'vitest'
+import { parseRunInputSnapshot } from '@/views/Main/ai/runs/components/RunList/input-snapshot'
+
+describe('AI run input snapshot parser', () => {
+  it('keeps historical plain text as the complete raw fallback', () => {
+    expect(parseRunInputSnapshot('plain <script>alert(1)</script> text')).toEqual({
+      kind: 'raw',
+      text: 'plain <script>alert(1)</script> text',
+    })
+  })
+
+  it('maps only the documented direct snapshot fields', () => {
+    const snapshot = JSON.stringify({
+      content: 'describe the image',
+      attachments: [{
+        type: 'image',
+        url: 'https://cos.zgm2003.cn/chat/input.png',
+        name: 'input.png',
+        size: 1536,
+      }],
+      runtime_params: {
+        temperature: 0.7,
+        max_tokens: 1024,
+        max_history: 8,
+      },
+    })
+
+    expect(parseRunInputSnapshot(snapshot)).toEqual({
+      kind: 'structured',
+      content: 'describe the image',
+      attachments: [{
+        type: 'image',
+        url: 'https://cos.zgm2003.cn/chat/input.png',
+        name: 'input.png',
+        size: 1536,
+      }],
+      runtimeParams: {
+        temperature: 0.7,
+        max_tokens: 1024,
+        max_history: 8,
+      },
+    })
+  })
+
+  it('parses a string meta_json exactly once and supports missing optional sections', () => {
+    const nested = JSON.stringify({
+      content: 'image only metadata follows',
+      meta_json: JSON.stringify({
+        attachments: [{
+          type: 'image',
+          url: 'javascript:alert(1)',
+          name: 'unsafe.png',
+          size: 0,
+        }],
+      }),
+    })
+
+    expect(parseRunInputSnapshot(nested)).toEqual({
+      kind: 'structured',
+      content: 'image only metadata follows',
+      attachments: [{
+        type: 'image',
+        url: 'javascript:alert(1)',
+        name: 'unsafe.png',
+        size: 0,
+      }],
+      runtimeParams: null,
+    })
+
+    expect(parseRunInputSnapshot('{"content":"text only"}')).toEqual({
+      kind: 'structured',
+      content: 'text only',
+      attachments: [],
+      runtimeParams: null,
+    })
+  })
+
+  it.each([
+    '{bad json',
+    '{"content":"keep me","meta_json":"{bad json"}',
+    '{"content":"keep me","meta_json":"\\"{\\\\\\"attachments\\\\\\":[]}\\""}',
+    '{"prompt":"alias is forbidden"}',
+    '{"content":"hello","runtime_params":{"top_p":0.9}}',
+    '{"attachments":[{"type":"image","url":"/image.png","name":"a.png","size":1},{"type":"file","url":"/file","name":"a.txt","size":1}]}',
+    '{"attachments":[{"type":"image","url":"/image.png","name":"a.png","size":-1}]}',
+  ])('returns the complete raw input for malformed or unknown required shapes: %s', (text) => {
+    expect(parseRunInputSnapshot(text)).toEqual({ kind: 'raw', text })
+  })
+})

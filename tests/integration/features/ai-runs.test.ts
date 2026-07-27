@@ -8,6 +8,11 @@ import {
   createAIRunsWorkflow,
   type AIRunsWorkflowApi,
 } from '@/features/ai-runs/workflow'
+import {
+  groupRunUsageItems,
+  runBillingSummary,
+} from '@/views/Main/ai/runs/components/RunList/detail-dialog'
+import { parseRunInputSnapshot } from '@/views/Main/ai/runs/components/RunList/input-snapshot'
 import { deferred, page } from './support'
 
 const run = (id: number): AiRunItem => ({
@@ -43,12 +48,60 @@ const detail = (id: number): AiRunDetailResponse => ({
   events: [],
   knowledge_retrievals: [],
   tool_calls: [],
+  billing_status: 'unbilled',
+  billing_reason: 'legacy_unpriced',
+  held_amount: '0',
+  actual_amount: '0',
+  pricing: null,
+  usage_items: [],
+  provider_attempts: [],
+  liked: false,
+  liked_at: null,
   started_at: '2026-07-19 00:00:00',
   finished_at: '2026-07-19 00:00:01',
   updated_at: '2026-07-19 00:00:01',
 })
 
 describe('AI runs workflow', () => {
+  it('keeps billing and usage readable when an input snapshot falls back to raw text', () => {
+    const malformedSnapshot = '{"content":"keep the whole object","meta_json":"{bad json"}'
+    const runDetail: AiRunDetailResponse = {
+      ...detail(3),
+      input_snapshot: malformedSnapshot,
+      billing_status: 'settled',
+      billing_reason: 'settled_complete_usage',
+      held_amount: '0.02',
+      actual_amount: '0.01',
+      usage_items: [{
+        amount: '0.01',
+        attempt_no: 1,
+        billable: true,
+        category: 'input',
+        quantity: 120,
+        tier_key: 'default',
+        unit: 'token',
+        unit_price: '0.01',
+        unit_scale: 1000,
+      }],
+    }
+
+    expect(parseRunInputSnapshot(runDetail.input_snapshot)).toEqual({
+      kind: 'raw',
+      text: malformedSnapshot,
+    })
+    expect(runBillingSummary(runDetail)).toEqual({
+      runStatus: 'success',
+      billingStatus: 'settled',
+      billingReason: 'settled_complete_usage',
+      heldAmount: '0.02',
+      actualAmount: '0.01',
+    })
+    expect(groupRunUsageItems(runDetail.usage_items)).toEqual([{
+      category: 'input',
+      items: runDetail.usage_items,
+    }])
+  })
+
   it('keeps the latest detail and preserves list data on failed refresh', async () => {
     const detailA = deferred<AiRunDetailResponse>()
     const detailB = deferred<AiRunDetailResponse>()

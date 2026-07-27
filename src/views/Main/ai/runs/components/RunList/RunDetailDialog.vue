@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { AiRunDetailResponse, AiRunStatus } from '@/api/ai/runs'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
+import RunInputSnapshot from './RunInputSnapshot.vue'
 import {
   formatRunAmount,
   groupRunUsageItems,
@@ -319,9 +320,7 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
         <el-divider content-position="left">
           {{ t('aiRuns.detail.inputSnapshot') }}
         </el-divider>
-        <div class="input-snapshot">
-          {{ detailData.input_snapshot }}
-        </div>
+        <RunInputSnapshot :snapshot="detailData.input_snapshot" />
 
         <!-- 错误信息 -->
         <template v-if="detailData.error_message">

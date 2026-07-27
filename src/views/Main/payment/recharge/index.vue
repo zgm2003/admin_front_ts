@@ -2,7 +2,6 @@
 import { useI18n } from 'vue-i18n'
 import RechargeCheckoutPanel from './components/RechargeCheckoutPanel.vue'
 import RechargePackageGrid from './components/RechargePackageGrid.vue'
-import RechargeRecentRecords from './components/RechargeRecentRecords.vue'
 import RechargeRecordsTable from './components/RechargeRecordsTable.vue'
 import { usePaymentRechargePage } from './composables/usePaymentRechargePage'
 
@@ -14,7 +13,6 @@ const {
   wallet,
   packages,
   paymentMethod,
-  recent,
   selectedPackageCode,
   selectedPackage,
   canCreateRecharge,
@@ -68,13 +66,6 @@ const {
                 :submitting="submitting"
                 :can-submit="canSubmit"
                 @submit="createRecharge"
-              />
-            </div>
-            <div class="payment-recharge-page__recent">
-              <RechargeRecentRecords
-                :records="recent"
-                :can-pay="canPay"
-                @pay="payRecharge"
               />
             </div>
           </div>
@@ -165,9 +156,7 @@ const {
   display: grid;
   flex: 0 0 auto;
   grid-template-columns: minmax(0, 1fr) clamp(320px, 25vw, 390px);
-  grid-template-areas:
-    "main side"
-    "recent side";
+  grid-template-areas: "main side";
   gap: 16px;
   align-items: start;
   min-width: 0;
@@ -190,12 +179,6 @@ const {
   top: 0;
 }
 
-.payment-recharge-page__recent {
-  flex: 0 0 auto;
-  grid-area: recent;
-  min-width: 0;
-}
-
 @media (max-width: 980px) {
   .payment-recharge-page,
   .payment-recharge-page__tabs,
@@ -215,8 +198,7 @@ const {
     grid-template-columns: 1fr;
     grid-template-areas:
       "main"
-      "side"
-      "recent";
+      "side";
   }
 
   .payment-recharge-page__side {
