@@ -11,6 +11,7 @@ import {
   type AiAgentInitResponse,
   type AiAgentItem,
   type AiAgentMutationParams,
+  type AiAgentProviderModelOption,
   type AiAgentScene,
   type AiAgentStatus,
 } from '@/api/ai/agents'
@@ -25,6 +26,8 @@ interface AgentForm {
   status: AiAgentStatus
   system_prompt: string
   avatar: string
+  billing_multiplier: string
+  max_output_tokens: number
 }
 
 export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
@@ -32,6 +35,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
   const isMobile = useIsMobile()
 
   const dict = shallowRef<AiAgentInitResponse['dict']>({
+    billing_multiplier_default: '',
+    max_output_tokens_default: 0,
     scene_arr: [],
     common_status_arr: [],
     provider_options: [],
@@ -78,6 +83,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       status: CommonEnum.YES,
       system_prompt: '',
       avatar: '',
+      billing_multiplier: dict.value.billing_multiplier_default,
+      max_output_tokens: dict.value.max_output_tokens_default,
     }
   }
 
@@ -86,6 +93,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     model_path: [{ required: true, type: 'array', min: 2, message: t('aiAgents.form.model') + t('common.required'), trigger: 'change' }],
     scenes: [{ required: true, type: 'array', min: 1, message: t('aiAgents.form.scenes') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiAgents.form.status') + t('common.required'), trigger: 'change' }],
+    billing_multiplier: [{ required: true, message: 'billing_multiplier is required', trigger: 'blur' }],
+    max_output_tokens: [{ required: true, type: 'number', min: 1, message: 'max_output_tokens must be positive', trigger: 'change' }],
   }))
 
   const searchFields = computed<SearchField[]>(() => [
@@ -100,6 +109,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     { key: 'name', label: t('aiAgents.table.name'), minWidth: 160 },
     { key: 'provider_name', label: t('aiAgents.table.provider'), width: 160 },
     { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 180, overflowTooltip: true },
+    { key: 'billing_multiplier', label: 'Billing multiplier', width: 140 },
+    { key: 'max_output_tokens', label: 'Max output', width: 120 },
     { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
     { key: 'status', label: t('aiAgents.table.status'), width: 90 },
     { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
@@ -113,6 +124,14 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       void loadModelOptions()
     }
   )
+
+  const selectedModel = computed<AiAgentProviderModelOption | null>(() => {
+    const [providerID, modelID] = form.value.model_path
+    if (!providerID || !modelID) return null
+    return dict.value.provider_model_options.find((model) => (
+      model.provider_id === providerID && model.model_id === modelID
+    )) ?? null
+  })
 
   async function init() {
     const data = await AiAgentApi.pageInit()
@@ -147,6 +166,15 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     } finally {
       modelLoading.value = false
     }
+  }
+
+  async function onModelChange() {
+    const model = selectedModel.value
+    if (model) {
+      form.value.billing_multiplier = model.billing_multiplier
+      form.value.max_output_tokens = model.max_output_tokens
+    }
+    await loadModelOptions()
   }
 
   function buildModelOptions(): CascaderOption[] {
@@ -185,6 +213,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       status: row.status,
       system_prompt: row.system_prompt ?? '',
       avatar: row.avatar ?? '',
+      billing_multiplier: row.billing_multiplier,
+      max_output_tokens: row.max_output_tokens,
     }
     dialogVisible.value = true
     void nextTick(() => formRef.value?.clearValidate())
@@ -228,6 +258,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       status: form.value.status,
       system_prompt: form.value.system_prompt,
       avatar: form.value.avatar,
+      billing_multiplier: form.value.billing_multiplier,
+      max_output_tokens: form.value.max_output_tokens,
     }
     const api = dialogMode.value === 'add' ? AiAgentApi.create : AiAgentApi.update
     await api(payload)
@@ -252,6 +284,7 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
     modelLoading, modelOptions, toolDialogVisible, toolAgent,
     knowledgeDialogVisible, knowledgeAgent, loadModelOptions,
+    selectedModel, onModelChange,
     add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
   }
 }

@@ -68,10 +68,10 @@ const columns = computed(() => [
   { key: 'username', label: t('wallet.username'), minWidth: 130 },
   { key: 'account', label: t('wallet.account'), minWidth: 170 },
   { key: 'direction_text', label: t('wallet.direction'), width: 100 },
-  { key: 'amount_text', label: t('wallet.amount'), width: 110 },
-  { key: 'balance_before_text', label: t('wallet.balanceBefore'), minWidth: 130 },
-  { key: 'balance_after_text', label: t('wallet.balanceAfter'), minWidth: 130 },
-  { key: 'source_type_text', label: t('wallet.sourceType'), width: 110 },
+  { key: 'amount', label: t('wallet.amount'), width: 130 },
+  { key: 'balance_before', label: t('wallet.balanceBefore'), minWidth: 150 },
+  { key: 'balance_after', label: t('wallet.balanceAfter'), minWidth: 150 },
+  { key: 'source_type_text', label: t('wallet.sourceType'), minWidth: 220 },
   { key: 'remark', label: t('wallet.remark'), minWidth: 160 },
   { key: 'created_at', label: t('wallet.createdAt'), minWidth: 170 },
 ])
@@ -132,6 +132,25 @@ onMounted(() => {
             {{ row.direction_text }}
           </el-tag>
         </template>
+        <template #cell-amount="{ row }">
+          <span>¥{{ row.amount }}</span>
+        </template>
+        <template #cell-balance_before="{ row }">
+          <span>¥{{ row.balance_before }}</span>
+        </template>
+        <template #cell-balance_after="{ row }">
+          <span>¥{{ row.balance_after }}</span>
+        </template>
+        <template #cell-source_type_text="{ row }">
+          <div
+            v-if="row.source_type === 'ai_generate'"
+            class="wallet-ledger-page__source"
+          >
+            <strong>Run #{{ row.source_id }}</strong>
+            <span>{{ row.remark }}</span>
+          </div>
+          <span v-else>{{ row.source_type_text }}</span>
+        </template>
       </AppTable>
     </div>
   </div>
@@ -150,5 +169,17 @@ onMounted(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+}
+
+.wallet-ledger-page__source {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+}
+
+.wallet-ledger-page__source span {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 </style>

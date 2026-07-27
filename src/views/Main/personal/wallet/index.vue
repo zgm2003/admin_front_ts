@@ -52,9 +52,11 @@ const { loading, data, page, onPageChange, refresh, resetPage, getList } = useTa
 })
 
 const summaryCards = computed(() => [
-  { key: 'balance', label: t('wallet.balance'), value: summary.value.balance_text },
-  { key: 'totalRecharge', label: t('wallet.totalRecharge'), value: summary.value.total_recharge_text },
-  { key: 'totalConsume', label: t('wallet.totalConsume'), value: summary.value.total_consume_text },
+  { key: 'balance', label: t('wallet.balance'), value: summary.value.balance },
+  { key: 'availableBalance', label: 'Available balance', value: summary.value.available_balance },
+  { key: 'heldAmount', label: 'Held amount', value: summary.value.held_amount },
+  { key: 'totalRecharge', label: t('wallet.totalRecharge'), value: summary.value.total_recharge },
+  { key: 'totalConsume', label: t('wallet.totalConsume'), value: summary.value.total_consume },
 ])
 
 const directionOptions = computed<DictOption<WalletDirection>[]>(() => [
@@ -66,7 +68,6 @@ const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => [
   { label: t('wallet.sourceRecharge'), value: 'recharge' },
   { label: t('wallet.sourceRedeemCode'), value: 'redeem_code' },
   { label: t('wallet.sourceAiGenerate'), value: 'ai_generate' },
-  { label: t('wallet.sourceAiRefund'), value: 'ai_refund' },
 ])
 
 const searchFields = computed<SearchField[]>(() => [
@@ -79,10 +80,10 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'transaction_no', label: t('wallet.transactionNo'), minWidth: 190 },
   { key: 'direction_text', label: t('wallet.direction'), width: 100 },
-  { key: 'amount_text', label: t('wallet.amount'), width: 110 },
-  { key: 'balance_before_text', label: t('wallet.balanceBefore'), minWidth: 130 },
-  { key: 'balance_after_text', label: t('wallet.balanceAfter'), minWidth: 130 },
-  { key: 'source_type_text', label: t('wallet.sourceType'), width: 120 },
+  { key: 'amount', label: t('wallet.amount'), width: 130 },
+  { key: 'balance_before', label: t('wallet.balanceBefore'), minWidth: 150 },
+  { key: 'balance_after', label: t('wallet.balanceAfter'), minWidth: 150 },
+  { key: 'source_type_text', label: t('wallet.sourceType'), minWidth: 220 },
   { key: 'remark', label: t('wallet.remark'), minWidth: 160 },
   { key: 'created_at', label: t('wallet.createdAt'), minWidth: 170 },
 ])
@@ -132,12 +133,11 @@ onMounted(() => {
 
 function emptySummary(): WalletSummaryResponse {
   return {
-    balance_cents: 0,
-    balance_text: '¥0.00',
-    total_recharge_cents: 0,
-    total_recharge_text: '¥0.00',
-    total_consume_cents: 0,
-    total_consume_text: '¥0.00',
+    available_balance: '0',
+    balance: '0',
+    held_amount: '0',
+    total_consume: '0',
+    total_recharge: '0',
   }
 }
 </script>
@@ -159,7 +159,7 @@ function emptySummary(): WalletSummaryResponse {
             class="personal-wallet-page__summary-card"
           >
             <span>{{ item.label }}</span>
-            <strong>{{ item.value }}</strong>
+            <strong>¥{{ item.value }}</strong>
           </div>
         </section>
         <div class="personal-wallet-page__actions">
@@ -209,6 +209,25 @@ function emptySummary(): WalletSummaryResponse {
                 >
                   {{ row.direction_text }}
                 </el-tag>
+              </template>
+              <template #cell-amount="{ row }">
+                <span>¥{{ row.amount }}</span>
+              </template>
+              <template #cell-balance_before="{ row }">
+                <span>¥{{ row.balance_before }}</span>
+              </template>
+              <template #cell-balance_after="{ row }">
+                <span>¥{{ row.balance_after }}</span>
+              </template>
+              <template #cell-source_type_text="{ row }">
+                <div
+                  v-if="row.source_type === 'ai_generate'"
+                  class="personal-wallet-page__source"
+                >
+                  <strong>Run #{{ row.source_id }}</strong>
+                  <span>{{ row.remark }}</span>
+                </div>
+                <span v-else>{{ row.source_type_text }}</span>
               </template>
             </AppTable>
           </div>
@@ -263,7 +282,7 @@ function emptySummary(): WalletSummaryResponse {
   gap: 6px;
   padding: 16px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--el-bg-color);
 }
 
@@ -289,6 +308,18 @@ function emptySummary(): WalletSummaryResponse {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+}
+
+.personal-wallet-page__source {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+}
+
+.personal-wallet-page__source span {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {

@@ -6,19 +6,19 @@ import {
   type AdminOperationInput,
 } from '@/modules/http/generated/operations'
 import type { DictOption, Id, RequestPayload } from '@/types/common'
-import type { AiProviderDriver, AiProviderModelItem } from './providers'
+import type { AiProviderDriver } from './providers'
 
 export type AiAgentScene = 'chat' | 'agent_generate' | 'text_generate' | 'image_generate' | 'video_generate' | 'audio_generate'
 export type AiAgentStatus = 1 | 2
 
-export interface AiAgentProviderModelOption extends DictOption<string> {
-  provider_id: number
-  model_id: string
-  display_name: string
-}
+export type AiAgentCatalogRate = components['schemas']['Go_internal_module_ai_agent_CatalogRateDTO_Output']
+export type AiAgentProviderModelOption = components['schemas']['Go_internal_module_ai_agent_ModelOption_Output']
+export type AiAgentProviderModelItem = components['schemas']['Go_internal_module_ai_agent_ProviderModelDTO_Output']
 
 export interface AiAgentInitResponse {
   dict: {
+    billing_multiplier_default: string
+    max_output_tokens_default: number
     scene_arr: DictOption<AiAgentScene>[]
     common_status_arr: DictOption<AiAgentStatus>[]
     provider_options: Array<DictOption<number> & { engine_type: AiProviderDriver }>
@@ -72,17 +72,11 @@ export interface AiAgentMutationParams {
   system_prompt?: string
   avatar?: string
   status?: AiAgentStatus
+  billing_multiplier?: string
+  max_output_tokens?: number
 }
 
-export interface AiAgentMutationBody {
-  name: string
-  provider_id: number
-  model_id: string
-  scenes: AiAgentScene[]
-  system_prompt?: string
-  avatar?: string
-  status: AiAgentStatus
-}
+export type AiAgentMutationBody = NonNullable<AdminOperationInput<'post_api_admin_v1_ai_agents'>['body']>
 
 export interface AiAgentCreateResponse {
   id: number
@@ -185,6 +179,8 @@ function mutationBody(params: AiAgentMutationParams): AiAgentMutationBody {
     system_prompt: params.system_prompt,
     avatar: params.avatar,
     status: params.status,
+    billing_multiplier: params.billing_multiplier,
+    max_output_tokens: params.max_output_tokens,
   }
 }
 
@@ -274,6 +270,8 @@ function toAgentInit(response: components['schemas']['Go_internal_module_ai_agen
   })
   return {
     dict: {
+      billing_multiplier_default: response.dict.billing_multiplier_default,
+      max_output_tokens_default: response.dict.max_output_tokens_default,
       scene_arr: scenes,
       common_status_arr: statuses,
       provider_options: providers,
@@ -333,7 +331,7 @@ export const AiAgentApi = {
     return { list: response.list.map(toAgentItem), page: response.page }
   },
   options: (options: ExecuteOptions = {}) => listOptions(options),
-  models: (params: { provider_id: Id }, options: ExecuteOptions = {}): Promise<{ list: AiProviderModelItem[] }> =>
+  models: (params: { provider_id: Id }, options: ExecuteOptions = {}): Promise<{ list: AiAgentProviderModelItem[] }> =>
     executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_provider_models_id, {
       path: { id: positiveID(params.provider_id, 'AI provider id') },
     }, options),

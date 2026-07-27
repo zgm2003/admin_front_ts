@@ -18,7 +18,8 @@ const {
   listLoading, listData, page, onSearch, onPageChange, refresh, getList,
   confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
   modelLoading, modelOptions, toolDialogVisible, toolAgent,
-  knowledgeDialogVisible, knowledgeAgent, loadModelOptions,
+  knowledgeDialogVisible, knowledgeAgent,
+  selectedModel, onModelChange,
   add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
 } = useAgentAdminPage(formRef)
 </script>
@@ -190,9 +191,99 @@ const {
               filterable
               clearable
               style="width: 100%"
-              @change="loadModelOptions"
+              @change="onModelChange"
             />
           </el-form-item>
+        </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            label="Billing multiplier"
+            prop="billing_multiplier"
+            required
+          >
+            <el-input
+              v-model="form.billing_multiplier"
+              inputmode="decimal"
+              autocomplete="off"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          :md="12"
+          :span="24"
+        >
+          <el-form-item
+            label="Max output tokens"
+            prop="max_output_tokens"
+            required
+          >
+            <el-input-number
+              v-model="form.max_output_tokens"
+              :min="1"
+              :precision="0"
+              controls-position="right"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
+        <el-col
+          v-if="selectedModel"
+          :span="24"
+        >
+          <section class="ai-agent-page__catalog">
+            <div class="ai-agent-page__catalog-heading">
+              <strong>Official catalog pricing</strong>
+              <span v-if="selectedModel.catalog_vendor && selectedModel.catalog_version">
+                {{ selectedModel.catalog_vendor }} / {{ selectedModel.catalog_version }}
+              </span>
+            </div>
+            <el-descriptions
+              :column="isMobile ? 1 : 2"
+              border
+              size="small"
+            >
+              <el-descriptions-item label="Transport model">
+                {{ selectedModel.display_name }} ({{ selectedModel.model_id }})
+              </el-descriptions-item>
+              <el-descriptions-item label="Catalog model">
+                {{ selectedModel.catalog_model_id }}
+              </el-descriptions-item>
+              <el-descriptions-item label="Published max output">
+                {{ selectedModel.max_output_tokens }}
+              </el-descriptions-item>
+            </el-descriptions>
+            <el-table
+              v-if="selectedModel.catalog_rates?.length"
+              :data="selectedModel.catalog_rates"
+              size="small"
+              class="ai-agent-page__catalog-rates"
+            >
+              <el-table-column
+                prop="category"
+                label="Category"
+              />
+              <el-table-column
+                prop="tier_key"
+                label="Tier"
+              />
+              <el-table-column
+                prop="price"
+                label="Official price"
+              >
+                <template #default="{ row }">
+                  ¥{{ row.price }}
+                </template>
+              </el-table-column>
+              <el-table-column label="Unit">
+                <template #default="{ row }">
+                  {{ row.unit }} / {{ row.unit_scale }}
+                </template>
+              </el-table-column>
+            </el-table>
+          </section>
         </el-col>
         <el-col :span="24">
           <el-form-item
@@ -264,3 +355,31 @@ const {
 </template>
 
 <style scoped src="./styles.css"></style>
+
+<style scoped>
+.ai-agent-page__catalog {
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 8px;
+  background: var(--el-fill-color-lighter);
+}
+
+.ai-agent-page__catalog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.ai-agent-page__catalog-heading strong {
+  color: var(--el-text-color-primary);
+}
+
+.ai-agent-page__catalog-rates {
+  margin-top: 10px;
+}
+</style>

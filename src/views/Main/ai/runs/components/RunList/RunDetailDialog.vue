@@ -4,7 +4,13 @@ import { useI18n } from 'vue-i18n'
 import type { AiRunDetailResponse, AiRunStatus } from '@/api/ai/runs'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { resolveAiRunsDetailDialogLayout } from './detail-dialog'
+import {
+  formatRunAmount,
+  groupRunUsageItems,
+  resolveAiRunsDetailDialogLayout,
+  runBillingStatusTagType,
+  runBillingSummary,
+} from './detail-dialog'
 import {
   formatRunTokens,
   knowledgeHitTagType,
@@ -14,7 +20,7 @@ import {
   toolCallTagType,
 } from './presenters'
 
-defineProps<{
+const props = defineProps<{
   detailData: AiRunDetailResponse | null
   loading: boolean
 }>()
@@ -22,6 +28,12 @@ const visible = defineModel<boolean>({ required: true })
 const { t } = useI18n()
 const isMobile = useIsMobile()
 const detailDialogLayout = computed(() => resolveAiRunsDetailDialogLayout(isMobile.value))
+const usageGroups = computed(() => groupRunUsageItems(props.detailData?.usage_items ?? []))
+const isFailedSettled = computed(() => {
+  if (!props.detailData) return false
+  const billing = runBillingSummary(props.detailData)
+  return billing.runStatus === 'failed' && billing.billingStatus === 'settled'
+})
 const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 </script>
 
@@ -106,6 +118,203 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
             {{ detailData.updated_at }}
           </el-descriptions-item>
         </el-descriptions>
+
+        <el-divider content-position="left">
+          Billing settlement
+        </el-divider>
+        <el-alert
+          v-if="isFailedSettled"
+          class="billing-settled-failure"
+          title="The run failed, but completed provider usage was settled."
+          type="warning"
+          :closable="false"
+          show-icon
+        />
+        <el-descriptions
+          :column="isMobile ? 1 : 2"
+          border
+          class="billing-summary"
+        >
+          <el-descriptions-item label="Billing status">
+            <el-tag
+              :type="runBillingStatusTagType(detailData.billing_status)"
+              size="small"
+            >
+              {{ detailData.billing_status }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="Settlement reason">
+            <code>{{ detailData.billing_reason }}</code>
+          </el-descriptions-item>
+          <el-descriptions-item label="Held amount">
+            {{ formatRunAmount(detailData.held_amount) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Actual amount">
+            <strong>{{ formatRunAmount(detailData.actual_amount) }}</strong>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <template v-if="detailData.pricing">
+          <el-divider content-position="left">
+            Closed pricing snapshot
+          </el-divider>
+          <el-descriptions
+            :column="isMobile ? 1 : 2"
+            border
+          >
+            <el-descriptions-item label="Catalog vendor">
+              {{ detailData.pricing.catalog_vendor }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Transport engine">
+              {{ detailData.pricing.transport_engine }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Model">
+              {{ detailData.pricing.model_id }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Resolved alias">
+              {{ detailData.pricing.resolved_alias }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Catalog version">
+              {{ detailData.pricing.version }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Billing multiplier">
+              {{ detailData.pricing.billing_multiplier }}
+            </el-descriptions-item>
+            <el-descriptions-item label="Max output tokens">
+              {{ detailData.pricing.max_output_tokens }}
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-table
+            :data="detailData.pricing.rates"
+            size="small"
+            class="billing-table"
+          >
+            <el-table-column
+              prop="category"
+              label="Category"
+            />
+            <el-table-column
+              prop="tier_key"
+              label="Tier"
+            />
+            <el-table-column label="Price">
+              <template #default="{ row }">
+                {{ formatRunAmount(row.price) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="Unit">
+              <template #default="{ row }">
+                {{ row.unit }} / {{ row.unit_scale }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+        <template v-else>
+          <el-divider content-position="left">
+            Closed pricing snapshot
+          </el-divider>
+          <el-text type="info">
+            pricing: null
+          </el-text>
+        </template>
+
+        <template v-if="usageGroups.length > 0">
+          <el-divider content-position="left">
+            Billed usage
+          </el-divider>
+          <section class="usage-groups">
+            <article
+              v-for="group in usageGroups"
+              :key="group.category"
+              class="usage-group"
+            >
+              <h4>{{ group.category }}</h4>
+              <el-table
+                :data="group.items"
+                size="small"
+              >
+                <el-table-column
+                  prop="attempt_no"
+                  label="Attempt"
+                  width="82"
+                />
+                <el-table-column
+                  prop="category"
+                  label="Category"
+                  min-width="110"
+                />
+                <el-table-column
+                  prop="quantity"
+                  label="Quantity"
+                  min-width="96"
+                />
+                <el-table-column
+                  prop="tier_key"
+                  label="Tier"
+                  min-width="90"
+                />
+                <el-table-column label="Unit" min-width="120">
+                  <template #default="{ row }">
+                    {{ row.unit }} / {{ row.unit_scale }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="Unit price" min-width="132">
+                  <template #default="{ row }">
+                    {{ formatRunAmount(row.unit_price) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="Amount" min-width="132">
+                  <template #default="{ row }">
+                    {{ formatRunAmount(row.amount) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="Billable" width="88">
+                  <template #default="{ row }">
+                    <el-tag :type="row.billable ? 'success' : 'info'" size="small">
+                      {{ row.billable ? 'yes' : 'no' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </article>
+          </section>
+        </template>
+
+        <template v-if="detailData.provider_attempts.length > 0">
+          <el-divider content-position="left">
+            Provider attempts
+          </el-divider>
+          <el-table
+            :data="detailData.provider_attempts"
+            size="small"
+            class="billing-table"
+          >
+            <el-table-column
+              prop="attempt_no"
+              label="Attempt"
+              width="90"
+            />
+            <el-table-column
+              prop="state"
+              label="State"
+              width="140"
+            />
+            <el-table-column
+              prop="usage_status"
+              label="Usage"
+              width="120"
+            />
+            <el-table-column
+              prop="provider_request_id"
+              label="Provider request ID"
+              min-width="220"
+            >
+              <template #default="{ row }">
+                {{ row.provider_request_id ?? '-' }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
 
         <el-divider content-position="left">
           {{ t('aiRuns.detail.inputSnapshot') }}
@@ -356,3 +565,35 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
 </template>
 
 <style scoped src="./run-detail-dialog.css"></style>
+
+<style scoped>
+.billing-settled-failure {
+  margin-bottom: 12px;
+}
+
+.billing-summary strong {
+  color: var(--el-color-primary);
+}
+
+.billing-table {
+  margin-top: 10px;
+}
+
+.usage-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.usage-group {
+  padding: 10px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+}
+
+.usage-group h4 {
+  margin: 0 0 8px;
+  color: var(--el-text-color-primary);
+  text-transform: capitalize;
+}
+</style>

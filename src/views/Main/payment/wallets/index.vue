@@ -31,9 +31,11 @@ const columns = computed(() => [
   { key: 'user_id', label: t('wallet.userId'), width: 100 },
   { key: 'username', label: t('wallet.username'), minWidth: 130 },
   { key: 'account', label: t('wallet.account'), minWidth: 170 },
-  { key: 'balance_text', label: t('wallet.balance'), width: 130 },
-  { key: 'total_recharge_text', label: t('wallet.totalRecharge'), width: 130 },
-  { key: 'total_consume_text', label: t('wallet.totalConsume'), width: 130 },
+  { key: 'balance', label: t('wallet.balance'), width: 150 },
+  { key: 'available_balance', label: 'Available balance', width: 150 },
+  { key: 'held_amount', label: 'Held amount', width: 130 },
+  { key: 'total_recharge', label: t('wallet.totalRecharge'), width: 150 },
+  { key: 'total_consume', label: t('wallet.totalConsume'), width: 150 },
   { key: 'updated_at', label: t('wallet.updatedAt'), minWidth: 170 },
 ])
 
@@ -73,7 +75,23 @@ onMounted(() => {
         row-key="id"
         @refresh="refresh"
         @update:pagination="onPageChange"
-      />
+      >
+        <template #cell-balance="{ row }">
+          <span>¥{{ row.balance }}</span>
+        </template>
+        <template #cell-available_balance="{ row }">
+          <span>¥{{ row.available_balance }}</span>
+        </template>
+        <template #cell-held_amount="{ row }">
+          <span>¥{{ row.held_amount }}</span>
+        </template>
+        <template #cell-total_recharge="{ row }">
+          <span>¥{{ row.total_recharge }}</span>
+        </template>
+        <template #cell-total_consume="{ row }">
+          <span>¥{{ row.total_consume }}</span>
+        </template>
+      </AppTable>
     </div>
   </div>
 </template>
