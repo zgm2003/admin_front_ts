@@ -36,6 +36,7 @@ export type AiRunStatsByUserItem = components['schemas']['AIRunStatsByUserItem']
 export type AiRunStatsByDateResponse = components['schemas']['AIRunStatsByDateResult']
 export type AiRunStatsByAgentResponse = components['schemas']['AIRunStatsByAgentResult']
 export type AiRunStatsByUserResponse = components['schemas']['AIRunStatsByUserResult']
+export type AiRunUserFeedbackResponse = components['schemas']['AIRunUserFeedbackResult']
 
 export interface AiRunListParams {
   current_page?: number
@@ -162,4 +163,21 @@ export const AiRunApi = {
     { query: normalizeStatsListParams(params) },
     options,
   ),
+
+  setUserFeedback: (
+    params: { id: Id; liked: boolean },
+    options: ExecuteOptions = {},
+  ): Promise<AiRunUserFeedbackResponse> => {
+    if (typeof params.liked !== 'boolean') {
+      throw new Error('AI run feedback liked must be a boolean')
+    }
+    return executeAdminOperation(
+      adminOperations.put_api_admin_v1_ai_runs_id_user_feedback,
+      {
+        path: { id: positiveID(params.id) },
+        body: { liked: params.liked },
+      },
+      options,
+    )
+  },
 }

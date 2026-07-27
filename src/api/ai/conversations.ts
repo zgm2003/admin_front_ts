@@ -17,6 +17,7 @@ export interface AiConversationListParams {
 export type AiConversationItem = components['schemas']['AIConversationItem']
 export type AiConversationDetailResponse = components['schemas']['AIConversationDetail']
 export type AiConversationListResponse = components['schemas']['AIConversationListResult']
+export type AiConversationReadCursorResponse = components['schemas']['AIConversationReadCursorResult']
 type AiConversationListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_conversations'>['query']>
 
 function normalizeListParams(params: AiConversationListParams = {}): AiConversationListQueryParams {
@@ -103,4 +104,15 @@ export const AiConversationApi = {
   update,
   deleteOne,
   deleteBatch,
+  advanceReadCursor: (
+    params: { conversation_id: number; message_id: number },
+    options: ExecuteOptions = {},
+  ): Promise<AiConversationReadCursorResponse> => executeAdminOperation(
+    adminOperations.put_api_admin_v1_ai_conversations_id_read_cursor,
+    {
+      path: { id: positiveID(params.conversation_id) },
+      body: { message_id: positiveID(params.message_id) },
+    },
+    options,
+  ),
 }

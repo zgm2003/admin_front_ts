@@ -235,6 +235,15 @@ const groupedConversations = computed(() => {
                 <ChatDotRound />
               </el-icon>
               <span class="conv-title">{{ conv.title || t('aiChat.untitled') }}</span>
+              <span
+                class="conv-unread-slot"
+                :aria-label="conv.unread_count > 0 ? t('accessibility.unread') : undefined"
+              >
+                <span
+                  v-if="conv.unread_count > 0"
+                  class="conv-unread-badge"
+                >{{ conv.unread_count }}</span>
+              </span>
               <el-dropdown
                 trigger="click"
                 @click.stop

@@ -15,6 +15,7 @@ export type AiMessageItem = components['schemas']['AIMessageItem']
 export type AiMessageListResponse = components['schemas']['AIMessageListResult']
 export type AiMessageSendResponse = components['schemas']['AIMessageSendResult']
 export type AiMessageCancelResponse = components['schemas']['AIMessageCancelResult']
+export type AiMessageDeleteResponse = components['schemas']['AIMessageDeleteResult']
 export type AIRuntimeParams = components['schemas']['AIRuntimeParams']
 
 export interface AiMessageListParams {
@@ -36,6 +37,24 @@ export interface AiMessageCancelParams {
   request_id: string
 }
 
+export interface AiMessageRevisionParams {
+  conversation_id: number
+  message_id: number
+  content: string
+  request_id: string
+}
+
+export interface AiMessageRegenerationParams {
+  conversation_id: number
+  message_id: number
+  request_id: string
+}
+
+export interface AiMessageDeleteParams {
+  conversation_id: number
+  ids: number[]
+}
+
 type AiMessageListQueryParams = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_conversations_id_messages'>['query']>
 
 function positiveID(value: Id | number, label = 'AI message id'): number {
@@ -43,6 +62,31 @@ function positiveID(value: Id | number, label = 'AI message id'): number {
     throw new Error(`${label} must be a positive integer`)
   }
   return value
+}
+
+function nonEmptyRequestID(value: string): string {
+  if (typeof value !== 'string' || !/\S/.test(value)) {
+    throw new Error('AI request id must be non-empty')
+  }
+  return value
+}
+
+function nonEmptyRevisionContent(value: string): string {
+  if (typeof value !== 'string' || !/\S/.test(value)) {
+    throw new Error('AI revision content must be non-empty')
+  }
+  return value
+}
+
+function messageIDs(values: number[]): number[] {
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error('AI message ids must not be empty')
+  }
+  const ids = values.map((value) => positiveID(value))
+  if (new Set(ids).size !== ids.length) {
+    throw new Error('AI message ids must be unique')
+  }
+  return ids
 }
 
 function normalizeListParams(params: AiMessageListParams): AiMessageListQueryParams {
@@ -90,6 +134,51 @@ export const AiMessageApi = {
     {
       path: { id: positiveID(params.conversation_id, 'conversation id') },
       body: { request_id: params.request_id },
+    },
+    options,
+  ),
+
+  revise: (
+    params: AiMessageRevisionParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageSendResponse> => executeAdminOperation(
+    adminOperations.post_api_admin_v1_ai_conversations_id_messages_message_id_revisions,
+    {
+      path: {
+        id: positiveID(params.conversation_id, 'conversation id'),
+        message_id: positiveID(params.message_id),
+      },
+      body: {
+        content: nonEmptyRevisionContent(params.content),
+        request_id: nonEmptyRequestID(params.request_id),
+      },
+    },
+    options,
+  ),
+
+  regenerate: (
+    params: AiMessageRegenerationParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageSendResponse> => executeAdminOperation(
+    adminOperations.post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations,
+    {
+      path: {
+        id: positiveID(params.conversation_id, 'conversation id'),
+        message_id: positiveID(params.message_id),
+      },
+      body: { request_id: nonEmptyRequestID(params.request_id) },
+    },
+    options,
+  ),
+
+  deleteBatch: (
+    params: AiMessageDeleteParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiMessageDeleteResponse> => executeAdminOperation(
+    adminOperations.delete_api_admin_v1_ai_conversations_id_messages,
+    {
+      path: { id: positiveID(params.conversation_id, 'conversation id') },
+      body: { ids: messageIDs(params.ids) },
     },
     options,
   ),

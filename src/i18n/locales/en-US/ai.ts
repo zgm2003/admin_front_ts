@@ -123,6 +123,14 @@ export default {
       editFailed: 'Edit failed',
       like: 'Like',
       dislike: 'Dislike',
+      unlike: 'Unlike',
+      speakMessage: 'Read aloud',
+      pauseSpeech: 'Pause reading',
+      resumeSpeech: 'Resume reading',
+      stopSpeech: 'Stop reading',
+      speechNotSupported: 'Read aloud is not supported in this browser',
+      selectMessage: 'Select message',
+      selectedMessages: '{count} selected',
       // Time groups
       timeGroup: {
         today: 'Today',

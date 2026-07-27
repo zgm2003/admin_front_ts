@@ -4,11 +4,16 @@ import {
   AiMessageApi,
   type AiMessageCancelParams,
   type AiMessageCancelResponse,
+  type AiMessageDeleteParams,
+  type AiMessageDeleteResponse,
   type AiMessageItem,
   type AiMessageListResponse,
+  type AiMessageRegenerationParams,
+  type AiMessageRevisionParams,
   type AiMessageSendParams,
   type AiMessageSendResponse,
 } from '@/api/ai/messages'
+import { AiRunApi, type AiRunUserFeedbackResponse } from '@/api/ai/runs'
 import type { KernelRealtime } from '@/app/kernel'
 import type { ExecuteOptions } from '@/modules/http/client'
 import { createMutation } from '@/modules/resource-query/mutation'
@@ -33,6 +38,10 @@ export interface AIChatConversationApi {
   create(params: { agent_id: number; title?: string }, options: ExecuteOptions): Promise<{ id: number }>
   update(params: { id: Id; title: string }, options: ExecuteOptions): Promise<void>
   deleteOne(params: { id: Id }, options: ExecuteOptions): Promise<void>
+  advanceReadCursor(
+    params: { conversation_id: number; message_id: number },
+    options: ExecuteOptions,
+  ): Promise<{ conversation_id: number; last_read_message_id: number; unread_count: number }>
 }
 
 export interface AIChatMessageApi {
@@ -42,6 +51,16 @@ export interface AIChatMessageApi {
   ): Promise<AiMessageListResponse>
   send(params: AiMessageSendParams, options: ExecuteOptions): Promise<AiMessageSendResponse>
   cancel(params: AiMessageCancelParams, options: ExecuteOptions): Promise<AiMessageCancelResponse>
+  revise(params: AiMessageRevisionParams, options: ExecuteOptions): Promise<AiMessageSendResponse>
+  regenerate(params: AiMessageRegenerationParams, options: ExecuteOptions): Promise<AiMessageSendResponse>
+  deleteBatch(params: AiMessageDeleteParams, options: ExecuteOptions): Promise<AiMessageDeleteResponse>
+}
+
+export interface AIChatRunApi {
+  setUserFeedback(
+    params: { id: Id; liked: boolean },
+    options: ExecuteOptions,
+  ): Promise<AiRunUserFeedbackResponse>
 }
 
 export interface AIChatWorkflowHandlers {
@@ -55,11 +74,23 @@ export interface AIChatWorkflowHandlers {
     response: AiMessageListResponse,
     requestID?: string,
   ) => void | Promise<void>
+  readonly onReplyAccepted?: (response: AiMessageSendResponse) => void | Promise<void>
+  readonly onAcceptedMessagesRecovered?: (
+    conversationID: number,
+    response: AiMessageListResponse,
+    requestID: string,
+  ) => void | Promise<void>
+  readonly onFeedbackChanged?: (
+    conversationID: number,
+    messageID: number,
+    liked: boolean,
+  ) => void | Promise<void>
 }
 
 export interface AIChatWorkflowOptions {
   readonly conversationApi?: AIChatConversationApi
   readonly messageApi?: AIChatMessageApi
+  readonly runApi?: AIChatRunApi
   readonly realtime: KernelRealtime
   readonly handlers?: AIChatWorkflowHandlers
 }
@@ -93,12 +124,18 @@ function refreshIfStarted(query: ResourceQuery<unknown, unknown, unknown>): Prom
   return query.state.value.kind === 'idle' ? undefined : query.refresh()
 }
 
+function isActiveReplyState(state: AiMessageSendResponse['state']) {
+  return state === 'pending' || state === 'claimed' || state === 'running'
+}
+
 export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   const conversationApi = options.conversationApi ?? AiConversationApi
   const messageApi = options.messageApi ?? AiMessageApi
+  const runApi = options.runApi ?? AiRunApi
   const lifecycle = new AbortController()
   let activeAgentID: number | null = null
   let activeConversationID: number | null = null
+  let selectedConversationID: number | null = null
   let nextConversationTime = ''
   let nextConversationID = 0
   let hasMoreConversations = false
@@ -180,6 +217,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
   }
 
   function loadMessages(conversationID: number) {
+    selectedConversationID = conversationID
     return messages.execute({
       conversation_id: conversationID,
       limit: MESSAGE_LIMIT,
@@ -222,6 +260,13 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     execute: (input, mutationOptions) => conversationApi.deleteOne(input, mutationOptions),
     invalidate: [refreshConversations],
   })
+  const advanceReadCursor = createMutation({
+    key: (input: { conversation_id: number; message_id: number }) => (
+      `ai-conversation:read:${input.conversation_id}:${input.message_id}`
+    ),
+    execute: (input, mutationOptions) => conversationApi.advanceReadCursor(input, mutationOptions),
+    invalidate: [refreshConversations],
+  })
   const sendMessage = createMutation({
     key: (input: AiMessageSendParams) => `ai-message:send:${input.request_id}`,
     execute: (input, mutationOptions) => messageApi.send(input, mutationOptions),
@@ -232,22 +277,147 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     execute: (input, mutationOptions) => messageApi.cancel(input, mutationOptions),
     invalidate: [],
   })
+  const reviseMessage = createMutation({
+    key: (input: AiMessageRevisionParams) => `ai-message:revise:${input.request_id}`,
+    execute: async (input, mutationOptions) => {
+      const result = await messageApi.revise(input, mutationOptions)
+      if (isActiveReplyState(result.state)) {
+        await options.handlers?.onReplyAccepted?.(result)
+        await recoverAcceptedHistory(input.conversation_id, result.request_id)
+      } else {
+        await recoverConversation(input.conversation_id, { markRead: true })
+      }
+      return result
+    },
+    invalidate: [],
+  })
+  const regenerateMessage = createMutation({
+    key: (input: AiMessageRegenerationParams) => `ai-message:regenerate:${input.request_id}`,
+    execute: async (input, mutationOptions) => {
+      const result = await messageApi.regenerate(input, mutationOptions)
+      if (isActiveReplyState(result.state)) {
+        await options.handlers?.onReplyAccepted?.(result)
+        await recoverAcceptedHistory(input.conversation_id, result.request_id)
+      } else {
+        await recoverConversation(input.conversation_id, { markRead: true })
+      }
+      return result
+    },
+    invalidate: [],
+  })
+  const deleteMessages = createMutation({
+    key: (input: AiMessageDeleteParams) => (
+      `ai-message:delete:${input.conversation_id}:${input.ids.join(',')}`
+    ),
+    execute: async (input, mutationOptions) => {
+      const result = await messageApi.deleteBatch(input, mutationOptions)
+      await recoverHistoryMutation(input.conversation_id)
+      return result
+    },
+    invalidate: [],
+  })
+  const setMessageFeedback = createMutation({
+    key: (input: {
+      conversation_id: number
+      message_id: number
+      run_id: number
+      liked: boolean
+      previous_liked: boolean
+    }) => `ai-run:feedback:${input.run_id}`,
+    execute: async (input, mutationOptions) => {
+      await options.handlers?.onFeedbackChanged?.(
+        input.conversation_id, input.message_id, input.liked,
+      )
+      try {
+        const result = await runApi.setUserFeedback(
+          { id: input.run_id, liked: input.liked }, mutationOptions,
+        )
+        await options.handlers?.onFeedbackChanged?.(
+          input.conversation_id, input.message_id, result.liked,
+        )
+        return result
+      } catch (error) {
+        await options.handlers?.onFeedbackChanged?.(
+          input.conversation_id, input.message_id, input.previous_liked,
+        )
+        throw error
+      }
+    },
+    invalidate: [],
+  })
 
-  async function recoverTerminal(conversationID: number, requestID?: string) {
-    const refreshConversationList = refreshIfStarted(conversations) ?? Promise.resolve()
-    if (activeConversationID === conversationID && messages.state.value.kind !== 'idle') {
-      const [, response] = await Promise.all([refreshConversationList, messages.refresh()])
-      await options.handlers?.onMessagesRecovered?.(conversationID, response, requestID)
-      return
+  async function refreshConversationList() {
+    await (refreshIfStarted(conversations) ?? Promise.resolve())
+  }
+
+  function setActiveConversation(conversationID: number | null) {
+    if (conversationID !== null && (!Number.isSafeInteger(conversationID) || conversationID <= 0)) {
+      throw new TypeError('AI active conversation ID must be a positive integer or null')
     }
-    const [, response] = await Promise.all([
-      refreshConversationList,
-      messageApi.list(
+    selectedConversationID = conversationID
+  }
+
+  function latestAssistantMessageID(response: AiMessageListResponse): number | null {
+    let latest: number | null = null
+    for (const message of response.list) {
+      if (message.role !== 2 || message.id <= 0) continue
+      if (latest === null || message.id > latest) latest = message.id
+    }
+    return latest
+  }
+
+  async function fetchVisibleMessages(conversationID: number) {
+    return activeConversationID === conversationID && messages.state.value.kind !== 'idle'
+      ? await messages.refresh()
+      : await messageApi.list(
         { conversation_id: conversationID, limit: MESSAGE_LIMIT },
         { signal: lifecycle.signal },
-      ),
-    ])
+      )
+  }
+
+  async function recoverVisibleMessages(conversationID: number, requestID?: string) {
+    const response = await fetchVisibleMessages(conversationID)
     await options.handlers?.onMessagesRecovered?.(conversationID, response, requestID)
+    return response
+  }
+
+  async function recoverAcceptedHistory(conversationID: number, requestID: string) {
+    const response = await fetchVisibleMessages(conversationID)
+    await options.handlers?.onAcceptedMessagesRecovered?.(conversationID, response, requestID)
+    await refreshConversationList()
+  }
+
+  async function recoverConversation(
+    conversationID: number,
+    recoveryOptions: { requestID?: string; markRead?: boolean } = {},
+  ) {
+    if (selectedConversationID !== conversationID) {
+      if (recoveryOptions.requestID !== undefined) {
+        await recoverVisibleMessages(conversationID, recoveryOptions.requestID)
+      }
+      await refreshConversationList()
+      return
+    }
+
+    const response = await recoverVisibleMessages(conversationID, recoveryOptions.requestID)
+    try {
+      if (recoveryOptions.markRead) {
+        const messageID = latestAssistantMessageID(response)
+        if (messageID !== null) {
+          await conversationApi.advanceReadCursor(
+            { conversation_id: conversationID, message_id: messageID },
+            { signal: lifecycle.signal },
+          )
+        }
+      }
+    } finally {
+      await refreshConversationList()
+    }
+  }
+
+  async function recoverHistoryMutation(conversationID: number) {
+    await recoverVisibleMessages(conversationID)
+    await refreshConversationList()
   }
 
   function recoverRequest(conversationID: number, requestID: string) {
@@ -257,7 +427,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     if (!/\S/.test(requestID)) {
       return Promise.reject(new TypeError('AI recovery request ID must be non-empty'))
     }
-    return recoverTerminal(conversationID, requestID)
+    return recoverConversation(conversationID, { requestID, markRead: true })
   }
 
   const unsubscribe = [
@@ -265,21 +435,23 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     options.realtime.subscribe('ai.response.delta.v1', ({ data }) => options.handlers?.onDelta?.(data)),
     options.realtime.subscribe('ai.response.completed.v1', async ({ data }) => {
       await options.handlers?.onCompleted?.(data)
-      await recoverTerminal(data.conversation_id)
+      await recoverConversation(data.conversation_id, { markRead: true })
     }),
     options.realtime.subscribe('ai.response.failed.v1', async ({ data }) => {
       await options.handlers?.onFailed?.(data)
-      await recoverTerminal(data.conversation_id)
+      await recoverConversation(data.conversation_id)
     }),
     options.realtime.subscribe('ai.response.canceled.v1', async ({ data }) => {
       await options.handlers?.onCanceled?.(data)
-      await recoverTerminal(data.conversation_id)
+      await recoverConversation(data.conversation_id)
     }),
   ]
   const unregisterRecovery = options.realtime.registerRecovery(async () => {
-    const work = [refreshIfStarted(conversations), refreshIfStarted(messages)]
-      .filter((value): value is Promise<unknown> => value !== undefined)
-    await Promise.all(work)
+    if (selectedConversationID !== null) {
+      await recoverConversation(selectedConversationID, { markRead: true })
+      return
+    }
+    await refreshConversationList()
   })
 
   function dispose() {
@@ -289,8 +461,13 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     createConversation.dispose()
     updateConversation.dispose()
     deleteConversation.dispose()
+    advanceReadCursor.dispose()
     sendMessage.dispose()
     cancelMessage.dispose()
+    reviseMessage.dispose()
+    regenerateMessage.dispose()
+    deleteMessages.dispose()
+    setMessageFeedback.dispose()
     conversations.dispose()
     messages.dispose()
   }
@@ -303,12 +480,20 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     loadConversations,
     loadMoreConversations,
     loadMessages,
+    setActiveConversation,
     loadMoreMessages,
     createConversation,
     updateConversation,
     deleteConversation,
+    advanceReadCursor,
     sendMessage,
     cancelMessage,
+    reviseMessage,
+    regenerateMessage,
+    deleteMessages,
+    setMessageFeedback,
+    recoverConversation,
+    refreshConversationList,
     recoverRequest,
     dispose,
   }

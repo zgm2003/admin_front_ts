@@ -142,6 +142,14 @@ export default {
       editFailed: '编辑失败',
       like: '赞',
       dislike: '踩',
+      unlike: '取消点赞',
+      speakMessage: '朗读',
+      pauseSpeech: '暂停朗读',
+      resumeSpeech: '继续朗读',
+      stopSpeech: '停止朗读',
+      speechNotSupported: '当前浏览器不支持朗读',
+      selectMessage: '选择消息',
+      selectedMessages: '已选 {count} 条',
       // 时间分组
       timeGroup: {
         today: '今天',

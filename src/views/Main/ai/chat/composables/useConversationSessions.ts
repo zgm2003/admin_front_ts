@@ -1,6 +1,6 @@
 import { computed, shallowRef } from 'vue'
 import { AiRoleEnum } from '@/enums'
-import type { AiChatAttachment } from '@/api/ai/messages'
+import type { AiChatAttachment, AIRuntimeParams } from '@/api/ai/messages'
 import type { ConversationSession, Message } from './types'
 
 const MAX_SESSIONS = 8
@@ -151,7 +151,13 @@ export function useConversationSessions() {
     commit()
   }
 
-  function beginSend(conversationId: number, requestId: string, content: string, attachments?: AiChatAttachment[]) {
+  function beginSend(
+    conversationId: number,
+    requestId: string,
+    content: string,
+    attachments?: AiChatAttachment[],
+    runtimeParams?: AIRuntimeParams,
+  ) {
     const current = getOrCreate(conversationId)
     const createdAt = nowText()
     const session: ConversationSession = {
@@ -170,7 +176,12 @@ export function useConversationSessions() {
           content,
           created_at: createdAt,
           updated_at: createdAt,
-          meta_json: attachments?.length ? { attachments } : undefined,
+          meta_json: attachments?.length || runtimeParams
+            ? { attachments, runtime_params: runtimeParams }
+            : undefined,
+          paired_message_id: null,
+          run_id: null,
+          liked: false,
           request_id: requestId,
         },
         {
@@ -180,6 +191,9 @@ export function useConversationSessions() {
           content: '',
           created_at: createdAt,
           updated_at: createdAt,
+          paired_message_id: null,
+          run_id: null,
+          liked: false,
           isStreaming: true,
           request_id: requestId,
         },
@@ -187,6 +201,101 @@ export function useConversationSessions() {
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
+    commit()
+  }
+
+  function beginAcceptedReply(
+    conversationId: number,
+    requestId: string,
+    userMessageId: number,
+  ) {
+    const current = getOrCreate(conversationId)
+    const createdAt = nowText()
+    const hasPlaceholder = current.messages.some((message) => (
+      message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId
+    ))
+    const messages = current.messages.map((message) => (
+      message.id === userMessageId
+        ? { ...message, request_id: requestId }
+        : message
+    ))
+    if (!hasPlaceholder) {
+      messages.push({
+        id: -Date.now(),
+        role: AiRoleEnum.ASSISTANT,
+        content_type: TEXT_CONTENT_TYPE,
+        content: '',
+        created_at: createdAt,
+        updated_at: createdAt,
+        paired_message_id: userMessageId,
+        run_id: null,
+        liked: false,
+        isStreaming: true,
+        request_id: requestId,
+      })
+    }
+    commitSession(sessions.value, conversationId, {
+      ...current,
+      messages,
+      pendingRequestId: requestId,
+      stoppingRequestId: '',
+      sending: false,
+      isStreaming: true,
+      streamingContent: '',
+      updatedAt: Date.now(),
+    })
+    commit()
+  }
+
+  function setMessageLiked(conversationId: number, messageId: number, liked: boolean) {
+    const current = get(conversationId)
+    if (!current) return
+    commitSession(sessions.value, conversationId, {
+      ...current,
+      messages: current.messages.map((message) => (
+        message.id === messageId ? { ...message, liked } : message
+      )),
+      updatedAt: Date.now(),
+    })
+    commit()
+  }
+
+  function recoverAcceptedMessages(
+    conversationId: number,
+    messages: Message[],
+    nextMessageId: number,
+    hasMoreMessages: boolean,
+    requestId: string,
+  ) {
+    const current = get(conversationId)
+    if (!current || current.pendingRequestId !== requestId) return
+    const placeholder = current.messages.find((message) => (
+      message.role === AiRoleEnum.ASSISTANT
+      && message.request_id === requestId
+      && message.isStreaming === true
+    ))
+    if (!placeholder) return
+
+    const userMessageId = placeholder.paired_message_id
+    const terminalReplyVisible = userMessageId !== null && messages.some((message) => (
+      message.role === AiRoleEnum.ASSISTANT && message.paired_message_id === userMessageId
+    ))
+    if (terminalReplyVisible) {
+      recoverMessages(conversationId, messages, nextMessageId, hasMoreMessages)
+      return
+    }
+
+    const recovered = messages.map((message) => (
+      message.id === userMessageId ? { ...message, request_id: requestId } : message
+    ))
+    commitSession(sessions.value, conversationId, {
+      ...current,
+      messages: [...recovered, placeholder],
+      nextMessageId,
+      hasMoreMessages,
+      loadingMessages: false,
+      updatedAt: Date.now(),
+    })
     commit()
   }
 
@@ -384,6 +493,7 @@ export function useConversationSessions() {
     setLoading,
     setLoadingMore,
     beginSend,
+    beginAcceptedReply,
     beginStopping,
     markUserMessage,
     appendDelta,
@@ -391,6 +501,8 @@ export function useConversationSessions() {
     fail,
     cancel,
     recoverMessages,
+    recoverAcceptedMessages,
+    setMessageLiked,
     isCanceled,
     remove,
   }

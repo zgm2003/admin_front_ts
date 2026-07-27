@@ -1,6 +1,6 @@
 import { computed, nextTick, onMounted, onUnmounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElNotification } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
 import { insufficientBalanceFromFailedEvent } from '@/api/ai/billing-error'
 import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
 import { type AiChatAttachment, type AIRuntimeParams } from '@/api/ai/messages'
@@ -10,7 +10,14 @@ import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
 import { renderAiBillingActions } from '@/features/ai-billing/notification'
 import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
-import { useAgents, useConversations, useConversationSessions } from './composables'
+import {
+  createActionRequestIdentityRegistry,
+  useAgents,
+  useConversations,
+  useConversationSessions,
+  useMessageSelection,
+  useMessageSpeech,
+} from './composables'
 import type { Agent, Conversation, Message } from './composables/types'
 import { createConversationTitle } from './conversation-title'
 
@@ -38,6 +45,8 @@ export function useChatPage() {
   const showRenameDialog = shallowRef(false)
   const renameConversationId = shallowRef(0)
   const renameTitle = shallowRef('')
+  const interactionPending = shallowRef(false)
+  const actionRequestIdentities = createActionRequestIdentityRegistry()
 
   const {
     agents,
@@ -49,6 +58,8 @@ export function useChatPage() {
   } = useAgents()
 
   const sessions = useConversationSessions()
+  const messageSelection = useMessageSelection()
+  const messageSpeech = useMessageSpeech()
   const chatWorkflow = createAIChatWorkflow({
     realtime: useAppKernel().realtime,
     handlers: {
@@ -86,23 +97,38 @@ export function useChatPage() {
         sessions.cancel(payload.conversation_id, payload.request_id)
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
-      onMessagesRecovered(conversationId, response, recoveryRequestId) {
-        if (recoveryRequestId !== undefined) {
-          sessions.recoverMessages(
-            conversationId,
-            responseToMessages(response.list),
-            response.next_id,
-            response.has_more,
-          )
-        } else {
-          sessions.replaceMessages(
-            conversationId,
-            responseToMessages(response.list),
-            response.next_id,
-            response.has_more,
-          )
-        }
+      onMessagesRecovered(conversationId, response) {
+        // Workflow recovery is authoritative. It must also terminate stale
+        // local streaming state after a realtime resync or an ambiguous HTTP
+        // outcome; replaceMessages deliberately refuses to do that.
+        sessions.recoverMessages(
+          conversationId,
+          responseToMessages(response.list),
+          response.next_id,
+          response.has_more,
+        )
         if (currentConversationId.value === conversationId) scrollToBottom()
+      },
+      onReplyAccepted(response) {
+        sessions.beginAcceptedReply(
+          response.conversation_id,
+          response.request_id,
+          response.user_message_id,
+        )
+        if (currentConversationId.value === response.conversation_id) scrollToBottom()
+      },
+      onAcceptedMessagesRecovered(conversationId, response, requestId) {
+        sessions.recoverAcceptedMessages(
+          conversationId,
+          responseToMessages(response.list),
+          response.next_id,
+          response.has_more,
+          requestId,
+        )
+        if (currentConversationId.value === conversationId) scrollToBottom()
+      },
+      onFeedbackChanged(conversationId, messageId, liked) {
+        sessions.setMessageLiked(conversationId, messageId, liked)
       },
     },
   })
@@ -132,6 +158,9 @@ export function useChatPage() {
   const isStreaming = computed(() => currentSession.value?.isStreaming ?? false)
   const isStopping = computed(() => Boolean(currentSession.value?.stoppingRequestId))
   const activeRequestId = computed(() => currentSession.value?.pendingRequestId ?? '')
+  const interactionDisabled = computed(() => (
+    sessions.activeStreams.value > 0 || interactionPending.value
+  ))
 
   function setSelectedConversationForAgent(agentId: number, conversationId: number | null) {
     const next = new Map(selectedConversationByAgent.value)
@@ -158,9 +187,45 @@ export function useChatPage() {
     return [...list]
   }
 
-  async function loadConversationMessages(conversationId: number) {
+  function latestAssistantMessageId(list: readonly Message[]) {
+    let latest: number | null = null
+    for (const message of list) {
+      if (message.role !== 2 || message.id <= 0) continue
+      if (latest === null || message.id > latest) latest = message.id
+    }
+    return latest
+  }
+
+  async function markVisibleMessagesRead(conversationId: number) {
+    const session = sessions.get(conversationId)
+    const messageId = session ? latestAssistantMessageId(session.messages) : null
+    if (messageId === null) return
+    try {
+      await chatWorkflow.advanceReadCursor.mutate({
+        conversation_id: conversationId,
+        message_id: messageId,
+      })
+    } catch (error) {
+      ElNotification.error({
+        message: error instanceof Error ? error.message : t('http.requestFailed'),
+      })
+    }
+  }
+
+  async function recoverInteraction(conversationId: number) {
+    try {
+      await chatWorkflow.recoverConversation(conversationId, { markRead: true })
+    } catch (error) {
+      ElNotification.error({
+        message: error instanceof Error ? error.message : t('http.requestFailed'),
+      })
+    }
+  }
+
+  async function loadConversationMessages(conversationId: number, force = false) {
     const session = sessions.getOrCreate(conversationId)
-    if (session.messages.length > 0 || session.isStreaming || session.sending) return
+    if (session.isStreaming || session.sending) return
+    if (!force && session.messages.length > 0) return
 
     sessions.setLoading(conversationId, true)
     try {
@@ -200,10 +265,18 @@ export function useChatPage() {
   }
 
   async function selectConversation(conversation: Conversation) {
+    messageSpeech.stop()
+    messageSelection.clear()
     currentConversationId.value = conversation.id
+    chatWorkflow.setActiveConversation(conversation.id)
     if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, conversation.id)
     sessions.getOrCreate(conversation.id)
-    await loadConversationMessages(conversation.id)
+    // A cached non-current session can be stale because background completions
+    // only refresh the authoritative conversation list. Reload before advancing
+    // the read cursor so the newly completed reply is visible first.
+    await loadConversationMessages(conversation.id, true)
+    if (currentConversationId.value !== conversation.id) return
+    await markVisibleMessagesRead(conversation.id)
     scrollToBottom()
   }
 
@@ -218,12 +291,16 @@ export function useChatPage() {
     }
 
     currentConversationId.value = null
+    chatWorkflow.setActiveConversation(null)
     setSelectedConversationForAgent(agentId, null)
   }
 
   async function handleSelectAgent(agent: Agent) {
     if (selectedAgentId.value === agent.id && conversations.value.length > 0) return
 
+    messageSpeech.stop()
+    messageSelection.clear()
+    chatWorkflow.setActiveConversation(null)
     switchingAgent.value = true
     selectAgent(agent)
     currentConversationId.value = selectedConversationByAgent.value.get(agent.id) ?? null
@@ -239,7 +316,10 @@ export function useChatPage() {
   }
 
   function handleCreateConversation() {
+    messageSpeech.stop()
+    messageSelection.clear()
     currentConversationId.value = null
+    chatWorkflow.setActiveConversation(null)
     if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, null)
     nextTick(() => messageInputRef.value?.focus())
   }
@@ -250,7 +330,10 @@ export function useChatPage() {
 
     sessions.remove(conversation.id)
     if (currentConversationId.value === conversation.id) {
+      messageSpeech.stop()
+      messageSelection.clear()
       currentConversationId.value = null
+      chatWorkflow.setActiveConversation(null)
       if (selectedAgentId.value) setSelectedConversationForAgent(selectedAgentId.value, null)
     }
   }
@@ -266,6 +349,7 @@ export function useChatPage() {
     const created = conversations.value.find((item) => item.id === conversationId)
     if (!created) throw new Error('Created AI conversation is missing from the authoritative list')
     currentConversationId.value = conversationId
+    chatWorkflow.setActiveConversation(conversationId)
     setSelectedConversationForAgent(agentId, conversationId)
     sessions.getOrCreate(conversationId)
     return conversationId
@@ -282,7 +366,7 @@ export function useChatPage() {
     try {
       conversationId = await ensureConversation(content)
       messageInputRef.value?.clear()
-      sessions.beginSend(conversationId, requestId, content, attachments)
+      sessions.beginSend(conversationId, requestId, content, attachments, runtimeParams)
       scrollToBottom()
 
       const result = await chatWorkflow.sendMessage.mutate({
@@ -349,8 +433,127 @@ export function useChatPage() {
     await copy(message.content)
   }
 
+  async function handleEditMessage(message: Message, content: string) {
+    const conversationId = currentConversationId.value
+    if (!conversationId || interactionDisabled.value || message.role !== 1) return
+    const fingerprint = JSON.stringify(['revision', conversationId, message.id, content])
+    const requestId = actionRequestIdentities.acquire(fingerprint)
+    interactionPending.value = true
+    try {
+      const result = await chatWorkflow.reviseMessage.mutate({
+        conversation_id: conversationId,
+        message_id: message.id,
+        content,
+        request_id: requestId,
+      })
+      if (result.kind === 'canceled') return
+      actionRequestIdentities.settle(fingerprint)
+      scrollToBottom()
+    } catch (error) {
+      const accepted = sessions.get(conversationId)?.pendingRequestId === requestId
+      actionRequestIdentities.settle(fingerprint, accepted ? undefined : error)
+      if (!accepted) await recoverInteraction(conversationId)
+      ElNotification.error({
+        message: accepted
+          ? t('http.requestFailed')
+          : error instanceof Error ? error.message : t('aiChat.editFailed'),
+      })
+    } finally {
+      interactionPending.value = false
+    }
+  }
+
+  async function handleRegenerateMessage(message: Message) {
+    const conversationId = currentConversationId.value
+    if (!conversationId || interactionDisabled.value || message.role !== 2) return
+    const fingerprint = JSON.stringify(['regeneration', conversationId, message.id])
+    const requestId = actionRequestIdentities.acquire(fingerprint)
+    interactionPending.value = true
+    try {
+      const result = await chatWorkflow.regenerateMessage.mutate({
+        conversation_id: conversationId,
+        message_id: message.id,
+        request_id: requestId,
+      })
+      if (result.kind === 'canceled') return
+      actionRequestIdentities.settle(fingerprint)
+      scrollToBottom()
+    } catch (error) {
+      const accepted = sessions.get(conversationId)?.pendingRequestId === requestId
+      actionRequestIdentities.settle(fingerprint, accepted ? undefined : error)
+      if (!accepted) await recoverInteraction(conversationId)
+      ElNotification.error({
+        message: accepted
+          ? t('http.requestFailed')
+          : error instanceof Error ? error.message : t('aiChat.regenerateFailed'),
+      })
+    } finally {
+      interactionPending.value = false
+    }
+  }
+
+  function handleDeleteMessage(message: Message) {
+    if (interactionDisabled.value || message.id <= 0) return
+    messageSelection.open(message)
+  }
+
+  async function confirmDeleteMessages() {
+    const conversationId = currentConversationId.value
+    const ids = [...messageSelection.selectedIds.value]
+    if (!conversationId || ids.length === 0 || interactionDisabled.value) return
+    try {
+      await ElMessageBox.confirm(t('common.confirmBatchDelete'), t('common.confirmTitle'), {
+        type: 'warning',
+        confirmButtonText: t('common.actions.confirm'),
+        cancelButtonText: t('common.actions.cancel'),
+      })
+    } catch {
+      return
+    }
+
+    interactionPending.value = true
+    try {
+      const result = await chatWorkflow.deleteMessages.mutate({ conversation_id: conversationId, ids })
+      if (result.kind === 'canceled') return
+      messageSelection.clear()
+      ElNotification.success({ message: t('common.success.delete') })
+    } catch (error) {
+      await recoverInteraction(conversationId)
+      ElNotification.error({
+        message: error instanceof Error ? error.message : t('common.fail.operation'),
+      })
+    } finally {
+      interactionPending.value = false
+    }
+  }
+
+  async function handleMessageFeedback(message: Message, liked: boolean) {
+    const conversationId = currentConversationId.value
+    if (!conversationId || message.run_id === null) return
+    try {
+      await chatWorkflow.setMessageFeedback.mutate({
+        conversation_id: conversationId,
+        message_id: message.id,
+        run_id: message.run_id,
+        liked,
+        previous_liked: message.liked,
+      })
+    } catch (error) {
+      ElNotification.error({
+        message: error instanceof Error ? error.message : t('common.fail.operation'),
+      })
+    }
+  }
+
+  function handleStartSpeech(message: Message) {
+    messageSpeech.start(message.id, message.content)
+  }
+
   function handleBackToAgentList() {
+    messageSpeech.stop()
+    messageSelection.clear()
     currentConversationId.value = null
+    chatWorkflow.setActiveConversation(null)
     selectedAgentId.value = null
   }
 
@@ -361,18 +564,23 @@ export function useChatPage() {
     if (agent) await handleSelectAgent(agent)
   })
 
-  onUnmounted(() => chatWorkflow.dispose())
+  onUnmounted(() => {
+    messageSpeech.dispose()
+    chatWorkflow.dispose()
+  })
 
   return {
     t, isMobile, agents, agentsLoading, selectedAgentId, selectedAgent,
     currentConversation, currentConversationId, messages, messagesLoading,
     messagesLoadingMore, messagesHasMore, sending, isStreaming, isStopping, switchingAgent,
+    interactionDisabled, messageSelection, messageSpeech, interactionPending,
     setMessageInputRef, showConversationDrawer, conversations, conversationsLoading,
     conversationsLoadingMore, conversationsHasMore, showRenameDialog, renameTitle,
     setMessageScrollRef, handleMessageScroll, handleSelectAgent, handleCopyMessage,
     handleSendMessage, handleStopGeneration, handleOpenDrawer, selectConversation,
     handleCreateConversation, handleRenameConversation, handleDeleteConversation,
     loadMoreConversations, searchConversations, confirmRenameConversation,
-    handleBackToAgentList,
+    handleEditMessage, handleRegenerateMessage, handleDeleteMessage, confirmDeleteMessages,
+    handleMessageFeedback, handleStartSpeech, handleBackToAgentList,
   }
 }

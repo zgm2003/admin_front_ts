@@ -31,6 +31,8 @@ describe('AI conversation API behavior', () => {
     harness.respondWith({})
     await AiConversationApi.update({ id: 8, title: 'Renamed' })
     await AiConversationApi.deleteOne({ id: 8 })
+    harness.respondWith({ conversation_id: 17, last_read_message_id: 307, unread_count: 0 })
+    await AiConversationApi.advanceReadCursor({ conversation_id: 17, message_id: 307 })
 
     expect(harness.requests.map(({ method, path }) => [method, path])).toEqual([
       ['GET', '/api/admin/v1/ai-conversations'],
@@ -38,7 +40,9 @@ describe('AI conversation API behavior', () => {
       ['POST', '/api/admin/v1/ai-conversations'],
       ['PUT', '/api/admin/v1/ai-conversations/8'],
       ['DELETE', '/api/admin/v1/ai-conversations/8'],
+      ['PUT', '/api/admin/v1/ai-conversations/17/read-cursor'],
     ])
+    expect(harness.requests.at(-1)?.body).toEqual({ message_id: 307 })
   })
 
   it('rejects invalid conversation identities before transport', async () => {
@@ -46,6 +50,8 @@ describe('AI conversation API behavior', () => {
     cleanups.push(harness.uninstall)
 
     expect(() => AiConversationApi.detail({ id: 0 })).toThrow(/positive integer/i)
+    expect(() => AiConversationApi.advanceReadCursor({ conversation_id: 7, message_id: 0 }))
+      .toThrow(/positive integer/i)
     expect(harness.requests).toEqual([])
   })
 })

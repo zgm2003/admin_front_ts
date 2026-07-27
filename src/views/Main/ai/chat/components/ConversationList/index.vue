@@ -141,6 +141,15 @@ onUnmounted(() => {
                 <ChatDotRound />
               </el-icon>
               <span class="conversation-title">{{ conversation.title || t('aiChat.untitled') }}</span>
+              <span
+                class="conversation-unread-slot"
+                :aria-label="conversation.unread_count > 0 ? t('accessibility.unread') : undefined"
+              >
+                <span
+                  v-if="conversation.unread_count > 0"
+                  class="conversation-unread-badge"
+                >{{ conversation.unread_count }}</span>
+              </span>
             </button>
             <el-dropdown
               trigger="click"
@@ -342,6 +351,32 @@ onUnmounted(() => {
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.conversation-unread-slot {
+  width: 32px;
+  min-width: 32px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.conversation-unread-badge {
+  min-width: 18px;
+  max-width: 32px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--el-color-danger);
+  color: var(--el-color-white);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 18px;
 }
 
 .conversation-menu {

@@ -8,6 +8,7 @@ export interface Conversation {
   last_message_at: string
   created_at?: string
   updated_at: string
+  unread_count: number
 }
 
 export interface Message {
@@ -18,6 +19,9 @@ export interface Message {
   created_at: string
   updated_at: string
   meta_json?: AiMessageMeta
+  paired_message_id: number | null
+  run_id: number | null
+  liked: boolean
   isStreaming?: boolean
   request_id?: string
 }

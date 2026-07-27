@@ -29,6 +29,7 @@
 .main-area {
   --chat-content-width: 820px;
 
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;

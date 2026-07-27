@@ -5,6 +5,7 @@ import AgentList from './components/AgentList/index.vue'
 import ConversationDrawer from './components/ConversationDrawer/index.vue'
 import ConversationList from './components/ConversationList/index.vue'
 import MessageList from './components/MessageList/index.vue'
+import MessageSelectionBar from './components/MessageSelectionBar.vue'
 import MessageInput from './components/MessageInput/index.vue'
 import { useChatPage } from './use-chat-page'
 
@@ -12,13 +13,15 @@ const {
   t, isMobile, agents, agentsLoading, selectedAgentId, selectedAgent,
   currentConversation, currentConversationId, messages, messagesLoading,
   messagesLoadingMore, messagesHasMore, sending, isStreaming, isStopping, switchingAgent,
+  interactionDisabled, messageSelection, messageSpeech, interactionPending,
   setMessageInputRef, showConversationDrawer, conversations, conversationsLoading,
   conversationsLoadingMore, conversationsHasMore, showRenameDialog, renameTitle,
   setMessageScrollRef, handleMessageScroll, handleSelectAgent, handleCopyMessage,
   handleSendMessage, handleStopGeneration, handleOpenDrawer, selectConversation,
   handleCreateConversation, handleRenameConversation, handleDeleteConversation,
   loadMoreConversations, searchConversations, confirmRenameConversation,
-  handleBackToAgentList,
+  handleEditMessage, handleRegenerateMessage, handleDeleteMessage, confirmDeleteMessages,
+  handleMessageFeedback, handleStartSpeech, handleBackToAgentList,
 } = useChatPage()
 </script>
 
@@ -182,14 +185,38 @@ const {
           :messages="messages"
           :loading="messagesLoading"
           :sending="sending"
+          :interaction-disabled="interactionDisabled"
+          :selection-mode="messageSelection.selectionMode.value"
+          :selected-message-ids="messageSelection.selectedIds.value"
+          :speech-supported="messageSpeech.isSupported.value"
+          :speaking-message-id="messageSpeech.activeMessageId.value"
+          :speech-paused="messageSpeech.paused.value"
           @copy="handleCopyMessage"
+          @edit="handleEditMessage"
+          @regenerate="handleRegenerateMessage"
+          @delete="handleDeleteMessage"
+          @feedback="handleMessageFeedback"
+          @start-speech="handleStartSpeech"
+          @pause-speech="messageSpeech.pause"
+          @resume-speech="messageSpeech.resume"
+          @stop-speech="messageSpeech.stop"
+          @toggle-selection="messageSelection.setSelected"
         />
       </el-scrollbar>
+
+      <MessageSelectionBar
+        v-if="messageSelection.selectionMode.value"
+        :count="messageSelection.selectedIds.value.length"
+        :busy="interactionPending"
+        :disabled="interactionDisabled"
+        @cancel="messageSelection.clear"
+        @delete="confirmDeleteMessages"
+      />
 
       <MessageInput
         :ref="setMessageInputRef"
         :sending="sending"
-        :disabled="!selectedAgentId"
+        :disabled="!selectedAgentId || interactionPending || messageSelection.selectionMode.value"
         :is-streaming="isStreaming"
         :is-stopping="isStopping"
         :show-history-btn="isMobile"
