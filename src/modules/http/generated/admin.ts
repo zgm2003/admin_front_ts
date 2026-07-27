@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: a83bb1a40059cf324612f1b228bf3e87e4f87ebc7143fdf86be3dfe9762f46a9
+// Generated from Admin Contract Bundle manifest SHA-256: a493e49f0f97c7a7af85c9fc539f74e156a5dd8f3ec9e7408867983a0c7e5e66
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3078,7 +3078,7 @@ export interface components {
             conversation_id: number;
             request_id: string;
             /** @constant */
-            status: "canceled";
+            status: "stopping";
         };
         AIMessageCancelSuccessEnvelope: {
             /** @constant */
@@ -3147,10 +3147,15 @@ export interface components {
             msg: string;
         };
         AIRunDetail: {
+            actual_amount: string;
             /** Format: int64 */
             agent_id: number;
             agent_name: string;
             assistant_message: components["schemas"]["AIRunMessageSummary"] | null;
+            /** @enum {string} */
+            billing_reason: "pending" | "held" | "settled_complete_usage" | "released_before_dispatch" | "released_insufficient_balance" | "released_provider_failed" | "released_outcome_unknown" | "unbilled_usage_incomplete" | "unbilled_over_hold" | "legacy_unpriced";
+            /** @enum {string} */
+            billing_status: "pending" | "held" | "settled" | "released" | "unbilled";
             /** Format: int64 */
             completion_tokens: number;
             conversation_id: number | null;
@@ -3161,6 +3166,7 @@ export interface components {
             error_message: string;
             events: components["schemas"]["AIRunEvent"][];
             finished_at: string;
+            held_amount: string;
             /** Format: int64 */
             id: number;
             input_snapshot: string;
@@ -3169,20 +3175,23 @@ export interface components {
             model_id: string;
             /** @enum {string} */
             platform: "admin";
+            pricing: components["schemas"]["AIRunPricing"] | null;
             /** Format: int64 */
             prompt_tokens: number;
+            provider_attempts: components["schemas"]["AIRunProviderAttempt"][];
             /** Format: int64 */
             provider_id: number;
             provider_name: string;
             request_id: string;
             started_at: string;
             /** @enum {string} */
-            status: "running" | "success" | "failed" | "canceled" | "timeout";
+            status: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
             status_name: string;
             tool_calls: components["schemas"]["AIRunToolCall"][];
             /** Format: int64 */
             total_tokens: number;
             updated_at: string;
+            usage_items: components["schemas"]["AIRunUsageItem"][];
             /** Format: int64 */
             user_id: number;
             user_message: components["schemas"]["AIRunMessageSummary"] | null;
@@ -3199,7 +3208,7 @@ export interface components {
             elapsed_ms: number | null;
             elapsed_text: string;
             /** @enum {string} */
-            event_type: "start" | "completed" | "failed" | "canceled" | "timeout";
+            event_type: "start" | "completed" | "failed" | "canceled" | "timeout" | "retry_scheduled" | "usage_recorded" | "outcome_unknown" | "settled" | "released" | "unbilled";
             event_type_name: string;
             /** Format: int64 */
             id: number;
@@ -3275,7 +3284,7 @@ export interface components {
             provider_name: string;
             request_id: string;
             /** @enum {string} */
-            status: "running" | "success" | "failed" | "canceled" | "timeout";
+            status: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
             status_name: string;
             /** Format: int64 */
             total_tokens: number;
@@ -3316,6 +3325,35 @@ export interface components {
             code: 0;
             data: components["schemas"]["AIRunPageInit"];
             msg: string;
+        };
+        AIRunPricing: {
+            billing_multiplier: string;
+            catalog_vendor: string;
+            /** Format: int64 */
+            max_output_tokens: number;
+            model_id: string;
+            rates: components["schemas"]["AIRunPricingRate"][];
+            resolved_alias: string;
+            transport_engine: string;
+            version: string;
+        };
+        AIRunPricingRate: {
+            /** @enum {string} */
+            category: "input" | "output" | "cache_read" | "cache_write" | "media";
+            price: string;
+            tier_key: string;
+            unit: string;
+            /** Format: int64 */
+            unit_scale: number;
+        };
+        AIRunProviderAttempt: {
+            /** Format: int64 */
+            attempt_no: number;
+            provider_request_id: string | null;
+            /** @enum {string} */
+            state: "prepared" | "dispatched" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
+            /** @enum {string} */
+            usage_status: "complete" | "unavailable";
         };
         AIRunStatsByAgentItem: {
             /** Format: int64 */
@@ -3452,6 +3490,21 @@ export interface components {
             /** Format: int64 */
             tool_id: number;
             tool_name: string;
+        };
+        AIRunUsageItem: {
+            amount: string;
+            /** Format: int64 */
+            attempt_no: number;
+            billable: boolean;
+            /** @enum {string} */
+            category: "input" | "output" | "cache_read" | "cache_write" | "media";
+            /** Format: int64 */
+            quantity: number;
+            tier_key: string;
+            unit: string;
+            unit_price: string;
+            /** Format: int64 */
+            unit_scale: number;
         };
         delete_api_admin_v1_ai_agents_id_ResponseEnvelope: {
             /** @constant */
@@ -4217,9 +4270,15 @@ export interface components {
         };
         Go_internal_module_ai_agent_AgentDTO_Output: {
             avatar: string;
+            billing_multiplier: string;
+            catalog_model_id?: string;
+            catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
+            catalog_vendor?: string;
+            catalog_version?: string;
             created_at: string;
             engine_type: string;
             id: number;
+            max_output_tokens: number;
             model_display_name: string;
             model_id: string;
             name: string;
@@ -4241,11 +4300,24 @@ export interface components {
         Go_internal_module_ai_agent_AgentOptionsResponse_Output: {
             list: components["schemas"]["Go_internal_module_ai_agent_AgentOption_Output"][];
         };
+        Go_internal_module_ai_agent_CatalogRateDTO_Output: {
+            category: string;
+            price: string;
+            tier_key: string;
+            unit: string;
+            unit_scale: number;
+        };
         Go_internal_module_ai_agent_DetailResponse_Output: {
             avatar: string;
+            billing_multiplier: string;
+            catalog_model_id?: string;
+            catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
+            catalog_vendor?: string;
+            catalog_version?: string;
             created_at: string;
             engine_type: string;
             id: number;
+            max_output_tokens: number;
             model_display_name: string;
             model_id: string;
             name: string;
@@ -4264,7 +4336,9 @@ export interface components {
             value: number;
         };
         Go_internal_module_ai_agent_InitDict_Output: {
+            billing_multiplier_default: string;
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
+            max_output_tokens_default: number;
             provider_model_options: components["schemas"]["Go_internal_module_ai_agent_ModelOption_Output"][];
             provider_options: components["schemas"]["Go_internal_module_ai_agent_EngineOption_Output"][];
             scene_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
@@ -4277,8 +4351,14 @@ export interface components {
             page: components["schemas"]["Go_internal_module_ai_agent_Page_Output"];
         };
         Go_internal_module_ai_agent_ModelOption_Output: {
+            billing_multiplier: string;
+            catalog_model_id?: string;
+            catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
+            catalog_vendor?: string;
+            catalog_version?: string;
             display_name: string;
             label: string;
+            max_output_tokens: number;
             model_id: string;
             provider_id: number;
             value: string;
@@ -5138,12 +5218,9 @@ export interface components {
             wallet: components["schemas"]["Go_internal_module_payment_wallet_SummaryResponse_Output"];
         };
         Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output: {
-            amount_cents: number;
-            amount_text: string;
-            balance_after_cents: number;
-            balance_after_text: string;
-            balance_before_cents: number;
-            balance_before_text: string;
+            amount: string;
+            balance_after: string;
+            balance_before: string;
             created_at: string;
             direction: string;
             direction_text: string;
@@ -5164,21 +5241,17 @@ export interface components {
             total_page: number;
         };
         Go_internal_module_payment_wallet_SummaryResponse_Output: {
-            balance_cents: number;
-            balance_text: string;
-            total_consume_cents: number;
-            total_consume_text: string;
-            total_recharge_cents: number;
-            total_recharge_text: string;
+            available_balance: string;
+            balance: string;
+            held_amount: string;
+            total_consume: string;
+            total_recharge: string;
         };
         Go_internal_module_payment_wallet_TransactionItem_Output: {
             account: string;
-            amount_cents: number;
-            amount_text: string;
-            balance_after_cents: number;
-            balance_after_text: string;
-            balance_before_cents: number;
-            balance_before_text: string;
+            amount: string;
+            balance_after: string;
+            balance_before: string;
             created_at: string;
             direction: string;
             direction_text: string;
@@ -5201,13 +5274,12 @@ export interface components {
         };
         Go_internal_module_payment_wallet_WalletUserItem_Output: {
             account: string;
-            balance_cents: number;
-            balance_text: string;
+            available_balance: string;
+            balance: string;
+            held_amount: string;
             id: number;
-            total_consume_cents: number;
-            total_consume_text: string;
-            total_recharge_cents: number;
-            total_recharge_text: string;
+            total_consume: string;
+            total_recharge: string;
             updated_at: string;
             user_id: number;
             username: string;
@@ -5219,12 +5291,11 @@ export interface components {
         };
         Go_internal_module_payment_wallet_WalletUsersPageInitResponse_Output: Record<string, never>;
         Go_internal_module_payment_WalletSummary_Output: {
-            balance_cents: number;
-            balance_text: string;
-            total_consume_cents: number;
-            total_consume_text: string;
-            total_recharge_cents: number;
-            total_recharge_text: string;
+            available_balance: string;
+            balance: string;
+            held_amount: string;
+            total_consume: string;
+            total_recharge: string;
         };
         Go_internal_module_permission_InitResponse_Output: {
             dict: components["schemas"]["Go_internal_module_permission_PermissionDict_Output"];
@@ -5807,6 +5878,8 @@ export interface components {
         };
         post_api_admin_v1_ai_agents_Request: {
             avatar?: string;
+            billing_multiplier?: string;
+            max_output_tokens?: number;
             model_id: string;
             name: string;
             provider_id: number;
@@ -5924,6 +5997,7 @@ export interface components {
         post_api_admin_v1_ai_tools_generate_draft_Request: {
             agent_id: number;
             code_hint?: string;
+            request_id: string;
             requirement: string;
         };
         post_api_admin_v1_ai_tools_generate_draft_ResponseEnvelope: {
@@ -6342,6 +6416,8 @@ export interface components {
         };
         put_api_admin_v1_ai_agents_id_Request: {
             avatar?: string;
+            billing_multiplier?: string;
+            max_output_tokens?: number;
             model_id: string;
             name: string;
             provider_id: number;
@@ -8530,7 +8606,7 @@ export interface operations {
                 /** @description Request ID search. */
                 request_id?: string;
                 /** @description Run status filter. */
-                status?: "running" | "success" | "failed" | "canceled" | "timeout";
+                status?: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
                 /** @description User ID filter. */
                 user_id?: number;
             };

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: a83bb1a40059cf324612f1b228bf3e87e4f87ebc7143fdf86be3dfe9762f46a9
+// Generated from Admin Contract Bundle manifest SHA-256: a493e49f0f97c7a7af85c9fc539f74e156a5dd8f3ec9e7408867983a0c7e5e66
 // Do not edit manually.
 
 export const backendViewKeys = [
@@ -47,7 +47,7 @@ export const backendViewDescriptors = {
   "ai/chat": {"path":"/ai/chat","titleKey":"menu.ai_chat","showMenu":true,"permissionCodes":[]},
   "ai/knowledge": {"path":"/ai/knowledge","titleKey":"menu.ai_knowledge","showMenu":true,"permissionCodes":[]},
   "ai/providers": {"path":"/ai/providers","titleKey":"menu.ai_providers","showMenu":true,"permissionCodes":[]},
-  "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":[]},
+  "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":["ai_run_list"]},
   "ai/tools": {"path":"/ai/tools","titleKey":"menu.ai_tools","showMenu":true,"permissionCodes":[]},
   "component/display": {"path":"/component/display","titleKey":"menu.component_display","showMenu":true,"permissionCodes":[]},
   "component/download": {"path":"/component/download","titleKey":"menu.component_download","showMenu":true,"permissionCodes":[]},

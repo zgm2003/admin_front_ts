@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: a83bb1a40059cf324612f1b228bf3e87e4f87ebc7143fdf86be3dfe9762f46a9
+// Generated from Admin Contract Bundle manifest SHA-256: a493e49f0f97c7a7af85c9fc539f74e156a5dd8f3ec9e7408867983a0c7e5e66
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -137,7 +137,7 @@ const contractSchemas = {
         "type": "string"
       },
       "status": {
-        "const": "canceled",
+        "const": "stopping",
         "type": "string"
       }
     },
@@ -304,6 +304,10 @@ const contractSchemas = {
   "AIRunDetail": {
     "additionalProperties": false,
     "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
       "agent_id": {
         "format": "int64",
         "minimum": 1,
@@ -321,6 +325,31 @@ const contractSchemas = {
             "type": "null"
           }
         ]
+      },
+      "billing_reason": {
+        "enum": [
+          "pending",
+          "held",
+          "settled_complete_usage",
+          "released_before_dispatch",
+          "released_insufficient_balance",
+          "released_provider_failed",
+          "released_outcome_unknown",
+          "unbilled_usage_incomplete",
+          "unbilled_over_hold",
+          "legacy_unpriced"
+        ],
+        "type": "string"
+      },
+      "billing_status": {
+        "enum": [
+          "pending",
+          "held",
+          "settled",
+          "released",
+          "unbilled"
+        ],
+        "type": "string"
       },
       "completion_tokens": {
         "format": "int64",
@@ -372,6 +401,10 @@ const contractSchemas = {
       "finished_at": {
         "type": "string"
       },
+      "held_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
       "id": {
         "format": "int64",
         "minimum": 1,
@@ -398,10 +431,26 @@ const contractSchemas = {
         ],
         "type": "string"
       },
+      "pricing": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIRunPricing"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "prompt_tokens": {
         "format": "int64",
         "minimum": 0,
         "type": "integer"
+      },
+      "provider_attempts": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunProviderAttempt"
+        },
+        "type": "array"
       },
       "provider_id": {
         "format": "int64",
@@ -423,7 +472,8 @@ const contractSchemas = {
           "success",
           "failed",
           "canceled",
-          "timeout"
+          "timeout",
+          "outcome_unknown"
         ],
         "type": "string"
       },
@@ -443,6 +493,12 @@ const contractSchemas = {
       },
       "updated_at": {
         "type": "string"
+      },
+      "usage_items": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunUsageItem"
+        },
+        "type": "array"
       },
       "user_id": {
         "format": "int64",
@@ -464,9 +520,12 @@ const contractSchemas = {
       }
     },
     "required": [
+      "actual_amount",
       "agent_id",
       "agent_name",
       "assistant_message",
+      "billing_reason",
+      "billing_status",
       "completion_tokens",
       "conversation_id",
       "conversation_title",
@@ -476,13 +535,16 @@ const contractSchemas = {
       "error_message",
       "events",
       "finished_at",
+      "held_amount",
       "id",
       "input_snapshot",
       "knowledge_retrievals",
       "model_display_name",
       "model_id",
       "platform",
+      "pricing",
       "prompt_tokens",
+      "provider_attempts",
       "provider_id",
       "provider_name",
       "request_id",
@@ -492,6 +554,7 @@ const contractSchemas = {
       "tool_calls",
       "total_tokens",
       "updated_at",
+      "usage_items",
       "user_id",
       "user_message",
       "username"
@@ -525,7 +588,13 @@ const contractSchemas = {
           "completed",
           "failed",
           "canceled",
-          "timeout"
+          "timeout",
+          "retry_scheduled",
+          "usage_recorded",
+          "outcome_unknown",
+          "settled",
+          "released",
+          "unbilled"
         ],
         "type": "string"
       },
@@ -813,7 +882,8 @@ const contractSchemas = {
           "success",
           "failed",
           "canceled",
-          "timeout"
+          "timeout",
+          "outcome_unknown"
         ],
         "type": "string"
       },
@@ -960,6 +1030,142 @@ const contractSchemas = {
       "platform_arr",
       "providerArr",
       "status_arr"
+    ],
+    "type": "object"
+  },
+  "AIRunPricing": {
+    "additionalProperties": false,
+    "properties": {
+      "billing_multiplier": {
+        "pattern": "^(0\\.[0-9]{0,5}[1-9]|[1-9][0-9]*(\\.[0-9]{0,5}[1-9])?)$",
+        "type": "string"
+      },
+      "catalog_vendor": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "max_output_tokens": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "model_id": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "rates": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunPricingRate"
+        },
+        "minItems": 1,
+        "type": "array"
+      },
+      "resolved_alias": {
+        "type": "string"
+      },
+      "transport_engine": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "version": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "billing_multiplier",
+      "catalog_vendor",
+      "max_output_tokens",
+      "model_id",
+      "rates",
+      "resolved_alias",
+      "transport_engine",
+      "version"
+    ],
+    "type": "object"
+  },
+  "AIRunPricingRate": {
+    "additionalProperties": false,
+    "properties": {
+      "category": {
+        "enum": [
+          "input",
+          "output",
+          "cache_read",
+          "cache_write",
+          "media"
+        ],
+        "type": "string"
+      },
+      "price": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "tier_key": {
+        "type": "string"
+      },
+      "unit": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "unit_scale": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "category",
+      "price",
+      "tier_key",
+      "unit",
+      "unit_scale"
+    ],
+    "type": "object"
+  },
+  "AIRunProviderAttempt": {
+    "additionalProperties": false,
+    "properties": {
+      "attempt_no": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "provider_request_id": {
+        "anyOf": [
+          {
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "state": {
+        "enum": [
+          "prepared",
+          "dispatched",
+          "succeeded",
+          "failed",
+          "canceled",
+          "outcome_unknown"
+        ],
+        "type": "string"
+      },
+      "usage_status": {
+        "enum": [
+          "complete",
+          "unavailable"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "attempt_no",
+      "provider_request_id",
+      "state",
+      "usage_status"
     ],
     "type": "object"
   },
@@ -1330,6 +1536,66 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "AIRunUsageItem": {
+    "additionalProperties": false,
+    "properties": {
+      "amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "attempt_no": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "billable": {
+        "type": "boolean"
+      },
+      "category": {
+        "enum": [
+          "input",
+          "output",
+          "cache_read",
+          "cache_write",
+          "media"
+        ],
+        "type": "string"
+      },
+      "quantity": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "tier_key": {
+        "type": "string"
+      },
+      "unit": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "unit_price": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "unit_scale": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "amount",
+      "attempt_no",
+      "billable",
+      "category",
+      "quantity",
+      "tier_key",
+      "unit",
+      "unit_price",
+      "unit_scale"
+    ],
+    "type": "object"
+  },
   "AIRuntimeParams": {
     "additionalProperties": false,
     "properties": {
@@ -1575,6 +1841,24 @@ const contractSchemas = {
       "avatar": {
         "type": "string"
       },
+      "billing_multiplier": {
+        "type": "string"
+      },
+      "catalog_model_id": {
+        "type": "string"
+      },
+      "catalog_rates": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_agent_CatalogRateDTO_Output"
+        },
+        "type": "array"
+      },
+      "catalog_vendor": {
+        "type": "string"
+      },
+      "catalog_version": {
+        "type": "string"
+      },
       "created_at": {
         "type": "string"
       },
@@ -1582,6 +1866,9 @@ const contractSchemas = {
         "type": "string"
       },
       "id": {
+        "type": "integer"
+      },
+      "max_output_tokens": {
         "type": "integer"
       },
       "model_display_name": {
@@ -1626,9 +1913,11 @@ const contractSchemas = {
     },
     "required": [
       "avatar",
+      "billing_multiplier",
       "created_at",
       "engine_type",
       "id",
+      "max_output_tokens",
       "model_display_name",
       "model_id",
       "name",
@@ -1682,10 +1971,56 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "Go_internal_module_ai_agent_CatalogRateDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "category": {
+        "type": "string"
+      },
+      "price": {
+        "type": "string"
+      },
+      "tier_key": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "unit_scale": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "category",
+      "price",
+      "tier_key",
+      "unit",
+      "unit_scale"
+    ],
+    "type": "object"
+  },
   "Go_internal_module_ai_agent_DetailResponse_Output": {
     "additionalProperties": false,
     "properties": {
       "avatar": {
+        "type": "string"
+      },
+      "billing_multiplier": {
+        "type": "string"
+      },
+      "catalog_model_id": {
+        "type": "string"
+      },
+      "catalog_rates": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_agent_CatalogRateDTO_Output"
+        },
+        "type": "array"
+      },
+      "catalog_vendor": {
+        "type": "string"
+      },
+      "catalog_version": {
         "type": "string"
       },
       "created_at": {
@@ -1695,6 +2030,9 @@ const contractSchemas = {
         "type": "string"
       },
       "id": {
+        "type": "integer"
+      },
+      "max_output_tokens": {
         "type": "integer"
       },
       "model_display_name": {
@@ -1739,9 +2077,11 @@ const contractSchemas = {
     },
     "required": [
       "avatar",
+      "billing_multiplier",
       "created_at",
       "engine_type",
       "id",
+      "max_output_tokens",
       "model_display_name",
       "model_id",
       "name",
@@ -1779,11 +2119,17 @@ const contractSchemas = {
   "Go_internal_module_ai_agent_InitDict_Output": {
     "additionalProperties": false,
     "properties": {
+      "billing_multiplier_default": {
+        "type": "string"
+      },
       "common_status_arr": {
         "items": {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
         },
         "type": "array"
+      },
+      "max_output_tokens_default": {
+        "type": "integer"
       },
       "provider_model_options": {
         "items": {
@@ -1805,7 +2151,9 @@ const contractSchemas = {
       }
     },
     "required": [
+      "billing_multiplier_default",
       "common_status_arr",
+      "max_output_tokens_default",
       "provider_model_options",
       "provider_options",
       "scene_arr"
@@ -1846,11 +2194,32 @@ const contractSchemas = {
   "Go_internal_module_ai_agent_ModelOption_Output": {
     "additionalProperties": false,
     "properties": {
+      "billing_multiplier": {
+        "type": "string"
+      },
+      "catalog_model_id": {
+        "type": "string"
+      },
+      "catalog_rates": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_agent_CatalogRateDTO_Output"
+        },
+        "type": "array"
+      },
+      "catalog_vendor": {
+        "type": "string"
+      },
+      "catalog_version": {
+        "type": "string"
+      },
       "display_name": {
         "type": "string"
       },
       "label": {
         "type": "string"
+      },
+      "max_output_tokens": {
+        "type": "integer"
       },
       "model_id": {
         "type": "string"
@@ -1863,8 +2232,10 @@ const contractSchemas = {
       }
     },
     "required": [
+      "billing_multiplier",
       "display_name",
       "label",
+      "max_output_tokens",
       "model_id",
       "provider_id",
       "value"
@@ -5332,32 +5703,28 @@ const contractSchemas = {
   "Go_internal_module_payment_WalletSummary_Output": {
     "additionalProperties": false,
     "properties": {
-      "balance_cents": {
-        "type": "integer"
-      },
-      "balance_text": {
+      "available_balance": {
         "type": "string"
       },
-      "total_consume_cents": {
-        "type": "integer"
-      },
-      "total_consume_text": {
+      "balance": {
         "type": "string"
       },
-      "total_recharge_cents": {
-        "type": "integer"
+      "held_amount": {
+        "type": "string"
       },
-      "total_recharge_text": {
+      "total_consume": {
+        "type": "string"
+      },
+      "total_recharge": {
         "type": "string"
       }
     },
     "required": [
-      "balance_cents",
-      "balance_text",
-      "total_consume_cents",
-      "total_consume_text",
-      "total_recharge_cents",
-      "total_recharge_text"
+      "available_balance",
+      "balance",
+      "held_amount",
+      "total_consume",
+      "total_recharge"
     ],
     "type": "object"
   },
@@ -5656,22 +6023,13 @@ const contractSchemas = {
   "Go_internal_module_payment_redeemcode_transport_admin_redemptionTransaction_Output": {
     "additionalProperties": false,
     "properties": {
-      "amount_cents": {
-        "type": "integer"
-      },
-      "amount_text": {
+      "amount": {
         "type": "string"
       },
-      "balance_after_cents": {
-        "type": "integer"
-      },
-      "balance_after_text": {
+      "balance_after": {
         "type": "string"
       },
-      "balance_before_cents": {
-        "type": "integer"
-      },
-      "balance_before_text": {
+      "balance_before": {
         "type": "string"
       },
       "created_at": {
@@ -5694,12 +6052,9 @@ const contractSchemas = {
       }
     },
     "required": [
-      "amount_cents",
-      "amount_text",
-      "balance_after_cents",
-      "balance_after_text",
-      "balance_before_cents",
-      "balance_before_text",
+      "amount",
+      "balance_after",
+      "balance_before",
       "created_at",
       "direction",
       "direction_text",
@@ -5748,32 +6103,28 @@ const contractSchemas = {
   "Go_internal_module_payment_wallet_SummaryResponse_Output": {
     "additionalProperties": false,
     "properties": {
-      "balance_cents": {
-        "type": "integer"
-      },
-      "balance_text": {
+      "available_balance": {
         "type": "string"
       },
-      "total_consume_cents": {
-        "type": "integer"
-      },
-      "total_consume_text": {
+      "balance": {
         "type": "string"
       },
-      "total_recharge_cents": {
-        "type": "integer"
+      "held_amount": {
+        "type": "string"
       },
-      "total_recharge_text": {
+      "total_consume": {
+        "type": "string"
+      },
+      "total_recharge": {
         "type": "string"
       }
     },
     "required": [
-      "balance_cents",
-      "balance_text",
-      "total_consume_cents",
-      "total_consume_text",
-      "total_recharge_cents",
-      "total_recharge_text"
+      "available_balance",
+      "balance",
+      "held_amount",
+      "total_consume",
+      "total_recharge"
     ],
     "type": "object"
   },
@@ -5783,22 +6134,13 @@ const contractSchemas = {
       "account": {
         "type": "string"
       },
-      "amount_cents": {
-        "type": "integer"
-      },
-      "amount_text": {
+      "amount": {
         "type": "string"
       },
-      "balance_after_cents": {
-        "type": "integer"
-      },
-      "balance_after_text": {
+      "balance_after": {
         "type": "string"
       },
-      "balance_before_cents": {
-        "type": "integer"
-      },
-      "balance_before_text": {
+      "balance_before": {
         "type": "string"
       },
       "created_at": {
@@ -5837,12 +6179,9 @@ const contractSchemas = {
     },
     "required": [
       "account",
-      "amount_cents",
-      "amount_text",
-      "balance_after_cents",
-      "balance_after_text",
-      "balance_before_cents",
-      "balance_before_text",
+      "amount",
+      "balance_after",
+      "balance_before",
       "created_at",
       "direction",
       "direction_text",
@@ -5904,25 +6243,22 @@ const contractSchemas = {
       "account": {
         "type": "string"
       },
-      "balance_cents": {
-        "type": "integer"
+      "available_balance": {
+        "type": "string"
       },
-      "balance_text": {
+      "balance": {
+        "type": "string"
+      },
+      "held_amount": {
         "type": "string"
       },
       "id": {
         "type": "integer"
       },
-      "total_consume_cents": {
-        "type": "integer"
-      },
-      "total_consume_text": {
+      "total_consume": {
         "type": "string"
       },
-      "total_recharge_cents": {
-        "type": "integer"
-      },
-      "total_recharge_text": {
+      "total_recharge": {
         "type": "string"
       },
       "updated_at": {
@@ -5940,13 +6276,12 @@ const contractSchemas = {
     },
     "required": [
       "account",
-      "balance_cents",
-      "balance_text",
+      "available_balance",
+      "balance",
+      "held_amount",
       "id",
-      "total_consume_cents",
-      "total_consume_text",
-      "total_recharge_cents",
-      "total_recharge_text",
+      "total_consume",
+      "total_recharge",
       "updated_at",
       "user_id",
       "username",
