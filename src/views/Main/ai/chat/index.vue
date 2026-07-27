@@ -11,7 +11,7 @@ import { useChatPage } from './use-chat-page'
 const {
   t, isMobile, agents, agentsLoading, selectedAgentId, selectedAgent,
   currentConversation, currentConversationId, messages, messagesLoading,
-  messagesLoadingMore, messagesHasMore, sending, isStreaming, switchingAgent,
+  messagesLoadingMore, messagesHasMore, sending, isStreaming, isStopping, switchingAgent,
   setMessageInputRef, showConversationDrawer, conversations, conversationsLoading,
   conversationsLoadingMore, conversationsHasMore, showRenameDialog, renameTitle,
   setMessageScrollRef, handleMessageScroll, handleSelectAgent, handleCopyMessage,
@@ -191,6 +191,7 @@ const {
         :sending="sending"
         :disabled="!selectedAgentId"
         :is-streaming="isStreaming"
+        :is-stopping="isStopping"
         :show-history-btn="isMobile"
         @send="handleSendMessage"
         @stop="handleStopGeneration"

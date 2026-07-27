@@ -1,10 +1,13 @@
 import { computed, nextTick, onMounted, onUnmounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
+import { insufficientBalanceFromFailedEvent } from '@/api/ai/billing-error'
+import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
 import { type AiChatAttachment, type AIRuntimeParams } from '@/api/ai/messages'
-import { createAiRequestId } from '@/api/ai/chat'
+import { createAiRequestId } from '@/api/ai/request-id'
 import { useAppKernel } from '@/app/injection'
 import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
+import { renderAiBillingActions } from '@/features/ai-billing/notification'
 import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { useAgents, useConversations, useConversationSessions } from './composables'
@@ -67,20 +70,38 @@ export function useChatPage() {
       onFailed(payload) {
         if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
         sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
-        ElNotification.error({ message: payload.msg })
+        const actions = insufficientBalanceFromFailedEvent(payload)
+        ElNotification.error({
+          message: actions
+            ? renderAiBillingActions(payload.msg, actions, {
+              walletLabel: t('wallet.balance'),
+              rechargeLabel: t('wallet.recharge'),
+            })
+            : payload.msg,
+          duration: actions ? 0 : undefined,
+        })
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
       onCanceled(payload) {
         sessions.cancel(payload.conversation_id, payload.request_id)
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
-      onMessagesRecovered(conversationId, response) {
-        sessions.replaceMessages(
-          conversationId,
-          responseToMessages(response.list),
-          response.next_id,
-          response.has_more,
-        )
+      onMessagesRecovered(conversationId, response, recoveryRequestId) {
+        if (recoveryRequestId !== undefined) {
+          sessions.recoverMessages(
+            conversationId,
+            responseToMessages(response.list),
+            response.next_id,
+            response.has_more,
+          )
+        } else {
+          sessions.replaceMessages(
+            conversationId,
+            responseToMessages(response.list),
+            response.next_id,
+            response.has_more,
+          )
+        }
         if (currentConversationId.value === conversationId) scrollToBottom()
       },
     },
@@ -109,6 +130,7 @@ export function useChatPage() {
   const messagesHasMore = computed(() => currentSession.value?.hasMoreMessages ?? false)
   const sending = computed(() => currentSession.value?.sending ?? false)
   const isStreaming = computed(() => currentSession.value?.isStreaming ?? false)
+  const isStopping = computed(() => Boolean(currentSession.value?.stoppingRequestId))
   const activeRequestId = computed(() => currentSession.value?.pendingRequestId ?? '')
 
   function setSelectedConversationForAgent(agentId: number, conversationId: number | null) {
@@ -286,11 +308,20 @@ export function useChatPage() {
     const requestId = activeRequestId.value
     if (!conversationId || !requestId) return
 
+    sessions.beginStopping(conversationId, requestId)
     try {
       const result = await chatWorkflow.cancelMessage.mutate({ conversation_id: conversationId, request_id: requestId })
-      if (result.kind === 'canceled') return
-      sessions.cancel(conversationId, requestId)
+      if (result.kind === 'canceled') {
+        await chatWorkflow.recoverRequest(conversationId, requestId)
+        return
+      }
+      assertAiStoppingAcknowledgment(result.data, conversationId, requestId)
     } catch (error) {
+      try {
+        await chatWorkflow.recoverRequest(conversationId, requestId)
+      } catch (recoveryError) {
+        ElNotification.error({ message: recoveryError instanceof Error ? recoveryError.message : t('aiChat.stopFailed') })
+      }
       ElNotification.error({ message: error instanceof Error ? error.message : t('aiChat.stopFailed') })
     }
   }
@@ -335,7 +366,7 @@ export function useChatPage() {
   return {
     t, isMobile, agents, agentsLoading, selectedAgentId, selectedAgent,
     currentConversation, currentConversationId, messages, messagesLoading,
-    messagesLoadingMore, messagesHasMore, sending, isStreaming, switchingAgent,
+    messagesLoadingMore, messagesHasMore, sending, isStreaming, isStopping, switchingAgent,
     setMessageInputRef, showConversationDrawer, conversations, conversationsLoading,
     conversationsLoadingMore, conversationsHasMore, showRenameDialog, renameTitle,
     setMessageScrollRef, handleMessageScroll, handleSelectAgent, handleCopyMessage,

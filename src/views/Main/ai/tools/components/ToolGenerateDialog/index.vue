@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
+import { insufficientBalanceFromApiError } from '@/api/ai/billing-error'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
@@ -10,6 +11,8 @@ import {
   type AiToolGenerateAgentOption,
   type AiToolGeneratedDraft,
 } from '@/api/ai/tools'
+import { createAiRequestId } from '@/api/ai/request-id'
+import { renderAiBillingActions } from '@/features/ai-billing/notification'
 
 interface GenerateForm {
   agent_id: number | ''
@@ -38,6 +41,9 @@ const agentOptions = shallowRef<AiToolGenerateAgentOption[]>([])
 const warnings = shallowRef<string[]>([])
 const clarifyingQuestions = shallowRef<string[]>([])
 const usageText = shallowRef('')
+const operationRequestId = shallowRef('')
+const operationFingerprint = shallowRef('')
+const operationSettled = shallowRef(false)
 
 const visible = computed({
   get: () => props.modelValue,
@@ -62,6 +68,23 @@ function resetState() {
   warnings.value = []
   clarifyingQuestions.value = []
   usageText.value = ''
+  operationRequestId.value = ''
+  operationFingerprint.value = ''
+  operationSettled.value = false
+}
+
+function currentFingerprint() {
+  return JSON.stringify([form.value.agent_id, form.value.requirement, form.value.code_hint])
+}
+
+function requestIdForOperation() {
+  const fingerprint = currentFingerprint()
+  if (!operationRequestId.value || operationFingerprint.value !== fingerprint || operationSettled.value) {
+    operationRequestId.value = createAiRequestId()
+    operationFingerprint.value = fingerprint
+  }
+  operationSettled.value = false
+  return operationRequestId.value
 }
 
 async function loadGenerateInit() {
@@ -95,9 +118,11 @@ async function confirmGenerate() {
   try {
     const result = await AiToolApi.generateDraft({
       agent_id: form.value.agent_id,
+      request_id: requestIdForOperation(),
       requirement: form.value.requirement,
       code_hint: form.value.code_hint,
     })
+    operationSettled.value = true
     applyGenerateResponseMessages(result.warnings, result.clarifying_questions)
     if (result.usage) {
       usageText.value = t('aiTools.generate.usage', {
@@ -117,7 +142,17 @@ async function confirmGenerate() {
     emit('generated', result.draft)
     visible.value = false
   } catch (error) {
-    ElNotification.error({ message: error instanceof Error ? error.message : t('aiTools.generate.failed') })
+    const actions = insufficientBalanceFromApiError(error)
+    if (actions) operationSettled.value = true
+    ElNotification.error({
+      message: actions
+        ? renderAiBillingActions(error instanceof Error ? error.message : t('aiTools.generate.failed'), actions, {
+          walletLabel: t('wallet.balance'),
+          rechargeLabel: t('wallet.recharge'),
+        })
+        : error instanceof Error ? error.message : t('aiTools.generate.failed'),
+      duration: actions ? 0 : undefined,
+    })
   } finally {
     loading.value = false
   }

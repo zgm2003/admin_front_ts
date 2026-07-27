@@ -11,11 +11,20 @@ export {
   type AiResponseFailedPayload,
   type AiResponseStartPayload,
 } from './chat-events'
+export { createAiRequestId } from './request-id'
 
 export type AiChatCancelResponse = components['schemas']['AIMessageCancelResult']
 
-export function createAiRequestId() {
-  return `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+export function assertAiStoppingAcknowledgment(
+  response: AiChatCancelResponse,
+  conversationId: number,
+  requestId: string,
+): void {
+  if (response.conversation_id !== conversationId
+    || response.request_id !== requestId
+    || response.status !== 'stopping') {
+    throw new Error('AI cancel acknowledgment violates the stopping contract')
+  }
 }
 
 function positiveID(value: number, label: string): number {

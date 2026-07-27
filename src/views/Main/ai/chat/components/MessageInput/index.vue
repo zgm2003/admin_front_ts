@@ -19,6 +19,7 @@ const props = defineProps<{
   sending: boolean
   disabled?: boolean
   isStreaming?: boolean
+  isStopping?: boolean
   showHistoryBtn?: boolean
 }>()
 const emit = defineEmits<{
@@ -324,8 +325,10 @@ defineExpose({
           v-if="isStreaming"
           type="button"
           class="stop-button"
-          :title="t('accessibility.stopGenerating')"
-          :aria-label="t('accessibility.stopGenerating')"
+          :title="isStopping ? t('aiChat.stopping') : t('accessibility.stopGenerating')"
+          :aria-label="isStopping ? t('aiChat.stopping') : t('accessibility.stopGenerating')"
+          :disabled="isStopping"
+          :aria-busy="isStopping"
           @click="emit('stop')"
         >
           <div class="stop-icon" />

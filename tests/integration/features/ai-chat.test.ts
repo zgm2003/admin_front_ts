@@ -91,6 +91,30 @@ describe('AI chat workflow', () => {
     expect(messageApi.list).toHaveBeenCalledTimes(3)
     workflow.dispose()
   })
+
+  it('uses the same request identity for authoritative recovery after an ambiguous cancel wait', async () => {
+    const messageApi = createMessageApi(vi.fn(async () => ({
+      list: [message(9)], next_id: 0, has_more: false,
+    })))
+    const onMessagesRecovered = vi.fn()
+    const workflow = createAIChatWorkflow({
+      conversationApi: createConversationApi(),
+      messageApi,
+      realtime: new FakeFeatureRealtime(),
+      handlers: { onMessagesRecovered },
+    })
+
+    await workflow.recoverRequest(9, 'request-9')
+
+    expect(messageApi.list).toHaveBeenCalledWith(
+      { conversation_id: 9, limit: 50 },
+      { signal: expect.any(AbortSignal) },
+    )
+    expect(onMessagesRecovered).toHaveBeenCalledWith(9, {
+      list: [message(9)], next_id: 0, has_more: false,
+    }, 'request-9')
+    workflow.dispose()
+  })
 })
 
 function createConversationApi(
@@ -123,7 +147,7 @@ function createMessageApi(
     cancel: vi.fn(async () => ({
       conversation_id: 1,
       request_id: 'request-1',
-      status: 'canceled',
+      status: 'stopping',
     })),
   }
 }

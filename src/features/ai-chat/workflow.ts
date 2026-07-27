@@ -53,6 +53,7 @@ export interface AIChatWorkflowHandlers {
   readonly onMessagesRecovered?: (
     conversationID: number,
     response: AiMessageListResponse,
+    requestID?: string,
   ) => void | Promise<void>
 }
 
@@ -232,11 +233,11 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     invalidate: [],
   })
 
-  async function recoverTerminal(conversationID: number) {
+  async function recoverTerminal(conversationID: number, requestID?: string) {
     const refreshConversationList = refreshIfStarted(conversations) ?? Promise.resolve()
     if (activeConversationID === conversationID && messages.state.value.kind !== 'idle') {
       const [, response] = await Promise.all([refreshConversationList, messages.refresh()])
-      await options.handlers?.onMessagesRecovered?.(conversationID, response)
+      await options.handlers?.onMessagesRecovered?.(conversationID, response, requestID)
       return
     }
     const [, response] = await Promise.all([
@@ -246,7 +247,17 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
         { signal: lifecycle.signal },
       ),
     ])
-    await options.handlers?.onMessagesRecovered?.(conversationID, response)
+    await options.handlers?.onMessagesRecovered?.(conversationID, response, requestID)
+  }
+
+  function recoverRequest(conversationID: number, requestID: string) {
+    if (!Number.isSafeInteger(conversationID) || conversationID <= 0) {
+      return Promise.reject(new TypeError('AI recovery conversation ID must be a positive integer'))
+    }
+    if (!/\S/.test(requestID)) {
+      return Promise.reject(new TypeError('AI recovery request ID must be non-empty'))
+    }
+    return recoverTerminal(conversationID, requestID)
   }
 
   const unsubscribe = [
@@ -298,6 +309,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     deleteConversation,
     sendMessage,
     cancelMessage,
+    recoverRequest,
     dispose,
   }
 }

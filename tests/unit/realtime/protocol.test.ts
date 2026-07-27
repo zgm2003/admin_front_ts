@@ -85,6 +85,9 @@ describe('Admin realtime protocol', () => {
       conversation_id: 10,
       request_id: 'request-1',
       msg: 'failed',
+      error_code: 'ai.provider.failed',
+      wallet_path: null,
+      recharge_path: null,
     }],
     ['ai.response.canceled.v1', {
       conversation_id: 10,
@@ -92,6 +95,34 @@ describe('Admin realtime protocol', () => {
     }],
   ] as const)('decodes the closed %s contract', (type, data) => {
     expect(parseServerEnvelope(envelope(type, data))).toEqual(envelope(type, data))
+  })
+
+  it('requires the exact insufficient-balance paths and null paths for other failures', () => {
+    expect(parseServerEnvelope(envelope('ai.response.failed.v1', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      msg: 'insufficient',
+      error_code: 'ai.billing.insufficient_balance',
+      wallet_path: '/profile/wallet',
+      recharge_path: '/payment/recharge',
+    })).data).toMatchObject({ error_code: 'ai.billing.insufficient_balance' })
+
+    expect(() => parseServerEnvelope(envelope('ai.response.failed.v1', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      msg: 'insufficient',
+      error_code: 'ai.billing.insufficient_balance',
+      wallet_path: null,
+      recharge_path: null,
+    }))).toThrow()
+    expect(() => parseServerEnvelope(envelope('ai.response.failed.v1', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      msg: 'provider failed',
+      error_code: 'ai.provider.failed',
+      wallet_path: '/profile/wallet',
+      recharge_path: '/payment/recharge',
+    }))).toThrow()
   })
 
   it.each([

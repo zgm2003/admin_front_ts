@@ -102,6 +102,7 @@ export default {
       regenerateFailed: 'Regenerate failed',
       userMessageNotFound: 'Cannot find corresponding user message',
       stopFailed: 'Stop failed',
+      stopping: 'Stopping…',
       // Loading states
       loading: 'Loading...',
       noMoreHistory: 'No more history',

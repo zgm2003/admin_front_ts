@@ -1,6 +1,76 @@
 import { describe, expect, it } from 'vitest'
+import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
 
 describe('AI chat cancel state handling', () => {
+  it('keeps the request pending while stopping and suppresses late deltas', async () => {
+    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+    const sessions = useConversationSessions()
+
+    sessions.beginSend(6, 'req-6', 'question')
+    sessions.appendDelta(6, 'req-6', 'kept')
+    sessions.beginStopping(6, 'req-6')
+    sessions.appendDelta(6, 'req-6', ' discarded')
+
+    expect(sessions.get(6)).toMatchObject({
+      pendingRequestId: 'req-6',
+      stoppingRequestId: 'req-6',
+      streamingContent: 'kept',
+    })
+    expect(sessions.isCanceled(6, 'req-6')).toBe(false)
+    expect(sessions.get(6)?.messages.at(-1)?.content).toBe('kept')
+  })
+
+  it('lets only the durable canceled event finalize stopping and remains terminal after a late ack', async () => {
+    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+    const sessions = useConversationSessions()
+
+    sessions.beginSend(8, 'req-8', 'question')
+    sessions.beginStopping(8, 'req-8')
+    const acknowledgment = { conversation_id: 8, request_id: 'req-8', status: 'stopping' } as const
+    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
+    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
+    expect(sessions.get(8)).toMatchObject({
+      pendingRequestId: 'req-8',
+      stoppingRequestId: 'req-8',
+    })
+    sessions.cancel(8, 'req-8', 'canceled')
+    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
+
+    // HTTP status='stopping' acknowledgment is deliberately a no-op, including duplicates.
+    expect(sessions.get(8)).toMatchObject({
+      pendingRequestId: '',
+      stoppingRequestId: '',
+      isStreaming: false,
+    })
+    expect(sessions.isCanceled(8, 'req-8')).toBe(true)
+  })
+
+  it('rejects an acknowledgment for any other operation', () => {
+    expect(() => assertAiStoppingAcknowledgment(
+      { conversation_id: 8, request_id: 'other', status: 'stopping' },
+      8,
+      'req-8',
+    )).toThrow(/stopping contract/i)
+  })
+
+  it('authoritatively replaces a stream after ambiguous cancel failure instead of resuming it', async () => {
+    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+    const sessions = useConversationSessions()
+
+    sessions.beginSend(11, 'req-11', 'question')
+    sessions.appendDelta(11, 'req-11', 'possibly gapped')
+    sessions.beginStopping(11, 'req-11')
+    sessions.recoverMessages(11, [], 0, false)
+    sessions.appendDelta(11, 'req-11', ' late')
+
+    expect(sessions.get(11)).toMatchObject({
+      messages: [],
+      pendingRequestId: '',
+      stoppingRequestId: '',
+      isStreaming: false,
+    })
+  })
+
   it('does not mark a request canceled after it already reached a terminal state', async () => {
     const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
     const sessions = useConversationSessions()

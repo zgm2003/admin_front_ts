@@ -83,6 +83,7 @@ export interface AiToolGenerateInitResponse {
 
 export interface AiToolGenerateDraftParams extends RequestPayload {
   agent_id: Id
+  request_id: string
   requirement: string
   code_hint?: string
 }
@@ -225,6 +226,7 @@ function mutationBody(params: AiToolMutationParams): AiToolMutationBody {
 function generateDraftBody(params: AiToolGenerateDraftParams): AiToolGenerateDraftBody {
   const body: AiToolGenerateDraftBody = {
     agent_id: positiveID(params.agent_id, 'AI generate agent id'),
+    request_id: params.request_id,
     requirement: params.requirement,
   }
   if (params.code_hint !== undefined) body.code_hint = params.code_hint

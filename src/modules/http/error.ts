@@ -13,7 +13,7 @@ export type ApiErrorKind =
   | 'canceled'
   | 'internal'
 
-export interface ApiError extends Error {
+export interface ApiError<TData = unknown> extends Error {
   readonly kind: ApiErrorKind
   readonly code?: string
   readonly retryable: boolean
@@ -23,10 +23,11 @@ export interface ApiError extends Error {
   readonly traceId?: string
   readonly status?: number
   readonly cause?: unknown
+  readonly data?: TData
   toJSON(): Readonly<Record<string, unknown>>
 }
 
-export interface ApiErrorInput {
+export interface ApiErrorInput<TData = unknown> {
   readonly kind: ApiErrorKind
   readonly code?: string
   readonly retryable: boolean
@@ -37,9 +38,10 @@ export interface ApiErrorInput {
   readonly traceId?: string
   readonly status?: number
   readonly cause?: unknown
+  readonly data?: TData
 }
 
-class ApiErrorValue extends Error implements ApiError {
+class ApiErrorValue<TData = unknown> extends Error implements ApiError<TData> {
   readonly kind: ApiErrorKind
   readonly code?: string
   readonly retryable: boolean
@@ -49,8 +51,9 @@ class ApiErrorValue extends Error implements ApiError {
   readonly traceId?: string
   readonly status?: number
   readonly cause?: unknown
+  readonly data?: TData
 
-  constructor(input: ApiErrorInput) {
+  constructor(input: ApiErrorInput<TData>) {
     super(input.message ?? input.messageKey)
     this.name = 'ApiError'
     this.kind = input.kind
@@ -62,6 +65,7 @@ class ApiErrorValue extends Error implements ApiError {
     this.traceId = input.traceId
     this.status = input.status
     this.cause = input.cause
+    this.data = input.data
   }
 
   toJSON(): Readonly<Record<string, unknown>> {
@@ -75,6 +79,7 @@ class ApiErrorValue extends Error implements ApiError {
       requestId: this.requestId,
       traceId: this.traceId,
       status: this.status,
+      data: this.data,
     }
   }
 }
@@ -92,7 +97,7 @@ const backendCategoryKinds = {
   internal: 'internal',
 } as const satisfies Readonly<Record<ErrorEnvelope['error']['category'], ApiErrorKind>>
 
-export function createApiError(input: ApiErrorInput): ApiError {
+export function createApiError<TData = unknown>(input: ApiErrorInput<TData>): ApiError<TData> {
   return new ApiErrorValue(input)
 }
 
@@ -110,5 +115,6 @@ export function apiErrorFromEnvelope(envelope: ErrorEnvelope, status?: number): 
     requestId: envelope.error.request_id,
     traceId: envelope.error.trace_id,
     status,
+    data: envelope.data,
   })
 }

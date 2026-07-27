@@ -56,6 +56,19 @@ const aiFailedPayloadSchema = z.strictObject({
   conversation_id: safePositiveInteger,
   request_id: requiredRequestIdSchema,
   msg: maxCodePoints(1_024).refine((value) => /\S/.test(value)),
+  error_code: maxCodePoints(128).refine((value) => /\S/.test(value)),
+  wallet_path: z.union([z.literal('/profile/wallet'), z.null()]),
+  recharge_path: z.union([z.literal('/payment/recharge'), z.null()]),
+}).superRefine((value, context) => {
+  const insufficient = value.error_code === 'ai.billing.insufficient_balance'
+  const validPaths = value.wallet_path === '/profile/wallet' && value.recharge_path === '/payment/recharge'
+  const nullPaths = value.wallet_path === null && value.recharge_path === null
+  if ((insufficient && !validPaths) || (!insufficient && !nullPaths)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'AI failure navigation paths violate the locked billing contract',
+    })
+  }
 })
 const aiCanceledPayloadSchema = z.strictObject({
   conversation_id: safePositiveInteger,

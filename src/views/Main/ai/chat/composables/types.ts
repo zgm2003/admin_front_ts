@@ -39,6 +39,7 @@ export interface ConversationSession {
   sending: boolean
   isStreaming: boolean
   pendingRequestId: string
+  stoppingRequestId: string
   streamingContent: string
   canceledRequestIds: string[]
   updatedAt: number

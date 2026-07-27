@@ -17,6 +17,7 @@ function createSession(conversationId: number): ConversationSession {
     sending: false,
     isStreaming: false,
     pendingRequestId: '',
+    stoppingRequestId: '',
     streamingContent: '',
     canceledRequestIds: [],
     updatedAt: Date.now(),
@@ -47,8 +48,16 @@ function canApplyUserMessageEvent(session: ConversationSession, requestId: strin
 
 function canApplyAssistantStreamEvent(session: ConversationSession, requestId: string) {
   if (session.canceledRequestIds.includes(requestId)) return false
+  if (session.stoppingRequestId === requestId) return false
   if (session.pendingRequestId) return session.pendingRequestId === requestId
 
+  const assistantMessage = lastAssistantMessage(session)
+  return assistantMessage?.request_id === requestId && assistantMessage.isStreaming === true
+}
+
+function canApplyAssistantTerminalEvent(session: ConversationSession, requestId: string) {
+  if (session.canceledRequestIds.includes(requestId)) return false
+  if (session.pendingRequestId) return session.pendingRequestId === requestId
   const assistantMessage = lastAssistantMessage(session)
   return assistantMessage?.request_id === requestId && assistantMessage.isStreaming === true
 }
@@ -148,6 +157,7 @@ export function useConversationSessions() {
     const session: ConversationSession = {
       ...current,
       pendingRequestId: requestId,
+      stoppingRequestId: '',
       sending: true,
       isStreaming: true,
       streamingContent: '',
@@ -177,6 +187,18 @@ export function useConversationSessions() {
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
+    commit()
+  }
+
+  function beginStopping(conversationId: number, requestId: string) {
+    const current = getOrCreate(conversationId)
+    if (current.pendingRequestId !== requestId || current.canceledRequestIds.includes(requestId)) return
+    commitSession(sessions.value, conversationId, {
+      ...current,
+      stoppingRequestId: requestId,
+      sending: false,
+      updatedAt: Date.now(),
+    })
     commit()
   }
 
@@ -225,7 +247,7 @@ export function useConversationSessions() {
 
   function complete(conversationId: number, requestId: string, assistantMessageId: number) {
     const current = getOrCreate(conversationId)
-    if (!canApplyAssistantStreamEvent(current, requestId)) return
+    if (!canApplyAssistantTerminalEvent(current, requestId)) return
 
     const messages = current.messages.map((message, index) => {
       const isLast = index === current.messages.length - 1
@@ -245,6 +267,7 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: '',
+      stoppingRequestId: '',
       sending: false,
       isStreaming: false,
       streamingContent: '',
@@ -256,7 +279,7 @@ export function useConversationSessions() {
 
   function fail(conversationId: number, requestId: string, messageText: string) {
     const current = getOrCreate(conversationId)
-    if (!canApplyAssistantStreamEvent(current, requestId)) return
+    if (!canApplyAssistantTerminalEvent(current, requestId)) return
 
     const messages = current.messages.map((message, index) => {
       const isLast = index === current.messages.length - 1
@@ -275,6 +298,7 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: '',
+      stoppingRequestId: '',
       sending: false,
       isStreaming: false,
       streamingContent: '',
@@ -305,6 +329,7 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: '',
+      stoppingRequestId: '',
       sending: false,
       isStreaming: false,
       streamingContent: '',
@@ -312,6 +337,29 @@ export function useConversationSessions() {
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
+    commit()
+  }
+
+  function recoverMessages(
+    conversationId: number,
+    messages: Message[],
+    nextMessageId: number,
+    hasMoreMessages: boolean,
+  ) {
+    const current = getOrCreate(conversationId)
+    commitSession(sessions.value, conversationId, {
+      ...current,
+      messages,
+      nextMessageId,
+      hasMoreMessages,
+      loadingMessages: false,
+      sending: false,
+      isStreaming: false,
+      pendingRequestId: '',
+      stoppingRequestId: '',
+      streamingContent: '',
+      updatedAt: Date.now(),
+    })
     commit()
   }
 
@@ -336,11 +384,13 @@ export function useConversationSessions() {
     setLoading,
     setLoadingMore,
     beginSend,
+    beginStopping,
     markUserMessage,
     appendDelta,
     complete,
     fail,
     cancel,
+    recoverMessages,
     isCanceled,
     remove,
   }

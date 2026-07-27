@@ -81,7 +81,14 @@ describe('AI conversation websocket contract', () => {
       type: 'ai.response.failed.v1',
       sequence: 4,
       durability: 'durable',
-      data: { conversation_id: 2, request_id: 'req-2', msg: 'bad' },
+      data: {
+        conversation_id: 2,
+        request_id: 'req-2',
+        msg: 'bad',
+        error_code: 'ai.provider.failed',
+        wallet_path: null,
+        recharge_path: null,
+      },
     })
     await realtime.emit({
       ...baseEnvelope,
@@ -95,7 +102,14 @@ describe('AI conversation websocket contract', () => {
     expect(start).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', user_message_id: 2, agent_id: 3 })
     expect(delta).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', delta: 'hello' })
     expect(completed).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', assistant_message_id: 4 })
-    expect(failed).toHaveBeenCalledWith({ conversation_id: 2, request_id: 'req-2', msg: 'bad' })
+    expect(failed).toHaveBeenCalledWith({
+      conversation_id: 2,
+      request_id: 'req-2',
+      msg: 'bad',
+      error_code: 'ai.provider.failed',
+      wallet_path: null,
+      recharge_path: null,
+    })
     expect(canceled).toHaveBeenCalledWith({ conversation_id: 3, request_id: 'req-3' })
   })
 })
