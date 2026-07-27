@@ -1,0 +1,4 @@
+/contracts/backend/admin/** text eol=lf
+/src/i18n/locales/generated.ts text eol=lf
+/src/modules/http/generated/*.ts text eol=lf
+/src/modules/routing/generated/*.ts text eol=lf
