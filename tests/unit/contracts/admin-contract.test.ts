@@ -54,6 +54,23 @@ function schemaProperties(schemas: JsonObject, schemaName: string): string[] {
   return Object.keys(requiredObject(schema.properties, `schema ${schemaName}.properties`))
 }
 
+function schemaReference(container: JsonObject, label: string): string {
+  const content = requiredObject(container.content, `${label}.content`)
+  const media = requiredObject(content['application/json'], `${label}.content.application/json`)
+  const schema = requiredObject(media.schema, `${label}.schema`)
+  if (typeof schema.$ref !== 'string') throw new Error(`${label}.schema.$ref must be a string`)
+  return schema.$ref
+}
+
+function expectNullableProperty(schema: JsonObject, field: string) {
+  const properties = requiredObject(schema.properties, `schema.properties`)
+  const property = requiredObject(properties[field], `schema.properties.${field}`)
+  expect(Array.isArray(property.anyOf)).toBe(true)
+  expect((property.anyOf as unknown[]).some(
+    (variant) => isJsonObject(variant) && variant.type === 'null',
+  )).toBe(true)
+}
+
 async function createTemporaryRoot(name: string) {
   const root = await mkdtemp(join(tmpdir(), `admin-${name}-`))
   temporaryRoots.push(root)
@@ -72,6 +89,149 @@ afterEach(async () => {
 })
 
 describe('Admin Contract Bundle consumer', () => {
+  it('publishes the exact AI consumer interaction operations and fields', async () => {
+    const openapi = await readLockedObject('openapi.json')
+    const paths = requiredObject(openapi.paths, 'openapi.paths')
+    const components = requiredObject(openapi.components, 'openapi.components')
+    const schemas = requiredObject(components.schemas, 'openapi.components.schemas')
+    const operations = [
+      {
+        method: 'post',
+        path: '/api/admin/v1/ai-conversations/{id}/messages/{message_id}/revisions',
+        operationId: 'post_api_admin_v1_ai_conversations_id_messages_message_id_revisions',
+        status: '202',
+        request: 'AIMessageRevisionRequest',
+        response: 'AIMessageSendSuccessEnvelope',
+        pathIds: ['id', 'message_id'],
+      },
+      {
+        method: 'post',
+        path: '/api/admin/v1/ai-conversations/{id}/messages/{message_id}/regenerations',
+        operationId: 'post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations',
+        status: '202',
+        request: 'AIMessageRegenerationRequest',
+        response: 'AIMessageSendSuccessEnvelope',
+        pathIds: ['id', 'message_id'],
+      },
+      {
+        method: 'delete',
+        path: '/api/admin/v1/ai-conversations/{id}/messages',
+        operationId: 'delete_api_admin_v1_ai_conversations_id_messages',
+        status: '200',
+        request: 'AIMessageDeleteRequest',
+        response: 'AIMessageDeleteSuccessEnvelope',
+        pathIds: ['id'],
+      },
+      {
+        method: 'put',
+        path: '/api/admin/v1/ai-conversations/{id}/read-cursor',
+        operationId: 'put_api_admin_v1_ai_conversations_id_read_cursor',
+        status: '200',
+        request: 'AIConversationReadCursorRequest',
+        response: 'AIConversationReadCursorSuccessEnvelope',
+        pathIds: ['id'],
+      },
+      {
+        method: 'put',
+        path: '/api/admin/v1/ai-runs/{id}/user-feedback',
+        operationId: 'put_api_admin_v1_ai_runs_id_user_feedback',
+        status: '200',
+        request: 'AIRunUserFeedbackRequest',
+        response: 'AIRunUserFeedbackSuccessEnvelope',
+        pathIds: ['id'],
+      },
+    ] as const
+
+    for (const expected of operations) {
+      const pathItem = requiredObject(paths[expected.path], `path ${expected.path}`)
+      const operation = requiredObject(pathItem[expected.method], `${expected.method} ${expected.path}`)
+      expect(operation.operationId).toBe(expected.operationId)
+      expect(requiredObject(operation['x-admin-access'], 'x-admin-access')).toEqual({
+        kind: 'authenticated',
+      })
+
+      const requestBody = requiredObject(operation.requestBody, `${expected.operationId}.requestBody`)
+      expect(requestBody.required).toBe(true)
+      expect(schemaReference(requestBody, `${expected.operationId}.requestBody`))
+        .toBe(`#/components/schemas/${expected.request}`)
+
+      const responses = requiredObject(operation.responses, `${expected.operationId}.responses`)
+      const response = requiredObject(responses[expected.status], `${expected.operationId}.responses`)
+      expect(schemaReference(response, `${expected.operationId}.response`))
+        .toBe(`#/components/schemas/${expected.response}`)
+      if (expected.status === '202') expect(responses['200']).toBeUndefined()
+
+      const parameters = operation.parameters
+      expect(Array.isArray(parameters)).toBe(true)
+      const pathParameters = (parameters as unknown[])
+        .map((parameter) => requiredObject(parameter, `${expected.operationId}.parameter`))
+        .filter((parameter) => parameter.in === 'path')
+      expect(pathParameters.map((parameter) => parameter.name).sort()).toEqual(expected.pathIds)
+      for (const parameter of pathParameters) {
+        expect(parameter.required).toBe(true)
+        expect(requiredObject(parameter.schema, `${expected.operationId}.path schema`))
+          .toMatchObject({ type: 'integer', minimum: 1 })
+      }
+    }
+
+    expect(Object.keys(adminOperations)).toEqual(expect.arrayContaining(
+      operations.map((operation) => operation.operationId),
+    ))
+
+    const exactSchemas: Readonly<Record<string, readonly string[]>> = {
+      AIMessageRevisionRequest: ['content', 'request_id'],
+      AIMessageRegenerationRequest: ['request_id'],
+      AIMessageDeleteRequest: ['ids'],
+      AIMessageDeleteResult: ['deleted_ids'],
+      AIConversationReadCursorRequest: ['message_id'],
+      AIConversationReadCursorResult: ['conversation_id', 'last_read_message_id', 'unread_count'],
+      AIRunUserFeedbackRequest: ['liked'],
+      AIRunUserFeedbackResult: ['id', 'liked', 'liked_at'],
+    }
+    for (const [schemaName, fields] of Object.entries(exactSchemas)) {
+      const schema = requiredObject(schemas[schemaName], `schema ${schemaName}`)
+      expect(schema.additionalProperties).toBe(false)
+      expect(schemaProperties(schemas, schemaName).sort()).toEqual([...fields].sort())
+      expect([...(schema.required as string[])].sort()).toEqual([...fields].sort())
+    }
+
+    const conversation = requiredObject(schemas.AIConversationItem, 'AIConversationItem')
+    expect(schemaProperties(schemas, 'AIConversationItem')).toContain('unread_count')
+    expect(conversation.required).toEqual(expect.arrayContaining(['unread_count']))
+
+    const message = requiredObject(schemas.AIMessageItem, 'AIMessageItem')
+    expect(message.required).toEqual(expect.arrayContaining(['paired_message_id', 'run_id', 'liked']))
+    expectNullableProperty(message, 'paired_message_id')
+    expectNullableProperty(message, 'run_id')
+    expect(requiredObject(requiredObject(message.properties, 'AIMessageItem.properties').liked, 'liked'))
+      .toMatchObject({ type: 'boolean' })
+
+    const deletedIds = requiredObject(
+      requiredObject(requiredObject(schemas.AIMessageDeleteResult, 'AIMessageDeleteResult').properties, 'properties').deleted_ids,
+      'AIMessageDeleteResult.deleted_ids',
+    )
+    expect(deletedIds).toMatchObject({ minItems: 1, uniqueItems: true })
+    expect(deletedIds.description).toMatch(/ascending/)
+
+    const feedback = requiredObject(schemas.AIRunUserFeedbackResult, 'AIRunUserFeedbackResult')
+    expectNullableProperty(feedback, 'liked_at')
+    const runDetail = requiredObject(schemas.AIRunDetail, 'AIRunDetail')
+    expect(runDetail.required).toEqual(expect.arrayContaining(['liked', 'liked_at']))
+    expectNullableProperty(runDetail, 'liked_at')
+
+    const cancel = requiredObject(schemas.AIMessageCancelResult, 'AIMessageCancelResult')
+    const cancelProperties = requiredObject(cancel.properties, 'AIMessageCancelResult.properties')
+    expect(requiredObject(cancelProperties.status, 'AIMessageCancelResult.status').const).toBe('stopping')
+
+    const recharge = requiredObject(
+      schemas.Go_internal_module_payment_RechargePageInitResponse_Output,
+      'RechargePageInitResponse',
+    )
+    expect(schemaProperties(schemas, 'Go_internal_module_payment_RechargePageInitResponse_Output'))
+      .not.toContain('recent')
+    expect(recharge.additionalProperties).toBe(false)
+  })
+
   it('encodes the documented payment certificate upload as multipart form data', async () => {
     const file = new Blob(['certificate'], { type: 'application/x-pem-file' })
     const input: AdminOperationInput<'post_api_admin_v1_payment_certificates'> = {

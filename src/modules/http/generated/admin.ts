@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: be03bf2c367bf266c9fb50409f86b929c34d7a55c7804238d6a68f0656edf162
+// Generated from Admin Contract Bundle manifest SHA-256: 56a43d8eaef9c32216cc77c1149b398b8b33168a748d249019ee3b8c0b4d92c6
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -208,6 +208,41 @@ export interface paths {
         put?: never;
         /** POST /api/admin/v1/ai-conversations/:id/messages */
         post: operations["post_api_admin_v1_ai_conversations_id_messages"];
+        /** DELETE /api/admin/v1/ai-conversations/:id/messages */
+        delete: operations["delete_api_admin_v1_ai_conversations_id_messages"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-conversations/{id}/messages/{message_id}/regenerations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/ai-conversations/:id/messages/:message_id/regenerations */
+        post: operations["post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-conversations/{id}/messages/{message_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/ai-conversations/:id/messages/:message_id/revisions */
+        post: operations["post_api_admin_v1_ai_conversations_id_messages_message_id_revisions"];
         delete?: never;
         options?: never;
         head?: never;
@@ -225,6 +260,23 @@ export interface paths {
         put?: never;
         /** POST /api/admin/v1/ai-conversations/:id/messages/cancel */
         post: operations["post_api_admin_v1_ai_conversations_id_messages_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-conversations/{id}/read-cursor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** PUT /api/admin/v1/ai-conversations/:id/read-cursor */
+        put: operations["put_api_admin_v1_ai_conversations_id_read_cursor"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -590,6 +642,23 @@ export interface paths {
         /** GET /api/admin/v1/ai-runs/:id */
         get: operations["get_api_admin_v1_ai_runs_id"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-runs/{id}/user-feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** PUT /api/admin/v1/ai-runs/:id/user-feedback */
+        put: operations["put_api_admin_v1_ai_runs_id_user_feedback"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3052,6 +3121,8 @@ export interface components {
             id: number;
             last_message_at: string;
             title: string;
+            /** Format: int64 */
+            unread_count: number;
             updated_at: string;
         };
         AIConversationListResult: {
@@ -3065,6 +3136,24 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["AIConversationListResult"];
+            msg: string;
+        };
+        AIConversationReadCursorRequest: {
+            /** Format: int64 */
+            message_id: number;
+        };
+        AIConversationReadCursorResult: {
+            /** Format: int64 */
+            conversation_id: number;
+            /** Format: int64 */
+            last_read_message_id: number;
+            /** Format: int64 */
+            unread_count: number;
+        };
+        AIConversationReadCursorSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIConversationReadCursorResult"];
             msg: string;
         };
         AIConversationUpdateRequest: {
@@ -3086,15 +3175,31 @@ export interface components {
             data: components["schemas"]["AIMessageCancelResult"];
             msg: string;
         };
+        AIMessageDeleteRequest: {
+            ids: number[];
+        };
+        AIMessageDeleteResult: {
+            /** @description The submitted message IDs normalized to unique ascending order. */
+            deleted_ids: number[];
+        };
+        AIMessageDeleteSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIMessageDeleteResult"];
+            msg: string;
+        };
         AIMessageItem: {
             content: string;
             content_type: string;
             created_at: string;
             /** Format: int64 */
             id: number;
+            liked: boolean;
             meta_json?: components["schemas"]["AIMessageMeta"];
+            paired_message_id: number | null;
             /** @enum {integer} */
             role: 1 | 2 | 3;
+            run_id: number | null;
             updated_at: string;
         };
         AIMessageListResult: {
@@ -3120,6 +3225,14 @@ export interface components {
             /** @constant */
             type: "image";
             url: string;
+        };
+        AIMessageRegenerationRequest: {
+            request_id: string;
+        };
+        AIMessageRevisionRequest: {
+            /** @description Trimmed content must be non-empty. */
+            content: string;
+            request_id: string;
         };
         /** @description request_id is required; additionally, trimmed content must be non-empty or attachments must contain at least one image. The cross-field rule is also published on the operation. */
         AIMessageSendRequest: {
@@ -3171,6 +3284,8 @@ export interface components {
             id: number;
             input_snapshot: string;
             knowledge_retrievals: components["schemas"]["AIRunKnowledgeRetrieval"][];
+            liked: boolean;
+            liked_at: string | null;
             model_display_name: string;
             model_id: string;
             /** @enum {string} */
@@ -3505,6 +3620,21 @@ export interface components {
             unit_price: string;
             /** Format: int64 */
             unit_scale: number;
+        };
+        AIRunUserFeedbackRequest: {
+            liked: boolean;
+        };
+        AIRunUserFeedbackResult: {
+            /** Format: int64 */
+            id: number;
+            liked: boolean;
+            liked_at: string | null;
+        };
+        AIRunUserFeedbackSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunUserFeedbackResult"];
+            msg: string;
         };
         delete_api_admin_v1_ai_agents_id_ResponseEnvelope: {
             /** @constant */
@@ -5136,7 +5266,6 @@ export interface components {
             dict: components["schemas"]["Go_internal_module_payment_RechargePageInitDict_Output"];
             packages: components["schemas"]["Go_internal_module_payment_RechargePackageItem_Output"][];
             payment_method: components["schemas"]["Go_internal_module_payment_RechargePaymentMethod_Output"];
-            recent: components["schemas"]["Go_internal_module_payment_RechargeListItem_Output"][];
             wallet: components["schemas"]["Go_internal_module_payment_WalletSummary_Output"];
         };
         Go_internal_module_payment_RechargePaymentMethod_Output: {
@@ -7632,6 +7761,113 @@ export interface operations {
             };
         };
     };
+    delete_api_admin_v1_ai_conversations_id_messages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIMessageDeleteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIMessageDeleteSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                message_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIMessageRegenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIMessageSendSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_api_admin_v1_ai_conversations_id_messages_message_id_revisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                message_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIMessageRevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIMessageSendSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     post_api_admin_v1_ai_conversations_id_messages_cancel: {
         parameters: {
             query?: never;
@@ -7654,6 +7890,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIMessageCancelSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    put_api_admin_v1_ai_conversations_id_read_cursor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIConversationReadCursorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIConversationReadCursorSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8654,6 +8925,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIRunDetailSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    put_api_admin_v1_ai_runs_id_user_feedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIRunUserFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunUserFeedbackSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
