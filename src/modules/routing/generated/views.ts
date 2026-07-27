@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: be03bf2c367bf266c9fb50409f86b929c34d7a55c7804238d6a68f0656edf162
+// Generated from Admin Contract Bundle manifest SHA-256: 56a43d8eaef9c32216cc77c1149b398b8b33168a748d249019ee3b8c0b4d92c6
 // Do not edit manually.
 
 export const backendViewKeys = [

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: be03bf2c367bf266c9fb50409f86b929c34d7a55c7804238d6a68f0656edf162
+// Generated from Admin Contract Bundle manifest SHA-256: 56a43d8eaef9c32216cc77c1149b398b8b33168a748d249019ee3b8c0b4d92c6
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -82,6 +82,11 @@ const contractSchemas = {
       "title": {
         "type": "string"
       },
+      "unread_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
       "updated_at": {
         "type": "string"
       }
@@ -92,6 +97,7 @@ const contractSchemas = {
       "id",
       "last_message_at",
       "title",
+      "unread_count",
       "updated_at"
     ],
     "type": "object"
@@ -125,6 +131,32 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "AIConversationReadCursorResult": {
+    "additionalProperties": false,
+    "properties": {
+      "conversation_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "last_read_message_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "unread_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "conversation_id",
+      "last_read_message_id",
+      "unread_count"
+    ],
+    "type": "object"
+  },
   "AIMessageCancelResult": {
     "additionalProperties": false,
     "properties": {
@@ -148,6 +180,26 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "AIMessageDeleteResult": {
+    "additionalProperties": false,
+    "properties": {
+      "deleted_ids": {
+        "description": "The submitted message IDs normalized to unique ascending order.",
+        "items": {
+          "format": "int64",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "minItems": 1,
+        "type": "array",
+        "uniqueItems": true
+      }
+    },
+    "required": [
+      "deleted_ids"
+    ],
+    "type": "object"
+  },
   "AIMessageItem": {
     "additionalProperties": false,
     "properties": {
@@ -165,8 +217,23 @@ const contractSchemas = {
         "minimum": 1,
         "type": "integer"
       },
+      "liked": {
+        "type": "boolean"
+      },
       "meta_json": {
         "$ref": "#/components/schemas/AIMessageMeta"
+      },
+      "paired_message_id": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "role": {
         "enum": [
@@ -175,6 +242,18 @@ const contractSchemas = {
           3
         ],
         "type": "integer"
+      },
+      "run_id": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "updated_at": {
         "type": "string"
@@ -185,6 +264,9 @@ const contractSchemas = {
       "role",
       "content_type",
       "content",
+      "paired_message_id",
+      "run_id",
+      "liked",
       "created_at",
       "updated_at"
     ],
@@ -419,6 +501,19 @@ const contractSchemas = {
         },
         "type": "array"
       },
+      "liked": {
+        "type": "boolean"
+      },
+      "liked_at": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "model_display_name": {
         "type": "string"
       },
@@ -539,6 +634,8 @@ const contractSchemas = {
       "id",
       "input_snapshot",
       "knowledge_retrievals",
+      "liked",
+      "liked_at",
       "model_display_name",
       "model_id",
       "platform",
@@ -1593,6 +1690,35 @@ const contractSchemas = {
       "unit",
       "unit_price",
       "unit_scale"
+    ],
+    "type": "object"
+  },
+  "AIRunUserFeedbackResult": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "liked": {
+        "type": "boolean"
+      },
+      "liked_at": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "liked",
+      "liked_at"
     ],
     "type": "object"
   },
@@ -5633,12 +5759,6 @@ const contractSchemas = {
       "payment_method": {
         "$ref": "#/components/schemas/Go_internal_module_payment_RechargePaymentMethod_Output"
       },
-      "recent": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_payment_RechargeListItem_Output"
-        },
-        "type": "array"
-      },
       "wallet": {
         "$ref": "#/components/schemas/Go_internal_module_payment_WalletSummary_Output"
       }
@@ -5647,7 +5767,6 @@ const contractSchemas = {
       "dict",
       "packages",
       "payment_method",
-      "recent",
       "wallet"
     ],
     "type": "object"
@@ -8234,6 +8353,9 @@ const responseDataSchemas = {
     "properties": {},
     "type": "object"
   },
+  "delete_api_admin_v1_ai_conversations_id_messages": {
+    "$ref": "#/components/schemas/AIMessageDeleteResult"
+  },
   "delete_api_admin_v1_ai_knowledge_bases_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -8743,6 +8865,12 @@ const responseDataSchemas = {
   "post_api_admin_v1_ai_conversations_id_messages_cancel": {
     "$ref": "#/components/schemas/AIMessageCancelResult"
   },
+  "post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations": {
+    "$ref": "#/components/schemas/AIMessageSendResult"
+  },
+  "post_api_admin_v1_ai_conversations_id_messages_message_id_revisions": {
+    "$ref": "#/components/schemas/AIMessageSendResult"
+  },
   "post_api_admin_v1_ai_knowledge_bases": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
   },
@@ -8908,6 +9036,9 @@ const responseDataSchemas = {
     "properties": {},
     "type": "object"
   },
+  "put_api_admin_v1_ai_conversations_id_read_cursor": {
+    "$ref": "#/components/schemas/AIConversationReadCursorResult"
+  },
   "put_api_admin_v1_ai_knowledge_bases_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -8919,6 +9050,9 @@ const responseDataSchemas = {
   },
   "put_api_admin_v1_ai_providers_id_models": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
+  },
+  "put_api_admin_v1_ai_runs_id_user_feedback": {
+    "$ref": "#/components/schemas/AIRunUserFeedbackResult"
   },
   "put_api_admin_v1_ai_tools_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -9051,6 +9185,17 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_conversations_id">>(responseDataSchemas["delete_api_admin_v1_ai_conversations_id"]),
     telemetryName: "admin.delete.api.admin.v1.ai.conversations.id",
+    encode: (input) => input,
+  }),
+  "delete_api_admin_v1_ai_conversations_id_messages": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_conversations_id_messages">, AdminOperationOutput<"delete_api_admin_v1_ai_conversations_id_messages">>({
+    id: "delete_api_admin_v1_ai_conversations_id_messages",
+    method: "DELETE",
+    path: "/api/admin/v1/ai-conversations/{id}/messages",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_conversations_id_messages">>(responseDataSchemas["delete_api_admin_v1_ai_conversations_id_messages"]),
+    telemetryName: "admin.delete.api.admin.v1.ai.conversations.id.messages",
     encode: (input) => input,
   }),
   "delete_api_admin_v1_ai_knowledge_bases_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_knowledge_bases_id">, AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_bases_id">>({
@@ -10750,6 +10895,28 @@ export const adminOperations = {
     telemetryName: "admin.post.api.admin.v1.ai.conversations.id.messages.cancel",
     encode: (input) => input,
   }),
+  "post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations">, AdminOperationOutput<"post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations">>({
+    id: "post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations",
+    method: "POST",
+    path: "/api/admin/v1/ai-conversations/{id}/messages/{message_id}/regenerations",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations">>(responseDataSchemas["post_api_admin_v1_ai_conversations_id_messages_message_id_regenerations"]),
+    telemetryName: "admin.post.api.admin.v1.ai.conversations.id.messages.message.id.regenerations",
+    encode: (input) => input,
+  }),
+  "post_api_admin_v1_ai_conversations_id_messages_message_id_revisions": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_conversations_id_messages_message_id_revisions">, AdminOperationOutput<"post_api_admin_v1_ai_conversations_id_messages_message_id_revisions">>({
+    id: "post_api_admin_v1_ai_conversations_id_messages_message_id_revisions",
+    method: "POST",
+    path: "/api/admin/v1/ai-conversations/{id}/messages/{message_id}/revisions",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_conversations_id_messages_message_id_revisions">>(responseDataSchemas["post_api_admin_v1_ai_conversations_id_messages_message_id_revisions"]),
+    telemetryName: "admin.post.api.admin.v1.ai.conversations.id.messages.message.id.revisions",
+    encode: (input) => input,
+  }),
   "post_api_admin_v1_ai_knowledge_bases": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_knowledge_bases">, AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases">>({
     id: "post_api_admin_v1_ai_knowledge_bases",
     method: "POST",
@@ -11257,6 +11424,17 @@ export const adminOperations = {
     telemetryName: "admin.put.api.admin.v1.ai.conversations.id",
     encode: (input) => input,
   }),
+  "put_api_admin_v1_ai_conversations_id_read_cursor": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_conversations_id_read_cursor">, AdminOperationOutput<"put_api_admin_v1_ai_conversations_id_read_cursor">>({
+    id: "put_api_admin_v1_ai_conversations_id_read_cursor",
+    method: "PUT",
+    path: "/api/admin/v1/ai-conversations/{id}/read-cursor",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_conversations_id_read_cursor">>(responseDataSchemas["put_api_admin_v1_ai_conversations_id_read_cursor"]),
+    telemetryName: "admin.put.api.admin.v1.ai.conversations.id.read.cursor",
+    encode: (input) => input,
+  }),
   "put_api_admin_v1_ai_knowledge_bases_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_knowledge_bases_id">, AdminOperationOutput<"put_api_admin_v1_ai_knowledge_bases_id">>({
     id: "put_api_admin_v1_ai_knowledge_bases_id",
     method: "PUT",
@@ -11299,6 +11477,17 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_providers_id_models">>(responseDataSchemas["put_api_admin_v1_ai_providers_id_models"]),
     telemetryName: "admin.put.api.admin.v1.ai.providers.id.models",
+    encode: (input) => input,
+  }),
+  "put_api_admin_v1_ai_runs_id_user_feedback": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_runs_id_user_feedback">, AdminOperationOutput<"put_api_admin_v1_ai_runs_id_user_feedback">>({
+    id: "put_api_admin_v1_ai_runs_id_user_feedback",
+    method: "PUT",
+    path: "/api/admin/v1/ai-runs/{id}/user-feedback",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_runs_id_user_feedback">>(responseDataSchemas["put_api_admin_v1_ai_runs_id_user_feedback"]),
+    telemetryName: "admin.put.api.admin.v1.ai.runs.id.user.feedback",
     encode: (input) => input,
   }),
   "put_api_admin_v1_ai_tools_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_tools_id">, AdminOperationOutput<"put_api_admin_v1_ai_tools_id">>({
