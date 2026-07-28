@@ -32,7 +32,7 @@ const columns = computed(() => [
   { key: 'effective', label: t('aiModelPricing.columns.effective'), minWidth: 300 },
   { key: 'source', label: t('aiModelPricing.columns.source'), width: 120 },
   { key: 'verified', label: t('aiModelPricing.columns.verifiedAt'), width: 130 },
-  { key: 'actions', label: t('common.actions.action'), width: 180, fixed: 'right' },
+  { key: 'actions', label: t('common.actions.action'), width: 180, fixed: 'right' ,},
 ])
 
 function familyLabel(family: string): string {
@@ -158,7 +158,6 @@ function isOverride(row: AiModelPriceItem): boolean {
         <template #cell-actions="{ row }">
           <div
             v-if="canEdit"
-            class="model-pricing-page__actions"
           >
             <el-button
               data-test="edit-price"
@@ -292,16 +291,6 @@ function isOverride(row: AiModelPriceItem): boolean {
 .model-pricing-page__verified {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.model-pricing-page__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.model-pricing-page__actions :deep(.el-button + .el-button) {
-  margin-left: 0;
 }
 
 @media (max-width: 768px) {
