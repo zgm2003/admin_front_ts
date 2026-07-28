@@ -174,7 +174,7 @@ function openDetail(row: OperationLogItem) {
     <AppDialog
       v-model="detailVisible"
       :title="detailTitle"
-      :width="isMobile ? '94vw' : '960px'"
+      width="960px"
       height="70vh"
       body-padding="16px"
     >

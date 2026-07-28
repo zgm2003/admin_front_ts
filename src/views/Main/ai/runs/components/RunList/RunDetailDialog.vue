@@ -42,7 +42,7 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
   <AppDialog
     v-model="visible"
     :title="t('aiRuns.detail.title')"
-    :width="detailDialogLayout.width"
+    width="1040px"
     :height="detailDialogLayout.height"
   >
     <div

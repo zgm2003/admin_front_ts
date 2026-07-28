@@ -247,7 +247,6 @@ const {
       v-model="showRenameDialog"
       :title="t('aiChat.renameTitle')"
       width="400px"
-      mobile-width="94vw"
       body-padding="24px"
       class="rename-dialog"
     >

@@ -38,7 +38,6 @@ export function useModelPricingPage() {
       type: 'select-v2',
       label: t('aiModelPricing.filters.family'),
       placeholder: t('aiModelPricing.filters.family'),
-      width: 150,
       options: familyOptions.value,
     },
     {

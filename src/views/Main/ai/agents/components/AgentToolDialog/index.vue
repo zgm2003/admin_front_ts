@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import { AiAgentApi, type AiAgentItem } from '@/api/ai/agents'
 import { AiToolApi, type AiToolItem } from '@/api/ai/tools'
@@ -21,7 +20,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 
 const selectedToolIDs = ref<number[]>([])
 const activeToolIDs = ref<number[]>([])
@@ -89,7 +87,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '680px'"
+    width="680px"
     height="54vh"
   >
     <template #header>

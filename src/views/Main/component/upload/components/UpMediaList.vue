@@ -5,10 +5,7 @@ import type { UploadFile, UploadUserFile } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { AppDialog } from '@/components/AppDialog'
 import { uploadFileToCloud, getUploadToken, validateFile } from '@/lib/upload'
-import { useIsMobile } from '@/hooks/useResponsive'
 import type { UploadMediaItem } from './media'
-
-const isMobile = useIsMobile()
 
 const props = withDefaults(defineProps<{
   modelValue?: UploadMediaItem[]
@@ -91,7 +88,7 @@ function toMediaItems(values: UploadUserFile[]): UploadMediaItem[] {
     </el-upload>
     <AppDialog
       v-model="dialogVisible"
-      :width="isMobile ? '94vw' : '600px'"
+      width="600px"
     >
       <el-image
         v-if="type === 'image'"

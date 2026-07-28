@@ -132,7 +132,7 @@ const {
 
   <AppDialog
     v-model="dialogVisible"
-    :width="isMobile ? '94vw' : '760px'"
+    width="760px"
     height="70vh"
   >
     <template #header>

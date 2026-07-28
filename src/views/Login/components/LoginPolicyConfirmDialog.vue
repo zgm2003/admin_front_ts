@@ -27,8 +27,6 @@ function handleVisibleChange(visible: boolean) {
     width="440px"
     body-padding="24px"
     align-center
-    append-to-body
-    destroy-on-close
     aria-describedby="login-policy-confirm-description"
     class="login-policy-confirm-dialog"
     @update:model-value="handleVisibleChange"

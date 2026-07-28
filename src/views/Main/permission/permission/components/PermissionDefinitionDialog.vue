@@ -14,7 +14,6 @@ const form = defineModel<PermissionFormState>('form', { required: true })
 
 const props = defineProps<{
   mode: 'add' | 'edit'
-  isMobile: boolean
   permissionTypes: PermissionInitResponse['dict']['permission_type_arr']
   parentTree: PermissionParentTreeNode[]
 }>()
@@ -67,10 +66,9 @@ async function confirmSubmit() {
   <AppDialog
     v-model="visible"
     class="add-box dialog-box"
-    :width="isMobile ? '94vw' : '800px'"
+    width="800px"
     :title="props.mode === 'add' ? t('common.actions.add') : t('common.actions.edit')"
     draggable
-    destroy-on-close
   >
     <div class="permission-dialog-content">
       <el-form

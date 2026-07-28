@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import {
   AiToolApi,
@@ -45,7 +44,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 const formRef = ref<FormInstance | null>(null)
 const form = ref<ToolForm>(defaultForm())
 
@@ -169,7 +167,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '900px'"
+    width="900px"
     height="76vh"
     body-padding="12px 18px 0"
   >

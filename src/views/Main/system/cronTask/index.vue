@@ -9,7 +9,7 @@ import { useCronTaskPage } from './use-cron-task-page'
 const userStore = useUserStore()
 const {
   columns, confirmDel, confirmSubmit, cronPresets, data,
-  dialogMode, dialogVisible, displayTaskType, form, isMobile,
+  dialogMode, dialogVisible, displayTaskType, form,
   loading, logColumns, logData, logLoading, logPage,
   logSearchFields, logSearchForm, logStatusType, logTaskTitle, logVisible,
   onLogPageChange, onLogSearch, onPageChange, onPresetChange, onSearch,
@@ -124,7 +124,7 @@ const {
   <!-- 新增/编辑弹窗 -->
   <AppDialog
     v-model="dialogVisible"
-    :width="isMobile ? '94vw' : '600px'"
+    width="600px"
     draggable
   >
     <template #header>
@@ -235,7 +235,7 @@ const {
   <AppDialog
     v-model="logVisible"
     :title="t('cronTask.logsTitle', { name: logTaskTitle })"
-    :width="isMobile ? '94vw' : '1000px'"
+    width="1000px"
   >
     <Search
       v-model="logSearchForm"

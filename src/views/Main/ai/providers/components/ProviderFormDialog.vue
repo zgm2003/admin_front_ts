@@ -117,7 +117,7 @@ async function confirmSubmit() {
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '760px'"
+    width="760px"
     :height="isMobile ? 'calc(88vh - 118px)' : 'calc(min(82vh, 720px) - 118px)'"
     body-padding="0"
     header-padding="0"

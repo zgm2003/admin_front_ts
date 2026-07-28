@@ -5,7 +5,6 @@ import type { SearchField } from '@/components/Search/types'
 import { createUserManagementWorkflow } from '@/features/user-management/workflow'
 import { useWorkflowTable } from '@/features/shared/use-workflow-table'
 import { useExportSubmit } from '@/hooks/useExportSubmit'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { useI18n } from 'vue-i18n'
 import type { DictOption } from '@/types/common'
 import type {
@@ -25,7 +24,6 @@ interface UserEditDialogForm extends UserEditParams {
 export function useUserList() {
   const { t } = useI18n()
   const router = useRouter()
-  const isMobile = useIsMobile()
   const workflow = createUserManagementWorkflow({
     async confirmDelete() {
       try {
@@ -125,17 +123,16 @@ export function useUserList() {
   }
 
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'username', type: 'input', label: t('user.filter.username'), placeholder: t('user.filter.username'), width: 150 },
-    { key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email'), width: 150 },
-    { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role'), width: 150 },
-    { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex'), width: 150 },
+    { key: 'username', type: 'input', label: t('user.filter.username'), placeholder: t('user.filter.username') },
+    { key: 'email', type: 'input', label: t('user.filter.email'), placeholder: t('user.filter.email') },
+    { key: 'role_id', type: 'select-v2', label: t('user.filter.role'), options: roleArr.value, placeholder: t('user.filter.role') },
+    { key: 'sex', type: 'select-v2', label: t('user.filter.sex'), options: sexArr.value, placeholder: t('user.filter.sex') },
     {
       key: 'address_id',
       type: 'cascader',
       label: t('user.filter.address'),
       options: addressTree.value,
       placeholder: t('user.filter.address'),
-      width: 150,
       cascaderProps: { emitPath: false, multiple: true },
     },
     {
@@ -143,7 +140,6 @@ export function useUserList() {
       type: 'input',
       label: t('user.filter.detail_address'),
       placeholder: t('user.filter.detail_address'),
-      width: 150,
     },
   ])
 
@@ -275,7 +271,7 @@ export function useUserList() {
   onUnmounted(() => workflow.dispose())
 
   return {
-    t, isMobile, searchForm, searchFields, listLoading, listData, page,
+    t, searchForm, searchFields, listLoading, listData, page,
     onSearch, onPageChange, refresh, onSelectionChange,
     confirmDel, batchDel, toggleStatus, edit, exportExcel, batchEdit,
     editBoxShow, editForm, roleArr, sexArr, addressTree, confirmEdit,

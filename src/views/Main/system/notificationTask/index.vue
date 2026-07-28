@@ -11,7 +11,7 @@ import { useNotificationTaskPage } from './use-notification-task-page'
 const {
   columns, confirmDel, copy, dialogVisible, form,
   getStatusType, getTypeColor, handleCancel, handleChangeStatus, handleRefresh,
-  handleSearch, handleSubmit, isMobile, levelArr, listData,
+  handleSearch, handleSubmit, levelArr, listData,
   listLoading, onPageChange, page, platformArr, searchFields,
   searchForm, showAdd, statusArr, submitLoading, t,
   targetTypeArr, typeArr, setFormRef,
@@ -153,7 +153,7 @@ const {
     <!-- 发布弹窗 -->
     <AppDialog
       v-model="dialogVisible"
-      :width="isMobile ? '94vw' : '600px'"
+      width="600px"
     >
       <template #header>
         {{ t('notificationTask.publish') }}

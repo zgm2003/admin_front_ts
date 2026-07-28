@@ -1,6 +1,5 @@
 import {ref, computed, onMounted, nextTick} from 'vue'
 import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
 import type {SearchField} from '@/components/Search/types'
 import {
@@ -18,7 +17,6 @@ import { CommonEnum } from '@/enums'
 
 export function useUploadSettingPage() {
   const {t} = useI18n()
-  const isMobile = useIsMobile()
   const searchForm = ref({remark: '', status: '', driver_id: '', rule_id: ''})
   const {
     loading: listLoading,
@@ -199,7 +197,7 @@ export function useUploadSettingPage() {
   return {
     add, batchDel, columns, confirmDel, confirmSubmit,
     dialogMode, dialogVisible, dict, edit, form,
-    isMobile, listData, listLoading, onPageChange, onSearch,
+    listData, listLoading, onPageChange, onSearch,
     onSelectionChange, page, refresh, rules, searchFields,
     searchForm, t, toggleStatus, setFormRef,
   }

@@ -75,7 +75,6 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'input',
     label: t('usersLoginLog.filter.ip'),
     placeholder: t('usersLoginLog.filter.ip'),
-    width: 150,
   },
   {
     key: 'platform',

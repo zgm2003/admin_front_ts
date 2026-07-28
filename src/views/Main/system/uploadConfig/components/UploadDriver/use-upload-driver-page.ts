@@ -1,6 +1,5 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import {useI18n} from 'vue-i18n'
-import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
 import type {SearchField} from '@/components/Search/types'
 import {
@@ -17,7 +16,6 @@ import { useCrudTable } from '@/hooks/useCrudTable'
 
 export function useUploadDriverPage() {
   const {t} = useI18n()
-  const isMobile = useIsMobile()
   const searchForm = ref({driver: ''})
 
   const {
@@ -238,7 +236,7 @@ export function useUploadDriverPage() {
   return {
     add, batchDel, columns, confirmDel, confirmSubmit,
     dialogMode, dialogVisible, dict, edit, form,
-    isMobile, listData, listLoading, onPageChange, onSearch,
+    listData, listLoading, onPageChange, onSearch,
     onSelectionChange, page, refresh, rules, searchFields,
     searchForm, t, setFormRef,
   }

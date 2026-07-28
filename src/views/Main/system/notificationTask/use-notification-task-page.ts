@@ -5,7 +5,6 @@ import type {FormInstance} from 'element-plus'
 import type {SearchField} from '@/components/Search/types'
 import { useCrudTable } from '@/hooks/useCrudTable'
 import {useCopy} from '@/hooks/useCopy'
-import {useIsMobile} from '@/hooks/useResponsive'
 import {
   NotificationTaskApi,
   type NotificationTaskAddParams,
@@ -17,7 +16,6 @@ import {
 
 export function useNotificationTaskPage() {
   const {t} = useI18n()
-  const isMobile = useIsMobile()
   const {copy} = useCopy()
   const statusArr = ref<NotificationTaskStatusItem[]>([])
   const searchForm = ref({status: '' as NotificationTaskStatus | '', title: ''})
@@ -167,7 +165,7 @@ export function useNotificationTaskPage() {
   return {
     columns, confirmDel, copy, dialogVisible, form,
     getStatusType, getTypeColor, handleCancel, handleChangeStatus, handleRefresh,
-    handleSearch, handleSubmit, isMobile, levelArr, listData,
+    handleSearch, handleSubmit, levelArr, listData,
     listLoading, onPageChange, page, platformArr, searchFields,
     searchForm, showAdd, statusArr, submitLoading, t,
     targetTypeArr, typeArr, setFormRef,

@@ -11,7 +11,7 @@ const userStore = useUserStore()
 const {
   add, batchDel, columns, confirmDel, confirmSubmit,
   dialogMode, dialogVisible, dict, edit, form,
-  isMobile, listData, listLoading, onPageChange, onSearch,
+  listData, listLoading, onPageChange, onSearch,
   onSelectionChange, page, refresh, rules, searchFields,
   searchForm, t, toggleStatus, setFormRef,
 } = useUploadSettingPage()
@@ -113,7 +113,7 @@ const {
 
   <AppDialog
     v-model="dialogVisible"
-    :width="isMobile ? '94vw' : '600px'"
+    width="600px"
   >
     <template #header>
       {{

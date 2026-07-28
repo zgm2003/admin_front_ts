@@ -14,7 +14,6 @@ const userStore = useUserStore()
 const isMobile = useIsMobile()
 const { t } = useI18n()
 const dialogLayout = computed(() => ({
-  width: isMobile.value ? '94vw' : '920px',
   height: isMobile.value ? '72vh' : '70vh',
   top: isMobile.value ? '3vh' : '4vh',
 }))
@@ -133,7 +132,7 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
     v-model="dialogVisible"
     :height="dialogLayout.height"
     :top="dialogLayout.top"
-    :width="dialogLayout.width"
+    width="920px"
     draggable
   >
     <template #header>

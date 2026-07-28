@@ -53,7 +53,7 @@ const statusOptions = computed<DictOption<'active' | 'expired' | 'revoked'>[]>((
 const searchFields = computed<SearchField[]>(() => [
   { key: 'status', type: 'select-v2', label: t('userSession.filter.status'), options: statusOptions.value, placeholder: t('userSession.filter.status'), width: 120 },
   { key: 'platform', type: 'select-v2', label: t('userSession.filter.platform'), options: platformArr.value, placeholder: t('userSession.filter.platform'), width: 120 },
-  { key: 'username', type: 'input', label: t('userSession.filter.username'), placeholder: t('userSession.filter.username'), width: 150 },
+  { key: 'username', type: 'input', label: t('userSession.filter.username'), placeholder: t('userSession.filter.username') },
 ])
 
 const {
@@ -176,7 +176,6 @@ onMounted(() => {
     <Search
       v-model="searchForm"
       :fields="searchFields"
-      :collapse-count="1"
       @query="onSearch"
       @reset="onSearch"
     />

@@ -8,14 +8,12 @@ import {
   type CronTaskItem,
 } from '@/api/system/cronTask'
 import { CommonEnum } from '@/enums'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useCronTaskLogs } from './composables/useCronTaskLogs'
 
 export function useCronTaskPage() {
   const { t } = useI18n()
-  const isMobile = useIsMobile()
 
   // 初始化数据
   const cronPresets = ref<CronPresetItem[]>([])
@@ -34,7 +32,7 @@ export function useCronTaskPage() {
   })
 
   const searchFields = [
-    { key: 'title', type: 'input' as const, label: t('cronTask.taskName'), placeholder: t('cronTask.taskName'), width: 150 }
+    { key: 'title', type: 'input' as const, label: t('cronTask.taskName'), placeholder: t('cronTask.taskName') }
   ]
 
   const columns = computed(() => [
@@ -145,7 +143,7 @@ export function useCronTaskPage() {
 
   return {
     columns, confirmDel, confirmSubmit, cronPresets, data,
-    dialogMode, dialogVisible, displayTaskType, form, isMobile,
+    dialogMode, dialogVisible, displayTaskType, form,
     loading, logColumns, logData, logLoading, logPage,
     logSearchFields, logSearchForm, logStatusType, logTaskTitle, logVisible,
     onLogPageChange, onLogSearch, onPageChange, onPresetChange, onSearch,

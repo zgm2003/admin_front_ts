@@ -6,20 +6,17 @@ import type {
 } from '@/api/ai/runs'
 
 export interface AiRunsDetailDialogLayout {
-  width: string
   height: string
 }
 
 export function resolveAiRunsDetailDialogLayout(isMobile: boolean): AiRunsDetailDialogLayout {
   if (isMobile) {
     return {
-      width: '94vw',
       height: '72vh',
     }
   }
 
   return {
-    width: '1040px',
     height: '76vh',
   }
 }

@@ -5,7 +5,6 @@ import { ElNotification } from 'element-plus'
 import { insufficientBalanceFromApiError } from '@/api/ai/billing-error'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import {
   AiToolApi,
   type AiToolGenerateAgentOption,
@@ -32,7 +31,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 const formRef = ref<FormInstance | null>(null)
 const form = ref<GenerateForm>(defaultGenerateForm())
 const loading = shallowRef(false)
@@ -174,7 +172,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '720px'"
+    width="720px"
     height="64vh"
     body-padding="16px 18px 6px"
   >

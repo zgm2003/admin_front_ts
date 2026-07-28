@@ -10,7 +10,7 @@ const userStore = useUserStore()
 const {
   add, batchDel, columns, confirmDel, confirmSubmit,
   dialogMode, dialogVisible, dict, edit, form,
-  isMobile, listData, listLoading, onPageChange, onSearch,
+  listData, listLoading, onPageChange, onSearch,
   onSelectionChange, page, refresh, rules, searchFields,
   searchForm, t, setFormRef,
 } = useUploadDriverPage()
@@ -87,7 +87,7 @@ const {
 
   <AppDialog
     v-model="dialogVisible"
-    :width="isMobile ? '94vw' : '900px'"
+    width="900px"
   >
     <template #header>
       {{ dialogMode === 'add' ? t('upload.driver.addTitle') : t('upload.driver.editTitle') }}

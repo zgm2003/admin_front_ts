@@ -2,12 +2,10 @@
   <AppDialog
     v-model="show"
     :aria-label="t('search.placeholder')"
-    :width="dialogLayout.width"
+    width="700px"
     :show-header="false"
     :show-close="false"
     body-padding="0"
-    destroy-on-close
-    append-to-body
   >
     <div
       class="search-container"

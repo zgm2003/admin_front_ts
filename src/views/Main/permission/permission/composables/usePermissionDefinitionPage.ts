@@ -114,7 +114,7 @@ export function usePermissionDefinitionPage() {
   const filteredTypeArr = computed(() => permissionTypeArr.value)
 
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name'), width: 150 },
+    { key: 'name', type: 'input', label: t('permission.filter.name'), placeholder: t('permission.filter.name') },
   ])
 
   const healthWarnings = computed<PermissionHealthWarning[]>(() => {

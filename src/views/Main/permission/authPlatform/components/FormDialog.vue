@@ -3,7 +3,6 @@ import { ref, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import type { AuthPlatformInitResponse } from '@/api/permission/authPlatform'
 import {
@@ -26,7 +25,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const isMobile = useIsMobile()
 const formRef = ref<FormInstance | null>(null)
 
 const rules = computed<FormRules>(() => ({
@@ -80,8 +78,7 @@ async function confirmSubmit() {
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '720px'"
-    destroy-on-close
+    width="720px"
   >
     <template #header>
       {{ mode === 'add' ? t('authPlatform.addTitle') : t('authPlatform.editTitle') }}

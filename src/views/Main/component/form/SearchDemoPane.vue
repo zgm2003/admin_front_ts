@@ -12,7 +12,6 @@ const searchFields = computed(() => [
     type: 'select-v2' as const,
     label: '状态',
     placeholder: '请选择',
-    width: 150,
     options: [{value: 1, label: '启用'}, {value: 0, label: '禁用'}]
   }
 ])

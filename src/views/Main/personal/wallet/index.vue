@@ -73,7 +73,7 @@ const sourceTypeOptions = computed<DictOption<WalletSourceType>[]>(() => [
 const searchFields = computed<SearchField[]>(() => [
   { key: 'keyword', type: 'input', label: t('wallet.keyword'), placeholder: t('wallet.keywordPlaceholder'), width: 210 },
   { key: 'direction', type: 'select-v2', label: t('wallet.direction'), placeholder: t('wallet.direction'), width: 130, options: directionOptions.value },
-  { key: 'source_type', type: 'select-v2', label: t('wallet.sourceType'), placeholder: t('wallet.sourceType'), width: 150, options: sourceTypeOptions.value },
+  { key: 'source_type', type: 'select-v2', label: t('wallet.sourceType'), placeholder: t('wallet.sourceType'), options: sourceTypeOptions.value },
   { key: 'dateRange', type: 'date-range', label: t('wallet.dateRange'), width: 260 },
 ])
 

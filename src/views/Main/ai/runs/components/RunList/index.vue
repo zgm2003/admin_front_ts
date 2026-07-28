@@ -92,7 +92,6 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('aiRuns.filter.platform'),
     width: 120,
     options: dict.value.platform_arr,
-    clearable: true
   },
   {
     key: 'status',
@@ -109,7 +108,6 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('aiRuns.filter.agent'),
     width: 160,
     options: dict.value.agentArr,
-    clearable: true
   },
   {
     key: 'provider_id',
@@ -118,7 +116,6 @@ const searchFields = computed<SearchField[]>(() => [
     placeholder: t('aiRuns.filter.provider'),
     width: 180,
     options: dict.value.providerArr,
-    clearable: true
   },
   {
     key: 'user_id',

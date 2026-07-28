@@ -8,7 +8,6 @@ import {
   type UploadRuleInitResponse,
   type UploadRuleItem,
 } from '@/api/system/uploadConfig'
-import {useIsMobile} from '@/hooks/useResponsive'
 import {ElNotification} from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { SearchField } from '@/components/Search/types'
@@ -16,7 +15,6 @@ import { useCrudTable } from '@/hooks/useCrudTable'
 
 export function useUploadRulePage() {
   const {t} = useI18n()
-  const isMobile = useIsMobile()
   const dict = ref<UploadRuleInitResponse['dict']>({
     upload_image_ext_arr: [],
     upload_file_ext_arr: [],
@@ -196,7 +194,7 @@ export function useUploadRulePage() {
   return {
     add, batchDel, columns, confirmDel, confirmSubmit,
     dialogMode, dialogVisible, dict, edit, form,
-    isMobile, listData, listLoading, onPageChange, onSearch,
+    listData, listLoading, onPageChange, onSearch,
     onSelectionChange, page, refresh, rules, searchFields,
     searchForm, t, tagWrapStyle, setFormRef,
   }

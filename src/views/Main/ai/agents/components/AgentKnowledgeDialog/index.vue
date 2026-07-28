@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import { CommonEnum } from '@/enums'
 import {
@@ -26,7 +25,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 const userStore = useUserStore()
 
 const loading = ref(false)
@@ -138,7 +136,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '940px'"
+    width="940px"
     height="68vh"
     body-padding="16px 18px"
     top="4vh"

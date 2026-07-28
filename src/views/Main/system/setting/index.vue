@@ -247,7 +247,7 @@ onMounted(() => { init(); void getList() })
 
   <AppDialog
     v-model="dialogVisible"
-    :width="isMobile ? '94vw' : '900px'"
+    width="900px"
   >
     <template #header>
       {{ dialogMode === 'add' ? '新增配置' : '编辑配置' }}

@@ -113,7 +113,7 @@ const {
   <AppDialog
     v-model="dialogVisible"
     class="add-box dialog-box"
-    :width="isMobile ? '94vw' : '1040px'"
+    width="1040px"
     :height="isMobile ? '72vh' : 'min(72vh, 720px)'"
   >
     <template #header>

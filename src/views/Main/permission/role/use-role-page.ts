@@ -192,7 +192,7 @@ export function useRolePage() {
   }
 
   const searchFields = computed<SearchField[]>(() => [
-    { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name'), width: 150 },
+    { key: 'name', type: 'input', label: t('role.filter.name'), placeholder: t('role.filter.name') },
   ])
   const isMobile = useIsMobile()
   onMounted(() => {

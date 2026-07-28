@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { CommonEnum } from '@/enums'
 import {
   AiKnowledgeApi,
@@ -41,7 +40,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 
 const formRef = ref<FormInstance | null>(null)
 const saving = ref(false)
@@ -129,7 +127,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '780px'"
+    width="780px"
     height="64vh"
   >
     <template #header>

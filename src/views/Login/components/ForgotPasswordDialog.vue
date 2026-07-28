@@ -2,12 +2,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Message, Lock } from '@element-plus/icons-vue'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { AppDialog } from '@/components/AppDialog'
 import { SendCode } from '@/components/SendCode'
 
 const { t } = useI18n()
-const isMobile = useIsMobile()
 
 interface ForgotPasswordForm {
   account: string
@@ -48,11 +46,9 @@ const confirmPassword = fieldModel('confirmPassword')
   <AppDialog
     :model-value="visible"
     :title="t('auth.forget.title')"
-    :width="isMobile ? '94vw' : '440px'"
+    width="440px"
     body-padding="32px"
     header-padding="0"
-    append-to-body
-    destroy-on-close
     class="login-forgot-dialog"
     @update:model-value="emit('update:visible', $event)"
   >

@@ -98,7 +98,6 @@ const searchFields = computed<SearchField[]>(() => [
     key: 'dateRange',
     type: 'slot',
     label: t('mail.log.createdAt'),
-    width: 300,
   },
 ])
 const columns = computed(() => [

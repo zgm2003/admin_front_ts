@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { AppDialog } from '@/components/AppDialog'
-import { useIsMobile } from '@/hooks/useResponsive'
 import {
   AiKnowledgeApi,
   type AiKnowledgeChunkItem,
@@ -22,7 +21,6 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 
 const loading = ref(false)
 const chunks = ref<AiKnowledgeChunkItem[]>([])
@@ -61,7 +59,7 @@ watch(
 <template>
   <AppDialog
     v-model="visible"
-    :width="isMobile ? '94vw' : '820px'"
+    width="820px"
     height="64vh"
   >
     <template #header>

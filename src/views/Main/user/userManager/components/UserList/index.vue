@@ -10,7 +10,7 @@ import { useUserList } from './use-user-list'
 
 const userStore = useUserStore()
 const {
-  t, isMobile, searchForm, searchFields, listLoading, listData, page,
+  t, searchForm, searchFields, listLoading, listData, page,
   onSearch, onPageChange, refresh, onSelectionChange,
   confirmDel, batchDel, toggleStatus, edit, exportExcel, batchEdit,
   editBoxShow, editForm, roleArr, sexArr, addressTree, confirmEdit,
@@ -149,7 +149,7 @@ const {
   <AppDialog
     v-model="editBoxShow"
     class="add-box"
-    :width="isMobile ? '94vw' : '950px'"
+    width="950px"
     :title="t('common.actions.edit')"
   >
     <div class="add-box">
@@ -258,7 +258,7 @@ const {
   <AppDialog
     v-model="batchEditBoxShow"
     class="add-box"
-    :width="isMobile ? '94vw' : '650px'"
+    width="650px"
     :title="t('common.actions.batchEdit')"
   >
     <div class="add-box">

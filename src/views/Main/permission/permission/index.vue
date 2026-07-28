@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
-import { useIsMobile } from '@/hooks/useResponsive'
 import { useUserStore } from '@/store/user'
 import IconSelect from './components/IconSelect.vue'
 import PermissionDefinitionDialog from './components/PermissionDefinitionDialog.vue'
@@ -18,7 +17,6 @@ interface IconSelectExposed {
 
 const userStore = useUserStore()
 const { t } = useI18n()
-const isMobile = useIsMobile()
 
 const {
   platformOptions,
@@ -141,7 +139,6 @@ onMounted(async () => {
     v-model:visible="dialogVisible"
     v-model:form="form"
     :mode="dialogMode"
-    :is-mobile="isMobile"
     :permission-types="filteredTypeArr"
     :parent-tree="parentTree"
     @submit="submitForm"

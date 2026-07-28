@@ -87,14 +87,12 @@ const searchFields = computed<SearchField[]>(() => [
     type: 'select-v2',
     label: t('aiRuns.stats.agent'),
     options: dict.value.agentArr,
-    clearable: true
   },
   {
     key: 'provider_id',
     type: 'select-v2',
     label: t('aiRuns.stats.provider'),
     options: dict.value.providerArr,
-    clearable: true
   },
   {
     key: 'user_id',
