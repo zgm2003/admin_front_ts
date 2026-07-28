@@ -150,14 +150,17 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
     >
       {{ tableStatus }}
     </div>
-    <div class="table-toolbar">
+    <div
+      class="table-toolbar"
+      :class="{ 'table-toolbar--mobile': isMobile }"
+    >
       <div class="toolbar-left">
-        <ElSpace>
+        <ElSpace :wrap="isMobile">
           <slot name="toolbar-left" />
         </ElSpace>
       </div>
       <div class="toolbar-right">
-        <ElSpace>
+        <ElSpace :wrap="isMobile">
           <slot name="toolbar-right" />
           <TableActions
             :show-refresh="props.showRefresh"
@@ -273,6 +276,34 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+  }
+
+  .toolbar-right {
+    justify-content: flex-end;
+  }
+
+  .toolbar-left :deep(.el-space),
+  .toolbar-right :deep(.el-space) {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-right :deep(.el-space) {
+    justify-content: flex-end;
+  }
 }
 
 .flex-table {

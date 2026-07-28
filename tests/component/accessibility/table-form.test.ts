@@ -115,4 +115,29 @@ describe('accessible shared table and search form', () => {
     expect(mocks.announceAssertive).toHaveBeenCalledWith('The request failed')
     expect(mocks.announcePolite).not.toHaveBeenCalledWith('accessibility.noResults')
   })
+
+  it('keeps narrow-screen toolbar slots available within the AppTable responsive layout', () => {
+    const wrapper = mount(AppTable, {
+      props: { columns: [] },
+      slots: {
+        'toolbar-left': '<button data-testid="left-action">Filter</button>',
+        'toolbar-right': '<button data-testid="right-action">Export</button>',
+      },
+      global: {
+        stubs: {
+          ElTable: ElTableStub,
+          ElTableColumn: true,
+          ElPagination: true,
+          ElSpace: { template: '<div><slot /></div>' },
+          TableActions: true,
+          ColumnSetting: true,
+        },
+        directives: { loading: () => undefined },
+      },
+    })
+
+    expect(wrapper.get('.table-toolbar').classes()).toContain('table-toolbar--mobile')
+    expect(wrapper.get('.toolbar-left [data-testid="left-action"]').exists()).toBe(true)
+    expect(wrapper.get('.toolbar-right [data-testid="right-action"]').exists()).toBe(true)
+  })
 })

@@ -49,6 +49,10 @@ export function resolveAppDialogBodyPadding(params: {
   return isMobile ? DEFAULT_APP_DIALOG_MOBILE_BODY_PADDING : DEFAULT_APP_DIALOG_BODY_PADDING
 }
 
+export function resolveAppDialogPadding(padding?: AppDialogSize) {
+  return toCssLength(padding)
+}
+
 export function resolveAppDialogAlignCenter(params: {
   isMobile: boolean
   alignCenter?: boolean

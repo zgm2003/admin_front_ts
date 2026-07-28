@@ -8,6 +8,7 @@ import {
   resolveAppDialogBodyPadding,
   resolveAppDialogContentHeight,
   resolveAppDialogDraggable,
+  resolveAppDialogPadding,
   resolveAppDialogWidth,
   type AppDialogSize,
 } from './dialog'
@@ -26,6 +27,9 @@ const props = withDefaults(defineProps<{
   mobileWidth?: AppDialogSize
   height?: AppDialogSize
   bodyPadding?: AppDialogSize
+  showHeader?: boolean
+  headerPadding?: AppDialogSize
+  footerPadding?: AppDialogSize
   appendToBody?: boolean
   destroyOnClose?: boolean
   draggable?: boolean
@@ -41,6 +45,9 @@ const props = withDefaults(defineProps<{
   mobileWidth: DEFAULT_APP_DIALOG_MOBILE_WIDTH,
   height: undefined,
   bodyPadding: undefined,
+  showHeader: true,
+  headerPadding: undefined,
+  footerPadding: undefined,
   appendToBody: true,
   destroyOnClose: true,
   draggable: undefined,
@@ -71,7 +78,12 @@ function restoreTriggerFocus() {
   void nextTick(() => target.focus())
 }
 
-const dialogAttrs = computed(() => filterAppDialogAttrs(attrs))
+const dialogAttrs = computed(() => {
+  const filteredAttrs = filterAppDialogAttrs(attrs)
+  delete filteredAttrs.class
+  delete filteredAttrs.style
+  return filteredAttrs
+})
 const resolvedWidth = computed(() => resolveAppDialogWidth({
   isMobile: isMobile.value,
   width: props.width,
@@ -93,13 +105,34 @@ const resolvedBodyPadding = computed(() => resolveAppDialogBodyPadding({
 const bodyStyle = computed(() => ({
   padding: resolvedBodyPadding.value,
 }))
+const dialogStyle = computed(() => {
+  const headerPadding = resolveAppDialogPadding(props.headerPadding)
+  const footerPadding = resolveAppDialogPadding(props.footerPadding)
+
+  return {
+    ...(headerPadding ? { '--app-dialog-header-padding': headerPadding } : {}),
+    ...(footerPadding ? { '--app-dialog-footer-padding': footerPadding } : {}),
+  }
+})
+const dialogClasses = computed(() => [
+  'app-dialog',
+  attrs.class,
+  {
+    'app-dialog--header-hidden': !props.showHeader,
+    'app-dialog--custom-header-padding': props.headerPadding !== undefined,
+    'app-dialog--custom-footer-padding': props.footerPadding !== undefined,
+  },
+])
+const resolvedDialogTitle = computed(() => (
+  props.showHeader ? props.title : props.ariaLabel || props.title
+))
 </script>
 
 <template>
   <el-dialog
     v-bind="dialogAttrs"
     :model-value="modelValue"
-    :title="title"
+    :title="resolvedDialogTitle"
     :width="resolvedWidth"
     :append-to-body="appendToBody"
     :destroy-on-close="destroyOnClose"
@@ -108,7 +141,8 @@ const bodyStyle = computed(() => ({
     :show-close="showClose"
     :align-center="resolvedAlignCenter"
     :close-on-press-escape="closeOnPressEscape"
-    class="app-dialog"
+    :class="dialogClasses"
+    :style="[attrs.style, dialogStyle]"
     @update:model-value="emit('update:modelValue', $event)"
     @closed="restoreTriggerFocus"
   >
@@ -120,7 +154,7 @@ const bodyStyle = computed(() => ({
       {{ description }}
     </p>
     <template
-      v-if="$slots.header || (!title && ariaLabel)"
+      v-if="showHeader && ($slots.header || (!title && ariaLabel))"
       #header="{ titleId, titleClass }"
     >
       <div
@@ -178,6 +212,18 @@ const bodyStyle = computed(() => ({
 <style scoped>
 .app-dialog :deep(.el-dialog__body) {
   padding: 0;
+}
+
+.app-dialog--header-hidden :deep(.el-dialog__header) {
+  display: none;
+}
+
+.app-dialog--custom-header-padding :deep(.el-dialog__header) {
+  padding: var(--app-dialog-header-padding);
+}
+
+.app-dialog--custom-footer-padding :deep(.el-dialog__footer) {
+  padding: var(--app-dialog-footer-padding);
 }
 
 .app-dialog__body {

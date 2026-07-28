@@ -21,12 +21,15 @@ const ElDialogStub = defineComponent({
     <section
       role="dialog"
       aria-modal="true"
+      v-bind="$attrs"
       :aria-label="title || undefined"
       :aria-labelledby="title ? undefined : 'element-dialog-title'"
       aria-describedby="element-dialog-body"
       :data-close-on-escape="String(closeOnPressEscape)"
     >
-      <slot name="header" title-id="element-dialog-title" title-class="el-dialog__title" />
+      <header class="el-dialog__header">
+        <slot name="header" title-id="element-dialog-title" title-class="el-dialog__title" />
+      </header>
       <div id="element-dialog-body"><slot /></div>
       <slot name="footer" />
       <button data-testid="closed" @click="$emit('closed')">closed</button>
@@ -96,5 +99,16 @@ describe('accessible AppDialog', () => {
     await wrapper.get('[data-testid="closed"]').trigger('click')
 
     expect(document.activeElement).toBe(trigger)
+  })
+
+  it('keeps an accessible name when its visible header is disabled', () => {
+    const wrapper = mount(AppDialog, {
+      props: { modelValue: true, title: 'Search navigation', showHeader: false },
+      global: { stubs: { ElDialog: ElDialogStub, ElScrollbar: true } },
+    })
+
+    const dialog = wrapper.get('[role="dialog"]')
+    expect(dialog.attributes('aria-label')).toBe('Search navigation')
+    expect(dialog.classes()).toContain('app-dialog--header-hidden')
   })
 })
