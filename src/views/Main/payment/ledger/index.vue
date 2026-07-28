@@ -76,8 +76,6 @@ const columns = computed(() => [
   { key: 'created_at', label: t('wallet.createdAt'), minWidth: 170 },
 ])
 
-const tableProps = computed(() => ({ height: '100%' }))
-
 function onSearch() {
   resetPage()
   void getList()
@@ -119,8 +117,6 @@ onMounted(() => {
         :data="data"
         :loading="loading"
         :pagination="page"
-        :table-props="tableProps"
-        row-key="id"
         @refresh="refresh"
         @update:pagination="onPageChange"
       >

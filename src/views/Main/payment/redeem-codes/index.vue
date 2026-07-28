@@ -107,7 +107,6 @@ const columns = computed<TableColumn<RedeemCodeItem>[]>(() => [
   { key: 'actions', label: t('common.actions.action'), width: 110, fixed: 'right' },
 ])
 const displayPagination = computed(() => lookupActive.value ? null : page.value)
-const tableProps = computed(() => ({ height: '100%' }))
 
 function stateLabel(state: string) {
   const configured = stateOptions.value.find(({ value }) => value === state)?.label
@@ -190,9 +189,7 @@ function refreshPage() {
         :pagination="displayPagination"
         :selectable="canVoid && !lookupActive"
         :selection-selectable="canVoidRow"
-        :table-props="tableProps"
         :refresh-loading="loading || lookupLoading"
-        row-key="id"
         @refresh="refreshPage"
         @selection-change="onSelectionChange"
         @update:pagination="onPageChange"
@@ -358,14 +355,6 @@ function refreshPage() {
   overflow: hidden;
 }
 
-.redeem-code-page__table :deep(.table-toolbar),
-.redeem-code-page__table :deep(.toolbar-left),
-.redeem-code-page__table :deep(.toolbar-right),
-.redeem-code-page__table :deep(.el-space) {
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .redeem-code-value {
   display: flex;
   align-items: center;
@@ -410,9 +399,5 @@ function refreshPage() {
     max-width: none;
   }
 
-  .redeem-code-page__table :deep(.table-toolbar) {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 </style>

@@ -94,10 +94,10 @@ const searchFields = computed<SearchField[]>(() => [
 ])
 
 const columns = computed(() => [
-  { key: 'setting_key', label: t('setting.table.key'), width: 220, overflowTooltip: true },
-  { key: 'setting_value', label: t('setting.table.value'), overflowTooltip: true},
+  { key: 'setting_key', label: t('setting.table.key'), width: 220 },
+  { key: 'setting_value', label: t('setting.table.value'), minWidth: 320 },
   { key: 'value_type', label: t('setting.table.type'), width: 120 },
-  { key: 'remark', label: t('setting.table.remark'), width: 200, overflowTooltip: true },
+  { key: 'remark', label: t('setting.table.remark'), width: 200 },
   { key: 'status', label: t('setting.table.status'), width: 120 },
   { key: 'created_at', label: t('setting.table.created_at'), width: 160 },
   { key: 'updated_at', label: t('setting.table.updated_at'), width: 160 },
@@ -157,7 +157,6 @@ onMounted(() => { init(); void getList() })
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         selectable
         :show-index="true"
@@ -338,5 +337,5 @@ onMounted(() => { init(); void getList() })
 
 <style scoped>
 .box { display:flex; flex-direction:column; height:100% }
-.table { flex:1 1 auto; min-height:0; overflow:auto }
+.table { flex:1 1 auto; min-height:0; overflow:hidden }
 </style>

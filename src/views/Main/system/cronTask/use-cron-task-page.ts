@@ -39,7 +39,7 @@ export function useCronTaskPage() {
 
   const columns = computed(() => [
     { key: 'title', label: t('cronTask.taskName'), minWidth: 150 },
-    { key: 'description', label: t('cronTask.description'), minWidth: 200, overflowTooltip: true },
+    { key: 'description', label: t('cronTask.description'), minWidth: 200 },
     { key: 'cron', label: t('cronTask.cronExpr'), width: 140 },
     { key: 'next_run_time', label: t('cronTask.nextRunTime'), width: 180 },
     { key: 'status', label: t('cronTask.status'), width: 100 },
@@ -132,8 +132,8 @@ export function useCronTaskPage() {
     { key: 'end_time', label: t('cronTask.log.endTime'), width: 180 },
     { key: 'duration_ms', label: t('cronTask.log.duration'), width: 100 },
     { key: 'status', label: t('cronTask.status'), width: 100 },
-    { key: 'result', label: t('cronTask.log.result'), minWidth: 150, overflowTooltip: true },
-    { key: 'error_msg', label: t('cronTask.log.errorMsg'), minWidth: 150, overflowTooltip: true }
+    { key: 'result', label: t('cronTask.log.result'), minWidth: 150 },
+    { key: 'error_msg', label: t('cronTask.log.errorMsg'), minWidth: 150 }
   ])
 
   const LOG_STATUS_TYPE: Record<number, 'success' | 'danger' | 'warning' | 'info'> = { 1: 'success', 2: 'danger', 3: 'warning' }

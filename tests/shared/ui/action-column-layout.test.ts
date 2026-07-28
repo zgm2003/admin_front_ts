@@ -23,4 +23,16 @@ describe('affected table and dashboard layout contracts', () => {
 
     expect(source).toMatch(/key:\s*'actions',\s*label:.*?width:\s*340,\s*fixed:\s*'right'/s)
   })
+
+  it.each([
+    ['payment configuration', 'src/views/Main/payment/config/index.vue', 'payment-config-page__actions'],
+    ['AI provider', 'src/views/Main/ai/providers/index.vue', 'ai-provider-page__actions'],
+    ['recharge record', 'src/views/Main/payment/recharge/components/RechargeRecordsTable.vue', 'recharge-records-table__actions'],
+    ['user list', 'src/views/Main/user/userManager/components/UserList/index.vue', 'user-list-actions'],
+  ])('renders %s action buttons directly in the centered AppTable column', (_, path, wrapperClass) => {
+    const source = read(path)
+
+    expect(source).not.toContain(`class="${wrapperClass}"`)
+    expect(source).not.toContain(`.${wrapperClass}`)
+  })
 })

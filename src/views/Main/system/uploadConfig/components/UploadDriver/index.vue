@@ -29,7 +29,6 @@ const {
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         selectable
         :show-index="true"

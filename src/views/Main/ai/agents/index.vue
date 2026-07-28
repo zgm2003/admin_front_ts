@@ -38,7 +38,6 @@ const {
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         :show-index="true"
         @refresh="refresh"

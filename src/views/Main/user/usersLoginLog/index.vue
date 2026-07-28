@@ -113,7 +113,7 @@ const columns = computed(() => [
   { key: 'ip', label: t('usersLoginLog.table.ip'), width: 150 },
   { key: 'is_success', label: t('usersLoginLog.table.is_success'), width: 110 },
   { key: 'reason', label: t('usersLoginLog.table.reason'), minWidth: 180 },
-  { key: 'ua', label: t('usersLoginLog.table.ua'), minWidth: 260, overflowTooltip: true },
+  { key: 'ua', label: t('usersLoginLog.table.ua'), minWidth: 260 },
   { key: 'created_at', label: t('usersLoginLog.table.created_at'), width: 180 },
 ])
 
@@ -139,7 +139,6 @@ onMounted(() => {
         :data="data"
         :loading="loading"
         :pagination="page"
-        row-key="id"
         :show-index="true"
         @refresh="refresh"
         @update:pagination="onPageChange"
@@ -173,6 +172,6 @@ onMounted(() => {
 .table {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 </style>

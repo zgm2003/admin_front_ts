@@ -149,12 +149,12 @@ const columns = computed(() => [
   {key: 'platform', label: t('aiRuns.table.platform'), width: 100},
   {key: 'agent_name', label: t('aiRuns.table.agent'), width: 140},
   {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
-  {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160, overflowTooltip: true},
+  {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160},
   {key: 'status', label: t('aiRuns.table.status'), width: 100},
   {key: 'model_display_name', label: t('aiRuns.table.model'), width: 140},
   {key: 'total_tokens', label: t('aiRuns.table.tokens'), width: 100},
   {key: 'duration_text', label: t('aiRuns.table.latency'), width: 100},
-  {key: 'error_message', label: t('aiRuns.table.error'), width: 200, overflowTooltip: true},
+  {key: 'error_message', label: t('aiRuns.table.error'), width: 200},
   {key: 'created_at', label: t('aiRuns.table.created_at'), width: 160},
   {key: 'actions', label: t('common.actions.action'), fixed: 'right'}
 ])
@@ -198,7 +198,6 @@ onUnmounted(() => workflow.dispose())
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         :show-index="true"
         @refresh="refresh"

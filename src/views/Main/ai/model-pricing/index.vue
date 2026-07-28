@@ -73,7 +73,6 @@ function isOverride(row: AiModelPriceItem): boolean {
         :columns="columns"
         :data="listData"
         :loading="loading"
-        :table-props="{ height: '100%' }"
         row-key="model_id"
         @refresh="getList"
       >

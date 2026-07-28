@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@/components/Search'
 import { AppTable } from '@/components/Table'
@@ -28,7 +27,6 @@ const emit = defineEmits<{
 
 const userStore = useUserStore()
 const { t } = useI18n()
-const tableProps = computed(() => ({ height: '100%' }))
 
 function tagType(status: PaymentRechargeListItem['status']) {
   if (status === 'credited') return 'success'
@@ -53,8 +51,6 @@ function tagType(status: PaymentRechargeListItem['status']) {
       :data="props.data"
       :loading="props.loading"
       :pagination="props.page"
-      :table-props="tableProps"
-      row-key="id"
       @refresh="emit('refresh')"
       @update:pagination="emit('pageChange', $event)"
     >
@@ -67,16 +63,14 @@ function tagType(status: PaymentRechargeListItem['status']) {
         </el-tag>
       </template>
       <template #cell-actions="{ row }">
-        <div class="recharge-records-table__actions">
-          <el-button
-            v-if="userStore.can('payment_recharge_pay') && props.canPay(row)"
-            type="primary"
-            text
-            @click="emit('pay', row)"
-          >
-            {{ t('paymentRecharge.actions.continuePay') }}
-          </el-button>
-        </div>
+        <el-button
+          v-if="userStore.can('payment_recharge_pay') && props.canPay(row)"
+          type="primary"
+          text
+          @click="emit('pay', row)"
+        >
+          {{ t('paymentRecharge.actions.continuePay') }}
+        </el-button>
       </template>
     </AppTable>
   </section>
@@ -88,13 +82,5 @@ function tagType(status: PaymentRechargeListItem['status']) {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-}
-
-.recharge-records-table__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  white-space: nowrap;
 }
 </style>

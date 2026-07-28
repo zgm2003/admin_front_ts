@@ -186,7 +186,7 @@ onMounted(() => {
         :columns="[
           { key: 'username', label: t('userSession.table.username') },
           { key: 'platform', label: t('userSession.table.platform'), width: 120 },
-          { key: 'device_id', label: t('userSession.table.device_id'), overflowTooltip: true },
+          { key: 'device_id', label: t('userSession.table.device_id'), minWidth: 220 },
           { key: 'ip', label: t('userSession.table.ip'), width: 120 },
           { key: 'last_seen_at', label: t('userSession.table.last_seen_at'), width: 170 },
           { key: 'status', label: t('userSession.table.status'), width: 80 },
@@ -194,7 +194,6 @@ onMounted(() => {
         ]"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         selectable
         :show-index="true"
@@ -282,7 +281,7 @@ onMounted(() => {
 .table {
   flex: 1 1 auto;
   min-height: 200px;
-  overflow: auto;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {

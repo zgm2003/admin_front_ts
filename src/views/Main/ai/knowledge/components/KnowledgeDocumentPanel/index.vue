@@ -219,7 +219,6 @@ onMounted(() => {
       :columns="columns"
       :data="documents"
       :loading="loading"
-      row-key="id"
       :pagination="page"
       :show-index="true"
       @refresh="loadDocuments"

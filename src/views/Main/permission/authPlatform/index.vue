@@ -204,7 +204,6 @@ onMounted(() => { init(); getList() })
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         selectable
         :show-index="true"
@@ -345,5 +344,5 @@ onMounted(() => { init(); getList() })
 
 <style scoped>
 .box { display: flex; flex-direction: column; height: 100% }
-.table { flex: 1 1 auto; min-height: 0; overflow: auto }
+.table { flex: 1 1 auto; min-height: 0; overflow: hidden }
 </style>

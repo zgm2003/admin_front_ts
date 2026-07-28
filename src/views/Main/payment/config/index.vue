@@ -70,7 +70,6 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
       :data="data"
       :loading="loading"
       :pagination="page"
-      row-key="id"
       @refresh="refresh"
       @update:pagination="onPageChange"
     >
@@ -94,40 +93,38 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
         </el-tag>
       </template>
       <template #cell-actions="{ row }">
-        <div class="payment-config-page__actions">
-          <el-button
-            v-if="userStore.can('payment_config_edit')"
-            type="primary"
-            text
-            @click="openEditDialog(row)"
-          >
-            {{ t('common.actions.edit') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('payment_config_status')"
-            type="warning"
-            text
-            @click="changeStatus(row)"
-          >
-            {{ row.status === CommonEnum.YES ? t('common.actions.disable') : t('common.actions.enable') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('payment_config_test')"
-            type="success"
-            text
-            @click="testConfig(row)"
-          >
-            {{ t('paymentConfig.actions.testConfig') }}
-          </el-button>
-          <el-button
-            v-if="userStore.can('payment_config_del')"
-            type="danger"
-            text
-            @click="confirmDel(row)"
-          >
-            {{ t('common.actions.del') }}
-          </el-button>
-        </div>
+        <el-button
+          v-if="userStore.can('payment_config_edit')"
+          type="primary"
+          text
+          @click="openEditDialog(row)"
+        >
+          {{ t('common.actions.edit') }}
+        </el-button>
+        <el-button
+          v-if="userStore.can('payment_config_status')"
+          type="warning"
+          text
+          @click="changeStatus(row)"
+        >
+          {{ row.status === CommonEnum.YES ? t('common.actions.disable') : t('common.actions.enable') }}
+        </el-button>
+        <el-button
+          v-if="userStore.can('payment_config_test')"
+          type="success"
+          text
+          @click="testConfig(row)"
+        >
+          {{ t('paymentConfig.actions.testConfig') }}
+        </el-button>
+        <el-button
+          v-if="userStore.can('payment_config_del')"
+          type="danger"
+          text
+          @click="confirmDel(row)"
+        >
+          {{ t('common.actions.del') }}
+        </el-button>
       </template>
     </AppTable>
   </div>
@@ -172,17 +169,5 @@ function isPaymentConfigFormRef(instance: unknown): instance is PaymentConfigFor
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.payment-config-page__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-.payment-config-page__actions :deep(.el-button + .el-button) {
-  margin-left: 0;
 }
 </style>

@@ -109,7 +109,7 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     { key: 'avatar', label: t('aiAgents.table.avatar'), width: 80 },
     { key: 'name', label: t('aiAgents.table.name'), minWidth: 160 },
     { key: 'provider_name', label: t('aiAgents.table.provider'), width: 160 },
-    { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 180, overflowTooltip: true },
+    { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 180 },
     { key: 'billing_multiplier', label: t('aiAgents.table.billingMultiplier'), width: 140 },
     { key: 'max_output_tokens', label: t('aiAgents.table.maxOutput'), width: 120 },
     { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },

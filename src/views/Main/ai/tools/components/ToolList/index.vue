@@ -62,7 +62,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'name', label: t('aiTools.table.name'), minWidth: 160 },
   { key: 'code', label: t('aiTools.table.code'), width: 160 },
-  { key: 'description', label: t('aiTools.table.description'), minWidth: 220, overflowTooltip: true },
+  { key: 'description', label: t('aiTools.table.description'), minWidth: 220 },
   { key: 'risk_level', label: t('aiTools.table.riskLevel'), width: 110 },
   { key: 'timeout_ms', label: t('aiTools.table.timeout'), width: 110 },
   { key: 'status', label: t('aiTools.table.status'), width: 90 },
@@ -100,7 +100,6 @@ onMounted(() => {
       :columns="columns"
       :data="listData"
       :loading="listLoading"
-      row-key="id"
       :pagination="page"
       :show-index="true"
       @refresh="refresh"

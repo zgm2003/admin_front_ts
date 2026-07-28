@@ -169,7 +169,6 @@ function clearClosedDetail(visible: boolean) { if (!visible) clearDetail() }
         :data="logs"
         :loading="loading"
         :pagination="page"
-        row-key="id"
         selectable
         @selection-change="onSelectionChange"
         @update:pagination="changePage"
@@ -366,7 +365,7 @@ function clearClosedDetail(visible: boolean) { if (!visible) clearDetail() }
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .mail-log__notice,

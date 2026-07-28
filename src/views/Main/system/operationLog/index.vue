@@ -120,7 +120,6 @@ function openDetail(row: OperationLogItem) {
         :data="data"
         :loading="loading"
         :pagination="page"
-        row-key="id"
         :show-index="true"
         @refresh="refresh"
         @update:pagination="onPageChange"
@@ -210,7 +209,7 @@ function openDetail(row: OperationLogItem) {
 .table {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .payload-text {

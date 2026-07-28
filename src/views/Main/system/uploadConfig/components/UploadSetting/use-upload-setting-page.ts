@@ -79,7 +79,7 @@ export function useUploadSettingPage() {
   const columns = computed(() => [
     {key: 'driver_name', label: t('upload.setting.table.driver')},
     {key: 'rule_name', label: t('upload.setting.table.rule')},
-    {key: 'remark', label: t('upload.setting.table.remark'), width: 200, overflowTooltip: true},
+    {key: 'remark', label: t('upload.setting.table.remark'), width: 200},
     {key: 'status', label: t('upload.setting.table.status'), width: 100},
     {key: 'created_at', label: t('upload.setting.table.created_at')},
     {key: 'updated_at', label: t('upload.setting.table.updated_at')},

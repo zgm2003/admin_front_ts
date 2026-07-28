@@ -23,7 +23,6 @@ const {
         :data="templates"
         :loading="loading"
         :pagination="templatePage"
-        row-key="id"
         @refresh="load"
       >
         <template #toolbar-left>

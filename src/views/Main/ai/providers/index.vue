@@ -60,7 +60,7 @@ const searchFields = computed<SearchField[]>(() => [
 const columns = computed(() => [
   { key: 'name', label: t('aiProviders.table.name'), minWidth: 160 },
   { key: 'engine_type', label: t('aiProviders.table.driver'), width: 120 },
-  { key: 'base_url', label: t('aiProviders.table.baseUrl'), minWidth: 240, overflowTooltip: true },
+  { key: 'base_url', label: t('aiProviders.table.baseUrl'), minWidth: 240 },
   { key: 'api_key_masked', label: t('aiProviders.table.apiKeyMasked'), width: 140 },
   { key: 'models', label: t('aiProviders.table.models'), minWidth: 260 },
   { key: 'health_status', label: t('aiProviders.table.health'), width: 110 },
@@ -143,7 +143,6 @@ onMounted(() => {
         :columns="columns"
         :data="listData"
         :loading="listLoading"
-        row-key="id"
         :pagination="page"
         :show-index="true"
         @refresh="refresh"
@@ -209,52 +208,50 @@ onMounted(() => {
           </el-tag>
         </template>
         <template #cell-actions="{ row }">
-          <div class="ai-provider-page__actions">
-            <el-button
-              type="primary"
-              text
-              @click="edit(row)"
-            >
-              {{ t('common.actions.edit') }}
-            </el-button>
-            <el-button
-              type="success"
-              text
-              @click="testConnection(row)"
-            >
-              {{ t('aiProviders.actions.test') }}
-            </el-button>
-            <el-button
-              type="info"
-              text
-              @click="syncModels(row)"
-            >
-              {{ t('aiProviders.actions.syncModels') }}
-            </el-button>
-            <el-button
-              v-if="row.status === 2"
-              type="warning"
-              text
-              @click="toggleStatus(row, 1)"
-            >
-              {{ t('common.actions.enable') }}
-            </el-button>
-            <el-button
-              v-if="row.status === 1"
-              type="warning"
-              text
-              @click="toggleStatus(row, 2)"
-            >
-              {{ t('common.actions.disable') }}
-            </el-button>
-            <el-button
-              type="danger"
-              text
-              @click="confirmDel(row)"
-            >
-              {{ t('common.actions.del') }}
-            </el-button>
-          </div>
+          <el-button
+            type="primary"
+            text
+            @click="edit(row)"
+          >
+            {{ t('common.actions.edit') }}
+          </el-button>
+          <el-button
+            type="success"
+            text
+            @click="testConnection(row)"
+          >
+            {{ t('aiProviders.actions.test') }}
+          </el-button>
+          <el-button
+            type="info"
+            text
+            @click="syncModels(row)"
+          >
+            {{ t('aiProviders.actions.syncModels') }}
+          </el-button>
+          <el-button
+            v-if="row.status === 2"
+            type="warning"
+            text
+            @click="toggleStatus(row, 1)"
+          >
+            {{ t('common.actions.enable') }}
+          </el-button>
+          <el-button
+            v-if="row.status === 1"
+            type="warning"
+            text
+            @click="toggleStatus(row, 2)"
+          >
+            {{ t('common.actions.disable') }}
+          </el-button>
+          <el-button
+            type="danger"
+            text
+            @click="confirmDel(row)"
+          >
+            {{ t('common.actions.del') }}
+          </el-button>
         </template>
       </AppTable>
     </div>
@@ -279,18 +276,6 @@ onMounted(() => {
 .ai-provider-page__table {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
-}
-
-.ai-provider-page__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-.ai-provider-page__actions :deep(.el-button + .el-button) {
-  margin-left: 0;
+  overflow: hidden;
 }
 </style>

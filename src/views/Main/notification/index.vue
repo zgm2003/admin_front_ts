@@ -84,7 +84,7 @@ const searchFields = computed<SearchField[]>(() => [
 
 const columns = computed(() => [
   { key: 'title', label: t('notificationTask.title') },
-  { key: 'content', label: t('notificationTask.content'), overflowTooltip: true },
+  { key: 'content', label: t('notificationTask.content'), minWidth: 260 },
   { key: 'type', label: t('notification.page.type'), width: 100 },
   { key: 'level', label: t('notification.page.level'), width: 100 },
   { key: 'is_read', label: t('notification.page.readStatus'), width: 100 },
@@ -179,7 +179,6 @@ onUnmounted(() => workflow.dispose())
         :loading="listLoading"
         :result-state="listState.kind"
         :status-message="listStatusMessage"
-        row-key="id"
         :pagination="page"
         :aria-label="t('notification.title')"
         selectable
@@ -283,7 +282,7 @@ onUnmounted(() => workflow.dispose())
 
 <style scoped>
 .box { display: flex; flex-direction: column; height: 100% }
-.table { flex: 1 1 auto; min-height: 0; overflow: auto }
+.table { flex: 1 1 auto; min-height: 0; overflow: hidden }
 .cell-title { display: flex; align-items: center; gap: 8px }
 .cell-title.unread { font-weight: 600 }
 .unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--el-color-primary); flex-shrink: 0 }
