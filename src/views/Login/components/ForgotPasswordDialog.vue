@@ -50,11 +50,18 @@ const confirmPassword = fieldModel('confirmPassword')
     :title="t('auth.forget.title')"
     :width="isMobile ? '94vw' : '440px'"
     body-padding="32px"
+    header-padding="0"
     append-to-body
     destroy-on-close
     class="login-forgot-dialog"
     @update:model-value="emit('update:visible', $event)"
   >
+    <template #header>
+      <div class="login-forgot-dialog__header">
+        <span class="login-forgot-dialog__title">{{ t('auth.forget.title') }}</span>
+      </div>
+    </template>
+
     <div class="forgot-content">
       <div class="step-indicator">
         <div :class="['step-item', { active: step >= 1 }]">

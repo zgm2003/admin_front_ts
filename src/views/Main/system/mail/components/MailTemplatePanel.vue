@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
@@ -97,11 +98,10 @@ const {
       </AppTable>
     </div>
 
-    <el-dialog
+    <AppDialog
       v-model="dialogVisible"
       :title="dialogTitle"
       width="720px"
-      destroy-on-close
     >
       <el-form
         :ref="setFormRef"
@@ -234,7 +234,7 @@ const {
           {{ t('common.actions.confirm') }}
         </el-button>
       </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 

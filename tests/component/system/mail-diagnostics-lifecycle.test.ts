@@ -1,10 +1,11 @@
 /* eslint-disable max-lines, vue/one-component-per-file */
-import { computed, defineComponent, inject, nextTick, provide, ref, watch } from 'vue'
+import { computed, defineComponent, h, inject, nextTick, provide, ref, watch } from 'vue'
 import { enableAutoUnmount, flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MailPage from '@/views/Main/system/mail/index.vue'
 import MailLogPanel from '@/views/Main/system/mail/components/MailLogPanel.vue'
+import MailTemplatePanel from '@/views/Main/system/mail/components/MailTemplatePanel.vue'
 import { useUserStore } from '@/store/user'
 import { createApiError } from '@/modules/http/error'
 
@@ -13,6 +14,11 @@ const api = vi.hoisted(() => ({
   logs: vi.fn(),
   log: vi.fn(),
   deleteLogs: vi.fn(),
+  templates: vi.fn(),
+  addTemplate: vi.fn(),
+  editTemplate: vi.fn(),
+  changeTemplateStatus: vi.fn(),
+  deleteTemplate: vi.fn(),
 }))
 
 vi.mock('@/api/system/mail', () => ({ MailApi: api }))
@@ -62,6 +68,7 @@ vi.mock('@/components/AppDialog', () => ({
     template: `<section v-if="modelValue" data-testid="mail-log-dialog">
       <button data-testid="close-detail" @click="$emit('update:modelValue', false); $emit('closed')">close</button>
       <slot />
+      <slot name="footer" />
     </section>`,
   },
 }))
@@ -105,8 +112,23 @@ const ElTabPaneStub = defineComponent({
 const ElButtonStub = defineComponent({
   name: 'ElButton',
   inheritAttrs: false,
+  props: { disabled: Boolean, loading: Boolean },
   emits: ['click'],
-  template: '<button v-bind="$attrs" @click="$emit(\'click\')"><slot /></button>',
+  setup(props, { attrs, emit, slots }) {
+    return () => h('button', {
+      ...attrs,
+      'data-loading': String(props.loading),
+      disabled: props.disabled || props.loading,
+      onClick: () => emit('click'),
+    }, slots.default?.())
+  },
+})
+const ElFormStub = defineComponent({
+  name: 'ElForm',
+  setup(_, { expose, slots }) {
+    expose({ validate: vi.fn(async () => true), clearValidate: vi.fn() })
+    return () => h('form', slots.default?.())
+  },
 })
 const passthrough = { template: '<span><slot /></span>' }
 const globals = {
@@ -124,6 +146,20 @@ const globals = {
     ElAlert: true,
     ElSpace: passthrough,
     ElDatePicker: true,
+  },
+}
+const templateGlobals = {
+  directives: globals.directives,
+  stubs: {
+    ...globals.stubs,
+    ElForm: ElFormStub,
+    ElFormItem: passthrough,
+    ElInput: passthrough,
+    ElInputNumber: passthrough,
+    ElOption: true,
+    ElRadio: passthrough,
+    ElRadioGroup: passthrough,
+    ElSelect: passthrough,
   },
 }
 enableAutoUnmount(afterEach)
@@ -181,6 +217,72 @@ function exposed(wrapper: VueWrapper) {
     refreshLogs(): Promise<void>
   }
 }
+
+const mailTemplate = {
+  id: 7,
+  scene: 'login' as const,
+  name: 'Verification code',
+  subject: 'Your code',
+  tencent_template_id: 101,
+  variables: ['code', 'ttl_minutes'],
+  sample_variables: { code: '123456', ttl_minutes: '5' },
+  status: 1 as const,
+  created_at: '2026-07-24 10:00:00',
+  updated_at: '2026-07-24 10:00:00',
+}
+
+describe('mail template dialog lifecycle', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setActivePinia(createPinia())
+    const store = useUserStore()
+    store.buttonCodes = new Set([
+      'system_mail_templateAdd',
+      'system_mail_templateEdit',
+    ]) as typeof store.buttonCodes
+    api.pageInit.mockResolvedValue(pageInit())
+    api.templates.mockResolvedValue([mailTemplate])
+  })
+
+  it('resets only when opening a new form and keeps save loading through the refresh', async () => {
+    const save = deferred<void>()
+    const refresh = deferred<typeof mailTemplate[]>()
+    api.editTemplate.mockReturnValueOnce(save.promise)
+    api.templates.mockResolvedValueOnce([mailTemplate]).mockReturnValueOnce(refresh.promise)
+    const wrapper = mount(MailTemplatePanel, { global: templateGlobals })
+    await flushPromises()
+    const state = wrapper.vm as unknown as { form: { name: string }, submitting: boolean }
+    const button = (label: string) => wrapper.findAll('button').find((item) => item.text() === label)!
+
+    await button('common.actions.edit').trigger('click')
+    expect(state.form.name).toBe('Verification code')
+    await button('common.actions.cancel').trigger('click')
+    wrapper.getComponent({ name: 'AppDialog' }).vm.$emit('closed')
+    expect(state.form.name).toBe('Verification code')
+
+    await button('common.actions.add').trigger('click')
+    expect(state.form.name).toBe('')
+    await button('common.actions.cancel').trigger('click')
+    await button('common.actions.edit').trigger('click')
+
+    const confirm = button('common.actions.confirm')
+    await confirm.trigger('click')
+    await nextTick()
+    expect(confirm.attributes('data-loading')).toBe('true')
+    expect(api.editTemplate).toHaveBeenCalledTimes(1)
+
+    save.resolve()
+    await nextTick()
+    await Promise.resolve()
+    expect(api.templates).toHaveBeenCalledTimes(2)
+    expect(state.submitting).toBe(true)
+
+    refresh.resolve([mailTemplate])
+    await flushPromises()
+    expect(state.submitting).toBe(false)
+    expect(wrapper.find('[data-testid="mail-log-dialog"]').exists()).toBe(false)
+  })
+})
 
 describe('secure mail diagnostics lifecycle', () => {
   beforeEach(() => {

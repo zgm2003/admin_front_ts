@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 
 import axe from 'axe-core'
-import { defineComponent } from 'vue'
+import { defineComponent, h } from 'vue'
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import AppDialog from '@/components/AppDialog/src/index.vue'
+import SearchDialog from '@/views/Layout/components/Header/components/SearchDialog.vue'
 
 vi.mock('@/hooks/useResponsive', () => ({ useIsMobile: () => ({ value: false }) }))
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 const ElDialogStub = defineComponent({
   name: 'ElDialog',
@@ -35,6 +39,26 @@ const ElDialogStub = defineComponent({
       <button data-testid="closed" @click="$emit('closed')">closed</button>
     </section>
   `,
+})
+
+const ElInputStub = defineComponent({
+  name: 'ElInput',
+  inheritAttrs: false,
+  props: {
+    modelValue: { type: String, default: '' },
+    size: { type: String, default: '' },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { attrs, emit }) {
+    return () => h('input', {
+      ...attrs,
+      value: props.modelValue,
+      onInput: (event: Event) => emit(
+        'update:modelValue',
+        (event.target as HTMLInputElement).value,
+      ),
+    })
+  },
 })
 
 describe('accessible AppDialog', () => {
@@ -110,5 +134,38 @@ describe('accessible AppDialog', () => {
     const dialog = wrapper.get('[role="dialog"]')
     expect(dialog.attributes('aria-label')).toBe('Search navigation')
     expect(dialog.classes()).toContain('app-dialog--header-hidden')
+  })
+
+  it('keeps header search unnamed visually, named accessibly, and clears results on reopen', async () => {
+    setActivePinia(createPinia())
+    const wrapper = mount(SearchDialog, {
+      props: { modelValue: true },
+      global: {
+        stubs: {
+          DIcon: true,
+          ElButton: true,
+          ElDialog: ElDialogStub,
+          ElEmpty: true,
+          ElIcon: true,
+          ElInput: ElInputStub,
+          ElScrollbar: { template: '<div><slot /></div>' },
+        },
+      },
+    })
+
+    const appDialog = wrapper.getComponent(AppDialog)
+    expect(appDialog.props('showHeader')).toBe(false)
+    expect(wrapper.get('[role="dialog"]').attributes('aria-label')).toBe('search.placeholder')
+
+    const input = wrapper.get('input')
+    await input.setValue('provider')
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+
+    await wrapper.setProps({ modelValue: false })
+    await wrapper.setProps({ modelValue: true })
+    expect((input.element as HTMLInputElement).value).toBe('')
+
+    wrapper.unmount()
   })
 })

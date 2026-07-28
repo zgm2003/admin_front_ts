@@ -120,6 +120,8 @@ async function confirmSubmit() {
     :width="isMobile ? '94vw' : '760px'"
     :height="isMobile ? 'calc(88vh - 118px)' : 'calc(min(82vh, 720px) - 118px)'"
     body-padding="0"
+    header-padding="0"
+    footer-padding="0"
     class="provider-form-dialog"
   >
     <template #header>

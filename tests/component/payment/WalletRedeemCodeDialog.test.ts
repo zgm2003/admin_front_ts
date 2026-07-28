@@ -74,7 +74,12 @@ const WalletPage = (await import('@/views/Main/personal/wallet/index.vue')).defa
 const ElDialogStub = defineComponent({
   name: 'ElDialog',
   inheritAttrs: false,
-  props: { modelValue: Boolean },
+  props: {
+    modelValue: Boolean,
+    closeOnClickModal: { type: Boolean, default: true },
+    closeOnPressEscape: { type: Boolean, default: true },
+    showClose: { type: Boolean, default: true },
+  },
   emits: ['update:modelValue'],
   setup(props, { slots }) {
     return () => props.modelValue
@@ -137,12 +142,11 @@ const ElAlertStub = defineComponent({
 })
 
 const walletSummary = (balance: string): WalletSummaryResponse => ({
-  balance_cents: Number(balance.replace('.', '')),
-  balance_text: `CNY ${balance}`,
-  total_consume_cents: 0,
-  total_consume_text: 'CNY 0.00',
-  total_recharge_cents: Number(balance.replace('.', '')),
-  total_recharge_text: `CNY ${balance}`,
+  available_balance: balance,
+  balance,
+  held_amount: '0.00',
+  total_consume: '0.00',
+  total_recharge: balance,
 })
 
 const redemptionResult = (amount = '18.80'): WalletRedemptionResponse => ({
@@ -172,6 +176,7 @@ const globalStubs = {
   ElForm: PassThroughStub,
   ElFormItem: PassThroughStub,
   ElInput: ElInputStub,
+  ElScrollbar: PassThroughStub,
   ElTabPane: PassThroughStub,
   ElTabs: PassThroughStub,
   ElTag: PassThroughStub,
@@ -219,8 +224,18 @@ describe('wallet redeem code dialog', () => {
     expect(mocks.redeem).toHaveBeenCalledWith({ code: 'ONLY-IN-BODY' })
     expect(submit.attributes('disabled')).toBeDefined()
 
+    const dialog = wrapper.getComponent(ElDialogStub)
+    expect(dialog.props()).toMatchObject({
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
+      showClose: false,
+    })
+    dialog.vm.$emit('update:modelValue', false)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+
     resolveRedeem(redemptionResult())
     await flushPromises()
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
     wrapper.unmount()
   })
 
@@ -266,6 +281,32 @@ describe('wallet redeem code dialog', () => {
     await flushPromises()
     expect(mocks.redeem).toHaveBeenCalledTimes(2)
     expect(mocks.redeem).toHaveBeenLastCalledWith({ code: 'RETRY-SAME-CODE' })
+
+    wrapper.unmount()
+  })
+
+  it('clears the entered code and error after an allowed external close', async () => {
+    mocks.redeem.mockRejectedValueOnce(createApiError({
+      kind: 'business',
+      code: 'unavailable',
+      message: 'unavailable',
+      messageKey: 'unavailable',
+      retryable: false,
+      status: 400,
+    }))
+    const wrapper = mountDialog()
+    const input = wrapper.get('[data-test="redeem-code-input"]')
+    await input.setValue('CLEAR-ON-CLOSE')
+    await wrapper.get('[data-test="redeem-code-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toBe('wallet.redeem.errors.unavailable')
+    wrapper.getComponent(ElDialogStub).vm.$emit('update:modelValue', false)
+    await flushPromises()
+
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    expect((input.element as HTMLInputElement).value).toBe('')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -345,7 +386,7 @@ describe('personal wallet redemption workflow', () => {
     await flushPromises()
 
     expect(wrapper.find('.dialog-stub').exists()).toBe(false)
-    expect(wrapper.text()).toContain('CNY 28.80')
+    expect(wrapper.text()).toContain('¥28.80')
     expect(mocks.success).toHaveBeenCalledWith('wallet.redeem.messages.success:18.80')
     expect(mocks.summary).toHaveBeenCalledTimes(1)
     expect(mocks.getList).toHaveBeenCalledTimes(1)
@@ -353,7 +394,7 @@ describe('personal wallet redemption workflow', () => {
     resolveSummary(walletSummary('29.00'))
     resolveTransactions()
     await flushPromises()
-    expect(wrapper.text()).toContain('CNY 29.00')
+    expect(wrapper.text()).toContain('¥29.00')
 
     await wrapper.get('[data-test="open-redeem-code"]').trigger('click')
     expect((wrapper.get('[data-test="redeem-code-input"]').element as HTMLInputElement).value).toBe('')
@@ -383,7 +424,7 @@ describe('personal wallet redemption workflow', () => {
       expect(mocks.warning).toHaveBeenCalledWith('wallet.redeem.messages.partialRefresh')
       expect(mocks.error).not.toHaveBeenCalled()
       expect(mocks.redeem).toHaveBeenCalledTimes(1)
-      if (failedRefresh === 'summary') expect(wrapper.text()).toContain('CNY 28.80')
+      if (failedRefresh === 'summary') expect(wrapper.text()).toContain('¥28.80')
       wrapper.unmount()
     },
   )

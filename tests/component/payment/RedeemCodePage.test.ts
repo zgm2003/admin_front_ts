@@ -439,7 +439,7 @@ const ElDialogStub = defineComponent({
     closeOnPressEscape: { type: Boolean, default: true },
     showClose: { type: Boolean, default: true },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'closed'],
   setup(props, { slots }) {
     return () => props.modelValue
       ? h('section', { class: 'dialog-stub' }, [slots.default?.(), slots.footer?.()])
@@ -525,6 +525,7 @@ function mountGenerateDialog(props: Record<string, unknown>) {
         ElIcon: PassThroughStub,
         ElInput: ElInputStub,
         ElInputNumber: ElInputNumberStub,
+        ElScrollbar: PassThroughStub,
         ElTooltip: PassThroughStub,
       },
     },
@@ -576,6 +577,11 @@ describe('redeem code generation dialog', () => {
     await flushPromises()
     expect(writeText).toHaveBeenCalledWith('FULL-CODE-ONE\nFULL-CODE-TWO')
     expect(exportBatch).toHaveBeenCalledWith('BATCH-1')
+
+    wrapper.getComponent(ElDialogStub).vm.$emit('closed')
+    await nextTick()
+    expect(wrapper.text()).not.toContain('FULL-CODE-ONE')
+    expect(wrapper.text()).not.toContain('FULL-CODE-TWO')
 
     await wrapper.setProps({ modelValue: false })
     await nextTick()

@@ -3,6 +3,7 @@ import { nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Ticket } from '@element-plus/icons-vue'
 import { WalletApi, type WalletRedemptionResponse } from '@/api/wallet'
+import { AppDialog } from '@/components/AppDialog'
 import { isApiError } from '@/modules/http/error'
 
 const props = defineProps<{
@@ -93,12 +94,10 @@ function redeemErrorKey(error: unknown) {
 </script>
 
 <template>
-  <el-dialog
+  <AppDialog
     :model-value="props.modelValue"
     :title="t('wallet.redeem.title')"
-    width="min(420px, calc(100vw - 24px))"
-    append-to-body
-    destroy-on-close
+    width="420px"
     :close-on-click-modal="!submitting"
     :close-on-press-escape="!submitting"
     :show-close="!submitting"
@@ -150,7 +149,7 @@ function redeemErrorKey(error: unknown) {
         </el-button>
       </div>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

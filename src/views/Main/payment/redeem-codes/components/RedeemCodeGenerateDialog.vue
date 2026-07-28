@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { CopyDocument, Delete, Download, Plus } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import type { PaymentRedeemCodeGenerateBatchResponse } from '@/api/payment/redeem-codes'
+import { AppDialog } from '@/components/AppDialog'
 import { useCopy } from '@/hooks/useCopy'
 import type { RedeemCodeGenerateForm } from '../composables/useRedeemCodePage'
 
@@ -115,12 +116,10 @@ onBeforeUnmount(clearGenerated)
 </script>
 
 <template>
-  <el-dialog
+  <AppDialog
     :model-value="props.modelValue"
     :title="t('paymentRedeemCode.generate.title')"
-    width="min(760px, calc(100vw - 32px))"
-    append-to-body
-    destroy-on-close
+    width="760px"
     :close-on-click-modal="!busy"
     :close-on-press-escape="!busy"
     :show-close="!busy"
@@ -266,7 +265,7 @@ onBeforeUnmount(clearGenerated)
         </el-button>
       </div>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <style scoped>

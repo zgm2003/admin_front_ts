@@ -3,7 +3,7 @@
     v-model="show"
     :aria-label="t('search.placeholder')"
     :width="dialogLayout.width"
-    class="search-dialog"
+    :show-header="false"
     :show-close="false"
     body-padding="0"
     destroy-on-close
@@ -228,16 +228,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.search-dialog {
-  :deep(.el-dialog__header) {
-    display: none;
-  }
-
-  :deep(.el-dialog__body) {
-    padding: 0;
-  }
-}
-
 .search-container {
   position: relative;
   padding: 24px;

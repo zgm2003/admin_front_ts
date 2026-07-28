@@ -47,6 +47,37 @@ vi.mock('@/i18n', () => ({
   default: { global: { t: (key: string) => key } },
 }))
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key: string) => key }),
+}))
+
+vi.mock('@/hooks/useResponsive', () => ({
+  useIsMobile: () => ({ value: false }),
+}))
+
+vi.mock('@/components/SendCode', () => ({
+  SendCode: { name: 'SendCode', template: '<div />' },
+}))
+
+const ElDialogStub = defineComponent({
+  name: 'ElDialog',
+  inheritAttrs: false,
+  props: {
+    modelValue: Boolean,
+    title: { type: String, default: '' },
+  },
+  emits: ['closed', 'update:modelValue'],
+  template: `
+    <section v-if="modelValue" v-bind="$attrs" role="dialog" :aria-label="title || undefined">
+      <header class="el-dialog__header">
+        <slot name="header" title-id="forgot-dialog-title" title-class="el-dialog__title" />
+      </header>
+      <slot />
+      <button data-testid="forgot-dialog-closed" @click="$emit('closed')">closed</button>
+    </section>
+  `,
+})
+
 const challenge = {
   captcha_id: 'captcha-login',
   captcha_type: 'slide' as const,
@@ -186,5 +217,48 @@ describe('kernel-owned login form', () => {
 
     expect(mocks.messageError).toHaveBeenCalledWith('账号或密码错误')
     expect(login.isLoginSuccess.value).toBe(false)
+  })
+})
+
+describe('forgot password dialog boundary', () => {
+  it('uses one custom header padding layer and restores focus after closing', async () => {
+    const ForgotPasswordDialog = (await import(
+      '@/views/Login/components/ForgotPasswordDialog.vue'
+    )).default
+    const trigger = document.createElement('button')
+    trigger.textContent = 'Forgot password'
+    document.body.append(trigger)
+    trigger.focus()
+
+    const wrapper = mount(ForgotPasswordDialog, {
+      attachTo: document.body,
+      props: {
+        visible: false,
+        step: 1,
+        form: { account: '', code: '', newPassword: '', confirmPassword: '' },
+        isSubmitting: false,
+      },
+      global: {
+        stubs: {
+          ElButton: { template: '<button><slot /></button>' },
+          ElDialog: ElDialogStub,
+          ElIcon: true,
+          ElInput: true,
+          ElScrollbar: { template: '<div><slot /></div>' },
+          SendCode: true,
+        },
+      },
+    })
+
+    await wrapper.setProps({ visible: true })
+    const appDialog = wrapper.getComponent({ name: 'AppDialog' })
+    expect(appDialog.props('headerPadding')).toBe('0')
+    expect(wrapper.findAll('.login-forgot-dialog__header')).toHaveLength(1)
+
+    await wrapper.get('[data-testid="forgot-dialog-closed"]').trigger('click')
+    expect(document.activeElement).toBe(trigger)
+
+    wrapper.unmount()
+    trigger.remove()
   })
 })
