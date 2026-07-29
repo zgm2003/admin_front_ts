@@ -87,6 +87,15 @@ describe('Browser-only architecture gate', () => {
     await expect(runFixture({ 'src/main.ts': source })).rejects.toThrow('src/main.ts')
   })
 
+  it('allows official-model native file capability identifiers', async () => {
+    await expect(runFixture({
+      'src/main.ts': [
+        'export const nativeFile = true',
+        'export const native_file_input = false',
+      ].join('\n'),
+    })).resolves.toMatchObject({ checkedFiles: expect.any(Number) })
+  })
+
   it.each(['refresh_token', 'refresh_expires_in'])('rejects generated public field %s', async (field) => {
     const openapi = JSON.stringify({
       openapi: '3.1.0',

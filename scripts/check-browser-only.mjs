@@ -15,7 +15,10 @@ const sourceExtensions = new Set(['.cjs', '.js', '.json', '.mjs', '.ts', '.tsx',
 const retiredSourcePatterns = [
   { label: 'Tauri identifier', pattern: /(?:@tauri-apps|\btauri\b|\btauri[A-Z_]\w*\b|\bTauri\w*\b)/u },
   { label: 'desktop identifier', pattern: /\b(?:desktop\b|desktop[A-Z_]\w*\b|Desktop\w*\b|desktop(?:-[a-z0-9]+)+\b)/u },
-  { label: 'native bridge identifier', pattern: /\b(?:NativeBridge|getNativeBridge|native[A-Z_]\w*|native\.|(?:const|let|var)\s+native\b)/u },
+  {
+    label: 'native bridge identifier',
+    pattern: /\b(?:NativeBridge|getNativeBridge|native(?:Bridge|Client|Window|Runtime|Transport|Api|API|Ipc|IPC)\w*|native\.|(?:const|let|var)\s+native\b)/u,
+  },
   { label: 'client variant identifier', pattern: /\b(?:ClientVariant|clientVariant|ClientBrowser|ClientDesktop|client[-_]?variant)\b/u },
   { label: 'retired Admin client header', pattern: /X-Admin-Client-Variant/u },
   { label: 'retired Admin client environment variable', pattern: /VITE_ADMIN_CLIENT_VARIANT/u },
