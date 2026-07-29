@@ -10,6 +10,7 @@ import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
 import { renderAiBillingActions } from '@/features/ai-billing/notification'
 import { useCopy } from '@/hooks/useCopy'
 import { useIsMobile } from '@/hooks/useResponsive'
+import { isApiError } from '@/modules/http/error'
 import {
   createActionRequestIdentityRegistry,
   useAgents,
@@ -154,6 +155,7 @@ export function useChatPage() {
     remove: removeConversation,
     rename: renameConversation,
     search: searchConversations,
+    setUnreadCount: setConversationUnreadCount,
   } = useConversations(chatWorkflow)
 
   const currentConversation = computed(() => conversations.value.find((conversation) => conversation.id === currentConversationId.value))
@@ -205,15 +207,20 @@ export function useChatPage() {
   }
 
   async function markVisibleMessagesRead(conversationId: number) {
+    const conversation = conversations.value.find((item) => item.id === conversationId)
+    if (!conversation || conversation.unread_count === 0) return
     const session = sessions.get(conversationId)
     const messageId = session ? latestAssistantMessageId(session.messages) : null
     if (messageId === null) return
     try {
-      await chatWorkflow.advanceReadCursor.mutate({
+      const result = await chatWorkflow.advanceReadCursor.mutate({
         conversation_id: conversationId,
         message_id: messageId,
       })
+      if (result.kind === 'canceled') return
+      setConversationUnreadCount(result.data.conversation_id, result.data.unread_count)
     } catch (error) {
+      if (isApiError(error) && error.kind === 'canceled') return
       ElNotification.error({
         message: error instanceof Error ? error.message : t('http.requestFailed'),
       })
@@ -232,14 +239,21 @@ export function useChatPage() {
 
   async function loadConversationMessages(conversationId: number, force = false) {
     const session = sessions.getOrCreate(conversationId)
-    if (session.isStreaming || session.sending) return
-    if (!force && session.messages.length > 0) return
+    if (session.isStreaming || session.sending) return false
+    if (!force && session.messages.length > 0) return true
 
     sessions.setLoading(conversationId, true)
     try {
       const response = await chatWorkflow.loadMessages(conversationId)
       sessions.replaceMessages(conversationId, responseToMessages(response.list), response.next_id, response.has_more)
       scrollToBottom()
+      return true
+    } catch (error) {
+      if (isApiError(error) && error.kind === 'canceled') return false
+      ElNotification.error({
+        message: error instanceof Error ? error.message : t('http.requestFailed'),
+      })
+      return false
     } finally {
       sessions.setLoading(conversationId, false)
     }
@@ -282,8 +296,8 @@ export function useChatPage() {
     // A cached non-current session can be stale because background completions
     // only refresh the authoritative conversation list. Reload before advancing
     // the read cursor so the newly completed reply is visible first.
-    await loadConversationMessages(conversation.id, true)
-    if (currentConversationId.value !== conversation.id) return
+    const loaded = await loadConversationMessages(conversation.id, true)
+    if (!loaded || currentConversationId.value !== conversation.id) return
     await markVisibleMessagesRead(conversation.id)
     scrollToBottom()
   }

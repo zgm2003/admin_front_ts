@@ -62,6 +62,29 @@ describe('AI chat workflow', () => {
     workflow.dispose()
   })
 
+  it('returns the exact read state without refreshing the conversation list', async () => {
+    const conversationApi = createConversationApi()
+    const workflow = createAIChatWorkflow({
+      conversationApi,
+      messageApi: createMessageApi(),
+      realtime: new FakeFeatureRealtime(),
+    })
+    await workflow.loadConversations(2)
+    vi.mocked(conversationApi.list).mockClear()
+
+    const result = await workflow.advanceReadCursor.mutate({
+      conversation_id: 17,
+      message_id: 307,
+    })
+
+    expect(result).toEqual({
+      kind: 'success',
+      data: { conversation_id: 17, last_read_message_id: 307, unread_count: 0 },
+    })
+    expect(conversationApi.list).not.toHaveBeenCalled()
+    workflow.dispose()
+  })
+
   it('authoritatively reloads messages after terminal events and realtime recovery', async () => {
     const realtime = new FakeFeatureRealtime()
     const messageResponses: AiMessageListResponse[] = [

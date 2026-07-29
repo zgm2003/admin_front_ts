@@ -73,4 +73,43 @@ describe('generated Admin operation descriptors', () => {
       code: 'http.response_schema_invalid',
     })
   })
+
+  it('accepts historical message attachments without storage metadata', async () => {
+    const harness = installApiClientHarness({
+      list: [{
+        id: 3,
+        role: 2,
+        content_type: 'text',
+        content: 'historical image',
+        meta_json: {
+          attachments: [{
+            type: 'image',
+            url: 'https://example.test/history.jpg',
+            name: 'history.jpg',
+            size: 97_523,
+          }],
+        },
+        paired_message_id: null,
+        run_id: null,
+        liked: false,
+        created_at: '2026-07-29 09:00:00',
+        updated_at: '2026-07-29 09:00:00',
+      }],
+      next_id: 0,
+      has_more: false,
+    })
+    cleanups.push(harness.uninstall)
+
+    const response = await executeAdminOperation(
+      adminOperations.get_api_admin_v1_ai_conversations_id_messages,
+      { path: { id: 162 }, query: {} },
+    )
+
+    expect(response.list[0]?.meta_json?.attachments?.[0]).toEqual({
+      type: 'image',
+      url: 'https://example.test/history.jpg',
+      name: 'history.jpg',
+      size: 97_523,
+    })
+  })
 })

@@ -16,16 +16,22 @@ export function useConversations(workflow: AIChatWorkflow) {
   const searchKeyword = shallowRef('')
   const searched = shallowRef(false)
   const currentAgentId = shallowRef<number | null>(null)
+  const unreadCountOverrides = new Map<number, number>()
 
   function filterConversations(list: readonly Conversation[]) {
+    const projected = list.map((item) => {
+      const unreadCount = unreadCountOverrides.get(item.id)
+      return unreadCount === undefined ? item : { ...item, unread_count: unreadCount }
+    })
     const keyword = searchKeyword.value.trim().toLowerCase()
-    if (!keyword) return [...list]
-    return list.filter((item) => item.title.toLowerCase().includes(keyword))
+    if (!keyword) return projected
+    return projected.filter((item) => item.title.toLowerCase().includes(keyword))
   }
 
   watch(
     () => workflow.conversations.state.value.data,
     (items) => {
+      unreadCountOverrides.clear()
       conversations.value = filterConversations(items)
       hasMore.value = workflow.conversationCursor.value.has_more
     },
@@ -103,6 +109,13 @@ export function useConversations(workflow: AIChatWorkflow) {
     upsertConversation({ ...old, ...patch })
   }
 
+  function setUnreadCount(id: number, unreadCount: number) {
+    unreadCountOverrides.set(id, unreadCount)
+    conversations.value = conversations.value.map((conversation) => (
+      conversation.id === id ? { ...conversation, unread_count: unreadCount } : conversation
+    ))
+  }
+
   async function rename(id: number, title: string) {
     const normalized = title.trim()
     if (!normalized) return false
@@ -134,5 +147,6 @@ export function useConversations(workflow: AIChatWorkflow) {
     search,
     upsertConversation,
     touchConversation,
+    setUnreadCount,
   }
 }

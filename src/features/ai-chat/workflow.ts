@@ -265,7 +265,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
       `ai-conversation:read:${input.conversation_id}:${input.message_id}`
     ),
     execute: (input, mutationOptions) => conversationApi.advanceReadCursor(input, mutationOptions),
-    invalidate: [refreshConversations],
+    invalidate: [],
   })
   const sendMessage = createMutation({
     key: (input: AiMessageSendParams) => `ai-message:send:${input.request_id}`,
