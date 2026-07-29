@@ -1,0 +1,176 @@
+<style>
+  .positioning-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .positioning-card {
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .positioning-card:hover {
+    border-color: #7d8da7;
+    box-shadow: 0 4px 16px rgba(28, 39, 56, .08);
+  }
+  .positioning-card.selected {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, .14);
+  }
+  .positioning-card__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 16px 13px;
+    border-bottom: 1px solid #e8ebf0;
+  }
+  .positioning-card__letter {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: #eef2f7;
+    color: #263244;
+    font-weight: 700;
+  }
+  .positioning-card__title { margin: 0; font-size: 17px; }
+  .positioning-card__desc { margin: 5px 0 0; color: #687386; font-size: 13px; line-height: 1.55; }
+  .recommended {
+    display: inline-flex;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #e8f5ec;
+    color: #18713b;
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: 2px;
+  }
+  .mini-dashboard { padding: 14px; background: #f6f7f9; }
+  .mini-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 27px;
+    margin-bottom: 9px;
+    padding: 0 8px;
+    border: 1px solid #dfe3e9;
+    border-radius: 4px;
+    background: #fff;
+    color: #697587;
+    font-size: 10px;
+  }
+  .mini-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .mini-kpi { min-height: 52px; padding: 7px; border: 1px solid #e0e4ea; border-radius: 4px; background: #fff; }
+  .mini-kpi span { display: block; color: #778296; font-size: 9px; }
+  .mini-kpi strong { display: block; margin-top: 5px; color: #253044; font-size: 15px; }
+  .mini-kpi strong.bad { color: #c23b32; }
+  .mini-kpi strong.good { color: #168249; }
+  .mini-main { display: grid; grid-template-columns: 1.6fr 1fr; gap: 6px; margin-top: 6px; }
+  .mini-panel { min-height: 96px; padding: 8px; border: 1px solid #e0e4ea; border-radius: 4px; background: #fff; }
+  .mini-panel__title { color: #3b4659; font-size: 10px; font-weight: 600; }
+  .bars { display: flex; align-items: flex-end; gap: 5px; height: 57px; margin-top: 8px; }
+  .bars i { flex: 1; min-width: 4px; background: #8091aa; border-radius: 2px 2px 0 0; }
+  .bars i.alert { background: #d2655d; }
+  .lines { display: grid; gap: 6px; margin-top: 10px; }
+  .lines i { display: block; height: 6px; border-radius: 2px; background: #dfe4eb; }
+  .lines i:nth-child(2) { width: 82%; }
+  .lines i:nth-child(3) { width: 64%; }
+  .positioning-card__foot { padding: 13px 16px 16px; }
+  .positioning-card__foot strong { display: block; margin-bottom: 5px; color: #364153; font-size: 12px; }
+  .positioning-card__foot p { margin: 0; color: #6f7a8b; font-size: 12px; line-height: 1.55; }
+  .context-note {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-left: 3px solid #cf453c;
+    background: #faf1f0;
+    color: #5f3b38;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  @media (max-width: 900px) {
+    .positioning-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<h2>“统计分析”首屏最重要的任务是什么？</h2>
+<p class="subtitle">这会决定指标优先级、页面信息架构和后端统计口径。请只选一个方向；具体布局下一轮再定。</p>
+
+<div class="positioning-grid">
+  <div class="positioning-card" data-choice="a-stability" onclick="toggleSelect(this)">
+    <div class="positioning-card__head">
+      <div class="positioning-card__letter">A</div>
+      <div>
+        <h3 class="positioning-card__title">稳定性与故障定位</h3>
+        <p class="positioning-card__desc">先回答“哪里坏了、影响多大、由谁造成”。</p>
+      </div>
+    </div>
+    <div class="mini-dashboard">
+      <div class="mini-toolbar"><span>近 24 小时 · 全部模型</span><span>刷新</span></div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><span>成功率</span><strong class="bad">65.22%</strong></div>
+        <div class="mini-kpi"><span>P95 延迟</span><strong>184.2s</strong></div>
+        <div class="mini-kpi"><span>异常运行</span><strong class="bad">9</strong></div>
+      </div>
+      <div class="mini-main">
+        <div class="mini-panel"><div class="mini-panel__title">成功率与延迟趋势</div><div class="bars"><i style="height:62%"></i><i style="height:45%"></i><i class="alert" style="height:88%"></i><i style="height:55%"></i><i class="alert" style="height:76%"></i></div></div>
+        <div class="mini-panel"><div class="mini-panel__title">错误分布</div><div class="lines"><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+    <div class="positioning-card__foot"><strong>适合：运维与研发排障</strong><p>费用退居次要位置，重点是上游错误、超时、卡死、工具失败和模型可靠性。</p></div>
+  </div>
+
+  <div class="positioning-card" data-choice="b-cost" onclick="toggleSelect(this)">
+    <div class="positioning-card__head">
+      <div class="positioning-card__letter">B</div>
+      <div>
+        <h3 class="positioning-card__title">成本与经营核算</h3>
+        <p class="positioning-card__desc">先回答“花了多少钱、钱花在哪里、账是否闭合”。</p>
+      </div>
+    </div>
+    <div class="mini-dashboard">
+      <div class="mini-toolbar"><span>本月 · 全部用户</span><span>刷新</span></div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><span>实际费用</span><strong>¥ 18.42</strong></div>
+        <div class="mini-kpi"><span>已结算</span><strong class="good">15 笔</strong></div>
+        <div class="mini-kpi"><span>计费风险</span><strong class="bad">6 笔</strong></div>
+      </div>
+      <div class="mini-main">
+        <div class="mini-panel"><div class="mini-panel__title">每日费用与 Token 趋势</div><div class="bars"><i style="height:35%"></i><i style="height:48%"></i><i style="height:64%"></i><i style="height:58%"></i><i style="height:89%"></i></div></div>
+        <div class="mini-panel"><div class="mini-panel__title">费用归因</div><div class="lines"><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+    <div class="positioning-card__foot"><strong>适合：财务与产品经营</strong><p>可靠性退居次要位置，重点是实际扣费、释放金额、价格版本、用户和模型成本。</p></div>
+  </div>
+
+  <div class="positioning-card" data-choice="c-operations" onclick="toggleSelect(this)">
+    <div class="positioning-card__head">
+      <div class="positioning-card__letter">C</div>
+      <div>
+        <h3 class="positioning-card__title">综合运营驾驶舱 <span class="recommended">推荐</span></h3>
+        <p class="positioning-card__desc">先判断“系统是否健康”，再同时解释成本和异常。</p>
+      </div>
+    </div>
+    <div class="mini-dashboard">
+      <div class="mini-toolbar"><span>近 7 天 · 全部业务</span><span>刷新</span></div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><span>成功运行</span><strong>15 / 23</strong></div>
+        <div class="mini-kpi"><span>实际费用</span><strong>¥ 18.42</strong></div>
+        <div class="mini-kpi"><span>需关注</span><strong class="bad">8</strong></div>
+      </div>
+      <div class="mini-main">
+        <div class="mini-panel"><div class="mini-panel__title">请求、成功率、P95 与费用趋势</div><div class="bars"><i style="height:40%"></i><i style="height:56%"></i><i class="alert" style="height:78%"></i><i style="height:53%"></i><i style="height:67%"></i></div></div>
+        <div class="mini-panel"><div class="mini-panel__title">异常与费用归因</div><div class="lines"><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+    <div class="positioning-card__foot"><strong>适合：当前 AI 管理后台</strong><p>首屏同时覆盖运行健康和真实账务，详情区再分别深入故障、模型、用户和计费明细。</p></div>
+  </div>
+</div>
+
+<div class="context-note">当前 23 条运行里，成功、失败、超时、取消和结果未知混在同一成功率口径中；同时存在已结算、已释放、派发前释放和旧数据未定价。无论选哪种方向，本次都会先把这些口径改成可解释、可闭合、可追溯。</div>

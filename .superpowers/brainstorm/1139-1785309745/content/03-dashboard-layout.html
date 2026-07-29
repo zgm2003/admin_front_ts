@@ -1,0 +1,346 @@
+<style>
+  .design-note {
+    margin: 0 0 16px;
+    color: #697386;
+    font-size: 13px;
+  }
+  .dashboard-shell {
+    border: 1px solid #cfd5de;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f6f8;
+    box-shadow: 0 10px 30px rgba(29, 40, 57, .08);
+    cursor: pointer;
+  }
+  .dashboard-shell.selected {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, .15), 0 10px 30px rgba(29, 40, 57, .08);
+  }
+  .dash-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 0 16px;
+    border-bottom: 1px solid #d9dee6;
+    background: #fff;
+    color: #2b3648;
+    font-size: 12px;
+  }
+  .dash-nav__path { font-weight: 600; }
+  .dash-nav__meta { color: #7b8595; }
+  .dash-body { padding: 14px; }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #dce1e8;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .segments {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid #ccd3dd;
+    border-radius: 5px;
+  }
+  .segments span {
+    padding: 6px 9px;
+    border-right: 1px solid #d7dce4;
+    color: #626e80;
+    font-size: 10px;
+    background: #fff;
+  }
+  .segments span:last-child { border-right: 0; }
+  .segments .active { background: #27364c; color: #fff; }
+  .filter-control {
+    min-width: 106px;
+    padding: 6px 9px;
+    border: 1px solid #d2d8e1;
+    border-radius: 5px;
+    background: #fff;
+    color: #596577;
+    font-size: 10px;
+  }
+  .filter-control.wide { min-width: 164px; }
+  .filter-spacer { flex: 1; }
+  .filter-button {
+    padding: 6px 11px;
+    border: 1px solid #25354a;
+    border-radius: 5px;
+    background: #25354a;
+    color: #fff;
+    font-size: 10px;
+  }
+  .filter-button.secondary { border-color: #d2d8e1; background: #fff; color: #596577; }
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin-top: 10px;
+    border: 1px solid #dce1e8;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .metric-cell {
+    min-width: 0;
+    padding: 12px 13px 11px;
+    border-right: 1px solid #e3e7ed;
+  }
+  .metric-cell:last-child { border-right: 0; }
+  .metric-label { color: #6c7788; font-size: 10px; }
+  .metric-value {
+    margin-top: 5px;
+    color: #243145;
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-value.good { color: #187442; }
+  .metric-value.bad { color: #bd3932; }
+  .metric-value.cost { color: #805a12; }
+  .metric-detail {
+    margin-top: 4px;
+    overflow: hidden;
+    color: #8a93a1;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dash-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(250px, .9fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .dash-section {
+    border: 1px solid #dce1e8;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 38px;
+    padding: 0 12px;
+    border-bottom: 1px solid #e5e8ed;
+  }
+  .section-head h3 { margin: 0; color: #303b4c; font-size: 12px; }
+  .section-head span { color: #858e9d; font-size: 9px; }
+  .section-tabs { display: flex; gap: 14px; }
+  .section-tabs b { padding: 12px 0 9px; color: #7a8494; font-size: 9px; font-weight: 500; }
+  .section-tabs b.active { border-bottom: 2px solid #2d6bdd; color: #2d5da8; }
+  .chart-wrap { position: relative; height: 174px; padding: 14px 14px 10px 38px; }
+  .chart-gridline { height: 31px; border-top: 1px dashed #e1e5eb; }
+  .chart-bars {
+    position: absolute;
+    inset: 21px 15px 25px 42px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+  }
+  .chart-day { display: flex; align-items: flex-end; gap: 2px; width: 7%; height: 100%; }
+  .chart-day i { display: block; flex: 1; border-radius: 2px 2px 0 0; background: #7085a3; }
+  .chart-day i.fail { background: #d57b74; }
+  .chart-line {
+    position: absolute;
+    inset: 28px 17px 29px 44px;
+  }
+  .chart-line svg { width: 100%; height: 100%; overflow: visible; }
+  .chart-line polyline { fill: none; stroke: #1b8b59; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .chart-line circle { fill: #fff; stroke: #1b8b59; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .chart-legend { position: absolute; top: 7px; left: 44px; display: flex; gap: 12px; color: #778294; font-size: 8px; }
+  .chart-legend i { display: inline-block; width: 8px; height: 8px; margin-right: 3px; border-radius: 2px; background: #7085a3; }
+  .chart-legend .fail { background: #d57b74; }
+  .chart-legend .rate { border-radius: 4px; background: #1b8b59; }
+  .status-list { padding: 4px 12px 8px; }
+  .status-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 29px;
+    border-bottom: 1px solid #eef0f3;
+    color: #4d596b;
+    font-size: 9px;
+  }
+  .status-row:last-child { border-bottom: 0; }
+  .status-row strong { color: #303c4f; font-variant-numeric: tabular-nums; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #8796ac; }
+  .status-dot.success { background: #26935c; }
+  .status-dot.fail { background: #ce5149; }
+  .status-dot.cancel { background: #a0a7b2; }
+  .status-name { display: flex; align-items: center; gap: 6px; }
+  .diagnostic {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 10px;
+    border: 1px solid #dce1e8;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .diagnostic-pane + .diagnostic-pane { border-left: 1px solid #e1e5eb; }
+  .diagnostic-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid #e6e9ee;
+  }
+  .diagnostic-head strong { color: #334054; font-size: 11px; }
+  .diagnostic-head span { color: #2e64b2; font-size: 9px; }
+  .diagnostic-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) 58px 70px;
+    align-items: center;
+    min-height: 29px;
+    padding: 0 12px;
+    border-bottom: 1px solid #eef0f3;
+    color: #566174;
+    font-size: 9px;
+  }
+  .diagnostic-row:last-child { border-bottom: 0; }
+  .diagnostic-row b { color: #bf3e37; text-align: center; font-variant-numeric: tabular-nums; }
+  .diagnostic-row em { color: #7b8594; font-style: normal; text-align: right; }
+  .analysis { margin-top: 10px; }
+  .analysis-tabs {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 38px;
+    padding: 0 12px;
+    border-bottom: 1px solid #e1e5eb;
+  }
+  .analysis-tabs span { padding: 12px 0 9px; color: #737e8f; font-size: 10px; }
+  .analysis-tabs .active { border-bottom: 2px solid #2d6bdd; color: #2e5fa9; font-weight: 600; }
+  .analysis-tabs small { margin-left: auto; color: #8b94a2; font-size: 8px; }
+  .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .data-table th, .data-table td {
+    height: 31px;
+    padding: 0 8px;
+    border-bottom: 1px solid #edf0f3;
+    color: #4d596b;
+    font-size: 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .data-table th { background: #f7f8fa; color: #707b8c; font-weight: 600; }
+  .data-table tr:last-child td { border-bottom: 0; }
+  .data-table td:first-child, .data-table th:first-child { width: 18%; text-align: left; }
+  .data-table .danger { color: #bf3e37; font-weight: 600; }
+  .data-table .money { color: #735314; font-weight: 600; }
+  .approval-tip { margin: 12px 0 0; color: #737e8e; font-size: 12px; text-align: center; }
+  @media (max-width: 900px) {
+    .metric-strip { grid-template-columns: repeat(2, 1fr); }
+    .metric-cell { border-bottom: 1px solid #e3e7ed; }
+    .dash-grid, .diagnostic { grid-template-columns: 1fr; }
+    .diagnostic-pane + .diagnostic-pane { border-left: 0; border-top: 1px solid #e1e5eb; }
+    .data-table { min-width: 760px; }
+    .analysis { overflow-x: auto; }
+  }
+</style>
+
+<h2>统计分析 · 综合运营驾驶舱</h2>
+<p class="design-note">布局示意：数字用于呈现信息层级，最终数据全部来自统一统计接口。点击整张工作台可表示认可。</p>
+
+<div class="dashboard-shell" data-choice="approve-dashboard-layout" onclick="toggleSelect(this)">
+  <div class="dash-nav">
+    <span class="dash-nav__path">AI 助手 / 运行监控 / 统计分析</span>
+    <span class="dash-nav__meta">统计生成于 15:42:18 · 自动更新</span>
+  </div>
+  <div class="dash-body">
+    <div class="filter-row">
+      <div class="segments"><span>今天</span><span class="active">近 7 天</span><span>近 30 天</span><span>自定义</span></div>
+      <div class="filter-control wide">2026-07-23 至 2026-07-29</div>
+      <div class="filter-control">官方模型：全部</div>
+      <div class="filter-control">渠道：全部</div>
+      <div class="filter-control">智能体：全部</div>
+      <div class="filter-control">用户：全部</div>
+      <div class="filter-spacer"></div>
+      <button class="filter-button secondary">重置</button>
+      <button class="filter-button">查询</button>
+    </div>
+
+    <div class="metric-strip">
+      <div class="metric-cell"><div class="metric-label">请求数</div><div class="metric-value">23</div><div class="metric-detail">终态 23 · 处理中 0</div></div>
+      <div class="metric-cell"><div class="metric-label">成功率</div><div class="metric-value good">68.18%</div><div class="metric-detail">15 / 22 · 取消 1 不参与</div></div>
+      <div class="metric-cell"><div class="metric-label">实际费用</div><div class="metric-value cost">¥18.42</div><div class="metric-detail">仅已结算 · 10 笔</div></div>
+      <div class="metric-cell"><div class="metric-label">首字延迟 P95</div><div class="metric-value">2.84s</div><div class="metric-detail">成功请求 · 样本 15</div></div>
+      <div class="metric-cell"><div class="metric-label">运行异常</div><div class="metric-value bad">7</div><div class="metric-detail">失败 5 · 超时 1 · 未知 1</div></div>
+      <div class="metric-cell"><div class="metric-label">计费异常</div><div class="metric-value bad">7</div><div class="metric-detail">历史未定价 7</div></div>
+    </div>
+
+    <div class="dash-grid">
+      <section class="dash-section">
+        <div class="section-head">
+          <h3>趋势分析</h3>
+          <div class="section-tabs"><b class="active">运行</b><b>费用</b><b>性能</b></div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-legend"><span><i></i>成功</span><span><i class="fail"></i>异常</span><span><i class="rate"></i>成功率</span></div>
+          <div class="chart-gridline"></div><div class="chart-gridline"></div><div class="chart-gridline"></div><div class="chart-gridline"></div>
+          <div class="chart-bars">
+            <div class="chart-day"><i style="height:44%"></i><i class="fail" style="height:12%"></i></div>
+            <div class="chart-day"><i style="height:61%"></i><i class="fail" style="height:20%"></i></div>
+            <div class="chart-day"><i style="height:48%"></i><i class="fail" style="height:8%"></i></div>
+            <div class="chart-day"><i style="height:77%"></i><i class="fail" style="height:32%"></i></div>
+            <div class="chart-day"><i style="height:56%"></i><i class="fail" style="height:18%"></i></div>
+            <div class="chart-day"><i style="height:89%"></i><i class="fail" style="height:23%"></i></div>
+            <div class="chart-day"><i style="height:71%"></i><i class="fail" style="height:15%"></i></div>
+          </div>
+          <div class="chart-line">
+            <svg viewBox="0 0 700 110" preserveAspectRatio="none" aria-hidden="true"><polyline points="10,64 120,53 230,39 340,68 450,49 560,36 690,29"></polyline><circle cx="10" cy="64" r="3"></circle><circle cx="120" cy="53" r="3"></circle><circle cx="230" cy="39" r="3"></circle><circle cx="340" cy="68" r="3"></circle><circle cx="450" cy="49" r="3"></circle><circle cx="560" cy="36" r="3"></circle><circle cx="690" cy="29" r="3"></circle></svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="dash-section">
+        <div class="section-head"><h3>运行状态分布</h3><span>点击状态下钻</span></div>
+        <div class="status-list">
+          <div class="status-row"><span class="status-name"><i class="status-dot success"></i>成功</span><strong>15</strong><span>65.22%</span></div>
+          <div class="status-row"><span class="status-name"><i class="status-dot fail"></i>失败</span><strong>5</strong><span>21.74%</span></div>
+          <div class="status-row"><span class="status-name"><i class="status-dot fail"></i>超时</span><strong>1</strong><span>4.35%</span></div>
+          <div class="status-row"><span class="status-name"><i class="status-dot fail"></i>结果未知</span><strong>1</strong><span>4.35%</span></div>
+          <div class="status-row"><span class="status-name"><i class="status-dot cancel"></i>用户取消</span><strong>1</strong><span>4.35%</span></div>
+          <div class="status-row"><span class="status-name"><i class="status-dot"></i>处理中</span><strong>0</strong><span>0%</span></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="diagnostic">
+      <div class="diagnostic-pane">
+        <div class="diagnostic-head"><strong>运行异常诊断</strong><span>查看 7 条运行 →</span></div>
+        <div class="diagnostic-row"><span>上游请求失败</span><b>5</b><em>最近 14:31</em></div>
+        <div class="diagnostic-row"><span>运行超时</span><b>1</b><em>最长 19m 41s</em></div>
+        <div class="diagnostic-row"><span>结果未知</span><b>1</b><em>等待核对</em></div>
+        <div class="diagnostic-row"><span>超时限仍运行</span><b>0</b><em>当前正常</em></div>
+      </div>
+      <div class="diagnostic-pane">
+        <div class="diagnostic-head"><strong>计费异常诊断</strong><span>查看 7 条记录 →</span></div>
+        <div class="diagnostic-row"><span>历史未定价</span><b>7</b><em>不计入费用</em></div>
+        <div class="diagnostic-row"><span>结算失败或状态冲突</span><b>0</b><em>当前正常</em></div>
+        <div class="diagnostic-row"><span>价格快照缺失</span><b>0</b><em>当前正常</em></div>
+        <div class="diagnostic-row"><span>仍冻结未终结</span><b>0</b><em>当前正常</em></div>
+      </div>
+    </section>
+
+    <section class="dash-section analysis">
+      <div class="analysis-tabs"><span class="active">官方模型</span><span>渠道</span><span>智能体</span><span>用户</span><span>错误类型</span><small>默认按实际费用降序</small></div>
+      <table class="data-table">
+        <thead><tr><th>官方模型</th><th>请求数</th><th>成功率</th><th>TTFT P95</th><th>完整 P95</th><th>Tokens</th><th>实际费用</th><th>运行异常</th><th>计费异常</th></tr></thead>
+        <tbody>
+          <tr><td>GPT-5.6</td><td>9</td><td>77.78%</td><td>2.31s</td><td>28.4s</td><td>41.2K</td><td class="money">¥9.84</td><td class="danger">2</td><td>0</td></tr>
+          <tr><td>GPT-5.5</td><td>8</td><td>62.50%</td><td>3.18s</td><td>41.7s</td><td>35.6K</td><td class="money">¥8.58</td><td class="danger">3</td><td class="danger">2</td></tr>
+          <tr><td>历史模型</td><td>6</td><td>60.00%</td><td>样本不足</td><td>57.2s</td><td>11.0K</td><td class="money">¥0.00</td><td class="danger">2</td><td class="danger">5</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>
+
+<p class="approval-tip">请重点看信息层级和下钻关系，视觉细节会跟随项目现有组件与设计令牌实现。</p>
