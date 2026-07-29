@@ -17,7 +17,7 @@ const columns = computed(() => [
   { key: 'identity', label: t('aiOfficialModel.columns.identity'), minWidth: 230, fixed: 'left' },
   { key: 'lifecycle', label: t('aiOfficialModel.columns.lifecycle'), width: 80 },
   { key: 'modalities', label: t('aiOfficialModel.columns.modalities'), minWidth: 200 },
-  { key: 'capabilities', label: t('aiOfficialModel.columns.capabilities'), minWidth: 210 },
+  { key: 'capabilities', label: t('aiOfficialModel.columns.capabilities'), minWidth: 160 },
   { key: 'limits', label: t('aiOfficialModel.columns.limits'), minWidth: 180 },
   { key: 'price', label: t('aiOfficialModel.columns.price'), minWidth: 300 },
   { key: 'verification', label: t('aiOfficialModel.columns.verification'), minWidth: 150 },
@@ -81,10 +81,12 @@ function isOverride(row: AiOfficialModelItem): boolean {
           </span>
         </template>
         <template #cell-capabilities="{ row }">
-          <span data-test="model-capabilities">
-            <el-tag v-for="value in capabilityLabels(row)" :key="value" size="small" type="info">{{ value }}</el-tag>
+          <div data-test="model-capabilities">
+            <div v-for="value in capabilityLabels(row)" :key="value" data-test="model-capability">
+              <el-tag size="small" type="info">{{ value }}</el-tag>
+            </div>
             <span v-if="capabilityLabels(row).length === 0" class="official-model-page__muted">-</span>
-          </span>
+          </div>
         </template>
         <template #cell-limits="{ row }">
           <dl data-test="model-limits" class="official-model-page__limits">

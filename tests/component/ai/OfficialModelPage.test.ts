@@ -162,6 +162,18 @@ describe('official model administration', () => {
     expect(firstRate.get('[data-test="effective-rate-price"]').text()).toContain('aiOfficialModel.units.millionTokensShort')
   })
 
+  it('stacks core capabilities vertically', async () => {
+    const wrapper = mount(OfficialModelPage, {
+      global: { stubs: { ElButton: PassThrough, ElTag: PassThrough, ElTooltip: PassThrough, OfficialModelDrawer: true } },
+    })
+    await flushPromises()
+
+    const capabilities = wrapper.get('[data-test="model-capabilities"]')
+    const capabilityRows = capabilities.findAll('[data-test="model-capability"]')
+    expect(capabilityRows).toHaveLength(3)
+    expect(capabilityRows.every(row => row.element.tagName === 'DIV')).toBe(true)
+  })
+
   it('keeps catalog facts readonly and hides price actions without sync permission', async () => {
     mocks.can.mockReturnValue(false)
     const wrapper = mount(OfficialModelPage, {
