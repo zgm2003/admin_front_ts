@@ -14,8 +14,8 @@ const {
 } = useOfficialModelPage()
 
 const columns = computed(() => [
-  { key: 'identity', label: t('aiOfficialModel.columns.identity'), minWidth: 230, fixed: 'left' },
-  { key: 'lifecycle', label: t('aiOfficialModel.columns.lifecycle'), width: 80 },
+  { key: 'identity', label: t('aiOfficialModel.columns.identity'), minWidth: 200, fixed: 'left' },
+  { key: 'lifecycle', label: t('aiOfficialModel.columns.lifecycle'), width: 100 },
   { key: 'modalities', label: t('aiOfficialModel.columns.modalities'), minWidth: 200 },
   { key: 'capabilities', label: t('aiOfficialModel.columns.capabilities'), minWidth: 160 },
   { key: 'limits', label: t('aiOfficialModel.columns.limits'), minWidth: 180 },
