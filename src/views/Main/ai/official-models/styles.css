@@ -32,11 +32,9 @@
 .official-model-page__limits dt { color: var(--el-text-color-secondary); font-size: 12px; }
 .official-model-page__limits dd { margin: 0; font-variant-numeric: tabular-nums; }
 .official-model-page__rates { gap: 2px; }
-.official-model-page__rate { display: grid; grid-template-columns: minmax(116px, 1fr) auto auto; gap: 6px; padding: 3px 0; border-bottom: 1px dashed var(--el-border-color-extra-light); font-size: 12px; }
+.official-model-page__rate { display: grid; grid-template-columns: minmax(116px, 1fr) auto; gap: 12px; padding: 3px 0; border-bottom: 1px dashed var(--el-border-color-extra-light); font-size: 12px; }
 .official-model-page__rate:last-child { border-bottom: 0; }
-.official-model-page__rate strong { text-align: right; font-variant-numeric: tabular-nums; }
-.official-model-page__rate small { color: var(--el-text-color-secondary); white-space: nowrap; }
-@media (max-width: 768px) {
-  .official-model-page__rate { grid-template-columns: minmax(100px, 1fr) auto; }
-  .official-model-page__rate small { grid-column: 1 / -1; }
-}
+.official-model-page__rate-label { min-width: 0; text-align: left; }
+.official-model-page__rate-price { display: inline-flex; align-items: baseline; justify-self: end; gap: 4px; white-space: nowrap; }
+.official-model-page__rate-price strong { font-variant-numeric: tabular-nums; }
+.official-model-page__rate-price small { color: var(--el-text-color-secondary); }

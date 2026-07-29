@@ -15,8 +15,8 @@ const {
 
 const columns = computed(() => [
   { key: 'identity', label: t('aiOfficialModel.columns.identity'), minWidth: 230, fixed: 'left' },
-  { key: 'lifecycle', label: t('aiOfficialModel.columns.lifecycle'), width: 120 },
-  { key: 'modalities', label: t('aiOfficialModel.columns.modalities'), minWidth: 160 },
+  { key: 'lifecycle', label: t('aiOfficialModel.columns.lifecycle'), width: 80 },
+  { key: 'modalities', label: t('aiOfficialModel.columns.modalities'), minWidth: 200 },
   { key: 'capabilities', label: t('aiOfficialModel.columns.capabilities'), minWidth: 210 },
   { key: 'limits', label: t('aiOfficialModel.columns.limits'), minWidth: 180 },
   { key: 'price', label: t('aiOfficialModel.columns.price'), minWidth: 300 },
@@ -95,15 +95,19 @@ function isOverride(row: AiOfficialModelItem): boolean {
         <template #cell-price="{ row }">
           <div v-if="row.effective.available" class="official-model-page__rates">
             <div v-for="rate in row.effective.rates" :key="`${rate.category}:${rate.unit}:${rate.tier_key}`" data-test="effective-rate" class="official-model-page__rate">
-              <span>{{ categoryLabel(rate) }} · {{ tierLabel(rate) }}</span>
-              <strong>¥{{ rate.price }}</strong>
-              <small>/ {{ unitLabel(rate) }}</small>
+              <span data-test="effective-rate-label" class="official-model-page__rate-label">{{ categoryLabel(rate) }} · {{ tierLabel(rate) }}</span>
+              <span data-test="effective-rate-price" class="official-model-page__rate-price">
+                <strong>¥{{ rate.price }}</strong>
+                <small>/ {{ unitLabel(rate) }}</small>
+              </span>
             </div>
           </div>
           <span v-else class="official-model-page__muted">{{ t('aiOfficialModel.labels.unavailable') }}</span>
         </template>
         <template #cell-verification="{ row }">
+        <div>
           <el-tag :type="isOverride(row) ? 'warning' : 'success'" size="small">{{ t(`aiOfficialModel.sources.${row.effective.source}`) }}</el-tag>
+        </div>
           <span>{{ row.effective.verified_at || '-' }}</span>
         </template>
         <template #cell-actions="{ row }">

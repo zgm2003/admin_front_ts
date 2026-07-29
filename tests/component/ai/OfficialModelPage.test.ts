@@ -149,6 +149,19 @@ describe('official model administration', () => {
     expect(wrapper.text()).toContain('2026-07-27')
   })
 
+  it('groups each effective rate into a left label and a right price', async () => {
+    const wrapper = mount(OfficialModelPage, {
+      global: { stubs: { ElButton: PassThrough, ElTag: PassThrough, ElTooltip: PassThrough, OfficialModelDrawer: true } },
+    })
+    await flushPromises()
+
+    const firstRate = wrapper.get('[data-test="effective-rate"]')
+    expect(firstRate.element.children).toHaveLength(2)
+    expect(firstRate.get('[data-test="effective-rate-label"]').text()).toContain('aiOfficialModel.categories.input')
+    expect(firstRate.get('[data-test="effective-rate-price"]').text()).toContain('¥2.5')
+    expect(firstRate.get('[data-test="effective-rate-price"]').text()).toContain('aiOfficialModel.units.millionTokensShort')
+  })
+
   it('keeps catalog facts readonly and hides price actions without sync permission', async () => {
     mocks.can.mockReturnValue(false)
     const wrapper = mount(OfficialModelPage, {
