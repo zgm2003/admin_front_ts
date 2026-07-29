@@ -20,10 +20,11 @@ export type RunInputSnapshot =
   }
   | { kind: 'raw', text: string }
 
-const snapshotKeys = new Set(['content', 'attachments', 'runtime_params', 'meta_json'])
+const snapshotKeys = new Set(['content', 'attachments', 'runtime_params', 'meta_json', 'request_identity'])
 const metaKeys = new Set(['attachments', 'runtime_params'])
-const attachmentKeys = new Set(['type', 'url', 'name', 'size'])
+const attachmentKeys = new Set(['type', 'object_key', 'mime_type', 'url', 'name', 'size'])
 const runtimeParamKeys = new Set(['temperature', 'max_tokens', 'max_history'])
+const requestIdentityKeys = new Set(['operation', 'source_message_id'])
 
 export function parseRunInputSnapshot(text: string): RunInputSnapshot {
   const raw = (): RunInputSnapshot => ({ kind: 'raw', text })
@@ -39,6 +40,7 @@ export function parseRunInputSnapshot(text: string): RunInputSnapshot {
 
   const content = parseContent(decoded)
   if (content === undefined) return raw()
+  if (hasOwn(decoded, 'request_identity') && !isHistoryRequestIdentity(decoded.request_identity)) return raw()
 
   let metadata = decoded
   if (hasOwn(decoded, 'meta_json')) {
@@ -86,6 +88,8 @@ function parseAttachments(
     if (!isRecord(item)
       || !hasOnlyKeys(item, attachmentKeys)
       || item.type !== 'image'
+      || (hasOwn(item, 'object_key') && (typeof item.object_key !== 'string' || item.object_key.trim() === ''))
+      || (hasOwn(item, 'mime_type') && (typeof item.mime_type !== 'string' || item.mime_type.trim() === ''))
       || typeof item.url !== 'string'
       || item.url.trim() === ''
       || typeof item.name !== 'string'
@@ -100,6 +104,13 @@ function parseAttachments(
     })
   }
   return attachments
+}
+
+function isHistoryRequestIdentity(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyKeys(value, requestIdentityKeys)) return false
+  return (value.operation === 'chat.revision' || value.operation === 'chat.regeneration')
+    && isNonNegativeInteger(value.source_message_id)
+    && value.source_message_id > 0
 }
 
 function parseRuntimeParams(

@@ -75,6 +75,36 @@ describe('AI run input snapshot parser', () => {
     })
   })
 
+  it('keeps history request identity metadata internal while rendering its accepted image snapshot', () => {
+    const snapshot = JSON.stringify({
+      content: 'changed question',
+      attachments: [{
+        type: 'image',
+        object_key: 'ai_chat_images/2026/07/29/reference.png',
+        mime_type: 'image/png',
+        url: 'https://cos.zgm2003.cn/ai_chat_images/2026/07/29/reference.png',
+        name: 'reference.png',
+        size: 1536,
+      }],
+      request_identity: {
+        operation: 'chat.revision',
+        source_message_id: 41,
+      },
+    })
+
+    expect(parseRunInputSnapshot(snapshot)).toEqual({
+      kind: 'structured',
+      content: 'changed question',
+      attachments: [{
+        type: 'image',
+        url: 'https://cos.zgm2003.cn/ai_chat_images/2026/07/29/reference.png',
+        name: 'reference.png',
+        size: 1536,
+      }],
+      runtimeParams: null,
+    })
+  })
+
   it.each([
     '{bad json',
     '{"content":"keep me","meta_json":"{bad json"}',
