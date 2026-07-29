@@ -1,9 +1,9 @@
 import { executeAdminOperation } from '@/lib/http'
+import { loadAdminOperation } from '@/modules/http/admin-operation-loader'
 import type { ExecuteOptions } from '@/modules/http/client'
-import {
-  adminOperations,
-  type AdminOperationInput,
-  type AdminOperationOutput,
+import type {
+  AdminOperationInput,
+  AdminOperationOutput,
 } from '@/modules/http/generated/operations'
 import type { Id } from '@/types/common'
 import type { SlideCaptchaChallenge } from '@/types/captcha'
@@ -183,23 +183,31 @@ function normalizeUserSessionListParams(params: UserSessionListParams): UserSess
 
 export const UsersApi = {
   async getLoginConfig(options: ExecuteOptions = {}): Promise<LoginConfigResponse> {
-    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_auth_login_config, {}, options)
+    const response = await executeAdminOperation(
+      await loadAdminOperation('get_api_admin_v1_auth_login_config'),
+      {},
+      options,
+    )
     return toLoginConfig(response)
   },
 
   async getCaptcha(options: ExecuteOptions = {}): Promise<SlideCaptchaChallenge> {
-    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_auth_captcha, {}, options)
+    const response = await executeAdminOperation(
+      await loadAdminOperation('get_api_admin_v1_auth_captcha'),
+      {},
+      options,
+    )
     return toSlideCaptcha(response)
   },
 
   async sendCode(params: UserSendCodeParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.post_api_admin_v1_auth_send_code, {
+    await executeAdminOperation(await loadAdminOperation('post_api_admin_v1_auth_send_code'), {
       body: params,
     }, options)
   },
 
   async forgetPassword(params: UserForgetPasswordParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.post_api_admin_v1_auth_forgot_password, {
+    await executeAdminOperation(await loadAdminOperation('post_api_admin_v1_auth_forgot_password'), {
       body: params,
     }, options)
   },
@@ -207,61 +215,77 @@ export const UsersApi = {
   initPersonal: async (params?: { user_id?: number }, options: ExecuteOptions = {}): Promise<UserPersonalInitResponse> => {
     const userID = params?.user_id
     if (userID === undefined) {
-      const response = await executeAdminOperation(adminOperations.get_api_admin_v1_profile, {}, options)
+      const response = await executeAdminOperation(
+        await loadAdminOperation('get_api_admin_v1_profile'),
+        {},
+        options,
+      )
       return toPersonalResponse(response)
     }
     if (typeof userID !== 'number' || !Number.isInteger(userID) || userID <= 0) {
       throw new Error('profile user id must be a positive integer')
     }
-    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_users_id_profile, {
+    const response = await executeAdminOperation(await loadAdminOperation('get_api_admin_v1_users_id_profile'), {
       path: { id: userID },
     }, options)
     return toPersonalResponse(response)
   },
 
   async editPersonal(params: UserPersonalEditParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.put_api_admin_v1_profile, { body: params }, options)
+    await executeAdminOperation(await loadAdminOperation('put_api_admin_v1_profile'), { body: params }, options)
   },
 
   async updatePhone(params: UserPhoneUpdateParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_phone, { body: params }, options)
+    await executeAdminOperation(
+      await loadAdminOperation('put_api_admin_v1_profile_security_phone'),
+      { body: params },
+      options,
+    )
   },
 
   async updateEmail(params: UserEmailUpdateParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_email, { body: params }, options)
+    await executeAdminOperation(
+      await loadAdminOperation('put_api_admin_v1_profile_security_email'),
+      { body: params },
+      options,
+    )
   },
 
   async updatePassword(params: UserPasswordUpdateParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.put_api_admin_v1_profile_security_password, { body: params }, options)
+    await executeAdminOperation(
+      await loadAdminOperation('put_api_admin_v1_profile_security_password'),
+      { body: params },
+      options,
+    )
   },
 }
 
 export const UsersListApi = {
-  pageInit: (options: ExecuteOptions = {}): Promise<UserListInitResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_users_page_init, {}, options),
+  pageInit: async (options: ExecuteOptions = {}): Promise<UserListInitResponse> =>
+    executeAdminOperation(await loadAdminOperation('get_api_admin_v1_users_page_init'), {}, options),
 
-  list: (params: UsersListParams, options: ExecuteOptions = {}): Promise<UserListResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_users, {
+  list: async (params: UsersListParams, options: ExecuteOptions = {}): Promise<UserListResponse> =>
+    executeAdminOperation(await loadAdminOperation('get_api_admin_v1_users'), {
       query: normalizeUsersListParams(params),
     }, options),
 
   async update(params: UserEditParams, options: ExecuteOptions = {}): Promise<void> {
     const { id, ...body } = params
-    await executeAdminOperation(adminOperations.put_api_admin_v1_users_id, {
+    await executeAdminOperation(await loadAdminOperation('put_api_admin_v1_users_id'), {
       path: { id },
       body,
     }, options)
   },
 
   async batchEdit(params: UserBatchEditParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.patch_api_admin_v1_users, {
+    await executeAdminOperation(await loadAdminOperation('patch_api_admin_v1_users'), {
       body: params,
     }, options)
   },
 
   async changeStatus(params: { id: Id; status: 1 | 2 }, options: ExecuteOptions = {}): Promise<void> {
     const ids = normalizePositiveIDs(params.id, 'user')
-    await executeAdminOperation(adminOperations.patch_api_admin_v1_users_id_status, {
+    await executeAdminOperation(await loadAdminOperation('patch_api_admin_v1_users_id_status'), {
       path: { id: ids[0] },
       body: { status: params.status },
     }, options)
@@ -269,44 +293,44 @@ export const UsersListApi = {
 
   async deleteOne(params: { id: Id }, options: ExecuteOptions = {}): Promise<void> {
     const [id] = normalizePositiveIDs(params.id, 'user')
-    await executeAdminOperation(adminOperations.delete_api_admin_v1_users_id, {
+    await executeAdminOperation(await loadAdminOperation('delete_api_admin_v1_users_id'), {
       path: { id },
     }, options)
   },
 
   async deleteBatch(params: { ids: Id[] }, options: ExecuteOptions = {}): Promise<void> {
     const ids = normalizePositiveIDs(params.ids, 'user')
-    await executeAdminOperation(adminOperations.delete_api_admin_v1_users, {
+    await executeAdminOperation(await loadAdminOperation('delete_api_admin_v1_users'), {
       body: { ids },
     }, options)
   },
 
-  export: (params: { ids: number[] }, options: ExecuteOptions = {}): Promise<UserExportResponse> =>
-    executeAdminOperation(adminOperations.post_api_admin_v1_users_export, {
+  export: async (params: { ids: number[] }, options: ExecuteOptions = {}): Promise<UserExportResponse> =>
+    executeAdminOperation(await loadAdminOperation('post_api_admin_v1_users_export'), {
       body: { ids: normalizePositiveIDs(params.ids, 'user') },
     }, options),
 }
 
 export const UserSessionApi = {
-  pageInit: (options: ExecuteOptions = {}): Promise<UserSessionPageInitResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions_page_init, {}, options),
+  pageInit: async (options: ExecuteOptions = {}): Promise<UserSessionPageInitResponse> =>
+    executeAdminOperation(await loadAdminOperation('get_api_admin_v1_user_sessions_page_init'), {}, options),
 
-  list: (params: UserSessionListParams, options: ExecuteOptions = {}): Promise<UserSessionListResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions, {
+  list: async (params: UserSessionListParams, options: ExecuteOptions = {}): Promise<UserSessionListResponse> =>
+    executeAdminOperation(await loadAdminOperation('get_api_admin_v1_user_sessions'), {
       query: normalizeUserSessionListParams(params),
     }, options),
 
-  stats: (options: ExecuteOptions = {}): Promise<UserSessionStats> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_user_sessions_stats, {}, options),
+  stats: async (options: ExecuteOptions = {}): Promise<UserSessionStats> =>
+    executeAdminOperation(await loadAdminOperation('get_api_admin_v1_user_sessions_stats'), {}, options),
 
-  kick: (params: UserSessionKickParams, options: ExecuteOptions = {}): Promise<UserSessionKickResponse> =>
-    executeAdminOperation(adminOperations.patch_api_admin_v1_user_sessions_id_revoke, {
+  kick: async (params: UserSessionKickParams, options: ExecuteOptions = {}): Promise<UserSessionKickResponse> =>
+    executeAdminOperation(await loadAdminOperation('patch_api_admin_v1_user_sessions_id_revoke'), {
       path: { id: params.id },
     }, options),
 
-  batchKick: (params: UserSessionBatchKickParams, options: ExecuteOptions = {}): Promise<UserSessionBatchKickResponse> => {
+  batchKick: async (params: UserSessionBatchKickParams, options: ExecuteOptions = {}): Promise<UserSessionBatchKickResponse> => {
     const ids = normalizePositiveIDs(params.ids, 'user session')
-    return executeAdminOperation(adminOperations.patch_api_admin_v1_user_sessions_revoke, {
+    return executeAdminOperation(await loadAdminOperation('patch_api_admin_v1_user_sessions_revoke'), {
       body: { ids },
     }, options)
   },
