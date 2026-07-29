@@ -13,6 +13,13 @@ export const requiredArtifacts = Object.freeze([
 ])
 
 const expectedBundleFiles = Object.freeze([...requiredArtifacts, 'manifest.json'].sort())
+const expectedBundleFileSet = new Set(expectedBundleFiles)
+const expectedBundleDirectorySet = new Set(
+  expectedBundleFiles.flatMap((name) => {
+    const segments = name.split('/')
+    return segments.slice(0, -1).map((_, index) => segments.slice(0, index + 1).join('/'))
+  }),
+)
 const gitShaPattern = /^[0-9a-f]{40}$/
 const sha256Pattern = /^[0-9a-f]{64}$/
 const versionPattern = /^[a-z0-9][a-z0-9._-]*$/i
@@ -56,6 +63,20 @@ async function listFiles(root, current = root) {
     }
   }
   return files.sort()
+}
+
+async function removeUnexpectedBundleEntries(root, current = root) {
+  const entries = await readdir(current, { withFileTypes: true })
+  for (const entry of entries) {
+    const path = join(current, entry.name)
+    const name = relative(root, path).split(sep).join('/')
+    if (entry.isDirectory() && expectedBundleDirectorySet.has(name)) {
+      await removeUnexpectedBundleEntries(root, path)
+      continue
+    }
+    if (entry.isFile() && expectedBundleFileSet.has(name)) continue
+    await rm(path, { recursive: true, force: true })
+  }
 }
 
 function assertExactNames(actual, expected, label) {
@@ -125,7 +146,8 @@ export async function syncBundleSnapshot(sourceBundleRoot, frontendRoot = proces
   const lockPath = resolve(frontendRoot, 'contracts/backend/admin/lock.json')
   const validation = await validateBundle(sourceRoot)
 
-  await rm(destinationRoot, { recursive: true, force: true })
+  await mkdir(destinationRoot, { recursive: true })
+  await removeUnexpectedBundleEntries(destinationRoot)
   for (const name of expectedBundleFiles) {
     const destination = join(destinationRoot, ...name.split('/'))
     await mkdir(dirname(destination), { recursive: true })

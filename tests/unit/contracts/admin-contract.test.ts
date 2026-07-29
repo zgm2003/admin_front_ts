@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -274,6 +274,20 @@ describe('Admin Contract Bundle consumer', () => {
     await writeFile(copiedOpenapi, `${await readFile(copiedOpenapi, 'utf8')} `, 'utf8')
 
     await expect(checkAdminContract(frontendRoot)).rejects.toThrow(/openapi\.json.*SHA-256/i)
+  })
+
+  it('preserves the watched snapshot directory while refreshing its contents', async () => {
+    const frontendRoot = await createTemporaryRoot('contract-refresh')
+    const destinationRoot = join(frontendRoot, 'contracts/backend/admin/v1')
+    await mkdir(destinationRoot, { recursive: true })
+    await writeFile(join(destinationRoot, 'stale.json'), '{}\n', 'utf8')
+    const directoryIdentity = (await stat(destinationRoot)).ino
+    const { syncBundleSnapshot } = await import('../../../scripts/sync-admin-contract.mjs')
+
+    await syncBundleSnapshot(lockedBundle, frontendRoot)
+
+    expect((await stat(destinationRoot)).ino).toBe(directoryIdentity)
+    await expect(readFile(join(destinationRoot, 'stale.json'))).rejects.toMatchObject({ code: 'ENOENT' })
   })
 
   it('generates byte-identical Admin-only transport, permission, and view types', async () => {
