@@ -291,8 +291,12 @@ const {
           >
             <el-input
               v-model="form.system_prompt"
+              data-test="system-prompt-editor"
               type="textarea"
-              :rows="8"
+              :autosize="{ minRows: 10, maxRows: 24 }"
+              :maxlength="20_000"
+              :placeholder="t('aiAgents.form.systemPromptPlaceholder')"
+              show-word-limit
             />
           </el-form-item>
         </el-col>

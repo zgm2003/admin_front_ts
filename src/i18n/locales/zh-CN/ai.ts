@@ -38,7 +38,7 @@ export default {
   aiAgents: {
       filter: { name: '智能体名称', scene: '场景', provider: '供应商', status: '状态' },
       table: { avatar: '头像', name: '智能体名称', provider: '供应商', model: '关联模型', billingMultiplier: '消耗倍率', scenes: '场景', status: '状态', updatedAt: '更新时间' },
-      form: { name: '智能体名称', provider: '供应商', model: '官方模型', billingMultiplier: '消耗倍率', scenes: '场景', systemPrompt: '系统提示词', avatar: '头像', status: '状态' },
+      form: { name: '智能体名称', provider: '供应商', model: '官方模型', billingMultiplier: '消耗倍率', scenes: '场景', systemPrompt: '系统提示词（Markdown）', systemPromptPlaceholder: '# 角色\n\n## 目标\n\n## 规则\n- ', avatar: '头像', status: '状态' },
       sections: { basic: '基本信息', model: '官方模型与有效能力', billing: '计费配置', policy: '业务策略' },
       official: {
         title: '官方模型事实',

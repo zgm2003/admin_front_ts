@@ -38,7 +38,7 @@ export default {
   aiAgents: {
       filter: { name: 'Agent Name', scene: 'Scene', provider: 'Provider', status: 'Status' },
       table: { avatar: 'Avatar', name: 'Agent Name', provider: 'Provider', model: 'Model', billingMultiplier: 'Billing Multiplier', scenes: 'Scenes', status: 'Status', updatedAt: 'Updated At' },
-      form: { name: 'Agent Name', provider: 'Provider', model: 'Official Model', billingMultiplier: 'Billing Multiplier', scenes: 'Scenes', systemPrompt: 'System Prompt', avatar: 'Avatar', status: 'Status' },
+      form: { name: 'Agent Name', provider: 'Provider', model: 'Official Model', billingMultiplier: 'Billing Multiplier', scenes: 'Scenes', systemPrompt: 'System Prompt (Markdown)', systemPromptPlaceholder: '# Role\n\n## Objective\n\n## Rules\n- ', avatar: 'Avatar', status: 'Status' },
       sections: { basic: 'Basic Information', model: 'Official Model and Effective Capabilities', billing: 'Billing', policy: 'Business Policy' },
       official: {
         title: 'Official Model Facts',
