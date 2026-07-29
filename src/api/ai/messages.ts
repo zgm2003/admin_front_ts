@@ -1,4 +1,4 @@
-import { executeAdminOperation } from '@/lib/http'
+import request, { executeAdminOperation } from '@/lib/http'
 import type { ExecuteOptions } from '@/modules/http/client'
 import type { components } from '@/modules/http/generated/admin'
 import {
@@ -9,14 +9,21 @@ import type { Id } from '@/types/common'
 
 export type AiMessageContentType = components['schemas']['AIMessageItem']['content_type']
 export type AiChatAttachment = components['schemas']['AIMessageMetaAttachment']
-export type AiMessageAttachmentRequest = components['schemas']['AIAttachmentRequest']
+export interface AiMessageAttachmentRequest {
+  type: 'image'
+  object_key: string
+  name?: string
+}
 export type AiMessageMeta = components['schemas']['AIMessageMeta']
 export type AiMessageItem = components['schemas']['AIMessageItem']
 export type AiMessageListResponse = components['schemas']['AIMessageListResult']
 export type AiMessageSendResponse = components['schemas']['AIMessageSendResult']
 export type AiMessageCancelResponse = components['schemas']['AIMessageCancelResult']
 export type AiMessageDeleteResponse = components['schemas']['AIMessageDeleteResult']
-export type AIRuntimeParams = components['schemas']['AIRuntimeParams']
+export interface AIRuntimeParams {
+  temperature?: number
+  max_history?: number
+}
 
 export interface AiMessageListParams {
   conversation_id: number
@@ -96,6 +103,10 @@ function normalizeListParams(params: AiMessageListParams): AiMessageListQueryPar
   return query
 }
 
+function optionsFrom(options: ExecuteOptions) {
+  return { signal: options.signal, idempotencyKey: options.idempotencyKey }
+}
+
 export const AiMessageApi = {
   list: (
     params: AiMessageListParams,
@@ -112,18 +123,15 @@ export const AiMessageApi = {
   send: (
     params: AiMessageSendParams,
     options: ExecuteOptions = {},
-  ): Promise<AiMessageSendResponse> => executeAdminOperation(
-    adminOperations.post_api_admin_v1_ai_conversations_id_messages,
+  ): Promise<AiMessageSendResponse> => request.post(
+    `/api/admin/v1/ai-conversations/${positiveID(params.conversation_id, 'conversation id')}/messages`,
     {
-      path: { id: positiveID(params.conversation_id, 'conversation id') },
-      body: {
-        content: params.content,
-        request_id: params.request_id,
-        attachments: params.attachments,
-        runtime_params: params.runtime_params,
-      },
+      content: params.content,
+      request_id: params.request_id,
+      attachments: params.attachments,
+      runtime_params: params.runtime_params,
     },
-    options,
+    optionsFrom(options),
   ),
 
   cancel: (

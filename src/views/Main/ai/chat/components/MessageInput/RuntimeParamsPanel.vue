@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { RefreshRight } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
+import type { RuntimeParameterDraft } from './runtime-params'
 
-defineProps<{ hasCustomParams: boolean }>()
+const props = defineProps<{
+  capabilities: AiAgentEffectiveCapabilities
+  hasCustomParams: boolean
+}>()
 const emit = defineEmits<{ reset: [] }>()
-const temperature = defineModel<number | null>('temperature', { required: true })
-const maxTokens = defineModel<number | null>('maxTokens', { required: true })
-const maxHistory = defineModel<number | null>('maxHistory', { required: true })
+const temperature = defineModel<RuntimeParameterDraft>('temperature', { required: true })
+const maxHistory = defineModel<RuntimeParameterDraft>('maxHistory', { required: true })
 const { t } = useI18n()
+
+function updateTemperature(patch: Partial<RuntimeParameterDraft>) {
+  temperature.value = { ...temperature.value, ...patch }
+}
+
+function updateMaxHistory(patch: Partial<RuntimeParameterDraft>) {
+  maxHistory.value = { ...maxHistory.value, ...patch }
+}
 </script>
 
 <template>
@@ -26,66 +38,79 @@ const { t } = useI18n()
       </button>
     </div>
     <div class="params-items">
-      <div class="params-item">
+      <div
+        v-if="props.capabilities.runtime_parameters.temperature.supported"
+        class="params-item"
+        data-test="temperature-param"
+      >
         <div class="params-item-header">
-          <span class="params-item-label">{{ t('aiChat.temperature') }}</span>
+          <span class="params-item-label">
+            {{ t('aiChat.temperature') }}
+            <el-switch
+              data-test="temperature-enabled"
+              :model-value="temperature.enabled"
+              size="small"
+              @update:model-value="(value: string | number | boolean) => updateTemperature({ enabled: value === true })"
+            />
+          </span>
           <span
             class="params-item-value"
-            :class="{ custom: temperature !== null }"
+            :class="{ custom: temperature.enabled }"
           >
-            {{ temperature !== null ? temperature.toFixed(1) : t('aiChat.useDefault') }}
+            {{ temperature.enabled ? temperature.value.toFixed(1) : t('aiChat.useDefault') }}
           </span>
         </div>
         <el-slider
-          :model-value="temperature ?? 1"
-          :min="0"
-          :max="2"
+          :model-value="temperature.value"
+          :min="props.capabilities.runtime_parameters.temperature.min"
+          :max="props.capabilities.runtime_parameters.temperature.max"
           :step="0.1"
+          :disabled="!temperature.enabled"
           :show-tooltip="false"
           size="small"
-          @update:model-value="(value: number | number[]) => temperature = value as number"
+          @update:model-value="(value: number | number[]) => updateTemperature({ value: value as number })"
         />
       </div>
-      <div class="params-item">
+      <div
+        v-if="props.capabilities.runtime_parameters.max_history.supported"
+        class="params-item"
+        data-test="max-history-param"
+      >
         <div class="params-item-header">
-          <span class="params-item-label">{{ t('aiChat.maxTokens') }}</span>
+          <span class="params-item-label">
+            {{ t('aiChat.maxHistory') }}
+            <el-tag
+              v-if="props.capabilities.runtime_parameters.max_history.transitional"
+              size="small"
+              type="info"
+            >
+              {{ t('aiChat.transitionalParam') }}
+            </el-tag>
+            <el-switch
+              data-test="max-history-enabled"
+              :model-value="maxHistory.enabled"
+              size="small"
+              @update:model-value="(value: string | number | boolean) => updateMaxHistory({ enabled: value === true })"
+            />
+          </span>
           <span
             class="params-item-value"
-            :class="{ custom: maxTokens !== null }"
+            :class="{ custom: maxHistory.enabled }"
           >
-            {{ maxTokens !== null ? maxTokens.toLocaleString() : t('aiChat.useDefault') }}
+            {{ maxHistory.enabled ? maxHistory.value : t('aiChat.useDefault') }}
           </span>
         </div>
         <el-slider
-          :model-value="maxTokens ?? 4096"
-          :min="256"
-          :max="32768"
-          :step="256"
+          :model-value="maxHistory.value"
+          :min="props.capabilities.runtime_parameters.max_history.min"
+          :max="props.capabilities.runtime_parameters.max_history.max"
+          :step="1"
+          :disabled="!maxHistory.enabled"
           :show-tooltip="false"
           size="small"
-          @update:model-value="(value: number | number[]) => maxTokens = value as number"
+          @update:model-value="(value: number | number[]) => updateMaxHistory({ value: value as number })"
         />
       </div>
-    </div>
-    <div class="params-item params-item-full">
-      <div class="params-item-header">
-        <span class="params-item-label">{{ t('aiChat.maxHistory') }}</span>
-        <span
-          class="params-item-value"
-          :class="{ custom: maxHistory !== null }"
-        >
-          {{ maxHistory !== null ? maxHistory : '20' }}
-        </span>
-      </div>
-      <el-slider
-        :model-value="maxHistory ?? 20"
-        :min="1"
-        :max="50"
-        :step="1"
-        :show-tooltip="false"
-        size="small"
-        @update:model-value="(value: number | number[]) => maxHistory = value as number"
-      />
     </div>
   </div>
 </template>

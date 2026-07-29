@@ -9,7 +9,7 @@ import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
 import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
-import AgentModelPricingPanel from './components/AgentModelPricingPanel.vue'
+import AgentOfficialModelSummary from './components/AgentOfficialModelSummary.vue'
 import { useAgentAdminPage } from './use-agent-admin-page'
 
 const userStore = useUserStore()
@@ -18,9 +18,10 @@ const {
   t, isMobile, dict, searchForm, searchFields, columns,
   listLoading, listData, page, onSearch, onPageChange, refresh, getList,
   confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
-  modelLoading, modelOptions, toolDialogVisible, toolAgent,
+  modelOptions, toolDialogVisible, toolAgent,
   knowledgeDialogVisible, knowledgeAgent,
   selectedModel, displayedCatalogRates, onModelChange,
+  selectedModelRequiresChange, modelCanUseTools,
   add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
 } = useAgentAdminPage(formRef)
 </script>
@@ -88,13 +89,22 @@ const {
           >
             {{ t('aiAgents.actions.test') }}
           </el-button>
-          <el-button
-            type="primary"
-            text
-            @click="openTools(row)"
+          <el-tooltip
+            :content="t('aiAgents.tools.unsupported')"
+            :disabled="modelCanUseTools(row)"
+            placement="top"
           >
-            {{ t('aiAgents.actions.tools') }}
-          </el-button>
+            <span class="ai-agent-page__action-guard">
+              <el-button
+                type="primary"
+                text
+                :disabled="!modelCanUseTools(row)"
+                @click="openTools(row)"
+              >
+                {{ t('aiAgents.actions.tools') }}
+              </el-button>
+            </span>
+          </el-tooltip>
           <el-button
             type="success"
             text
@@ -145,6 +155,9 @@ const {
       label-width="auto"
       :validate-on-rule-change="false"
     >
+      <div class="ai-agent-form__section-title">
+        {{ t('aiAgents.sections.basic') }}
+      </div>
       <el-row :gutter="12">
         <el-col
           :md="12"
@@ -178,6 +191,9 @@ const {
           </el-form-item>
         </el-col>
         <el-col :span="24">
+          <div class="ai-agent-form__section-title ai-agent-form__section-title--spaced">
+            {{ t('aiAgents.sections.model') }}
+          </div>
           <el-form-item
             :label="t('aiAgents.form.model')"
             prop="model_path"
@@ -187,7 +203,6 @@ const {
               v-model="form.model_path"
               :options="modelOptions"
               :props="{ emitPath: true }"
-              :loading="modelLoading"
               filterable
               clearable
               style="width: 100%"
@@ -196,9 +211,33 @@ const {
           </el-form-item>
         </el-col>
         <el-col
-          :md="12"
+          v-if="selectedModelRequiresChange"
           :span="24"
         >
+          <el-alert
+            :title="t('aiAgents.official.retiredWarning')"
+            type="error"
+            show-icon
+            :closable="false"
+          />
+        </el-col>
+        <el-col
+          v-if="selectedModel"
+          :span="24"
+        >
+          <AgentOfficialModelSummary
+            :model="selectedModel"
+            :rates="displayedCatalogRates"
+            :multiplier="form.billing_multiplier"
+            :mobile="isMobile"
+          />
+        </el-col>
+        <el-col :span="24">
+          <div class="ai-agent-form__section-title ai-agent-form__section-title--spaced">
+            {{ t('aiAgents.sections.billing') }}
+          </div>
+        </el-col>
+        <el-col :span="24">
           <el-form-item
             :label="t('aiAgents.form.billingMultiplier')"
             prop="billing_multiplier"
@@ -211,34 +250,10 @@ const {
             />
           </el-form-item>
         </el-col>
-        <el-col
-          :md="12"
-          :span="24"
-        >
-          <el-form-item
-            :label="t('aiAgents.form.maxOutput')"
-            prop="max_output_tokens"
-            required
-          >
-            <el-input-number
-              v-model="form.max_output_tokens"
-              :min="1"
-              :precision="0"
-              controls-position="right"
-              style="width: 100%"
-            />
-          </el-form-item>
-        </el-col>
-        <el-col
-          v-if="selectedModel"
-          :span="24"
-        >
-          <AgentModelPricingPanel
-            :model="selectedModel"
-            :rates="displayedCatalogRates"
-            :multiplier="form.billing_multiplier"
-            :mobile="isMobile"
-          />
+        <el-col :span="24">
+          <div class="ai-agent-form__section-title ai-agent-form__section-title--spaced">
+            {{ t('aiAgents.sections.policy') }}
+          </div>
         </el-col>
         <el-col :span="24">
           <el-form-item

@@ -1,94 +1,171 @@
-import { executeAdminOperation } from '@/lib/http'
+import request from '@/lib/http'
 import type { ExecuteOptions } from '@/modules/http/client'
-import type { components } from '@/modules/http/generated/admin'
-import {
-  adminOperations,
-  type AdminOperationInput,
-  type AdminOperationOutput,
-} from '@/modules/http/generated/operations'
 
-export type AiModelPriceFamily = 'gpt' | 'claude'
-export type AiModelPriceItem = components['schemas']['Go_internal_module_ai_modelpricing_ModelPriceDTO_Output']
-export type AiModelPriceRate = components['schemas']['Go_internal_module_ai_modelpricing_RateDTO_Output']
-export type AiModelPriceRateInput = components['schemas']['Go_internal_module_ai_modelpricing_transport_admin_rateRequest_Input']
-export type AiModelPriceMutationResponse = components['schemas']['Go_internal_module_ai_modelpricing_MutationResponse_Output']
-export type AiModelPricePageInitResponse = AdminOperationOutput<'get_api_admin_v1_ai_model_prices_page_init'>
-export type AiModelPriceListResponse = AdminOperationOutput<'get_api_admin_v1_ai_model_prices'>
+export type AiOfficialModelLifecycle = 'active' | 'deprecated' | 'retired'
+export type AiOfficialModelRateCategory = 'input' | 'output' | 'cache_read' | 'cache_write' | 'media'
 
-export interface AiModelPriceListParams {
-  family?: AiModelPriceFamily | ''
+export interface AiOfficialModelOption {
+  label: string
+  value: string
+}
+
+export interface AiOfficialModelRate {
+  category: AiOfficialModelRateCategory
+  unit: string
+  tier_key: string
+  price: string
+  unit_scale: number
+}
+
+export interface AiOfficialModelPrice {
+  pricing_version: string
+  source: 'official' | 'override'
+  override_version: number
+  source_url: string
+  verified_at: string
+  available: boolean
+  rates: AiOfficialModelRate[]
+}
+
+export interface AiOfficialModelImageInput {
+  mime_types: string[]
+  max_files: number
+  max_bytes: number
+}
+
+export interface AiOfficialModelCapabilities {
+  input_modalities: string[]
+  output_modalities: string[]
+  supports_streaming: boolean
+  supports_tools: boolean
+  supports_structured_output: boolean
+  supported_parameters: string[]
+  native_file_input: boolean
+  image_input: AiOfficialModelImageInput | null
+}
+
+export interface AiOfficialModelItem {
+  catalog_vendor: string
+  model_family: string
+  model_id: string
+  aliases: string[]
+  lifecycle_status: AiOfficialModelLifecycle
+  catalog_version: string
+  context_window_tokens: number
+  max_output_tokens: number
+  context_tier_threshold_tokens: number
+  capabilities: AiOfficialModelCapabilities
+  pricing_profile: string
+  official: AiOfficialModelPrice
+  effective: AiOfficialModelPrice
+  model_source_url: string
+  pricing_source_url: string
+  retrieved_at: string
+  review_after: string
+}
+
+export interface AiOfficialModelPageInitResponse {
+  dict: {
+    vendor_options: AiOfficialModelOption[]
+    family_options: AiOfficialModelOption[]
+    lifecycle_options: AiOfficialModelOption[]
+    input_modality_options: AiOfficialModelOption[]
+  }
+}
+
+export interface AiOfficialModelListResponse {
+  list: AiOfficialModelItem[]
+}
+
+export interface AiOfficialModelMutationResponse {
+  before: AiOfficialModelPrice
+  after: AiOfficialModelPrice
+}
+
+export interface AiOfficialModelListParams {
+  vendor?: string
+  family?: string
+  lifecycle?: AiOfficialModelLifecycle | ''
+  input_modality?: string
   model_id?: string
 }
 
-export interface AiModelPriceUpdateParams {
+export interface AiOfficialModelRateInput {
+  category: AiOfficialModelRateCategory
+  unit: string
+  tier_key: string
+  price: string
+  unit_scale: number
+}
+
+export interface AiOfficialModelPriceSyncParams {
   model_id: string
   expected_version: number
-  rates: AiModelPriceRateInput[]
+  rates: AiOfficialModelRateInput[]
   source_url: string
   verified_at: string
 }
 
-export interface AiModelPriceRestoreParams {
+export interface AiOfficialModelPriceRestoreParams {
   model_id: string
   expected_version: number
 }
 
-type ListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_model_prices'>['query']>
-type UpdateBody = NonNullable<AdminOperationInput<'put_api_admin_v1_ai_model_prices_model_id'>['body']>
-
 function requiredModelID(value: string): string {
   const modelID = value.trim()
-  if (!modelID) throw new Error('AI model id is required')
+  if (!modelID) throw new Error('AI official model id is required')
   return modelID
 }
 
 function expectedVersion(value: number, allowZero: boolean): number {
   if (!Number.isInteger(value) || value < (allowZero ? 0 : 1)) {
-    throw new Error(`AI model price expected version must be ${allowZero ? 'non-negative' : 'positive'}`)
+    throw new Error(`AI official model expected version must be ${allowZero ? 'non-negative' : 'positive'}`)
   }
   return value
 }
 
-function listQuery(params: AiModelPriceListParams): ListQuery {
-  const query: ListQuery = {}
-  if (params.family) query.family = params.family
+function modelPath(modelID: string, suffix = ''): string {
+  return `/api/admin/v1/ai-official-models/${encodeURIComponent(requiredModelID(modelID))}${suffix}`
+}
+
+function listQuery(params: AiOfficialModelListParams): Record<string, string> {
+  const query: Record<string, string> = {}
+  for (const key of ['vendor', 'family', 'lifecycle', 'input_modality'] as const) {
+    const value = params[key]?.trim()
+    if (value) query[key] = value
+  }
   const modelID = params.model_id?.trim()
   if (modelID) query.model_id = modelID
   return query
 }
 
-function updateBody(params: AiModelPriceUpdateParams): UpdateBody {
-  return {
-    expected_version: expectedVersion(params.expected_version, true),
-    rates: params.rates.map((rate) => ({ ...rate })),
-    source_url: params.source_url.trim(),
-    verified_at: params.verified_at.trim(),
-  }
+function optionsFrom(options: ExecuteOptions): Pick<ExecuteOptions, 'signal'> {
+  return { signal: options.signal }
 }
 
-export const AiModelPriceApi = {
-  pageInit: (options: ExecuteOptions = {}): Promise<AiModelPricePageInitResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_model_prices_page_init, {}, options),
+export const AiOfficialModelApi = {
+  pageInit: (options: ExecuteOptions = {}): Promise<AiOfficialModelPageInitResponse> =>
+    request.get('/api/admin/v1/ai-official-models/page-init', optionsFrom(options)),
 
-  list: (params: AiModelPriceListParams = {}, options: ExecuteOptions = {}): Promise<AiModelPriceListResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_model_prices, {
-      query: listQuery(params),
-    }, options),
+  list: (params: AiOfficialModelListParams = {}, options: ExecuteOptions = {}): Promise<AiOfficialModelListResponse> =>
+    request.get('/api/admin/v1/ai-official-models', { ...optionsFrom(options), params: listQuery(params) }),
 
-  detail: (params: { model_id: string }, options: ExecuteOptions = {}): Promise<AiModelPriceItem> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_model_prices_model_id, {
-      path: { model_id: requiredModelID(params.model_id) },
-    }, options),
+  detail: (params: { model_id: string }, options: ExecuteOptions = {}): Promise<AiOfficialModelItem> =>
+    request.get(modelPath(params.model_id), optionsFrom(options)),
 
-  update: (params: AiModelPriceUpdateParams, options: ExecuteOptions = {}): Promise<AiModelPriceMutationResponse> =>
-    executeAdminOperation(adminOperations.put_api_admin_v1_ai_model_prices_model_id, {
-      path: { model_id: requiredModelID(params.model_id) },
-      body: updateBody(params),
-    }, options),
+  syncPrice: (params: AiOfficialModelPriceSyncParams, options: ExecuteOptions = {}): Promise<AiOfficialModelMutationResponse> =>
+    request.put(modelPath(params.model_id, '/price'), {
+      expected_version: expectedVersion(params.expected_version, true),
+      rates: params.rates.map((rate) => ({ ...rate })),
+      source_url: params.source_url.trim(),
+      verified_at: params.verified_at.trim(),
+    }, optionsFrom(options)),
 
-  restore: (params: AiModelPriceRestoreParams, options: ExecuteOptions = {}): Promise<AiModelPriceMutationResponse> =>
-    executeAdminOperation(adminOperations.delete_api_admin_v1_ai_model_prices_model_id_override, {
-      path: { model_id: requiredModelID(params.model_id) },
-      query: { expected_version: expectedVersion(params.expected_version, false) },
-    }, options),
+  restoreOfficialPrice: (
+    params: AiOfficialModelPriceRestoreParams,
+    options: ExecuteOptions = {},
+  ): Promise<AiOfficialModelMutationResponse> => request.delete(modelPath(params.model_id, '/price-override'), {
+    ...optionsFrom(options),
+    params: { expected_version: expectedVersion(params.expected_version, false) },
+  }),
 }

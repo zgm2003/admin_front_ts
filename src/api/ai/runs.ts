@@ -20,6 +20,9 @@ export type AiRunToolCallItem = components['schemas']['AIRunToolCall']
 export type AiRunKnowledgeHitItem = components['schemas']['AIRunKnowledgeHit']
 export type AiRunKnowledgeRetrievalItem = components['schemas']['AIRunKnowledgeRetrieval']
 export type AiRunDetailResponse = components['schemas']['AIRunDetail']
+export type AiRunLatencyBreakdown = components['schemas']['AIRunLatencyBreakdown']
+export type AiRunClaimSource = AiRunLatencyBreakdown['claim_source']
+export type AiRunRequestSummary = components['schemas']['AIRunRequestSummary']
 export type AiRunBillingStatus = AiRunDetailResponse['billing_status']
 export type AiRunBillingReason = AiRunDetailResponse['billing_reason']
 export type AiRunPricing = components['schemas']['AIRunPricing']
@@ -37,6 +40,10 @@ export type AiRunStatsByDateResponse = components['schemas']['AIRunStatsByDateRe
 export type AiRunStatsByAgentResponse = components['schemas']['AIRunStatsByAgentResult']
 export type AiRunStatsByUserResponse = components['schemas']['AIRunStatsByUserResult']
 export type AiRunUserFeedbackResponse = components['schemas']['AIRunUserFeedbackResult']
+
+export type AiRunLatencyDistribution = components['schemas']['AIRunLatencyDistribution']
+export type AiRunLatencyStatsItem = components['schemas']['AIRunLatencyStatsItem']
+export type AiRunLatencyStatsResponse = components['schemas']['AIRunLatencyStatsResult']
 
 export interface AiRunListParams {
   current_page?: number
@@ -136,6 +143,9 @@ export const AiRunApi = {
     { query: normalizeStatsParams(params) },
     options,
   ),
+
+  latencyStats: (options: ExecuteOptions = {}): Promise<AiRunLatencyStatsResponse> =>
+    executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs_stats_latency, {}, options),
 
   statsByDate: (
     params: AiRunStatsListParams,

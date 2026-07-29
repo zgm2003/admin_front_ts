@@ -1,11 +1,11 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d45a96132e31b6c893f5037ca09dfd0e78e9cdeb49964200d750185362f83b1e
+// Generated from Admin Contract Bundle manifest SHA-256: 8c2520a66db3d9c13c0e40f0d80cd8be08825fed44dcddb7954dea716ce682b7
 // Do not edit manually.
 
 export const backendViewKeys = [
   "ai/agents",
   "ai/chat",
   "ai/knowledge",
-  "ai/model-pricing",
+  "ai/official-models",
   "ai/providers",
   "ai/runs",
   "ai/tools",
@@ -47,7 +47,7 @@ export const backendViewDescriptors = {
   "ai/agents": {"path":"/ai/agents","titleKey":"menu.ai_agents","showMenu":true,"permissionCodes":[]},
   "ai/chat": {"path":"/ai/chat","titleKey":"menu.ai_chat","showMenu":true,"permissionCodes":[]},
   "ai/knowledge": {"path":"/ai/knowledge","titleKey":"menu.ai_knowledge","showMenu":true,"permissionCodes":[]},
-  "ai/model-pricing": {"path":"/ai/model-pricing","titleKey":"menu.ai_model_pricing","showMenu":true,"permissionCodes":["ai_model_pricing_list"]},
+  "ai/official-models": {"path":"/ai/official-models","titleKey":"menu.ai_official_models","showMenu":true,"permissionCodes":["ai_official_model_list"]},
   "ai/providers": {"path":"/ai/providers","titleKey":"menu.ai_providers","showMenu":true,"permissionCodes":[]},
   "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":["ai_run_list"]},
   "ai/tools": {"path":"/ai/tools","titleKey":"menu.ai_tools","showMenu":true,"permissionCodes":[]},

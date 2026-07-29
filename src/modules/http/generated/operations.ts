@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d45a96132e31b6c893f5037ca09dfd0e78e9cdeb49964200d750185362f83b1e
+// Generated from Admin Contract Bundle manifest SHA-256: 8c2520a66db3d9c13c0e40f0d80cd8be08825fed44dcddb7954dea716ce682b7
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -315,7 +315,15 @@ const contractSchemas = {
   "AIMessageMetaAttachment": {
     "additionalProperties": false,
     "properties": {
+      "mime_type": {
+        "minLength": 1,
+        "type": "string"
+      },
       "name": {
+        "type": "string"
+      },
+      "object_key": {
+        "minLength": 1,
         "type": "string"
       },
       "size": {
@@ -328,11 +336,14 @@ const contractSchemas = {
         "type": "string"
       },
       "url": {
+        "minLength": 1,
         "type": "string"
       }
     },
     "required": [
+      "mime_type",
       "name",
+      "object_key",
       "size",
       "type",
       "url"
@@ -501,6 +512,9 @@ const contractSchemas = {
         },
         "type": "array"
       },
+      "latency": {
+        "$ref": "#/components/schemas/AIRunLatencyBreakdown"
+      },
       "liked": {
         "type": "boolean"
       },
@@ -557,6 +571,9 @@ const contractSchemas = {
       },
       "request_id": {
         "type": "string"
+      },
+      "request_summary": {
+        "$ref": "#/components/schemas/AIRunRequestSummary"
       },
       "started_at": {
         "type": "string"
@@ -634,6 +651,7 @@ const contractSchemas = {
       "id",
       "input_snapshot",
       "knowledge_retrievals",
+      "latency",
       "liked",
       "liked_at",
       "model_display_name",
@@ -645,6 +663,7 @@ const contractSchemas = {
       "provider_id",
       "provider_name",
       "request_id",
+      "request_summary",
       "started_at",
       "status",
       "status_name",
@@ -882,6 +901,208 @@ const contractSchemas = {
       "status",
       "status_name",
       "total_hits"
+    ],
+    "type": "object"
+  },
+  "AIRunLatencyBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "accept_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "claim_source": {
+        "enum": [
+          "",
+          "wake",
+          "poll",
+          "recovery"
+        ],
+        "type": "string"
+      },
+      "end_to_end_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "prepare_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "provider_total_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "queue_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "settlement_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "ttft_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "accept_ms",
+      "claim_source",
+      "end_to_end_ms",
+      "prepare_ms",
+      "provider_total_ms",
+      "queue_ms",
+      "settlement_ms",
+      "ttft_ms"
+    ],
+    "type": "object"
+  },
+  "AIRunLatencyDistribution": {
+    "additionalProperties": false,
+    "properties": {
+      "insufficient_sample": {
+        "type": "boolean"
+      },
+      "p50_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "p95_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "p99_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "sample_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "insufficient_sample",
+      "p50_ms",
+      "p95_ms",
+      "p99_ms",
+      "sample_count"
+    ],
+    "type": "object"
+  },
+  "AIRunLatencyStatsItem": {
+    "additionalProperties": false,
+    "properties": {
+      "model_id": {
+        "type": "string"
+      },
+      "provider_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "provider_name": {
+        "type": "string"
+      },
+      "provider_total": {
+        "$ref": "#/components/schemas/AIRunLatencyDistribution"
+      },
+      "ttft": {
+        "$ref": "#/components/schemas/AIRunLatencyDistribution"
+      }
+    },
+    "required": [
+      "model_id",
+      "provider_id",
+      "provider_name",
+      "provider_total",
+      "ttft"
+    ],
+    "type": "object"
+  },
+  "AIRunLatencyStatsResult": {
+    "additionalProperties": false,
+    "properties": {
+      "list": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunLatencyStatsItem"
+        },
+        "type": "array"
+      },
+      "max_samples": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "window_days": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "list",
+      "max_samples",
+      "window_days"
     ],
     "type": "object"
   },
@@ -1263,6 +1484,45 @@ const contractSchemas = {
       "provider_request_id",
       "state",
       "usage_status"
+    ],
+    "type": "object"
+  },
+  "AIRunRequestSummary": {
+    "additionalProperties": false,
+    "properties": {
+      "message_count": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "prepared_request_bytes": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "provider_attempt_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "tool_call_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "message_count",
+      "prepared_request_bytes",
+      "provider_attempt_count",
+      "tool_call_count"
     ],
     "type": "object"
   },
@@ -1731,12 +1991,6 @@ const contractSchemas = {
         "minimum": 1,
         "type": "integer"
       },
-      "max_tokens": {
-        "format": "int64",
-        "maximum": 200000,
-        "minimum": 1,
-        "type": "integer"
-      },
       "temperature": {
         "maximum": 2,
         "minimum": 0,
@@ -1970,6 +2224,16 @@ const contractSchemas = {
       "billing_multiplier": {
         "type": "string"
       },
+      "capabilities": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "catalog_model_id": {
         "type": "string"
       },
@@ -1997,9 +2261,6 @@ const contractSchemas = {
       "id": {
         "type": "integer"
       },
-      "max_output_tokens": {
-        "type": "integer"
-      },
       "model_display_name": {
         "type": "string"
       },
@@ -2008,6 +2269,16 @@ const contractSchemas = {
       },
       "name": {
         "type": "string"
+      },
+      "official_model": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "override_version": {
         "type": "integer"
@@ -2025,6 +2296,9 @@ const contractSchemas = {
         "type": "string"
       },
       "provider_id": {
+        "type": "integer"
+      },
+      "provider_model_id": {
         "type": "integer"
       },
       "provider_name": {
@@ -2062,12 +2336,12 @@ const contractSchemas = {
       "created_at",
       "engine_type",
       "id",
-      "max_output_tokens",
       "model_display_name",
       "model_id",
       "name",
       "override_version",
       "provider_id",
+      "provider_model_id",
       "provider_name",
       "scene_names",
       "scenes",
@@ -2084,11 +2358,34 @@ const contractSchemas = {
       "avatar": {
         "type": "string"
       },
+      "capabilities": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "id": {
         "type": "integer"
       },
       "name": {
         "type": "string"
+      },
+      "official_model": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "provider_model_id": {
+        "type": "integer"
       },
       "system_prompt": {
         "type": "string"
@@ -2096,8 +2393,11 @@ const contractSchemas = {
     },
     "required": [
       "avatar",
+      "capabilities",
       "id",
       "name",
+      "official_model",
+      "provider_model_id",
       "system_prompt"
     ],
     "type": "object"
@@ -2114,6 +2414,22 @@ const contractSchemas = {
     },
     "required": [
       "list"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_AttachmentCapabilities_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "image": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_ImageAttachmentCapability_Output"
+      },
+      "native_file": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output"
+      }
+    },
+    "required": [
+      "image",
+      "native_file"
     ],
     "type": "object"
   },
@@ -2154,6 +2470,16 @@ const contractSchemas = {
       "billing_multiplier": {
         "type": "string"
       },
+      "capabilities": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "catalog_model_id": {
         "type": "string"
       },
@@ -2181,9 +2507,6 @@ const contractSchemas = {
       "id": {
         "type": "integer"
       },
-      "max_output_tokens": {
-        "type": "integer"
-      },
       "model_display_name": {
         "type": "string"
       },
@@ -2192,6 +2515,16 @@ const contractSchemas = {
       },
       "name": {
         "type": "string"
+      },
+      "official_model": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "override_version": {
         "type": "integer"
@@ -2209,6 +2542,9 @@ const contractSchemas = {
         "type": "string"
       },
       "provider_id": {
+        "type": "integer"
+      },
+      "provider_model_id": {
         "type": "integer"
       },
       "provider_name": {
@@ -2246,12 +2582,12 @@ const contractSchemas = {
       "created_at",
       "engine_type",
       "id",
-      "max_output_tokens",
       "model_display_name",
       "model_id",
       "name",
       "override_version",
       "provider_id",
+      "provider_model_id",
       "provider_name",
       "scene_names",
       "scenes",
@@ -2259,6 +2595,48 @@ const contractSchemas = {
       "status_name",
       "system_prompt",
       "updated_at"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "attachments": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_AttachmentCapabilities_Output"
+      },
+      "input_modalities": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "output_modalities": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "runtime_parameters": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output"
+      },
+      "supports_streaming": {
+        "type": "boolean"
+      },
+      "supports_structured_output": {
+        "type": "boolean"
+      },
+      "supports_tools": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "attachments",
+      "input_modalities",
+      "output_modalities",
+      "runtime_parameters",
+      "supports_streaming",
+      "supports_structured_output",
+      "supports_tools"
     ],
     "type": "object"
   },
@@ -2282,6 +2660,33 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "Go_internal_module_ai_agent_ImageAttachmentCapability_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "max_file_bytes": {
+        "type": "integer"
+      },
+      "max_files": {
+        "type": "integer"
+      },
+      "mime_types": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "enabled",
+      "max_file_bytes",
+      "max_files",
+      "mime_types"
+    ],
+    "type": "object"
+  },
   "Go_internal_module_ai_agent_InitDict_Output": {
     "additionalProperties": false,
     "properties": {
@@ -2293,9 +2698,6 @@ const contractSchemas = {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
         },
         "type": "array"
-      },
-      "max_output_tokens_default": {
-        "type": "integer"
       },
       "provider_model_options": {
         "items": {
@@ -2319,7 +2721,6 @@ const contractSchemas = {
     "required": [
       "billing_multiplier_default",
       "common_status_arr",
-      "max_output_tokens_default",
       "provider_model_options",
       "provider_options",
       "scene_arr"
@@ -2357,11 +2758,49 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "default": {
+        "type": "integer"
+      },
+      "max": {
+        "type": "integer"
+      },
+      "min": {
+        "type": "integer"
+      },
+      "supported": {
+        "type": "boolean"
+      },
+      "transitional": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "default",
+      "max",
+      "min",
+      "supported",
+      "transitional"
+    ],
+    "type": "object"
+  },
   "Go_internal_module_ai_agent_ModelOption_Output": {
     "additionalProperties": false,
     "properties": {
       "billing_multiplier": {
         "type": "string"
+      },
+      "capabilities": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "catalog_model_id": {
         "type": "string"
@@ -2387,11 +2826,18 @@ const contractSchemas = {
       "label": {
         "type": "string"
       },
-      "max_output_tokens": {
-        "type": "integer"
-      },
       "model_id": {
         "type": "string"
+      },
+      "official_model": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "override_version": {
         "type": "integer"
@@ -2420,11 +2866,58 @@ const contractSchemas = {
       "context_tier_threshold_tokens",
       "display_name",
       "label",
-      "max_output_tokens",
       "model_id",
       "override_version",
       "provider_id",
       "value"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "enabled"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "catalog_vendor": {
+        "type": "string"
+      },
+      "catalog_version": {
+        "type": "string"
+      },
+      "context_window_tokens": {
+        "type": "integer"
+      },
+      "lifecycle_status": {
+        "type": "string"
+      },
+      "max_output_tokens": {
+        "type": "integer"
+      },
+      "model_family": {
+        "type": "string"
+      },
+      "model_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "catalog_vendor",
+      "catalog_version",
+      "context_window_tokens",
+      "lifecycle_status",
+      "max_output_tokens",
+      "model_family",
+      "model_id"
     ],
     "type": "object"
   },
@@ -2464,7 +2957,19 @@ const contractSchemas = {
       "id": {
         "type": "integer"
       },
+      "mapped_at": {
+        "type": "string"
+      },
+      "mapping_status": {
+        "type": "string"
+      },
       "model_id": {
+        "type": "string"
+      },
+      "official_catalog_version": {
+        "type": "string"
+      },
+      "official_model_id": {
         "type": "string"
       },
       "provider_id": {
@@ -2484,7 +2989,11 @@ const contractSchemas = {
       "created_at",
       "display_name",
       "id",
+      "mapped_at",
+      "mapping_status",
       "model_id",
+      "official_catalog_version",
+      "official_model_id",
       "provider_id",
       "status",
       "status_name",
@@ -2504,6 +3013,46 @@ const contractSchemas = {
     },
     "required": [
       "list"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "max_history": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output"
+      },
+      "temperature": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_agent_TemperatureParameterCapability_Output"
+      }
+    },
+    "required": [
+      "max_history",
+      "temperature"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_agent_TemperatureParameterCapability_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "default": {
+        "type": "number"
+      },
+      "max": {
+        "type": "number"
+      },
+      "min": {
+        "type": "number"
+      },
+      "supported": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "default",
+      "max",
+      "min",
+      "supported"
     ],
     "type": "object"
   },
@@ -3168,12 +3717,91 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_ListResponse_Output": {
+  "Go_internal_module_ai_officialmodel_CapabilityDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "image_input": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_ImageInputCapability_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "input_modalities": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "native_file_input": {
+        "type": "boolean"
+      },
+      "output_modalities": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "supported_parameters": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "supports_streaming": {
+        "type": "boolean"
+      },
+      "supports_structured_output": {
+        "type": "boolean"
+      },
+      "supports_tools": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "image_input",
+      "input_modalities",
+      "native_file_input",
+      "output_modalities",
+      "supported_parameters",
+      "supports_streaming",
+      "supports_structured_output",
+      "supports_tools"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_officialmodel_ImageInputCapability_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "max_bytes": {
+        "type": "integer"
+      },
+      "max_files": {
+        "type": "integer"
+      },
+      "mime_types": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "max_bytes",
+      "max_files",
+      "mime_types"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_officialmodel_ListResponse_Output": {
     "additionalProperties": false,
     "properties": {
       "list": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OfficialModelDTO_Output"
         },
         "type": "array"
       }
@@ -3183,7 +3811,23 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_ModelPriceDTO_Output": {
+  "Go_internal_module_ai_officialmodel_MutationResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "after": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PriceDTO_Output"
+      },
+      "before": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PriceDTO_Output"
+      }
+    },
+    "required": [
+      "after",
+      "before"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_officialmodel_OfficialModelDTO_Output": {
     "additionalProperties": false,
     "properties": {
       "aliases": {
@@ -3191,6 +3835,9 @@ const contractSchemas = {
           "type": "string"
         },
         "type": "array"
+      },
+      "capabilities": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_CapabilityDTO_Output"
       },
       "catalog_vendor": {
         "type": "string"
@@ -3201,8 +3848,14 @@ const contractSchemas = {
       "context_tier_threshold_tokens": {
         "type": "integer"
       },
+      "context_window_tokens": {
+        "type": "integer"
+      },
       "effective": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PriceDTO_Output"
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PriceDTO_Output"
+      },
+      "lifecycle_status": {
+        "type": "string"
       },
       "max_output_tokens": {
         "type": "integer"
@@ -3213,10 +3866,19 @@ const contractSchemas = {
       "model_id": {
         "type": "string"
       },
+      "model_source_url": {
+        "type": "string"
+      },
       "official": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PriceDTO_Output"
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PriceDTO_Output"
       },
       "pricing_profile": {
+        "type": "string"
+      },
+      "pricing_source_url": {
+        "type": "string"
+      },
+      "retrieved_at": {
         "type": "string"
       },
       "review_after": {
@@ -3225,36 +3887,26 @@ const contractSchemas = {
     },
     "required": [
       "aliases",
+      "capabilities",
       "catalog_vendor",
       "catalog_version",
       "context_tier_threshold_tokens",
+      "context_window_tokens",
       "effective",
+      "lifecycle_status",
       "max_output_tokens",
       "model_family",
       "model_id",
+      "model_source_url",
       "official",
       "pricing_profile",
+      "pricing_source_url",
+      "retrieved_at",
       "review_after"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_MutationResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "after": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PriceDTO_Output"
-      },
-      "before": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PriceDTO_Output"
-      }
-    },
-    "required": [
-      "after",
-      "before"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_modelpricing_OptionDTO_Output": {
+  "Go_internal_module_ai_officialmodel_OptionDTO_Output": {
     "additionalProperties": false,
     "properties": {
       "label": {
@@ -3270,26 +3922,47 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_PageInitDict_Output": {
+  "Go_internal_module_ai_officialmodel_PageInitDict_Output": {
     "additionalProperties": false,
     "properties": {
       "family_options": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_OptionDTO_Output"
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OptionDTO_Output"
+        },
+        "type": "array"
+      },
+      "input_modality_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OptionDTO_Output"
+        },
+        "type": "array"
+      },
+      "lifecycle_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OptionDTO_Output"
+        },
+        "type": "array"
+      },
+      "vendor_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OptionDTO_Output"
         },
         "type": "array"
       }
     },
     "required": [
-      "family_options"
+      "family_options",
+      "input_modality_options",
+      "lifecycle_options",
+      "vendor_options"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_PageInitResponse_Output": {
+  "Go_internal_module_ai_officialmodel_PageInitResponse_Output": {
     "additionalProperties": false,
     "properties": {
       "dict": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PageInitDict_Output"
+        "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PageInitDict_Output"
       }
     },
     "required": [
@@ -3297,7 +3970,7 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_PriceDTO_Output": {
+  "Go_internal_module_ai_officialmodel_PriceDTO_Output": {
     "additionalProperties": false,
     "properties": {
       "available": {
@@ -3311,7 +3984,7 @@ const contractSchemas = {
       },
       "rates": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_RateDTO_Output"
+          "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_RateDTO_Output"
         },
         "type": "array"
       },
@@ -3336,7 +4009,7 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_modelpricing_RateDTO_Output": {
+  "Go_internal_module_ai_officialmodel_RateDTO_Output": {
     "additionalProperties": false,
     "properties": {
       "category": {
@@ -3589,7 +4262,19 @@ const contractSchemas = {
       "id": {
         "type": "integer"
       },
+      "mapped_at": {
+        "type": "string"
+      },
+      "mapping_status": {
+        "type": "string"
+      },
       "model_id": {
+        "type": "string"
+      },
+      "official_catalog_version": {
+        "type": "string"
+      },
+      "official_model_id": {
         "type": "string"
       },
       "provider_id": {
@@ -3609,7 +4294,11 @@ const contractSchemas = {
       "created_at",
       "display_name",
       "id",
+      "mapped_at",
+      "mapping_status",
       "model_id",
+      "official_catalog_version",
+      "official_model_id",
       "provider_id",
       "status",
       "status_name",
@@ -8618,8 +9307,8 @@ const responseDataSchemas = {
   "delete_api_admin_v1_ai_knowledge_documents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "delete_api_admin_v1_ai_model_prices_model_id_override": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_MutationResponse_Output"
+  "delete_api_admin_v1_ai_official_models_model_id_price_override": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_MutationResponse_Output"
   },
   "delete_api_admin_v1_ai_providers_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -8789,14 +9478,14 @@ const responseDataSchemas = {
   "get_api_admin_v1_ai_knowledge_documents_id_chunks": {
     "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_ChunkListResponse_Output"
   },
-  "get_api_admin_v1_ai_model_prices": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_ListResponse_Output"
+  "get_api_admin_v1_ai_official_models": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_ListResponse_Output"
   },
-  "get_api_admin_v1_ai_model_prices_model_id": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"
+  "get_api_admin_v1_ai_official_models_model_id": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_OfficialModelDTO_Output"
   },
-  "get_api_admin_v1_ai_model_prices_page_init": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_PageInitResponse_Output"
+  "get_api_admin_v1_ai_official_models_page_init": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_PageInitResponse_Output"
   },
   "get_api_admin_v1_ai_providers": {
     "$ref": "#/components/schemas/Go_internal_module_ai_provider_ListResponse_Output"
@@ -8827,6 +9516,9 @@ const responseDataSchemas = {
   },
   "get_api_admin_v1_ai_runs_stats_by_user": {
     "$ref": "#/components/schemas/AIRunStatsByUserResult"
+  },
+  "get_api_admin_v1_ai_runs_stats_latency": {
+    "$ref": "#/components/schemas/AIRunLatencyStatsResult"
   },
   "get_api_admin_v1_ai_tools": {
     "$ref": "#/components/schemas/Go_internal_module_ai_tool_ListResponse_Output"
@@ -9313,8 +10005,8 @@ const responseDataSchemas = {
   "put_api_admin_v1_ai_knowledge_documents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "put_api_admin_v1_ai_model_prices_model_id": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_modelpricing_MutationResponse_Output"
+  "put_api_admin_v1_ai_official_models_model_id_price": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_MutationResponse_Output"
   },
   "put_api_admin_v1_ai_providers_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
@@ -9491,15 +10183,15 @@ export const adminOperations = {
     telemetryName: "admin.delete.api.admin.v1.ai.knowledge.documents.id",
     encode: (input) => input,
   }),
-  "delete_api_admin_v1_ai_model_prices_model_id_override": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_model_prices_model_id_override">, AdminOperationOutput<"delete_api_admin_v1_ai_model_prices_model_id_override">>({
-    id: "delete_api_admin_v1_ai_model_prices_model_id_override",
+  "delete_api_admin_v1_ai_official_models_model_id_price_override": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_official_models_model_id_price_override">, AdminOperationOutput<"delete_api_admin_v1_ai_official_models_model_id_price_override">>({
+    id: "delete_api_admin_v1_ai_official_models_model_id_price_override",
     method: "DELETE",
-    path: "/api/admin/v1/ai-model-prices/{model_id}/override",
+    path: "/api/admin/v1/ai-official-models/{model_id}/price-override",
     auth: "required",
     timeout: "interactive",
     replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_model_prices_model_id_override">>(responseDataSchemas["delete_api_admin_v1_ai_model_prices_model_id_override"]),
-    telemetryName: "admin.delete.api.admin.v1.ai.model.prices.model.id.override",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_official_models_model_id_price_override">>(responseDataSchemas["delete_api_admin_v1_ai_official_models_model_id_price_override"]),
+    telemetryName: "admin.delete.api.admin.v1.ai.official.models.model.id.price.override",
     encode: (input) => input,
   }),
   "delete_api_admin_v1_ai_providers_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_providers_id">, AdminOperationOutput<"delete_api_admin_v1_ai_providers_id">>({
@@ -10070,37 +10762,37 @@ export const adminOperations = {
     telemetryName: "admin.get.api.admin.v1.ai.knowledge.documents.id.chunks",
     encode: (input) => input,
   }),
-  "get_api_admin_v1_ai_model_prices": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_model_prices">, AdminOperationOutput<"get_api_admin_v1_ai_model_prices">>({
-    id: "get_api_admin_v1_ai_model_prices",
+  "get_api_admin_v1_ai_official_models": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_official_models">, AdminOperationOutput<"get_api_admin_v1_ai_official_models">>({
+    id: "get_api_admin_v1_ai_official_models",
     method: "GET",
-    path: "/api/admin/v1/ai-model-prices",
+    path: "/api/admin/v1/ai-official-models",
     auth: "required",
     timeout: "interactive",
     replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_model_prices">>(responseDataSchemas["get_api_admin_v1_ai_model_prices"]),
-    telemetryName: "admin.get.api.admin.v1.ai.model.prices",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_official_models">>(responseDataSchemas["get_api_admin_v1_ai_official_models"]),
+    telemetryName: "admin.get.api.admin.v1.ai.official.models",
     encode: (input) => input,
   }),
-  "get_api_admin_v1_ai_model_prices_model_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_model_prices_model_id">, AdminOperationOutput<"get_api_admin_v1_ai_model_prices_model_id">>({
-    id: "get_api_admin_v1_ai_model_prices_model_id",
+  "get_api_admin_v1_ai_official_models_model_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_official_models_model_id">, AdminOperationOutput<"get_api_admin_v1_ai_official_models_model_id">>({
+    id: "get_api_admin_v1_ai_official_models_model_id",
     method: "GET",
-    path: "/api/admin/v1/ai-model-prices/{model_id}",
+    path: "/api/admin/v1/ai-official-models/{model_id}",
     auth: "required",
     timeout: "interactive",
     replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_model_prices_model_id">>(responseDataSchemas["get_api_admin_v1_ai_model_prices_model_id"]),
-    telemetryName: "admin.get.api.admin.v1.ai.model.prices.model.id",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_official_models_model_id">>(responseDataSchemas["get_api_admin_v1_ai_official_models_model_id"]),
+    telemetryName: "admin.get.api.admin.v1.ai.official.models.model.id",
     encode: (input) => input,
   }),
-  "get_api_admin_v1_ai_model_prices_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_model_prices_page_init">, AdminOperationOutput<"get_api_admin_v1_ai_model_prices_page_init">>({
-    id: "get_api_admin_v1_ai_model_prices_page_init",
+  "get_api_admin_v1_ai_official_models_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_official_models_page_init">, AdminOperationOutput<"get_api_admin_v1_ai_official_models_page_init">>({
+    id: "get_api_admin_v1_ai_official_models_page_init",
     method: "GET",
-    path: "/api/admin/v1/ai-model-prices/page-init",
+    path: "/api/admin/v1/ai-official-models/page-init",
     auth: "required",
     timeout: "interactive",
     replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_model_prices_page_init">>(responseDataSchemas["get_api_admin_v1_ai_model_prices_page_init"]),
-    telemetryName: "admin.get.api.admin.v1.ai.model.prices.page.init",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_official_models_page_init">>(responseDataSchemas["get_api_admin_v1_ai_official_models_page_init"]),
+    telemetryName: "admin.get.api.admin.v1.ai.official.models.page.init",
   }),
   "get_api_admin_v1_ai_providers": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_providers">, AdminOperationOutput<"get_api_admin_v1_ai_providers">>({
     id: "get_api_admin_v1_ai_providers",
@@ -10209,6 +10901,16 @@ export const adminOperations = {
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_user">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_by_user"]),
     telemetryName: "admin.get.api.admin.v1.ai.runs.stats.by.user",
     encode: (input) => input,
+  }),
+  "get_api_admin_v1_ai_runs_stats_latency": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats_latency">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_latency">>({
+    id: "get_api_admin_v1_ai_runs_stats_latency",
+    method: "GET",
+    path: "/api/admin/v1/ai-runs/stats/latency",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_latency">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_latency"]),
+    telemetryName: "admin.get.api.admin.v1.ai.runs.stats.latency",
   }),
   "get_api_admin_v1_ai_tools": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_tools">, AdminOperationOutput<"get_api_admin_v1_ai_tools">>({
     id: "get_api_admin_v1_ai_tools",
@@ -11771,15 +12473,15 @@ export const adminOperations = {
     telemetryName: "admin.put.api.admin.v1.ai.knowledge.documents.id",
     encode: (input) => input,
   }),
-  "put_api_admin_v1_ai_model_prices_model_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_model_prices_model_id">, AdminOperationOutput<"put_api_admin_v1_ai_model_prices_model_id">>({
-    id: "put_api_admin_v1_ai_model_prices_model_id",
+  "put_api_admin_v1_ai_official_models_model_id_price": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_official_models_model_id_price">, AdminOperationOutput<"put_api_admin_v1_ai_official_models_model_id_price">>({
+    id: "put_api_admin_v1_ai_official_models_model_id_price",
     method: "PUT",
-    path: "/api/admin/v1/ai-model-prices/{model_id}",
+    path: "/api/admin/v1/ai-official-models/{model_id}/price",
     auth: "required",
     timeout: "interactive",
     replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_model_prices_model_id">>(responseDataSchemas["put_api_admin_v1_ai_model_prices_model_id"]),
-    telemetryName: "admin.put.api.admin.v1.ai.model.prices.model.id",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_official_models_model_id_price">>(responseDataSchemas["put_api_admin_v1_ai_official_models_model_id_price"]),
+    telemetryName: "admin.put.api.admin.v1.ai.official.models.model.id.price",
     encode: (input) => input,
   }),
   "put_api_admin_v1_ai_providers_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_providers_id">, AdminOperationOutput<"put_api_admin_v1_ai_providers_id">>({

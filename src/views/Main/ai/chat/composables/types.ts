@@ -1,4 +1,5 @@
 import type { AiMessageContentType, AiMessageMeta } from '@/api/ai/messages'
+import type { AiAgentEffectiveCapabilities, AiAgentOfficialModelSummary } from '@/api/ai/agents'
 
 export interface Conversation {
   id: number
@@ -31,6 +32,9 @@ export interface Agent {
   name: string
   avatar?: string | null
   description?: string
+  provider_model_id: number
+  official_model: AiAgentOfficialModelSummary
+  capabilities: AiAgentEffectiveCapabilities
 }
 
 export interface ConversationSession {

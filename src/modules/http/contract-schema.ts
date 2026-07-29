@@ -18,6 +18,7 @@ export interface ContractSchema {
   readonly pattern?: string
   readonly minItems?: number
   readonly maxItems?: number
+  readonly uniqueItems?: boolean
   readonly description?: string
   readonly format?: string
   readonly default?: unknown
@@ -93,6 +94,21 @@ export function createContractSchemaCompiler(
     let array = z.array(schema.items ? compileUnknown(schema.items) : z.unknown())
     if (schema.minItems !== undefined) array = array.min(schema.minItems)
     if (schema.maxItems !== undefined) array = array.max(schema.maxItems)
+    if (schema.uniqueItems === true) {
+      return array.superRefine((items, context) => {
+        for (let right = 1; right < items.length; right += 1) {
+          for (let left = 0; left < right; left += 1) {
+            if (!structurallyEqual(items[left], items[right])) continue
+            context.addIssue({
+              code: 'custom',
+              path: [right],
+              message: 'Array items must be unique',
+            })
+            return
+          }
+        }
+      })
+    }
     return array
   }
 
@@ -143,4 +159,24 @@ export function createContractSchemaCompiler(
       return compileUnknown(schema) as z.ZodType<T>
     },
   }
+}
+
+function structurallyEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left)
+      && Array.isArray(right)
+      && left.length === right.length
+      && left.every((item, index) => structurallyEqual(item, right[index]))
+  }
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false
+  const leftRecord = left as Record<string, unknown>
+  const rightRecord = right as Record<string, unknown>
+  const leftKeys = Object.keys(leftRecord).sort()
+  const rightKeys = Object.keys(rightRecord).sort()
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key, index) => (
+      key === rightKeys[index]
+      && structurallyEqual(leftRecord[key], rightRecord[key])
+    ))
 }

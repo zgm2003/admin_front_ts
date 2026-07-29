@@ -1,13 +1,16 @@
 import type { AIRuntimeParams } from '@/api/ai/messages'
 
-export function createRuntimeParams(
-  temperature: number | null,
-  maxTokens: number | null,
-  maxHistory: number | null,
-): AIRuntimeParams {
+export interface RuntimeParameterDraft {
+  enabled: boolean
+  value: number
+}
+
+export function createRuntimeParams(input: {
+  temperature?: RuntimeParameterDraft
+  maxHistory?: RuntimeParameterDraft
+}): AIRuntimeParams {
   const result: AIRuntimeParams = {}
-  if (temperature !== null) result.temperature = temperature
-  if (maxTokens !== null) result.max_tokens = maxTokens
-  if (maxHistory !== null) result.max_history = maxHistory
+  if (input.temperature?.enabled) result.temperature = input.temperature.value
+  if (input.maxHistory?.enabled) result.max_history = input.maxHistory.value
   return result
 }

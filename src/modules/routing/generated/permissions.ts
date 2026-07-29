@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d45a96132e31b6c893f5037ca09dfd0e78e9cdeb49964200d750185362f83b1e
+// Generated from Admin Contract Bundle manifest SHA-256: 8c2520a66db3d9c13c0e40f0d80cd8be08825fed44dcddb7954dea716ce682b7
 // Do not edit manually.
 
 export const permissionCodes = [
@@ -18,8 +18,8 @@ export const permissionCodes = [
   "ai_knowledge_reindex",
   "ai_knowledge_retrieval_test",
   "ai_knowledge_status",
-  "ai_model_pricing_edit",
-  "ai_model_pricing_list",
+  "ai_official_model_list",
+  "ai_official_model_price_sync",
   "ai_provider_add",
   "ai_provider_del",
   "ai_provider_edit",

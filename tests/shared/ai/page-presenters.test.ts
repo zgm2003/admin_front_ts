@@ -16,10 +16,15 @@ describe('AI page presenters', () => {
   })
 
   it('emits only explicitly selected runtime parameters', () => {
-    expect(createRuntimeParams(null, null, null)).toEqual({})
-    expect(createRuntimeParams(0, 4096, 12)).toEqual({
+    expect(createRuntimeParams({
+      temperature: { enabled: false, value: 1 },
+      maxHistory: { enabled: false, value: 20 },
+    })).toEqual({})
+    expect(createRuntimeParams({
+      temperature: { enabled: true, value: 0 },
+      maxHistory: { enabled: true, value: 12 },
+    })).toEqual({
       temperature: 0,
-      max_tokens: 4096,
       max_history: 12,
     })
   })

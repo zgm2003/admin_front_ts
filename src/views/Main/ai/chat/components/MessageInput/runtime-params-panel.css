@@ -61,9 +61,18 @@
 }
 
 .params-item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   color: var(--el-text-color-regular);
   font-weight: 500;
+}
+
+.params-item-label :deep(.el-tag) {
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10px;
 }
 
 .params-item-value {

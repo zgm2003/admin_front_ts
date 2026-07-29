@@ -6,6 +6,7 @@ import { AppDialog } from '@/components/AppDialog'
 import { CommonEnum } from '@/enums'
 import { AiAgentApi, type AiAgentItem } from '@/api/ai/agents'
 import { AiToolApi, type AiToolItem } from '@/api/ai/tools'
+import { selectableAgentTools } from './tool-options'
 
 interface Props {
   modelValue: boolean
@@ -33,7 +34,8 @@ const visible = computed({
 })
 
 const agentName = computed(() => props.agent?.name ?? '-')
-const toolSelectOptions = computed(() => tools.value.map((item) => ({ label: `${item.name} (${item.code})`, value: item.id })))
+const toolSelectOptions = computed(() => selectableAgentTools(tools.value)
+  .map((item) => ({ label: `${item.name} (${item.code})`, value: item.id })))
 
 async function loadData() {
   const agentID = props.agent?.id
@@ -44,9 +46,10 @@ async function loadData() {
       AiToolApi.list({ current_page: 1, page_size: 50, status: CommonEnum.YES }),
       AiAgentApi.tools({ agent_id: agentID }),
     ])
-    tools.value = toolRes.list
-    selectedToolIDs.value = [...bindingRes.tool_ids]
-    activeToolIDs.value = [...bindingRes.active_tool_ids]
+    tools.value = selectableAgentTools(toolRes.list)
+    const selectableIDs = new Set(tools.value.map((tool) => tool.id))
+    selectedToolIDs.value = bindingRes.tool_ids.filter((id) => selectableIDs.has(id))
+    activeToolIDs.value = bindingRes.active_tool_ids.filter((id) => selectableIDs.has(id))
   } finally {
     loading.value = false
   }
@@ -115,7 +118,8 @@ watch(
         </el-form-item>
       </el-form>
       <div class="agent-tool-dialog__hint">
-        {{ t('aiAgents.tools.activeTools') }}：{{ activeToolIDs.length }}
+        {{ t('aiAgents.tools.lowRiskOnly') }}
+        <span>{{ t('aiAgents.tools.activeTools') }}：{{ activeToolIDs.length }}</span>
       </div>
     </div>
     <template #footer>
@@ -153,6 +157,9 @@ watch(
 }
 
 .agent-tool-dialog__hint {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px 12px;
   border-radius: 6px;
   background: var(--el-fill-color-lighter);

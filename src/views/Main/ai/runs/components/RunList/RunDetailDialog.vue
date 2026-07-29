@@ -5,6 +5,7 @@ import type { AiRunDetailResponse, AiRunStatus } from '@/api/ai/runs'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import RunInputSnapshot from './RunInputSnapshot.vue'
+import RunLatencyBreakdown from './RunLatencyBreakdown.vue'
 import {
   formatRunAmount,
   groupRunUsageItems,
@@ -119,6 +120,14 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
             {{ detailData.updated_at }}
           </el-descriptions-item>
         </el-descriptions>
+
+        <el-divider content-position="left">
+          {{ t('aiRuns.detail.latencyBreakdown') }}
+        </el-divider>
+        <RunLatencyBreakdown
+          :latency="detailData.latency"
+          :request-summary="detailData.request_summary"
+        />
 
         <el-divider content-position="left">
           {{ t('aiRuns.detail.billingSettlement') }}

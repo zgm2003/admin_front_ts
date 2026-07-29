@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d45a96132e31b6c893f5037ca09dfd0e78e9cdeb49964200d750185362f83b1e
+// Generated from Admin Contract Bundle manifest SHA-256: 8c2520a66db3d9c13c0e40f0d80cd8be08825fed44dcddb7954dea716ce682b7
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -459,15 +459,15 @@ export interface paths {
         patch: operations["patch_api_admin_v1_ai_knowledge_documents_id_status"];
         trace?: never;
     };
-    "/api/admin/v1/ai-model-prices": {
+    "/api/admin/v1/ai-official-models": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** GET /api/admin/v1/ai-model-prices */
-        get: operations["get_api_admin_v1_ai_model_prices"];
+        /** GET /api/admin/v1/ai-official-models */
+        get: operations["get_api_admin_v1_ai_official_models"];
         put?: never;
         post?: never;
         delete?: never;
@@ -476,17 +476,16 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/v1/ai-model-prices/{model_id}": {
+    "/api/admin/v1/ai-official-models/{model_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** GET /api/admin/v1/ai-model-prices/:model_id */
-        get: operations["get_api_admin_v1_ai_model_prices_model_id"];
-        /** PUT /api/admin/v1/ai-model-prices/:model_id */
-        put: operations["put_api_admin_v1_ai_model_prices_model_id"];
+        /** GET /api/admin/v1/ai-official-models/:model_id */
+        get: operations["get_api_admin_v1_ai_official_models_model_id"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -494,7 +493,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/v1/ai-model-prices/{model_id}/override": {
+    "/api/admin/v1/ai-official-models/{model_id}/price": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** PUT /api/admin/v1/ai-official-models/:model_id/price */
+        put: operations["put_api_admin_v1_ai_official_models_model_id_price"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-official-models/{model_id}/price-override": {
         parameters: {
             query?: never;
             header?: never;
@@ -504,22 +520,22 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** DELETE /api/admin/v1/ai-model-prices/:model_id/override */
-        delete: operations["delete_api_admin_v1_ai_model_prices_model_id_override"];
+        /** DELETE /api/admin/v1/ai-official-models/:model_id/price-override */
+        delete: operations["delete_api_admin_v1_ai_official_models_model_id_price_override"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/admin/v1/ai-model-prices/page-init": {
+    "/api/admin/v1/ai-official-models/page-init": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** GET /api/admin/v1/ai-model-prices/page-init */
-        get: operations["get_api_admin_v1_ai_model_prices_page_init"];
+        /** GET /api/admin/v1/ai-official-models/page-init */
+        get: operations["get_api_admin_v1_ai_official_models_page_init"];
         put?: never;
         post?: never;
         delete?: never;
@@ -812,6 +828,23 @@ export interface paths {
         };
         /** GET /api/admin/v1/ai-runs/stats/by-user */
         get: operations["get_api_admin_v1_ai_runs_stats_by_user"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-runs/stats/latency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-runs/stats/latency */
+        get: operations["get_api_admin_v1_ai_runs_stats_latency"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3144,11 +3177,9 @@ export interface components {
         };
         AIAttachmentRequest: {
             name?: string;
-            /** Format: int64 */
-            size?: number;
+            object_key: string;
             /** @constant */
             type: "image";
-            url: string;
         };
         AIConversationCreateRequest: {
             /** Format: int64 */
@@ -3288,7 +3319,9 @@ export interface components {
             runtime_params?: components["schemas"]["AIRuntimeParams"];
         };
         AIMessageMetaAttachment: {
+            mime_type: string;
             name: string;
+            object_key: string;
             /** Format: int64 */
             size: number;
             /** @constant */
@@ -3353,6 +3386,7 @@ export interface components {
             id: number;
             input_snapshot: string;
             knowledge_retrievals: components["schemas"]["AIRunKnowledgeRetrieval"][];
+            latency: components["schemas"]["AIRunLatencyBreakdown"];
             liked: boolean;
             liked_at: string | null;
             model_display_name: string;
@@ -3367,6 +3401,7 @@ export interface components {
             provider_id: number;
             provider_name: string;
             request_id: string;
+            request_summary: components["schemas"]["AIRunRequestSummary"];
             started_at: string;
             /** @enum {string} */
             status: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
@@ -3441,6 +3476,49 @@ export interface components {
             status_name: string;
             /** Format: int64 */
             total_hits: number;
+        };
+        AIRunLatencyBreakdown: {
+            accept_ms: number | null;
+            /** @enum {string} */
+            claim_source: "" | "wake" | "poll" | "recovery";
+            end_to_end_ms: number | null;
+            prepare_ms: number | null;
+            provider_total_ms: number | null;
+            queue_ms: number | null;
+            settlement_ms: number | null;
+            ttft_ms: number | null;
+        };
+        AIRunLatencyDistribution: {
+            insufficient_sample: boolean;
+            /** Format: int64 */
+            p50_ms: number;
+            /** Format: int64 */
+            p95_ms: number;
+            /** Format: int64 */
+            p99_ms: number;
+            /** Format: int64 */
+            sample_count: number;
+        };
+        AIRunLatencyStatsItem: {
+            model_id: string;
+            /** Format: int64 */
+            provider_id: number;
+            provider_name: string;
+            provider_total: components["schemas"]["AIRunLatencyDistribution"];
+            ttft: components["schemas"]["AIRunLatencyDistribution"];
+        };
+        AIRunLatencyStatsResult: {
+            list: components["schemas"]["AIRunLatencyStatsItem"][];
+            /** Format: int64 */
+            max_samples: number;
+            /** Format: int64 */
+            window_days: number;
+        };
+        AIRunLatencyStatsSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunLatencyStatsResult"];
+            msg: string;
         };
         AIRunListItem: {
             /** Format: int64 */
@@ -3538,6 +3616,15 @@ export interface components {
             state: "prepared" | "dispatched" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
             /** @enum {string} */
             usage_status: "complete" | "unavailable";
+        };
+        AIRunRequestSummary: {
+            message_count: number | null;
+            /** Format: int64 */
+            prepared_request_bytes: number;
+            /** Format: int64 */
+            provider_attempt_count: number;
+            /** Format: int64 */
+            tool_call_count: number;
         };
         AIRunStatsByAgentItem: {
             /** Format: int64 */
@@ -3654,8 +3741,6 @@ export interface components {
         AIRuntimeParams: {
             /** Format: int64 */
             max_history?: number;
-            /** Format: int64 */
-            max_tokens?: number;
             temperature?: number;
         };
         AIRunToolCall: {
@@ -3723,10 +3808,10 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        delete_api_admin_v1_ai_model_prices_model_id_override_ResponseEnvelope: {
+        delete_api_admin_v1_ai_official_models_model_id_price_override_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_ai_modelpricing_MutationResponse_Output"];
+            data: components["schemas"]["Go_internal_module_ai_officialmodel_MutationResponse_Output"];
             msg: string;
         };
         delete_api_admin_v1_ai_providers_id_ResponseEnvelope: {
@@ -4089,22 +4174,22 @@ export interface components {
             data: components["schemas"]["Go_internal_module_ai_knowledge_DocumentDetailResponse_Output"];
             msg: string;
         };
-        get_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope: {
+        get_api_admin_v1_ai_official_models_model_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"];
+            data: components["schemas"]["Go_internal_module_ai_officialmodel_OfficialModelDTO_Output"];
             msg: string;
         };
-        get_api_admin_v1_ai_model_prices_page_init_ResponseEnvelope: {
+        get_api_admin_v1_ai_official_models_page_init_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_ai_modelpricing_PageInitResponse_Output"];
+            data: components["schemas"]["Go_internal_module_ai_officialmodel_PageInitResponse_Output"];
             msg: string;
         };
-        get_api_admin_v1_ai_model_prices_ResponseEnvelope: {
+        get_api_admin_v1_ai_official_models_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_ai_modelpricing_ListResponse_Output"];
+            data: components["schemas"]["Go_internal_module_ai_officialmodel_ListResponse_Output"];
             msg: string;
         };
         get_api_admin_v1_ai_providers_id_models_ResponseEnvelope: {
@@ -4494,6 +4579,7 @@ export interface components {
         Go_internal_module_ai_agent_AgentDTO_Output: {
             avatar: string;
             billing_multiplier: string;
+            capabilities?: components["schemas"]["Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"] | null;
             catalog_model_id?: string;
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
@@ -4502,16 +4588,17 @@ export interface components {
             created_at: string;
             engine_type: string;
             id: number;
-            max_output_tokens: number;
             model_display_name: string;
             model_id: string;
             name: string;
+            official_model?: components["schemas"]["Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"] | null;
             override_version: number;
             price_source?: string;
             price_source_url?: string;
             price_verified_at?: string;
             pricing_version?: string;
             provider_id: number;
+            provider_model_id: number;
             provider_name: string;
             scene_names: string[];
             scenes: string[];
@@ -4522,12 +4609,19 @@ export interface components {
         };
         Go_internal_module_ai_agent_AgentOption_Output: {
             avatar: string;
+            capabilities: components["schemas"]["Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"] | null;
             id: number;
             name: string;
+            official_model: components["schemas"]["Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"] | null;
+            provider_model_id: number;
             system_prompt: string;
         };
         Go_internal_module_ai_agent_AgentOptionsResponse_Output: {
             list: components["schemas"]["Go_internal_module_ai_agent_AgentOption_Output"][];
+        };
+        Go_internal_module_ai_agent_AttachmentCapabilities_Output: {
+            image: components["schemas"]["Go_internal_module_ai_agent_ImageAttachmentCapability_Output"];
+            native_file: components["schemas"]["Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output"];
         };
         Go_internal_module_ai_agent_CatalogRateDTO_Output: {
             category: string;
@@ -4539,6 +4633,7 @@ export interface components {
         Go_internal_module_ai_agent_DetailResponse_Output: {
             avatar: string;
             billing_multiplier: string;
+            capabilities?: components["schemas"]["Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"] | null;
             catalog_model_id?: string;
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
@@ -4547,16 +4642,17 @@ export interface components {
             created_at: string;
             engine_type: string;
             id: number;
-            max_output_tokens: number;
             model_display_name: string;
             model_id: string;
             name: string;
+            official_model?: components["schemas"]["Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"] | null;
             override_version: number;
             price_source?: string;
             price_source_url?: string;
             price_verified_at?: string;
             pricing_version?: string;
             provider_id: number;
+            provider_model_id: number;
             provider_name: string;
             scene_names: string[];
             scenes: string[];
@@ -4565,15 +4661,29 @@ export interface components {
             system_prompt: string;
             updated_at: string;
         };
+        Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output: {
+            attachments: components["schemas"]["Go_internal_module_ai_agent_AttachmentCapabilities_Output"];
+            input_modalities: string[];
+            output_modalities: string[];
+            runtime_parameters: components["schemas"]["Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output"];
+            supports_streaming: boolean;
+            supports_structured_output: boolean;
+            supports_tools: boolean;
+        };
         Go_internal_module_ai_agent_EngineOption_Output: {
             engine_type: string;
             label: string;
             value: number;
         };
+        Go_internal_module_ai_agent_ImageAttachmentCapability_Output: {
+            enabled: boolean;
+            max_file_bytes: number;
+            max_files: number;
+            mime_types: string[];
+        };
         Go_internal_module_ai_agent_InitDict_Output: {
             billing_multiplier_default: string;
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
-            max_output_tokens_default: number;
             provider_model_options: components["schemas"]["Go_internal_module_ai_agent_ModelOption_Output"][];
             provider_options: components["schemas"]["Go_internal_module_ai_agent_EngineOption_Output"][];
             scene_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
@@ -4585,8 +4695,16 @@ export interface components {
             list: components["schemas"]["Go_internal_module_ai_agent_AgentDTO_Output"][];
             page: components["schemas"]["Go_internal_module_ai_agent_Page_Output"];
         };
+        Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output: {
+            default: number;
+            max: number;
+            min: number;
+            supported: boolean;
+            transitional: boolean;
+        };
         Go_internal_module_ai_agent_ModelOption_Output: {
             billing_multiplier: string;
+            capabilities?: components["schemas"]["Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"] | null;
             catalog_model_id?: string;
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
@@ -4594,8 +4712,8 @@ export interface components {
             context_tier_threshold_tokens: number;
             display_name: string;
             label: string;
-            max_output_tokens: number;
             model_id: string;
+            official_model?: components["schemas"]["Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output"] | null;
             override_version: number;
             price_source?: string;
             price_source_url?: string;
@@ -4603,6 +4721,18 @@ export interface components {
             pricing_version?: string;
             provider_id: number;
             value: string;
+        };
+        Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output: {
+            enabled: boolean;
+        };
+        Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output: {
+            catalog_vendor: string;
+            catalog_version: string;
+            context_window_tokens: number;
+            lifecycle_status: string;
+            max_output_tokens: number;
+            model_family: string;
+            model_id: string;
         };
         Go_internal_module_ai_agent_Page_Output: {
             current_page: number;
@@ -4614,7 +4744,11 @@ export interface components {
             created_at: string;
             display_name: string;
             id: number;
+            mapped_at: string;
+            mapping_status: string;
             model_id: string;
+            official_catalog_version: string;
+            official_model_id: string;
             provider_id: number;
             status: number;
             status_name: string;
@@ -4622,6 +4756,16 @@ export interface components {
         };
         Go_internal_module_ai_agent_ProviderModelsResponse_Output: {
             list: components["schemas"]["Go_internal_module_ai_agent_ProviderModelDTO_Output"][];
+        };
+        Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output: {
+            max_history: components["schemas"]["Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output"];
+            temperature: components["schemas"]["Go_internal_module_ai_agent_TemperatureParameterCapability_Output"];
+        };
+        Go_internal_module_ai_agent_TemperatureParameterCapability_Output: {
+            default: number;
+            max: number;
+            min: number;
+            supported: boolean;
         };
         Go_internal_module_ai_knowledge_AgentKnowledgeBindingInput_Input: {
             knowledge_base_id?: number;
@@ -4788,55 +4932,79 @@ export interface components {
             ref: string;
             score: number;
         };
-        Go_internal_module_ai_modelpricing_ListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_ai_modelpricing_ModelPriceDTO_Output"][];
+        Go_internal_module_ai_officialmodel_CapabilityDTO_Output: {
+            image_input: components["schemas"]["Go_internal_module_ai_officialmodel_ImageInputCapability_Output"] | null;
+            input_modalities: string[];
+            native_file_input: boolean;
+            output_modalities: string[];
+            supported_parameters: string[];
+            supports_streaming: boolean;
+            supports_structured_output: boolean;
+            supports_tools: boolean;
         };
-        Go_internal_module_ai_modelpricing_ModelPriceDTO_Output: {
+        Go_internal_module_ai_officialmodel_ImageInputCapability_Output: {
+            max_bytes: number;
+            max_files: number;
+            mime_types: string[];
+        };
+        Go_internal_module_ai_officialmodel_ListResponse_Output: {
+            list: components["schemas"]["Go_internal_module_ai_officialmodel_OfficialModelDTO_Output"][];
+        };
+        Go_internal_module_ai_officialmodel_MutationResponse_Output: {
+            after: components["schemas"]["Go_internal_module_ai_officialmodel_PriceDTO_Output"];
+            before: components["schemas"]["Go_internal_module_ai_officialmodel_PriceDTO_Output"];
+        };
+        Go_internal_module_ai_officialmodel_OfficialModelDTO_Output: {
             aliases: string[];
+            capabilities: components["schemas"]["Go_internal_module_ai_officialmodel_CapabilityDTO_Output"];
             catalog_vendor: string;
             catalog_version: string;
             context_tier_threshold_tokens: number;
-            effective: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+            context_window_tokens: number;
+            effective: components["schemas"]["Go_internal_module_ai_officialmodel_PriceDTO_Output"];
+            lifecycle_status: string;
             max_output_tokens: number;
             model_family: string;
             model_id: string;
-            official: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
+            model_source_url: string;
+            official: components["schemas"]["Go_internal_module_ai_officialmodel_PriceDTO_Output"];
             pricing_profile: string;
+            pricing_source_url: string;
+            retrieved_at: string;
             review_after: string;
         };
-        Go_internal_module_ai_modelpricing_MutationResponse_Output: {
-            after: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
-            before: components["schemas"]["Go_internal_module_ai_modelpricing_PriceDTO_Output"];
-        };
-        Go_internal_module_ai_modelpricing_OptionDTO_Output: {
+        Go_internal_module_ai_officialmodel_OptionDTO_Output: {
             label: string;
             value: string;
         };
-        Go_internal_module_ai_modelpricing_PageInitDict_Output: {
-            family_options: components["schemas"]["Go_internal_module_ai_modelpricing_OptionDTO_Output"][];
+        Go_internal_module_ai_officialmodel_PageInitDict_Output: {
+            family_options: components["schemas"]["Go_internal_module_ai_officialmodel_OptionDTO_Output"][];
+            input_modality_options: components["schemas"]["Go_internal_module_ai_officialmodel_OptionDTO_Output"][];
+            lifecycle_options: components["schemas"]["Go_internal_module_ai_officialmodel_OptionDTO_Output"][];
+            vendor_options: components["schemas"]["Go_internal_module_ai_officialmodel_OptionDTO_Output"][];
         };
-        Go_internal_module_ai_modelpricing_PageInitResponse_Output: {
-            dict: components["schemas"]["Go_internal_module_ai_modelpricing_PageInitDict_Output"];
+        Go_internal_module_ai_officialmodel_PageInitResponse_Output: {
+            dict: components["schemas"]["Go_internal_module_ai_officialmodel_PageInitDict_Output"];
         };
-        Go_internal_module_ai_modelpricing_PriceDTO_Output: {
+        Go_internal_module_ai_officialmodel_PriceDTO_Output: {
             available: boolean;
             override_version: number;
             pricing_version: string;
-            rates: components["schemas"]["Go_internal_module_ai_modelpricing_RateDTO_Output"][];
+            rates: components["schemas"]["Go_internal_module_ai_officialmodel_RateDTO_Output"][];
             source: string;
             source_url: string;
             verified_at: string;
         };
-        Go_internal_module_ai_modelpricing_RateDTO_Output: {
+        Go_internal_module_ai_officialmodel_RateDTO_Output: {
             category: string;
             price: string;
             tier_key: string;
             unit: string;
             unit_scale: number;
         };
-        Go_internal_module_ai_modelpricing_transport_admin_rateRequest_Input: {
+        Go_internal_module_ai_officialmodel_transport_admin_rateRequest_Input: {
             /** @enum {string} */
-            category: "input" | "output" | "cache_read" | "cache_write";
+            category: "input" | "output" | "cache_read" | "cache_write" | "media";
             price: string;
             tier_key: string | null;
             unit: string;
@@ -4894,7 +5062,11 @@ export interface components {
             created_at: string;
             display_name: string;
             id: number;
+            mapped_at: string;
+            mapping_status: string;
             model_id: string;
+            official_catalog_version: string;
+            official_model_id: string;
             provider_id: number;
             status: number;
             status_name: string;
@@ -6173,7 +6345,6 @@ export interface components {
         post_api_admin_v1_ai_agents_Request: {
             avatar?: string;
             billing_multiplier?: string;
-            max_output_tokens?: number;
             model_id: string;
             name: string;
             provider_id: number;
@@ -6711,7 +6882,6 @@ export interface components {
         put_api_admin_v1_ai_agents_id_Request: {
             avatar?: string;
             billing_multiplier?: string;
-            max_output_tokens?: number;
             model_id: string;
             name: string;
             provider_id: number;
@@ -6768,16 +6938,16 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        put_api_admin_v1_ai_model_prices_model_id_Request: {
+        put_api_admin_v1_ai_official_models_model_id_price_Request: {
             expected_version: number | null;
-            rates: components["schemas"]["Go_internal_module_ai_modelpricing_transport_admin_rateRequest_Input"][];
+            rates: components["schemas"]["Go_internal_module_ai_officialmodel_transport_admin_rateRequest_Input"][];
             source_url: string;
             verified_at: string;
         };
-        put_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope: {
+        put_api_admin_v1_ai_official_models_model_id_price_ResponseEnvelope: {
             /** @constant */
             code: 0;
-            data: components["schemas"]["Go_internal_module_ai_modelpricing_MutationResponse_Output"];
+            data: components["schemas"]["Go_internal_module_ai_officialmodel_MutationResponse_Output"];
             msg: string;
         };
         put_api_admin_v1_ai_providers_id_models_Request: {
@@ -8644,11 +8814,14 @@ export interface operations {
             };
         };
     };
-    get_api_admin_v1_ai_model_prices: {
+    get_api_admin_v1_ai_official_models: {
         parameters: {
             query?: {
-                family?: "gpt" | "claude";
+                family?: string;
+                input_modality?: "text" | "image" | "audio" | "file";
+                lifecycle?: "active" | "deprecated" | "retired";
                 model_id?: string;
+                vendor?: string;
             };
             header?: never;
             path?: never;
@@ -8662,7 +8835,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_ResponseEnvelope"];
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_official_models_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8676,7 +8849,7 @@ export interface operations {
             };
         };
     };
-    get_api_admin_v1_ai_model_prices_model_id: {
+    get_api_admin_v1_ai_official_models_model_id: {
         parameters: {
             query?: never;
             header?: never;
@@ -8693,7 +8866,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope"];
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_official_models_model_id_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8707,7 +8880,7 @@ export interface operations {
             };
         };
     };
-    put_api_admin_v1_ai_model_prices_model_id: {
+    put_api_admin_v1_ai_official_models_model_id_price: {
         parameters: {
             query?: never;
             header?: never;
@@ -8718,7 +8891,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["put_api_admin_v1_ai_model_prices_model_id_Request"];
+                "application/json": components["schemas"]["put_api_admin_v1_ai_official_models_model_id_price_Request"];
             };
         };
         responses: {
@@ -8728,7 +8901,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_ai_model_prices_model_id_ResponseEnvelope"];
+                    "application/json": components["schemas"]["put_api_admin_v1_ai_official_models_model_id_price_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8742,7 +8915,7 @@ export interface operations {
             };
         };
     };
-    delete_api_admin_v1_ai_model_prices_model_id_override: {
+    delete_api_admin_v1_ai_official_models_model_id_price_override: {
         parameters: {
             query: {
                 expected_version: number;
@@ -8761,7 +8934,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_ai_model_prices_model_id_override_ResponseEnvelope"];
+                    "application/json": components["schemas"]["delete_api_admin_v1_ai_official_models_model_id_price_override_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8775,7 +8948,7 @@ export interface operations {
             };
         };
     };
-    get_api_admin_v1_ai_model_prices_page_init: {
+    get_api_admin_v1_ai_official_models_page_init: {
         parameters: {
             query?: never;
             header?: never;
@@ -8790,7 +8963,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_model_prices_page_init_ResponseEnvelope"];
+                    "application/json": components["schemas"]["get_api_admin_v1_ai_official_models_page_init_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -9506,6 +9679,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIRunStatsByUserSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_ai_runs_stats_latency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunLatencyStatsSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */

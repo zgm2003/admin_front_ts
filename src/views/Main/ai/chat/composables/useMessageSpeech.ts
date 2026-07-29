@@ -28,12 +28,19 @@ interface MessageSpeechOptions {
 
 function browserSynthesis(): SpeechSynthesisLike | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
-  return window.speechSynthesis
+  const synthesis = window.speechSynthesis
+  return {
+    getVoices: () => synthesis.getVoices(),
+    speak: (utterance) => synthesis.speak(utterance as SpeechSynthesisUtterance),
+    pause: () => synthesis.pause(),
+    resume: () => synthesis.resume(),
+    cancel: () => synthesis.cancel(),
+  }
 }
 
 function browserUtteranceFactory(): ((text: string) => SpeechUtteranceLike) | null {
   if (typeof SpeechSynthesisUtterance === 'undefined') return null
-  return (text) => new SpeechSynthesisUtterance(text)
+  return (text) => new SpeechSynthesisUtterance(text) as unknown as SpeechUtteranceLike
 }
 
 function selectVoice(voices: SpeechVoiceLike[]): SpeechVoiceLike | null {

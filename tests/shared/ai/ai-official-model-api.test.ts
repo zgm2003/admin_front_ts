@@ -1,82 +1,95 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { AiModelPriceApi } from '@/api/ai/model-prices'
+import { AiOfficialModelApi } from '@/api/ai/official-models'
 import { installApiClientHarness } from '../../helpers/api-client'
 
 const cleanups: Array<() => void> = []
 afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()))
 
-describe('AI model pricing API contract', () => {
-  it('uses generated list, detail, full override, and restore operations', async () => {
-    const harness = installApiClientHarness({ list: [] })
+describe('AI official model API contract', () => {
+  it('uses the final list, detail, complete price sync, and restore endpoints', async () => {
+    const harness = installApiClientHarness({ dict: {
+      vendor_options: [], family_options: [], lifecycle_options: [], input_modality_options: [],
+    } })
     cleanups.push(harness.uninstall)
 
-    await AiModelPriceApi.list({ family: 'gpt', model_id: '  gpt-5.4  ' })
-    const rate = { category: 'input', price: '2.5', tier_key: '', unit: 'token', unit_scale: 1_000_000 }
+    await AiOfficialModelApi.pageInit()
+    harness.respondWith({ list: [] })
+    await AiOfficialModelApi.list({
+      vendor: 'openai', family: 'gpt', lifecycle: 'active', input_modality: 'image', model_id: '  gpt-5.4  ',
+    })
+
+    const rate = { category: 'input' as const, price: '2.5', tier_key: '', unit: 'token', unit_scale: 1_000_000 }
     const official = {
       available: true,
       override_version: 0,
-      pricing_version: 'official_numeric_parity_v3',
+      pricing_version: 'official_models_v1',
       rates: [rate],
       source: 'official',
       source_url: 'https://developers.openai.com/api/docs/pricing',
       verified_at: '2026-07-27',
     }
     harness.respondWith({
-      aliases: [],
+      aliases: ['gpt-5.4-latest'],
+      capabilities: {
+        image_input: { max_bytes: 10_485_760, max_files: 5, mime_types: ['image/png'] },
+        input_modalities: ['text', 'image'],
+        native_file_input: false,
+        output_modalities: ['text'],
+        supported_parameters: ['temperature'],
+        supports_streaming: true,
+        supports_structured_output: true,
+        supports_tools: true,
+      },
       catalog_vendor: 'openai',
-      catalog_version: 'official_numeric_parity_v3',
+      catalog_version: 'official_models_v1',
       context_tier_threshold_tokens: 272_000,
+      context_window_tokens: 1_050_000,
       effective: official,
+      lifecycle_status: 'active',
       max_output_tokens: 128_000,
       model_family: 'gpt',
       model_id: 'gpt-5.4',
+      model_source_url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
       official,
       pricing_profile: 'standard_global',
-      review_after: '',
+      pricing_source_url: 'https://developers.openai.com/api/docs/pricing',
+      retrieved_at: '2026-07-27',
+      review_after: '2026-08-27',
     })
-    await AiModelPriceApi.detail({ model_id: 'gpt-5.4' })
+    await AiOfficialModelApi.detail({ model_id: 'gpt-5.4' })
 
     const rates = [
       { category: 'input' as const, price: '2.75', tier_key: 'short_context', unit: 'token', unit_scale: 1_000_000 },
       { category: 'output' as const, price: '16.5', tier_key: 'short_context', unit: 'token', unit_scale: 1_000_000 },
     ]
     harness.respondWith({ before: official, after: { ...official, source: 'override', override_version: 3 } })
-    await AiModelPriceApi.update({
+    await AiOfficialModelApi.syncPrice({
       model_id: 'gpt-5.4',
       expected_version: 3,
       rates,
       source_url: 'https://developers.openai.com/api/docs/pricing',
       verified_at: '2026-07-27',
     })
-    await AiModelPriceApi.restore({ model_id: 'gpt-5.4', expected_version: 4 })
+    await AiOfficialModelApi.restoreOfficialPrice({ model_id: 'gpt-5.4', expected_version: 4 })
 
     expect(harness.requests.map(({ method, path, query, body }) => ({ method, path, query, body }))).toEqual([
+      { method: 'GET', path: '/api/admin/v1/ai-official-models/page-init', query: undefined, body: undefined },
       {
         method: 'GET',
-        path: '/api/admin/v1/ai-model-prices',
-        query: { family: 'gpt', model_id: 'gpt-5.4' },
+        path: '/api/admin/v1/ai-official-models',
+        query: { vendor: 'openai', family: 'gpt', lifecycle: 'active', input_modality: 'image', model_id: 'gpt-5.4' },
         body: undefined,
       },
-      {
-        method: 'GET',
-        path: '/api/admin/v1/ai-model-prices/gpt-5.4',
-        query: undefined,
-        body: undefined,
-      },
+      { method: 'GET', path: '/api/admin/v1/ai-official-models/gpt-5.4', query: undefined, body: undefined },
       {
         method: 'PUT',
-        path: '/api/admin/v1/ai-model-prices/gpt-5.4',
+        path: '/api/admin/v1/ai-official-models/gpt-5.4/price',
         query: undefined,
-        body: {
-          expected_version: 3,
-          rates,
-          source_url: 'https://developers.openai.com/api/docs/pricing',
-          verified_at: '2026-07-27',
-        },
+        body: { expected_version: 3, rates, source_url: 'https://developers.openai.com/api/docs/pricing', verified_at: '2026-07-27' },
       },
       {
         method: 'DELETE',
-        path: '/api/admin/v1/ai-model-prices/gpt-5.4/override',
+        path: '/api/admin/v1/ai-official-models/gpt-5.4/price-override',
         query: { expected_version: 4 },
         body: undefined,
       },
@@ -87,9 +100,9 @@ describe('AI model pricing API contract', () => {
     const harness = installApiClientHarness({ list: [] })
     cleanups.push(harness.uninstall)
 
-    await AiModelPriceApi.list({ family: '', model_id: '   ' })
+    await AiOfficialModelApi.list({ vendor: '', family: '', lifecycle: '', input_modality: '', model_id: '   ' })
     expect(harness.requests[0]?.query).toEqual({})
-    expect(() => AiModelPriceApi.detail({ model_id: '   ' })).toThrow(/model id/i)
+    expect(() => AiOfficialModelApi.detail({ model_id: '   ' })).toThrow(/model id/i)
     expect(harness.requests).toHaveLength(1)
   })
 })

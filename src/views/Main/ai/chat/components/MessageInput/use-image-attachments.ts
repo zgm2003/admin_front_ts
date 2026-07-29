@@ -1,13 +1,13 @@
-import { computed, ref } from 'vue'
+import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/lib/upload'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
+import type { AiChatAttachment, AiMessageAttachmentRequest } from '@/api/ai/messages'
 
 export interface Attachment {
-  type: 'image'
-  url: string
-  name: string
-  size: number
+  request: AiMessageAttachmentRequest
+  preview: AiChatAttachment
 }
 
 export interface PendingAttachment {
@@ -16,10 +16,46 @@ export interface PendingAttachment {
   preview: string
   status: 'pending' | 'uploading' | 'done' | 'error'
   url?: string
+  objectKey?: string
   error?: string
 }
 
-const MAX_IMAGES = 5
+export interface ImageFileCandidate {
+  name: string
+  type: string
+  size: number
+}
+
+export interface ImageSelectionResult<T> {
+  accepted: T[]
+  rejected: { type: number; size: number; limit: number }
+}
+
+export function selectImageFiles<T extends ImageFileCandidate>(
+  files: readonly T[],
+  capability: { enabled: boolean; mime_types: string[]; max_files: number; max_file_bytes: number },
+  currentCount: number,
+): ImageSelectionResult<T> {
+  const accepted: T[] = []
+  const rejected = { type: 0, size: 0, limit: 0 }
+  const mimeTypes = new Set(capability.mime_types)
+  for (const file of files) {
+    if (!capability.enabled || !mimeTypes.has(file.type)) {
+      rejected.type += 1
+      continue
+    }
+    if (file.size > capability.max_file_bytes) {
+      rejected.size += 1
+      continue
+    }
+    if (currentCount + accepted.length >= capability.max_files) {
+      rejected.limit += 1
+      continue
+    }
+    accepted.push(file)
+  }
+  return { accepted, rejected }
+}
 
 function createPreview(file: File): Promise<string> {
   return new Promise((resolve) => {
@@ -31,13 +67,27 @@ function createPreview(file: File): Promise<string> {
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 
-export function useImageAttachments() {
+type ImageCapability = AiAgentEffectiveCapabilities['attachments']['image']
+
+const disabledImageCapability: ImageCapability = {
+  enabled: false,
+  mime_types: [],
+  max_files: 0,
+  max_file_bytes: 0,
+}
+
+export function useImageAttachments(capability: MaybeRefOrGetter<ImageCapability | undefined>) {
   const { t } = useI18n()
   const fileInputRef = ref<HTMLInputElement>()
   const pendingAttachments = ref<PendingAttachment[]>([])
   const isDragging = ref(false)
-  const supportsImage = computed(() => true)
-  const isImageLimitReached = computed(() => pendingAttachments.value.length >= MAX_IMAGES)
+  const imageCapability = computed(() => toValue(capability) ?? disabledImageCapability)
+  const supportsImage = computed(() => imageCapability.value.enabled)
+  const imageAccept = computed(() => imageCapability.value.mime_types.join(','))
+  const isImageLimitReached = computed(() => (
+    !supportsImage.value
+    || pendingAttachments.value.length >= imageCapability.value.max_files
+  ))
 
   function setFileInputRef(element: unknown) {
     fileInputRef.value = element as HTMLInputElement | undefined
@@ -75,6 +125,7 @@ export function useImageAttachments() {
     try {
       const result = await uploadFileToCloud(pending.file, config)
       item.url = result.url
+      item.objectKey = result.key
       item.status = 'done'
     } catch {
       item.status = 'error'
@@ -89,19 +140,26 @@ export function useImageAttachments() {
       return
     }
 
-    const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'))
-    const availableSlots = MAX_IMAGES - pendingAttachments.value.length
-    if (availableSlots <= 0) {
-      ElNotification.warning({ message: t('aiChat.maxImagesReached', { max: MAX_IMAGES }) })
-      return
+    const selection = selectImageFiles(
+      Array.from(files),
+      imageCapability.value,
+      pendingAttachments.value.length,
+    )
+    if (selection.rejected.type > 0) {
+      ElNotification.warning({ message: t('aiChat.imageTypeUnsupported') })
+    }
+    if (selection.rejected.size > 0) {
+      ElNotification.warning({
+        message: t('aiChat.imageTooLarge', { max: imageCapability.value.max_file_bytes }),
+      })
+    }
+    if (selection.rejected.limit > 0) {
+      ElNotification.warning({
+        message: t('aiChat.maxImagesReached', { max: imageCapability.value.max_files }),
+      })
     }
 
-    const filesToAdd = imageFiles.slice(0, availableSlots)
-    if (filesToAdd.length < imageFiles.length) {
-      ElNotification.warning({ message: t('aiChat.maxImagesReached', { max: MAX_IMAGES }) })
-    }
-
-    for (const file of filesToAdd) {
+    for (const file of selection.accepted) {
       const pending: PendingAttachment = {
         id: generateId(),
         file,
@@ -127,6 +185,15 @@ export function useImageAttachments() {
     if (index !== -1) pendingAttachments.value.splice(index, 1)
   }
 
+  function clearAttachments(ids?: readonly string[]) {
+    if (!ids) {
+      pendingAttachments.value = []
+      return
+    }
+    const removed = new Set(ids)
+    pendingAttachments.value = pendingAttachments.value.filter((item) => !removed.has(item.id))
+  }
+
   function handlePaste(event: ClipboardEvent) {
     if (!supportsImage.value || !event.clipboardData?.items) return
     const imageFiles = Array.from(event.clipboardData.items)
@@ -145,14 +212,16 @@ export function useImageAttachments() {
   }
 
   function handleDragLeave(event: DragEvent) {
+    if (!supportsImage.value) return
     event.preventDefault()
     isDragging.value = false
   }
 
   function handleDrop(event: DragEvent) {
+    if (!supportsImage.value) return
     event.preventDefault()
     isDragging.value = false
-    if (supportsImage.value && event.dataTransfer?.files.length) {
+    if (event.dataTransfer?.files.length) {
       void addImageFiles(event.dataTransfer.files)
     }
   }
@@ -162,10 +231,12 @@ export function useImageAttachments() {
     pendingAttachments,
     isDragging,
     supportsImage,
+    imageAccept,
     isImageLimitReached,
     handleUploadClick,
     handleFileChange,
     removeAttachment,
+    clearAttachments,
     handlePaste,
     handleDragOver,
     handleDragLeave,

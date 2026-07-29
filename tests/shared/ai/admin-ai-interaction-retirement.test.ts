@@ -10,7 +10,9 @@ const retiredPaths = [
   'src/views/Main/ai/assets',
   'src/api/ai/prompts.ts',
   'src/api/ai/images.ts',
-  'src/api/ai/assets.ts'
+  'src/api/ai/assets.ts',
+  'src/api/ai/model-prices.ts',
+  'src/views/Main/ai/model-pricing',
 ]
 
 describe('admin AI interactive surfaces are retired', () => {
@@ -38,5 +40,27 @@ describe('admin AI interactive surfaces are retired', () => {
     ]) {
       expect(combined).not.toContain(token)
     }
+  })
+
+  test('ships only the official model route and permission vocabulary', () => {
+    expect(existsSync(join(root, 'src/api/ai/official-models.ts'))).toBe(true)
+    expect(existsSync(join(root, 'src/views/Main/ai/official-models/index.vue'))).toBe(true)
+
+    const sourceRoots = ['src/api/ai', 'src/views/Main/ai', 'src/i18n/locales']
+    const files: string[] = []
+    function collect(directory: string) {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name)
+        if (entry.isDirectory()) collect(path)
+        else if (/\.(ts|vue|css)$/.test(entry.name)) files.push(path)
+      }
+    }
+    sourceRoots.forEach((directory) => collect(join(root, directory)))
+    const source = files.sort().map((file) => readFileSync(file, 'utf8')).join('\n')
+    for (const retired of ['model-pricing', 'ai-model-prices', 'ai_model_pricing', 'aiModelPricing']) {
+      expect(source).not.toContain(retired)
+    }
+    expect(source).toContain('ai_official_model_price_sync')
+    expect(source).toContain('aiOfficialModel')
   })
 })

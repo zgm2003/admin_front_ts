@@ -2,24 +2,37 @@ import { computed, onMounted, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import {
-  AiModelPriceApi,
-  type AiModelPriceFamily,
-  type AiModelPriceItem,
-  type AiModelPricePageInitResponse,
-  type AiModelPriceUpdateParams,
-} from '@/api/ai/model-prices'
+  AiOfficialModelApi,
+  type AiOfficialModelItem,
+  type AiOfficialModelLifecycle,
+  type AiOfficialModelPageInitResponse,
+  type AiOfficialModelPriceSyncParams,
+} from '@/api/ai/official-models'
 import type { SearchField } from '@/components/Search/types'
 import { isApiError } from '@/modules/http/error'
 import { useUserStore } from '@/store/user'
 
-export interface ModelPricingSearchForm {
-  family: AiModelPriceFamily | ''
+export interface OfficialModelSearchForm {
+  vendor: string
+  family: string
+  lifecycle: AiOfficialModelLifecycle | ''
+  input_modality: string
   model_id: string
 }
 
-export type ModelPriceOverrideForm = Omit<AiModelPriceUpdateParams, 'model_id'>
+export type OfficialModelPriceSyncForm = Omit<AiOfficialModelPriceSyncParams, 'model_id'>
 
-export function useModelPricingPage() {
+const emptyDict = (): AiOfficialModelPageInitResponse['dict'] => ({
+  vendor_options: [],
+  family_options: [],
+  lifecycle_options: [],
+  input_modality_options: [],
+})
+
+type CurrentPermissionCode = Parameters<ReturnType<typeof useUserStore>['can']>[0]
+const officialModelPriceSyncPermission = 'ai_official_model_price_sync' as CurrentPermissionCode
+
+export function useOfficialModelPage() {
   const { t } = useI18n()
   const userStore = useUserStore()
   const loading = ref(false)
@@ -27,32 +40,25 @@ export function useModelPricingPage() {
   const saving = ref(false)
   const restoringModelID = ref('')
   const drawerVisible = ref(false)
-  const listData = shallowRef<AiModelPriceItem[]>([])
-  const selectedPrice = shallowRef<AiModelPriceItem | null>(null)
-  const familyOptions = shallowRef<AiModelPricePageInitResponse['dict']['family_options']>([])
-  const searchForm = ref<ModelPricingSearchForm>({ family: '', model_id: '' })
-  const canEdit = computed(() => userStore.can('ai_model_pricing_edit'))
+  const listData = shallowRef<AiOfficialModelItem[]>([])
+  const selectedModel = shallowRef<AiOfficialModelItem | null>(null)
+  const dict = shallowRef(emptyDict())
+  const searchForm = ref<OfficialModelSearchForm>({
+    vendor: '', family: '', lifecycle: '', input_modality: '', model_id: '',
+  })
+  const canSyncPrice = computed(() => userStore.can(officialModelPriceSyncPermission))
   const searchFields = computed<SearchField[]>(() => [
-    {
-      key: 'family',
-      type: 'select-v2',
-      label: t('aiModelPricing.filters.family'),
-      placeholder: t('aiModelPricing.filters.family'),
-      options: familyOptions.value,
-    },
-    {
-      key: 'model_id',
-      type: 'input',
-      label: t('aiModelPricing.filters.model'),
-      placeholder: t('aiModelPricing.filters.modelPlaceholder'),
-      width: 240,
-    },
+    { key: 'vendor', type: 'select-v2', label: t('aiOfficialModel.filters.vendor'), placeholder: t('aiOfficialModel.filters.vendor'), options: dict.value.vendor_options, width: 140 },
+    { key: 'family', type: 'select-v2', label: t('aiOfficialModel.filters.family'), placeholder: t('aiOfficialModel.filters.family'), options: dict.value.family_options, width: 140 },
+    { key: 'lifecycle', type: 'select-v2', label: t('aiOfficialModel.filters.lifecycle'), placeholder: t('aiOfficialModel.filters.lifecycle'), options: dict.value.lifecycle_options, width: 140 },
+    { key: 'input_modality', type: 'select-v2', label: t('aiOfficialModel.filters.inputModality'), placeholder: t('aiOfficialModel.filters.inputModality'), options: dict.value.input_modality_options, width: 150 },
+    { key: 'model_id', type: 'input', label: t('aiOfficialModel.filters.model'), placeholder: t('aiOfficialModel.filters.modelPlaceholder'), width: 240 },
   ])
 
   async function getList() {
     loading.value = true
     try {
-      const response = await AiModelPriceApi.list(searchForm.value)
+      const response = await AiOfficialModelApi.list(searchForm.value)
       listData.value = response.list
     } finally {
       loading.value = false
@@ -63,10 +69,10 @@ export function useModelPricingPage() {
     loading.value = true
     try {
       const [pageInit, list] = await Promise.all([
-        AiModelPriceApi.pageInit(),
-        AiModelPriceApi.list(searchForm.value),
+        AiOfficialModelApi.pageInit(),
+        AiOfficialModelApi.list(searchForm.value),
       ])
-      familyOptions.value = pageInit.dict.family_options
+      dict.value = pageInit.dict
       listData.value = list.list
     } finally {
       loading.value = false
@@ -77,93 +83,72 @@ export function useModelPricingPage() {
     void getList()
   }
 
-  async function openEdit(row: AiModelPriceItem) {
-    if (!canEdit.value) return
-    selectedPrice.value = row
+  async function openDetail(row: AiOfficialModelItem) {
+    selectedModel.value = row
     drawerVisible.value = true
     drawerLoading.value = true
     try {
-      selectedPrice.value = await AiModelPriceApi.detail({ model_id: row.model_id })
+      selectedModel.value = await AiOfficialModelApi.detail({ model_id: row.model_id })
     } finally {
       drawerLoading.value = false
     }
   }
 
-  async function saveOverride(form: ModelPriceOverrideForm) {
-    const current = selectedPrice.value
-    if (!canEdit.value || !current || saving.value) return
+  async function syncPrice(form: OfficialModelPriceSyncForm) {
+    const current = selectedModel.value
+    if (!canSyncPrice.value || !current || saving.value) return
     saving.value = true
     try {
-      await AiModelPriceApi.update({ model_id: current.model_id, ...form })
-      ElNotification.success({ message: t('aiModelPricing.messages.saved') })
-      drawerVisible.value = false
+      await AiOfficialModelApi.syncPrice({ model_id: current.model_id, ...form })
+      ElNotification.success({ message: t('aiOfficialModel.messages.saved') })
+      selectedModel.value = await AiOfficialModelApi.detail({ model_id: current.model_id })
       await getList()
     } catch (error) {
       if (!isVersionConflict(error)) throw error
-      selectedPrice.value = await AiModelPriceApi.detail({ model_id: current.model_id })
-      ElNotification.warning({ message: t('aiModelPricing.messages.versionConflict') })
+      selectedModel.value = await AiOfficialModelApi.detail({ model_id: current.model_id })
+      ElNotification.warning({ message: t('aiOfficialModel.messages.versionConflict') })
     } finally {
       saving.value = false
     }
   }
 
-  async function restoreOfficial(row: AiModelPriceItem) {
-    if (
-      !canEdit.value
-      || restoringModelID.value
-      || row.effective.source !== 'override'
-      || row.effective.override_version <= 0
-    ) return
-
+  async function restoreOfficialPrice(row: AiOfficialModelItem) {
+    if (!canSyncPrice.value || restoringModelID.value || row.effective.source !== 'override' || row.effective.override_version <= 0) return
     await ElMessageBox.confirm(
-      t('aiModelPricing.messages.restoreConfirm', { model: row.model_id }),
+      t('aiOfficialModel.messages.restoreConfirm', { model: row.model_id }),
       t('common.confirmTitle'),
       { type: 'warning' },
     )
     restoringModelID.value = row.model_id
     try {
-      await AiModelPriceApi.restore({
+      await AiOfficialModelApi.restoreOfficialPrice({
         model_id: row.model_id,
         expected_version: row.effective.override_version,
       })
-      ElNotification.success({ message: t('aiModelPricing.messages.restored') })
+      ElNotification.success({ message: t('aiOfficialModel.messages.restored') })
+      if (selectedModel.value?.model_id === row.model_id) {
+        selectedModel.value = await AiOfficialModelApi.detail({ model_id: row.model_id })
+      }
       await getList()
     } catch (error) {
       if (!isVersionConflict(error)) throw error
-      ElNotification.warning({ message: t('aiModelPricing.messages.versionConflict') })
+      ElNotification.warning({ message: t('aiOfficialModel.messages.versionConflict') })
       await getList()
     } finally {
       restoringModelID.value = ''
     }
   }
 
-  onMounted(() => {
-    void init()
-  })
+  onMounted(() => { void init() })
 
   return {
-    t,
-    loading,
-    drawerLoading,
-    saving,
-    restoringModelID,
-    drawerVisible,
-    listData,
-    selectedPrice,
-    familyOptions,
-    searchForm,
-    searchFields,
-    canEdit,
-    init,
-    getList,
-    onSearch,
-    openEdit,
-    saveOverride,
-    restoreOfficial,
+    t, loading, drawerLoading, saving, restoringModelID, drawerVisible,
+    listData, selectedModel, dict, searchForm, searchFields, canSyncPrice,
+    init, getList, onSearch, openDetail, syncPrice, restoreOfficialPrice,
   }
 }
 
 function isVersionConflict(error: unknown): boolean {
   return isApiError(error)
-    && (error.status === 409 || error.code === 'ai.model_pricing.version_conflict')
+    && (error.status === 409 || error.code === 'ai.official_model.version_conflict')
 }

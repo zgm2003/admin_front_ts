@@ -28,49 +28,38 @@ interface AgentForm {
   system_prompt: string
   avatar: string
   billing_multiplier: string
-  max_output_tokens: number
+}
+
+export function selectableProviderModels(models: readonly AiAgentProviderModelOption[]): AiAgentProviderModelOption[] {
+  return models.filter((model) => model.official_model?.lifecycle_status === 'active')
+}
+
+export function modelRequiresChange(model: Pick<AiAgentProviderModelOption, 'official_model'> | null | undefined): boolean {
+  return !model?.official_model || model.official_model.lifecycle_status === 'retired'
+}
+
+export function modelCanUseTools(model: Pick<AiAgentProviderModelOption, 'capabilities'> | Pick<AiAgentItem, 'capabilities'> | null | undefined): boolean {
+  return model?.capabilities?.supports_tools === true
 }
 
 export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
   const { t } = useI18n()
   const isMobile = useIsMobile()
-
   const dict = shallowRef<AiAgentInitResponse['dict']>({
-    billing_multiplier_default: '',
-    max_output_tokens_default: 0,
-    scene_arr: [],
-    common_status_arr: [],
-    provider_options: [],
-    provider_model_options: [],
+    billing_multiplier_default: '', scene_arr: [], common_status_arr: [], provider_options: [], provider_model_options: [],
   })
-
   const searchForm = ref({
-    name: '',
-    scene: '' as AiAgentScene | '',
-    provider_id: '' as number | '',
-    status: '' as AiAgentStatus | '',
+    name: '', scene: '' as AiAgentScene | '', provider_id: '' as number | '', status: '' as AiAgentStatus | '',
   })
-
   const {
-    loading: listLoading,
-    data: listData,
-    page,
-    onSearch,
-    onPageChange,
-    refresh,
-    getList,
-    confirmDel,
-    toggleStatus,
-  } = useCrudTable<AiAgentItem>({
-    api: AiAgentApi,
-    searchForm,
-  })
+    loading: listLoading, data: listData, page, onSearch, onPageChange, refresh, getList, confirmDel, toggleStatus,
+  } = useCrudTable<AiAgentItem>({ api: AiAgentApi, searchForm })
 
   const dialogVisible = ref(false)
   const dialogMode = ref<'add' | 'edit'>('add')
   const form = ref<AgentForm>(defaultForm())
-  const modelLoading = ref(false)
   const modelOptions = ref<CascaderOption[]>([])
+  const editingModel = shallowRef<AiAgentProviderModelOption | null>(null)
   const toolDialogVisible = ref(false)
   const toolAgent = shallowRef<AiAgentItem | null>(null)
   const knowledgeDialogVisible = ref(false)
@@ -78,14 +67,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
 
   function defaultForm(): AgentForm {
     return {
-      name: '',
-      model_path: [],
-      scenes: ['chat'],
-      status: CommonEnum.YES,
-      system_prompt: '',
-      avatar: '',
-      billing_multiplier: dict.value.billing_multiplier_default,
-      max_output_tokens: dict.value.max_output_tokens_default,
+      name: '', model_path: [], scenes: ['chat'], status: CommonEnum.YES,
+      system_prompt: '', avatar: '', billing_multiplier: dict.value.billing_multiplier_default,
     }
   }
 
@@ -95,7 +78,6 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     scenes: [{ required: true, type: 'array', min: 1, message: t('aiAgents.form.scenes') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiAgents.form.status') + t('common.required'), trigger: 'change' }],
     billing_multiplier: [{ required: true, message: t('aiAgents.form.billingMultiplier') + t('common.required'), trigger: 'blur' }],
-    max_output_tokens: [{ required: true, type: 'number', min: 1, message: t('aiAgents.form.maxOutput') + t('common.required'), trigger: 'change' }],
   }))
 
   const searchFields = computed<SearchField[]>(() => [
@@ -109,44 +91,35 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     { key: 'avatar', label: t('aiAgents.table.avatar'), width: 80 },
     { key: 'name', label: t('aiAgents.table.name'), minWidth: 160 },
     { key: 'provider_name', label: t('aiAgents.table.provider'), width: 160 },
-    { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 180 },
+    { key: 'model_id', label: t('aiAgents.table.model'), minWidth: 190 },
     { key: 'billing_multiplier', label: t('aiAgents.table.billingMultiplier'), width: 140 },
-    { key: 'max_output_tokens', label: t('aiAgents.table.maxOutput'), width: 120 },
     { key: 'scenes', label: t('aiAgents.table.scenes'), width: 150 },
     { key: 'status', label: t('aiAgents.table.status'), width: 90 },
     { key: 'updated_at', label: t('aiAgents.table.updatedAt'), width: 160 },
     { key: 'actions', label: t('common.actions.action'), width: 520 },
   ])
 
-  watch(
-    () => dialogVisible.value,
-    (visible) => {
-      if (!visible) return
-      void loadModelOptions()
-    }
-  )
+  watch(() => dialogVisible.value, (visible) => {
+    if (visible) modelOptions.value = buildModelOptions()
+  })
 
   const selectedModel = computed<AiAgentProviderModelOption | null>(() => {
     const [providerID, modelID] = form.value.model_path
     if (!providerID || !modelID) return null
-    return dict.value.provider_model_options.find((model) => (
-      model.provider_id === providerID && model.model_id === modelID
-    )) ?? null
+    return dict.value.provider_model_options.find((model) => model.provider_id === providerID && model.model_id === modelID)
+      ?? (editingModel.value?.provider_id === providerID && editingModel.value.model_id === modelID ? editingModel.value : null)
   })
 
-  const displayedCatalogRates = computed(() => (
-    selectedModel.value?.catalog_rates?.map((rate) => ({
-      ...rate,
-      reference_price: multipliedPrice(rate.price, form.value.billing_multiplier),
-    })) ?? []
-  ))
+  const displayedCatalogRates = computed(() => selectedModel.value?.catalog_rates?.map((rate) => ({
+    ...rate,
+    reference_price: multipliedPrice(rate.price, form.value.billing_multiplier),
+  })) ?? [])
+
+  const selectedModelRequiresChange = computed(() => modelRequiresChange(selectedModel.value))
+  const selectedModelSupportsTools = computed(() => modelCanUseTools(selectedModel.value))
 
   function multipliedPrice(price: string, multiplier: string): string {
-    try {
-      return multiplyDecimalStrings(price, multiplier)
-    } catch {
-      return ''
-    }
+    try { return multiplyDecimalStrings(price, multiplier) } catch { return '' }
   }
 
   async function init() {
@@ -159,59 +132,46 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
         { label: t('aiAgents.scene.textGenerate'), value: 'text_generate' },
         { label: t('aiAgents.scene.imageGenerate'), value: 'image_generate' },
       ],
+      provider_model_options: selectableProviderModels(data.dict.provider_model_options),
     }
     modelOptions.value = buildModelOptions()
   }
 
-  async function loadModelOptions() {
-    const providerID = form.value.model_path[0]
-    if (!providerID) {
-      modelOptions.value = buildModelOptions()
-      return
-    }
-    modelLoading.value = true
-    try {
-      const result = await AiAgentApi.models({ provider_id: providerID })
-      const providerModels = result.list.map((model) => ({
-        label: model.display_name || model.model_id,
-        value: model.model_id,
-      }))
-      modelOptions.value = withProviderChildren(providerID, providerModels)
-    } finally {
-      modelLoading.value = false
-    }
-  }
-
-  async function onModelChange() {
-    const model = selectedModel.value
-    if (model) {
-      form.value.billing_multiplier = model.billing_multiplier
-      form.value.max_output_tokens = model.max_output_tokens
-    }
-    await loadModelOptions()
-  }
-
   function buildModelOptions(): CascaderOption[] {
     const grouped = new Map<number, CascaderOption[]>()
-    for (const model of dict.value.provider_model_options) {
-      const list = grouped.get(model.provider_id) ?? []
-      list.push({ label: model.display_name || model.model_id, value: model.model_id })
-      grouped.set(model.provider_id, list)
+    for (const model of selectableProviderModels(dict.value.provider_model_options)) {
+      const children = grouped.get(model.provider_id) ?? []
+      children.push({ label: model.display_name || model.model_id, value: model.model_id })
+      grouped.set(model.provider_id, children)
+    }
+    const current = editingModel.value
+    const currentLifecycle = current?.official_model?.lifecycle_status
+    if (current && currentLifecycle && currentLifecycle !== 'active') {
+      const children = grouped.get(current.provider_id) ?? []
+      if (!children.some((child) => child.value === current.model_id)) {
+        children.unshift({
+          label: `${current.display_name || current.model_id} · ${t(`aiAgents.official.lifecycle.${currentLifecycle}`)}`,
+          value: current.model_id,
+          disabled: true,
+        })
+      }
+      grouped.set(current.provider_id, children)
     }
     return dict.value.provider_options.map((provider) => ({
-      label: provider.label,
-      value: provider.value,
-      children: grouped.get(provider.value) ?? [],
+      label: provider.label, value: provider.value, children: grouped.get(provider.value) ?? [],
     }))
   }
 
-  function withProviderChildren(providerID: number, children: CascaderOption[]): CascaderOption[] {
-    const fallback = buildModelOptions()
-    return fallback.map((provider) => provider.value === providerID ? { ...provider, children } : provider)
+  function onModelChange() {
+    const model = selectedModel.value
+    if (model) form.value.billing_multiplier = model.billing_multiplier
+    if (editingModel.value && model && model.model_id !== editingModel.value.model_id) editingModel.value = null
+    modelOptions.value = buildModelOptions()
   }
 
   function add() {
     dialogMode.value = 'add'
+    editingModel.value = null
     form.value = defaultForm()
     dialogVisible.value = true
     void nextTick(() => formRef.value?.clearValidate())
@@ -219,22 +179,23 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
 
   function edit(row: AiAgentItem) {
     dialogMode.value = 'edit'
+    editingModel.value = optionFromAgent(row)
     form.value = {
-      id: row.id,
-      name: row.name,
+      id: row.id, name: row.name,
       model_path: row.provider_id && row.model_id ? [row.provider_id, row.model_id] : [],
-      scenes: row.scenes.length > 0 ? row.scenes : ['chat'],
-      status: row.status,
-      system_prompt: row.system_prompt ?? '',
-      avatar: row.avatar ?? '',
-      billing_multiplier: row.billing_multiplier,
-      max_output_tokens: row.max_output_tokens,
+      scenes: row.scenes.length > 0 ? row.scenes : ['chat'], status: row.status,
+      system_prompt: row.system_prompt ?? '', avatar: row.avatar ?? '', billing_multiplier: row.billing_multiplier,
     }
+    modelOptions.value = buildModelOptions()
     dialogVisible.value = true
     void nextTick(() => formRef.value?.clearValidate())
   }
 
   function openTools(row: AiAgentItem) {
+    if (!modelCanUseTools(row)) {
+      ElNotification.warning({ message: t('aiAgents.tools.unsupported') })
+      return
+    }
     toolAgent.value = row
     toolDialogVisible.value = true
   }
@@ -251,54 +212,62 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
 
   async function confirmSubmit() {
     if (!formRef.value) return
-    try {
-      await formRef.value.validate()
-    } catch {
-      return
-    }
-    const modelPath = form.value.model_path
-    const providerID = modelPath[0]
-    const modelID = modelPath[1]
+    try { await formRef.value.validate() } catch { return }
+    const [providerID, modelID] = form.value.model_path
     if (!providerID || !modelID) {
       ElNotification.warning({ message: t('aiAgents.form.model') + t('common.required') })
       return
     }
-    const payload: AiAgentMutationParams = {
-      id: form.value.id,
-      name: form.value.name,
-      provider_id: providerID,
-      model_id: modelID,
-      scenes: form.value.scenes,
-      status: form.value.status,
-      system_prompt: form.value.system_prompt,
-      avatar: form.value.avatar,
-      billing_multiplier: form.value.billing_multiplier,
-      max_output_tokens: form.value.max_output_tokens,
+    if (selectedModelRequiresChange.value) {
+      ElNotification.warning({ message: t('aiAgents.official.retiredWarning') })
+      return
     }
-    const api = dialogMode.value === 'add' ? AiAgentApi.create : AiAgentApi.update
-    await api(payload)
+    const payload: AiAgentMutationParams = {
+      id: form.value.id, name: form.value.name, provider_id: providerID, model_id: modelID,
+      scenes: form.value.scenes, status: form.value.status, system_prompt: form.value.system_prompt,
+      avatar: form.value.avatar, billing_multiplier: form.value.billing_multiplier,
+    }
+    await (dialogMode.value === 'add' ? AiAgentApi.create : AiAgentApi.update)(payload)
     ElNotification.success({ message: t('common.success.operation') })
     dialogVisible.value = false
     await getList()
   }
 
   function sceneText(row: AiAgentItem): string {
-    if (row.scene_names?.length) return row.scene_names.join(' / ')
-    return row.scenes.join(' / ')
+    return row.scene_names?.length ? row.scene_names.join(' / ') : row.scenes.join(' / ')
   }
 
-  onMounted(() => {
-    void init()
-    void getList()
-  })
+  onMounted(() => { void init(); void getList() })
 
   return {
     t, isMobile, dict, searchForm, searchFields, columns,
-    listLoading, listData, page, onSearch, onPageChange, refresh, getList,
-    confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
-    modelLoading, modelOptions, toolDialogVisible, toolAgent,
-    knowledgeDialogVisible, knowledgeAgent, loadModelOptions,
-    selectedModel, displayedCatalogRates, onModelChange,
-    add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
+    listLoading, listData, page, onSearch, onPageChange, refresh, getList, confirmDel, toggleStatus,
+    dialogVisible, dialogMode, form, rules, modelOptions, toolDialogVisible, toolAgent,
+    knowledgeDialogVisible, knowledgeAgent, selectedModel, displayedCatalogRates,
+    selectedModelRequiresChange, selectedModelSupportsTools, onModelChange,
+    add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText, modelCanUseTools,
+  }
+}
+
+function optionFromAgent(row: AiAgentItem): AiAgentProviderModelOption {
+  return {
+    label: row.model_display_name || row.model_id,
+    value: row.model_id,
+    provider_id: row.provider_id,
+    model_id: row.model_id,
+    display_name: row.model_display_name,
+    billing_multiplier: row.billing_multiplier,
+    official_model: row.official_model,
+    capabilities: row.capabilities,
+    pricing_version: row.pricing_version,
+    catalog_version: row.catalog_version,
+    catalog_vendor: row.catalog_vendor,
+    catalog_model_id: row.catalog_model_id,
+    price_source: row.price_source,
+    override_version: row.override_version,
+    price_source_url: row.price_source_url,
+    price_verified_at: row.price_verified_at,
+    context_tier_threshold_tokens: row.context_tier_threshold_tokens,
+    catalog_rates: row.catalog_rates,
   }
 }

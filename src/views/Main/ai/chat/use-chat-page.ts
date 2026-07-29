@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { insufficientBalanceFromFailedEvent } from '@/api/ai/billing-error'
 import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
-import { type AiChatAttachment, type AIRuntimeParams } from '@/api/ai/messages'
+import { type AIRuntimeParams } from '@/api/ai/messages'
 import { createAiRequestId } from '@/api/ai/request-id'
 import { useAppKernel } from '@/app/injection'
 import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
@@ -20,6 +20,12 @@ import {
 } from './composables'
 import type { Agent, Conversation, Message } from './composables/types'
 import { createConversationTitle } from './conversation-title'
+import type { Attachment } from './components/MessageInput/use-image-attachments'
+import {
+  prepareCapabilityTransition,
+  type CapabilityConflicts,
+  type ComposerCapabilityState,
+} from './components/MessageInput/capability-transition'
 
 export function useChatPage() {
   const { t } = useI18n()
@@ -29,6 +35,8 @@ export function useChatPage() {
   interface MessageInputHandle {
     clear: () => void
     focus: () => void
+    getCapabilityState: () => ComposerCapabilityState
+    clearCapabilityConflicts: (conflicts: CapabilityConflicts) => void
   }
 
   interface ScrollbarRef {
@@ -298,6 +306,23 @@ export function useChatPage() {
   async function handleSelectAgent(agent: Agent) {
     if (selectedAgentId.value === agent.id && conversations.value.length > 0) return
 
+    const composer = messageInputRef.value
+    if (composer) {
+      const allowed = await prepareCapabilityTransition({
+        state: composer.getCapabilityState(),
+        target: agent.capabilities,
+        confirm: async () => {
+          await ElMessageBox.confirm(
+            t('aiChat.capabilitySwitchConfirm'),
+            t('aiChat.capabilitySwitchTitle'),
+            { type: 'warning' },
+          )
+        },
+        clear: composer.clearCapabilityConflicts,
+      })
+      if (!allowed) return
+    }
+
     messageSpeech.stop()
     messageSelection.clear()
     chatWorkflow.setActiveConversation(null)
@@ -355,7 +380,7 @@ export function useChatPage() {
     return conversationId
   }
 
-  async function handleSendMessage(content: string, attachments?: AiChatAttachment[], runtimeParams?: AIRuntimeParams) {
+  async function handleSendMessage(content: string, attachments?: Attachment[], runtimeParams?: AIRuntimeParams) {
     if (!selectedAgentId.value) {
       ElNotification.warning({ message: t('aiChat.selectAgentFirst') })
       return
@@ -366,14 +391,16 @@ export function useChatPage() {
     try {
       conversationId = await ensureConversation(content)
       messageInputRef.value?.clear()
-      sessions.beginSend(conversationId, requestId, content, attachments, runtimeParams)
+      const requestAttachments = attachments?.map((attachment) => attachment.request)
+      const previewAttachments = attachments?.map((attachment) => attachment.preview)
+      sessions.beginSend(conversationId, requestId, content, previewAttachments, runtimeParams)
       scrollToBottom()
 
       const result = await chatWorkflow.sendMessage.mutate({
         conversation_id: conversationId,
         content,
         request_id: requestId,
-        attachments,
+        attachments: requestAttachments,
         runtime_params: runtimeParams,
       })
       if (result.kind === 'canceled') return

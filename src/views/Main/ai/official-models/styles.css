@@ -1,0 +1,47 @@
+.official-model-page {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.official-model-page__table {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.official-model-page__identity,
+.official-model-page__verification,
+.official-model-page__rates {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.official-model-page__identity { gap: 3px; }
+.official-model-page__identity code { overflow-wrap: anywhere; color: var(--el-text-color-primary); font-size: 13px; font-weight: 650; }
+.official-model-page__identity span,
+.official-model-page__identity small,
+.official-model-page__muted { color: var(--el-text-color-secondary); font-size: 12px; }
+
+.official-model-page__tags { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px; }
+.official-model-page__limits { display: grid; gap: 5px; margin: 0; }
+.official-model-page__limits div { display: flex; justify-content: space-between; gap: 10px; }
+.official-model-page__limits dt { color: var(--el-text-color-secondary); font-size: 12px; }
+.official-model-page__limits dd { margin: 0; font-variant-numeric: tabular-nums; }
+.official-model-page__rates { gap: 2px; }
+.official-model-page__rate { display: grid; grid-template-columns: minmax(116px, 1fr) auto auto; gap: 6px; padding: 3px 0; border-bottom: 1px dashed var(--el-border-color-extra-light); font-size: 12px; }
+.official-model-page__rate:last-child { border-bottom: 0; }
+.official-model-page__rate strong { text-align: right; font-variant-numeric: tabular-nums; }
+.official-model-page__rate small { color: var(--el-text-color-secondary); white-space: nowrap; }
+.official-model-page__verification { align-items: flex-start; gap: 6px; font-variant-numeric: tabular-nums; }
+.official-model-page__actions { display: flex; flex-wrap: wrap; align-items: center; }
+
+@media (max-width: 768px) {
+  .official-model-page__rate { grid-template-columns: minmax(100px, 1fr) auto; }
+  .official-model-page__rate small { grid-column: 1 / -1; }
+}

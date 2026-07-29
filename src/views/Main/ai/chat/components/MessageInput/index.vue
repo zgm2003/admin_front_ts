@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
-import { ChatLineSquare, Microphone, Picture, Promotion, Setting } from '@element-plus/icons-vue'
-import { DIcon } from '@/components/DIcon'
-import { EmojiPicker } from '@/components/EmojiPicker'
+import { Microphone, Promotion } from '@element-plus/icons-vue'
 import { useIsMobile } from '@/hooks/useResponsive'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
 import type { AIRuntimeParams } from '@/api/ai/messages'
 import PendingAttachments from './PendingAttachments.vue'
+import MessageInputToolbar from './MessageInputToolbar.vue'
 import RuntimeParamsPanel from './RuntimeParamsPanel.vue'
-import { createRuntimeParams } from './runtime-params'
+import { createRuntimeParams, type RuntimeParameterDraft } from './runtime-params'
 import { useImageAttachments, type Attachment } from './use-image-attachments'
+import type { CapabilityConflicts, ComposerCapabilityState } from './capability-transition'
 import { useSpeechInput } from './use-speech-input'
 
 const { t } = useI18n()
@@ -21,6 +22,9 @@ const props = defineProps<{
   isStreaming?: boolean
   isStopping?: boolean
   showHistoryBtn?: boolean
+  agentId?: number | null
+  conversationId?: number | null
+  capabilities?: AiAgentEffectiveCapabilities
 }>()
 const emit = defineEmits<{
   send: [content: string, attachments?: Attachment[], runtimeParams?: AIRuntimeParams]
@@ -31,31 +35,51 @@ const emit = defineEmits<{
 const MAX_CONTENT_LENGTH = 30000
 const inputText = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
-const showEmojiPicker = ref(false)
 const showParamsPanel = ref(false)
-const runtimeTemperature = ref<number | null>(null)
-const runtimeMaxTokens = ref<number | null>(null)
-const runtimeMaxHistory = ref<number | null>(null)
+const runtimeTemperature = ref<RuntimeParameterDraft>(temperatureDefault())
+const runtimeMaxHistory = ref<RuntimeParameterDraft>(maxHistoryDefault())
 const hasCustomParams = computed(() => (
-  runtimeTemperature.value !== null
-  || runtimeMaxTokens.value !== null
-  || runtimeMaxHistory.value !== null
+  (props.capabilities?.runtime_parameters.temperature.supported === true && runtimeTemperature.value.enabled)
+  || (props.capabilities?.runtime_parameters.max_history.supported === true && runtimeMaxHistory.value.enabled)
+))
+const hasRuntimeParams = computed(() => (
+  props.capabilities?.runtime_parameters.temperature.supported === true
+  || props.capabilities?.runtime_parameters.max_history.supported === true
 ))
 const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
 
 function getRequestParams(): AIRuntimeParams {
-  return createRuntimeParams(
-    runtimeTemperature.value,
-    runtimeMaxTokens.value,
-    runtimeMaxHistory.value,
-  )
+  return createRuntimeParams({
+    temperature: props.capabilities?.runtime_parameters.temperature.supported
+      ? runtimeTemperature.value : undefined,
+    maxHistory: props.capabilities?.runtime_parameters.max_history.supported
+      ? runtimeMaxHistory.value : undefined,
+  })
+}
+
+function temperatureDefault(): RuntimeParameterDraft {
+  return {
+    enabled: false,
+    value: props.capabilities?.runtime_parameters.temperature.default ?? 1,
+  }
+}
+
+function maxHistoryDefault(): RuntimeParameterDraft {
+  return {
+    enabled: false,
+    value: props.capabilities?.runtime_parameters.max_history.default ?? 20,
+  }
 }
 
 function resetParams() {
-  runtimeTemperature.value = null
-  runtimeMaxTokens.value = null
-  runtimeMaxHistory.value = null
+  runtimeTemperature.value = temperatureDefault()
+  runtimeMaxHistory.value = maxHistoryDefault()
 }
+
+watch(() => [props.agentId, props.conversationId] as const, () => {
+  resetParams()
+  showParamsPanel.value = false
+})
 
 function adjustHeight() {
   const textarea = textareaRef.value
@@ -70,21 +94,22 @@ const {
   pendingAttachments,
   isDragging,
   supportsImage,
+  imageAccept,
   isImageLimitReached,
   handleUploadClick,
   handleFileChange,
   removeAttachment,
+  clearAttachments,
   handlePaste,
   handleDragOver,
   handleDragLeave,
   handleDrop,
-} = useImageAttachments()
+} = useImageAttachments(() => props.capabilities?.attachments.image)
 
 function handleEmojiSelect(emoji: string) {
   const textarea = textareaRef.value
   if (!textarea) {
     inputText.value += emoji
-    showEmojiPicker.value = false
     return
   }
 
@@ -97,7 +122,6 @@ function handleEmojiSelect(emoji: string) {
     textarea.setSelectionRange(newPosition, newPosition)
     adjustHeight()
   })
-  showEmojiPicker.value = false
 }
 
 function handleSend() {
@@ -113,12 +137,21 @@ function handleSend() {
   }
 
   const attachments: Attachment[] = pendingAttachments.value
-    .filter((attachment) => attachment.status === 'done' && attachment.url)
+    .filter((attachment) => attachment.status === 'done' && attachment.url && attachment.objectKey)
     .map((attachment) => ({
-      type: 'image',
-      url: attachment.url as string,
-      name: attachment.file.name,
-      size: attachment.file.size,
+      request: {
+        type: 'image',
+        object_key: attachment.objectKey as string,
+        name: attachment.file.name,
+      },
+      preview: {
+        type: 'image',
+        object_key: attachment.objectKey as string,
+        url: attachment.url as string,
+        name: attachment.file.name,
+        mime_type: attachment.file.type,
+        size: attachment.file.size,
+      },
     }))
   if (!content && attachments.length === 0) return
   emit(
@@ -140,6 +173,22 @@ function handleInput(event: Event) {
   adjustHeight()
 }
 
+function getCapabilityState(): ComposerCapabilityState {
+  return {
+    images: pendingAttachments.value.map((attachment) => ({
+      id: attachment.id,
+      mimeType: attachment.file.type,
+      size: attachment.file.size,
+    })),
+    temperatureEnabled: runtimeTemperature.value.enabled,
+  }
+}
+
+function clearCapabilityConflicts(conflicts: CapabilityConflicts) {
+  clearAttachments(conflicts.invalidImageIds)
+  if (conflicts.temperature) runtimeTemperature.value = temperatureDefault()
+}
+
 defineExpose({
   clear: () => {
     inputText.value = ''
@@ -148,6 +197,8 @@ defineExpose({
   },
   focus: () => textareaRef.value?.focus(),
   getRequestParams,
+  getCapabilityState,
+  clearCapabilityConflicts,
 })
 </script>
 
@@ -164,11 +215,11 @@ defineExpose({
   >
     <div class="composer-shell">
       <RuntimeParamsPanel
-        v-if="showParamsPanel"
+        v-if="showParamsPanel && capabilities"
         id="ai-chat-runtime-params"
         v-model:temperature="runtimeTemperature"
-        v-model:max-tokens="runtimeMaxTokens"
         v-model:max-history="runtimeMaxHistory"
+        :capabilities="capabilities"
         :has-custom-params="hasCustomParams"
         @reset="resetParams"
       />
@@ -207,87 +258,22 @@ defineExpose({
           role="toolbar"
           :aria-label="t('accessibility.chatToolbar')"
         >
-          <div class="toolbar-left">
-            <el-button
-              v-if="showHistoryBtn"
-              text
-              class="toolbar-btn"
-              :disabled="disabled"
-              :title="t('aiChat.historyConversations')"
-              :aria-label="t('aiChat.historyConversations')"
-              @click="emit('openHistory')"
-            >
-              <el-icon :size="18">
-                <ChatLineSquare />
-              </el-icon>
-            </el-button>
-            <el-button
-              v-if="supportsImage"
-              text
-              class="toolbar-btn"
-              :disabled="sending || disabled || isImageLimitReached || isRecording"
-              :title="t('aiChat.uploadImage')"
-              :aria-label="t('aiChat.uploadImage')"
-              @click="handleUploadClick"
-            >
-              <el-icon :size="18">
-                <Picture />
-              </el-icon>
-            </el-button>
-            <el-button
-              text
-              class="toolbar-btn voice-btn"
-              :class="{ 'is-recording': isRecording }"
-              :disabled="sending || disabled"
-              :title="t('aiChat.voiceInput')"
-              :aria-label="t('aiChat.voiceInput')"
-              :aria-pressed="isRecording"
-              @click="toggleVoiceInput"
-            >
-              <el-icon :size="18">
-                <Microphone />
-              </el-icon>
-            </el-button>
-            <el-popover
-              v-model:visible="showEmojiPicker"
-              placement="top-start"
-              :width="320"
-              trigger="click"
-              :show-arrow="false"
-              popper-class="emoji-popover"
-            >
-              <template #reference>
-                <el-button
-                  text
-                  class="toolbar-btn"
-                  :disabled="sending || disabled || isRecording"
-                  :title="t('aiChat.insertEmoji')"
-                  :aria-label="t('aiChat.insertEmoji')"
-                >
-                  <DIcon
-                    icon="fluent-emoji:grinning-face"
-                    :size="18"
-                  />
-                </el-button>
-              </template>
-              <EmojiPicker @select="handleEmojiSelect" />
-            </el-popover>
-            <el-button
-              text
-              class="toolbar-btn"
-              :class="{ 'params-active': hasCustomParams }"
-              :disabled="sending || disabled"
-              :title="t('aiChat.runtimeParams')"
-              :aria-label="t('aiChat.runtimeParams')"
-              :aria-expanded="showParamsPanel"
-              aria-controls="ai-chat-runtime-params"
-              @click="showParamsPanel = !showParamsPanel"
-            >
-              <el-icon :size="18">
-                <Setting />
-              </el-icon>
-            </el-button>
-          </div>
+          <MessageInputToolbar
+            :show-history-button="showHistoryBtn"
+            :supports-image="supportsImage"
+            :sending="sending"
+            :disabled="disabled"
+            :image-limit-reached="isImageLimitReached"
+            :recording="isRecording"
+            :has-runtime-params="hasRuntimeParams"
+            :has-custom-params="hasCustomParams"
+            :params-expanded="showParamsPanel"
+            @open-history="emit('openHistory')"
+            @upload-image="handleUploadClick"
+            @toggle-voice="toggleVoiceInput"
+            @select-emoji="handleEmojiSelect"
+            @toggle-params="showParamsPanel = !showParamsPanel"
+          />
         </div>
 
         <div class="input-status">
@@ -352,9 +338,10 @@ defineExpose({
 
     <!-- 隐藏的文件选择器 -->
     <input
+      v-if="supportsImage"
       :ref="setFileInputRef"
       type="file"
-      accept="image/*"
+      :accept="imageAccept"
       multiple
       tabindex="-1"
       aria-hidden="true"

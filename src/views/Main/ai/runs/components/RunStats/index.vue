@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {useI18n} from 'vue-i18n'
 import {ElNotification} from 'element-plus'
 import {
+  AiRunApi,
   type AiRunInitResponse,
+  type AiRunLatencyStatsResponse,
   type AiRunStatsListParams,
 } from '@/api/ai/runs'
 import type { RequestPayload } from '@/types/common'
@@ -12,6 +14,7 @@ import {useAppKernel} from '@/app/injection'
 import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
 import {Search} from '@/components/Search'
 import type {SearchField} from '@/components/Search/types'
+import RunLatencyStatsTable from './RunLatencyStatsTable.vue'
 
 const {t} = useI18n()
 const TOP_LIMIT = 10
@@ -134,6 +137,7 @@ const onSearch = async () => {
       loadSummary(),
       workflow.loadStatsByDate(topParams()),
       workflow.loadStatsByAgent(topParams()),
+      loadLatencyStats(),
     ])
   } catch (error) {
     ElNotification.error({message: errorMessage(error)})
@@ -179,6 +183,20 @@ const summaryCards = computed<SummaryCard[]>(() => {
 const hasSummaryData = computed(() => {
   return summaryData.value !== null && summaryData.value.summary.total_runs > 0
 })
+
+const latencyStats = ref<AiRunLatencyStatsResponse | null>(null)
+const latencyStatsLoading = ref(false)
+
+async function loadLatencyStats() {
+  latencyStatsLoading.value = true
+  try {
+    latencyStats.value = await AiRunApi.latencyStats()
+  } catch (error) {
+    ElNotification.error({ message: errorMessage(error) })
+  } finally {
+    latencyStatsLoading.value = false
+  }
+}
 
 // 统计表格列定义（三个表共用）
 type StatsFormatter = (_row: unknown, _column: unknown, value: number) => string
@@ -250,6 +268,22 @@ onUnmounted(() => workflow.dispose())
           </div>
         </div>
       </div>
+    </div>
+
+    <div
+      v-loading="latencyStatsLoading"
+      class="stats-section latency-stats-section"
+    >
+      <h3 class="section-title">
+        {{ t('aiRuns.stats.providerLatency') }}
+      </h3>
+      <p class="section-subtitle">
+        {{ t('aiRuns.stats.latencyWindow', {
+          days: latencyStats?.window_days ?? 30,
+          limit: (latencyStats?.max_samples ?? 10000).toLocaleString(),
+        }) }}
+      </p>
+      <RunLatencyStatsTable :rows="latencyStats?.list ?? []" />
     </div>
 
     <!-- 按日期统计 -->

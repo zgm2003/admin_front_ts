@@ -40,6 +40,22 @@ describe('AI run API behavior', () => {
       pricing: null,
       usage_items: [],
       provider_attempts: [],
+      latency: {
+        accept_ms: 10,
+        queue_ms: 20,
+        prepare_ms: 30,
+        ttft_ms: 40,
+        provider_total_ms: 100,
+        settlement_ms: 5,
+        end_to_end_ms: 165,
+        claim_source: 'wake',
+      },
+      request_summary: {
+        provider_attempt_count: 1,
+        tool_call_count: 0,
+        prepared_request_bytes: 491,
+        message_count: 2,
+      },
       prompt_tokens: 1,
       completion_tokens: 2,
       total_tokens: 3,
@@ -55,6 +71,8 @@ describe('AI run API behavior', () => {
       assistant_message: null,
       tool_calls: [],
       knowledge_retrievals: [],
+      liked: false,
+      liked_at: null,
     })
     await AiRunApi.detail({ id: 7 })
     harness.respondWith({
@@ -70,6 +88,19 @@ describe('AI run API behavior', () => {
       },
     })
     await AiRunApi.stats()
+    harness.respondWith({
+      window_days: 30,
+      max_samples: 10000,
+      list: [{
+        provider_id: 3,
+        provider_name: 'Provider',
+        model_id: 'model',
+        ttft: { sample_count: 20, insufficient_sample: false, p50_ms: 90, p95_ms: 180, p99_ms: 220 },
+        provider_total: { sample_count: 20, insufficient_sample: false, p50_ms: 900, p95_ms: 1800, p99_ms: 2200 },
+      }],
+    })
+    const latencyStats = await AiRunApi.latencyStats()
+    expect(latencyStats.list[0]?.ttft.p95_ms).toBe(180)
     harness.respondWith({ list: [], page: emptyPage })
     const statsParams = { current_page: 1, page_size: 20 }
     await AiRunApi.statsByDate(statsParams)
@@ -81,6 +112,7 @@ describe('AI run API behavior', () => {
       ['GET', '/api/admin/v1/ai-runs'],
       ['GET', '/api/admin/v1/ai-runs/7'],
       ['GET', '/api/admin/v1/ai-runs/stats'],
+      ['GET', '/api/admin/v1/ai-runs/stats/latency'],
       ['GET', '/api/admin/v1/ai-runs/stats/by-date'],
       ['GET', '/api/admin/v1/ai-runs/stats/by-agent'],
       ['GET', '/api/admin/v1/ai-runs/stats/by-user'],
@@ -94,5 +126,12 @@ describe('AI run API behavior', () => {
     cleanups.push(harness.uninstall)
 
     await expect(AiRunApi.pageInit()).rejects.toThrow(/http\.responseRequiredFieldMissing/)
+  })
+
+  it('fails closed when run detail omits the durable latency contract', async () => {
+    const harness = installApiClientHarness({})
+    cleanups.push(harness.uninstall)
+
+    await expect(AiRunApi.detail({ id: 7 })).rejects.toThrow(/http\.responseRequiredFieldMissing/)
   })
 })
