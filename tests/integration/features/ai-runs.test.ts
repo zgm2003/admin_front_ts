@@ -17,6 +17,10 @@ import {
 import { parseRunInputSnapshot } from '@/views/Main/ai/runs/components/RunList/input-snapshot'
 import { createAiRunDashboardFixture } from '../../helpers/ai-run-dashboard'
 import { deferred, eventBase, FakeFeatureRealtime, page } from './support'
+import {
+  parseRunListQuery,
+  serializeRunListQuery,
+} from '@/views/Main/ai/runs/components/RunStats/dashboard-presenter'
 
 const run = (id: number): AiRunItem => ({
   id,
@@ -233,6 +237,44 @@ describe('AI runs workflow', () => {
     await workflow.loadPageInit({ date_start: '2026-07-23', date_end: '2026-07-29' })
     await workflow.loadPageInit({ date_start: '2026-07-16', date_end: '2026-07-22' })
     expect(pageInit).toHaveBeenCalledTimes(2)
+    workflow.dispose()
+  })
+
+  it('restores a dashboard drilldown URL into exactly one list request', async () => {
+    const list = vi.fn(async () => ({ list: [], page: page(1, 0) }))
+    const workflow = createAIRunsWorkflow({ api: workflowApi({ list }) })
+    const query = serializeRunListQuery({
+      date_start: '2026-07-23',
+      date_end: '2026-07-29',
+      platform: 'admin',
+      model_id: 'gpt-5.5',
+      agent_id: 2,
+      provider_id: 3,
+      user_id: 4,
+      billing_anomaly: 'state_inconsistent',
+      anomaly_as_of: '2026-07-29T15:42:18+08:00',
+    })
+
+    await workflow.list.execute({
+      ...parseRunListQuery(query),
+      current_page: 1,
+      page_size: 20,
+    })
+
+    expect(list).toHaveBeenCalledTimes(1)
+    expect(list).toHaveBeenCalledWith({
+      date_start: '2026-07-23',
+      date_end: '2026-07-29',
+      platform: 'admin',
+      model_id: 'gpt-5.5',
+      agent_id: 2,
+      provider_id: 3,
+      user_id: 4,
+      billing_anomaly: 'state_inconsistent',
+      anomaly_as_of: '2026-07-29T15:42:18+08:00',
+      current_page: 1,
+      page_size: 20,
+    }, expect.objectContaining({ signal: expect.any(AbortSignal) }))
     workflow.dispose()
   })
 })

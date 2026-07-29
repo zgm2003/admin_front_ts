@@ -1,11 +1,34 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {useRoute, useRouter} from 'vue-router'
+import type {AiRunListParams} from '@/api/ai/runs'
+import {serializeRunListQuery} from './components/RunStats/dashboard-presenter'
 import RunList from './components/RunList/index.vue'
 import RunStats from './components/RunStats/index.vue'
 
 const {t} = useI18n()
-const activeTab = ref('list')
+const route = useRoute()
+const router = useRouter()
+type RunPageTab = 'list' | 'stats'
+
+const activeTab = computed<RunPageTab>({
+  get: () => route.query.tab === 'stats' ? 'stats' : 'list',
+  set: (tab) => {
+    if (tab === activeTab.value) return
+    void router.push({
+      path: route.path,
+      query: { ...route.query, tab },
+    })
+  },
+})
+
+function handleDrilldown(params: AiRunListParams) {
+  void router.push({
+    path: route.path,
+    query: { tab: 'list', ...serializeRunListQuery(params) },
+  })
+}
 </script>
 
 <template>
@@ -26,7 +49,7 @@ const activeTab = ref('list')
         name="stats"
         lazy
       >
-        <RunStats />
+        <RunStats @drilldown="handleDrilldown" />
       </el-tab-pane>
     </el-tabs>
   </div>

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, onUnmounted} from 'vue'
+import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
+import {useRoute, useRouter} from 'vue-router'
 import {
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
   type AiRunListParams,
   type AiRunListResponse,
-  type AiRunPlatform,
-  type AiRunStatus,
 } from '@/api/ai/runs'
 import {UsersListApi} from '@/api/user/users'
 import {ElNotification} from 'element-plus'
@@ -22,34 +21,34 @@ import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
 import {useWorkflowTable} from '@/features/shared/use-workflow-table'
 import RunDetailDialog from './RunDetailDialog.vue'
 import { runStatusTagType } from './presenters'
+import {serializeRunListQuery} from '../RunStats/dashboard-presenter'
+import {
+  createEmptyRunListSearchForm,
+  runListParamsFromSearchForm,
+  runListRouteFilterKey,
+  runListSearchFormFromQuery,
+  type RunListSearchForm,
+} from './filters'
 
 const {t} = useI18n()
 const {copy} = useCopy()
+const route = useRoute()
+const router = useRouter()
 type AiRunTableParams = AiRunListParams & {current_page: number; page_size: number}
 const dict = ref<AiRunInitResponse['dict']>({
   status_arr: [],
   platform_arr: [],
   agentArr: [],
   providerArr: [],
+  model_arr: [],
+  billing_status_arr: [],
+  billing_reason_arr: [],
 })
 
-const searchForm = ref({
-  platform: '' as AiRunPlatform | '',
-  status: '' as AiRunStatus | '',
-  user_id: '' as number | '',
-  request_id: '',
-  dateRange: [] as string[],
-  agent_id: '' as number | '',
-  provider_id: '' as number | '',
-})
+const searchForm = ref<RunListSearchForm>(runListSearchFormFromQuery(route.query))
 
 // useTable 会 unref 并展开 searchForm，需要转换 dateRange → date_start/date_end
-const apiSearchForm = computed(() => {
-  const {dateRange, ...rest} = searchForm.value
-  if (dateRange.length === 0) return rest
-  const [date_start, date_end] = dateRange
-  return {...rest, date_start, date_end}
-})
+const apiSearchForm = computed<AiRunListParams>(() => runListParamsFromSearchForm(searchForm.value))
 
 const workflow = createAIRunsWorkflow({realtime: useAppKernel().realtime})
 
@@ -77,7 +76,10 @@ function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'de
 
 const init = async () => {
   try {
-    const data = await workflow.loadPageInit()
+    const data = await workflow.loadPageInit({
+      date_start: apiSearchForm.value.date_start,
+      date_end: apiSearchForm.value.date_end,
+    })
     dict.value = data.dict
   } catch (e: unknown) {
     ElNotification.error({message: requireRunListErrorMessage(e, 'page init')})
@@ -102,6 +104,14 @@ const searchFields = computed<SearchField[]>(() => [
     options: dict.value.status_arr
   },
   {
+    key: 'model_id',
+    type: 'select-v2',
+    label: t('aiRuns.filter.model'),
+    placeholder: t('aiRuns.filter.model'),
+    width: 180,
+    options: dict.value.model_arr,
+  },
+  {
     key: 'agent_id',
     type: 'select-v2',
     label: t('aiRuns.filter.agent'),
@@ -118,6 +128,22 @@ const searchFields = computed<SearchField[]>(() => [
     options: dict.value.providerArr,
   },
   {
+    key: 'billing_status',
+    type: 'select-v2',
+    label: t('aiRuns.filter.billingStatus'),
+    placeholder: t('aiRuns.filter.billingStatus'),
+    width: 150,
+    options: dict.value.billing_status_arr,
+  },
+  {
+    key: 'billing_reason',
+    type: 'select-v2',
+    label: t('aiRuns.filter.billingReason'),
+    placeholder: t('aiRuns.filter.billingReason'),
+    width: 190,
+    options: dict.value.billing_reason_arr,
+  },
+  {
     key: 'user_id',
     type: 'remote-select',
     label: t('aiRuns.filter.user'),
@@ -126,6 +152,20 @@ const searchFields = computed<SearchField[]>(() => [
     valueField: 'id',
     placeholder: t('aiRuns.filter.user'),
     width: 180
+  },
+  {
+    key: 'error_code',
+    type: 'input',
+    label: t('aiRuns.filter.errorCode'),
+    placeholder: t('aiRuns.filter.errorCode'),
+    width: 190,
+  },
+  {
+    key: 'tool_code',
+    type: 'input',
+    label: t('aiRuns.filter.toolCode'),
+    placeholder: t('aiRuns.filter.toolCode'),
+    width: 190,
   },
   {
     key: 'request_id',
@@ -149,6 +189,9 @@ const columns = computed(() => [
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160},
   {key: 'status', label: t('aiRuns.table.status'), width: 100},
   {key: 'model_display_name', label: t('aiRuns.table.model'), width: 140},
+  {key: 'billing_status', label: t('aiRuns.table.billingStatus'), width: 120},
+  {key: 'billing_reason', label: t('aiRuns.table.billingReason'), width: 190},
+  {key: 'error_code', label: t('aiRuns.table.errorCode'), width: 180},
   {key: 'total_tokens', label: t('aiRuns.table.tokens'), width: 100},
   {key: 'duration_text', label: t('aiRuns.table.latency'), width: 100},
   {key: 'error_message', label: t('aiRuns.table.error'), width: 200},
@@ -174,9 +217,34 @@ const showDetail = async (row: AiRunItem) => {
   }
 }
 
-onMounted(() => {
-  init()
-  getList()
+async function runSearch() {
+  await Promise.all([init(), onSearch()])
+}
+
+async function syncURLAndSearch() {
+  await router.replace({
+    path: route.path,
+    query: { tab: 'list', ...serializeRunListQuery(apiSearchForm.value) },
+  })
+  await runSearch()
+}
+
+async function resetAndSearch() {
+  searchForm.value = createEmptyRunListSearchForm()
+  await syncURLAndSearch()
+}
+
+watch(
+  () => runListRouteFilterKey(route.query),
+  async (nextKey, previousKey) => {
+    if (nextKey === previousKey || nextKey === runListRouteFilterKey(serializeRunListQuery(apiSearchForm.value))) return
+    searchForm.value = runListSearchFormFromQuery(route.query)
+    await runSearch()
+  },
+)
+
+onMounted(async () => {
+  await Promise.all([init(), getList()])
 })
 
 onUnmounted(() => workflow.dispose())
@@ -187,8 +255,8 @@ onUnmounted(() => workflow.dispose())
     <Search
       v-model="searchForm"
       :fields="searchFields"
-      @query="onSearch"
-      @reset="onSearch"
+      @query="syncURLAndSearch"
+      @reset="resetAndSearch"
     />
     <div class="table">
       <AppTable
