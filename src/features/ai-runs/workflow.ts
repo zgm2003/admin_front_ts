@@ -1,34 +1,27 @@
 import { shallowRef } from 'vue'
 import {
   AiRunApi,
+  type AiRunDashboardParams,
+  type AiRunDashboardResponse,
   type AiRunDetailResponse,
   type AiRunInitResponse,
   type AiRunItem,
   type AiRunListParams,
   type AiRunListResponse,
-  type AiRunStatsByAgentItem,
-  type AiRunStatsByAgentResponse,
-  type AiRunStatsByDateItem,
-  type AiRunStatsByDateResponse,
-  type AiRunStatsByUserItem,
-  type AiRunStatsByUserResponse,
-  type AiRunStatsListParams,
-  type AiRunStatsParams,
-  type AiRunStatsSummaryResponse,
+  type AiRunPageInitParams,
 } from '@/api/ai/runs'
 import type { KernelRealtime } from '@/app/kernel'
 import type { ExecuteOptions } from '@/modules/http/client'
 import { createResourceQuery } from '@/modules/resource-query/query'
 import type { Id } from '@/types/common'
 
+const dashboardRefreshDelayMS = 250
+
 export interface AIRunsWorkflowApi {
-  pageInit(options: ExecuteOptions): Promise<AiRunInitResponse>
+  pageInit(params: AiRunPageInitParams, options: ExecuteOptions): Promise<AiRunInitResponse>
   list(params: AiRunListParams, options: ExecuteOptions): Promise<AiRunListResponse>
   detail(params: { id: Id }, options: ExecuteOptions): Promise<AiRunDetailResponse>
-  stats(params: AiRunStatsParams, options: ExecuteOptions): Promise<AiRunStatsSummaryResponse>
-  statsByDate(params: AiRunStatsListParams, options: ExecuteOptions): Promise<AiRunStatsByDateResponse>
-  statsByAgent(params: AiRunStatsListParams, options: ExecuteOptions): Promise<AiRunStatsByAgentResponse>
-  statsByUser(params: AiRunStatsListParams, options: ExecuteOptions): Promise<AiRunStatsByUserResponse>
+  dashboard(params: AiRunDashboardParams, options: ExecuteOptions): Promise<AiRunDashboardResponse>
 }
 
 export interface AIRunsWorkflowOptions {
@@ -39,8 +32,14 @@ export interface AIRunsWorkflowOptions {
 export function createAIRunsWorkflow(options: AIRunsWorkflowOptions = {}) {
   const api = options.api ?? AiRunApi
   const page = shallowRef({ current_page: 1, page_size: 20, total: 0, total_page: 0 })
-  const pageInit = createResourceQuery<AiRunInitResponse, undefined, AiRunInitResponse>({
-    request: (_params, context) => api.pageInit(context),
+  const lastDashboard = shallowRef<AiRunDashboardResponse | null>(null)
+  let lastDashboardParams: AiRunDashboardParams | null = null
+  let dashboardRefreshTimer: ReturnType<typeof setTimeout> | null = null
+  let pageInitCache: { key: string; value: AiRunInitResponse } | null = null
+  let activePageInit: { key: string; promise: Promise<AiRunInitResponse> } | null = null
+
+  const pageInit = createResourceQuery<AiRunInitResponse, AiRunPageInitParams, AiRunInitResponse>({
+    request: (params, context) => api.pageInit(params, context),
     selectItems: (result) => [result],
   })
   const list = createResourceQuery<AiRunItem, AiRunListParams, AiRunListResponse>({
@@ -69,62 +68,101 @@ export function createAIRunsWorkflow(options: AIRunsWorkflowOptions = {}) {
     request: (params, context) => api.detail(params, context),
     selectItems: (result) => [result],
   })
-  const stats = createResourceQuery<AiRunStatsSummaryResponse, AiRunStatsParams, AiRunStatsSummaryResponse>({
-    request: (params, context) => api.stats(params, context),
+  const dashboard = createResourceQuery<AiRunDashboardResponse, AiRunDashboardParams, AiRunDashboardResponse>({
+    request: (params, context) => api.dashboard(params, context),
     selectItems: (result) => [result],
-  })
-  const statsByDate = createResourceQuery<AiRunStatsByDateItem, AiRunStatsListParams, AiRunStatsByDateResponse>({
-    request: (params, context) => api.statsByDate(params, context),
-    selectItems: (result) => result.list,
-  })
-  const statsByAgent = createResourceQuery<AiRunStatsByAgentItem, AiRunStatsListParams, AiRunStatsByAgentResponse>({
-    request: (params, context) => api.statsByAgent(params, context),
-    selectItems: (result) => result.list,
-  })
-  const statsByUser = createResourceQuery<AiRunStatsByUserItem, AiRunStatsListParams, AiRunStatsByUserResponse>({
-    request: (params, context) => api.statsByUser(params, context),
-    selectItems: (result) => result.list,
+    onCommit(result, params) {
+      lastDashboard.value = result
+      lastDashboardParams = { ...params }
+    },
   })
 
-  function loadPageInit() {
-    return pageInit.execute(undefined)
+  function loadPageInit(params: AiRunPageInitParams = {}): Promise<AiRunInitResponse> {
+    const key = pageInitKey(params)
+    if (pageInitCache?.key === key) return Promise.resolve(pageInitCache.value)
+    if (activePageInit?.key === key) return activePageInit.promise
+
+    const promise = pageInit.execute(params)
+    activePageInit = { key, promise }
+    void promise.then(
+      (value) => {
+        if (activePageInit?.promise === promise) pageInitCache = { key, value }
+      },
+      () => {
+        if (activePageInit?.promise === promise) pageInitCache = null
+      },
+    ).finally(() => {
+      if (activePageInit?.promise === promise) activePageInit = null
+    })
+    return promise
   }
 
   function loadDetail(id: Id) {
     return detail.execute({ id })
   }
 
-  async function recoverAuthoritative(requestID?: string) {
+  function loadDashboard(params: AiRunDashboardParams) {
+    return dashboard.execute(params)
+  }
+
+  function refreshDashboardSnapshot(): Promise<AiRunDashboardResponse> | null {
+    if (lastDashboardParams === null) return null
+    return dashboard.execute({ ...lastDashboardParams })
+  }
+
+  async function recoverAuthoritative(requestID?: string, includeDashboard = true) {
     const work: Promise<unknown>[] = []
     if (list.state.value.kind !== 'idle') work.push(list.refresh())
     const currentDetail = detail.state.value.data[0]
     if (detail.state.value.kind !== 'idle' && (!requestID || currentDetail?.request_id === requestID)) {
       work.push(detail.refresh())
     }
-    for (const resource of [stats, statsByDate, statsByAgent, statsByUser] as const) {
-      if (resource.state.value.kind !== 'idle') work.push(resource.refresh())
+    if (includeDashboard) {
+      clearDashboardRefreshTimer()
+      const refresh = refreshDashboardSnapshot()
+      if (refresh !== null) work.push(refresh)
     }
     await Promise.all(work)
   }
 
+  function scheduleDashboardRefresh() {
+    if (lastDashboardParams === null || !dashboardRangeIncludesShanghaiToday(lastDashboardParams)) return
+    clearDashboardRefreshTimer()
+    dashboardRefreshTimer = setTimeout(() => {
+      dashboardRefreshTimer = null
+      void refreshDashboardSnapshot()?.catch(() => undefined)
+    }, dashboardRefreshDelayMS)
+  }
+
+  function onTerminalEvent(requestID: string) {
+    scheduleDashboardRefresh()
+    return recoverAuthoritative(requestID, false)
+  }
+
   const unsubscribe = options.realtime
     ? [
-        options.realtime.subscribe('ai.response.completed.v1', ({ data }) => recoverAuthoritative(data.request_id)),
-        options.realtime.subscribe('ai.response.failed.v1', ({ data }) => recoverAuthoritative(data.request_id)),
-        options.realtime.subscribe('ai.response.canceled.v1', ({ data }) => recoverAuthoritative(data.request_id)),
+        options.realtime.subscribe('ai.response.completed.v1', ({ data }) => onTerminalEvent(data.request_id)),
+        options.realtime.subscribe('ai.response.failed.v1', ({ data }) => onTerminalEvent(data.request_id)),
+        options.realtime.subscribe('ai.response.canceled.v1', ({ data }) => onTerminalEvent(data.request_id)),
       ]
     : []
   const unregisterRecovery = options.realtime?.registerRecovery(async () => {
     await recoverAuthoritative()
   }) ?? (() => undefined)
 
+  function clearDashboardRefreshTimer() {
+    if (dashboardRefreshTimer === null) return
+    clearTimeout(dashboardRefreshTimer)
+    dashboardRefreshTimer = null
+  }
+
   function dispose() {
+    clearDashboardRefreshTimer()
     unsubscribe.forEach((release) => release())
     unregisterRecovery()
-    statsByUser.dispose()
-    statsByAgent.dispose()
-    statsByDate.dispose()
-    stats.dispose()
+    activePageInit = null
+    pageInitCache = null
+    dashboard.dispose()
     detail.dispose()
     list.dispose()
     pageInit.dispose()
@@ -137,15 +175,32 @@ export function createAIRunsWorkflow(options: AIRunsWorkflowOptions = {}) {
     page,
     detail,
     loadDetail,
-    stats,
-    statsByDate,
-    statsByAgent,
-    statsByUser,
-    loadStats: (params: AiRunStatsParams) => stats.execute(params),
-    loadStatsByDate: (params: AiRunStatsListParams) => statsByDate.execute(params),
-    loadStatsByAgent: (params: AiRunStatsListParams) => statsByAgent.execute(params),
-    loadStatsByUser: (params: AiRunStatsListParams) => statsByUser.execute(params),
+    dashboard,
+    lastDashboard,
+    loadDashboard,
     recoverAuthoritative,
     dispose,
   }
+}
+
+function pageInitKey(params: AiRunPageInitParams): string {
+  return `${params.date_start ?? ''}\u0000${params.date_end ?? ''}`
+}
+
+function dashboardRangeIncludesShanghaiToday(params: AiRunDashboardParams, now = new Date()): boolean {
+  if (!params.date_start && !params.date_end) return true
+  if (!params.date_start || !params.date_end) return false
+  const today = shanghaiCalendarDate(now)
+  return params.date_start <= today && params.date_end >= today
+}
+
+function shanghaiCalendarDate(value: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(value)
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${values.year}-${values.month}-${values.day}`
 }

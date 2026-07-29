@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 99f1d17d0347a8db91ad86a50e5d6f8f1db836b54b88df9a0097420255c0c037
+// Generated from Admin Contract Bundle manifest SHA-256: 997cdaf7960ced9919c6bf5592bef0430eba7911586f27792c8815ca594af6c6
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -392,6 +392,758 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "AIRunDashboardAgentBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "agent_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "agent_name": {
+        "type": "string"
+      },
+      "billing_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "run_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "agent_id",
+      "agent_name",
+      "billing_anomaly_count",
+      "run_anomaly_count",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "total_runs",
+      "total_tokens"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardAnomalies": {
+    "additionalProperties": false,
+    "properties": {
+      "billing_items": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardAnomalyItem"
+        },
+        "type": "array"
+      },
+      "billing_total": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "run_items": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardAnomalyItem"
+        },
+        "type": "array"
+      },
+      "run_total": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "billing_items",
+      "billing_total",
+      "run_items",
+      "run_total"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardAnomalyItem": {
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "type": "string"
+      },
+      "count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "code",
+      "count"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardBilling": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "released_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "released_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "settled_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "unbilled_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "released_amount",
+      "released_runs",
+      "settled_runs",
+      "unbilled_runs"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardBreakdowns": {
+    "additionalProperties": false,
+    "properties": {
+      "agents": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardAgentBreakdown"
+        },
+        "type": "array"
+      },
+      "errors": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardErrorBreakdown"
+        },
+        "type": "array"
+      },
+      "models": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardModelBreakdown"
+        },
+        "type": "array"
+      },
+      "providers": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardProviderBreakdown"
+        },
+        "type": "array"
+      },
+      "tools": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardToolBreakdown"
+        },
+        "type": "array"
+      },
+      "users": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardUserBreakdown"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "agents",
+      "errors",
+      "models",
+      "providers",
+      "tools",
+      "users"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardDateRange": {
+    "additionalProperties": false,
+    "properties": {
+      "end_exclusive": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "start_at": {
+        "format": "date-time",
+        "type": "string"
+      }
+    },
+    "required": [
+      "end_exclusive",
+      "start_at"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardErrorBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "error_code": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "count",
+      "error_code"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardModelBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "billing_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "historical": {
+        "type": "boolean"
+      },
+      "model_display_name": {
+        "type": "string"
+      },
+      "model_id": {
+        "type": "string"
+      },
+      "run_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "billing_anomaly_count",
+      "historical",
+      "model_display_name",
+      "model_id",
+      "run_anomaly_count",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "total_runs",
+      "total_tokens"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardPercentile": {
+    "additionalProperties": false,
+    "properties": {
+      "insufficient_sample": {
+        "type": "boolean"
+      },
+      "p50_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "p95_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "sample_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "insufficient_sample",
+      "p50_ms",
+      "p95_ms",
+      "sample_count"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardPerformance": {
+    "additionalProperties": false,
+    "properties": {
+      "end_to_end": {
+        "$ref": "#/components/schemas/AIRunDashboardPercentile"
+      },
+      "ttft": {
+        "$ref": "#/components/schemas/AIRunDashboardPercentile"
+      }
+    },
+    "required": [
+      "end_to_end",
+      "ttft"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardProviderBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "billing_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "provider_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "provider_name": {
+        "type": "string"
+      },
+      "run_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "billing_anomaly_count",
+      "provider_id",
+      "provider_name",
+      "run_anomaly_count",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "total_runs",
+      "total_tokens"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardResult": {
+    "additionalProperties": false,
+    "properties": {
+      "anomalies": {
+        "$ref": "#/components/schemas/AIRunDashboardAnomalies"
+      },
+      "billing": {
+        "$ref": "#/components/schemas/AIRunDashboardBilling"
+      },
+      "breakdowns": {
+        "$ref": "#/components/schemas/AIRunDashboardBreakdowns"
+      },
+      "date_range": {
+        "$ref": "#/components/schemas/AIRunDashboardDateRange"
+      },
+      "generated_at": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "performance": {
+        "$ref": "#/components/schemas/AIRunDashboardPerformance"
+      },
+      "summary": {
+        "$ref": "#/components/schemas/AIRunDashboardSummary"
+      },
+      "timezone": {
+        "type": "string"
+      },
+      "trend": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunDashboardTrendItem"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "anomalies",
+      "billing",
+      "breakdowns",
+      "date_range",
+      "generated_at",
+      "performance",
+      "summary",
+      "timezone",
+      "trend"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardSummary": {
+    "additionalProperties": false,
+    "properties": {
+      "canceled_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "completion_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "failed_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "in_progress_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "outcome_unknown_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "prompt_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "terminal_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "timeout_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "canceled_runs",
+      "completion_tokens",
+      "failed_runs",
+      "in_progress_runs",
+      "outcome_unknown_runs",
+      "prompt_tokens",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "terminal_runs",
+      "timeout_runs",
+      "total_runs",
+      "total_tokens"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardToolBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "duration": {
+        "$ref": "#/components/schemas/AIRunDashboardPercentile"
+      },
+      "failed_calls": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_calls": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "timeout_calls": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "tool_code": {
+        "type": "string"
+      },
+      "tool_name": {
+        "type": "string"
+      },
+      "total_calls": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "duration",
+      "failed_calls",
+      "success_calls",
+      "success_denominator",
+      "success_rate",
+      "timeout_calls",
+      "tool_code",
+      "tool_name",
+      "total_calls"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardTrendItem": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "canceled_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "date": {
+        "format": "date",
+        "type": "string"
+      },
+      "end_to_end": {
+        "$ref": "#/components/schemas/AIRunDashboardPercentile"
+      },
+      "failed_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "in_progress_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "outcome_unknown_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "timeout_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "ttft": {
+        "$ref": "#/components/schemas/AIRunDashboardPercentile"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "canceled_runs",
+      "date",
+      "end_to_end",
+      "failed_runs",
+      "in_progress_runs",
+      "outcome_unknown_runs",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "timeout_runs",
+      "total_runs",
+      "ttft"
+    ],
+    "type": "object"
+  },
+  "AIRunDashboardUserBreakdown": {
+    "additionalProperties": false,
+    "properties": {
+      "actual_amount": {
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{0,7}[1-9])?$",
+        "type": "string"
+      },
+      "billing_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "run_anomaly_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_denominator": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "success_rate": {
+        "maximum": 100,
+        "minimum": 0,
+        "type": "number"
+      },
+      "success_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_runs": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "total_tokens": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "user_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "username": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "actual_amount",
+      "billing_anomaly_count",
+      "run_anomaly_count",
+      "success_denominator",
+      "success_rate",
+      "success_runs",
+      "total_runs",
+      "total_tokens",
+      "user_id",
+      "username"
+    ],
+    "type": "object"
+  },
   "AIRunDetail": {
     "additionalProperties": false,
     "properties": {
@@ -478,6 +1230,9 @@ const contractSchemas = {
         ]
       },
       "duration_text": {
+        "type": "string"
+      },
+      "error_code": {
         "type": "string"
       },
       "error_message": {
@@ -642,6 +1397,7 @@ const contractSchemas = {
       "created_at",
       "duration_ms",
       "duration_text",
+      "error_code",
       "error_message",
       "events",
       "finished_at",
@@ -1011,99 +1767,6 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "AIRunLatencyDistribution": {
-    "additionalProperties": false,
-    "properties": {
-      "insufficient_sample": {
-        "type": "boolean"
-      },
-      "p50_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "p95_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "p99_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "sample_count": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "insufficient_sample",
-      "p50_ms",
-      "p95_ms",
-      "p99_ms",
-      "sample_count"
-    ],
-    "type": "object"
-  },
-  "AIRunLatencyStatsItem": {
-    "additionalProperties": false,
-    "properties": {
-      "model_id": {
-        "type": "string"
-      },
-      "provider_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "provider_name": {
-        "type": "string"
-      },
-      "provider_total": {
-        "$ref": "#/components/schemas/AIRunLatencyDistribution"
-      },
-      "ttft": {
-        "$ref": "#/components/schemas/AIRunLatencyDistribution"
-      }
-    },
-    "required": [
-      "model_id",
-      "provider_id",
-      "provider_name",
-      "provider_total",
-      "ttft"
-    ],
-    "type": "object"
-  },
-  "AIRunLatencyStatsResult": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunLatencyStatsItem"
-        },
-        "type": "array"
-      },
-      "max_samples": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "window_days": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "list",
-      "max_samples",
-      "window_days"
-    ],
-    "type": "object"
-  },
   "AIRunListItem": {
     "additionalProperties": false,
     "properties": {
@@ -1113,6 +1776,31 @@ const contractSchemas = {
         "type": "integer"
       },
       "agent_name": {
+        "type": "string"
+      },
+      "billing_reason": {
+        "enum": [
+          "pending",
+          "held",
+          "settled_complete_usage",
+          "released_before_dispatch",
+          "released_insufficient_balance",
+          "released_provider_failed",
+          "released_outcome_unknown",
+          "unbilled_usage_incomplete",
+          "unbilled_over_hold",
+          "legacy_unpriced"
+        ],
+        "type": "string"
+      },
+      "billing_status": {
+        "enum": [
+          "pending",
+          "held",
+          "settled",
+          "released",
+          "unbilled"
+        ],
         "type": "string"
       },
       "completion_tokens": {
@@ -1151,6 +1839,9 @@ const contractSchemas = {
         ]
       },
       "duration_text": {
+        "type": "string"
+      },
+      "error_code": {
         "type": "string"
       },
       "error_message": {
@@ -1220,12 +1911,15 @@ const contractSchemas = {
     "required": [
       "agent_id",
       "agent_name",
+      "billing_reason",
+      "billing_status",
       "completion_tokens",
       "conversation_id",
       "conversation_title",
       "created_at",
       "duration_ms",
       "duration_text",
+      "error_code",
       "error_message",
       "id",
       "input_snapshot",
@@ -1322,6 +2016,24 @@ const contractSchemas = {
         },
         "type": "array"
       },
+      "billing_reason_arr": {
+        "items": {
+          "$ref": "#/components/schemas/StringOption"
+        },
+        "type": "array"
+      },
+      "billing_status_arr": {
+        "items": {
+          "$ref": "#/components/schemas/StringOption"
+        },
+        "type": "array"
+      },
+      "model_arr": {
+        "items": {
+          "$ref": "#/components/schemas/AIRunPageInitModelOption"
+        },
+        "type": "array"
+      },
       "platform_arr": {
         "items": {
           "$ref": "#/components/schemas/StringOption"
@@ -1343,9 +2055,32 @@ const contractSchemas = {
     },
     "required": [
       "agentArr",
+      "billing_reason_arr",
+      "billing_status_arr",
+      "model_arr",
       "platform_arr",
       "providerArr",
       "status_arr"
+    ],
+    "type": "object"
+  },
+  "AIRunPageInitModelOption": {
+    "additionalProperties": false,
+    "properties": {
+      "historical": {
+        "type": "boolean"
+      },
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "historical",
+      "label",
+      "value"
     ],
     "type": "object"
   },
@@ -1521,291 +2256,6 @@ const contractSchemas = {
       "prepared_request_bytes",
       "provider_attempt_count",
       "tool_call_count"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByAgentItem": {
-    "additionalProperties": false,
-    "properties": {
-      "agent_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "agent_name": {
-        "type": "string"
-      },
-      "avg_duration_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_completion_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_prompt_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_runs": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "agent_id",
-      "agent_name",
-      "avg_duration_ms",
-      "total_completion_tokens",
-      "total_prompt_tokens",
-      "total_runs",
-      "total_tokens"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByAgentResult": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunStatsByAgentItem"
-        },
-        "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Page"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByDateItem": {
-    "additionalProperties": false,
-    "properties": {
-      "avg_duration_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "date": {
-        "type": "string"
-      },
-      "total_completion_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_prompt_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_runs": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "avg_duration_ms",
-      "date",
-      "total_completion_tokens",
-      "total_prompt_tokens",
-      "total_runs",
-      "total_tokens"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByDateResult": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunStatsByDateItem"
-        },
-        "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Page"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByUserItem": {
-    "additionalProperties": false,
-    "properties": {
-      "avg_duration_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_completion_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_prompt_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_runs": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "username": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "avg_duration_ms",
-      "total_completion_tokens",
-      "total_prompt_tokens",
-      "total_runs",
-      "total_tokens",
-      "username"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsByUserResult": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunStatsByUserItem"
-        },
-        "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Page"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsDateRange": {
-    "additionalProperties": false,
-    "properties": {
-      "end": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "null"
-          }
-        ]
-      },
-      "start": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "null"
-          }
-        ]
-      }
-    },
-    "required": [
-      "end",
-      "start"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsResult": {
-    "additionalProperties": false,
-    "properties": {
-      "date_range": {
-        "$ref": "#/components/schemas/AIRunStatsDateRange"
-      },
-      "summary": {
-        "$ref": "#/components/schemas/AIRunStatsSummary"
-      }
-    },
-    "required": [
-      "date_range",
-      "summary"
-    ],
-    "type": "object"
-  },
-  "AIRunStatsSummary": {
-    "additionalProperties": false,
-    "properties": {
-      "avg_duration_ms": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "fail_runs": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "success_rate": {
-        "maximum": 100,
-        "minimum": 0,
-        "type": "number"
-      },
-      "total_completion_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_prompt_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_runs": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "total_tokens": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "avg_duration_ms",
-      "fail_runs",
-      "success_rate",
-      "total_completion_tokens",
-      "total_prompt_tokens",
-      "total_runs",
-      "total_tokens"
     ],
     "type": "object"
   },
@@ -9497,26 +9947,14 @@ const responseDataSchemas = {
   "get_api_admin_v1_ai_runs": {
     "$ref": "#/components/schemas/AIRunListResult"
   },
+  "get_api_admin_v1_ai_runs_dashboard": {
+    "$ref": "#/components/schemas/AIRunDashboardResult"
+  },
   "get_api_admin_v1_ai_runs_id": {
     "$ref": "#/components/schemas/AIRunDetail"
   },
   "get_api_admin_v1_ai_runs_page_init": {
     "$ref": "#/components/schemas/AIRunPageInit"
-  },
-  "get_api_admin_v1_ai_runs_stats": {
-    "$ref": "#/components/schemas/AIRunStatsResult"
-  },
-  "get_api_admin_v1_ai_runs_stats_by_agent": {
-    "$ref": "#/components/schemas/AIRunStatsByAgentResult"
-  },
-  "get_api_admin_v1_ai_runs_stats_by_date": {
-    "$ref": "#/components/schemas/AIRunStatsByDateResult"
-  },
-  "get_api_admin_v1_ai_runs_stats_by_user": {
-    "$ref": "#/components/schemas/AIRunStatsByUserResult"
-  },
-  "get_api_admin_v1_ai_runs_stats_latency": {
-    "$ref": "#/components/schemas/AIRunLatencyStatsResult"
   },
   "get_api_admin_v1_ai_tools": {
     "$ref": "#/components/schemas/Go_internal_module_ai_tool_ListResponse_Output"
@@ -10835,6 +11273,17 @@ export const adminOperations = {
     telemetryName: "admin.get.api.admin.v1.ai.runs",
     encode: (input) => input,
   }),
+  "get_api_admin_v1_ai_runs_dashboard": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_dashboard">, AdminOperationOutput<"get_api_admin_v1_ai_runs_dashboard">>({
+    id: "get_api_admin_v1_ai_runs_dashboard",
+    method: "GET",
+    path: "/api/admin/v1/ai-runs/dashboard",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_dashboard">>(responseDataSchemas["get_api_admin_v1_ai_runs_dashboard"]),
+    telemetryName: "admin.get.api.admin.v1.ai.runs.dashboard",
+    encode: (input) => input,
+  }),
   "get_api_admin_v1_ai_runs_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_id">, AdminOperationOutput<"get_api_admin_v1_ai_runs_id">>({
     id: "get_api_admin_v1_ai_runs_id",
     method: "GET",
@@ -10855,60 +11304,7 @@ export const adminOperations = {
     replay: "safe",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_page_init">>(responseDataSchemas["get_api_admin_v1_ai_runs_page_init"]),
     telemetryName: "admin.get.api.admin.v1.ai.runs.page.init",
-  }),
-  "get_api_admin_v1_ai_runs_stats": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats">>({
-    id: "get_api_admin_v1_ai_runs_stats",
-    method: "GET",
-    path: "/api/admin/v1/ai-runs/stats",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats"]),
-    telemetryName: "admin.get.api.admin.v1.ai.runs.stats",
     encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_runs_stats_by_agent": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats_by_agent">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_agent">>({
-    id: "get_api_admin_v1_ai_runs_stats_by_agent",
-    method: "GET",
-    path: "/api/admin/v1/ai-runs/stats/by-agent",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_agent">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_by_agent"]),
-    telemetryName: "admin.get.api.admin.v1.ai.runs.stats.by.agent",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_runs_stats_by_date": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats_by_date">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_date">>({
-    id: "get_api_admin_v1_ai_runs_stats_by_date",
-    method: "GET",
-    path: "/api/admin/v1/ai-runs/stats/by-date",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_date">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_by_date"]),
-    telemetryName: "admin.get.api.admin.v1.ai.runs.stats.by.date",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_runs_stats_by_user": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats_by_user">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_user">>({
-    id: "get_api_admin_v1_ai_runs_stats_by_user",
-    method: "GET",
-    path: "/api/admin/v1/ai-runs/stats/by-user",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_by_user">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_by_user"]),
-    telemetryName: "admin.get.api.admin.v1.ai.runs.stats.by.user",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_runs_stats_latency": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_stats_latency">, AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_latency">>({
-    id: "get_api_admin_v1_ai_runs_stats_latency",
-    method: "GET",
-    path: "/api/admin/v1/ai-runs/stats/latency",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_stats_latency">>(responseDataSchemas["get_api_admin_v1_ai_runs_stats_latency"]),
-    telemetryName: "admin.get.api.admin.v1.ai.runs.stats.latency",
   }),
   "get_api_admin_v1_ai_tools": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_tools">, AdminOperationOutput<"get_api_admin_v1_ai_tools">>({
     id: "get_api_admin_v1_ai_tools",

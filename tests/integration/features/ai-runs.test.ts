@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type {
+  AiRunDashboardParams,
+  AiRunDashboardResponse,
   AiRunDetailResponse,
   AiRunItem,
   AiRunListResponse,
@@ -13,7 +15,8 @@ import {
   runBillingSummary,
 } from '@/views/Main/ai/runs/components/RunList/detail-dialog'
 import { parseRunInputSnapshot } from '@/views/Main/ai/runs/components/RunList/input-snapshot'
-import { deferred, page } from './support'
+import { createAiRunDashboardFixture } from '../../helpers/ai-run-dashboard'
+import { deferred, eventBase, FakeFeatureRealtime, page } from './support'
 
 const run = (id: number): AiRunItem => ({
   id,
@@ -31,6 +34,9 @@ const run = (id: number): AiRunItem => ({
   status_name: 'Success',
   model_id: 'model',
   model_display_name: 'Model',
+  billing_status: 'unbilled',
+  billing_reason: 'legacy_unpriced',
+  error_code: '',
   prompt_tokens: 1,
   completion_tokens: 1,
   total_tokens: 2,
@@ -110,27 +116,16 @@ describe('AI runs workflow', () => {
       .mockRejectedValueOnce(new Error('refresh failed'))
     const api: AIRunsWorkflowApi = {
       pageInit: vi.fn(async () => ({
-        dict: { status_arr: [], platform_arr: [], agentArr: [], providerArr: [] },
+        dict: {
+          status_arr: [], platform_arr: [], agentArr: [], providerArr: [], model_arr: [],
+          billing_status_arr: [], billing_reason_arr: [],
+        },
       })),
       list,
       detail: vi.fn()
         .mockImplementationOnce(() => detailA.promise)
         .mockImplementationOnce(() => detailB.promise),
-      stats: vi.fn(async () => ({
-        date_range: { start: null, end: null },
-        summary: {
-          total_runs: 0,
-          success_rate: 0,
-          fail_runs: 0,
-          total_tokens: 0,
-          total_prompt_tokens: 0,
-          total_completion_tokens: 0,
-          avg_duration_ms: 0,
-        },
-      })),
-      statsByDate: vi.fn(async () => ({ list: [], page: page(1, 0) })),
-      statsByAgent: vi.fn(async () => ({ list: [], page: page(1, 0) })),
-      statsByUser: vi.fn(async () => ({ list: [], page: page(1, 0) })),
+      dashboard: vi.fn(async () => createAiRunDashboardFixture()),
     }
     const workflow = createAIRunsWorkflow({ api })
     await workflow.list.execute({ current_page: 1, page_size: 20 })
@@ -146,4 +141,117 @@ describe('AI runs workflow', () => {
     expect(workflow.detail.state.value).toEqual({ kind: 'success', data: [detail(2)] })
     workflow.dispose()
   })
+
+  it('keeps the last successful dashboard visible while a new query is loading or fails', async () => {
+    const firstDashboard = createAiRunDashboardFixture({
+      summary: { ...createAiRunDashboardFixture().summary, total_runs: 7 },
+    })
+    const nextDashboard = deferred<AiRunDashboardResponse>()
+    const dashboard = vi.fn()
+      .mockResolvedValueOnce(firstDashboard)
+      .mockImplementationOnce(() => nextDashboard.promise)
+    const workflow = createAIRunsWorkflow({ api: workflowApi({ dashboard }) })
+
+    await workflow.loadDashboard({ date_start: '2026-07-23', date_end: '2026-07-29' })
+    const pending = workflow.loadDashboard({ date_start: '2026-07-16', date_end: '2026-07-22' })
+    expect(workflow.lastDashboard.value).toEqual(firstDashboard)
+    nextDashboard.reject(new Error('dashboard failed'))
+    await expect(pending).rejects.toMatchObject({ kind: 'internal' })
+    expect(workflow.lastDashboard.value).toEqual(firstDashboard)
+    workflow.dispose()
+  })
+
+  it('aborts a superseded dashboard query and commits only the latest response', async () => {
+    const first = deferred<AiRunDashboardResponse>()
+    const second = deferred<AiRunDashboardResponse>()
+    const signals: AbortSignal[] = []
+    const dashboard = vi.fn((_params: AiRunDashboardParams, options: { signal?: AbortSignal }) => {
+      signals.push(options.signal!)
+      return signals.length === 1 ? first.promise : second.promise
+    })
+    const workflow = createAIRunsWorkflow({ api: workflowApi({ dashboard }) })
+
+    const firstRequest = workflow.loadDashboard({ date_start: '2026-07-23', date_end: '2026-07-29' })
+    const secondRequest = workflow.loadDashboard({ date_start: '2026-07-22', date_end: '2026-07-28' })
+    expect(signals[0]?.aborted).toBe(true)
+    const latest = createAiRunDashboardFixture({ generated_at: '2026-07-29T16:00:00+08:00' })
+    second.resolve(latest)
+    await secondRequest
+    first.resolve(createAiRunDashboardFixture({ generated_at: '2026-07-29T15:00:00+08:00' }))
+    await firstRequest
+
+    expect(workflow.lastDashboard.value).toEqual(latest)
+    workflow.dispose()
+  })
+
+  it('debounces terminal realtime events for current ranges and ignores historical ranges', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-29T12:00:00+08:00'))
+    try {
+      const realtime = new FakeFeatureRealtime()
+      const dashboard = vi.fn(async () => createAiRunDashboardFixture())
+      const workflow = createAIRunsWorkflow({ api: workflowApi({ dashboard }), realtime })
+      await workflow.loadDashboard({ date_start: '2026-07-23', date_end: '2026-07-29' })
+
+      for (let sequence = 1; sequence <= 3; sequence++) {
+        await realtime.emit({
+          ...eventBase,
+          event_id: `01J0000000000000000000000${sequence}`,
+          type: 'ai.response.completed.v1',
+          sequence,
+          durability: 'durable',
+          data: { conversation_id: 7, request_id: `request-${sequence}`, assistant_message_id: sequence },
+        })
+      }
+      await vi.advanceTimersByTimeAsync(249)
+      expect(dashboard).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(dashboard).toHaveBeenCalledTimes(2)
+
+      await workflow.loadDashboard({ date_start: '2026-07-22', date_end: '2026-07-28' })
+      await realtime.emit({
+        ...eventBase,
+        event_id: '01J00000000000000000000004',
+        type: 'ai.response.completed.v1',
+        sequence: 4,
+        durability: 'durable',
+        data: { conversation_id: 7, request_id: 'request-4', assistant_message_id: 4 },
+      })
+      await vi.advanceTimersByTimeAsync(250)
+      expect(dashboard).toHaveBeenCalledTimes(3)
+      workflow.dispose()
+    }
+    finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('caches page-init by date pair and reloads only when the pair changes', async () => {
+    const pageInit = vi.fn(async () => workflowPageInit())
+    const workflow = createAIRunsWorkflow({ api: workflowApi({ pageInit }) })
+    await workflow.loadPageInit({ date_start: '2026-07-23', date_end: '2026-07-29' })
+    await workflow.loadPageInit({ date_start: '2026-07-23', date_end: '2026-07-29' })
+    await workflow.loadPageInit({ date_start: '2026-07-16', date_end: '2026-07-22' })
+    expect(pageInit).toHaveBeenCalledTimes(2)
+    workflow.dispose()
+  })
 })
+
+function workflowPageInit() {
+  return {
+    dict: {
+      status_arr: [], platform_arr: [], agentArr: [], providerArr: [], model_arr: [],
+      billing_status_arr: [], billing_reason_arr: [],
+    },
+  }
+}
+
+function workflowApi(overrides: Partial<AIRunsWorkflowApi> = {}): AIRunsWorkflowApi {
+  return {
+    pageInit: vi.fn(async () => workflowPageInit()),
+    list: vi.fn(async () => ({ list: [], page: page(1, 0) })),
+    detail: vi.fn(async ({ id }) => detail(Number(id))),
+    dashboard: vi.fn(async () => createAiRunDashboardFixture()),
+    ...overrides,
+  }
+}

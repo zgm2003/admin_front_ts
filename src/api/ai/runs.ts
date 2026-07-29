@@ -7,6 +7,10 @@ import {
 } from '@/modules/http/generated/operations'
 import type { Id } from '@/types/common'
 
+type AiRunPageInitQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_page_init'>['query']>
+type AiRunListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs'>['query']>
+type AiRunDashboardQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_dashboard'>['query']>
+
 export type JsonValue = components['schemas']['JSONValue']
 export type AiRunStatus = components['schemas']['AIRunListItem']['status']
 export type AiRunPlatform = components['schemas']['AIRunListItem']['platform']
@@ -23,27 +27,29 @@ export type AiRunDetailResponse = components['schemas']['AIRunDetail']
 export type AiRunLatencyBreakdown = components['schemas']['AIRunLatencyBreakdown']
 export type AiRunClaimSource = AiRunLatencyBreakdown['claim_source']
 export type AiRunRequestSummary = components['schemas']['AIRunRequestSummary']
-export type AiRunBillingStatus = AiRunDetailResponse['billing_status']
-export type AiRunBillingReason = AiRunDetailResponse['billing_reason']
+export type AiRunBillingStatus = AiRunItem['billing_status']
+export type AiRunBillingReason = AiRunItem['billing_reason']
 export type AiRunPricing = components['schemas']['AIRunPricing']
 export type AiRunPricingRate = components['schemas']['AIRunPricingRate']
 export type AiRunUsageItem = components['schemas']['AIRunUsageItem']
 export type AiRunUsageCategory = AiRunUsageItem['category']
 export type AiRunProviderAttempt = components['schemas']['AIRunProviderAttempt']
 export type AiRunEventItem = components['schemas']['AIRunEvent']
-export type AiRunStatsSummaryResponse = components['schemas']['AIRunStatsResult']
-export type AiRunStatsMetricItem = components['schemas']['AIRunStatsMetric']
-export type AiRunStatsByDateItem = components['schemas']['AIRunStatsByDateItem']
-export type AiRunStatsByAgentItem = components['schemas']['AIRunStatsByAgentItem']
-export type AiRunStatsByUserItem = components['schemas']['AIRunStatsByUserItem']
-export type AiRunStatsByDateResponse = components['schemas']['AIRunStatsByDateResult']
-export type AiRunStatsByAgentResponse = components['schemas']['AIRunStatsByAgentResult']
-export type AiRunStatsByUserResponse = components['schemas']['AIRunStatsByUserResult']
+export type AiRunDashboardResponse = components['schemas']['AIRunDashboardResult']
+export type AiRunDashboardPercentile = components['schemas']['AIRunDashboardPercentile']
 export type AiRunUserFeedbackResponse = components['schemas']['AIRunUserFeedbackResult']
 
-export type AiRunLatencyDistribution = components['schemas']['AIRunLatencyDistribution']
-export type AiRunLatencyStatsItem = components['schemas']['AIRunLatencyStatsItem']
-export type AiRunLatencyStatsResponse = components['schemas']['AIRunLatencyStatsResult']
+export interface AiRunDashboardParams {
+  date_start?: string
+  date_end?: string
+  platform?: AiRunPlatform | ''
+  model_id?: string
+  agent_id?: number | ''
+  provider_id?: number | ''
+  user_id?: number | ''
+}
+
+export type AiRunPageInitParams = Pick<AiRunDashboardParams, 'date_start' | 'date_end'>
 
 export interface AiRunListParams {
   current_page?: number
@@ -54,33 +60,40 @@ export interface AiRunListParams {
   request_id?: string
   agent_id?: number | ''
   provider_id?: number | ''
+  model_id?: string
+  billing_status?: AiRunBillingStatus | ''
+  billing_reason?: AiRunBillingReason | ''
+  error_code?: string
+  tool_code?: string
+  run_anomaly?: NonNullable<AiRunListQuery['run_anomaly']> | ''
+  billing_anomaly?: NonNullable<AiRunListQuery['billing_anomaly']> | ''
+  anomaly_as_of?: string
   date_start?: string
   date_end?: string
 }
-
-export interface AiRunStatsParams {
-  date_start?: string
-  date_end?: string
-  platform?: AiRunPlatform | ''
-  agent_id?: number | ''
-  provider_id?: number | ''
-  user_id?: number | ''
-}
-
-export interface AiRunStatsListParams extends AiRunStatsParams {
-  current_page: number
-  page_size: number
-}
-
-type AiRunListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs'>['query']>
-type AiRunStatsQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_stats'>['query']>
-type AiRunStatsListQuery = NonNullable<AdminOperationInput<'get_api_admin_v1_ai_runs_stats_by_date'>['query']>
 
 function positiveID(value: Id | number): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
     throw new Error('AI run id must be a positive integer')
   }
   return value
+}
+
+function normalizePageInitParams(params: AiRunPageInitParams): AiRunPageInitQuery {
+  const query: AiRunPageInitQuery = {}
+  if (params.date_start) query.date_start = params.date_start
+  if (params.date_end) query.date_end = params.date_end
+  return query
+}
+
+function normalizeDashboardParams(params: AiRunDashboardParams): AiRunDashboardQuery {
+  const query: AiRunDashboardQuery = normalizePageInitParams(params)
+  if (params.platform !== '' && params.platform !== undefined) query.platform = params.platform
+  if (params.model_id) query.model_id = params.model_id
+  if (params.agent_id !== '' && params.agent_id !== undefined) query.agent_id = params.agent_id
+  if (params.provider_id !== '' && params.provider_id !== undefined) query.provider_id = params.provider_id
+  if (params.user_id !== '' && params.user_id !== undefined) query.user_id = params.user_id
+  return query
 }
 
 function normalizeListParams(params: AiRunListParams): AiRunListQuery {
@@ -93,33 +106,28 @@ function normalizeListParams(params: AiRunListParams): AiRunListQuery {
   if (params.request_id) query.request_id = params.request_id
   if (params.agent_id !== '' && params.agent_id !== undefined) query.agent_id = params.agent_id
   if (params.provider_id !== '' && params.provider_id !== undefined) query.provider_id = params.provider_id
+  if (params.model_id) query.model_id = params.model_id
+  if (params.billing_status !== '' && params.billing_status !== undefined) query.billing_status = params.billing_status
+  if (params.billing_reason !== '' && params.billing_reason !== undefined) query.billing_reason = params.billing_reason
+  if (params.error_code) query.error_code = params.error_code
+  if (params.tool_code) query.tool_code = params.tool_code
+  if (params.run_anomaly !== '' && params.run_anomaly !== undefined) query.run_anomaly = params.run_anomaly
+  if (params.billing_anomaly !== '' && params.billing_anomaly !== undefined) query.billing_anomaly = params.billing_anomaly
+  if (params.anomaly_as_of) query.anomaly_as_of = params.anomaly_as_of
   if (params.date_start) query.date_start = params.date_start
   if (params.date_end) query.date_end = params.date_end
   return query
-}
-
-function normalizeStatsParams(params: AiRunStatsParams = {}): AiRunStatsQuery {
-  const query: AiRunStatsQuery = {}
-  if (params.date_start) query.date_start = params.date_start
-  if (params.date_end) query.date_end = params.date_end
-  if (params.platform !== '' && params.platform !== undefined) query.platform = params.platform
-  if (params.agent_id !== '' && params.agent_id !== undefined) query.agent_id = params.agent_id
-  if (params.provider_id !== '' && params.provider_id !== undefined) query.provider_id = params.provider_id
-  if (params.user_id !== '' && params.user_id !== undefined) query.user_id = params.user_id
-  return query
-}
-
-function normalizeStatsListParams(params: AiRunStatsListParams): AiRunStatsListQuery {
-  return {
-    ...normalizeStatsParams(params),
-    current_page: params.current_page,
-    page_size: params.page_size,
-  }
 }
 
 export const AiRunApi = {
-  pageInit: (options: ExecuteOptions = {}): Promise<AiRunInitResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs_page_init, {}, options),
+  pageInit: (
+    params: AiRunPageInitParams = {},
+    options: ExecuteOptions = {},
+  ): Promise<AiRunInitResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_page_init,
+    { query: normalizePageInitParams(params) },
+    options,
+  ),
 
   list: (params: AiRunListParams, options: ExecuteOptions = {}): Promise<AiRunListResponse> =>
     executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs, {
@@ -135,42 +143,12 @@ export const AiRunApi = {
     options,
   ),
 
-  stats: (
-    params: AiRunStatsParams = {},
+  dashboard: (
+    params: AiRunDashboardParams,
     options: ExecuteOptions = {},
-  ): Promise<AiRunStatsSummaryResponse> => executeAdminOperation(
-    adminOperations.get_api_admin_v1_ai_runs_stats,
-    { query: normalizeStatsParams(params) },
-    options,
-  ),
-
-  latencyStats: (options: ExecuteOptions = {}): Promise<AiRunLatencyStatsResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_runs_stats_latency, {}, options),
-
-  statsByDate: (
-    params: AiRunStatsListParams,
-    options: ExecuteOptions = {},
-  ): Promise<AiRunStatsByDateResponse> => executeAdminOperation(
-    adminOperations.get_api_admin_v1_ai_runs_stats_by_date,
-    { query: normalizeStatsListParams(params) },
-    options,
-  ),
-
-  statsByAgent: (
-    params: AiRunStatsListParams,
-    options: ExecuteOptions = {},
-  ): Promise<AiRunStatsByAgentResponse> => executeAdminOperation(
-    adminOperations.get_api_admin_v1_ai_runs_stats_by_agent,
-    { query: normalizeStatsListParams(params) },
-    options,
-  ),
-
-  statsByUser: (
-    params: AiRunStatsListParams,
-    options: ExecuteOptions = {},
-  ): Promise<AiRunStatsByUserResponse> => executeAdminOperation(
-    adminOperations.get_api_admin_v1_ai_runs_stats_by_user,
-    { query: normalizeStatsListParams(params) },
+  ): Promise<AiRunDashboardResponse> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_dashboard,
+    { query: normalizeDashboardParams(params) },
     options,
   ),
 

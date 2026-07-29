@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 99f1d17d0347a8db91ad86a50e5d6f8f1db836b54b88df9a0097420255c0c037
+// Generated from Admin Contract Bundle manifest SHA-256: 997cdaf7960ced9919c6bf5592bef0430eba7911586f27792c8815ca594af6c6
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -751,6 +751,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/v1/ai-runs/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-runs/dashboard */
+        get: operations["get_api_admin_v1_ai_runs_dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/v1/ai-runs/page-init": {
         parameters: {
             query?: never;
@@ -760,91 +777,6 @@ export interface paths {
         };
         /** GET /api/admin/v1/ai-runs/page-init */
         get: operations["get_api_admin_v1_ai_runs_page_init"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-runs/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-runs/stats */
-        get: operations["get_api_admin_v1_ai_runs_stats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-runs/stats/by-agent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-runs/stats/by-agent */
-        get: operations["get_api_admin_v1_ai_runs_stats_by_agent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-runs/stats/by-date": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-runs/stats/by-date */
-        get: operations["get_api_admin_v1_ai_runs_stats_by_date"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-runs/stats/by-user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-runs/stats/by-user */
-        get: operations["get_api_admin_v1_ai_runs_stats_by_user"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-runs/stats/latency": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-runs/stats/latency */
-        get: operations["get_api_admin_v1_ai_runs_stats_latency"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3361,6 +3293,238 @@ export interface components {
             data: components["schemas"]["AIMessageSendResult"];
             msg: string;
         };
+        AIRunDashboardAgentBreakdown: {
+            actual_amount: string;
+            /** Format: int64 */
+            agent_id: number;
+            agent_name: string;
+            /** Format: int64 */
+            billing_anomaly_count: number;
+            /** Format: int64 */
+            run_anomaly_count: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunDashboardAnomalies: {
+            billing_items: components["schemas"]["AIRunDashboardAnomalyItem"][];
+            /** Format: int64 */
+            billing_total: number;
+            run_items: components["schemas"]["AIRunDashboardAnomalyItem"][];
+            /** Format: int64 */
+            run_total: number;
+        };
+        AIRunDashboardAnomalyItem: {
+            code: string;
+            /** Format: int64 */
+            count: number;
+        };
+        AIRunDashboardAttributionMetrics: {
+            actual_amount: string;
+            /** Format: int64 */
+            billing_anomaly_count: number;
+            /** Format: int64 */
+            run_anomaly_count: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunDashboardBilling: {
+            actual_amount: string;
+            released_amount: string;
+            /** Format: int64 */
+            released_runs: number;
+            /** Format: int64 */
+            settled_runs: number;
+            /** Format: int64 */
+            unbilled_runs: number;
+        };
+        AIRunDashboardBreakdowns: {
+            agents: components["schemas"]["AIRunDashboardAgentBreakdown"][];
+            errors: components["schemas"]["AIRunDashboardErrorBreakdown"][];
+            models: components["schemas"]["AIRunDashboardModelBreakdown"][];
+            providers: components["schemas"]["AIRunDashboardProviderBreakdown"][];
+            tools: components["schemas"]["AIRunDashboardToolBreakdown"][];
+            users: components["schemas"]["AIRunDashboardUserBreakdown"][];
+        };
+        AIRunDashboardDateRange: {
+            /** Format: date-time */
+            end_exclusive: string;
+            /** Format: date-time */
+            start_at: string;
+        };
+        AIRunDashboardErrorBreakdown: {
+            /** Format: int64 */
+            count: number;
+            error_code: string;
+        };
+        AIRunDashboardModelBreakdown: {
+            actual_amount: string;
+            /** Format: int64 */
+            billing_anomaly_count: number;
+            historical: boolean;
+            model_display_name: string;
+            model_id: string;
+            /** Format: int64 */
+            run_anomaly_count: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunDashboardPercentile: {
+            insufficient_sample: boolean;
+            /** Format: int64 */
+            p50_ms: number;
+            /** Format: int64 */
+            p95_ms: number;
+            /** Format: int64 */
+            sample_count: number;
+        };
+        AIRunDashboardPerformance: {
+            end_to_end: components["schemas"]["AIRunDashboardPercentile"];
+            ttft: components["schemas"]["AIRunDashboardPercentile"];
+        };
+        AIRunDashboardProviderBreakdown: {
+            actual_amount: string;
+            /** Format: int64 */
+            billing_anomaly_count: number;
+            /** Format: int64 */
+            provider_id: number;
+            provider_name: string;
+            /** Format: int64 */
+            run_anomaly_count: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunDashboardResult: {
+            anomalies: components["schemas"]["AIRunDashboardAnomalies"];
+            billing: components["schemas"]["AIRunDashboardBilling"];
+            breakdowns: components["schemas"]["AIRunDashboardBreakdowns"];
+            date_range: components["schemas"]["AIRunDashboardDateRange"];
+            /** Format: date-time */
+            generated_at: string;
+            performance: components["schemas"]["AIRunDashboardPerformance"];
+            summary: components["schemas"]["AIRunDashboardSummary"];
+            timezone: string;
+            trend: components["schemas"]["AIRunDashboardTrendItem"][];
+        };
+        AIRunDashboardSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunDashboardResult"];
+            msg: string;
+        };
+        AIRunDashboardSummary: {
+            /** Format: int64 */
+            canceled_runs: number;
+            /** Format: int64 */
+            completion_tokens: number;
+            /** Format: int64 */
+            failed_runs: number;
+            /** Format: int64 */
+            in_progress_runs: number;
+            /** Format: int64 */
+            outcome_unknown_runs: number;
+            /** Format: int64 */
+            prompt_tokens: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            terminal_runs: number;
+            /** Format: int64 */
+            timeout_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+        };
+        AIRunDashboardToolBreakdown: {
+            duration: components["schemas"]["AIRunDashboardPercentile"];
+            /** Format: int64 */
+            failed_calls: number;
+            /** Format: int64 */
+            success_calls: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            timeout_calls: number;
+            tool_code: string;
+            tool_name: string;
+            /** Format: int64 */
+            total_calls: number;
+        };
+        AIRunDashboardTrendItem: {
+            actual_amount: string;
+            /** Format: int64 */
+            canceled_runs: number;
+            /** Format: date */
+            date: string;
+            end_to_end: components["schemas"]["AIRunDashboardPercentile"];
+            /** Format: int64 */
+            failed_runs: number;
+            /** Format: int64 */
+            in_progress_runs: number;
+            /** Format: int64 */
+            outcome_unknown_runs: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            timeout_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            ttft: components["schemas"]["AIRunDashboardPercentile"];
+        };
+        AIRunDashboardUserBreakdown: {
+            actual_amount: string;
+            /** Format: int64 */
+            billing_anomaly_count: number;
+            /** Format: int64 */
+            run_anomaly_count: number;
+            /** Format: int64 */
+            success_denominator: number;
+            success_rate: number;
+            /** Format: int64 */
+            success_runs: number;
+            /** Format: int64 */
+            total_runs: number;
+            /** Format: int64 */
+            total_tokens: number;
+            /** Format: int64 */
+            user_id: number;
+            username: string;
+        };
         AIRunDetail: {
             actual_amount: string;
             /** Format: int64 */
@@ -3378,6 +3542,7 @@ export interface components {
             created_at: string;
             duration_ms: number | null;
             duration_text: string;
+            error_code: string;
             error_message: string;
             events: components["schemas"]["AIRunEvent"][];
             finished_at: string;
@@ -3488,42 +3653,14 @@ export interface components {
             settlement_ms: number | null;
             ttft_ms: number | null;
         };
-        AIRunLatencyDistribution: {
-            insufficient_sample: boolean;
-            /** Format: int64 */
-            p50_ms: number;
-            /** Format: int64 */
-            p95_ms: number;
-            /** Format: int64 */
-            p99_ms: number;
-            /** Format: int64 */
-            sample_count: number;
-        };
-        AIRunLatencyStatsItem: {
-            model_id: string;
-            /** Format: int64 */
-            provider_id: number;
-            provider_name: string;
-            provider_total: components["schemas"]["AIRunLatencyDistribution"];
-            ttft: components["schemas"]["AIRunLatencyDistribution"];
-        };
-        AIRunLatencyStatsResult: {
-            list: components["schemas"]["AIRunLatencyStatsItem"][];
-            /** Format: int64 */
-            max_samples: number;
-            /** Format: int64 */
-            window_days: number;
-        };
-        AIRunLatencyStatsSuccessEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["AIRunLatencyStatsResult"];
-            msg: string;
-        };
         AIRunListItem: {
             /** Format: int64 */
             agent_id: number;
             agent_name: string;
+            /** @enum {string} */
+            billing_reason: "pending" | "held" | "settled_complete_usage" | "released_before_dispatch" | "released_insufficient_balance" | "released_provider_failed" | "released_outcome_unknown" | "unbilled_usage_incomplete" | "unbilled_over_hold" | "legacy_unpriced";
+            /** @enum {string} */
+            billing_status: "pending" | "held" | "settled" | "released" | "unbilled";
             /** Format: int64 */
             completion_tokens: number;
             conversation_id: number | null;
@@ -3531,6 +3668,7 @@ export interface components {
             created_at: string;
             duration_ms: number | null;
             duration_text: string;
+            error_code: string;
             error_message: string;
             /** Format: int64 */
             id: number;
@@ -3578,9 +3716,17 @@ export interface components {
         };
         AIRunPageInitDict: {
             agentArr: components["schemas"]["IntOption"][];
+            billing_reason_arr: components["schemas"]["StringOption"][];
+            billing_status_arr: components["schemas"]["StringOption"][];
+            model_arr: components["schemas"]["AIRunPageInitModelOption"][];
             platform_arr: components["schemas"]["StringOption"][];
             providerArr: components["schemas"]["IntOption"][];
             status_arr: components["schemas"]["StringOption"][];
+        };
+        AIRunPageInitModelOption: {
+            historical: boolean;
+            label: string;
+            value: string;
         };
         AIRunPageInitSuccessEnvelope: {
             /** @constant */
@@ -3625,118 +3771,6 @@ export interface components {
             provider_attempt_count: number;
             /** Format: int64 */
             tool_call_count: number;
-        };
-        AIRunStatsByAgentItem: {
-            /** Format: int64 */
-            agent_id: number;
-            agent_name: string;
-            /** Format: int64 */
-            avg_duration_ms: number;
-            /** Format: int64 */
-            total_completion_tokens: number;
-            /** Format: int64 */
-            total_prompt_tokens: number;
-            /** Format: int64 */
-            total_runs: number;
-            /** Format: int64 */
-            total_tokens: number;
-        };
-        AIRunStatsByAgentResult: {
-            list: components["schemas"]["AIRunStatsByAgentItem"][];
-            page: components["schemas"]["Page"];
-        };
-        AIRunStatsByAgentSuccessEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["AIRunStatsByAgentResult"];
-            msg: string;
-        };
-        AIRunStatsByDateItem: {
-            /** Format: int64 */
-            avg_duration_ms: number;
-            date: string;
-            /** Format: int64 */
-            total_completion_tokens: number;
-            /** Format: int64 */
-            total_prompt_tokens: number;
-            /** Format: int64 */
-            total_runs: number;
-            /** Format: int64 */
-            total_tokens: number;
-        };
-        AIRunStatsByDateResult: {
-            list: components["schemas"]["AIRunStatsByDateItem"][];
-            page: components["schemas"]["Page"];
-        };
-        AIRunStatsByDateSuccessEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["AIRunStatsByDateResult"];
-            msg: string;
-        };
-        AIRunStatsByUserItem: {
-            /** Format: int64 */
-            avg_duration_ms: number;
-            /** Format: int64 */
-            total_completion_tokens: number;
-            /** Format: int64 */
-            total_prompt_tokens: number;
-            /** Format: int64 */
-            total_runs: number;
-            /** Format: int64 */
-            total_tokens: number;
-            username: string;
-        };
-        AIRunStatsByUserResult: {
-            list: components["schemas"]["AIRunStatsByUserItem"][];
-            page: components["schemas"]["Page"];
-        };
-        AIRunStatsByUserSuccessEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["AIRunStatsByUserResult"];
-            msg: string;
-        };
-        AIRunStatsDateRange: {
-            end: string | null;
-            start: string | null;
-        };
-        AIRunStatsMetric: {
-            /** Format: int64 */
-            avg_duration_ms: number;
-            /** Format: int64 */
-            total_completion_tokens: number;
-            /** Format: int64 */
-            total_prompt_tokens: number;
-            /** Format: int64 */
-            total_runs: number;
-            /** Format: int64 */
-            total_tokens: number;
-        };
-        AIRunStatsResult: {
-            date_range: components["schemas"]["AIRunStatsDateRange"];
-            summary: components["schemas"]["AIRunStatsSummary"];
-        };
-        AIRunStatsSuccessEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["AIRunStatsResult"];
-            msg: string;
-        };
-        AIRunStatsSummary: {
-            /** Format: int64 */
-            avg_duration_ms: number;
-            /** Format: int64 */
-            fail_runs: number;
-            success_rate: number;
-            /** Format: int64 */
-            total_completion_tokens: number;
-            /** Format: int64 */
-            total_prompt_tokens: number;
-            /** Format: int64 */
-            total_runs: number;
-            /** Format: int64 */
-            total_tokens: number;
         };
         AIRuntimeParams: {
             /** Format: int64 */
@@ -9372,12 +9406,24 @@ export interface operations {
             query?: {
                 /** @description Agent ID filter. */
                 agent_id?: number;
+                /** @description RFC3339 instant used to evaluate stale and overdue anomalies. */
+                anomaly_as_of?: string;
+                /** @description Billing anomaly drilldown filter. */
+                billing_anomaly?: "state_inconsistent" | "open_overdue" | "pricing_snapshot_missing" | "legacy_unpriced" | "unbilled_usage_incomplete" | "unbilled_over_hold";
+                /** @description Billing reason filter. */
+                billing_reason?: "pending" | "held" | "settled_complete_usage" | "released_before_dispatch" | "released_insufficient_balance" | "released_provider_failed" | "released_outcome_unknown" | "unbilled_usage_incomplete" | "unbilled_over_hold" | "legacy_unpriced";
+                /** @description Billing status filter. */
+                billing_status?: "pending" | "held" | "settled" | "released" | "unbilled";
                 /** @description One-based page number. */
                 current_page?: number;
-                /** @description Inclusive creation-time upper bound. */
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
                 date_end?: string;
-                /** @description Inclusive creation-time lower bound. */
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
                 date_start?: string;
+                /** @description Final provider attempt error code filter. */
+                error_code?: string;
+                /** @description Official or historical model ID filter. */
+                model_id?: string;
                 /** @description Number of rows per page. */
                 page_size?: number;
                 /** @description Origin platform filter. */
@@ -9386,8 +9432,12 @@ export interface operations {
                 provider_id?: number;
                 /** @description Request ID search. */
                 request_id?: string;
+                /** @description Run anomaly drilldown filter. */
+                run_anomaly?: "failed" | "timeout" | "outcome_unknown" | "stale_running";
                 /** @description Run status filter. */
                 status?: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
+                /** @description Tool code drilldown filter. */
+                tool_code?: string;
                 /** @description User ID filter. */
                 user_id?: number;
             };
@@ -9483,9 +9533,58 @@ export interface operations {
             };
         };
     };
+    get_api_admin_v1_ai_runs_dashboard: {
+        parameters: {
+            query?: {
+                /** @description Agent ID filter. */
+                agent_id?: number;
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
+                date_end?: string;
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
+                date_start?: string;
+                /** @description Official or historical model ID filter. */
+                model_id?: string;
+                /** @description Origin platform filter. */
+                platform?: "admin";
+                /** @description Provider ID filter. */
+                provider_id?: number;
+                /** @description User ID filter. */
+                user_id?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunDashboardSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     get_api_admin_v1_ai_runs_page_init: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
+                date_end?: string;
+                /** @description Inclusive Asia/Shanghai calendar date input (YYYY-MM-DD); normalized output uses an exclusive end instant. */
+                date_start?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -9499,215 +9598,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIRunPageInitSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_runs_stats: {
-        parameters: {
-            query?: {
-                /** @description Agent ID filter. */
-                agent_id?: number;
-                /** @description Inclusive creation-time upper bound. */
-                date_end?: string;
-                /** @description Inclusive creation-time lower bound. */
-                date_start?: string;
-                /** @description Origin platform filter. */
-                platform?: "admin";
-                /** @description Provider ID filter. */
-                provider_id?: number;
-                /** @description User ID filter. */
-                user_id?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIRunStatsSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_runs_stats_by_agent: {
-        parameters: {
-            query?: {
-                /** @description Agent ID filter. */
-                agent_id?: number;
-                /** @description One-based page number. */
-                current_page?: number;
-                /** @description Inclusive creation-time upper bound. */
-                date_end?: string;
-                /** @description Inclusive creation-time lower bound. */
-                date_start?: string;
-                /** @description Number of rows per page. */
-                page_size?: number;
-                /** @description Origin platform filter. */
-                platform?: "admin";
-                /** @description Provider ID filter. */
-                provider_id?: number;
-                /** @description User ID filter. */
-                user_id?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIRunStatsByAgentSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_runs_stats_by_date: {
-        parameters: {
-            query?: {
-                /** @description Agent ID filter. */
-                agent_id?: number;
-                /** @description One-based page number. */
-                current_page?: number;
-                /** @description Inclusive creation-time upper bound. */
-                date_end?: string;
-                /** @description Inclusive creation-time lower bound. */
-                date_start?: string;
-                /** @description Number of rows per page. */
-                page_size?: number;
-                /** @description Origin platform filter. */
-                platform?: "admin";
-                /** @description Provider ID filter. */
-                provider_id?: number;
-                /** @description User ID filter. */
-                user_id?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIRunStatsByDateSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_runs_stats_by_user: {
-        parameters: {
-            query?: {
-                /** @description Agent ID filter. */
-                agent_id?: number;
-                /** @description One-based page number. */
-                current_page?: number;
-                /** @description Inclusive creation-time upper bound. */
-                date_end?: string;
-                /** @description Inclusive creation-time lower bound. */
-                date_start?: string;
-                /** @description Number of rows per page. */
-                page_size?: number;
-                /** @description Origin platform filter. */
-                platform?: "admin";
-                /** @description Provider ID filter. */
-                provider_id?: number;
-                /** @description User ID filter. */
-                user_id?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIRunStatsByUserSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_runs_stats_latency: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIRunLatencyStatsSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */
