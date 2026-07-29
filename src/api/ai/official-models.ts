@@ -143,29 +143,69 @@ function optionsFrom(options: ExecuteOptions): Pick<ExecuteOptions, 'signal'> {
   return { signal: options.signal }
 }
 
+function arrayOrEmpty<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : []
+}
+
+function normalizePrice(price: AiOfficialModelPrice): AiOfficialModelPrice {
+  return { ...price, rates: arrayOrEmpty(price.rates) }
+}
+
+function normalizeModel(item: AiOfficialModelItem): AiOfficialModelItem {
+  const imageInput = item.capabilities.image_input
+  return {
+    ...item,
+    aliases: arrayOrEmpty(item.aliases),
+    capabilities: {
+      ...item.capabilities,
+      input_modalities: arrayOrEmpty(item.capabilities.input_modalities),
+      output_modalities: arrayOrEmpty(item.capabilities.output_modalities),
+      supported_parameters: arrayOrEmpty(item.capabilities.supported_parameters),
+      image_input: imageInput
+        ? { ...imageInput, mime_types: arrayOrEmpty(imageInput.mime_types) }
+        : null,
+    },
+    official: normalizePrice(item.official),
+    effective: normalizePrice(item.effective),
+  }
+}
+
+function normalizeMutation(response: AiOfficialModelMutationResponse): AiOfficialModelMutationResponse {
+  return { before: normalizePrice(response.before), after: normalizePrice(response.after) }
+}
+
 export const AiOfficialModelApi = {
   pageInit: (options: ExecuteOptions = {}): Promise<AiOfficialModelPageInitResponse> =>
     request.get('/api/admin/v1/ai-official-models/page-init', optionsFrom(options)),
 
-  list: (params: AiOfficialModelListParams = {}, options: ExecuteOptions = {}): Promise<AiOfficialModelListResponse> =>
-    request.get('/api/admin/v1/ai-official-models', { ...optionsFrom(options), params: listQuery(params) }),
+  list: async (params: AiOfficialModelListParams = {}, options: ExecuteOptions = {}): Promise<AiOfficialModelListResponse> => {
+    const response = await request.get<AiOfficialModelListResponse>(
+      '/api/admin/v1/ai-official-models',
+      { ...optionsFrom(options), params: listQuery(params) },
+    )
+    return { list: arrayOrEmpty(response.list).map(normalizeModel) }
+  },
 
-  detail: (params: { model_id: string }, options: ExecuteOptions = {}): Promise<AiOfficialModelItem> =>
-    request.get(modelPath(params.model_id), optionsFrom(options)),
+  detail: (params: { model_id: string }, options: ExecuteOptions = {}): Promise<AiOfficialModelItem> => request
+    .get<AiOfficialModelItem>(modelPath(params.model_id), optionsFrom(options))
+    .then(normalizeModel),
 
-  syncPrice: (params: AiOfficialModelPriceSyncParams, options: ExecuteOptions = {}): Promise<AiOfficialModelMutationResponse> =>
-    request.put(modelPath(params.model_id, '/price'), {
+  syncPrice: (params: AiOfficialModelPriceSyncParams, options: ExecuteOptions = {}): Promise<AiOfficialModelMutationResponse> => request
+    .put<AiOfficialModelMutationResponse>(modelPath(params.model_id, '/price'), {
       expected_version: expectedVersion(params.expected_version, true),
       rates: params.rates.map((rate) => ({ ...rate })),
       source_url: params.source_url.trim(),
       verified_at: params.verified_at.trim(),
-    }, optionsFrom(options)),
+    }, optionsFrom(options))
+    .then(normalizeMutation),
 
   restoreOfficialPrice: (
     params: AiOfficialModelPriceRestoreParams,
     options: ExecuteOptions = {},
-  ): Promise<AiOfficialModelMutationResponse> => request.delete(modelPath(params.model_id, '/price-override'), {
-    ...optionsFrom(options),
-    params: { expected_version: expectedVersion(params.expected_version, false) },
-  }),
+  ): Promise<AiOfficialModelMutationResponse> => request
+    .delete<AiOfficialModelMutationResponse>(modelPath(params.model_id, '/price-override'), {
+      ...optionsFrom(options),
+      params: { expected_version: expectedVersion(params.expected_version, false) },
+    })
+    .then(normalizeMutation),
 }

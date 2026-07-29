@@ -74,17 +74,17 @@ function isOverride(row: AiOfficialModelItem): boolean {
           </el-tag>
         </template>
         <template #cell-modalities="{ row }">
-          <div data-test="model-modalities" class="official-model-page__tags">
+          <span data-test="model-modalities">
             <el-tag v-for="value in row.capabilities.input_modalities" :key="`in-${value}`" size="small" effect="plain">{{ value }}</el-tag>
             <span aria-hidden="true">→</span>
             <el-tag v-for="value in row.capabilities.output_modalities" :key="`out-${value}`" size="small" type="success" effect="plain">{{ value }}</el-tag>
-          </div>
+          </span>
         </template>
         <template #cell-capabilities="{ row }">
-          <div data-test="model-capabilities" class="official-model-page__tags">
+          <span data-test="model-capabilities">
             <el-tag v-for="value in capabilityLabels(row)" :key="value" size="small" type="info">{{ value }}</el-tag>
             <span v-if="capabilityLabels(row).length === 0" class="official-model-page__muted">-</span>
-          </div>
+          </span>
         </template>
         <template #cell-limits="{ row }">
           <dl data-test="model-limits" class="official-model-page__limits">
@@ -103,17 +103,13 @@ function isOverride(row: AiOfficialModelItem): boolean {
           <span v-else class="official-model-page__muted">{{ t('aiOfficialModel.labels.unavailable') }}</span>
         </template>
         <template #cell-verification="{ row }">
-          <div class="official-model-page__verification">
-            <el-tag :type="isOverride(row) ? 'warning' : 'success'" size="small">{{ t(`aiOfficialModel.sources.${row.effective.source}`) }}</el-tag>
-            <span>{{ row.effective.verified_at || '-' }}</span>
-          </div>
+          <el-tag :type="isOverride(row) ? 'warning' : 'success'" size="small">{{ t(`aiOfficialModel.sources.${row.effective.source}`) }}</el-tag>
+          <span>{{ row.effective.verified_at || '-' }}</span>
         </template>
         <template #cell-actions="{ row }">
-          <div class="official-model-page__actions">
-            <el-button data-test="view-model" link type="primary" :icon="View" @click="openDetail(row)">{{ t('common.actions.view') }}</el-button>
-            <el-button v-if="canSyncPrice" data-test="sync-price" link type="primary" :icon="Refresh" @click="openDetail(row)">{{ t('aiOfficialModel.actions.syncPrice') }}</el-button>
-            <el-button v-if="canSyncPrice && isOverride(row)" data-test="restore-price" link type="warning" :icon="RefreshLeft" :loading="restoringModelID === row.model_id" @click="restoreOfficialPrice(row)">{{ t('aiOfficialModel.actions.restore') }}</el-button>
-          </div>
+          <el-button data-test="view-model" link type="primary" :icon="View" @click="openDetail(row)">{{ t('common.actions.view') }}</el-button>
+          <el-button v-if="canSyncPrice" data-test="sync-price" link type="primary" :icon="Refresh" @click="openDetail(row)">{{ t('aiOfficialModel.actions.syncPrice') }}</el-button>
+          <el-button v-if="canSyncPrice && isOverride(row)" data-test="restore-price" link type="warning" :icon="RefreshLeft" :loading="restoringModelID === row.model_id" @click="restoreOfficialPrice(row)">{{ t('aiOfficialModel.actions.restore') }}</el-button>
         </template>
       </AppTable>
     </div>
