@@ -270,9 +270,14 @@ export default {
       filter: {
         platform: '平台',
         status: '状态',
+        model: '官方模型',
         agent: 'AI 智能体',
         provider: '供应商',
         user: '用户',
+        billingStatus: '计费状态',
+        billingReason: '计费原因',
+        errorCode: '错误码',
+        toolCode: '工具编码',
         request_id: 'Request ID',
         dateRange: '日期范围',
         date_start: '开始日期',
@@ -286,6 +291,9 @@ export default {
         conversation: '会话',
         status: '状态',
         model: '模型',
+        billingStatus: '计费状态',
+        billingReason: '计费原因',
+        errorCode: '错误码',
         tokens: 'Tokens',
         latency: '耗时',
         error: '错误信息',
@@ -374,46 +382,61 @@ export default {
         list: '运行列表',
         stats: '统计分析'
       },
-      stats: {
-        dateRange: '日期范围',
-        startDate: '开始日期',
-        endDate: '结束日期',
-        overview: '概览',
-        keyOnlyTip: '只展示核心指标、最近日期和智能体 Top10；不在页面上拉全量用户榜。',
-        totalRuns: '总请求数',
-        successRate: '成功率',
-        failRuns: '失败数',
-        totalTokens: '总 Tokens',
-        tokenSplit: '输入 {input} / 输出 {output}',
-        promptTokens: '输入 Tokens',
-        completionTokens: '输出 Tokens',
-        avgLatency: '平均耗时',
-        byDate: '按日期',
-        byAgent: '按智能体',
-        recentDates: '最近日期 Top10',
-        topAgents: '智能体 Top10',
-        byUser: '按用户',
-        date: '日期',
-        agent: 'AI 智能体',
-        provider: '供应商',
-		model: '模型',
-		providerLatency: '渠道与模型延迟',
-		latencyWindow: '最近 {days} 天，最多采样 {limit} 条终态上游尝试',
-		ttft: '首增量 TTFT',
-		providerTotal: 'Provider 总耗时',
-		providerShort: '上游',
-		samples: '样本',
-		sampleQuality: '样本质量',
-		insufficientSample: '样本不足',
-		sufficientSample: '样本充足',
-		noLatencyData: '暂无渠道延迟样本',
-        user: '用户',
-        runs: '请求',
-        tokens: 'Tokens',
-        input: '输入',
-        output: '输出',
-        latency: '耗时',
-        noData: '暂无统计数据'
+      dashboard: {
+        filters: {
+          dateRange: '日期范围', platform: '平台', allPlatforms: '全部平台',
+          model: '官方模型', allModels: '全部模型', provider: '供应商',
+          allProviders: '全部供应商', agent: 'AI 智能体', allAgents: '全部智能体',
+          user: '用户', allUsers: '全部用户'
+        },
+        summary: {
+          totalRuns: '请求数', terminalDetail: '终态 {terminal} / 进行中 {inProgress}',
+          successRate: '成功率', runAnomalies: '运行异常', billingAnomalies: '计费异常',
+          inspectBelow: '查看下方诊断'
+        },
+        performance: {
+          ttftP95: 'TTFT P95', endToEndP95: '完整耗时 P95',
+          sampleCount: '{count} 个成功样本', insufficientSample: '样本不足（{count}）'
+        },
+        billing: {
+          actualAmount: '实际费用', settledRuns: '{count} 笔已结算',
+          releasedAmount: '已释放金额', releasedRuns: '已释放请求', unbilledRuns: '未计费请求'
+        },
+        status: {
+          title: '运行状态分布', running: '运行中', success: '成功', failed: '失败',
+          canceled: '已取消', timeout: '超时', outcome_unknown: '结果未知'
+        },
+        runAnomalies: {
+          title: '运行异常', failed: '运行失败', timeout: '运行超时',
+          outcome_unknown: '结果未知', stale_running: '运行超期'
+        },
+        billingAnomalies: {
+          title: '计费异常', state_inconsistent: '状态不一致', open_overdue: '计费单超期未闭合',
+          pricing_snapshot_missing: '定价快照缺失', legacy_unpriced: '历史请求未定价',
+          unbilled_usage_incomplete: '用量不完整未计费', unbilled_over_hold: '实际费用超过冻结金额'
+        },
+        trend: {
+          title: '趋势', runs: '运行', cost: '费用', performance: '性能', totalRuns: '总请求',
+          successRuns: '成功请求', anomalousRuns: '异常请求', actualAmount: '实际费用',
+          ttftP50: 'TTFT P50', ttftP95: 'TTFT P95', endToEndP50: '完整耗时 P50',
+          endToEndP95: '完整耗时 P95', chartLabel: 'AI 运行统计趋势图',
+          empty: '当前范围暂无趋势数据'
+        },
+        breakdowns: {
+          title: '归因分析', models: '官方模型', providers: '供应商', agents: 'AI 智能体',
+          users: '用户', errors: '错误类型', tools: '工具调用', model: '官方模型',
+          provider: '供应商', agent: 'AI 智能体', user: '用户', historical: '历史',
+          errorCode: '错误码', count: '数量', tool: '工具', toolCode: '工具编码',
+          totalCalls: '调用数', successRate: '成功率', durationP95: '耗时 P95',
+          totalRuns: '请求数', totalTokens: '总 Tokens', actualAmount: '实际费用',
+          runAnomalies: '运行异常', billingAnomalies: '计费异常', viewRuns: '查看运行'
+        },
+        states: {
+          loadFailed: '驾驶舱加载失败', retry: '重新加载', generatedAt: '数据生成时间',
+          refreshing: '正在刷新', stale: '数据未更新，当前显示上次成功结果',
+          empty: '当前筛选范围内没有 AI 运行记录', noRunAnomalies: '当前范围没有运行异常',
+          noBillingAnomalies: '当前范围没有计费异常'
+        }
       }
     },
   ...extended

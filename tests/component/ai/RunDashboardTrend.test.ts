@@ -1,8 +1,8 @@
 /* eslint-disable vue/one-component-per-file */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { defineComponent, h, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AiRunDashboardResponse } from '@/api/ai/runs'
 
@@ -124,12 +124,12 @@ describe('AI run dashboard trend', () => {
       props: { trend: data },
       global: { stubs: { ElTabs: TabsStub, ElTabPane: TabPaneStub, ElEmpty: true } },
     })
-    await nextTick()
+    await vi.waitFor(() => expect(mocks.init).toHaveBeenCalledTimes(1))
     const callsBeforeSwitch = mocks.setOption.mock.calls.length
     wrapper.findComponent(TabsStub).vm.$emit('update:modelValue', 'cost')
-    await nextTick()
+    await vi.waitFor(() => expect(mocks.setOption).toHaveBeenCalledTimes(callsBeforeSwitch + 1))
     wrapper.findComponent(TabsStub).vm.$emit('update:modelValue', 'performance')
-    await nextTick()
+    await vi.waitFor(() => expect(mocks.setOption).toHaveBeenCalledTimes(callsBeforeSwitch + 2))
 
     expect(mocks.setOption.mock.calls.length).toBe(callsBeforeSwitch + 2)
     expect(mocks.setOption.mock.calls.at(-1)?.[1]).toBe(true)
@@ -154,7 +154,7 @@ describe('AI run dashboard trend', () => {
       props: { trend: trend() },
       global: { stubs: { ElTabs: TabsStub, ElTabPane: TabPaneStub, ElEmpty: true } },
     })
-    await nextTick()
+    await vi.waitFor(() => expect(mocks.init).toHaveBeenCalledTimes(1))
 
     expect(mocks.init).toHaveBeenCalledTimes(1)
     expect(mocks.observe).toHaveBeenCalledTimes(1)
@@ -170,7 +170,7 @@ describe('AI run dashboard trend', () => {
       props: { trend: [] },
       global: { stubs: { ElTabs: TabsStub, ElTabPane: TabPaneStub, ElEmpty: true } },
     })
-    await nextTick()
+    await flushPromises()
     expect(mocks.init).not.toHaveBeenCalled()
     expect(mocks.observe).not.toHaveBeenCalled()
     wrapper.unmount()

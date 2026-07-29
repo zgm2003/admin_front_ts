@@ -249,9 +249,14 @@ export default {
       filter: {
         platform: 'Platform',
         status: 'Status',
+        model: 'Official Model',
         agent: 'AI Agent',
         provider: 'Provider',
         user: 'User',
+        billingStatus: 'Billing Status',
+        billingReason: 'Billing Reason',
+        errorCode: 'Error Code',
+        toolCode: 'Tool Code',
         request_id: 'Request ID',
         dateRange: 'Date Range',
         date_start: 'Start Date',
@@ -265,6 +270,9 @@ export default {
         conversation: 'Conversation',
         status: 'Status',
         model: 'Model',
+        billingStatus: 'Billing Status',
+        billingReason: 'Billing Reason',
+        errorCode: 'Error Code',
         tokens: 'Tokens',
         latency: 'Latency',
         error: 'Error',
@@ -353,46 +361,62 @@ export default {
         list: 'Run List',
         stats: 'Statistics'
       },
-      stats: {
-        dateRange: 'Date Range',
-        startDate: 'Start Date',
-        endDate: 'End Date',
-        overview: 'Overview',
-        keyOnlyTip: 'Shows key metrics, recent dates, and agent Top 10 only; no full user ranking is loaded here.',
-        totalRuns: 'Total Runs',
-        successRate: 'Success Rate',
-        failRuns: 'Failed',
-        totalTokens: 'Total Tokens',
-        tokenSplit: 'Input {input} / Output {output}',
-        promptTokens: 'Input Tokens',
-        completionTokens: 'Output Tokens',
-        avgLatency: 'Avg Latency',
-        byDate: 'By Date',
-        byAgent: 'By Agent',
-        recentDates: 'Recent Dates Top 10',
-        topAgents: 'Agent Top 10',
-        byUser: 'By User',
-        date: 'Date',
-        agent: 'AI Agent',
-        provider: 'Provider',
-		model: 'Model',
-		providerLatency: 'Provider and Model Latency',
-		latencyWindow: 'Last {days} days, capped at {limit} terminal provider attempts',
-		ttft: 'First Delta TTFT',
-		providerTotal: 'Provider Total',
-		providerShort: 'Provider',
-		samples: 'Samples',
-		sampleQuality: 'Sample Quality',
-		insufficientSample: 'Insufficient',
-		sufficientSample: 'Sufficient',
-		noLatencyData: 'No provider latency samples',
-        user: 'User',
-        runs: 'Runs',
-        tokens: 'Tokens',
-        input: 'Input',
-        output: 'Output',
-        latency: 'Latency',
-        noData: 'No statistics data'
+      dashboard: {
+        filters: {
+          dateRange: 'Date Range', platform: 'Platform', allPlatforms: 'All Platforms',
+          model: 'Official Model', allModels: 'All Models', provider: 'Provider',
+          allProviders: 'All Providers', agent: 'AI Agent', allAgents: 'All Agents',
+          user: 'User', allUsers: 'All Users'
+        },
+        summary: {
+          totalRuns: 'Runs', terminalDetail: 'Terminal {terminal} / In progress {inProgress}',
+          successRate: 'Success Rate', runAnomalies: 'Run Anomalies',
+          billingAnomalies: 'Billing Anomalies', inspectBelow: 'Inspect diagnostics below'
+        },
+        performance: {
+          ttftP95: 'TTFT P95', endToEndP95: 'End-to-end P95',
+          sampleCount: '{count} successful samples', insufficientSample: 'Insufficient samples ({count})'
+        },
+        billing: {
+          actualAmount: 'Actual Cost', settledRuns: '{count} settled runs',
+          releasedAmount: 'Released Amount', releasedRuns: 'Released Runs', unbilledRuns: 'Unbilled Runs'
+        },
+        status: {
+          title: 'Run Status Distribution', running: 'Running', success: 'Success', failed: 'Failed',
+          canceled: 'Canceled', timeout: 'Timeout', outcome_unknown: 'Outcome Unknown'
+        },
+        runAnomalies: {
+          title: 'Run Anomalies', failed: 'Run Failed', timeout: 'Run Timed Out',
+          outcome_unknown: 'Outcome Unknown', stale_running: 'Stale Running'
+        },
+        billingAnomalies: {
+          title: 'Billing Anomalies', state_inconsistent: 'State Inconsistent',
+          open_overdue: 'Open Charge Overdue', pricing_snapshot_missing: 'Pricing Snapshot Missing',
+          legacy_unpriced: 'Legacy Run Unpriced', unbilled_usage_incomplete: 'Usage Incomplete',
+          unbilled_over_hold: 'Actual Cost Exceeds Hold'
+        },
+        trend: {
+          title: 'Trends', runs: 'Runs', cost: 'Cost', performance: 'Performance',
+          totalRuns: 'Total Runs', successRuns: 'Successful Runs', anomalousRuns: 'Anomalous Runs',
+          actualAmount: 'Actual Cost', ttftP50: 'TTFT P50', ttftP95: 'TTFT P95',
+          endToEndP50: 'End-to-end P50', endToEndP95: 'End-to-end P95',
+          chartLabel: 'AI run statistics trend chart', empty: 'No trend data for the selected range'
+        },
+        breakdowns: {
+          title: 'Attribution', models: 'Official Models', providers: 'Providers', agents: 'AI Agents',
+          users: 'Users', errors: 'Error Types', tools: 'Tool Calls', model: 'Official Model',
+          provider: 'Provider', agent: 'AI Agent', user: 'User', historical: 'Historical',
+          errorCode: 'Error Code', count: 'Count', tool: 'Tool', toolCode: 'Tool Code',
+          totalCalls: 'Calls', successRate: 'Success Rate', durationP95: 'Duration P95',
+          totalRuns: 'Runs', totalTokens: 'Total Tokens', actualAmount: 'Actual Cost',
+          runAnomalies: 'Run Anomalies', billingAnomalies: 'Billing Anomalies', viewRuns: 'View Runs'
+        },
+        states: {
+          loadFailed: 'Dashboard failed to load', retry: 'Reload', generatedAt: 'Generated At',
+          refreshing: 'Refreshing', stale: 'Data was not updated; showing the last successful result',
+          empty: 'No AI runs match the selected filters', noRunAnomalies: 'No run anomalies in this range',
+          noBillingAnomalies: 'No billing anomalies in this range'
+        }
       }
     },
   ...extended

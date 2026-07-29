@@ -10,6 +10,7 @@ import { useAppKernel } from '@/app/injection'
 import { createAIRunsWorkflow } from '@/features/ai-runs/workflow'
 import RunDashboardFilters from './RunDashboardFilters.vue'
 import RunDashboardSummary from './RunDashboardSummary.vue'
+import RunDashboardTrend from './RunDashboardTrend.vue'
 import RunDashboardDiagnostics from './RunDashboardDiagnostics.vue'
 import RunDashboardBreakdowns from './RunDashboardBreakdowns.vue'
 import {
@@ -204,6 +205,7 @@ onUnmounted(() => workflow.dispose())
         <el-empty :description="t('aiRuns.dashboard.states.empty')" />
       </div>
       <template v-else>
+        <RunDashboardTrend :trend="dashboard.trend" />
         <RunDashboardDiagnostics
           :anomalies="dashboard.anomalies"
           @drilldown="handleDrilldown"

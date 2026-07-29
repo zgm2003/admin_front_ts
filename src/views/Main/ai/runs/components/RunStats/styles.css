@@ -31,6 +31,7 @@
 }
 
 .dashboard-summary,
+.dashboard-trend,
 .dashboard-diagnostics,
 .dashboard-breakdowns,
 .dashboard-empty {
@@ -75,6 +76,7 @@
 }
 
 .dashboard-statuses,
+.dashboard-trend,
 .dashboard-breakdowns {
   padding: 18px 0;
 }
@@ -190,6 +192,16 @@
 
 .dashboard-breakdown-tabs {
   margin-top: 8px;
+}
+
+.dashboard-trend-tabs {
+  margin-top: 8px;
+}
+
+.dashboard-trend-chart {
+  width: 100%;
+  min-width: 0;
+  height: 340px;
 }
 
 .dashboard-empty {

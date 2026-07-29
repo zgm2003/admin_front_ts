@@ -9,7 +9,6 @@ import {
 } from '@/views/Main/ai/runs/components/RunList/detail-dialog'
 import {
   formatRunLatency,
-  formatRunLatencyPercentile,
 } from '@/views/Main/ai/runs/components/RunList/presenters'
 
 const usageItem = (
@@ -66,20 +65,6 @@ describe('AI run billing presenters', () => {
 	it('distinguishes missing latency from a measured zero', () => {
 	  expect(formatRunLatency(null)).toBe('-')
 	  expect(formatRunLatency(0)).toBe('0 ms')
-	  expect(formatRunLatencyPercentile({
-		sample_count: 0,
-		insufficient_sample: true,
-		p50_ms: 0,
-		p95_ms: 0,
-		p99_ms: 0,
-	  }, 'p95_ms')).toBe('-')
-	  expect(formatRunLatencyPercentile({
-		sample_count: 1,
-		insufficient_sample: true,
-		p50_ms: 0,
-		p95_ms: 0,
-		p99_ms: 0,
-	  }, 'p95_ms')).toBe('0 ms')
 	})
 
   it('renders provider request IDs only from the permission-protected detail contract', () => {

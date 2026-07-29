@@ -45,10 +45,14 @@ describe('AI run API behavior', () => {
     await expect(AiRunApi.dashboard({})).resolves.toEqual(dashboard)
   })
 
-  it('removes every legacy stats request', () => {
-    for (const method of ['stats', 'latencyStats', 'statsByDate', 'statsByAgent', 'statsByUser']) {
-      expect(AiRunApi).not.toHaveProperty(method)
-    }
+  it('exposes only the unified run resource operations', () => {
+    expect(Object.keys(AiRunApi).sort()).toEqual([
+      'dashboard',
+      'detail',
+      'list',
+      'pageInit',
+      'setUserFeedback',
+    ])
   })
 
   it('serializes page-init dates and every list drilldown filter', async () => {
