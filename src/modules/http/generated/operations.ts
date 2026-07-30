@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d08d601e03c552638dbb20ae29c17e5bfc6108d4b012c8983ded7a8acd6bd1ec
+// Generated from Admin Contract Bundle manifest SHA-256: abf380cf4246d26c5d4efda4302b22ffa3330cec997959f9f940bfd9184c96c3
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -160,6 +160,18 @@ const contractSchemas = {
   "AIMessageCancelResult": {
     "additionalProperties": false,
     "properties": {
+      "assistant_message_id": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "conversation_id": {
         "format": "int64",
         "minimum": 1,
@@ -168,14 +180,22 @@ const contractSchemas = {
       "request_id": {
         "type": "string"
       },
+      "settlement_pending": {
+        "type": "boolean"
+      },
       "status": {
-        "const": "stopping",
+        "enum": [
+          "stopped",
+          "already_terminal"
+        ],
         "type": "string"
       }
     },
     "required": [
+      "assistant_message_id",
       "conversation_id",
       "request_id",
+      "settlement_pending",
       "status"
     ],
     "type": "object"
@@ -211,6 +231,20 @@ const contractSchemas = {
       },
       "created_at": {
         "type": "string"
+      },
+      "delivery_state": {
+        "anyOf": [
+          {
+            "enum": [
+              "completed",
+              "stopped"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "id": {
         "format": "int64",
@@ -255,6 +289,9 @@ const contractSchemas = {
           }
         ]
       },
+      "settlement_pending": {
+        "type": "boolean"
+      },
       "updated_at": {
         "type": "string"
       }
@@ -267,6 +304,8 @@ const contractSchemas = {
       "paired_message_id",
       "run_id",
       "liked",
+      "delivery_state",
+      "settlement_pending",
       "created_at",
       "updated_at"
     ],

@@ -14,17 +14,33 @@ export {
 export { createAiRequestId } from './request-id'
 
 export type AiChatCancelResponse = components['schemas']['AIMessageCancelResult']
+export type AiChatStoppingAcknowledgment =
+  | (AiChatCancelResponse & { status: 'stopped'; assistant_message_id: number })
+  | (AiChatCancelResponse & { status: 'already_terminal'; settlement_pending: false })
 
 export function assertAiStoppingAcknowledgment(
   response: AiChatCancelResponse,
   conversationId: number,
   requestId: string,
-): void {
+): AiChatStoppingAcknowledgment {
   if (response.conversation_id !== conversationId
-    || response.request_id !== requestId
-    || response.status !== 'stopping') {
+    || response.request_id !== requestId) {
     throw new Error('AI cancel acknowledgment violates the stopping contract')
   }
+  if (response.status === 'stopped') {
+    if (!Number.isSafeInteger(response.assistant_message_id) || (response.assistant_message_id ?? 0) <= 0) {
+      throw new Error('AI cancel acknowledgment violates the stopping contract')
+    }
+    return response as AiChatStoppingAcknowledgment
+  }
+  if (response.status === 'already_terminal' && response.settlement_pending === false) {
+    if (response.assistant_message_id !== null
+      && (!Number.isSafeInteger(response.assistant_message_id) || response.assistant_message_id <= 0)) {
+      throw new Error('AI cancel acknowledgment violates the stopping contract')
+    }
+    return response as AiChatStoppingAcknowledgment
+  }
+  throw new Error('AI cancel acknowledgment violates the stopping contract')
 }
 
 function positiveID(value: number, label: string): number {
@@ -33,9 +49,12 @@ function positiveID(value: number, label: string): number {
 }
 
 export const AiChatApi = {
-  cancel: (params: { conversation_id: number; request_id: string }, options: ExecuteOptions = {}): Promise<AiChatCancelResponse> =>
+  cancel: (
+    params: { conversation_id: number; request_id: string; delivered_seq: number },
+    options: ExecuteOptions = {},
+  ): Promise<AiChatCancelResponse> =>
     executeAdminOperation(adminOperations.post_api_admin_v1_ai_conversations_id_messages_cancel, {
       path: { id: positiveID(params.conversation_id, 'conversation id') },
-      body: { request_id: params.request_id },
+      body: { request_id: params.request_id, delivered_seq: params.delivered_seq },
     }, options),
 }

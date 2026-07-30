@@ -20,7 +20,7 @@ function envelope(type: RealtimeEventType, data: unknown) {
   const durable = type === 'notification.created.v1'
     || type === 'ai.response.completed.v1'
     || type === 'ai.response.failed.v1'
-    || type === 'ai.response.canceled.v1'
+    || type === 'ai.response.canceled.v2'
   return {
     event_id: eventId,
     type,
@@ -71,9 +71,10 @@ describe('Admin realtime protocol', () => {
       user_message_id: 11,
       agent_id: 12,
     }],
-    ['ai.response.delta.v1', {
+    ['ai.response.delta.v2', {
       conversation_id: 10,
       request_id: 'request-1',
+      delivery_seq: 1,
       delta: 'hello',
     }],
     ['ai.response.completed.v1', {
@@ -89,9 +90,10 @@ describe('Admin realtime protocol', () => {
       wallet_path: null,
       recharge_path: null,
     }],
-    ['ai.response.canceled.v1', {
+    ['ai.response.canceled.v2', {
       conversation_id: 10,
       request_id: 'request-1',
+      assistant_message_id: 13,
     }],
   ] as const)('decodes the closed %s contract', (type, data) => {
     expect(parseServerEnvelope(envelope(type, data))).toEqual(envelope(type, data))
@@ -122,6 +124,41 @@ describe('Admin realtime protocol', () => {
       error_code: 'ai.provider.failed',
       wallet_path: '/profile/wallet',
       recharge_path: '/payment/recharge',
+    }))).toThrow()
+  })
+
+  it('requires continuous-delivery metadata and caps delta UTF-8 bytes at 16 KiB', () => {
+    expect(() => parseServerEnvelope(envelope('ai.response.delta.v2', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      delivery_seq: 0,
+      delta: 'hello',
+    }))).toThrow()
+    expect(() => parseServerEnvelope(envelope('ai.response.delta.v2', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      delivery_seq: 1,
+      delta: '',
+    }))).toThrow()
+    expect(parseServerEnvelope(envelope('ai.response.delta.v2', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      delivery_seq: 1,
+      delta: '你'.repeat(5_461),
+    })).data).toMatchObject({ delivery_seq: 1 })
+    expect(() => parseServerEnvelope(envelope('ai.response.delta.v2', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      delivery_seq: 1,
+      delta: '你'.repeat(5_462),
+    }))).toThrow()
+  })
+
+  it('requires canceled v2 to identify the persisted stopped message', () => {
+    expect(() => parseServerEnvelope(envelope('ai.response.canceled.v2', {
+      conversation_id: 10,
+      request_id: 'request-1',
+      assistant_message_id: 0,
     }))).toThrow()
   })
 

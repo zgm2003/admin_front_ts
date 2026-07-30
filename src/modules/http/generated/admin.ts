@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: d08d601e03c552638dbb20ae29c17e5bfc6108d4b012c8983ded7a8acd6bd1ec
+// Generated from Admin Contract Bundle manifest SHA-256: abf380cf4246d26c5d4efda4302b22ffa3330cec997959f9f940bfd9184c96c3
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3192,14 +3192,18 @@ export interface components {
             title: string;
         };
         AIMessageCancelRequest: {
+            /** Format: int64 */
+            delivered_seq: number;
             request_id: string;
         };
         AIMessageCancelResult: {
+            assistant_message_id: number | null;
             /** Format: int64 */
             conversation_id: number;
             request_id: string;
-            /** @constant */
-            status: "stopping";
+            settlement_pending: boolean;
+            /** @enum {string} */
+            status: "stopped" | "already_terminal";
         };
         AIMessageCancelSuccessEnvelope: {
             /** @constant */
@@ -3224,6 +3228,7 @@ export interface components {
             content: string;
             content_type: string;
             created_at: string;
+            delivery_state: ("completed" | "stopped") | null;
             /** Format: int64 */
             id: number;
             liked: boolean;
@@ -3232,6 +3237,7 @@ export interface components {
             /** @enum {integer} */
             role: 1 | 2 | 3;
             run_id: number | null;
+            settlement_pending: boolean;
             updated_at: string;
         };
         AIMessageListResult: {

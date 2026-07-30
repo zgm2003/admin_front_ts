@@ -432,7 +432,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
 
   const unsubscribe = [
     options.realtime.subscribe('ai.response.start.v1', ({ data }) => options.handlers?.onStart?.(data)),
-    options.realtime.subscribe('ai.response.delta.v1', ({ data }) => options.handlers?.onDelta?.(data)),
+    options.realtime.subscribe('ai.response.delta.v2', ({ data }) => options.handlers?.onDelta?.(data)),
     options.realtime.subscribe('ai.response.completed.v1', async ({ data }) => {
       await options.handlers?.onCompleted?.(data)
       await recoverConversation(data.conversation_id, { markRead: true })
@@ -441,7 +441,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
       await options.handlers?.onFailed?.(data)
       await recoverConversation(data.conversation_id)
     }),
-    options.realtime.subscribe('ai.response.canceled.v1', async ({ data }) => {
+    options.realtime.subscribe('ai.response.canceled.v2', async ({ data }) => {
       await options.handlers?.onCanceled?.(data)
       await recoverConversation(data.conversation_id)
     }),

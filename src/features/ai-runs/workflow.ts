@@ -143,7 +143,7 @@ export function createAIRunsWorkflow(options: AIRunsWorkflowOptions = {}) {
     ? [
         options.realtime.subscribe('ai.response.completed.v1', ({ data }) => onTerminalEvent(data.request_id)),
         options.realtime.subscribe('ai.response.failed.v1', ({ data }) => onTerminalEvent(data.request_id)),
-        options.realtime.subscribe('ai.response.canceled.v1', ({ data }) => onTerminalEvent(data.request_id)),
+        options.realtime.subscribe('ai.response.canceled.v2', ({ data }) => onTerminalEvent(data.request_id)),
       ]
     : []
   const unregisterRecovery = options.realtime?.registerRecovery(async () => {

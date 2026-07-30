@@ -9,10 +9,10 @@ import type {
 
 export const AI_RESPONSE_EVENTS = {
   start: 'ai.response.start.v1',
-  delta: 'ai.response.delta.v1',
+  delta: 'ai.response.delta.v2',
   completed: 'ai.response.completed.v1',
   failed: 'ai.response.failed.v1',
-  canceled: 'ai.response.canceled.v1',
+  canceled: 'ai.response.canceled.v2',
 } as const satisfies Readonly<Record<string, RealtimeEventType>>
 
 export type AiResponseEventType = typeof AI_RESPONSE_EVENTS[keyof typeof AI_RESPONSE_EVENTS]

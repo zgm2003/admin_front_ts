@@ -42,6 +42,7 @@ export interface AiMessageSendParams {
 export interface AiMessageCancelParams {
   conversation_id: number
   request_id: string
+  delivered_seq: number
 }
 
 export interface AiMessageRevisionParams {
@@ -103,6 +104,13 @@ function normalizeListParams(params: AiMessageListParams): AiMessageListQueryPar
   return query
 }
 
+function nonNegativeDeliverySeq(value: number): number {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error('AI delivered sequence must be a non-negative safe integer')
+  }
+  return value
+}
+
 function optionsFrom(options: ExecuteOptions) {
   return { signal: options.signal, idempotencyKey: options.idempotencyKey }
 }
@@ -141,7 +149,10 @@ export const AiMessageApi = {
     adminOperations.post_api_admin_v1_ai_conversations_id_messages_cancel,
     {
       path: { id: positiveID(params.conversation_id, 'conversation id') },
-      body: { request_id: params.request_id },
+      body: {
+        request_id: nonEmptyRequestID(params.request_id),
+        delivered_seq: nonNegativeDeliverySeq(params.delivered_seq),
+      },
     },
     options,
   ),

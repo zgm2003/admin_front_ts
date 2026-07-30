@@ -240,11 +240,11 @@ describe('RealtimeClient delivery and recovery', () => {
     connection.message(first)
     connection.message({
       event_id: '01J90000000000000000000000',
-      type: 'ai.response.delta.v1',
+      type: 'ai.response.delta.v2',
       sequence: 0,
       occurred_at: '2026-07-18T08:00:00Z',
       durability: 'ephemeral',
-      data: { conversation_id: 1, request_id: 'request-1', delta: 'chunk' },
+      data: { conversation_id: 1, request_id: 'request-1', delivery_seq: 1, delta: 'chunk' },
     })
     await vi.waitFor(() => {
       expect(isolated).toHaveBeenCalledTimes(1)

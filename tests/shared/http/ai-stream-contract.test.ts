@@ -6,11 +6,25 @@ describe('AI chat transport contract', () => {
   it('keeps chat transport websocket-only and run-free', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/api/ai/chat.ts'), 'utf8')
     const eventsSource = readFileSync(resolve(process.cwd(), 'src/api/ai/chat-events.ts'), 'utf8')
+    const messagesSource = readFileSync(resolve(process.cwd(), 'src/api/ai/messages.ts'), 'utf8')
+    const cancelSource = messagesSource.slice(
+      messagesSource.indexOf('  cancel:'),
+      messagesSource.indexOf('  revise:'),
+    )
 
     expect(eventsSource).toContain("start: 'ai.response.start.v1'")
-    expect(eventsSource).toContain("delta: 'ai.response.delta.v1'")
+    expect(eventsSource).toContain("delta: 'ai.response.delta.v2'")
     expect(eventsSource).toContain("completed: 'ai.response.completed.v1'")
     expect(eventsSource).toContain("failed: 'ai.response.failed.v1'")
+    expect(eventsSource).toContain("canceled: 'ai.response.canceled.v2'")
+    expect(eventsSource).not.toContain('ai.response.delta.v1')
+    expect(eventsSource).not.toContain('ai.response.canceled.v1')
+    expect(cancelSource).toContain('request_id:')
+    expect(cancelSource).toContain('params.request_id')
+    expect(cancelSource).toContain('delivered_seq:')
+    expect(cancelSource).toContain('params.delivered_seq')
+    expect(cancelSource).not.toContain('content')
+    expect(cancelSource).not.toContain('attachments')
     expect(source).toContain('createAiRequestId')
     expect(source).not.toContain('ai.response.' + 'cancel.v1')
     expect(source).not.toContain('/ai-chat/' + 'runs')

@@ -45,7 +45,10 @@ const aiStartPayloadSchema = z.strictObject({
 const aiDeltaPayloadSchema = z.strictObject({
   conversation_id: safePositiveInteger,
   request_id: requiredRequestIdSchema,
-  delta: maxCodePoints(65_536),
+  delivery_seq: safePositiveInteger,
+  delta: z.string()
+    .min(1)
+    .refine((value) => new TextEncoder().encode(value).byteLength <= 16_384),
 })
 const aiCompletedPayloadSchema = z.strictObject({
   conversation_id: safePositiveInteger,
@@ -73,6 +76,7 @@ const aiFailedPayloadSchema = z.strictObject({
 const aiCanceledPayloadSchema = z.strictObject({
   conversation_id: safePositiveInteger,
   request_id: requiredRequestIdSchema,
+  assistant_message_id: safePositiveInteger,
 })
 
 export type ConnectedPayload = z.infer<typeof connectedPayloadSchema>
@@ -96,10 +100,10 @@ export type RealtimeEventMap = {
   'realtime.pong.v1': PongPayload
   'notification.created.v1': NotificationCreatedPayload
   'ai.response.start.v1': AIStartPayload
-  'ai.response.delta.v1': AIDeltaPayload
+  'ai.response.delta.v2': AIDeltaPayload
   'ai.response.completed.v1': AICompletedPayload
   'ai.response.failed.v1': AIFailedPayload
-  'ai.response.canceled.v1': AICanceledPayload
+  'ai.response.canceled.v2': AICanceledPayload
 }
 
 export type RealtimeEventType = keyof RealtimeEventMap
@@ -107,7 +111,7 @@ export type DurableRealtimeEventType =
   | 'notification.created.v1'
   | 'ai.response.completed.v1'
   | 'ai.response.failed.v1'
-  | 'ai.response.canceled.v1'
+  | 'ai.response.canceled.v2'
 
 export interface Envelope<K extends RealtimeEventType> {
   readonly event_id: string
@@ -151,10 +155,10 @@ const serverEnvelopeSchemas = {
   'realtime.pong.v1': serverEnvelopeSchema('realtime.pong.v1', 'ephemeral', pongPayloadSchema),
   'notification.created.v1': serverEnvelopeSchema('notification.created.v1', 'durable', notificationCreatedPayloadSchema),
   'ai.response.start.v1': serverEnvelopeSchema('ai.response.start.v1', 'ephemeral', aiStartPayloadSchema),
-  'ai.response.delta.v1': serverEnvelopeSchema('ai.response.delta.v1', 'ephemeral', aiDeltaPayloadSchema),
+  'ai.response.delta.v2': serverEnvelopeSchema('ai.response.delta.v2', 'ephemeral', aiDeltaPayloadSchema),
   'ai.response.completed.v1': serverEnvelopeSchema('ai.response.completed.v1', 'durable', aiCompletedPayloadSchema),
   'ai.response.failed.v1': serverEnvelopeSchema('ai.response.failed.v1', 'durable', aiFailedPayloadSchema),
-  'ai.response.canceled.v1': serverEnvelopeSchema('ai.response.canceled.v1', 'durable', aiCanceledPayloadSchema),
+  'ai.response.canceled.v2': serverEnvelopeSchema('ai.response.canceled.v2', 'durable', aiCanceledPayloadSchema),
 } as const
 
 export const realtimeEventTypes = Object.freeze(

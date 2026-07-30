@@ -62,10 +62,10 @@ describe('AI conversation websocket contract', () => {
     await realtime.emit({
       ...baseEnvelope,
       event_id: '01J00000000000000000000002',
-      type: 'ai.response.delta.v1',
+      type: 'ai.response.delta.v2',
       sequence: 0,
       durability: 'ephemeral',
-      data: { conversation_id: 1, request_id: 'req-1', delta: 'hello' },
+      data: { conversation_id: 1, request_id: 'req-1', delivery_seq: 1, delta: 'hello' },
     })
     await realtime.emit({
       ...baseEnvelope,
@@ -93,14 +93,14 @@ describe('AI conversation websocket contract', () => {
     await realtime.emit({
       ...baseEnvelope,
       event_id: '01J00000000000000000000005',
-      type: 'ai.response.canceled.v1',
+      type: 'ai.response.canceled.v2',
       sequence: 5,
       durability: 'durable',
-      data: { conversation_id: 3, request_id: 'req-3' },
+      data: { conversation_id: 3, request_id: 'req-3', assistant_message_id: 5 },
     })
 
     expect(start).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', user_message_id: 2, agent_id: 3 })
-    expect(delta).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', delta: 'hello' })
+    expect(delta).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', delivery_seq: 1, delta: 'hello' })
     expect(completed).toHaveBeenCalledWith({ conversation_id: 1, request_id: 'req-1', assistant_message_id: 4 })
     expect(failed).toHaveBeenCalledWith({
       conversation_id: 2,
@@ -110,6 +110,6 @@ describe('AI conversation websocket contract', () => {
       wallet_path: null,
       recharge_path: null,
     })
-    expect(canceled).toHaveBeenCalledWith({ conversation_id: 3, request_id: 'req-3' })
+    expect(canceled).toHaveBeenCalledWith({ conversation_id: 3, request_id: 'req-3', assistant_message_id: 5 })
   })
 })
