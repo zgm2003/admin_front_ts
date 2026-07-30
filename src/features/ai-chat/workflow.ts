@@ -434,6 +434,16 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     })
   }
 
+  function recoverActiveRequest(conversationID: number, requestID: string) {
+    if (!Number.isSafeInteger(conversationID) || conversationID <= 0) {
+      return Promise.reject(new TypeError('AI recovery conversation ID must be a positive integer'))
+    }
+    if (!/\S/.test(requestID)) {
+      return Promise.reject(new TypeError('AI recovery request ID must be non-empty'))
+    }
+    return recoverAcceptedHistory(conversationID, requestID)
+  }
+
   const unsubscribe = [
     options.realtime.subscribe('ai.response.start.v1', ({ data }) => options.handlers?.onStart?.(data)),
     options.realtime.subscribe('ai.response.delta.v2', ({ data }) => options.handlers?.onDelta?.(data)),
@@ -502,6 +512,7 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     recoverConversation,
     refreshConversationList,
     recoverRequest,
+    recoverActiveRequest,
     dispose,
   }
 }

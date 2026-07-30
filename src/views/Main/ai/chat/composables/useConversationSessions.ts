@@ -589,6 +589,29 @@ export function useConversationSessions() {
   ) {
     const current = getOrCreate(conversationId)
     const recoveredRequestId = requestId && /\S/.test(requestId) ? requestId : undefined
+    if (!recoveredRequestId && current.pendingRequestId) {
+      const activePlaceholder = current.messages.find((message) => (
+        message.role === AiRoleEnum.ASSISTANT
+        && message.request_id === current.pendingRequestId
+        && message.isStreaming === true
+      ))
+      const terminalReplyVisible = activePlaceholder?.paired_message_id !== null
+        && activePlaceholder?.paired_message_id !== undefined
+        && messages.some((message) => (
+          message.role === AiRoleEnum.ASSISTANT
+          && message.paired_message_id === activePlaceholder.paired_message_id
+        ))
+      if (activePlaceholder && !terminalReplyVisible) {
+        recoverAcceptedMessages(
+          conversationId,
+          messages,
+          nextMessageId,
+          hasMoreMessages,
+          current.pendingRequestId,
+        )
+        return
+      }
+    }
     const knownRecoveredAssistantId = recoveredRequestId
       ? current.messages.find((message) => (
           message.role === AiRoleEnum.ASSISTANT && message.request_id === recoveredRequestId

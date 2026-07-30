@@ -84,7 +84,7 @@ export function useChatPage() {
           payload.delta,
         )
         if (result === 'gap') {
-          await chatWorkflow.recoverRequest(payload.conversation_id, payload.request_id)
+          await chatWorkflow.recoverActiveRequest(payload.conversation_id, payload.request_id)
           return
         }
         if (result === 'applied' && currentConversationId.value === payload.conversation_id) {

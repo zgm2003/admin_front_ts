@@ -145,6 +145,29 @@ describe('AI chat workflow', () => {
     workflow.dispose()
   })
 
+  it('uses accepted-message recovery for an in-flight delivery gap', async () => {
+    const response = { list: [message(9)], next_id: 0, has_more: false }
+    const messageApi = createMessageApi(vi.fn(async () => response))
+    const onMessagesRecovered = vi.fn()
+    const onAcceptedMessagesRecovered = vi.fn()
+    const workflow = createAIChatWorkflow({
+      conversationApi: createConversationApi(),
+      messageApi,
+      realtime: new FakeFeatureRealtime(),
+      handlers: { onMessagesRecovered, onAcceptedMessagesRecovered },
+    })
+
+    await workflow.recoverActiveRequest(9, 'request-9')
+
+    expect(messageApi.list).toHaveBeenCalledWith(
+      { conversation_id: 9, limit: 50 },
+      { signal: expect.any(AbortSignal) },
+    )
+    expect(onAcceptedMessagesRecovered).toHaveBeenCalledWith(9, response, 'request-9')
+    expect(onMessagesRecovered).not.toHaveBeenCalled()
+    workflow.dispose()
+  })
+
   it('handles durable stopped settlement without replacing visible messages', async () => {
     const realtime = new FakeFeatureRealtime()
     const conversationApi = createConversationApi()
