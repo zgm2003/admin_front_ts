@@ -12,6 +12,7 @@ dist
 dist-ssr
 coverage
 *.local
+.superpowers/
 
 # Auto-generated type declarations
 src/types/auto-imports.d.ts
