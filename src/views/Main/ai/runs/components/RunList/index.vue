@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
+import {ref, computed, nextTick, onMounted, onUnmounted, watch} from 'vue'
 import {useI18n} from 'vue-i18n'
 import {useRoute, useRouter} from 'vue-router'
 import {
@@ -52,6 +52,7 @@ const searchForm = ref<RunListSearchForm>(runListSearchFormFromQuery(route.query
 const apiSearchForm = computed<AiRunListParams>(() => runListParamsFromSearchForm(searchForm.value))
 
 const workflow = createAIRunsWorkflow({realtime: useAppKernel().realtime})
+let unmounted = false
 
 const {
   loading: listLoading,
@@ -232,6 +233,8 @@ async function syncURLAndSearch() {
     path: route.path,
     query: { tab: 'list', ...serializeRunListQuery(apiSearchForm.value) },
   })
+  await nextTick()
+  if (unmounted) return
   await runSearch()
 }
 
@@ -253,7 +256,10 @@ onMounted(async () => {
   await Promise.all([init(), getList()])
 })
 
-onUnmounted(() => workflow.dispose())
+onUnmounted(() => {
+  unmounted = true
+  workflow.dispose()
+})
 </script>
 
 <template>

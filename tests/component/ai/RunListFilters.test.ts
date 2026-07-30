@@ -1,5 +1,5 @@
 /* eslint-disable vue/one-component-per-file */
-import { h, reactive } from 'vue'
+import { h, nextTick, reactive } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AiRunInitResponse, AiRunListParams } from '@/api/ai/runs'
@@ -39,6 +39,7 @@ vi.mock('@/components/Search', async () => {
         modelValue: { type: Object, required: true },
         fields: { type: Array, required: true },
       },
+      emits: ['query', 'reset'],
       setup(props) {
         return () => {
           mocks.searchFields = [...props.fields] as Array<{ key: string }>
@@ -201,6 +202,31 @@ describe('AI run list drilldown filters', () => {
 
     expect(mocks.notifyError).not.toHaveBeenCalled()
     wrapper.unmount()
+  })
+
+  it('does not continue querying after URL navigation unmounts the current list', async () => {
+    const wrapper = mount(RunList, {
+      global: {
+        stubs: {
+          RunDetailDialog: true,
+          ElText: true,
+          ElButton: true,
+          ElTag: true,
+        },
+      },
+    })
+    await flushPromises()
+    let finishNavigation!: () => void
+    mocks.replace.mockReturnValueOnce(new Promise<void>((resolve) => { finishNavigation = resolve }))
+
+    wrapper.findComponent({ name: 'SearchMock' }).vm.$emit('query')
+    await nextTick()
+    wrapper.unmount()
+    finishNavigation()
+    await flushPromises()
+
+    expect(mocks.loadPageInit).toHaveBeenCalledTimes(1)
+    expect(mocks.listExecute).toHaveBeenCalledTimes(1)
   })
 
   it('exposes the new contract filters and billing facts without alignment overrides', async () => {
