@@ -23,6 +23,8 @@ const messages: Message[] = [
     paired_message_id: 202,
     run_id: null,
     liked: false,
+    delivery_state: null,
+    settlement_pending: false,
     meta_json: {
       attachments: [{ name: 'reference.png', size: 1024, type: 'image', url: 'https://example.test/reference.png' }],
       runtime_params: { temperature: 0.4 },
@@ -38,6 +40,8 @@ const messages: Message[] = [
     paired_message_id: 101,
     run_id: 707,
     liked: false,
+    delivery_state: 'completed',
+    settlement_pending: false,
   },
 ]
 
@@ -56,6 +60,7 @@ function mountList(props: Record<string, unknown> = {}) {
         MarkdownRenderer: { props: ['content'], template: '<div>{{ content }}</div>' },
         ElButton: ButtonStub,
         ElTooltip: { template: '<span><slot /></span>' },
+        ElText: { template: '<div><slot /></div>' },
         ElIcon: { template: '<i><slot /></i>' },
         ElCheckbox: {
           inheritAttrs: false,
@@ -173,6 +178,64 @@ describe('message interactions', () => {
     expect(action(wrapper, 'aiChat.regenerate').attributes('disabled')).toBeDefined()
     expect(wrapper.findAll('button[aria-label="aiChat.deleteMessage"]')
       .every((button) => button.attributes('disabled') !== undefined)).toBe(true)
+  })
+
+  it('renders a stopped reply and locks historical mutations only while settlement is pending', async () => {
+    const stoppedMessages: Message[] = [
+      { ...messages[0]!, paired_message_id: 202 },
+      {
+        ...messages[1]!,
+        content: '1234',
+        delivery_state: 'stopped',
+        settlement_pending: true,
+      },
+    ]
+    const wrapper = mountList({
+      messages: stoppedMessages,
+      selectionMode: true,
+      speechSupported: true,
+    })
+    const rows = wrapper.findAll('article')
+
+    expect(wrapper.text()).toContain('aiChat.generationStopped')
+    expect(wrapper.find('.typing-dots').exists()).toBe(false)
+    expect(rows[1]!.get('button[aria-label="aiChat.copyMessage"]').attributes('disabled')).toBeUndefined()
+    expect(rows[1]!.get('button[aria-label="aiChat.speakMessage"]').attributes('disabled')).toBeUndefined()
+    expect(rows[1]!.get('button[aria-label="aiChat.like"]').attributes('disabled')).toBeDefined()
+    expect(rows[1]!.get('button[aria-label="aiChat.regenerate"]').attributes('disabled')).toBeDefined()
+    expect(rows[1]!.get('button[aria-label="aiChat.deleteMessage"]').attributes('disabled')).toBeDefined()
+    expect(rows[0]!.get('button[aria-label="aiChat.editMessage"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('input[type="checkbox"]')
+      .every((checkbox) => checkbox.attributes('disabled') !== undefined)).toBe(true)
+
+    await wrapper.setProps({
+      messages: stoppedMessages.map((message) => ({ ...message, settlement_pending: false })),
+    })
+    const settledRows = wrapper.findAll('article')
+    expect(settledRows[1]!.get('button[aria-label="aiChat.like"]').attributes('disabled')).toBeDefined()
+    expect(settledRows[1]!.get('button[aria-label="aiChat.regenerate"]').attributes('disabled')).toBeUndefined()
+    expect(settledRows[1]!.get('button[aria-label="aiChat.deleteMessage"]').attributes('disabled')).toBeUndefined()
+    expect(settledRows[0]!.get('button[aria-label="aiChat.editMessage"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.findAll('input[type="checkbox"]')
+      .every((checkbox) => checkbox.attributes('disabled') === undefined)).toBe(true)
+  })
+
+  it('shows an empty stopped reply without typing, copy, or speech affordances', () => {
+    const wrapper = mountList({
+      messages: [{
+        ...messages[1]!,
+        content: '',
+        delivery_state: 'stopped',
+        settlement_pending: false,
+      }],
+      speechSupported: true,
+    })
+
+    expect(wrapper.text()).toContain('aiChat.generationStopped')
+    expect(wrapper.find('.typing-dots').exists()).toBe(false)
+    expect(action(wrapper, 'aiChat.copyMessage').attributes('disabled')).toBeDefined()
+    expect(action(wrapper, 'aiChat.speakMessage').attributes('disabled')).toBeDefined()
+    expect(action(wrapper, 'aiChat.like').attributes('disabled')).toBeDefined()
   })
 
   it('emits exact message identities for feedback, regeneration and selection', async () => {

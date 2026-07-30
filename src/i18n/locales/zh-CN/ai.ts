@@ -200,6 +200,7 @@ export default {
       regenerateFailed: '重新生成失败',
       userMessageNotFound: '找不到对应的用户消息',
       stopFailed: '停止失败',
+      generationStopped: '已停止生成',
       stopping: '正在停止…',
       // 加载状态
       loading: '加载中...',

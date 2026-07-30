@@ -118,8 +118,31 @@ function isSelected(messageId: number) {
   return props.selectedMessageIds.includes(messageId)
 }
 
+function relatedMessage(message: Message) {
+  if (message.paired_message_id !== null) {
+    const paired = props.messages.find((candidate) => candidate.id === message.paired_message_id)
+    if (paired) return paired
+  }
+  if (!message.request_id) return undefined
+  return props.messages.find((candidate) => (
+    candidate.request_id === message.request_id && candidate.role !== message.role
+  ))
+}
+
 function interactionUnavailable(message: Message) {
-  return props.interactionDisabled || message.isStreaming === true || message.id <= 0
+  const related = relatedMessage(message)
+  return props.interactionDisabled
+    || message.isStreaming === true
+    || message.settlement_pending
+    || message.id <= 0
+    || related?.isStreaming === true
+    || related?.settlement_pending === true
+}
+
+function feedbackUnavailable(message: Message) {
+  return interactionUnavailable(message)
+    || message.run_id === null
+    || message.delivery_state === 'stopped'
 }
 
 function beginEdit(message: Message) {
@@ -185,7 +208,7 @@ function speechLabel(message: Message) {
           <el-checkbox
             v-if="selectionMode"
             :model-value="isSelected(message.id)"
-            :disabled="interactionDisabled"
+            :disabled="interactionUnavailable(message)"
             :aria-label="t('aiChat.selectMessage')"
             @change="emit('toggleSelection', message.id, Boolean($event))"
           />
@@ -231,7 +254,7 @@ function speechLabel(message: Message) {
         <MessageEditor
           v-if="isUser(message) && editingMessageId === message.id"
           :message="message"
-          :disabled="interactionDisabled"
+          :disabled="interactionUnavailable(message)"
           @submit="submitEdit(message, $event)"
           @cancel="editingMessageId = null"
         />
@@ -255,10 +278,19 @@ function speechLabel(message: Message) {
             <span aria-hidden="true" />
           </div>
           <span
-            v-else-if="isAssistant(message)"
+            v-else-if="isAssistant(message) && message.delivery_state !== 'stopped'"
             class="empty-content"
           >...</span>
         </div>
+
+        <el-text
+          v-if="isAssistant(message) && message.delivery_state === 'stopped'"
+          tag="div"
+          size="small"
+          type="info"
+        >
+          {{ t('aiChat.generationStopped') }}
+        </el-text>
 
         <div
           v-if="!message.isStreaming && editingMessageId !== message.id"
@@ -275,6 +307,7 @@ function speechLabel(message: Message) {
               <el-button
                 text
                 class="message-action-button"
+                :disabled="!message.content.trim()"
                 :aria-label="t('aiChat.copyMessage')"
                 @click="emit('copy', message)"
               >
@@ -334,7 +367,7 @@ function speechLabel(message: Message) {
                   text
                   class="message-action-button"
                   :class="{ 'is-liked': message.liked }"
-                  :disabled="message.run_id === null"
+                  :disabled="feedbackUnavailable(message)"
                   :aria-label="message.liked ? t('aiChat.unlike') : t('aiChat.like')"
                   @click="emit('feedback', message, !message.liked)"
                 >
