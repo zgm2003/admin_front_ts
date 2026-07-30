@@ -35,7 +35,8 @@ export function selectableProviderModels(models: readonly AiAgentProviderModelOp
 }
 
 export function modelRequiresChange(model: Pick<AiAgentProviderModelOption, 'official_model'> | null | undefined): boolean {
-  return !model?.official_model || model.official_model.lifecycle_status === 'retired'
+  if (!model) return false
+  return !model.official_model || model.official_model.lifecycle_status === 'retired'
 }
 
 export function modelCanUseTools(model: Pick<AiAgentProviderModelOption, 'capabilities'> | Pick<AiAgentItem, 'capabilities'> | null | undefined): boolean {
@@ -218,7 +219,7 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
       ElNotification.warning({ message: t('aiAgents.form.model') + t('common.required') })
       return
     }
-    if (selectedModelRequiresChange.value) {
+    if (!selectedModel.value || selectedModelRequiresChange.value) {
       ElNotification.warning({ message: t('aiAgents.official.retiredWarning') })
       return
     }

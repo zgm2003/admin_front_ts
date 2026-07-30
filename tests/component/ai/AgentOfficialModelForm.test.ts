@@ -44,6 +44,12 @@ function model(lifecycle: 'active' | 'deprecated' | 'retired', tools = true) {
 }
 
 describe('agent official model form', () => {
+  it('does not treat an empty model selection as retired', () => {
+    expect(modelRequiresChange(null)).toBe(false)
+    expect(modelRequiresChange(undefined)).toBe(false)
+    expect(modelRequiresChange({ official_model: undefined })).toBe(true)
+  })
+
   it('lists only active official models for a new selection', () => {
     expect(selectableProviderModels([model('active'), model('deprecated'), model('retired')]).map((item) => item.model_id))
       .toEqual(['provider-active'])
