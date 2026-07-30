@@ -150,6 +150,7 @@ describe('AI run dashboard presenter', () => {
       tool_code: 'search_web',
       run_anomaly: 'failed' as const,
       billing_anomaly: 'unbilled_usage_incomplete' as const,
+      user_feedback: 'liked' as const,
       anomaly_as_of: generatedAt,
     }
     const query = serializeRunListQuery(params)
@@ -169,6 +170,7 @@ describe('AI run dashboard presenter', () => {
       tool_code: 'search_web',
       run_anomaly: 'failed',
       billing_anomaly: 'unbilled_usage_incomplete',
+      user_feedback: 'liked',
       anomaly_as_of: generatedAt,
     })
     expect(parseRunListQuery(query)).toEqual(params)

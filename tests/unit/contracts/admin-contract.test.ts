@@ -218,6 +218,9 @@ describe('Admin Contract Bundle consumer', () => {
     const runDetail = requiredObject(schemas.AIRunDetail, 'AIRunDetail')
     expect(runDetail.required).toEqual(expect.arrayContaining(['liked', 'liked_at']))
     expectNullableProperty(runDetail, 'liked_at')
+    const runListItem = requiredObject(schemas.AIRunListItem, 'AIRunListItem')
+    expect(runListItem.required).toEqual(expect.arrayContaining(['liked', 'liked_at']))
+    expectNullableProperty(runListItem, 'liked_at')
 
     const cancel = requiredObject(schemas.AIMessageCancelResult, 'AIMessageCancelResult')
     const cancelProperties = requiredObject(cancel.properties, 'AIMessageCancelResult.properties')

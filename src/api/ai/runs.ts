@@ -29,6 +29,7 @@ export type AiRunClaimSource = AiRunLatencyBreakdown['claim_source']
 export type AiRunRequestSummary = components['schemas']['AIRunRequestSummary']
 export type AiRunBillingStatus = AiRunItem['billing_status']
 export type AiRunBillingReason = AiRunItem['billing_reason']
+export type AiRunUserFeedback = NonNullable<AiRunListQuery['user_feedback']>
 export type AiRunPricing = components['schemas']['AIRunPricing']
 export type AiRunPricingRate = components['schemas']['AIRunPricingRate']
 export type AiRunUsageItem = components['schemas']['AIRunUsageItem']
@@ -67,6 +68,7 @@ export interface AiRunListParams {
   tool_code?: string
   run_anomaly?: NonNullable<AiRunListQuery['run_anomaly']> | ''
   billing_anomaly?: NonNullable<AiRunListQuery['billing_anomaly']> | ''
+  user_feedback?: AiRunUserFeedback | ''
   anomaly_as_of?: string
   date_start?: string
   date_end?: string
@@ -113,6 +115,7 @@ function normalizeListParams(params: AiRunListParams): AiRunListQuery {
   if (params.tool_code) query.tool_code = params.tool_code
   if (params.run_anomaly !== '' && params.run_anomaly !== undefined) query.run_anomaly = params.run_anomaly
   if (params.billing_anomaly !== '' && params.billing_anomaly !== undefined) query.billing_anomaly = params.billing_anomaly
+  if (params.user_feedback !== '' && params.user_feedback !== undefined) query.user_feedback = params.user_feedback
   if (params.anomaly_as_of) query.anomaly_as_of = params.anomaly_as_of
   if (params.date_start) query.date_start = params.date_start
   if (params.date_end) query.date_end = params.date_end

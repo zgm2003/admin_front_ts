@@ -4,6 +4,7 @@ import type {
   AiRunListParams,
   AiRunPlatform,
   AiRunStatus,
+  AiRunUserFeedback,
 } from '@/api/ai/runs'
 import {
   parseRunListQuery,
@@ -27,6 +28,7 @@ export interface RunListSearchForm {
   tool_code: string
   run_anomaly: RunAnomaly | ''
   billing_anomaly: BillingAnomaly | ''
+  user_feedback: AiRunUserFeedback | ''
   anomaly_as_of: string
   dateRange: string[]
 }
@@ -45,6 +47,7 @@ export const createEmptyRunListSearchForm = (): RunListSearchForm => ({
   tool_code: '',
   run_anomaly: '',
   billing_anomaly: '',
+  user_feedback: '',
   anomaly_as_of: '',
   dateRange: [],
 })
@@ -68,6 +71,7 @@ export function runListSearchFormFromQuery(
     tool_code: params.tool_code ?? '',
     run_anomaly: params.run_anomaly ?? '',
     billing_anomaly: params.billing_anomaly ?? '',
+    user_feedback: params.user_feedback ?? '',
     anomaly_as_of: params.anomaly_as_of ?? '',
     dateRange: params.date_start && params.date_end
       ? [params.date_start, params.date_end]

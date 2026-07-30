@@ -246,6 +246,10 @@ export default {
       toolDone: 'Tool call done',
     },
   aiRuns: {
+      feedback: {
+        liked: 'Liked',
+        unliked: 'Not liked'
+      },
       filter: {
         platform: 'Platform',
         status: 'Status',
@@ -255,6 +259,7 @@ export default {
         user: 'User',
         billingStatus: 'Billing Status',
         billingReason: 'Billing Reason',
+        userFeedback: 'User Feedback',
         errorCode: 'Error Code',
         toolCode: 'Tool Code',
         request_id: 'Request ID',
@@ -272,6 +277,7 @@ export default {
         model: 'Model',
         billingStatus: 'Billing Status',
         billingReason: 'Billing Reason',
+        userFeedback: 'User Feedback',
         errorCode: 'Error Code',
         tokens: 'Tokens',
         latency: 'Latency',
@@ -294,6 +300,8 @@ export default {
         provider: 'Provider',
         conversation: 'Conversation',
         status: 'Status',
+        userFeedback: 'User Feedback',
+        likedAt: 'Liked At',
         model: 'Model',
         promptTokens: 'Prompt Tokens',
         completionTokens: 'Completion Tokens',

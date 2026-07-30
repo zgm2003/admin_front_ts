@@ -41,6 +41,8 @@ const run = (id: number): AiRunItem => ({
   billing_status: 'unbilled',
   billing_reason: 'legacy_unpriced',
   error_code: '',
+  liked: false,
+  liked_at: null,
   prompt_tokens: 1,
   completion_tokens: 1,
   total_tokens: 2,

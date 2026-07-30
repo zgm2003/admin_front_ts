@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   loadPageInit: vi.fn(),
   notifyError: vi.fn(),
   dispose: vi.fn(),
-  searchFields: [] as Array<{ key: string }>,
+  searchFields: [] as Array<{ key: string; options?: unknown }>,
   searchModel: {} as Record<string, unknown>,
   tableColumns: [] as Array<{ key: string }>,
 }))
@@ -42,7 +42,7 @@ vi.mock('@/components/Search', async () => {
       emits: ['query', 'reset'],
       setup(props) {
         return () => {
-          mocks.searchFields = [...props.fields] as Array<{ key: string }>
+          mocks.searchFields = [...props.fields] as Array<{ key: string; options?: unknown }>
           mocks.searchModel = { ...props.modelValue }
           return h('div', { 'data-test': 'search' })
         }
@@ -121,6 +121,7 @@ describe('AI run list drilldown filters', () => {
         error_code: 'provider_timeout',
         tool_code: 'search_web',
         run_anomaly: 'failed',
+        user_feedback: 'liked',
         anomaly_as_of: '2026-07-29T15:42:18+08:00',
       },
     })
@@ -159,6 +160,7 @@ describe('AI run list drilldown filters', () => {
       error_code: 'provider_timeout',
       tool_code: 'search_web',
       run_anomaly: 'failed',
+      user_feedback: 'liked',
       anomaly_as_of: '2026-07-29T15:42:18+08:00',
     }
     const expectedSearchFilters = Object.fromEntries(
@@ -266,12 +268,18 @@ describe('AI run list drilldown filters', () => {
       'billing_reason',
       'error_code',
       'tool_code',
+      'user_feedback',
     ]))
     expect(mocks.tableColumns.map(({ key }) => key)).toEqual(expect.arrayContaining([
       'billing_status',
       'billing_reason',
       'error_code',
+      'liked',
     ]))
+    expect(mocks.searchFields.find(({ key }) => key === 'user_feedback')?.options).toEqual([
+      { label: 'aiRuns.feedback.liked', value: 'liked' },
+      { label: 'aiRuns.feedback.unliked', value: 'unliked' },
+    ])
     for (const column of mocks.tableColumns) {
       expect(column).not.toHaveProperty('align')
       expect(column).not.toHaveProperty('headerAlign')

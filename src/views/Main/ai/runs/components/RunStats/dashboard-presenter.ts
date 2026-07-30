@@ -84,6 +84,10 @@ const billingAnomalies = new Set<DashboardBillingAnomalyCode>([
   'unbilled_usage_incomplete',
   'unbilled_over_hold',
 ])
+const userFeedbackValues = new Set<NonNullable<AiRunListParams['user_feedback']>>([
+  'liked',
+  'unliked',
+])
 
 export function formatDashboardCount(value: number): string {
   if (!Number.isSafeInteger(value) || value < 0) {
@@ -180,6 +184,7 @@ export function serializeRunListQuery(params: AiRunListParams): Record<string, s
   putString(query, 'tool_code', params.tool_code)
   putString(query, 'run_anomaly', params.run_anomaly)
   putString(query, 'billing_anomaly', params.billing_anomaly)
+  putString(query, 'user_feedback', params.user_feedback)
   putString(query, 'anomaly_as_of', params.anomaly_as_of)
   return query
 }
@@ -219,6 +224,10 @@ export function parseRunListQuery(query: Readonly<Record<string, unknown>>): AiR
   const billingAnomaly = queryString(query.billing_anomaly)
   if (billingAnomaly && billingAnomalies.has(billingAnomaly as DashboardBillingAnomalyCode)) {
     params.billing_anomaly = billingAnomaly as DashboardBillingAnomalyCode
+  }
+  const userFeedback = queryString(query.user_feedback)
+  if (userFeedback && userFeedbackValues.has(userFeedback as NonNullable<AiRunListParams['user_feedback']>)) {
+    params.user_feedback = userFeedback as NonNullable<AiRunListParams['user_feedback']>
   }
   if (params.run_anomaly || params.billing_anomaly) {
     putParsedString(params, 'anomaly_as_of', query.anomaly_as_of)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { AiRunDetailResponse, AiRunStatus } from '@/api/ai/runs'
+import type { AiRunDetailResponse, AiRunInitResponse, AiRunStatus } from '@/api/ai/runs'
 import { AppDialog } from '@/components/AppDialog'
 import { useIsMobile } from '@/hooks/useResponsive'
 import RunInputSnapshot from './RunInputSnapshot.vue'
@@ -18,6 +18,7 @@ import {
   knowledgeHitTagType,
   knowledgeRetrievalTagType,
   prettyRunJson,
+  runDictionaryLabel,
   runStatusTagType,
   toolCallTagType,
 } from './presenters'
@@ -25,6 +26,8 @@ import {
 const props = defineProps<{
   detailData: AiRunDetailResponse | null
   loading: boolean
+  billingStatusOptions: AiRunInitResponse['dict']['billing_status_arr']
+  billingReasonOptions: AiRunInitResponse['dict']['billing_reason_arr']
 }>()
 const visible = defineModel<boolean>({ required: true })
 const { t } = useI18n()
@@ -85,6 +88,20 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
             >
               {{ detailData.status_name }}
             </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item :label="t('aiRuns.detail.userFeedback')">
+            <el-tag
+              :type="detailData.liked ? 'success' : 'info'"
+              size="small"
+            >
+              {{ detailData.liked ? t('aiRuns.feedback.liked') : t('aiRuns.feedback.unliked') }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item
+            v-if="detailData.liked_at"
+            :label="t('aiRuns.detail.likedAt')"
+          >
+            {{ detailData.liked_at }}
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.model')">
             {{ detailData.model_display_name }}
@@ -147,14 +164,17 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
         >
           <el-descriptions-item :label="t('aiRuns.detail.billingStatus')">
             <el-tag
+              :title="detailData.billing_status"
               :type="runBillingStatusTagType(detailData.billing_status)"
               size="small"
             >
-              {{ detailData.billing_status }}
+              {{ runDictionaryLabel(billingStatusOptions, detailData.billing_status) }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.settlementReason')">
-            <code>{{ detailData.billing_reason }}</code>
+            <span :title="detailData.billing_reason">
+              {{ runDictionaryLabel(billingReasonOptions, detailData.billing_reason) }}
+            </span>
           </el-descriptions-item>
           <el-descriptions-item :label="t('aiRuns.detail.heldAmount')">
             {{ formatRunAmount(detailData.held_amount) }}

@@ -1,4 +1,13 @@
-import type { AiRunStatus } from '@/api/ai/runs'
+import type { AiRunInitResponse, AiRunStatus } from '@/api/ai/runs'
+
+type RunDictionaryOption = AiRunInitResponse['dict']['billing_status_arr'][number]
+
+export function runDictionaryLabel(
+  options: readonly RunDictionaryOption[],
+  value: string,
+): string {
+  return options.find((option) => option.value === value)?.label ?? value
+}
 
 export function runStatusTagType(status: AiRunStatus) {
   switch (status) {

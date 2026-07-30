@@ -267,6 +267,10 @@ export default {
       toolDone: '工具调用完成',
     },
   aiRuns: {
+      feedback: {
+        liked: '已点赞',
+        unliked: '未点赞'
+      },
       filter: {
         platform: '平台',
         status: '状态',
@@ -276,6 +280,7 @@ export default {
         user: '用户',
         billingStatus: '计费状态',
         billingReason: '计费原因',
+        userFeedback: '用户反馈',
         errorCode: '错误码',
         toolCode: '工具编码',
         request_id: 'Request ID',
@@ -293,6 +298,7 @@ export default {
         model: '模型',
         billingStatus: '计费状态',
         billingReason: '计费原因',
+        userFeedback: '用户反馈',
         errorCode: '错误码',
         tokens: 'Tokens',
         latency: '耗时',
@@ -315,6 +321,8 @@ export default {
         provider: '供应商',
         conversation: '会话',
         status: '状态',
+        userFeedback: '用户反馈',
+        likedAt: '点赞时间',
         model: '模型',
         promptTokens: 'Prompt Tokens',
         completionTokens: 'Completion Tokens',

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 997cdaf7960ced9919c6bf5592bef0430eba7911586f27792c8815ca594af6c6
+// Generated from Admin Contract Bundle manifest SHA-256: d08d601e03c552638dbb20ae29c17e5bfc6108d4b012c8983ded7a8acd6bd1ec
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -1855,6 +1855,19 @@ const contractSchemas = {
       "input_snapshot": {
         "type": "string"
       },
+      "liked": {
+        "type": "boolean"
+      },
+      "liked_at": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "model_display_name": {
         "type": "string"
       },
@@ -1923,6 +1936,8 @@ const contractSchemas = {
       "error_message",
       "id",
       "input_snapshot",
+      "liked",
+      "liked_at",
       "model_display_name",
       "model_id",
       "platform",

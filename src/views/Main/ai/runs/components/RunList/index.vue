@@ -21,7 +21,8 @@ import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
 import {useWorkflowTable} from '@/features/shared/use-workflow-table'
 import {isApiError} from '@/modules/http/error'
 import RunDetailDialog from './RunDetailDialog.vue'
-import { runStatusTagType } from './presenters'
+import { runDictionaryLabel, runStatusTagType } from './presenters'
+import {runBillingStatusTagType} from './detail-dialog'
 import {serializeRunListQuery} from '../RunStats/dashboard-presenter'
 import {
   createEmptyRunListSearchForm,
@@ -161,6 +162,17 @@ const searchFields = computed<SearchField[]>(() => [
     options: dict.value.billing_reason_arr,
   },
   {
+    key: 'user_feedback',
+    type: 'select-v2',
+    label: t('aiRuns.filter.userFeedback'),
+    placeholder: t('aiRuns.filter.userFeedback'),
+    width: 130,
+    options: [
+      {label: t('aiRuns.feedback.liked'), value: 'liked'},
+      {label: t('aiRuns.feedback.unliked'), value: 'unliked'},
+    ],
+  },
+  {
     key: 'user_id',
     type: 'remote-select',
     label: t('aiRuns.filter.user'),
@@ -205,6 +217,7 @@ const columns = computed(() => [
   {key: 'provider_name', label: t('aiRuns.table.provider'), width: 150},
   {key: 'conversation_title', label: t('aiRuns.table.conversation'), width: 160},
   {key: 'status', label: t('aiRuns.table.status'), width: 100},
+  {key: 'liked', label: t('aiRuns.table.userFeedback'), width: 110},
   {key: 'model_display_name', label: t('aiRuns.table.model'), width: 140},
   {key: 'billing_status', label: t('aiRuns.table.billingStatus'), width: 120},
   {key: 'billing_reason', label: t('aiRuns.table.billingReason'), width: 190},
@@ -325,6 +338,28 @@ onUnmounted(() => {
             {{ row.status_name }}
           </el-tag>
         </template>
+        <template #cell-liked="{row}">
+          <el-tag
+            :type="row.liked ? 'success' : 'info'"
+            size="small"
+          >
+            {{ row.liked ? t('aiRuns.feedback.liked') : t('aiRuns.feedback.unliked') }}
+          </el-tag>
+        </template>
+        <template #cell-billing_status="{row}">
+          <el-tag
+            :title="row.billing_status"
+            :type="runBillingStatusTagType(row.billing_status)"
+            size="small"
+          >
+            {{ runDictionaryLabel(dict.billing_status_arr, row.billing_status) }}
+          </el-tag>
+        </template>
+        <template #cell-billing_reason="{row}">
+          <span :title="row.billing_reason">
+            {{ runDictionaryLabel(dict.billing_reason_arr, row.billing_reason) }}
+          </span>
+        </template>
         <template #cell-total_tokens="{row}">
           <span>{{ row.total_tokens.toLocaleString() }}</span>
         </template>
@@ -358,6 +393,8 @@ onUnmounted(() => {
     v-model="detailVisible"
     :detail-data="detailData"
     :loading="detailLoading"
+    :billing-status-options="dict.billing_status_arr"
+    :billing-reason-options="dict.billing_reason_arr"
   />
 </template>
 

@@ -9,6 +9,7 @@ import {
 } from '@/views/Main/ai/runs/components/RunList/detail-dialog'
 import {
   formatRunLatency,
+  runDictionaryLabel,
 } from '@/views/Main/ai/runs/components/RunList/presenters'
 
 const usageItem = (
@@ -62,6 +63,15 @@ describe('AI run billing presenters', () => {
       ])
   })
 
+  it('uses the page-init dictionary as the only billing label source', () => {
+    const options = [
+      { value: 'settled', label: '已结算' },
+      { value: 'released', label: '已释放' },
+    ]
+    expect(runDictionaryLabel(options, 'settled')).toBe('已结算')
+    expect(runDictionaryLabel(options, 'future_status')).toBe('future_status')
+  })
+
 	it('distinguishes missing latency from a measured zero', () => {
 	  expect(formatRunLatency(null)).toBe('-')
 	  expect(formatRunLatency(0)).toBe('0 ms')
@@ -73,7 +83,7 @@ describe('AI run billing presenters', () => {
       'src/views/Main/ai/runs/components/RunList/RunDetailDialog.vue',
     ), 'utf8')
 
-    for (const field of [
+	for (const field of [
       'billing_status',
       'billing_reason',
       'held_amount',
@@ -82,9 +92,20 @@ describe('AI run billing presenters', () => {
       'usage_items',
       'provider_attempts',
       'provider_request_id',
-    ]) {
+	]) {
       expect(source, field).toContain(field)
     }
+	for (const field of [
+	  'billingStatusOptions',
+	  'billingReasonOptions',
+	  'runDictionaryLabel',
+	  'detailData.liked',
+	  'detailData.liked_at',
+	  ':title="detailData.billing_status"',
+	  ':title="detailData.billing_reason"',
+	]) {
+	  expect(source, field).toContain(field)
+	}
 	expect(source).not.toMatch(/api_key|credential|prepared_request_json|prepared_request\s*[:=]/)
   })
 })

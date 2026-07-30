@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 997cdaf7960ced9919c6bf5592bef0430eba7911586f27792c8815ca594af6c6
+// Generated from Admin Contract Bundle manifest SHA-256: d08d601e03c552638dbb20ae29c17e5bfc6108d4b012c8983ded7a8acd6bd1ec
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3673,6 +3673,8 @@ export interface components {
             /** Format: int64 */
             id: number;
             input_snapshot: string;
+            liked: boolean;
+            liked_at: string | null;
             model_display_name: string;
             model_id: string;
             /** @enum {string} */
@@ -9438,6 +9440,8 @@ export interface operations {
                 status?: "running" | "success" | "failed" | "canceled" | "timeout" | "outcome_unknown";
                 /** @description Tool code drilldown filter. */
                 tool_code?: string;
+                /** @description Persisted user feedback filter. */
+                user_feedback?: "liked" | "unliked";
                 /** @description User ID filter. */
                 user_id?: number;
             };
