@@ -216,7 +216,7 @@ const {
       <MessageInput
         :ref="setMessageInputRef"
         :sending="sending"
-        :disabled="!selectedAgentId || interactionPending || messageSelection.selectionMode.value"
+        :disabled="!selectedAgentId || isStopping || interactionPending || messageSelection.selectionMode.value"
         :is-streaming="isStreaming"
         :is-stopping="isStopping"
         :show-history-btn="isMobile"

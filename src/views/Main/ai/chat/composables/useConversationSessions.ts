@@ -17,9 +17,11 @@ function createSession(conversationId: number): ConversationSession {
     sending: false,
     isStreaming: false,
     pendingRequestId: '',
-    stoppingRequestId: '',
+    stopCommitPendingRequestId: '',
     streamingContent: '',
+    lastContinuousDeliverySeq: 0,
     canceledRequestIds: [],
+    settlementPendingRequestIds: [],
     updatedAt: Date.now(),
   }
 }
@@ -48,7 +50,6 @@ function canApplyUserMessageEvent(session: ConversationSession, requestId: strin
 
 function canApplyAssistantStreamEvent(session: ConversationSession, requestId: string) {
   if (session.canceledRequestIds.includes(requestId)) return false
-  if (session.stoppingRequestId === requestId) return false
   if (session.pendingRequestId) return session.pendingRequestId === requestId
 
   const assistantMessage = lastAssistantMessage(session)
@@ -70,7 +71,9 @@ export function useConversationSessions() {
   const sessions = shallowRef(new Map<number, ConversationSession>())
   const accessOrder = shallowRef<number[]>([])
 
-  const activeStreams = computed(() => Array.from(sessions.value.values()).filter((session) => session.isStreaming || session.sending).length)
+  const activeStreams = computed(() => Array.from(sessions.value.values()).filter((session) => (
+    session.isStreaming || session.sending || Boolean(session.stopCommitPendingRequestId)
+  )).length)
 
   function commit() {
     sessions.value = new Map(sessions.value)
@@ -85,7 +88,7 @@ export function useConversationSessions() {
       const id = accessOrder.value[accessOrder.value.length - 1]
       if (id === undefined) break
       const session = sessions.value.get(id)
-      if (session?.isStreaming || session?.sending || session?.pendingRequestId) break
+      if (session?.isStreaming || session?.sending || session?.pendingRequestId || session?.stopCommitPendingRequestId) break
       sessions.value.delete(id)
       accessOrder.value = accessOrder.value.slice(0, -1)
     }
@@ -111,7 +114,7 @@ export function useConversationSessions() {
 
   function replaceMessages(conversationId: number, messages: Message[], nextMessageId: number, hasMoreMessages: boolean) {
     const current = getOrCreate(conversationId)
-    if (current.isStreaming || current.sending) return
+    if (current.isStreaming || current.sending || current.stopCommitPendingRequestId) return
     const session: ConversationSession = {
       ...current,
       messages,
@@ -159,14 +162,16 @@ export function useConversationSessions() {
     runtimeParams?: AIRuntimeParams,
   ) {
     const current = getOrCreate(conversationId)
+    if (current.pendingRequestId || current.stopCommitPendingRequestId) return false
     const createdAt = nowText()
     const session: ConversationSession = {
       ...current,
       pendingRequestId: requestId,
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: '',
       sending: true,
       isStreaming: true,
       streamingContent: '',
+      lastContinuousDeliverySeq: 0,
       messages: [
         ...current.messages,
         {
@@ -182,6 +187,8 @@ export function useConversationSessions() {
           paired_message_id: null,
           run_id: null,
           liked: false,
+          delivery_state: null,
+          settlement_pending: false,
           request_id: requestId,
         },
         {
@@ -194,6 +201,8 @@ export function useConversationSessions() {
           paired_message_id: null,
           run_id: null,
           liked: false,
+          delivery_state: null,
+          settlement_pending: false,
           isStreaming: true,
           request_id: requestId,
         },
@@ -202,6 +211,7 @@ export function useConversationSessions() {
     }
     commitSession(sessions.value, conversationId, session)
     commit()
+    return true
   }
 
   function beginAcceptedReply(
@@ -210,6 +220,7 @@ export function useConversationSessions() {
     userMessageId: number,
   ) {
     const current = getOrCreate(conversationId)
+    if (current.pendingRequestId || current.stopCommitPendingRequestId) return false
     const createdAt = nowText()
     const hasPlaceholder = current.messages.some((message) => (
       message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId
@@ -230,6 +241,8 @@ export function useConversationSessions() {
         paired_message_id: userMessageId,
         run_id: null,
         liked: false,
+        delivery_state: null,
+        settlement_pending: false,
         isStreaming: true,
         request_id: requestId,
       })
@@ -238,13 +251,15 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: requestId,
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: '',
       sending: false,
       isStreaming: true,
       streamingContent: '',
+      lastContinuousDeliverySeq: 0,
       updatedAt: Date.now(),
     })
     commit()
+    return true
   }
 
   function setMessageLiked(conversationId: number, messageId: number, liked: boolean) {
@@ -299,44 +314,93 @@ export function useConversationSessions() {
     commit()
   }
 
-  function beginStopping(conversationId: number, requestId: string) {
+  function beginStopping(conversationId: number, requestId: string): number | null {
     const current = getOrCreate(conversationId)
-    if (current.pendingRequestId !== requestId || current.canceledRequestIds.includes(requestId)) return
+    if (current.stopCommitPendingRequestId === requestId) {
+      return current.lastContinuousDeliverySeq
+    }
+    if (current.pendingRequestId !== requestId || current.canceledRequestIds.includes(requestId)) {
+      return null
+    }
+    const hasAssistant = current.messages.some((message) => (
+      message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId
+    ))
+    if (!hasAssistant) return null
+
     commitSession(sessions.value, conversationId, {
       ...current,
-      stoppingRequestId: requestId,
+      messages: current.messages.map((message) => (
+        message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId
+          ? {
+              ...message,
+              content: current.streamingContent || message.content,
+              delivery_state: 'stopped',
+              settlement_pending: true,
+              isStreaming: false,
+              updated_at: nowText(),
+            }
+          : message
+      )),
+      pendingRequestId: '',
+      stopCommitPendingRequestId: requestId,
       sending: false,
+      isStreaming: false,
+      streamingContent: '',
+      canceledRequestIds: [...current.canceledRequestIds.filter((id) => id !== requestId), requestId].slice(-20),
+      settlementPendingRequestIds: [
+        ...current.settlementPendingRequestIds.filter((id) => id !== requestId),
+        requestId,
+      ].slice(-20),
       updatedAt: Date.now(),
     })
     commit()
+    return current.lastContinuousDeliverySeq
   }
 
   function markUserMessage(conversationId: number, requestId: string, userMessageId: number) {
     const current = getOrCreate(conversationId)
-    if (!canApplyUserMessageEvent(current, requestId)) return
+    const stoppedRequest = current.canceledRequestIds.includes(requestId)
+    if (stoppedRequest) {
+      if (!hasPendingUserMessage(current, requestId)) return
+    } else if (!canApplyUserMessageEvent(current, requestId)) {
+      return
+    }
+    const assistantMessageId = current.messages.find((message) => (
+      message.request_id === requestId && message.role === AiRoleEnum.ASSISTANT && message.id > 0
+    ))?.id ?? null
     const session: ConversationSession = {
       ...current,
       messages: current.messages.map((message) => {
         if (message.request_id === requestId && message.role === AiRoleEnum.USER && message.id < 0) {
-          return { ...message, id: userMessageId }
+          return { ...message, id: userMessageId, paired_message_id: assistantMessageId }
+        }
+        if (message.request_id === requestId && message.role === AiRoleEnum.ASSISTANT) {
+          return { ...message, paired_message_id: userMessageId }
         }
         return message
       }),
-      sending: false,
+      sending: current.pendingRequestId === requestId ? false : current.sending,
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
     commit()
   }
 
-  function appendDelta(conversationId: number, requestId: string, delta: string) {
+  function appendDelta(
+    conversationId: number,
+    requestId: string,
+    deliverySeq: number,
+    delta: string,
+  ): 'applied' | 'duplicate' | 'gap' | 'ignored' {
     const current = getOrCreate(conversationId)
-    if (!canApplyAssistantStreamEvent(current, requestId)) return
+    if (!canApplyAssistantStreamEvent(current, requestId)) return 'ignored'
+    if (!Number.isSafeInteger(deliverySeq) || deliverySeq <= 0 || delta.length === 0) return 'ignored'
+    if (deliverySeq <= current.lastContinuousDeliverySeq) return 'duplicate'
+    if (deliverySeq !== current.lastContinuousDeliverySeq + 1) return 'gap'
 
     const streamingContent = current.streamingContent + delta
-    const messages = current.messages.map((message, index) => {
-      const isLast = index === current.messages.length - 1
-      if (isLast && message.role === AiRoleEnum.ASSISTANT) {
+    const messages = current.messages.map((message) => {
+      if (message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId) {
         return { ...message, content: streamingContent, isStreaming: true, request_id: requestId }
       }
       return message
@@ -347,28 +411,41 @@ export function useConversationSessions() {
       isStreaming: true,
       sending: false,
       streamingContent,
+      lastContinuousDeliverySeq: deliverySeq,
       messages,
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
     commit()
+    return 'applied'
   }
 
-  function complete(conversationId: number, requestId: string, assistantMessageId: number) {
+  function complete(
+    conversationId: number,
+    requestId: string,
+    assistantMessageId: number,
+  ): 'applied' | 'recover' | 'ignored' {
     const current = getOrCreate(conversationId)
-    if (!canApplyAssistantTerminalEvent(current, requestId)) return
+    if (current.canceledRequestIds.includes(requestId)) {
+      return current.stopCommitPendingRequestId === requestId ? 'recover' : 'ignored'
+    }
+    if (!canApplyAssistantTerminalEvent(current, requestId)) return 'ignored'
 
-    const messages = current.messages.map((message, index) => {
-      const isLast = index === current.messages.length - 1
-      if (isLast && message.role === AiRoleEnum.ASSISTANT) {
+    const messages = current.messages.map((message) => {
+      if (message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId) {
         return {
           ...message,
           id: assistantMessageId,
           content: current.streamingContent || message.content,
+          delivery_state: 'completed' as const,
+          settlement_pending: false,
           isStreaming: false,
           request_id: requestId,
           updated_at: nowText(),
         }
+      }
+      if (message.role === AiRoleEnum.USER && message.request_id === requestId) {
+        return { ...message, paired_message_id: assistantMessageId }
       }
       return message
     })
@@ -376,26 +453,38 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: '',
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: current.stopCommitPendingRequestId === requestId
+        ? ''
+        : current.stopCommitPendingRequestId,
       sending: false,
       isStreaming: false,
       streamingContent: '',
+      lastContinuousDeliverySeq: 0,
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
     commit()
+    return 'applied'
   }
 
-  function fail(conversationId: number, requestId: string, messageText: string) {
+  function fail(
+    conversationId: number,
+    requestId: string,
+    messageText: string,
+  ): 'applied' | 'recover' | 'ignored' {
     const current = getOrCreate(conversationId)
-    if (!canApplyAssistantTerminalEvent(current, requestId)) return
+    if (current.canceledRequestIds.includes(requestId)) {
+      return current.stopCommitPendingRequestId === requestId ? 'recover' : 'ignored'
+    }
+    if (!canApplyAssistantTerminalEvent(current, requestId)) return 'ignored'
 
-    const messages = current.messages.map((message, index) => {
-      const isLast = index === current.messages.length - 1
-      if (isLast && message.role === AiRoleEnum.ASSISTANT) {
+    const messages = current.messages.map((message) => {
+      if (message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId) {
         return {
           ...message,
           content: messageText,
+          delivery_state: null,
+          settlement_pending: false,
           isStreaming: false,
           request_id: requestId,
           updated_at: nowText(),
@@ -407,46 +496,88 @@ export function useConversationSessions() {
       ...current,
       messages,
       pendingRequestId: '',
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: current.stopCommitPendingRequestId === requestId
+        ? ''
+        : current.stopCommitPendingRequestId,
       sending: false,
       isStreaming: false,
       streamingContent: '',
+      lastContinuousDeliverySeq: 0,
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
     commit()
+    return 'applied'
   }
 
-  function cancel(conversationId: number, requestId: string, messageText = '') {
+  function confirmStopped(
+    conversationId: number,
+    requestId: string,
+    assistantMessageId: number,
+    settlementPending: boolean,
+  ) {
     const current = getOrCreate(conversationId)
-    if (current.pendingRequestId !== requestId) return
+    if (!Number.isSafeInteger(assistantMessageId) || assistantMessageId <= 0) return false
+    const hasAssistant = current.messages.some((message) => (
+      message.role === AiRoleEnum.ASSISTANT
+      && (message.request_id === requestId || message.id === assistantMessageId)
+    ))
+    if (!hasAssistant) return false
+    const matchingAssistant = current.messages.find((message) => (
+      message.role === AiRoleEnum.ASSISTANT
+      && (message.request_id === requestId || message.id === assistantMessageId)
+    ))
+    const alreadySettled = matchingAssistant?.delivery_state === 'stopped'
+      && matchingAssistant.settlement_pending === false
+      && matchingAssistant.id === assistantMessageId
+      && !current.settlementPendingRequestIds.includes(requestId)
+    const effectiveSettlementPending = alreadySettled ? false : settlementPending
 
-    const messages = current.messages.map((message, index) => {
-      const isLast = index === current.messages.length - 1
-      if (isLast && message.role === AiRoleEnum.ASSISTANT) {
+    const userMessageId = current.messages.find((message) => (
+      message.role === AiRoleEnum.USER && message.request_id === requestId && message.id > 0
+    ))?.id ?? null
+    const messages = current.messages.map((message) => {
+      if (message.role === AiRoleEnum.ASSISTANT
+        && (message.request_id === requestId || message.id === assistantMessageId)) {
         return {
           ...message,
-          content: message.content || messageText,
+          id: assistantMessageId,
+          paired_message_id: userMessageId,
+          delivery_state: 'stopped' as const,
+          settlement_pending: effectiveSettlementPending,
           isStreaming: false,
           request_id: requestId,
           updated_at: nowText(),
         }
+      }
+      if (message.role === AiRoleEnum.USER && message.request_id === requestId) {
+        return { ...message, paired_message_id: assistantMessageId }
       }
       return message
     })
     const session: ConversationSession = {
       ...current,
       messages,
-      pendingRequestId: '',
-      stoppingRequestId: '',
-      sending: false,
-      isStreaming: false,
-      streamingContent: '',
+      pendingRequestId: current.pendingRequestId === requestId ? '' : current.pendingRequestId,
+      stopCommitPendingRequestId: current.stopCommitPendingRequestId === requestId
+        ? ''
+        : current.stopCommitPendingRequestId,
+      sending: current.pendingRequestId === requestId ? false : current.sending,
+      isStreaming: current.pendingRequestId === requestId ? false : current.isStreaming,
+      streamingContent: current.pendingRequestId === requestId ? '' : current.streamingContent,
       canceledRequestIds: [...current.canceledRequestIds.filter((id) => id !== requestId), requestId].slice(-20),
+      settlementPendingRequestIds: effectiveSettlementPending
+        ? [...current.settlementPendingRequestIds.filter((id) => id !== requestId), requestId].slice(-20)
+        : current.settlementPendingRequestIds.filter((id) => id !== requestId),
       updatedAt: Date.now(),
     }
     commitSession(sessions.value, conversationId, session)
     commit()
+    return true
+  }
+
+  function settleStopped(conversationId: number, requestId: string, assistantMessageId: number) {
+    return confirmStopped(conversationId, requestId, assistantMessageId, false)
   }
 
   function recoverMessages(
@@ -454,19 +585,86 @@ export function useConversationSessions() {
     messages: Message[],
     nextMessageId: number,
     hasMoreMessages: boolean,
+    requestId?: string,
   ) {
     const current = getOrCreate(conversationId)
+    const recoveredRequestId = requestId && /\S/.test(requestId) ? requestId : undefined
+    const knownRecoveredAssistantId = recoveredRequestId
+      ? current.messages.find((message) => (
+          message.role === AiRoleEnum.ASSISTANT && message.request_id === recoveredRequestId
+        ))?.id
+      : undefined
+    const recoveredAssistantIndex = recoveredRequestId
+      ? (() => {
+          if (knownRecoveredAssistantId !== undefined && knownRecoveredAssistantId > 0) {
+            const exact = messages.findIndex((message) => message.id === knownRecoveredAssistantId)
+            if (exact >= 0) return exact
+          }
+          for (let index = messages.length - 1; index >= 0; index--) {
+            if (messages[index]?.role === AiRoleEnum.ASSISTANT) return index
+          }
+          return -1
+        })()
+      : -1
+    const recoveredAssistant = recoveredAssistantIndex >= 0
+      ? messages[recoveredAssistantIndex]
+      : undefined
+    const activeRequestId = current.pendingRequestId
+    const preserveActiveRequest = Boolean(
+      recoveredRequestId && activeRequestId && activeRequestId !== recoveredRequestId,
+    )
+    const authoritativeIds = new Set(messages.map((message) => message.id))
+    const authoritativeMessages = messages.map((message, index) => {
+      if (index === recoveredAssistantIndex && recoveredRequestId) {
+        return { ...message, request_id: recoveredRequestId }
+      }
+      if (preserveActiveRequest) {
+        const localActiveMessage = current.messages.find((candidate) => (
+          candidate.id === message.id && candidate.request_id === activeRequestId
+        ))
+        if (localActiveMessage) return { ...message, request_id: activeRequestId }
+      }
+      return message
+    })
+    const activeMessages = preserveActiveRequest
+      ? current.messages.filter((message) => (
+          message.request_id === activeRequestId && !authoritativeIds.has(message.id)
+        ))
+      : []
+    const recoveredIsStopped = recoveredAssistant?.delivery_state === 'stopped'
+    const recoveredSettlementPending = recoveredIsStopped
+      && recoveredAssistant?.settlement_pending === true
+    const canceledRequestIds = recoveredRequestId
+      ? recoveredIsStopped
+        ? [...current.canceledRequestIds.filter((id) => id !== recoveredRequestId), recoveredRequestId].slice(-20)
+        : current.canceledRequestIds.filter((id) => id !== recoveredRequestId)
+      : current.canceledRequestIds
+    const settlementPendingRequestIds = recoveredRequestId
+      ? recoveredSettlementPending
+        ? [
+            ...current.settlementPendingRequestIds.filter((id) => id !== recoveredRequestId),
+            recoveredRequestId,
+          ].slice(-20)
+        : current.settlementPendingRequestIds.filter((id) => id !== recoveredRequestId)
+      : current.settlementPendingRequestIds
+
     commitSession(sessions.value, conversationId, {
       ...current,
-      messages,
+      messages: [...authoritativeMessages, ...activeMessages],
       nextMessageId,
       hasMoreMessages,
       loadingMessages: false,
-      sending: false,
-      isStreaming: false,
-      pendingRequestId: '',
-      stoppingRequestId: '',
-      streamingContent: '',
+      sending: preserveActiveRequest ? current.sending : false,
+      isStreaming: preserveActiveRequest ? current.isStreaming : false,
+      pendingRequestId: preserveActiveRequest ? current.pendingRequestId : '',
+      stopCommitPendingRequestId: current.stopCommitPendingRequestId === recoveredRequestId
+        || recoveredRequestId === undefined
+        ? ''
+        : current.stopCommitPendingRequestId,
+      streamingContent: preserveActiveRequest ? current.streamingContent : '',
+      lastContinuousDeliverySeq: preserveActiveRequest ? current.lastContinuousDeliverySeq : 0,
+      canceledRequestIds,
+      settlementPendingRequestIds,
       updatedAt: Date.now(),
     })
     commit()
@@ -499,7 +697,8 @@ export function useConversationSessions() {
     appendDelta,
     complete,
     fail,
-    cancel,
+    confirmStopped,
+    settleStopped,
     recoverMessages,
     recoverAcceptedMessages,
     setMessageLiked,

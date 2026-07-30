@@ -389,10 +389,10 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
 
   async function recoverConversation(
     conversationID: number,
-    recoveryOptions: { requestID?: string; markRead?: boolean } = {},
+    recoveryOptions: { requestID?: string; markRead?: boolean; forceMessages?: boolean } = {},
   ) {
     if (selectedConversationID !== conversationID) {
-      if (recoveryOptions.requestID !== undefined) {
+      if (recoveryOptions.forceMessages && recoveryOptions.requestID !== undefined) {
         await recoverVisibleMessages(conversationID, recoveryOptions.requestID)
       }
       await refreshConversationList()
@@ -427,7 +427,11 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     if (!/\S/.test(requestID)) {
       return Promise.reject(new TypeError('AI recovery request ID must be non-empty'))
     }
-    return recoverConversation(conversationID, { requestID, markRead: true })
+    return recoverConversation(conversationID, {
+      requestID,
+      markRead: true,
+      forceMessages: true,
+    })
   }
 
   const unsubscribe = [
@@ -435,15 +439,18 @@ export function createAIChatWorkflow(options: AIChatWorkflowOptions) {
     options.realtime.subscribe('ai.response.delta.v2', ({ data }) => options.handlers?.onDelta?.(data)),
     options.realtime.subscribe('ai.response.completed.v1', async ({ data }) => {
       await options.handlers?.onCompleted?.(data)
-      await recoverConversation(data.conversation_id, { markRead: true })
+      await recoverConversation(data.conversation_id, {
+        requestID: data.request_id,
+        markRead: true,
+      })
     }),
     options.realtime.subscribe('ai.response.failed.v1', async ({ data }) => {
       await options.handlers?.onFailed?.(data)
-      await recoverConversation(data.conversation_id)
+      await recoverConversation(data.conversation_id, { requestID: data.request_id })
     }),
     options.realtime.subscribe('ai.response.canceled.v2', async ({ data }) => {
       await options.handlers?.onCanceled?.(data)
-      await recoverConversation(data.conversation_id)
+      await refreshConversationList()
     }),
   ]
   const unregisterRecovery = options.realtime.registerRecovery(async () => {

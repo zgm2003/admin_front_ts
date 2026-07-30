@@ -32,6 +32,8 @@ const message = (id: number): AiMessageItem => ({
   liked: false,
   paired_message_id: null,
   run_id: null,
+  delivery_state: 'completed',
+  settlement_pending: false,
   created_at: '2026-07-19 00:00:00',
   updated_at: '2026-07-19 00:00:00',
 })
@@ -140,6 +142,44 @@ describe('AI chat workflow', () => {
     expect(onMessagesRecovered).toHaveBeenCalledWith(9, {
       list: [message(9)], next_id: 0, has_more: false,
     }, 'request-9')
+    workflow.dispose()
+  })
+
+  it('handles durable stopped settlement without replacing visible messages', async () => {
+    const realtime = new FakeFeatureRealtime()
+    const conversationApi = createConversationApi()
+    const messageApi = createMessageApi()
+    const onCanceled = vi.fn()
+    const workflow = createAIChatWorkflow({
+      conversationApi,
+      messageApi,
+      realtime,
+      handlers: { onCanceled },
+    })
+    workflow.setActiveConversation(7)
+    await workflow.loadConversations(2)
+    vi.mocked(conversationApi.list).mockClear()
+
+    await realtime.emit({
+      ...eventBase,
+      event_id: '01J00000000000000000000006',
+      type: 'ai.response.canceled.v2',
+      sequence: 6,
+      durability: 'durable',
+      data: {
+        conversation_id: 7,
+        request_id: 'request-a',
+        assistant_message_id: 97,
+      },
+    })
+
+    expect(onCanceled).toHaveBeenCalledWith({
+      conversation_id: 7,
+      request_id: 'request-a',
+      assistant_message_id: 97,
+    })
+    expect(messageApi.list).not.toHaveBeenCalled()
+    expect(conversationApi.list).toHaveBeenCalledOnce()
     workflow.dispose()
   })
 
@@ -322,7 +362,9 @@ function createMessageApi(
     cancel: vi.fn(async () => ({
       conversation_id: 1,
       request_id: 'request-1',
-      status: 'stopping',
+      status: 'stopped',
+      assistant_message_id: 1,
+      settlement_pending: true,
     })),
     revise: vi.fn(async ({ conversation_id, request_id }) => ({
       conversation_id,

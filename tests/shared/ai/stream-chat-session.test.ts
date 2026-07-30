@@ -20,7 +20,7 @@ describe('useConversationSessions conversation-scoped cache', () => {
 
     sessions.beginSend(7, 'req-7', 'question')
     sessions.markUserMessage(7, 'req-7', 70)
-    sessions.appendDelta(7, 'req-7', 'answer')
+    sessions.appendDelta(7, 'req-7', 1, 'answer')
     sessions.complete(7, 'req-7', 71)
 
     const session = sessions.get(7)

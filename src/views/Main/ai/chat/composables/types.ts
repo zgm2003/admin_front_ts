@@ -23,6 +23,8 @@ export interface Message {
   paired_message_id: number | null
   run_id: number | null
   liked: boolean
+  delivery_state: 'completed' | 'stopped' | null
+  settlement_pending: boolean
   isStreaming?: boolean
   request_id?: string
 }
@@ -47,8 +49,10 @@ export interface ConversationSession {
   sending: boolean
   isStreaming: boolean
   pendingRequestId: string
-  stoppingRequestId: string
+  stopCommitPendingRequestId: string
   streamingContent: string
+  lastContinuousDeliverySeq: number
   canceledRequestIds: string[]
+  settlementPendingRequestIds: string[]
   updatedAt: number
 }

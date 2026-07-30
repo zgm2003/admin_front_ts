@@ -100,7 +100,7 @@ describe('message interactions', () => {
     sessions.replaceMessages(17, messages, 0, false)
 
     sessions.beginAcceptedReply(17, 'revision-request', 303)
-    sessions.appendDelta(17, 'revision-request', 'streamed prefix')
+    sessions.appendDelta(17, 'revision-request', 1, 'streamed prefix')
     sessions.recoverAcceptedMessages(17, [{
       ...messages[0]!,
       id: 303,

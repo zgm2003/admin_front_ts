@@ -21,6 +21,7 @@ import {
 } from './composables'
 import type { Agent, Conversation, Message } from './composables/types'
 import { createConversationTitle } from './conversation-title'
+import { executeStopRequest } from './stop-delivery'
 import type { Attachment } from './components/MessageInput/use-image-attachments'
 import {
   prepareCapabilityTransition,
@@ -73,23 +74,30 @@ export function useChatPage() {
     realtime: useAppKernel().realtime,
     handlers: {
       onStart(payload) {
-        if (!sessions.isCanceled(payload.conversation_id, payload.request_id)) {
-          sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
+        sessions.markUserMessage(payload.conversation_id, payload.request_id, payload.user_message_id)
+      },
+      async onDelta(payload) {
+        const result = sessions.appendDelta(
+          payload.conversation_id,
+          payload.request_id,
+          payload.delivery_seq,
+          payload.delta,
+        )
+        if (result === 'gap') {
+          await chatWorkflow.recoverRequest(payload.conversation_id, payload.request_id)
+          return
+        }
+        if (result === 'applied' && currentConversationId.value === payload.conversation_id) {
+          scrollToBottom()
         }
       },
-      onDelta(payload) {
-        if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
-        sessions.appendDelta(payload.conversation_id, payload.request_id, payload.delta)
-        if (currentConversationId.value === payload.conversation_id) scrollToBottom()
-      },
       onCompleted(payload) {
-        if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
         sessions.complete(payload.conversation_id, payload.request_id, payload.assistant_message_id)
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
       onFailed(payload) {
-        if (sessions.isCanceled(payload.conversation_id, payload.request_id)) return
-        sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
+        const result = sessions.fail(payload.conversation_id, payload.request_id, payload.msg)
+        if (result === 'ignored') return
         const actions = insufficientBalanceFromFailedEvent(payload)
         ElNotification.error({
           message: actions
@@ -103,18 +111,20 @@ export function useChatPage() {
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
       onCanceled(payload) {
-        sessions.cancel(payload.conversation_id, payload.request_id)
+        sessions.settleStopped(
+          payload.conversation_id,
+          payload.request_id,
+          payload.assistant_message_id,
+        )
         if (currentConversationId.value === payload.conversation_id) scrollToBottom()
       },
-      onMessagesRecovered(conversationId, response) {
-        // Workflow recovery is authoritative. It must also terminate stale
-        // local streaming state after a realtime resync or an ambiguous HTTP
-        // outcome; replaceMessages deliberately refuses to do that.
+      onMessagesRecovered(conversationId, response, requestId) {
         sessions.recoverMessages(
           conversationId,
           responseToMessages(response.list),
           response.next_id,
           response.has_more,
+          requestId,
         )
         if (currentConversationId.value === conversationId) scrollToBottom()
       },
@@ -166,7 +176,7 @@ export function useChatPage() {
   const messagesHasMore = computed(() => currentSession.value?.hasMoreMessages ?? false)
   const sending = computed(() => currentSession.value?.sending ?? false)
   const isStreaming = computed(() => currentSession.value?.isStreaming ?? false)
-  const isStopping = computed(() => Boolean(currentSession.value?.stoppingRequestId))
+  const isStopping = computed(() => Boolean(currentSession.value?.stopCommitPendingRequestId))
   const activeRequestId = computed(() => currentSession.value?.pendingRequestId ?? '')
   const interactionDisabled = computed(() => (
     sessions.activeStreams.value > 0 || interactionPending.value
@@ -399,15 +409,23 @@ export function useChatPage() {
       ElNotification.warning({ message: t('aiChat.selectAgentFirst') })
       return
     }
+    if (sending.value || isStreaming.value || isStopping.value) return
 
     const requestId = createAiRequestId()
     let conversationId = 0
     try {
       conversationId = await ensureConversation(content)
-      messageInputRef.value?.clear()
       const requestAttachments = attachments?.map((attachment) => attachment.request)
       const previewAttachments = attachments?.map((attachment) => attachment.preview)
-      sessions.beginSend(conversationId, requestId, content, previewAttachments, runtimeParams)
+      const started = sessions.beginSend(
+        conversationId,
+        requestId,
+        content,
+        previewAttachments,
+        runtimeParams,
+      )
+      if (!started) return
+      messageInputRef.value?.clear()
       scrollToBottom()
 
       const result = await chatWorkflow.sendMessage.mutate({
@@ -433,14 +451,38 @@ export function useChatPage() {
     const requestId = activeRequestId.value
     if (!conversationId || !requestId) return
 
-    sessions.beginStopping(conversationId, requestId)
+    const deliveredSeq = sessions.beginStopping(conversationId, requestId)
+    if (deliveredSeq === null) return
+    const stopInput = Object.freeze({
+      conversation_id: conversationId,
+      request_id: requestId,
+      delivered_seq: deliveredSeq,
+    })
     try {
-      const result = await chatWorkflow.cancelMessage.mutate({ conversation_id: conversationId, request_id: requestId })
+      const result = await executeStopRequest(
+        stopInput,
+        (input) => chatWorkflow.cancelMessage.mutate(input),
+      )
       if (result.kind === 'canceled') {
         await chatWorkflow.recoverRequest(conversationId, requestId)
         return
       }
-      assertAiStoppingAcknowledgment(result.data, conversationId, requestId)
+      const acknowledgment = assertAiStoppingAcknowledgment(
+        result.data,
+        conversationId,
+        requestId,
+      )
+      if (acknowledgment.status === 'stopped') {
+        const confirmed = sessions.confirmStopped(
+          conversationId,
+          requestId,
+          acknowledgment.assistant_message_id,
+          acknowledgment.settlement_pending,
+        )
+        if (!confirmed) await chatWorkflow.recoverRequest(conversationId, requestId)
+        return
+      }
+      await chatWorkflow.recoverRequest(conversationId, requestId)
     } catch (error) {
       try {
         await chatWorkflow.recoverRequest(conversationId, requestId)

@@ -1,134 +1,117 @@
 import { describe, expect, it } from 'vitest'
 import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
+import { useConversationSessions } from '@/views/Main/ai/chat/composables/useConversationSessions'
 
 describe('AI chat cancel state handling', () => {
-  it('keeps the request pending while stopping and suppresses late deltas', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+  it('freezes immediately and permanently ignores late delivery for the stopped request', () => {
     const sessions = useConversationSessions()
-
     sessions.beginSend(6, 'req-6', 'question')
-    sessions.appendDelta(6, 'req-6', 'kept')
-    sessions.beginStopping(6, 'req-6')
-    sessions.appendDelta(6, 'req-6', ' discarded')
+    sessions.appendDelta(6, 'req-6', 1, 'kept')
 
+    expect(sessions.beginStopping(6, 'req-6')).toBe(1)
+    expect(sessions.appendDelta(6, 'req-6', 2, ' discarded')).toBe('ignored')
     expect(sessions.get(6)).toMatchObject({
-      pendingRequestId: 'req-6',
-      stoppingRequestId: 'req-6',
-      streamingContent: 'kept',
-    })
-    expect(sessions.isCanceled(6, 'req-6')).toBe(false)
-    expect(sessions.get(6)?.messages.at(-1)?.content).toBe('kept')
-  })
-
-  it('lets only the durable canceled event finalize stopping and remains terminal after a late ack', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
-    const sessions = useConversationSessions()
-
-    sessions.beginSend(8, 'req-8', 'question')
-    sessions.beginStopping(8, 'req-8')
-    const acknowledgment = { conversation_id: 8, request_id: 'req-8', status: 'stopping' } as const
-    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
-    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
-    expect(sessions.get(8)).toMatchObject({
-      pendingRequestId: 'req-8',
-      stoppingRequestId: 'req-8',
-    })
-    sessions.cancel(8, 'req-8', 'canceled')
-    assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')
-
-    // HTTP status='stopping' acknowledgment is deliberately a no-op, including duplicates.
-    expect(sessions.get(8)).toMatchObject({
       pendingRequestId: '',
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: 'req-6',
+      streamingContent: '',
       isStreaming: false,
     })
-    expect(sessions.isCanceled(8, 'req-8')).toBe(true)
+    expect(sessions.isCanceled(6, 'req-6')).toBe(true)
+    expect(sessions.get(6)?.messages.at(-1)).toMatchObject({
+      content: 'kept',
+      delivery_state: 'stopped',
+    })
   })
 
-  it('rejects an acknowledgment for any other operation', () => {
-    expect(() => assertAiStoppingAcknowledgment(
-      { conversation_id: 8, request_id: 'other', status: 'stopping' },
-      8,
-      'req-8',
-    )).toThrow(/stopping contract/i)
-  })
-
-  it('authoritatively replaces a stream after ambiguous cancel failure instead of resuming it', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+  it('does not let a late HTTP acknowledgment reopen durable settlement', () => {
     const sessions = useConversationSessions()
+    sessions.beginSend(8, 'req-8', 'question')
+    sessions.beginStopping(8, 'req-8')
+    const acknowledgment = {
+      conversation_id: 8,
+      request_id: 'req-8',
+      status: 'stopped',
+      assistant_message_id: 81,
+      settlement_pending: true,
+    } as const
 
+    expect(assertAiStoppingAcknowledgment(acknowledgment, 8, 'req-8')).toEqual(acknowledgment)
+    sessions.confirmStopped(8, 'req-8', 81, true)
+    sessions.settleStopped(8, 'req-8', 81)
+    sessions.confirmStopped(8, 'req-8', 81, true)
+
+    expect(sessions.get(8)?.settlementPendingRequestIds).toEqual([])
+    expect(sessions.get(8)?.messages.at(-1)).toMatchObject({
+      id: 81,
+      settlement_pending: false,
+      delivery_state: 'stopped',
+    })
+  })
+
+  it('accepts only the two strict authoritative stop acknowledgments', () => {
+    expect(assertAiStoppingAcknowledgment({
+      conversation_id: 8,
+      request_id: 'req-8',
+      status: 'already_terminal',
+      assistant_message_id: null,
+      settlement_pending: false,
+    }, 8, 'req-8')).toMatchObject({ status: 'already_terminal' })
+
+    expect(() => assertAiStoppingAcknowledgment({
+      conversation_id: 8,
+      request_id: 'other',
+      status: 'stopped',
+      assistant_message_id: 81,
+      settlement_pending: true,
+    }, 8, 'req-8')).toThrow(/stopping contract/i)
+    expect(() => assertAiStoppingAcknowledgment({
+      conversation_id: 8,
+      request_id: 'req-8',
+      status: 'stopped',
+      assistant_message_id: null,
+      settlement_pending: true,
+    }, 8, 'req-8')).toThrow(/stopping contract/i)
+    expect(() => assertAiStoppingAcknowledgment({
+      conversation_id: 8,
+      request_id: 'req-8',
+      status: 'already_terminal',
+      assistant_message_id: null,
+      settlement_pending: true,
+    }, 8, 'req-8')).toThrow(/stopping contract/i)
+  })
+
+  it('lets an authoritative terminal recovery win when stop was not committed', () => {
+    const sessions = useConversationSessions()
     sessions.beginSend(11, 'req-11', 'question')
-    sessions.appendDelta(11, 'req-11', 'possibly gapped')
+    sessions.appendDelta(11, 'req-11', 1, 'possibly partial')
     sessions.beginStopping(11, 'req-11')
-    sessions.recoverMessages(11, [], 0, false)
-    sessions.appendDelta(11, 'req-11', ' late')
+
+    expect(sessions.complete(11, 'req-11', 111)).toBe('recover')
+    sessions.recoverMessages(11, [], 0, false, 'req-11')
 
     expect(sessions.get(11)).toMatchObject({
       messages: [],
       pendingRequestId: '',
-      stoppingRequestId: '',
+      stopCommitPendingRequestId: '',
       isStreaming: false,
     })
+    expect(sessions.isCanceled(11, 'req-11')).toBe(false)
+    expect(sessions.appendDelta(11, 'req-11', 2, ' late')).toBe('ignored')
   })
 
-  it('does not mark a request canceled after it already reached a terminal state', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+  it('cannot stop a request after it already completed', () => {
     const sessions = useConversationSessions()
-
     sessions.beginSend(7, 'req-7', 'question')
     sessions.markUserMessage(7, 'req-7', 70)
-    sessions.appendDelta(7, 'req-7', 'answer')
+    sessions.appendDelta(7, 'req-7', 1, 'answer')
     sessions.complete(7, 'req-7', 71)
 
-    sessions.cancel(7, 'req-7')
-
+    expect(sessions.beginStopping(7, 'req-7')).toBeNull()
     expect(sessions.isCanceled(7, 'req-7')).toBe(false)
-    expect(sessions.get(7)?.messages[1]?.content).toBe('answer')
-    expect(sessions.get(7)?.messages[1]?.id).toBe(71)
-  })
-
-  it('ignores late content and terminal events from an older canceled request after a newer request completes', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
-    const sessions = useConversationSessions()
-
-    sessions.beginSend(9, 'req-a', 'question a')
-    sessions.cancel(9, 'req-a', 'canceled')
-
-    sessions.beginSend(9, 'req-b', 'question b')
-    sessions.markUserMessage(9, 'req-b', 200)
-    sessions.appendDelta(9, 'req-b', 'answer b')
-    sessions.complete(9, 'req-b', 201)
-
-    sessions.appendDelta(9, 'req-a', ' late a')
-    sessions.complete(9, 'req-a', 101)
-    sessions.fail(9, 'req-a', 'failed a')
-
-    const assistantMessage = sessions.get(9)?.messages.at(-1)
-    expect(assistantMessage?.request_id).toBe('req-b')
-    expect(assistantMessage?.id).toBe(201)
-    expect(assistantMessage?.content).toBe('answer b')
-    expect(assistantMessage?.isStreaming).toBe(false)
-  })
-
-  it('ignores late user message acknowledgement from an older canceled request while a newer request is sending', async () => {
-    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
-    const sessions = useConversationSessions()
-
-    sessions.beginSend(10, 'req-a', 'question a')
-    sessions.cancel(10, 'req-a', 'canceled')
-
-    sessions.beginSend(10, 'req-b', 'question b')
-    sessions.markUserMessage(10, 'req-b', 200)
-    sessions.appendDelta(10, 'req-b', 'answer b')
-    sessions.complete(10, 'req-b', 201)
-
-    sessions.beginSend(10, 'req-c', 'question c')
-    expect(sessions.get(10)?.sending).toBe(true)
-    expect(sessions.get(10)?.pendingRequestId).toBe('req-c')
-
-    sessions.markUserMessage(10, 'req-a', 100)
-
-    expect(sessions.get(10)?.sending).toBe(true)
-    expect(sessions.get(10)?.pendingRequestId).toBe('req-c')
+    expect(sessions.get(7)?.messages[1]).toMatchObject({
+      id: 71,
+      content: 'answer',
+      delivery_state: 'completed',
+    })
   })
 })
