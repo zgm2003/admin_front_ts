@@ -1,15 +1,16 @@
 // @vitest-environment jsdom
 
+/* eslint-disable vue/one-component-per-file */
 import axe from 'axe-core'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { nextTick, reactive, ref } from 'vue'
+import { defineComponent, h, nextTick, reactive, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import Layout from '@/views/Layout/index.vue'
 import { announceAssertive, announcePolite } from '@/shared/accessibility/announcer'
 
-const route = reactive({ fullPath: '/home', meta: {} })
+const route = reactive({ fullPath: '/home', path: '/home', meta: {} })
 const menuStore = reactive({
   drawer: false,
   contentFullscreen: false,
@@ -38,9 +39,17 @@ const passthrough = (name: string, tag: string) => ({
   template: `<${tag} v-bind="$attrs"><slot /></${tag}>`,
 })
 
-const RouterViewStub = {
-  template: '<slot :Component="\'section\'" />',
-}
+const RouteProbe = defineComponent({
+  name: 'RouteProbe',
+  setup: () => () => h('section', { 'data-test': 'route-probe' }),
+})
+
+const RouterViewStub = defineComponent({
+  name: 'RouterViewStub',
+  setup(_props, { slots }) {
+    return () => slots.default?.({ Component: RouteProbe })
+  },
+})
 
 async function seriousViolations(element: Element) {
   const result = await axe.run(element, {
@@ -51,6 +60,36 @@ async function seriousViolations(element: Element) {
 }
 
 describe('accessible application layout', () => {
+  it('preserves the routed page instance when only query parameters change', async () => {
+    route.path = '/ai/runs'
+    route.fullPath = '/ai/runs?tab=list'
+    const wrapper = mount(Layout, {
+      global: {
+        stubs: {
+          ElContainer: passthrough('ElContainer', 'div'),
+          ElAside: passthrough('ElAside', 'aside'),
+          ElHeader: passthrough('ElHeader', 'header'),
+          ElMain: passthrough('ElMain', 'main'),
+          ElFooter: passthrough('ElFooter', 'footer'),
+          ElDrawer: passthrough('ElDrawer', 'aside'),
+          RouterView: RouterViewStub,
+          NotificationRuntime: true,
+          Aside: true,
+          Header: true,
+          TabTag: true,
+          Footer: true,
+        },
+      },
+    })
+    const firstInstance = wrapper.get('[data-test="route-probe"]').element
+
+    route.fullPath = '/ai/runs?tab=stats'
+    await nextTick()
+
+    expect(wrapper.get('[data-test="route-probe"]').element).toBe(firstInstance)
+    wrapper.unmount()
+  })
+
   it('provides landmarks, a working skip link, and live regions', async () => {
     const wrapper = mount(Layout, {
       attachTo: document.body,

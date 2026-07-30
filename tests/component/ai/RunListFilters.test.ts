@@ -204,6 +204,24 @@ describe('AI run list drilldown filters', () => {
     wrapper.unmount()
   })
 
+  it('notifies when the initial run list request fails', async () => {
+    mocks.listExecute.mockRejectedValueOnce(new Error('查询AI运行记录失败'))
+    const wrapper = mount(RunList, {
+      global: {
+        stubs: {
+          RunDetailDialog: true,
+          ElText: true,
+          ElButton: true,
+          ElTag: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(mocks.notifyError).toHaveBeenCalledWith({ message: '查询AI运行记录失败' })
+    wrapper.unmount()
+  })
+
   it('does not continue querying after URL navigation unmounts the current list', async () => {
     const wrapper = mount(RunList, {
       global: {

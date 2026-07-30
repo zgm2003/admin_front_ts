@@ -68,7 +68,9 @@ const {
   searchForm: apiSearchForm
 })
 
-function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'detail'): string {
+type RunListOperation = 'page init' | 'list' | 'detail'
+
+function requireRunListErrorMessage(error: unknown, operation: RunListOperation): string {
   if (!(error instanceof Error) || error.message.trim() === '') {
     throw new Error(`AI run ${operation} failed with non-Error reason`)
   }
@@ -76,9 +78,17 @@ function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'de
   return error.message
 }
 
-function notifyRunListError(error: unknown, operation: 'page init' | 'detail') {
+function notifyRunListError(error: unknown, operation: RunListOperation) {
   if (isApiError(error) && error.kind === 'canceled') return
   ElNotification.error({message: requireRunListErrorMessage(error, operation)})
+}
+
+async function executeListRequest(request: () => Promise<unknown>) {
+  try {
+    await request()
+  } catch (e: unknown) {
+    notifyRunListError(e, 'list')
+  }
 }
 
 const init = async () => {
@@ -225,7 +235,13 @@ const showDetail = async (row: AiRunItem) => {
 }
 
 async function runSearch() {
-  await Promise.all([init(), onSearch()])
+  await Promise.all([init(), executeListRequest(() => onSearch())])
+}
+
+const handleRefresh = () => executeListRequest(() => refresh())
+
+function handlePageChange(nextPage: Parameters<typeof onPageChange>[0]) {
+  return executeListRequest(() => onPageChange(nextPage))
 }
 
 async function syncURLAndSearch() {
@@ -253,7 +269,7 @@ watch(
 )
 
 onMounted(async () => {
-  await Promise.all([init(), getList()])
+  await Promise.all([init(), executeListRequest(() => getList())])
 })
 
 onUnmounted(() => {
@@ -277,8 +293,8 @@ onUnmounted(() => {
         :loading="listLoading"
         :pagination="page"
         :show-index="true"
-        @refresh="refresh"
-        @update:pagination="onPageChange"
+        @refresh="handleRefresh"
+        @update:pagination="handlePageChange"
       >
         <template #cell-request_id="{row}">
           <div class="request-id-cell">

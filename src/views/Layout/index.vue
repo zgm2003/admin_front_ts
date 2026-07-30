@@ -97,7 +97,7 @@ watch(() => route.fullPath, async () => {
             mode="out-in"
           >
             <div
-              :key="route.fullPath + '::' + menuStore.refreshKey"
+              :key="route.path + '::' + menuStore.refreshKey"
               class="layout-view"
               :class="layoutViewClass"
             >
@@ -112,7 +112,7 @@ watch(() => route.fullPath, async () => {
           >
             <component
               :is="Component"
-              :key="route.fullPath + '::' + menuStore.refreshKey"
+              :key="route.path + '::' + menuStore.refreshKey"
             />
           </div>
         </router-view>

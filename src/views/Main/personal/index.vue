@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CommonEnum } from '@/enums'
@@ -72,6 +72,10 @@ const initPersonal = async () => {
 }
 
 onMounted(() => {
+  void initPersonal()
+})
+
+watch(userId, () => {
   void initPersonal()
 })
 </script>
