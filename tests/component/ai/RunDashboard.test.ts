@@ -219,6 +219,8 @@ describe('AI run dashboard', () => {
     installWorkflow({ kind: 'idle', data: [] }, null)
   })
 
+  it('shares dashboard styles with child markup', () => { expect('__scopeId' in RunDashboardPage).toBe(false) })
+
   it('renders six core metrics from one dashboard response', () => {
     const dashboard = populatedDashboard()
     const wrapper = mount(RunDashboardSummary, {

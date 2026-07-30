@@ -220,4 +220,4 @@ onUnmounted(() => workflow.dispose())
   </div>
 </template>
 
-<style scoped src="./styles.css"></style>
+<style src="./styles.css"></style>
