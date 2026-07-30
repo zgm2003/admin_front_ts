@@ -119,7 +119,7 @@ function actionColumn(): TableColumn<BreakdownRow> {
   return {
     key: 'actions',
     label: t('common.actions.action'),
-    width: 110,
+    width: 140,
     fixed: 'right',
   }
 }

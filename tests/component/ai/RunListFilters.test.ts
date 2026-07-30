@@ -3,12 +3,14 @@ import { h, reactive } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AiRunInitResponse, AiRunListParams } from '@/api/ai/runs'
+import { createApiError } from '@/modules/http/error'
 
 const mocks = vi.hoisted(() => ({
   route: undefined as unknown as { query: Record<string, unknown> },
   replace: vi.fn(),
   listExecute: vi.fn(),
   loadPageInit: vi.fn(),
+  notifyError: vi.fn(),
   dispose: vi.fn(),
   searchFields: [] as Array<{ key: string }>,
   searchModel: {} as Record<string, unknown>,
@@ -23,7 +25,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }))
 vi.mock('element-plus', () => ({
-  ElNotification: { error: vi.fn() },
+  ElNotification: { error: mocks.notifyError },
 }))
 vi.mock('@/app/injection', () => ({
   useAppKernel: () => ({ realtime: {} }),
@@ -175,6 +177,29 @@ describe('AI run list drilldown filters', () => {
       date_start: '2026-07-23',
       date_end: '2026-07-29',
     })
+    wrapper.unmount()
+  })
+
+  it('does not notify when page initialization is canceled during navigation', async () => {
+    mocks.loadPageInit.mockRejectedValueOnce(createApiError({
+      kind: 'canceled',
+      code: 'http.canceled',
+      retryable: false,
+      messageKey: 'http.canceled',
+    }))
+    const wrapper = mount(RunList, {
+      global: {
+        stubs: {
+          RunDetailDialog: true,
+          ElText: true,
+          ElButton: true,
+          ElTag: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(mocks.notifyError).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 

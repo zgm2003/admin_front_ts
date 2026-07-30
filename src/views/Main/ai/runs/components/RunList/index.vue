@@ -19,6 +19,7 @@ import {useCopy} from '@/hooks/useCopy'
 import {useAppKernel} from '@/app/injection'
 import {createAIRunsWorkflow} from '@/features/ai-runs/workflow'
 import {useWorkflowTable} from '@/features/shared/use-workflow-table'
+import {isApiError} from '@/modules/http/error'
 import RunDetailDialog from './RunDetailDialog.vue'
 import { runStatusTagType } from './presenters'
 import {serializeRunListQuery} from '../RunStats/dashboard-presenter'
@@ -74,6 +75,11 @@ function requireRunListErrorMessage(error: unknown, operation: 'page init' | 'de
   return error.message
 }
 
+function notifyRunListError(error: unknown, operation: 'page init' | 'detail') {
+  if (isApiError(error) && error.kind === 'canceled') return
+  ElNotification.error({message: requireRunListErrorMessage(error, operation)})
+}
+
 const init = async () => {
   try {
     const data = await workflow.loadPageInit({
@@ -82,7 +88,7 @@ const init = async () => {
     })
     dict.value = data.dict
   } catch (e: unknown) {
-    ElNotification.error({message: requireRunListErrorMessage(e, 'page init')})
+    notifyRunListError(e, 'page init')
   }
 }
 
@@ -211,7 +217,7 @@ const showDetail = async (row: AiRunItem) => {
     const data = await workflow.loadDetail(row.id)
     detailData.value = data
   } catch (e: unknown) {
-    ElNotification.error({message: requireRunListErrorMessage(e, 'detail')})
+    notifyRunListError(e, 'detail')
   } finally {
     detailLoading.value = false
   }

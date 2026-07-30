@@ -294,6 +294,7 @@ describe('AI run dashboard', () => {
         expect(column).not.toHaveProperty('elementProps.align')
         expect(column).not.toHaveProperty('elementProps.headerAlign')
       }
+      expect(mocks.tableColumns.find(({ key }) => key === 'actions')).toMatchObject({ width: 140, fixed: 'right' })
     }
     expect(wrapper.findAllComponents({ name: 'AppTableMock' })).toHaveLength(1)
 
