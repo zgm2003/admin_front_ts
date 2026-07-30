@@ -1,8 +1,8 @@
 /* eslint-disable vue/one-component-per-file */
-import { h, nextTick, reactive } from 'vue'
+import { defineComponent, h, nextTick, reactive } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AiRunInitResponse, AiRunListParams } from '@/api/ai/runs'
+import type { AiRunDetailResponse, AiRunInitResponse, AiRunListParams } from '@/api/ai/runs'
 import { createApiError } from '@/modules/http/error'
 
 const mocks = vi.hoisted(() => ({
@@ -10,11 +10,13 @@ const mocks = vi.hoisted(() => ({
   replace: vi.fn(),
   listExecute: vi.fn(),
   loadPageInit: vi.fn(),
+  loadDetail: vi.fn(),
   notifyError: vi.fn(),
   dispose: vi.fn(),
   searchFields: [] as Array<{ key: string; options?: unknown }>,
   searchModel: {} as Record<string, unknown>,
   tableColumns: [] as Array<{ key: string }>,
+  actionRows: [] as Array<{ id: number }>,
 }))
 
 vi.mock('vue-router', () => ({
@@ -56,10 +58,12 @@ vi.mock('@/components/Table', async () => {
     AppTable: defineComponent({
       name: 'AppTableMock',
       props: { columns: { type: Array, required: true } },
-      setup(props) {
+      setup(props, { slots }) {
         return () => {
           mocks.tableColumns = [...props.columns] as Array<{ key: string }>
-          return h('div', { 'data-test': 'table' })
+          return h('div', { 'data-test': 'table' }, mocks.actionRows.map((row) => (
+            h('div', { 'data-test': `run-action-${row.id}` }, slots['cell-actions']?.({ row }))
+          )))
         }
       },
     }),
@@ -79,7 +83,7 @@ vi.mock('@/features/ai-runs/workflow', async () => {
         dispose: vi.fn(),
       },
       loadPageInit: mocks.loadPageInit,
-      loadDetail: vi.fn(),
+      loadDetail: mocks.loadDetail,
       dispose: mocks.dispose,
     }),
   }
@@ -105,6 +109,7 @@ describe('AI run list drilldown filters', () => {
     mocks.searchFields = []
     mocks.searchModel = {}
     mocks.tableColumns = []
+    mocks.actionRows = []
     mocks.route = reactive({
       query: {
         tab: 'list',
@@ -286,6 +291,64 @@ describe('AI run list drilldown filters', () => {
       expect(column).not.toHaveProperty('elementProps.align')
       expect(column).not.toHaveProperty('elementProps.headerAlign')
     }
+    wrapper.unmount()
+  })
+
+  it('clears stale detail and closes the dialog when a new detail request fails', async () => {
+    let rejectSecondRequest!: (reason: unknown) => void
+    mocks.actionRows = [{ id: 5 }, { id: 6 }]
+    mocks.loadDetail
+      .mockResolvedValueOnce({ id: 5 } as AiRunDetailResponse)
+      .mockReturnValueOnce(new Promise<AiRunDetailResponse>((_resolve, reject) => {
+        rejectSecondRequest = reject
+      }))
+
+    const DetailDialogStub = defineComponent({
+      name: 'RunDetailDialog',
+      props: {
+        modelValue: { type: Boolean, required: true },
+        detailData: { type: Object, default: null },
+        loading: { type: Boolean, required: true },
+      },
+      setup(props) {
+        return () => h('div', {
+          'data-test': 'detail-dialog',
+          'data-detail-id': String((props.detailData as AiRunDetailResponse | null)?.id ?? ''),
+          'data-visible': String(props.modelValue),
+        })
+      },
+    })
+    const ButtonStub = defineComponent({
+      name: 'ElButton',
+      emits: ['click'],
+      setup(_props, { emit, slots }) {
+        return () => h('button', { onClick: () => emit('click') }, slots.default?.())
+      },
+    })
+    const wrapper = mount(RunList, {
+      global: {
+        stubs: {
+          RunDetailDialog: DetailDialogStub,
+          ElText: true,
+          ElButton: ButtonStub,
+          ElTag: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-test="run-action-5"] button').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[data-test="detail-dialog"]').attributes('data-detail-id')).toBe('5')
+
+    await wrapper.get('[data-test="run-action-6"] button').trigger('click')
+    await nextTick()
+    expect(wrapper.get('[data-test="detail-dialog"]').attributes('data-detail-id')).toBe('')
+
+    rejectSecondRequest(new Error('AI运行详情无效'))
+    await flushPromises()
+    expect(wrapper.get('[data-test="detail-dialog"]').attributes('data-visible')).toBe('false')
+    expect(mocks.notifyError).toHaveBeenCalledWith({ message: 'AI运行详情无效' })
     wrapper.unmount()
   })
 })

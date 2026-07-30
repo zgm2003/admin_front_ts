@@ -233,17 +233,23 @@ const columns = computed(() => [
 const detailVisible = ref(false)
 const detailData = ref<AiRunDetailResponse | null>(null)
 const detailLoading = ref(false)
+let detailRequestSequence = 0
 
 const showDetail = async (row: AiRunItem) => {
+  const requestSequence = ++detailRequestSequence
+  detailData.value = null
   detailLoading.value = true
   detailVisible.value = true
   try {
     const data = await workflow.loadDetail(row.id)
+    if (requestSequence !== detailRequestSequence) return
     detailData.value = data
   } catch (e: unknown) {
+    if (requestSequence !== detailRequestSequence) return
+    detailVisible.value = false
     notifyRunListError(e, 'detail')
   } finally {
-    detailLoading.value = false
+    if (requestSequence === detailRequestSequence) detailLoading.value = false
   }
 }
 
@@ -287,6 +293,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unmounted = true
+  detailRequestSequence++
   workflow.dispose()
 })
 </script>
