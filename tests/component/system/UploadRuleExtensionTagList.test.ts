@@ -10,7 +10,7 @@ const ElTagStub = {
 
 const ElPopoverStub = {
   name: 'ElPopover',
-  props: ['visible', 'persistent', 'width'],
+  props: ['trigger', 'persistent', 'teleported', 'enterable', 'popperStyle', 'width'],
   template: '<span class="popover"><slot name="reference" /><span class="popover-content"><slot /></span></span>',
 }
 
@@ -21,11 +21,12 @@ const ElSpaceStub = {
 
 const ElScrollbarStub = {
   name: 'ElScrollbar',
+  props: ['maxHeight'],
   template: '<span><slot /></span>',
 }
 
 describe('UploadRule ExtensionTagList', () => {
-  it('keeps the table row compact and exposes remaining extensions on hover or focus', async () => {
+  it('keeps the table row compact and puts remaining extensions in a bounded teleported popover', () => {
     const wrapper = mount(ExtensionTagList, {
       props: {
         items: ['pdf', 'docx', 'txt', 'xlsx', 'csv'],
@@ -50,15 +51,12 @@ describe('UploadRule ExtensionTagList', () => {
 
     const popover = wrapper.getComponent({ name: 'ElPopover' })
     expect(popover.props('persistent')).toBe(false)
-    expect(popover.props('visible')).toBe(false)
-
-    await wrapper.get('[data-test="extension-tag-list"]').trigger('mouseenter')
-    expect(popover.props('visible')).toBe(true)
-    await wrapper.get('[data-test="extension-tag-list"]').trigger('mouseleave')
-    expect(popover.props('visible')).toBe(false)
-    await wrapper.get('[data-test="extension-overflow"]').trigger('focus')
-    expect(popover.props('visible')).toBe(true)
-    await wrapper.get('[data-test="extension-overflow"]').trigger('blur')
-    expect(popover.props('visible')).toBe(false)
+    expect(popover.props('trigger')).toEqual(['hover', 'focus'])
+    expect(popover.props('teleported')).toBe(true)
+    expect(popover.props('enterable')).toBe(true)
+    expect(popover.props('width')).toBe(320)
+    expect(popover.props('popperStyle')).toEqual({ maxWidth: 'calc(100vw - 32px)' })
+    expect(wrapper.getComponent({ name: 'ElScrollbar' }).props('maxHeight')).toBe('240px')
+    expect(wrapper.get('[data-test="extension-overflow"]').attributes('tabindex')).toBe('0')
   })
 })

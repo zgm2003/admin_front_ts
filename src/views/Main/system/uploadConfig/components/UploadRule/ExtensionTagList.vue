@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const visibleLimit = 3
 
@@ -8,25 +8,14 @@ const props = defineProps<{
   type: 'success' | 'warning'
 }>()
 
-const popoverVisible = ref(false)
 const visibleItems = computed(() => props.items.slice(0, visibleLimit))
 const overflowItems = computed(() => props.items.slice(visibleLimit))
-
-function showPopover() {
-  if (overflowItems.value.length > 0) popoverVisible.value = true
-}
-
-function hidePopover() {
-  popoverVisible.value = false
-}
 </script>
 
 <template>
   <el-space
     data-test="extension-tag-list"
     :size="4"
-    @mouseenter="showPopover"
-    @mouseleave="hidePopover"
   >
     <el-tag
       v-for="item in visibleItems"
@@ -39,11 +28,13 @@ function hidePopover() {
     </el-tag>
     <el-popover
       v-if="overflowItems.length > 0"
-      :visible="popoverVisible"
+      :trigger="['hover', 'focus']"
       :persistent="false"
-      :teleported="false"
+      :teleported="true"
+      :enterable="true"
       placement="top"
       :width="320"
+      :popper-style="{ maxWidth: 'calc(100vw - 32px)' }"
     >
       <template #reference>
         <el-tag
@@ -51,9 +42,6 @@ function hidePopover() {
           size="small"
           type="info"
           tabindex="0"
-          @focus="showPopover"
-          @blur="hidePopover"
-          @keydown.esc="hidePopover"
         >
           +{{ overflowItems.length }}
         </el-tag>
