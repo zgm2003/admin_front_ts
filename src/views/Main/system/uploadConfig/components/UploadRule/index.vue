@@ -10,9 +10,11 @@ const userStore = useUserStore()
 const {
   add, batchDel, columns, confirmDel, confirmSubmit,
   dialogMode, dialogVisible, dict, edit, form,
+  fileExtSelectionState, imageExtSelectionState,
   listData, listLoading, onPageChange, onSearch,
   onSelectionChange, page, refresh, rules, searchFields,
   searchForm, t, tagWrapStyle, setFormRef,
+  toggleFileExtSelection, toggleImageExtSelection,
 } = useUploadRulePage()
 </script>
 
@@ -167,7 +169,19 @@ const {
               multiple
               style="width:100%"
               :options="dict.upload_image_ext_arr"
-            />
+            >
+              <template #header>
+                <el-checkbox
+                  data-test="image-exts-select-all"
+                  :model-value="imageExtSelectionState.checked"
+                  :indeterminate="imageExtSelectionState.indeterminate"
+                  :disabled="dict.upload_image_ext_arr.length === 0"
+                  @change="toggleImageExtSelection"
+                >
+                  {{ t('common.actions.selectAll') }}
+                </el-checkbox>
+              </template>
+            </el-select-v2>
           </el-form-item>
         </el-col>
         <el-col
@@ -183,7 +197,19 @@ const {
               multiple
               style="width:100%"
               :options="dict.upload_file_ext_arr"
-            />
+            >
+              <template #header>
+                <el-checkbox
+                  data-test="file-exts-select-all"
+                  :model-value="fileExtSelectionState.checked"
+                  :indeterminate="fileExtSelectionState.indeterminate"
+                  :disabled="dict.upload_file_ext_arr.length === 0"
+                  @change="toggleFileExtSelection"
+                >
+                  {{ t('common.actions.selectAll') }}
+                </el-checkbox>
+              </template>
+            </el-select-v2>
           </el-form-item>
         </el-col>
       </el-row>

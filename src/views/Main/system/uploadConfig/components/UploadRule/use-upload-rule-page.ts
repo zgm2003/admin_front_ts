@@ -13,6 +13,35 @@ import type { FormInstance, FormRules } from 'element-plus'
 import type { SearchField } from '@/components/Search/types'
 import { useCrudTable } from '@/hooks/useCrudTable'
 
+type ExtensionOption<T extends string> = {
+  value: T
+}
+
+export function getExtensionSelectionState<T extends string>(
+  selected: readonly T[],
+  options: readonly ExtensionOption<T>[],
+) {
+  if (options.length === 0) return { checked: false, indeterminate: false }
+
+  const selectedValues = new Set(selected)
+  const selectedCount = options.reduce(
+    (count, option) => count + Number(selectedValues.has(option.value)),
+    0,
+  )
+  return {
+    checked: selectedCount === options.length,
+    indeterminate: selectedCount > 0 && selectedCount < options.length,
+  }
+}
+
+export function toggleExtensionSelection<T extends string>(
+  selected: readonly T[],
+  options: readonly ExtensionOption<T>[],
+): T[] {
+  const state = getExtensionSelectionState(selected, options)
+  return state.checked ? [] : options.map(option => option.value)
+}
+
 export function useUploadRulePage() {
   const {t} = useI18n()
   const dict = ref<UploadRuleInitResponse['dict']>({
@@ -54,6 +83,28 @@ export function useUploadRulePage() {
   })
 
   const formRef = ref<FormInstance | null>(null)
+
+  const imageExtSelectionState = computed(() => getExtensionSelectionState(
+    form.value.image_exts,
+    dict.value.upload_image_ext_arr,
+  ))
+  const fileExtSelectionState = computed(() => getExtensionSelectionState(
+    form.value.file_exts,
+    dict.value.upload_file_ext_arr,
+  ))
+
+  const toggleImageExtSelection = () => {
+    form.value.image_exts = toggleExtensionSelection(
+      form.value.image_exts,
+      dict.value.upload_image_ext_arr,
+    )
+  }
+  const toggleFileExtSelection = () => {
+    form.value.file_exts = toggleExtensionSelection(
+      form.value.file_exts,
+      dict.value.upload_file_ext_arr,
+    )
+  }
 
   function setFormRef(element: unknown) {
     formRef.value = element as FormInstance | null
@@ -194,8 +245,10 @@ export function useUploadRulePage() {
   return {
     add, batchDel, columns, confirmDel, confirmSubmit,
     dialogMode, dialogVisible, dict, edit, form,
+    fileExtSelectionState, imageExtSelectionState,
     listData, listLoading, onPageChange, onSearch,
     onSelectionChange, page, refresh, rules, searchFields,
     searchForm, t, tagWrapStyle, setFormRef,
+    toggleFileExtSelection, toggleImageExtSelection,
   }
 }
