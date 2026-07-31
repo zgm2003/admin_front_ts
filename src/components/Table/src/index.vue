@@ -210,6 +210,7 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
       >
         <template #default="{ row, $index }">
           <slot
+            v-if="$index >= 0"
             :name="'cell-'+getColumnKey(col)"
             :row="row"
             :col="col"
