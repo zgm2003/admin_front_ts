@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChatLineSquare, Microphone, Picture, Setting } from '@element-plus/icons-vue'
+import { ChatLineSquare, Microphone, Paperclip, Setting } from '@element-plus/icons-vue'
 import { DIcon } from '@/components/DIcon'
 import { EmojiPicker } from '@/components/EmojiPicker'
 
 defineProps<{
   showHistoryButton?: boolean
-  supportsImage: boolean
+  supportsAttachments: boolean
   sending: boolean
   disabled?: boolean
-  imageLimitReached: boolean
+  attachmentLimitReached: boolean
   recording: boolean
   hasRuntimeParams: boolean
   hasCustomParams: boolean
@@ -18,7 +18,7 @@ defineProps<{
 }>()
 const emit = defineEmits<{
   openHistory: []
-  uploadImage: []
+  addAttachment: []
   toggleVoice: []
   selectEmoji: [emoji: string]
   toggleParams: []
@@ -49,16 +49,16 @@ function handleEmojiSelect(emoji: string) {
       </el-icon>
     </el-button>
     <el-button
-      v-if="supportsImage"
+      v-if="supportsAttachments"
       text
       class="toolbar-btn"
-      :disabled="sending || disabled || imageLimitReached || recording"
-      :title="t('aiChat.uploadImage')"
-      :aria-label="t('aiChat.uploadImage')"
-      @click="emit('uploadImage')"
+      :disabled="sending || disabled || attachmentLimitReached || recording"
+      :title="t('aiChat.addAttachment')"
+      :aria-label="t('aiChat.addAttachment')"
+      @click="emit('addAttachment')"
     >
       <el-icon :size="18">
-        <Picture />
+        <Paperclip />
       </el-icon>
     </el-button>
     <el-button

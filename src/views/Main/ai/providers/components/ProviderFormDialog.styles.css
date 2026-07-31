@@ -96,6 +96,17 @@
   font-weight: 500;
 }
 
+.provider-form-dialog__file-mode {
+  width: 100%;
+}
+
+.provider-form-dialog__field-hint {
+  margin-top: 5px;
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
 .provider-form-dialog__display-grid {
   padding-top: 2px;
 }

@@ -1,37 +1,108 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { Close, Select } from '@element-plus/icons-vue'
+import { Close, Paperclip, Select } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
+import type { AiMessageAttachmentRequest } from '@/api/ai/messages'
+import PendingAttachments from '../MessageInput/PendingAttachments.vue'
+import { useAttachments, type SeededAttachment } from '../MessageInput/use-attachments'
 import type { Message } from '../../composables/types'
 
 const { t } = useI18n()
 const props = withDefaults(defineProps<{
   message: Message
+  capabilities?: AiAgentEffectiveCapabilities
   disabled?: boolean
 }>(), {
   disabled: false,
+  capabilities: undefined,
 })
 
 const emit = defineEmits<{
-  submit: [content: string]
+  submit: [payload: { content: string; attachments?: AiMessageAttachmentRequest[] }]
   cancel: []
 }>()
 
 const content = ref(props.message.content)
-const attachments = computed(() => props.message.meta_json?.attachments ?? [])
+const originalAttachmentSignature = ref('[]')
+const {
+  setFileInputRef,
+  pendingAttachments,
+  supportsAttachments,
+  accept,
+  isLimitReached,
+  canSubmitAttachments,
+  blockingReason,
+  completedAttachments,
+  seedAttachments,
+  handleUploadClick,
+  handleFileChange,
+  removeAttachment,
+  retryAttachment,
+} = useAttachments(() => props.capabilities, () => !props.disabled)
+
+function asSeededAttachments(message: Message): SeededAttachment[] {
+  const result: SeededAttachment[] = []
+  for (const raw of message.meta_json?.attachments ?? []) {
+    const item = raw as unknown as Partial<SeededAttachment>
+    if ((item.type !== 'image' && item.type !== 'file')
+      || !item.object_key || !item.url || !item.name
+      || typeof item.size !== 'number' || item.size <= 0) continue
+    result.push({
+      type: item.type,
+      object_key: item.object_key,
+      url: item.url,
+      mime_type: item.mime_type || 'application/octet-stream',
+      name: item.name,
+      size: item.size,
+    })
+  }
+  return result
+}
+
+function attachmentSignature(values: readonly AiMessageAttachmentRequest[]) {
+  return JSON.stringify(values.map((item) => [
+    item.type, item.object_key, item.url, item.mime_type, item.name, item.size,
+  ]))
+}
+
+function resetEditor() {
+  content.value = props.message.content
+  seedAttachments(asSeededAttachments(props.message))
+  originalAttachmentSignature.value = attachmentSignature(
+    completedAttachments().map((item) => item.request),
+  )
+}
+
+watch(() => props.message.id, resetEditor, { immediate: true })
+
+const requestAttachments = computed(() => completedAttachments().map((item) => item.request))
+const attachmentsChanged = computed(() => (
+  attachmentSignature(requestAttachments.value) !== originalAttachmentSignature.value
+))
+const blockingMessage = computed(() => {
+  switch (blockingReason.value) {
+    case 'provider_file_input_disabled': return t('aiChat.providerFileInputDisabled')
+    case 'official_model_unsupported': return t('aiChat.modelFileInputUnsupported')
+    case 'transport_unsupported': return t('aiChat.transportFileInputUnsupported')
+    case 'upload_rule_unavailable': return t('aiChat.uploadRuleUnavailable')
+    case 'image_unsupported': return t('aiChat.modelNotSupportImage')
+    default: return blockingReason.value ? t('aiChat.attachmentTypeUnsupported') : ''
+  }
+})
 const canSubmit = computed(() => (
   !props.disabled
-  && /\S/.test(content.value)
-  && content.value !== props.message.content
+  && canSubmitAttachments.value
+  && (content.value.trim().length > 0 || requestAttachments.value.length > 0)
+  && (content.value !== props.message.content || attachmentsChanged.value)
 ))
-
-watch(() => props.message.id, () => {
-  content.value = props.message.content
-})
 
 function submit() {
   if (!canSubmit.value) return
-  emit('submit', content.value)
+  emit('submit', {
+    content: content.value,
+    ...(attachmentsChanged.value ? { attachments: requestAttachments.value } : {}),
+  })
 }
 </script>
 
@@ -48,50 +119,65 @@ function submit() {
       @keydown.esc="emit('cancel')"
     />
 
-    <div
-      v-if="attachments.length > 0"
-      class="message-editor-attachments"
-      aria-readonly="true"
-    >
-      <div
-        v-for="attachment in attachments"
-        :key="attachment.url"
-        class="message-editor-attachment"
-      >
-        <el-image
-          :src="attachment.url"
-          :alt="attachment.name"
-          fit="cover"
-          class="message-editor-thumbnail"
-        />
-        <span>{{ attachment.name }}</span>
-      </div>
-    </div>
+    <PendingAttachments
+      v-if="pendingAttachments.length"
+      :attachments="pendingAttachments"
+      :blocking-message="blockingMessage"
+      @remove="removeAttachment"
+      @retry="retryAttachment"
+    />
 
     <div class="message-editor-actions">
+      <el-tooltip
+        v-if="supportsAttachments"
+        :content="t('aiChat.addAttachment')"
+        placement="top"
+        :show-after="300"
+      >
+        <span>
+          <el-button
+            text
+            class="editor-button"
+            :disabled="disabled || isLimitReached"
+            :aria-label="t('aiChat.addAttachment')"
+            @click="handleUploadClick"
+          >
+            <el-icon :size="16"><Paperclip /></el-icon>
+          </el-button>
+        </span>
+      </el-tooltip>
+      <span class="message-editor-actions__spacer" />
       <el-button
         text
         class="editor-button"
-      :aria-label="t('common.actions.cancel')"
-      @click="emit('cancel')"
-    >
-        <el-icon :size="16">
-          <Close />
-        </el-icon>
+        :aria-label="t('common.actions.cancel')"
+        @click="emit('cancel')"
+      >
+        <el-icon :size="16"><Close /></el-icon>
       </el-button>
       <el-button
         type="primary"
         class="editor-submit"
         :disabled="!canSubmit"
-      :aria-label="t('aiChat.editSubmit')"
-      @click="submit"
-    >
-        <el-icon :size="16">
-          <Select />
-        </el-icon>
+        :aria-label="t('aiChat.editSubmit')"
+        @click="submit"
+      >
+        <el-icon :size="16"><Select /></el-icon>
         <span>{{ t('aiChat.editSubmit') }}</span>
       </el-button>
     </div>
+
+    <input
+      v-if="supportsAttachments"
+      :ref="setFileInputRef"
+      type="file"
+      :accept="accept"
+      multiple
+      tabindex="-1"
+      aria-hidden="true"
+      class="message-editor-file-input"
+      @change="handleFileChange"
+    >
   </div>
 </template>
 
@@ -123,40 +209,14 @@ function submit() {
   box-shadow: 0 0 0 3px var(--el-color-primary-light-9);
 }
 
-.message-editor-attachments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.message-editor-attachment {
-  min-width: 0;
-  max-width: 220px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--el-text-color-secondary);
-  font-size: 12px;
-}
-
-.message-editor-attachment span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.message-editor-thumbnail {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 5px;
-}
-
 .message-editor-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 6px;
+}
+
+.message-editor-actions__spacer {
+  flex: 1;
 }
 
 .editor-button {
@@ -169,5 +229,9 @@ function submit() {
 .editor-submit {
   min-height: 30px;
   padding: 0 10px;
+}
+
+.message-editor-file-input {
+  display: none;
 }
 </style>

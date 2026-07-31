@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { insufficientBalanceFromFailedEvent } from '@/api/ai/billing-error'
 import { assertAiStoppingAcknowledgment } from '@/api/ai/chat'
-import { type AIRuntimeParams } from '@/api/ai/messages'
+import { type AIRuntimeParams, type AiMessageAttachmentRequest } from '@/api/ai/messages'
 import { createAiRequestId } from '@/api/ai/request-id'
 import { useAppKernel } from '@/app/injection'
 import { createAIChatWorkflow } from '@/features/ai-chat/workflow'
@@ -22,7 +22,7 @@ import {
 import type { Agent, Conversation, Message } from './composables/types'
 import { createConversationTitle } from './conversation-title'
 import { executeStopRequest } from './stop-delivery'
-import type { Attachment } from './components/MessageInput/use-image-attachments'
+import type { Attachment } from './components/MessageInput/use-attachments'
 import {
   prepareCapabilityTransition,
   type CapabilityConflicts,
@@ -516,18 +516,25 @@ export function useChatPage() {
     await copy(message.content)
   }
 
-  async function handleEditMessage(message: Message, content: string) {
+  async function handleEditMessage(
+    message: Message,
+    payload: { content: string; attachments?: AiMessageAttachmentRequest[] },
+  ) {
     const conversationId = currentConversationId.value
     if (!conversationId || interactionDisabled.value || message.role !== 1) return
-    const fingerprint = JSON.stringify(['revision', conversationId, message.id, content])
+    const fingerprint = JSON.stringify([
+      'revision', conversationId, message.id, payload.content,
+      payload.attachments === undefined ? 'preserve' : payload.attachments,
+    ])
     const requestId = actionRequestIdentities.acquire(fingerprint)
     interactionPending.value = true
     try {
       const result = await chatWorkflow.reviseMessage.mutate({
         conversation_id: conversationId,
         message_id: message.id,
-        content,
+        content: payload.content,
         request_id: requestId,
+        attachments: payload.attachments,
       })
       if (result.kind === 'canceled') return
       actionRequestIdentities.settle(fingerprint)

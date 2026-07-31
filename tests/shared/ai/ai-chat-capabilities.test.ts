@@ -5,7 +5,7 @@ import {
   detectCapabilityConflicts,
   prepareCapabilityTransition,
 } from '@/views/Main/ai/chat/components/MessageInput/capability-transition'
-import { selectImageFiles } from '@/views/Main/ai/chat/components/MessageInput/use-image-attachments'
+import { selectAttachmentFiles } from '@/views/Main/ai/chat/components/MessageInput/use-attachments'
 import { installApiClientHarness } from '../../helpers/api-client'
 
 const cleanups: Array<() => void> = []
@@ -27,13 +27,22 @@ function capabilities(input: {
       max_history: { supported: true, default: 20, min: 1, max: 50, transitional: true },
     },
     attachments: {
+      max_attachments_per_message: 5,
+      max_message_attachment_bytes: 50 * 1024 * 1024,
       image: {
         enabled: input.image ?? false,
         mime_types: input.mimeTypes ?? [],
         max_files: input.maxFiles ?? 0,
         max_file_bytes: input.maxBytes ?? 0,
       },
-      native_file: { enabled: false },
+      native_file: {
+        enabled: false,
+        disabled_reason: 'official_model_unsupported',
+        max_files_per_message: 5,
+        max_file_bytes_exclusive: 50 * 1024 * 1024,
+        max_request_file_bytes: 50 * 1024 * 1024,
+        accepted_extensions: [],
+      },
     },
   }
 }
@@ -46,25 +55,30 @@ describe('AI chat effective capabilities', () => {
       { name: 'wrong.jpg', type: 'image/jpeg', size: 100 },
       { name: 'extra.png', type: 'image/png', size: 100 },
     ]
-    const result = selectImageFiles(files, capabilities({
+    const result = selectAttachmentFiles(files.map((file, index) => new File(['x'], file.name, {
+      type: file.type,
+      lastModified: index,
+    })).map((file, index) => Object.defineProperty(file, 'size', { value: files[index]!.size })), capabilities({
       image: true, mimeTypes: ['image/png'], maxFiles: 1, maxBytes: 500,
-    }).attachments.image, 0)
+    }).attachments, [])
 
-    expect(result.accepted.map((file) => file.name)).toEqual(['first.png'])
-    expect(result.rejected).toEqual({ type: 1, size: 1, limit: 1 })
+    expect(result.accepted.map((item) => item.file.name)).toEqual(['first.png'])
+    expect(result.rejected).toEqual({
+      unsupported: 1, tooLarge: 1, limit: 1, duplicate: 0, totalSize: 0,
+    })
   })
 
   it('cancels an incompatible agent switch without clearing composer state', async () => {
     const state = {
-      images: [
-        { id: 'png', mimeType: 'image/png', size: 100 },
-        { id: 'jpg', mimeType: 'image/jpeg', size: 100 },
+      attachments: [
+        { id: 'png', kind: 'image' as const, name: 'a.png', mimeType: 'image/png', size: 100 },
+        { id: 'jpg', kind: 'image' as const, name: 'a.jpg', mimeType: 'image/jpeg', size: 100 },
       ],
       temperatureEnabled: true,
     }
     const target = capabilities({ image: true, mimeTypes: ['image/png'], maxFiles: 1, maxBytes: 500 })
     expect(detectCapabilityConflicts(state, target)).toEqual({
-      invalidImageIds: ['jpg'], temperature: true,
+      incompatibleAttachmentIds: ['jpg'], temperature: true,
     })
 
     const clear = vi.fn()
@@ -79,9 +93,9 @@ describe('AI chat effective capabilities', () => {
 
   it('clears only invalid state after a confirmed agent switch', async () => {
     const state = {
-      images: [
-        { id: 'png', mimeType: 'image/png', size: 100 },
-        { id: 'jpg', mimeType: 'image/jpeg', size: 100 },
+      attachments: [
+        { id: 'png', kind: 'image' as const, name: 'a.png', mimeType: 'image/png', size: 100 },
+        { id: 'jpg', kind: 'image' as const, name: 'a.jpg', mimeType: 'image/jpeg', size: 100 },
       ],
       temperatureEnabled: true,
     }
@@ -93,7 +107,7 @@ describe('AI chat effective capabilities', () => {
       confirm: () => Promise.resolve(),
       clear,
     })).resolves.toBe(true)
-    expect(clear).toHaveBeenCalledWith({ invalidImageIds: ['jpg'], temperature: true })
+    expect(clear).toHaveBeenCalledWith({ incompatibleAttachmentIds: ['jpg'], temperature: true })
   })
 
   it('sends only the authoritative image object key and enabled runtime fields', async () => {
@@ -107,16 +121,22 @@ describe('AI chat effective capabilities', () => {
       conversation_id: 9,
       content: 'describe',
       request_id: 'request-1',
-      attachments: [{ type: 'image', object_key: 'ai_chat_images/input.png', name: 'input.png' }],
+      attachments: [{
+        type: 'image', object_key: 'ai_chat_attachments/input.png',
+        url: 'https://files.example.test/input.png', mime_type: 'image/png', name: 'input.png', size: 4,
+      }],
       runtime_params: { temperature: 0.4, max_history: 8 },
     })
 
     expect(harness.requests[0]?.body).toEqual({
       content: 'describe',
       request_id: 'request-1',
-      attachments: [{ type: 'image', object_key: 'ai_chat_images/input.png', name: 'input.png' }],
+      attachments: [{
+        type: 'image', object_key: 'ai_chat_attachments/input.png',
+        url: 'https://files.example.test/input.png', mime_type: 'image/png', name: 'input.png', size: 4,
+      }],
       runtime_params: { temperature: 0.4, max_history: 8 },
     })
-    expect(JSON.stringify(harness.requests[0]?.body)).not.toMatch(/max_tokens|"url"|mime|size/)
+    expect(JSON.stringify(harness.requests[0]?.body)).not.toMatch(/max_tokens/)
   })
 })

@@ -1,7 +1,15 @@
 import { computed, reactive, shallowRef } from 'vue'
 import type { FormRules } from 'element-plus'
 import { CommonEnum } from '@/enums'
-import type { AiModelOptionItem, AiProviderDriver, AiProviderStatus } from '@/api/ai/providers'
+import type {
+  AiModelOptionItem,
+  AiProviderDriver,
+  AiProviderFileInputMode,
+  AiProviderItem,
+  AiProviderModelItem,
+  AiProviderMutationParams,
+  AiProviderStatus,
+} from '@/api/ai/providers'
 
 export interface ProviderFormState {
   id?: number
@@ -12,6 +20,7 @@ export interface ProviderFormState {
   model_ids: string[]
   model_display_names: Record<string, string>
   status: AiProviderStatus
+  file_input_mode: AiProviderFileInputMode
 }
 
 export type TranslateFn = (key: string) => string
@@ -25,6 +34,40 @@ export function createDefaultProviderForm(): ProviderFormState {
     model_ids: [],
     model_display_names: {},
     status: CommonEnum.YES,
+    file_input_mode: 'disabled',
+  }
+}
+
+export function buildProviderMutationParams(form: ProviderFormState): AiProviderMutationParams {
+  return {
+    id: form.id,
+    name: form.name,
+    engine_type: form.driver,
+    base_url: form.base_url,
+    model_ids: [...form.model_ids],
+    model_display_names: { ...form.model_display_names },
+    status: form.status,
+    file_input_mode: form.file_input_mode,
+    ...(form.api_key ? { api_key: form.api_key } : {}),
+  }
+}
+
+export function createProviderEditForm(
+  provider: Pick<AiProviderItem, 'id' | 'name' | 'engine_type' | 'base_url' | 'status' | 'file_input_mode'>,
+  models: readonly Pick<AiProviderModelItem, 'model_id' | 'display_name'>[],
+): ProviderFormState {
+  return {
+    id: provider.id,
+    name: provider.name,
+    driver: provider.engine_type,
+    base_url: provider.base_url,
+    api_key: '',
+    model_ids: models.map((model) => model.model_id),
+    model_display_names: Object.fromEntries(
+      models.map((model) => [model.model_id, model.display_name || model.model_id]),
+    ),
+    status: provider.status,
+    file_input_mode: provider.file_input_mode,
   }
 }
 
@@ -36,6 +79,7 @@ export function useProviderForm(t: TranslateFn) {
   const rules = computed<FormRules>(() => ({
     name: [{ required: true, message: t('aiProviders.form.name') + t('common.required'), trigger: 'blur' }],
     driver: [{ required: true, message: t('aiProviders.form.driver') + t('common.required'), trigger: 'change' }],
+    file_input_mode: [{ required: true, message: t('aiProviders.form.fileInputMode') + t('common.required'), trigger: 'change' }],
     model_ids: [{ required: true, type: 'array', min: 1, message: t('aiProviders.form.modelIds') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiProviders.form.status') + t('common.required'), trigger: 'change' }],
   }))

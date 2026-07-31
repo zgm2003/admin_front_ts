@@ -133,6 +133,7 @@ function isUploadFolder(value: string): value is UploadTokenRequest['folder'] {
     || value === 'cover_images'
     || value === 'ai-agents'
     || value === 'ai_chat_images'
+    || value === 'ai_chat_attachments'
     || value === 'exports'
     || value === 'reconcile_reports'
 }

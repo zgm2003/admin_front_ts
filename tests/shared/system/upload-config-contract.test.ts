@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { UploadDriverApi, UploadSettingApi } from '@/api/system/uploadConfig'
+import { UploadDriverApi, UploadRuleApi, UploadSettingApi } from '@/api/system/uploadConfig'
 import { installApiClientHarness } from '../../helpers/api-client'
 
 const cleanups: Array<() => void> = []
@@ -13,6 +13,25 @@ const emptyPage = {
 }
 
 describe('upload configuration API contract', () => {
+  it('accepts every extension already validated by the generated response contract', async () => {
+    const harness = installApiClientHarness({
+      list: [{
+        id: 1,
+        title: '全部类型',
+        max_size_mb: 100,
+        image_exts: ['psd', 'jfif', 'avif'],
+        file_exts: ['pdf', 'pptx', 'md', 'ts', 'go'],
+        created_at: '2026-07-31 10:00:00',
+        updated_at: '2026-07-31 10:00:00',
+      }],
+      page: { ...emptyPage, total: 1, total_page: 1 },
+    })
+    cleanups.push(harness.uninstall)
+
+    await expect(UploadRuleApi.list({ current_page: 1, page_size: 20 }))
+      .resolves.toMatchObject({ list: [{ image_exts: ['psd', 'jfif', 'avif'] }] })
+  })
+
   it('rejects an undocumented upload driver filter without sending a request', async () => {
     const harness = installApiClientHarness({ list: [], page: emptyPage })
     cleanups.push(harness.uninstall)

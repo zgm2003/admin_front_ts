@@ -11,10 +11,12 @@ export type AiProviderDriver = 'openai'
 export type AiProviderHealthStatus = 'unknown' | 'ok' | 'failed'
 export type AiModelSyncStatus = 'unknown' | 'ok' | 'failed'
 export type AiProviderStatus = 1 | 2
+export type AiProviderFileInputMode = 'disabled' | 'chat_completions'
 
 export interface AiProviderInitResponse {
   dict: {
     engine_type_arr: DictOption<AiProviderDriver>[]
+    file_input_mode_arr: DictOption<AiProviderFileInputMode>[]
     common_status_arr: DictOption<AiProviderStatus>[]
     health_status_arr: DictOption<AiProviderHealthStatus>[]
     model_sync_arr?: DictOption<AiModelSyncStatus>[]
@@ -60,6 +62,7 @@ export interface AiProviderItem extends Omit<AiProviderContractItem, 'engine_typ
   health_status: AiProviderHealthStatus
   last_model_sync_status: AiModelSyncStatus
   status: AiProviderStatus
+  file_input_mode: AiProviderFileInputMode
 }
 export interface AiProviderListResponse extends Omit<components['schemas']['Go_internal_module_ai_provider_ListResponse_Output'], 'list'> {
   list: AiProviderItem[]
@@ -74,6 +77,7 @@ export interface AiProviderMutationParams {
   model_ids: string[]
   model_display_names?: Record<string, string>
   status: AiProviderStatus
+  file_input_mode: AiProviderFileInputMode
 }
 
 export interface AiProviderMutationBody {
@@ -84,6 +88,7 @@ export interface AiProviderMutationBody {
   model_ids: string[]
   model_display_names?: Record<string, string>
   status: AiProviderStatus
+  file_input_mode: AiProviderFileInputMode
 }
 
 export interface AiModelOptionsParams {
@@ -150,6 +155,7 @@ function mutationBody(params: AiProviderMutationParams): AiProviderMutationBody 
     model_ids: params.model_ids,
     model_display_names: params.model_display_names,
     status: params.status,
+    file_input_mode: params.file_input_mode,
   }
 }
 
@@ -187,12 +193,19 @@ function isModelSyncStatus(value: string): value is AiModelSyncStatus {
   return value === 'unknown' || value === 'ok' || value === 'failed'
 }
 
+function isFileInputMode(value: string): value is AiProviderFileInputMode {
+  return value === 'disabled' || value === 'chat_completions'
+}
+
 function toProviderItem(item: AiProviderContractItem): AiProviderItem {
+  const fileInputMode = (item as AiProviderContractItem & { file_input_mode?: string }).file_input_mode
   if (
     item.engine_type !== 'openai'
     || !isHealthStatus(item.health_status)
     || !isModelSyncStatus(item.last_model_sync_status)
     || !isProviderStatus(item.status)
+    || !fileInputMode
+    || !isFileInputMode(fileInputMode)
   ) {
     throw new Error('AI provider item violates the editable contract')
   }
@@ -202,10 +215,14 @@ function toProviderItem(item: AiProviderContractItem): AiProviderItem {
     health_status: item.health_status,
     last_model_sync_status: item.last_model_sync_status,
     status: item.status,
+    file_input_mode: fileInputMode,
   }
 }
 
 function toProviderInit(response: components['schemas']['Go_internal_module_ai_provider_InitResponse_Output']): AiProviderInitResponse {
+  const remoteDict = response.dict as typeof response.dict & {
+    file_input_mode_arr?: Array<{ label: string; value: string }>
+  }
   const engines = response.dict.engine_type_arr.map((option) => {
     if (option.value !== 'openai') throw new Error('AI provider engine dictionary violates the contract')
     return { label: option.label, value: 'openai' as const }
@@ -222,9 +239,15 @@ function toProviderInit(response: components['schemas']['Go_internal_module_ai_p
     if (!isModelSyncStatus(option.value)) throw new Error('AI provider model sync dictionary violates the contract')
     return { label: option.label, value: option.value }
   })
+  const fileInputModes = (remoteDict.file_input_mode_arr ?? []).map((option) => {
+    if (!isFileInputMode(option.value)) throw new Error('AI provider file input mode dictionary violates the contract')
+    return { label: option.label, value: option.value }
+  })
+  if (fileInputModes.length === 0) throw new Error('AI provider file input mode dictionary is required')
   return {
     dict: {
       engine_type_arr: engines,
+      file_input_mode_arr: fileInputModes,
       common_status_arr: statuses,
       health_status_arr: health,
       model_sync_arr: sync,

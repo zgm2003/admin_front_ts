@@ -137,7 +137,7 @@ describe('chat runtime parameters', () => {
       },
     })
 
-    expect(wrapper.find('button[aria-label="aiChat.uploadImage"]').exists()).toBe(false)
+    expect(wrapper.find('button[aria-label="aiChat.addAttachment"]').exists()).toBe(false)
     expect(wrapper.find('input[type="file"]').exists()).toBe(false)
     expect(wrapper.html()).not.toContain('accept="*/*"')
   })

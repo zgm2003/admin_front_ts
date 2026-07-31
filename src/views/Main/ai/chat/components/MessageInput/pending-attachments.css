@@ -1,3 +1,7 @@
+.pending-wrap {
+  min-width: 0;
+}
+
 .pending-area {
   display: flex;
   flex-wrap: wrap;
@@ -7,15 +11,29 @@
 
 .pending-item {
   position: relative;
-  width: 60px;
-  height: 60px;
-  border-radius: 6px;
+  min-width: 0;
   overflow: hidden;
-  border: 2px solid transparent;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 7px;
+  background: var(--el-bg-color);
 }
 
-.pending-item.error {
-  border-color: var(--el-color-danger);
+.pending-item.is-failed {
+  border-color: var(--el-color-danger-light-5);
+}
+
+.pending-item--image {
+  width: 64px;
+  height: 64px;
+}
+
+.pending-item--file {
+  width: min(240px, calc(100vw - 64px));
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 34px 9px 10px;
 }
 
 .pending-thumb {
@@ -24,56 +42,121 @@
   object-fit: cover;
 }
 
+.pending-file-icon {
+  flex: none;
+  color: var(--el-color-primary);
+}
+
+.pending-file-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pending-file-name {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-file-size {
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
 .pending-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.pending-overlay.error {
-  background: rgba(245, 108, 108, 0.8);
-}
-
-.error-text {
-  font-size: 10px;
+  background: rgb(0 0 0 / 48%);
   color: #fff;
+}
+
+.pending-overlay--file {
+  left: auto;
+  width: 34px;
+  background: var(--el-fill-color-light);
+  color: var(--el-color-primary);
+}
+
+.pending-error {
+  position: absolute;
+  right: 30px;
+  bottom: 5px;
+  left: 42px;
+  overflow: hidden;
+  color: var(--el-color-danger);
+  font-size: 10px;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-item--image .pending-error {
+  inset: auto 3px 3px;
+  padding: 2px 3px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 92%);
   text-align: center;
-  padding: 4px;
+}
+
+.pending-action {
+  position: absolute;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+
+.pending-action:hover,
+.pending-action:focus-visible {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 
 .pending-remove {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
+  top: 4px;
 }
 
-.pending-item:hover .pending-remove {
-  opacity: 1;
+.pending-retry {
+  bottom: 4px;
+}
+
+.pending-blocking {
+  margin: 6px 14px 0;
+  color: var(--el-color-danger);
+  font-size: 12px;
+  line-height: 18px;
 }
 
 @media (max-width: 768px) {
   .pending-area {
-    padding: 8px 12px 0;
     gap: 6px;
+    padding: 8px 12px 0;
   }
 
-  .pending-item {
-    width: 48px;
-    height: 48px;
+  .pending-item--file {
+    width: min(210px, calc(100vw - 48px));
+  }
+
+  .pending-blocking {
+    margin-inline: 12px;
   }
 }

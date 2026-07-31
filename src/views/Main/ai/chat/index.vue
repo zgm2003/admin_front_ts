@@ -191,6 +191,7 @@ const {
           :speech-supported="messageSpeech.isSupported.value"
           :speaking-message-id="messageSpeech.activeMessageId.value"
           :speech-paused="messageSpeech.paused.value"
+          :capabilities="selectedAgent?.capabilities"
           @copy="handleCopyMessage"
           @edit="handleEditMessage"
           @regenerate="handleRegenerateMessage"

@@ -13,16 +13,22 @@ const mocks = vi.hoisted(() => ({ announcePolite: vi.fn() }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 vi.mock('@/hooks/useResponsive', () => ({ useIsMobile: () => ({ value: false }) }))
 vi.mock('@/shared/accessibility/announcer', () => ({ announcePolite: mocks.announcePolite }))
-vi.mock('@/views/Main/ai/chat/components/MessageInput/use-image-attachments', () => ({
-  useImageAttachments: () => ({
+vi.mock('@/views/Main/ai/chat/components/MessageInput/use-attachments', () => ({
+  useAttachments: () => ({
     setFileInputRef: vi.fn(),
     pendingAttachments: ref([]),
     isDragging: ref(false),
-    supportsImage: ref(false),
-    isImageLimitReached: ref(false),
+    supportsAttachments: ref(false),
+    accept: ref(''),
+    isLimitReached: ref(false),
+    canSubmitAttachments: ref(true),
+    blockingReason: ref(''),
+    completedAttachments: () => [],
     handleUploadClick: vi.fn(),
     handleFileChange: vi.fn(),
     removeAttachment: vi.fn(),
+    clearAttachments: vi.fn(),
+    retryAttachment: vi.fn(),
     handlePaste: vi.fn(),
     handleDragOver: vi.fn(),
     handleDragLeave: vi.fn(),

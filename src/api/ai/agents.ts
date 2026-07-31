@@ -38,8 +38,17 @@ export interface AiAgentEffectiveCapabilities {
     max_history: { supported: boolean; default: number; min: number; max: number; transitional: boolean }
   }
   attachments: {
+    max_attachments_per_message: number
+    max_message_attachment_bytes: number
     image: { enabled: boolean; mime_types: string[]; max_files: number; max_file_bytes: number }
-    native_file: { enabled: boolean }
+    native_file: {
+      enabled: boolean
+      disabled_reason: string
+      max_files_per_message: number
+      max_file_bytes_exclusive: number
+      max_request_file_bytes: number
+      accepted_extensions: string[]
+    }
   }
 }
 

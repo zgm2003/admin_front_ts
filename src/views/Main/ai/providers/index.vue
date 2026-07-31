@@ -16,11 +16,16 @@ import {
 } from '@/api/ai/providers'
 import ProviderFormDialog from './components/ProviderFormDialog.vue'
 import ProviderModelList from './components/ProviderModelList.vue'
-import { createDefaultProviderForm, type ProviderFormState } from './composables/useProviderForm'
+import {
+  createDefaultProviderForm,
+  createProviderEditForm,
+  type ProviderFormState,
+} from './composables/useProviderForm'
 
 const { t } = useI18n()
 const dict = shallowRef<AiProviderInitResponse['dict']>({
   engine_type_arr: [],
+  file_input_mode_arr: [],
   common_status_arr: [],
   health_status_arr: [],
   model_sync_arr: [],
@@ -94,16 +99,7 @@ function add() {
 async function edit(row: AiProviderItem) {
   const modelResponse = await AiProviderApi.models({ id: row.id })
   const models = modelResponse.list
-  currentInitial.value = {
-    id: row.id,
-    name: row.name,
-    driver: row.engine_type,
-    base_url: row.base_url,
-    api_key: '',
-    model_ids: models.map((model) => model.model_id),
-    model_display_names: Object.fromEntries(models.map((model) => [model.model_id, model.display_name || model.model_id])),
-    status: row.status,
-  }
+  currentInitial.value = createProviderEditForm(row, models)
   dialogMode.value = 'edit'
   dialogVisible.value = true
 }

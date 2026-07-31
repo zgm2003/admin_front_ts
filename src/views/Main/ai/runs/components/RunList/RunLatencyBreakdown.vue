@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AiRunLatencyBreakdown, AiRunRequestSummary } from '@/api/ai/runs'
+import { formatFileSize } from '@/lib/browser/download'
 import { formatRunLatency } from './presenters'
 
 const props = defineProps<{
@@ -23,6 +24,11 @@ const stages = computed(() => [
 const claimSource = computed(() => props.latency.claim_source
   ? t(`aiRuns.detail.claimSources.${props.latency.claim_source}`)
   : '-')
+
+const showNativeFileSummary = computed(() => (props.requestSummary.native_file_count ?? 0) > 0)
+const formatNativeLatency = (value: number | null | undefined) => (
+  value === null || value === undefined ? '--' : formatRunLatency(value)
+)
 </script>
 
 <template>
@@ -68,6 +74,36 @@ const claimSource = computed(() => props.latency.claim_source
         <dd>{{ requestSummary.message_count ?? '-' }}</dd>
       </div>
     </dl>
+    <dl
+      v-if="showNativeFileSummary"
+      class="native-file-summary"
+      data-test="native-file-summary"
+    >
+      <div>
+        <dt>{{ t('aiRuns.detail.nativeFileCount') }}</dt>
+        <dd>{{ requestSummary.native_file_count }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('aiRuns.detail.nativeFileBytes') }}</dt>
+        <dd>{{ formatFileSize(requestSummary.native_file_bytes ?? 0) }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('aiRuns.detail.cosHeadLatency') }}</dt>
+        <dd>{{ formatNativeLatency(latency.cos_head_ms) }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('aiRuns.detail.cosStreamLatency') }}</dt>
+        <dd>{{ formatNativeLatency(latency.cos_stream_ms) }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('aiRuns.detail.materializedRequestBytes') }}</dt>
+        <dd>{{ formatFileSize(requestSummary.materialized_request_bytes ?? 0) }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('aiRuns.detail.fileInputMode') }}</dt>
+        <dd>{{ requestSummary.file_input_mode || '--' }}</dd>
+      </div>
+    </dl>
   </section>
 </template>
 
@@ -94,7 +130,8 @@ const claimSource = computed(() => props.latency.claim_source
 
 .latency-label,
 .latency-claim-source > span,
-.request-summary dt {
+.request-summary dt,
+.native-file-summary dt {
   display: block;
   color: var(--el-text-color-secondary);
   font-size: 12px;
@@ -123,6 +160,13 @@ const claimSource = computed(() => props.latency.claim_source
   border-top: 1px solid var(--el-border-color-lighter);
 }
 
+.native-file-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
 .request-summary > div {
   padding: 10px 12px;
   border-right: 1px solid var(--el-border-color-lighter);
@@ -132,8 +176,21 @@ const claimSource = computed(() => props.latency.claim_source
   border-right: 0;
 }
 
-.request-summary dd {
+.native-file-summary > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--el-border-color-lighter);
+}
+
+.native-file-summary > div:last-child {
+  border-right: 0;
+}
+
+.request-summary dd,
+.native-file-summary dd {
+  min-width: 0;
   margin: 4px 0 0;
+  overflow-wrap: anywhere;
   color: var(--el-text-color-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -143,11 +200,23 @@ const claimSource = computed(() => props.latency.claim_source
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .native-file-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .request-summary > div:nth-child(2) {
     border-right: 0;
   }
 
   .request-summary > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+
+  .native-file-summary > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .native-file-summary > div:nth-child(-n + 4) {
     border-bottom: 1px solid var(--el-border-color-lighter);
   }
 }

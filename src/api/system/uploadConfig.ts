@@ -16,8 +16,6 @@ import type {
   UploadDriverItem,
   UploadDriverListParams,
   UploadDriverListQueryParams,
-  UploadFileExt,
-  UploadImageExt,
   UploadRuleAddPayload,
   UploadRuleContractItem,
   UploadRuleEditPayload,
@@ -125,26 +123,12 @@ function toUploadSetting(item: components['schemas']['Go_internal_module_uploadc
   return { ...item, status: item.status }
 }
 
-const allowedImageExts: readonly string[] = [
-  'svg', 'doc', 'jpeg', 'jpg', 'gif', 'ico', 'webp', 'png', 'bmp', 'tif', 'tiff', 'jfif', 'pjpeg',
-]
-const allowedFileExts: readonly string[] = [
-  'html', 'docx', 'pdf', 'txt', 'zip', 'tar', 'doc', 'css', 'csv', 'ppt', 'xlsx', 'xls', 'xml',
-]
-
-function isUploadImageExt(value: string): value is UploadImageExt {
-  return allowedImageExts.includes(value)
-}
-
-function isUploadFileExt(value: string): value is UploadFileExt {
-  return allowedFileExts.includes(value)
-}
-
 function toUploadRule(item: UploadRuleContractItem): UploadRuleItem {
-  if (!item.image_exts.every(isUploadImageExt) || !item.file_exts.every(isUploadFileExt)) {
-    throw new Error('upload rule item extensions violate the contract')
+  return {
+    ...item,
+    image_exts: item.image_exts as UploadRuleItem['image_exts'],
+    file_exts: item.file_exts as UploadRuleItem['file_exts'],
   }
-  return { ...item, image_exts: item.image_exts, file_exts: item.file_exts }
 }
 
 const driverPageInit = async (options: ExecuteOptions = {}): Promise<UploadDriverInitResponse> => {
@@ -191,15 +175,7 @@ export const UploadDriverApi = {
 
 const rulePageInit = async (options: ExecuteOptions = {}): Promise<UploadRuleInitResponse> => {
   const response = await executeAdminOperation(adminOperations.get_api_admin_v1_upload_rules_page_init, {}, options)
-  const imageExts = response.dict.upload_image_ext_arr.map((option) => {
-    if (!isUploadImageExt(option.value)) throw new Error('upload image extension dictionary violates the contract')
-    return { label: option.label, value: option.value }
-  })
-  const fileExts = response.dict.upload_file_ext_arr.map((option) => {
-    if (!isUploadFileExt(option.value)) throw new Error('upload file extension dictionary violates the contract')
-    return { label: option.label, value: option.value }
-  })
-  return { dict: { upload_image_ext_arr: imageExts, upload_file_ext_arr: fileExts } }
+  return { dict: response.dict as UploadRuleInitResponse['dict'] }
 }
 const createRule = (params: UploadRuleAddPayload, options: ExecuteOptions = {}): Promise<{ id: number }> =>
   executeAdminOperation(adminOperations.post_api_admin_v1_upload_rules, { body: params }, options)

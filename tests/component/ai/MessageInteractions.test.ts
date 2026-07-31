@@ -8,8 +8,12 @@ import { createActionRequestIdentityRegistry } from '@/views/Main/ai/chat/compos
 import { useConversationSessions } from '@/views/Main/ai/chat/composables/useConversationSessions'
 import { useMessageSelection } from '@/views/Main/ai/chat/composables/useMessageSelection'
 import type { Message } from '@/views/Main/ai/chat/composables/types'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
 
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...await importOriginal<typeof import('vue-i18n')>(),
+  useI18n: () => ({ t: (key: string) => key }),
+}))
 vi.mock('@/shared/accessibility/announcer', () => ({ announcePolite: vi.fn() }))
 
 const messages: Message[] = [
@@ -26,7 +30,11 @@ const messages: Message[] = [
     delivery_state: null,
     settlement_pending: false,
     meta_json: {
-      attachments: [{ name: 'reference.png', size: 1024, type: 'image', url: 'https://example.test/reference.png' }],
+      attachments: [{
+        name: 'reference.png', size: 1024, type: 'image',
+        object_key: 'ai_chat_attachments/reference.png', mime_type: 'image/png',
+        url: 'https://example.test/reference.png',
+      }],
       runtime_params: { temperature: 0.4 },
     },
   },
@@ -52,9 +60,29 @@ const ButtonStub = {
   template: '<button :disabled="disabled" v-bind="$attrs" @click="$emit(\'click\')"><slot /></button>',
 }
 
+const capabilities: AiAgentEffectiveCapabilities = {
+  input_modalities: ['text', 'image', 'file'], output_modalities: ['text'],
+  supports_tools: false, supports_streaming: true, supports_structured_output: false,
+  runtime_parameters: {
+    temperature: { supported: true, default: 1, min: 0, max: 2 },
+    max_history: { supported: true, default: 20, min: 1, max: 50, transitional: true },
+  },
+  attachments: {
+    max_attachments_per_message: 5,
+    max_message_attachment_bytes: 50 * 1024 * 1024,
+    image: { enabled: true, mime_types: ['image/png'], max_files: 5, max_file_bytes: 10 * 1024 * 1024 },
+    native_file: {
+      enabled: true, disabled_reason: '', max_files_per_message: 5,
+      max_file_bytes_exclusive: 50 * 1024 * 1024,
+      max_request_file_bytes: 50 * 1024 * 1024,
+      accepted_extensions: ['pdf', 'md'],
+    },
+  },
+}
+
 function mountList(props: Record<string, unknown> = {}) {
   return mount(MessageList, {
-    props: { messages, loading: false, ...props },
+    props: { messages, loading: false, capabilities, ...props },
     global: {
       stubs: {
         MarkdownRenderer: { props: ['content'], template: '<div>{{ content }}</div>' },
@@ -155,19 +183,27 @@ describe('message interactions', () => {
     expect(rows[1]!.find('button[aria-label="aiChat.editMessage"]').exists()).toBe(false)
   })
 
-  it('edits only user text and keeps inherited attachments read-only', async () => {
+  it('distinguishes unchanged attachments from explicitly removing every attachment', async () => {
     const wrapper = mountList()
 
     await action(wrapper, 'aiChat.editMessage').trigger('click')
     const editor = wrapper.get('textarea')
     expect((editor.element as HTMLTextAreaElement).value).toBe('Original question')
-    expect(wrapper.text()).toContain('reference.png')
-    expect(wrapper.find('input[type="file"]').exists()).toBe(false)
+    expect(wrapper.get('[data-attachment-kind="image"] img').attributes('alt')).toBe('reference.png')
+    expect(wrapper.find('input[type="file"]').exists()).toBe(true)
 
     await editor.setValue('Changed question')
     await action(wrapper, 'aiChat.editSubmit').trigger('click')
+    expect(wrapper.emitted('edit')?.[0]).toEqual([
+      messages[0], { content: 'Changed question' },
+    ])
 
-    expect(wrapper.emitted('edit')?.[0]).toEqual([messages[0], 'Changed question'])
+    await action(wrapper, 'aiChat.editMessage').trigger('click')
+    await wrapper.get('button[aria-label="aiChat.removeAttachment"]').trigger('click')
+    await action(wrapper, 'aiChat.editSubmit').trigger('click')
+    expect(wrapper.emitted('edit')?.[1]).toEqual([
+      messages[0], { content: 'Original question', attachments: [] },
+    ])
   })
 
   it('keeps copy available while disabling edit, regenerate and delete during active work', () => {

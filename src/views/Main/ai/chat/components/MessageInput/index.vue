@@ -10,7 +10,7 @@ import PendingAttachments from './PendingAttachments.vue'
 import MessageInputToolbar from './MessageInputToolbar.vue'
 import RuntimeParamsPanel from './RuntimeParamsPanel.vue'
 import { createRuntimeParams, type RuntimeParameterDraft } from './runtime-params'
-import { useImageAttachments, type Attachment } from './use-image-attachments'
+import { useAttachments, type Attachment } from './use-attachments'
 import type { CapabilityConflicts, ComposerCapabilityState } from './capability-transition'
 import { useSpeechInput } from './use-speech-input'
 
@@ -93,18 +93,35 @@ const {
   setFileInputRef,
   pendingAttachments,
   isDragging,
-  supportsImage,
-  imageAccept,
-  isImageLimitReached,
+  supportsAttachments,
+  accept,
+  isLimitReached,
+  canSubmitAttachments,
+  blockingReason,
+  completedAttachments,
   handleUploadClick,
   handleFileChange,
   removeAttachment,
   clearAttachments,
+  retryAttachment,
   handlePaste,
   handleDragOver,
   handleDragLeave,
   handleDrop,
-} = useImageAttachments(() => props.capabilities?.attachments.image)
+} = useAttachments(() => props.capabilities, () => Boolean(props.agentId) && !props.disabled)
+
+const attachmentBlockingMessage = computed(() => {
+  switch (blockingReason.value) {
+    case 'provider_file_input_disabled': return t('aiChat.providerFileInputDisabled')
+    case 'official_model_unsupported': return t('aiChat.modelFileInputUnsupported')
+    case 'transport_unsupported': return t('aiChat.transportFileInputUnsupported')
+    case 'upload_rule_unavailable': return t('aiChat.uploadRuleUnavailable')
+    case 'image_unsupported': return t('aiChat.modelNotSupportImage')
+    case 'too_many': return t('aiChat.maxAttachmentsReached')
+    case 'message_total_too_large': return t('aiChat.attachmentTotalTooLarge')
+    default: return blockingReason.value ? t('aiChat.attachmentTypeUnsupported') : ''
+  }
+})
 
 function handleEmojiSelect(emoji: string) {
   const textarea = textareaRef.value
@@ -127,32 +144,17 @@ function handleEmojiSelect(emoji: string) {
 function handleSend() {
   if (props.sending || props.disabled) return
   const content = inputText.value.trim()
-  if (pendingAttachments.value.some((attachment) => attachment.status === 'uploading')) {
-    ElNotification.warning({ message: t('aiChat.waitUpload') })
-    return
-  }
-  if (pendingAttachments.value.some((attachment) => attachment.status === 'error')) {
-    ElNotification.warning({ message: t('aiChat.uploadHasError') })
+  if (!canSubmitAttachments.value) {
+    ElNotification.warning({
+      message: attachmentBlockingMessage.value
+        || (pendingAttachments.value.some((attachment) => attachment.status === 'failed')
+          ? t('aiChat.uploadHasError')
+          : t('aiChat.waitUpload')),
+    })
     return
   }
 
-  const attachments: Attachment[] = pendingAttachments.value
-    .filter((attachment) => attachment.status === 'done' && attachment.url && attachment.objectKey)
-    .map((attachment) => ({
-      request: {
-        type: 'image',
-        object_key: attachment.objectKey as string,
-        name: attachment.file.name,
-      },
-      preview: {
-        type: 'image',
-        object_key: attachment.objectKey as string,
-        url: attachment.url as string,
-        name: attachment.file.name,
-        mime_type: attachment.file.type,
-        size: attachment.file.size,
-      },
-    }))
+  const attachments: Attachment[] = completedAttachments()
   if (!content && attachments.length === 0) return
   emit(
     'send',
@@ -175,24 +177,25 @@ function handleInput(event: Event) {
 
 function getCapabilityState(): ComposerCapabilityState {
   return {
-    images: pendingAttachments.value.map((attachment) => ({
+    attachments: pendingAttachments.value.map((attachment) => ({
       id: attachment.id,
-      mimeType: attachment.file.type,
-      size: attachment.file.size,
+      kind: attachment.kind,
+      name: attachment.name,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
     })),
     temperatureEnabled: runtimeTemperature.value.enabled,
   }
 }
 
 function clearCapabilityConflicts(conflicts: CapabilityConflicts) {
-  clearAttachments(conflicts.invalidImageIds)
   if (conflicts.temperature) runtimeTemperature.value = temperatureDefault()
 }
 
 defineExpose({
   clear: () => {
     inputText.value = ''
-    pendingAttachments.value = []
+    clearAttachments()
     if (textareaRef.value) textareaRef.value.style.height = 'auto'
   },
   focus: () => textareaRef.value?.focus(),
@@ -227,7 +230,9 @@ defineExpose({
       <PendingAttachments
         v-if="pendingAttachments.length"
         :attachments="pendingAttachments"
+        :blocking-message="attachmentBlockingMessage"
         @remove="removeAttachment"
+        @retry="retryAttachment"
       />
 
       <div class="input-body">
@@ -260,16 +265,16 @@ defineExpose({
         >
           <MessageInputToolbar
             :show-history-button="showHistoryBtn"
-            :supports-image="supportsImage"
+            :supports-attachments="supportsAttachments"
             :sending="sending"
             :disabled="disabled"
-            :image-limit-reached="isImageLimitReached"
+            :attachment-limit-reached="isLimitReached"
             :recording="isRecording"
             :has-runtime-params="hasRuntimeParams"
             :has-custom-params="hasCustomParams"
             :params-expanded="showParamsPanel"
             @open-history="emit('openHistory')"
-            @upload-image="handleUploadClick"
+            @add-attachment="handleUploadClick"
             @toggle-voice="toggleVoiceInput"
             @select-emoji="handleEmojiSelect"
             @toggle-params="showParamsPanel = !showParamsPanel"
@@ -295,7 +300,7 @@ defineExpose({
             class="sr-only"
           >
             {{ isMobile ? t('aiChat.inputHintMobile') : t('aiChat.inputHint') }}
-            <template v-if="supportsImage && !isMobile">{{ t('aiChat.inputHintImage') }}</template>
+            <template v-if="supportsAttachments && !isMobile">{{ t('aiChat.inputHintAttachment') }}</template>
           </span>
           <span
             v-if="showCharCount"
@@ -323,7 +328,7 @@ defineExpose({
           v-else
           type="primary"
           class="send-button"
-          :disabled="(!inputText.trim() && pendingAttachments.every((item) => item.status !== 'done')) || sending || disabled || isRecording"
+          :disabled="(!inputText.trim() && completedAttachments().length === 0) || !canSubmitAttachments || sending || disabled || isRecording"
           :title="t('aiChat.send')"
           :aria-label="t('aiChat.send')"
           :aria-busy="sending"
@@ -336,12 +341,11 @@ defineExpose({
       </div>
     </div>
 
-    <!-- 隐藏的文件选择器 -->
     <input
-      v-if="supportsImage"
+      v-if="supportsAttachments"
       :ref="setFileInputRef"
       type="file"
-      :accept="imageAccept"
+      :accept="accept"
       multiple
       tabindex="-1"
       aria-hidden="true"

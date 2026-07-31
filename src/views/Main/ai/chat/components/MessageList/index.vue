@@ -5,6 +5,7 @@ import {
   CloseBold,
   CopyDocument,
   Delete,
+  Document,
   Edit,
   Headset,
   Loading,
@@ -18,6 +19,8 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { AiRoleEnum } from '@/enums'
 import { announcePolite } from '@/shared/accessibility/announcer'
 import type { Message } from '../../composables/types'
+import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
+import type { AiMessageAttachmentRequest } from '@/api/ai/messages'
 import MessageEditor from './MessageEditor.vue'
 
 const { t } = useI18n()
@@ -32,6 +35,7 @@ const props = withDefaults(defineProps<{
   speechSupported?: boolean
   speakingMessageId?: number | null
   speechPaused?: boolean
+  capabilities?: AiAgentEffectiveCapabilities
 }>(), {
   sending: false,
   interactionDisabled: false,
@@ -44,7 +48,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   copy: [message: Message]
-  edit: [message: Message, content: string]
+  edit: [message: Message, payload: { content: string; attachments?: AiMessageAttachmentRequest[] }]
   regenerate: [message: Message]
   delete: [message: Message]
   feedback: [message: Message, liked: boolean]
@@ -100,10 +104,18 @@ function getAttachments(message: Message) {
   return message.meta_json?.attachments ?? []
 }
 
-function handleImageClick(message: Message, index: number) {
-  previewImages.value = getAttachments(message).map((attachment) => attachment.url)
-  previewIndex.value = index
+function handleImageClick(message: Message, url: string) {
+  previewImages.value = getAttachments(message)
+    .filter((attachment) => attachment.type === 'image')
+    .map((attachment) => attachment.url)
+  previewIndex.value = Math.max(0, previewImages.value.indexOf(url))
   previewVisible.value = true
+}
+
+function formatAttachmentBytes(value: number) {
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function isAssistant(message: Message) {
@@ -150,9 +162,9 @@ function beginEdit(message: Message) {
   editingMessageId.value = message.id
 }
 
-function submitEdit(message: Message, content: string) {
+function submitEdit(message: Message, payload: { content: string; attachments?: AiMessageAttachmentRequest[] }) {
   editingMessageId.value = null
-  emit('edit', message, content)
+  emit('edit', message, payload)
 }
 
 function toggleSpeech(message: Message) {
@@ -218,42 +230,54 @@ function speechLabel(message: Message) {
           v-if="isUser(message) && editingMessageId !== message.id && getAttachments(message).length > 0"
           class="message-attachments"
         >
-          <el-image
-            v-for="(attachment, index) in getAttachments(message)"
+          <template
+            v-for="attachment in getAttachments(message)"
             :key="`${message.id}-${attachment.url}`"
-            :src="attachment.url"
-            :alt="attachment.name"
-            fit="cover"
-            lazy
-            class="attachment-image"
-            role="button"
-            tabindex="0"
-            :aria-label="t('accessibility.openImage', { name: attachment.name })"
-            @click="handleImageClick(message, index)"
-            @keydown.enter="handleImageClick(message, index)"
-            @keydown.space.prevent="handleImageClick(message, index)"
           >
-            <template #placeholder>
-              <div class="attachment-placeholder">
-                <el-icon
-                  class="is-loading"
-                  :size="18"
-                >
-                  <Loading />
-                </el-icon>
-              </div>
-            </template>
-            <template #error>
-              <div class="attachment-placeholder">
-                {{ t('aiChat.imageLoadFailed') }}
-              </div>
-            </template>
-          </el-image>
+            <el-image
+              v-if="attachment.type === 'image'"
+              :src="attachment.url"
+              :alt="attachment.name"
+              fit="cover"
+              lazy
+              class="attachment-image"
+              role="button"
+              tabindex="0"
+              :aria-label="t('accessibility.openImage', { name: attachment.name })"
+              @click="handleImageClick(message, attachment.url)"
+              @keydown.enter="handleImageClick(message, attachment.url)"
+              @keydown.space.prevent="handleImageClick(message, attachment.url)"
+            >
+              <template #placeholder>
+                <div class="attachment-placeholder">
+                  <el-icon class="is-loading" :size="18"><Loading /></el-icon>
+                </div>
+              </template>
+              <template #error>
+                <div class="attachment-placeholder">{{ t('aiChat.imageLoadFailed') }}</div>
+              </template>
+            </el-image>
+            <a
+              v-else
+              class="attachment-file"
+              :href="attachment.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="attachment.name"
+            >
+              <el-icon :size="20"><Document /></el-icon>
+              <span class="attachment-file__copy">
+                <span class="attachment-file__name">{{ attachment.name }}</span>
+                <span class="attachment-file__size">{{ formatAttachmentBytes(attachment.size) }}</span>
+              </span>
+            </a>
+          </template>
         </div>
 
         <MessageEditor
           v-if="isUser(message) && editingMessageId === message.id"
           :message="message"
+          :capabilities="capabilities"
           :disabled="interactionUnavailable(message)"
           @submit="submitEdit(message, $event)"
           @cancel="editingMessageId = null"
@@ -533,6 +557,51 @@ function speechLabel(message: Message) {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+
+.attachment-file {
+  width: min(260px, 100%);
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 7px;
+  background: var(--el-bg-color);
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+
+.attachment-file:hover,
+.attachment-file:focus-visible {
+  border-color: var(--el-color-primary-light-5);
+  background: var(--el-color-primary-light-9);
+}
+
+.attachment-file__copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attachment-file__name {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-file__size {
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
 }
 
 .user-row .message-card {

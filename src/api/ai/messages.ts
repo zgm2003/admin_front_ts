@@ -10,9 +10,12 @@ import type { Id } from '@/types/common'
 export type AiMessageContentType = components['schemas']['AIMessageItem']['content_type']
 export type AiChatAttachment = components['schemas']['AIMessageMetaAttachment']
 export interface AiMessageAttachmentRequest {
-  type: 'image'
+  type: 'image' | 'file'
   object_key: string
-  name?: string
+  url: string
+  mime_type: string
+  name: string
+  size: number
 }
 export type AiMessageMeta = components['schemas']['AIMessageMeta']
 export type AiMessageItem = components['schemas']['AIMessageItem']
@@ -50,6 +53,7 @@ export interface AiMessageRevisionParams {
   message_id: number
   content: string
   request_id: string
+  attachments?: AiMessageAttachmentRequest[]
 }
 
 export interface AiMessageRegenerationParams {
@@ -170,6 +174,7 @@ export const AiMessageApi = {
       body: {
         content: nonEmptyRevisionContent(params.content),
         request_id: nonEmptyRequestID(params.request_id),
+        ...(params.attachments !== undefined ? { attachments: params.attachments } : {}),
       },
     },
     options,

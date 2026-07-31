@@ -32,6 +32,19 @@ const requestSummary = {
   message_count: 3,
 }
 
+const nativeFileRequestSummary = {
+  ...requestSummary,
+  attachment_count: 3,
+  native_file_count: 2,
+  native_file_bytes: 3 * 1024 * 1024,
+  prepared_manifest_bytes: 2_048,
+  materialized_request_bytes: 6 * 1024 * 1024,
+  file_input_mode: 'chat_completions',
+  object_key: 'ai_chat_attachments/secret-report.pdf',
+  url: 'https://files.example.test/secret-report.pdf',
+  prepared_manifest: '{"file_data":"data:application/pdf;base64,SECRET"}',
+}
+
 describe('AI run latency breakdown', () => {
   it('renders queue, prepare, TTFT, provider, settlement and safe request facts', () => {
     const wrapper = mount(RunLatencyBreakdown, {
@@ -71,5 +84,51 @@ describe('AI run latency breakdown', () => {
     expect(values).toHaveLength(7)
     expect(values.every((value) => value.text() === '-')).toBe(true)
     expect(wrapper.text()).not.toContain('0 ms')
+  })
+
+  it('renders only safe native-file metrics and omits file references or payloads', () => {
+    const wrapper = mount(RunLatencyBreakdown, {
+      props: {
+        latency: {
+          ...latency,
+          cos_head_ms: 18,
+          cos_stream_ms: null,
+        },
+        requestSummary: nativeFileRequestSummary,
+      },
+      global: { stubs: { ElTag: PassThrough } },
+    })
+
+    const summary = wrapper.get('[data-test="native-file-summary"]')
+    expect(summary.text()).toContain('aiRuns.detail.nativeFileCount')
+    expect(summary.text()).toContain('2')
+    expect(summary.text()).toContain('aiRuns.detail.nativeFileBytes')
+    expect(summary.text()).toContain('3.00 MB')
+    expect(summary.text()).toContain('aiRuns.detail.cosHeadLatency')
+    expect(summary.text()).toContain('18 ms')
+    expect(summary.text()).toContain('aiRuns.detail.cosStreamLatency')
+    expect(summary.text()).toContain('--')
+    expect(summary.text()).toContain('aiRuns.detail.materializedRequestBytes')
+    expect(summary.text()).toContain('6.00 MB')
+    expect(summary.text()).toContain('aiRuns.detail.fileInputMode')
+    expect(summary.text()).toContain('chat_completions')
+
+    expect(wrapper.text()).not.toContain('ai_chat_attachments/secret-report.pdf')
+    expect(wrapper.text()).not.toContain('https://files.example.test/secret-report.pdf')
+    expect(wrapper.text()).not.toContain('file_data')
+    expect(wrapper.text()).not.toContain('base64')
+    expect(wrapper.text()).not.toContain('SECRET')
+  })
+
+  it('hides native-file metrics for runs without native files', () => {
+    const wrapper = mount(RunLatencyBreakdown, {
+      props: {
+        latency: { ...latency, cos_head_ms: 18, cos_stream_ms: 24 },
+        requestSummary: { ...nativeFileRequestSummary, native_file_count: 0 },
+      },
+      global: { stubs: { ElTag: PassThrough } },
+    })
+
+    expect(wrapper.find('[data-test="native-file-summary"]').exists()).toBe(false)
   })
 })

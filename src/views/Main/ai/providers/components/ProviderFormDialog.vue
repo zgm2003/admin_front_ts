@@ -8,10 +8,13 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import {
   AiProviderApi,
   type AiProviderInitResponse,
-  type AiProviderMutationParams,
   type AiModelOptionItem,
 } from '@/api/ai/providers'
-import { type ProviderFormState, useProviderForm } from '../composables/useProviderForm'
+import {
+  buildProviderMutationParams,
+  type ProviderFormState,
+  useProviderForm,
+} from '../composables/useProviderForm'
 
 const props = defineProps<{
   modelValue: boolean
@@ -82,19 +85,6 @@ function mergeDisplayNames(options: AiModelOptionItem[]) {
   }
 }
 
-function buildPayload(): AiProviderMutationParams {
-  return {
-    id: form.id,
-    name: form.name,
-    engine_type: form.driver,
-    base_url: form.base_url,
-    model_ids: form.model_ids,
-    model_display_names: form.model_display_names,
-    status: form.status,
-    ...(form.api_key ? { api_key: form.api_key } : {}),
-  }
-}
-
 async function confirmSubmit() {
   if (!formRef.value) return
   try {
@@ -107,7 +97,7 @@ async function confirmSubmit() {
     return
   }
   const api = props.mode === 'add' ? AiProviderApi.create : AiProviderApi.update
-  await api(buildPayload())
+  await api(buildProviderMutationParams(form))
   ElNotification.success({ message: t('common.success.operation') })
   visible.value = false
   emit('submitted')
@@ -167,6 +157,26 @@ async function confirmSubmit() {
                   clearable
                   :placeholder="t('aiProviders.dialog.namePlaceholder')"
                 />
+              </el-form-item>
+            </el-col>
+            <el-col
+              :md="12"
+              :span="24"
+            >
+              <el-form-item
+                :label="t('aiProviders.form.fileInputMode')"
+                prop="file_input_mode"
+                required
+              >
+                <el-segmented
+                  v-model="form.file_input_mode"
+                  :options="dict.file_input_mode_arr"
+                  block
+                  class="provider-form-dialog__file-mode"
+                />
+                <div class="provider-form-dialog__field-hint">
+                  {{ t('aiProviders.form.fileInputModeHint') }}
+                </div>
               </el-form-item>
             </el-col>
             <el-col
