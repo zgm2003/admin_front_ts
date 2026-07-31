@@ -28,6 +28,16 @@ export interface PendingAttachment {
   error?: string
 }
 
+type CompletedAttachment = PendingAttachment & {
+  status: 'uploaded'
+  url: string
+  objectKey: string
+}
+
+function isCompletedAttachment(item: PendingAttachment): item is CompletedAttachment {
+  return item.status === 'uploaded' && Boolean(item.url) && Boolean(item.objectKey)
+}
+
 export interface SeededAttachment {
   type: AttachmentKind
   object_key: string
@@ -397,24 +407,24 @@ export function useAttachments(
 
   function completedAttachments(): Attachment[] {
     return pendingAttachments.value
-      .filter((item) => item.status === 'uploaded' && item.url && item.objectKey)
+      .filter(isCompletedAttachment)
       .map((item) => ({
         request: {
           type: item.kind,
-          object_key: item.objectKey as string,
-          url: item.url as string,
+          object_key: item.objectKey,
+          url: item.url,
           mime_type: item.mimeType,
           name: item.name,
           size: item.size,
         },
         preview: {
           type: item.kind,
-          object_key: item.objectKey as string,
-          url: item.url as string,
+          object_key: item.objectKey,
+          url: item.url,
           mime_type: item.mimeType,
           name: item.name,
           size: item.size,
-        } as unknown as AiChatAttachment,
+        },
       }))
   }
 

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: abf380cf4246d26c5d4efda4302b22ffa3330cec997959f9f940bfd9184c96c3
+// Generated from Admin Contract Bundle manifest SHA-256: 99237a2d5c04732c627f5f66e0fd98529b270c76cefc801626d58b7d55ed2184
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -371,7 +371,10 @@ const contractSchemas = {
         "type": "integer"
       },
       "type": {
-        "const": "image",
+        "enum": [
+          "image",
+          "file"
+        ],
         "type": "string"
       },
       "url": {
@@ -1721,6 +1724,30 @@ const contractSchemas = {
         ],
         "type": "string"
       },
+      "cos_head_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "cos_stream_ms": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "end_to_end_ms": {
         "anyOf": [
           {
@@ -1797,6 +1824,8 @@ const contractSchemas = {
     "required": [
       "accept_ms",
       "claim_source",
+      "cos_head_ms",
+      "cos_stream_ms",
       "end_to_end_ms",
       "prepare_ms",
       "provider_total_ms",
@@ -2277,6 +2306,23 @@ const contractSchemas = {
   "AIRunRequestSummary": {
     "additionalProperties": false,
     "properties": {
+      "attachment_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "file_input_mode": {
+        "enum": [
+          "",
+          "chat_completions"
+        ],
+        "type": "string"
+      },
+      "materialized_request_bytes": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
       "message_count": {
         "anyOf": [
           {
@@ -2288,6 +2334,21 @@ const contractSchemas = {
             "type": "null"
           }
         ]
+      },
+      "native_file_bytes": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "native_file_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "prepared_manifest_bytes": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
       },
       "prepared_request_bytes": {
         "format": "int64",
@@ -2306,7 +2367,13 @@ const contractSchemas = {
       }
     },
     "required": [
+      "attachment_count",
+      "file_input_mode",
+      "materialized_request_bytes",
       "message_count",
+      "native_file_bytes",
+      "native_file_count",
+      "prepared_manifest_bytes",
       "prepared_request_bytes",
       "provider_attempt_count",
       "tool_call_count"
@@ -2925,12 +2992,20 @@ const contractSchemas = {
       "image": {
         "$ref": "#/components/schemas/Go_internal_module_ai_agent_ImageAttachmentCapability_Output"
       },
+      "max_attachments_per_message": {
+        "type": "integer"
+      },
+      "max_message_attachment_bytes": {
+        "type": "integer"
+      },
       "native_file": {
         "$ref": "#/components/schemas/Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output"
       }
     },
     "required": [
       "image",
+      "max_attachments_per_message",
+      "max_message_attachment_bytes",
       "native_file"
     ],
     "type": "object"
@@ -3378,12 +3453,35 @@ const contractSchemas = {
   "Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output": {
     "additionalProperties": false,
     "properties": {
+      "accepted_extensions": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "disabled_reason": {
+        "type": "string"
+      },
       "enabled": {
         "type": "boolean"
+      },
+      "max_file_bytes_exclusive": {
+        "type": "integer"
+      },
+      "max_files_per_message": {
+        "type": "integer"
+      },
+      "max_request_file_bytes": {
+        "type": "integer"
       }
     },
     "required": [
-      "enabled"
+      "accepted_extensions",
+      "disabled_reason",
+      "enabled",
+      "max_file_bytes_exclusive",
+      "max_files_per_message",
+      "max_request_file_bytes"
     ],
     "type": "object"
   },
@@ -4539,6 +4637,26 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "Go_internal_module_ai_provider_FileInputModeOption_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "enum": [
+          "disabled",
+          "chat_completions"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "label",
+      "value"
+    ],
+    "type": "object"
+  },
   "Go_internal_module_ai_provider_InitDict_Output": {
     "additionalProperties": false,
     "properties": {
@@ -4551,6 +4669,12 @@ const contractSchemas = {
       "engine_type_arr": {
         "items": {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
+        },
+        "type": "array"
+      },
+      "file_input_mode_arr": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_provider_FileInputModeOption_Output"
         },
         "type": "array"
       },
@@ -4570,6 +4694,7 @@ const contractSchemas = {
     "required": [
       "common_status_arr",
       "engine_type_arr",
+      "file_input_mode_arr",
       "health_status_arr",
       "model_sync_arr"
     ],
@@ -4689,6 +4814,13 @@ const contractSchemas = {
       "engine_type_name": {
         "type": "string"
       },
+      "file_input_mode": {
+        "enum": [
+          "disabled",
+          "chat_completions"
+        ],
+        "type": "string"
+      },
       "health_status": {
         "type": "string"
       },
@@ -4737,6 +4869,7 @@ const contractSchemas = {
       "enabled_model_count",
       "engine_type",
       "engine_type_name",
+      "file_input_mode",
       "health_status",
       "id",
       "last_check_error",
@@ -8918,6 +9051,95 @@ const contractSchemas = {
       },
       "file_exts": {
         "items": {
+          "enum": [
+            "pdf",
+            "doc",
+            "docx",
+            "dot",
+            "odt",
+            "rtf",
+            "ppt",
+            "pptx",
+            "pot",
+            "ppa",
+            "pps",
+            "pwz",
+            "wiz",
+            "xla",
+            "xlb",
+            "xlc",
+            "xlm",
+            "xls",
+            "xlsx",
+            "xlt",
+            "xlw",
+            "csv",
+            "tsv",
+            "iif",
+            "txt",
+            "text",
+            "md",
+            "markdown",
+            "json",
+            "html",
+            "htm",
+            "xml",
+            "css",
+            "asm",
+            "bat",
+            "c",
+            "cc",
+            "cpp",
+            "cxx",
+            "h",
+            "hh",
+            "def",
+            "in",
+            "js",
+            "mjs",
+            "jsx",
+            "ts",
+            "tsx",
+            "py",
+            "go",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "sh",
+            "bash",
+            "zsh",
+            "ksh",
+            "ps1",
+            "sql",
+            "pl",
+            "lua",
+            "r",
+            "scala",
+            "swift",
+            "kt",
+            "kts",
+            "yaml",
+            "yml",
+            "toml",
+            "ini",
+            "conf",
+            "properties",
+            "proto",
+            "eml",
+            "log",
+            "rst",
+            "srt",
+            "vtt",
+            "ics",
+            "ifb",
+            "vcf",
+            "diff",
+            "patch",
+            "zip",
+            "tar"
+          ],
           "type": "string"
         },
         "type": "array"
@@ -8927,6 +9149,22 @@ const contractSchemas = {
       },
       "image_exts": {
         "items": {
+          "enum": [
+            "jpeg",
+            "jpg",
+            "jfif",
+            "pjpeg",
+            "png",
+            "gif",
+            "webp",
+            "bmp",
+            "tif",
+            "tiff",
+            "svg",
+            "ico",
+            "psd",
+            "avif"
+          ],
           "type": "string"
         },
         "type": "array"
@@ -8976,13 +9214,13 @@ const contractSchemas = {
     "properties": {
       "upload_file_ext_arr": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
+          "$ref": "#/components/schemas/Go_internal_module_uploadconfig_UploadFileExtOption_Output"
         },
         "type": "array"
       },
       "upload_image_ext_arr": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
+          "$ref": "#/components/schemas/Go_internal_module_uploadconfig_UploadImageExtOption_Output"
         },
         "type": "array"
       }
@@ -9110,6 +9348,143 @@ const contractSchemas = {
     },
     "required": [
       "dict"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_uploadconfig_UploadFileExtOption_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "enum": [
+          "pdf",
+          "doc",
+          "docx",
+          "dot",
+          "odt",
+          "rtf",
+          "ppt",
+          "pptx",
+          "pot",
+          "ppa",
+          "pps",
+          "pwz",
+          "wiz",
+          "xla",
+          "xlb",
+          "xlc",
+          "xlm",
+          "xls",
+          "xlsx",
+          "xlt",
+          "xlw",
+          "csv",
+          "tsv",
+          "iif",
+          "txt",
+          "text",
+          "md",
+          "markdown",
+          "json",
+          "html",
+          "htm",
+          "xml",
+          "css",
+          "asm",
+          "bat",
+          "c",
+          "cc",
+          "cpp",
+          "cxx",
+          "h",
+          "hh",
+          "def",
+          "in",
+          "js",
+          "mjs",
+          "jsx",
+          "ts",
+          "tsx",
+          "py",
+          "go",
+          "java",
+          "cs",
+          "php",
+          "rb",
+          "rs",
+          "sh",
+          "bash",
+          "zsh",
+          "ksh",
+          "ps1",
+          "sql",
+          "pl",
+          "lua",
+          "r",
+          "scala",
+          "swift",
+          "kt",
+          "kts",
+          "yaml",
+          "yml",
+          "toml",
+          "ini",
+          "conf",
+          "properties",
+          "proto",
+          "eml",
+          "log",
+          "rst",
+          "srt",
+          "vtt",
+          "ics",
+          "ifb",
+          "vcf",
+          "diff",
+          "patch",
+          "zip",
+          "tar"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "label",
+      "value"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_uploadconfig_UploadImageExtOption_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "enum": [
+          "jpeg",
+          "jpg",
+          "jfif",
+          "pjpeg",
+          "png",
+          "gif",
+          "webp",
+          "bmp",
+          "tif",
+          "tiff",
+          "svg",
+          "ico",
+          "psd",
+          "avif"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "label",
+      "value"
     ],
     "type": "object"
   },

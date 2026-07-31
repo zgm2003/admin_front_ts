@@ -7,11 +7,13 @@ import {
 } from '@/modules/http/generated/operations'
 import type { DictOption, Id, RequestPayload } from '@/types/common'
 
-export type AiProviderDriver = 'openai'
+type AiProviderMutationContractBody = NonNullable<AdminOperationInput<'post_api_admin_v1_ai_providers'>['body']>
+
+export type AiProviderDriver = AiProviderMutationContractBody['engine_type']
 export type AiProviderHealthStatus = 'unknown' | 'ok' | 'failed'
 export type AiModelSyncStatus = 'unknown' | 'ok' | 'failed'
 export type AiProviderStatus = 1 | 2
-export type AiProviderFileInputMode = 'disabled' | 'chat_completions'
+export type AiProviderFileInputMode = AiProviderMutationContractBody['file_input_mode']
 
 export interface AiProviderInitResponse {
   dict: {
@@ -19,7 +21,7 @@ export interface AiProviderInitResponse {
     file_input_mode_arr: DictOption<AiProviderFileInputMode>[]
     common_status_arr: DictOption<AiProviderStatus>[]
     health_status_arr: DictOption<AiProviderHealthStatus>[]
-    model_sync_arr?: DictOption<AiModelSyncStatus>[]
+    model_sync_arr: DictOption<AiModelSyncStatus>[]
   }
 }
 
@@ -80,16 +82,7 @@ export interface AiProviderMutationParams {
   file_input_mode: AiProviderFileInputMode
 }
 
-export interface AiProviderMutationBody {
-  name: string
-  engine_type: AiProviderDriver
-  base_url?: string
-  api_key?: string
-  model_ids: string[]
-  model_display_names?: Record<string, string>
-  status: AiProviderStatus
-  file_input_mode: AiProviderFileInputMode
-}
+export type AiProviderMutationBody = AiProviderMutationContractBody
 
 export interface AiModelOptionsParams {
   engine_type: AiProviderDriver
@@ -198,13 +191,12 @@ function isFileInputMode(value: string): value is AiProviderFileInputMode {
 }
 
 function toProviderItem(item: AiProviderContractItem): AiProviderItem {
-  const fileInputMode = (item as AiProviderContractItem & { file_input_mode?: string }).file_input_mode
+  const fileInputMode = item.file_input_mode
   if (
     item.engine_type !== 'openai'
     || !isHealthStatus(item.health_status)
     || !isModelSyncStatus(item.last_model_sync_status)
     || !isProviderStatus(item.status)
-    || !fileInputMode
     || !isFileInputMode(fileInputMode)
   ) {
     throw new Error('AI provider item violates the editable contract')
@@ -220,9 +212,6 @@ function toProviderItem(item: AiProviderContractItem): AiProviderItem {
 }
 
 function toProviderInit(response: components['schemas']['Go_internal_module_ai_provider_InitResponse_Output']): AiProviderInitResponse {
-  const remoteDict = response.dict as typeof response.dict & {
-    file_input_mode_arr?: Array<{ label: string; value: string }>
-  }
   const engines = response.dict.engine_type_arr.map((option) => {
     if (option.value !== 'openai') throw new Error('AI provider engine dictionary violates the contract')
     return { label: option.label, value: 'openai' as const }
@@ -239,11 +228,10 @@ function toProviderInit(response: components['schemas']['Go_internal_module_ai_p
     if (!isModelSyncStatus(option.value)) throw new Error('AI provider model sync dictionary violates the contract')
     return { label: option.label, value: option.value }
   })
-  const fileInputModes = (remoteDict.file_input_mode_arr ?? []).map((option) => {
+  const fileInputModes = response.dict.file_input_mode_arr.map((option) => {
     if (!isFileInputMode(option.value)) throw new Error('AI provider file input mode dictionary violates the contract')
     return { label: option.label, value: option.value }
   })
-  if (fileInputModes.length === 0) throw new Error('AI provider file input mode dictionary is required')
   return {
     dict: {
       engine_type_arr: engines,

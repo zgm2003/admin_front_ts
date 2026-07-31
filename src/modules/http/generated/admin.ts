@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: abf380cf4246d26c5d4efda4302b22ffa3330cec997959f9f940bfd9184c96c3
+// Generated from Admin Contract Bundle manifest SHA-256: 99237a2d5c04732c627f5f66e0fd98529b270c76cefc801626d58b7d55ed2184
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3108,10 +3108,14 @@ export interface components {
             value: number;
         };
         AIAttachmentRequest: {
-            name?: string;
+            mime_type: string;
+            name: string;
             object_key: string;
-            /** @constant */
-            type: "image";
+            /** Format: int64 */
+            size: number;
+            /** @enum {string} */
+            type: "image" | "file";
+            url: string;
         };
         AIConversationCreateRequest: {
             /** Format: int64 */
@@ -3262,19 +3266,21 @@ export interface components {
             object_key?: string;
             /** Format: int64 */
             size: number;
-            /** @constant */
-            type: "image";
+            /** @enum {string} */
+            type: "image" | "file";
             url: string;
         };
         AIMessageRegenerationRequest: {
             request_id: string;
         };
         AIMessageRevisionRequest: {
+            /** @description Omit to preserve existing attachments; send an empty array to remove all attachments. */
+            attachments?: components["schemas"]["AIAttachmentRequest"][];
             /** @description Trimmed content must be non-empty. */
             content: string;
             request_id: string;
         };
-        /** @description request_id is required; additionally, trimmed content must be non-empty or attachments must contain at least one image. The cross-field rule is also published on the operation. */
+        /** @description request_id is required; additionally, trimmed content must be non-empty or attachments must contain at least one attachment. The cross-field rule is also published on the operation. */
         AIMessageSendRequest: {
             attachments?: components["schemas"]["AIAttachmentRequest"][];
             /** @description Trimmed content must be non-empty when attachments is absent or empty. */
@@ -3652,6 +3658,8 @@ export interface components {
             accept_ms: number | null;
             /** @enum {string} */
             claim_source: "" | "wake" | "poll" | "recovery";
+            cos_head_ms: number | null;
+            cos_stream_ms: number | null;
             end_to_end_ms: number | null;
             prepare_ms: number | null;
             provider_total_ms: number | null;
@@ -3772,7 +3780,19 @@ export interface components {
             usage_status: "complete" | "unavailable";
         };
         AIRunRequestSummary: {
+            /** Format: int64 */
+            attachment_count: number;
+            /** @enum {string} */
+            file_input_mode: "" | "chat_completions";
+            /** Format: int64 */
+            materialized_request_bytes: number;
             message_count: number | null;
+            /** Format: int64 */
+            native_file_bytes: number;
+            /** Format: int64 */
+            native_file_count: number;
+            /** Format: int64 */
+            prepared_manifest_bytes: number;
             /** Format: int64 */
             prepared_request_bytes: number;
             /** Format: int64 */
@@ -4663,6 +4683,8 @@ export interface components {
         };
         Go_internal_module_ai_agent_AttachmentCapabilities_Output: {
             image: components["schemas"]["Go_internal_module_ai_agent_ImageAttachmentCapability_Output"];
+            max_attachments_per_message: number;
+            max_message_attachment_bytes: number;
             native_file: components["schemas"]["Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output"];
         };
         Go_internal_module_ai_agent_CatalogRateDTO_Output: {
@@ -4765,7 +4787,12 @@ export interface components {
             value: string;
         };
         Go_internal_module_ai_agent_NativeFileAttachmentCapability_Output: {
+            accepted_extensions: string[];
+            disabled_reason: string;
             enabled: boolean;
+            max_file_bytes_exclusive: number;
+            max_files_per_message: number;
+            max_request_file_bytes: number;
         };
         Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output: {
             catalog_vendor: string;
@@ -5052,9 +5079,15 @@ export interface components {
             unit: string;
             unit_scale: number;
         };
+        Go_internal_module_ai_provider_FileInputModeOption_Output: {
+            label: string;
+            /** @enum {string} */
+            value: "disabled" | "chat_completions";
+        };
         Go_internal_module_ai_provider_InitDict_Output: {
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
             engine_type_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
+            file_input_mode_arr: components["schemas"]["Go_internal_module_ai_provider_FileInputModeOption_Output"][];
             health_status_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
             model_sync_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
         };
@@ -5087,6 +5120,8 @@ export interface components {
             enabled_model_count: number;
             engine_type: string;
             engine_type_name: string;
+            /** @enum {string} */
+            file_input_mode: "disabled" | "chat_completions";
             health_status: string;
             id: number;
             last_check_error: string;
@@ -6029,9 +6064,9 @@ export interface components {
         };
         Go_internal_module_uploadconfig_RuleItem_Output: {
             created_at: string;
-            file_exts: string[];
+            file_exts: ("pdf" | "doc" | "docx" | "dot" | "odt" | "rtf" | "ppt" | "pptx" | "pot" | "ppa" | "pps" | "pwz" | "wiz" | "xla" | "xlb" | "xlc" | "xlm" | "xls" | "xlsx" | "xlt" | "xlw" | "csv" | "tsv" | "iif" | "txt" | "text" | "md" | "markdown" | "json" | "html" | "htm" | "xml" | "css" | "asm" | "bat" | "c" | "cc" | "cpp" | "cxx" | "h" | "hh" | "def" | "in" | "js" | "mjs" | "jsx" | "ts" | "tsx" | "py" | "go" | "java" | "cs" | "php" | "rb" | "rs" | "sh" | "bash" | "zsh" | "ksh" | "ps1" | "sql" | "pl" | "lua" | "r" | "scala" | "swift" | "kt" | "kts" | "yaml" | "yml" | "toml" | "ini" | "conf" | "properties" | "proto" | "eml" | "log" | "rst" | "srt" | "vtt" | "ics" | "ifb" | "vcf" | "diff" | "patch" | "zip" | "tar")[];
             id: number;
-            image_exts: string[];
+            image_exts: ("jpeg" | "jpg" | "jfif" | "pjpeg" | "png" | "gif" | "webp" | "bmp" | "tif" | "tiff" | "svg" | "ico" | "psd" | "avif")[];
             max_size_mb: number;
             title: string;
             updated_at: string;
@@ -6041,8 +6076,8 @@ export interface components {
             page: components["schemas"]["Go_internal_module_uploadconfig_Page_Output"];
         };
         Go_internal_module_uploadconfig_RulePageInitDict_Output: {
-            upload_file_ext_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
-            upload_image_ext_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
+            upload_file_ext_arr: components["schemas"]["Go_internal_module_uploadconfig_UploadFileExtOption_Output"][];
+            upload_image_ext_arr: components["schemas"]["Go_internal_module_uploadconfig_UploadImageExtOption_Output"][];
         };
         Go_internal_module_uploadconfig_RulePageInitResponse_Output: {
             dict: components["schemas"]["Go_internal_module_uploadconfig_RulePageInitDict_Output"];
@@ -6070,6 +6105,16 @@ export interface components {
         };
         Go_internal_module_uploadconfig_SettingPageInitResponse_Output: {
             dict: components["schemas"]["Go_internal_module_uploadconfig_SettingPageInitDict_Output"];
+        };
+        Go_internal_module_uploadconfig_UploadFileExtOption_Output: {
+            label: string;
+            /** @enum {string} */
+            value: "pdf" | "doc" | "docx" | "dot" | "odt" | "rtf" | "ppt" | "pptx" | "pot" | "ppa" | "pps" | "pwz" | "wiz" | "xla" | "xlb" | "xlc" | "xlm" | "xls" | "xlsx" | "xlt" | "xlw" | "csv" | "tsv" | "iif" | "txt" | "text" | "md" | "markdown" | "json" | "html" | "htm" | "xml" | "css" | "asm" | "bat" | "c" | "cc" | "cpp" | "cxx" | "h" | "hh" | "def" | "in" | "js" | "mjs" | "jsx" | "ts" | "tsx" | "py" | "go" | "java" | "cs" | "php" | "rb" | "rs" | "sh" | "bash" | "zsh" | "ksh" | "ps1" | "sql" | "pl" | "lua" | "r" | "scala" | "swift" | "kt" | "kts" | "yaml" | "yml" | "toml" | "ini" | "conf" | "properties" | "proto" | "eml" | "log" | "rst" | "srt" | "vtt" | "ics" | "ifb" | "vcf" | "diff" | "patch" | "zip" | "tar";
+        };
+        Go_internal_module_uploadconfig_UploadImageExtOption_Output: {
+            label: string;
+            /** @enum {string} */
+            value: "jpeg" | "jpg" | "jfif" | "pjpeg" | "png" | "gif" | "webp" | "bmp" | "tif" | "tiff" | "svg" | "ico" | "psd" | "avif";
         };
         Go_internal_module_uploadtoken_CreateResponse_Output: {
             bucket: string;
@@ -6487,6 +6532,8 @@ export interface components {
             base_url?: string;
             /** @enum {string} */
             engine_type: "openai";
+            /** @enum {string} */
+            file_input_mode: "disabled" | "chat_completions";
             model_display_names?: {
                 [key: string]: string;
             };
@@ -6865,8 +6912,8 @@ export interface components {
             msg: string;
         };
         post_api_admin_v1_upload_rules_Request: {
-            file_exts?: ("docx" | "pdf" | "txt" | "html" | "zip" | "tar" | "doc" | "css" | "csv" | "ppt" | "xlsx" | "xls" | "xml")[];
-            image_exts?: ("jpeg" | "jpg" | "gif" | "png" | "svg" | "ico" | "doc" | "psd" | "bmp" | "tiff" | "webp" | "tif" | "pjpeg")[];
+            file_exts?: ("pdf" | "doc" | "docx" | "dot" | "odt" | "rtf" | "ppt" | "pptx" | "pot" | "ppa" | "pps" | "pwz" | "wiz" | "xla" | "xlb" | "xlc" | "xlm" | "xls" | "xlsx" | "xlt" | "xlw" | "csv" | "tsv" | "iif" | "txt" | "text" | "md" | "markdown" | "json" | "html" | "htm" | "xml" | "css" | "asm" | "bat" | "c" | "cc" | "cpp" | "cxx" | "h" | "hh" | "def" | "in" | "js" | "mjs" | "jsx" | "ts" | "tsx" | "py" | "go" | "java" | "cs" | "php" | "rb" | "rs" | "sh" | "bash" | "zsh" | "ksh" | "ps1" | "sql" | "pl" | "lua" | "r" | "scala" | "swift" | "kt" | "kts" | "yaml" | "yml" | "toml" | "ini" | "conf" | "properties" | "proto" | "eml" | "log" | "rst" | "srt" | "vtt" | "ics" | "ifb" | "vcf" | "diff" | "patch" | "zip" | "tar")[];
+            image_exts?: ("jpeg" | "jpg" | "jfif" | "pjpeg" | "png" | "gif" | "webp" | "bmp" | "tif" | "tiff" | "svg" | "ico" | "psd" | "avif")[];
             max_size_mb: number;
             title: string;
         };
@@ -6895,7 +6942,7 @@ export interface components {
             file_name: string;
             file_size: number;
             /** @enum {string} */
-            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "exports" | "reconcile_reports";
+            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "ai_chat_attachments" | "exports" | "reconcile_reports";
         };
         post_api_admin_v1_upload_tokens_ResponseEnvelope: {
             /** @constant */
@@ -7012,6 +7059,8 @@ export interface components {
             base_url?: string;
             /** @enum {string} */
             engine_type: "openai";
+            /** @enum {string} */
+            file_input_mode: "disabled" | "chat_completions";
             model_display_names?: {
                 [key: string]: string;
             };
@@ -7293,8 +7342,8 @@ export interface components {
             msg: string;
         };
         put_api_admin_v1_upload_rules_id_Request: {
-            file_exts?: ("docx" | "pdf" | "txt" | "html" | "zip" | "tar" | "doc" | "css" | "csv" | "ppt" | "xlsx" | "xls" | "xml")[];
-            image_exts?: ("jpeg" | "jpg" | "gif" | "png" | "svg" | "ico" | "doc" | "psd" | "bmp" | "tiff" | "webp" | "tif" | "pjpeg")[];
+            file_exts?: ("pdf" | "doc" | "docx" | "dot" | "odt" | "rtf" | "ppt" | "pptx" | "pot" | "ppa" | "pps" | "pwz" | "wiz" | "xla" | "xlb" | "xlc" | "xlm" | "xls" | "xlsx" | "xlt" | "xlw" | "csv" | "tsv" | "iif" | "txt" | "text" | "md" | "markdown" | "json" | "html" | "htm" | "xml" | "css" | "asm" | "bat" | "c" | "cc" | "cpp" | "cxx" | "h" | "hh" | "def" | "in" | "js" | "mjs" | "jsx" | "ts" | "tsx" | "py" | "go" | "java" | "cs" | "php" | "rb" | "rs" | "sh" | "bash" | "zsh" | "ksh" | "ps1" | "sql" | "pl" | "lua" | "r" | "scala" | "swift" | "kt" | "kts" | "yaml" | "yml" | "toml" | "ini" | "conf" | "properties" | "proto" | "eml" | "log" | "rst" | "srt" | "vtt" | "ics" | "ifb" | "vcf" | "diff" | "patch" | "zip" | "tar")[];
+            image_exts?: ("jpeg" | "jpg" | "jfif" | "pjpeg" | "png" | "gif" | "webp" | "bmp" | "tif" | "tiff" | "svg" | "ico" | "psd" | "avif")[];
             max_size_mb: number;
             title: string;
         };

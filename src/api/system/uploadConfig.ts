@@ -124,11 +124,7 @@ function toUploadSetting(item: components['schemas']['Go_internal_module_uploadc
 }
 
 function toUploadRule(item: UploadRuleContractItem): UploadRuleItem {
-  return {
-    ...item,
-    image_exts: item.image_exts as UploadRuleItem['image_exts'],
-    file_exts: item.file_exts as UploadRuleItem['file_exts'],
-  }
+  return { ...item, image_exts: item.image_exts, file_exts: item.file_exts }
 }
 
 const driverPageInit = async (options: ExecuteOptions = {}): Promise<UploadDriverInitResponse> => {
@@ -175,7 +171,7 @@ export const UploadDriverApi = {
 
 const rulePageInit = async (options: ExecuteOptions = {}): Promise<UploadRuleInitResponse> => {
   const response = await executeAdminOperation(adminOperations.get_api_admin_v1_upload_rules_page_init, {}, options)
-  return { dict: response.dict as UploadRuleInitResponse['dict'] }
+  return { dict: response.dict }
 }
 const createRule = (params: UploadRuleAddPayload, options: ExecuteOptions = {}): Promise<{ id: number }> =>
   executeAdminOperation(adminOperations.post_api_admin_v1_upload_rules, { body: params }, options)

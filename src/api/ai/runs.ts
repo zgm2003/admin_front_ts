@@ -24,21 +24,9 @@ export type AiRunToolCallItem = components['schemas']['AIRunToolCall']
 export type AiRunKnowledgeHitItem = components['schemas']['AIRunKnowledgeHit']
 export type AiRunKnowledgeRetrievalItem = components['schemas']['AIRunKnowledgeRetrieval']
 export type AiRunDetailResponse = components['schemas']['AIRunDetail']
-type GeneratedAiRunLatencyBreakdown = components['schemas']['AIRunLatencyBreakdown']
-export type AiRunLatencyBreakdown = GeneratedAiRunLatencyBreakdown & {
-  cos_head_ms?: number | null
-  cos_stream_ms?: number | null
-}
+export type AiRunLatencyBreakdown = components['schemas']['AIRunLatencyBreakdown']
 export type AiRunClaimSource = AiRunLatencyBreakdown['claim_source']
-type GeneratedAiRunRequestSummary = components['schemas']['AIRunRequestSummary']
-export type AiRunRequestSummary = GeneratedAiRunRequestSummary & {
-  attachment_count?: number
-  native_file_count?: number
-  native_file_bytes?: number
-  prepared_manifest_bytes?: number
-  materialized_request_bytes?: number
-  file_input_mode?: string
-}
+export type AiRunRequestSummary = components['schemas']['AIRunRequestSummary']
 export type AiRunBillingStatus = AiRunItem['billing_status']
 export type AiRunBillingReason = AiRunItem['billing_reason']
 export type AiRunUserFeedback = NonNullable<AiRunListQuery['user_feedback']>

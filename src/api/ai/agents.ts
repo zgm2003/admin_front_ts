@@ -9,48 +9,14 @@ export type AiAgentScene = 'chat' | 'agent_generate' | 'text_generate' | 'image_
 export type AiAgentStatus = 1 | 2
 export type AiOfficialModelLifecycle = 'active' | 'deprecated' | 'retired'
 
-export interface AiAgentCatalogRate {
-  category: string
-  unit: string
-  tier_key: string
-  price: string
-  unit_scale: number
-}
+export type AiAgentCatalogRate = components['schemas']['Go_internal_module_ai_agent_CatalogRateDTO_Output']
 
-export interface AiAgentOfficialModelSummary {
-  model_id: string
-  catalog_version: string
-  catalog_vendor: string
-  model_family: string
+type AiAgentOfficialModelContract = components['schemas']['Go_internal_module_ai_agent_OfficialModelSummaryDTO_Output']
+export interface AiAgentOfficialModelSummary extends Omit<AiAgentOfficialModelContract, 'lifecycle_status'> {
   lifecycle_status: AiOfficialModelLifecycle
-  context_window_tokens: number
-  max_output_tokens: number
 }
 
-export interface AiAgentEffectiveCapabilities {
-  input_modalities: string[]
-  output_modalities: string[]
-  supports_tools: boolean
-  supports_streaming: boolean
-  supports_structured_output: boolean
-  runtime_parameters: {
-    temperature: { supported: boolean; default: number; min: number; max: number }
-    max_history: { supported: boolean; default: number; min: number; max: number; transitional: boolean }
-  }
-  attachments: {
-    max_attachments_per_message: number
-    max_message_attachment_bytes: number
-    image: { enabled: boolean; mime_types: string[]; max_files: number; max_file_bytes: number }
-    native_file: {
-      enabled: boolean
-      disabled_reason: string
-      max_files_per_message: number
-      max_file_bytes_exclusive: number
-      max_request_file_bytes: number
-      accepted_extensions: string[]
-    }
-  }
-}
+export type AiAgentEffectiveCapabilities = components['schemas']['Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output']
 
 export interface AiAgentProviderModelOption {
   label: string

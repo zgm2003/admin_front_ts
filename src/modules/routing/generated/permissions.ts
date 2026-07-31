@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: abf380cf4246d26c5d4efda4302b22ffa3330cec997959f9f940bfd9184c96c3
+// Generated from Admin Contract Bundle manifest SHA-256: 99237a2d5c04732c627f5f66e0fd98529b270c76cefc801626d58b7d55ed2184
 // Do not edit manually.
 
 export const permissionCodes = [
