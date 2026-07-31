@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 99237a2d5c04732c627f5f66e0fd98529b270c76cefc801626d58b7d55ed2184
+// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3780,10 +3780,10 @@ export interface components {
             usage_status: "complete" | "unavailable";
         };
         AIRunRequestSummary: {
+            /** @enum {string} */
+            api_protocol: "" | "chat_completions" | "responses";
             /** Format: int64 */
             attachment_count: number;
-            /** @enum {string} */
-            file_input_mode: "" | "chat_completions";
             /** Format: int64 */
             materialized_request_bytes: number;
             message_count: number | null;
@@ -5079,15 +5079,15 @@ export interface components {
             unit: string;
             unit_scale: number;
         };
-        Go_internal_module_ai_provider_FileInputModeOption_Output: {
+        Go_internal_module_ai_provider_APIProtocolOption_Output: {
             label: string;
             /** @enum {string} */
-            value: "disabled" | "chat_completions";
+            value: "chat_completions" | "responses";
         };
         Go_internal_module_ai_provider_InitDict_Output: {
+            api_protocol_arr: components["schemas"]["Go_internal_module_ai_provider_APIProtocolOption_Output"][];
             common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
             engine_type_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
-            file_input_mode_arr: components["schemas"]["Go_internal_module_ai_provider_FileInputModeOption_Output"][];
             health_status_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
             model_sync_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
         };
@@ -5114,14 +5114,14 @@ export interface components {
         };
         Go_internal_module_ai_provider_ProviderDTO_Output: {
             api_key_masked: string;
+            /** @enum {string} */
+            api_protocol: "chat_completions" | "responses";
             base_url: string;
             base_url_effective: string;
             created_at: string;
             enabled_model_count: number;
             engine_type: string;
             engine_type_name: string;
-            /** @enum {string} */
-            file_input_mode: "disabled" | "chat_completions";
             health_status: string;
             id: number;
             last_check_error: string;
@@ -6529,11 +6529,11 @@ export interface components {
         };
         post_api_admin_v1_ai_providers_Request: {
             api_key?: string;
+            /** @enum {string} */
+            api_protocol: "chat_completions" | "responses";
             base_url?: string;
             /** @enum {string} */
             engine_type: "openai";
-            /** @enum {string} */
-            file_input_mode: "disabled" | "chat_completions";
             model_display_names?: {
                 [key: string]: string;
             };
@@ -7056,11 +7056,11 @@ export interface components {
         };
         put_api_admin_v1_ai_providers_id_Request: {
             api_key?: string;
+            /** @enum {string} */
+            api_protocol: "chat_completions" | "responses";
             base_url?: string;
             /** @enum {string} */
             engine_type: "openai";
-            /** @enum {string} */
-            file_input_mode: "disabled" | "chat_completions";
             model_display_names?: {
                 [key: string]: string;
             };

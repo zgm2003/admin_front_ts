@@ -164,18 +164,17 @@ async function confirmSubmit() {
               :span="24"
             >
               <el-form-item
-                :label="t('aiProviders.form.fileInputMode')"
-                prop="file_input_mode"
+                :label="t('aiProviders.form.apiProtocol')"
+                prop="api_protocol"
                 required
               >
                 <el-segmented
-                  v-model="form.file_input_mode"
-                  :options="dict.file_input_mode_arr"
+                  v-model="form.api_protocol"
+                  :options="dict.api_protocol_arr"
                   block
-                  class="provider-form-dialog__file-mode"
                 />
                 <div class="provider-form-dialog__field-hint">
-                  {{ t('aiProviders.form.fileInputModeHint') }}
+                  {{ t('aiProviders.form.apiProtocolHint') }}
                 </div>
               </el-form-item>
             </el-col>

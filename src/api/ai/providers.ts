@@ -13,12 +13,12 @@ export type AiProviderDriver = AiProviderMutationContractBody['engine_type']
 export type AiProviderHealthStatus = 'unknown' | 'ok' | 'failed'
 export type AiModelSyncStatus = 'unknown' | 'ok' | 'failed'
 export type AiProviderStatus = 1 | 2
-export type AiProviderFileInputMode = AiProviderMutationContractBody['file_input_mode']
+export type AiProviderApiProtocol = AiProviderMutationContractBody['api_protocol']
 
 export interface AiProviderInitResponse {
   dict: {
     engine_type_arr: DictOption<AiProviderDriver>[]
-    file_input_mode_arr: DictOption<AiProviderFileInputMode>[]
+    api_protocol_arr: DictOption<AiProviderApiProtocol>[]
     common_status_arr: DictOption<AiProviderStatus>[]
     health_status_arr: DictOption<AiProviderHealthStatus>[]
     model_sync_arr: DictOption<AiModelSyncStatus>[]
@@ -59,12 +59,12 @@ export interface AiProviderModelsResponse {
 }
 
 type AiProviderContractItem = components['schemas']['Go_internal_module_ai_provider_ProviderDTO_Output']
-export interface AiProviderItem extends Omit<AiProviderContractItem, 'engine_type' | 'health_status' | 'last_model_sync_status' | 'status'> {
+export interface AiProviderItem extends Omit<AiProviderContractItem, 'api_protocol' | 'engine_type' | 'health_status' | 'last_model_sync_status' | 'status'> {
+  api_protocol: AiProviderApiProtocol
   engine_type: AiProviderDriver
   health_status: AiProviderHealthStatus
   last_model_sync_status: AiModelSyncStatus
   status: AiProviderStatus
-  file_input_mode: AiProviderFileInputMode
 }
 export interface AiProviderListResponse extends Omit<components['schemas']['Go_internal_module_ai_provider_ListResponse_Output'], 'list'> {
   list: AiProviderItem[]
@@ -79,7 +79,7 @@ export interface AiProviderMutationParams {
   model_ids: string[]
   model_display_names?: Record<string, string>
   status: AiProviderStatus
-  file_input_mode: AiProviderFileInputMode
+  api_protocol: AiProviderApiProtocol
 }
 
 export type AiProviderMutationBody = AiProviderMutationContractBody
@@ -148,7 +148,7 @@ function mutationBody(params: AiProviderMutationParams): AiProviderMutationBody 
     model_ids: params.model_ids,
     model_display_names: params.model_display_names,
     status: params.status,
-    file_input_mode: params.file_input_mode,
+    api_protocol: params.api_protocol,
   }
 }
 
@@ -186,18 +186,18 @@ function isModelSyncStatus(value: string): value is AiModelSyncStatus {
   return value === 'unknown' || value === 'ok' || value === 'failed'
 }
 
-function isFileInputMode(value: string): value is AiProviderFileInputMode {
-  return value === 'disabled' || value === 'chat_completions'
+function isApiProtocol(value: string): value is AiProviderApiProtocol {
+  return value === 'chat_completions' || value === 'responses'
 }
 
 function toProviderItem(item: AiProviderContractItem): AiProviderItem {
-  const fileInputMode = item.file_input_mode
+  const apiProtocol = item.api_protocol
   if (
     item.engine_type !== 'openai'
     || !isHealthStatus(item.health_status)
     || !isModelSyncStatus(item.last_model_sync_status)
     || !isProviderStatus(item.status)
-    || !isFileInputMode(fileInputMode)
+    || !isApiProtocol(apiProtocol)
   ) {
     throw new Error('AI provider item violates the editable contract')
   }
@@ -207,7 +207,7 @@ function toProviderItem(item: AiProviderContractItem): AiProviderItem {
     health_status: item.health_status,
     last_model_sync_status: item.last_model_sync_status,
     status: item.status,
-    file_input_mode: fileInputMode,
+    api_protocol: apiProtocol,
   }
 }
 
@@ -228,14 +228,14 @@ function toProviderInit(response: components['schemas']['Go_internal_module_ai_p
     if (!isModelSyncStatus(option.value)) throw new Error('AI provider model sync dictionary violates the contract')
     return { label: option.label, value: option.value }
   })
-  const fileInputModes = response.dict.file_input_mode_arr.map((option) => {
-    if (!isFileInputMode(option.value)) throw new Error('AI provider file input mode dictionary violates the contract')
+  const apiProtocols = response.dict.api_protocol_arr.map((option) => {
+    if (!isApiProtocol(option.value)) throw new Error('AI provider API protocol dictionary violates the contract')
     return { label: option.label, value: option.value }
   })
   return {
     dict: {
       engine_type_arr: engines,
-      file_input_mode_arr: fileInputModes,
+      api_protocol_arr: apiProtocols,
       common_status_arr: statuses,
       health_status_arr: health,
       model_sync_arr: sync,

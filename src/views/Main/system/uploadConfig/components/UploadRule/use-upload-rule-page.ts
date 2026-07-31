@@ -165,15 +165,12 @@ export function useUploadRulePage() {
   const columns = computed(() => [
     {key: 'title', label: t('upload.rule.table.title')},
     {key: 'max_size_mb', label: t('upload.rule.table.max_size_mb')},
-    {key: 'image_exts', label: 'Image Exts'},
-    {key: 'file_exts', label: 'File Exts'},
+    {key: 'image_exts', label: 'Image Exts', minWidth: 240, overflowTooltip: false},
+    {key: 'file_exts', label: 'File Exts', minWidth: 240, overflowTooltip: false},
     {key: 'created_at', label: t('upload.rule.table.created_at')},
     {key: 'updated_at', label: t('upload.rule.table.updated_at')},
     {key: 'actions', label: t('common.actions.action'), width: 220}
   ])
-
-  const tagWrapStyle = 'display:flex;flex-wrap:wrap;gap:6px;'
-
   const add = () => {
     dialogMode.value = 'add'
     form.value = {id: '', title: '', max_size_mb: 5, image_exts: [], file_exts: []}
@@ -248,7 +245,7 @@ export function useUploadRulePage() {
     fileExtSelectionState, imageExtSelectionState,
     listData, listLoading, onPageChange, onSearch,
     onSelectionChange, page, refresh, rules, searchFields,
-    searchForm, t, tagWrapStyle, setFormRef,
+    searchForm, t, setFormRef,
     toggleFileExtSelection, toggleImageExtSelection,
   }
 }

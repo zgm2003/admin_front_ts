@@ -39,7 +39,7 @@ const nativeFileRequestSummary = {
   native_file_bytes: 3 * 1024 * 1024,
   prepared_manifest_bytes: 2_048,
   materialized_request_bytes: 6 * 1024 * 1024,
-  file_input_mode: 'chat_completions',
+  api_protocol: 'responses',
   object_key: 'ai_chat_attachments/secret-report.pdf',
   url: 'https://files.example.test/secret-report.pdf',
   prepared_manifest: '{"file_data":"data:application/pdf;base64,SECRET"}',
@@ -110,8 +110,8 @@ describe('AI run latency breakdown', () => {
     expect(summary.text()).toContain('--')
     expect(summary.text()).toContain('aiRuns.detail.materializedRequestBytes')
     expect(summary.text()).toContain('6.00 MB')
-    expect(summary.text()).toContain('aiRuns.detail.fileInputMode')
-    expect(summary.text()).toContain('chat_completions')
+    expect(summary.text()).toContain('aiRuns.detail.apiProtocol')
+    expect(summary.text()).toContain('responses')
 
     expect(wrapper.text()).not.toContain('ai_chat_attachments/secret-report.pdf')
     expect(wrapper.text()).not.toContain('https://files.example.test/secret-report.pdf')

@@ -25,7 +25,7 @@ import {
 const { t } = useI18n()
 const dict = shallowRef<AiProviderInitResponse['dict']>({
   engine_type_arr: [],
-  file_input_mode_arr: [],
+  api_protocol_arr: [],
   common_status_arr: [],
   health_status_arr: [],
   model_sync_arr: [],

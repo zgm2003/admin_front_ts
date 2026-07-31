@@ -4,6 +4,7 @@ import { AppDialog } from '@/components/AppDialog'
 import { AppTable } from '@/components/Table'
 import { Search } from '@/components/Search'
 import { useUserStore } from '@/store/user'
+import ExtensionTagList from './ExtensionTagList.vue'
 import { useUploadRulePage } from './use-upload-rule-page'
 
 const userStore = useUserStore()
@@ -13,7 +14,7 @@ const {
   fileExtSelectionState, imageExtSelectionState,
   listData, listLoading, onPageChange, onSearch,
   onSelectionChange, page, refresh, rules, searchFields,
-  searchForm, t, tagWrapStyle, setFormRef,
+  searchForm, t, setFormRef,
   toggleFileExtSelection, toggleImageExtSelection,
 } = useUploadRulePage()
 </script>
@@ -66,26 +67,16 @@ const {
           </el-dropdown>
         </template>
         <template #cell-image_exts="{ row }">
-          <div :style="tagWrapStyle">
-            <el-tag
-              v-for="it in row.image_exts"
-              :key="it"
-              type="success"
-            >
-              {{ it }}
-            </el-tag>
-          </div>
+          <ExtensionTagList
+            :items="row.image_exts"
+            type="success"
+          />
         </template>
         <template #cell-file_exts="{ row }">
-          <div :style="tagWrapStyle">
-            <el-tag
-              v-for="it in row.file_exts"
-              :key="it"
-              type="warning"
-            >
-              {{ it }}
-            </el-tag>
-          </div>
+          <ExtensionTagList
+            :items="row.file_exts"
+            type="warning"
+          />
         </template>
         <template #cell-actions="{ row }">
           <el-button

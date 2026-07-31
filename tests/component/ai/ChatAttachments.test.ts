@@ -57,7 +57,7 @@ function capabilities(input: { nativeFile?: boolean } = {}): AiAgentEffectiveCap
       },
       native_file: {
         enabled: input.nativeFile ?? true,
-        disabled_reason: input.nativeFile === false ? 'provider_file_input_disabled' : '',
+        disabled_reason: input.nativeFile === false ? 'provider_api_protocol_unsupported' : '',
         max_files_per_message: 5,
         max_file_bytes_exclusive: 50 * 1024 * 1024,
         max_request_file_bytes: 50 * 1024 * 1024,
@@ -232,7 +232,7 @@ describe('AI chat attachments', () => {
 
     expect(state.pendingAttachments.value).toHaveLength(1)
     expect(state.hasIncompatibleAttachment.value).toBe(true)
-    expect(state.blockingReason.value).toBe('provider_file_input_disabled')
+    expect(state.blockingReason.value).toBe('provider_api_protocol_unsupported')
     expect(state.canSubmitAttachments.value).toBe(false)
     scope.stop()
   })
@@ -267,7 +267,7 @@ describe('AI chat attachments', () => {
     await wrapper.setProps({ capabilities: capabilities({ nativeFile: false }) })
     await nextTick()
     expect(wrapper.get('[data-attachment-kind="file"]').text()).toContain('report.pdf')
-    expect(wrapper.text()).toContain('aiChat.providerFileInputDisabled')
+    expect(wrapper.text()).toContain('aiChat.providerApiProtocolUnsupported')
     expect(wrapper.get('button[aria-label="aiChat.send"]').attributes('disabled')).toBeDefined()
   })
 

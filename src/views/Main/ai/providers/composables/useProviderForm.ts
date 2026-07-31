@@ -3,8 +3,8 @@ import type { FormRules } from 'element-plus'
 import { CommonEnum } from '@/enums'
 import type {
   AiModelOptionItem,
+  AiProviderApiProtocol,
   AiProviderDriver,
-  AiProviderFileInputMode,
   AiProviderItem,
   AiProviderModelItem,
   AiProviderMutationParams,
@@ -20,7 +20,7 @@ export interface ProviderFormState {
   model_ids: string[]
   model_display_names: Record<string, string>
   status: AiProviderStatus
-  file_input_mode: AiProviderFileInputMode
+  api_protocol: AiProviderApiProtocol
 }
 
 export type TranslateFn = (key: string) => string
@@ -34,7 +34,7 @@ export function createDefaultProviderForm(): ProviderFormState {
     model_ids: [],
     model_display_names: {},
     status: CommonEnum.YES,
-    file_input_mode: 'disabled',
+    api_protocol: 'chat_completions',
   }
 }
 
@@ -47,13 +47,13 @@ export function buildProviderMutationParams(form: ProviderFormState): AiProvider
     model_ids: [...form.model_ids],
     model_display_names: { ...form.model_display_names },
     status: form.status,
-    file_input_mode: form.file_input_mode,
+    api_protocol: form.api_protocol,
     ...(form.api_key ? { api_key: form.api_key } : {}),
   }
 }
 
 export function createProviderEditForm(
-  provider: Pick<AiProviderItem, 'id' | 'name' | 'engine_type' | 'base_url' | 'status' | 'file_input_mode'>,
+  provider: Pick<AiProviderItem, 'id' | 'name' | 'engine_type' | 'base_url' | 'status' | 'api_protocol'>,
   models: readonly Pick<AiProviderModelItem, 'model_id' | 'display_name'>[],
 ): ProviderFormState {
   return {
@@ -67,7 +67,7 @@ export function createProviderEditForm(
       models.map((model) => [model.model_id, model.display_name || model.model_id]),
     ),
     status: provider.status,
-    file_input_mode: provider.file_input_mode,
+    api_protocol: provider.api_protocol,
   }
 }
 
@@ -79,7 +79,7 @@ export function useProviderForm(t: TranslateFn) {
   const rules = computed<FormRules>(() => ({
     name: [{ required: true, message: t('aiProviders.form.name') + t('common.required'), trigger: 'blur' }],
     driver: [{ required: true, message: t('aiProviders.form.driver') + t('common.required'), trigger: 'change' }],
-    file_input_mode: [{ required: true, message: t('aiProviders.form.fileInputMode') + t('common.required'), trigger: 'change' }],
+    api_protocol: [{ required: true, message: t('aiProviders.form.apiProtocol') + t('common.required'), trigger: 'change' }],
     model_ids: [{ required: true, type: 'array', min: 1, message: t('aiProviders.form.modelIds') + t('common.required'), trigger: 'change' }],
     status: [{ required: true, message: t('aiProviders.form.status') + t('common.required'), trigger: 'change' }],
   }))

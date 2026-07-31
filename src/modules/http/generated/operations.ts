@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 99237a2d5c04732c627f5f66e0fd98529b270c76cefc801626d58b7d55ed2184
+// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -2306,17 +2306,18 @@ const contractSchemas = {
   "AIRunRequestSummary": {
     "additionalProperties": false,
     "properties": {
+      "api_protocol": {
+        "enum": [
+          "",
+          "chat_completions",
+          "responses"
+        ],
+        "type": "string"
+      },
       "attachment_count": {
         "format": "int64",
         "minimum": 0,
         "type": "integer"
-      },
-      "file_input_mode": {
-        "enum": [
-          "",
-          "chat_completions"
-        ],
-        "type": "string"
       },
       "materialized_request_bytes": {
         "format": "int64",
@@ -2367,8 +2368,8 @@ const contractSchemas = {
       }
     },
     "required": [
+      "api_protocol",
       "attachment_count",
-      "file_input_mode",
       "materialized_request_bytes",
       "message_count",
       "native_file_bytes",
@@ -4637,7 +4638,7 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_provider_FileInputModeOption_Output": {
+  "Go_internal_module_ai_provider_APIProtocolOption_Output": {
     "additionalProperties": false,
     "properties": {
       "label": {
@@ -4645,8 +4646,8 @@ const contractSchemas = {
       },
       "value": {
         "enum": [
-          "disabled",
-          "chat_completions"
+          "chat_completions",
+          "responses"
         ],
         "type": "string"
       }
@@ -4660,6 +4661,12 @@ const contractSchemas = {
   "Go_internal_module_ai_provider_InitDict_Output": {
     "additionalProperties": false,
     "properties": {
+      "api_protocol_arr": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_provider_APIProtocolOption_Output"
+        },
+        "type": "array"
+      },
       "common_status_arr": {
         "items": {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
@@ -4669,12 +4676,6 @@ const contractSchemas = {
       "engine_type_arr": {
         "items": {
           "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
-        },
-        "type": "array"
-      },
-      "file_input_mode_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_provider_FileInputModeOption_Output"
         },
         "type": "array"
       },
@@ -4692,9 +4693,9 @@ const contractSchemas = {
       }
     },
     "required": [
+      "api_protocol_arr",
       "common_status_arr",
       "engine_type_arr",
-      "file_input_mode_arr",
       "health_status_arr",
       "model_sync_arr"
     ],
@@ -4796,6 +4797,13 @@ const contractSchemas = {
       "api_key_masked": {
         "type": "string"
       },
+      "api_protocol": {
+        "enum": [
+          "chat_completions",
+          "responses"
+        ],
+        "type": "string"
+      },
       "base_url": {
         "type": "string"
       },
@@ -4812,13 +4820,6 @@ const contractSchemas = {
         "type": "string"
       },
       "engine_type_name": {
-        "type": "string"
-      },
-      "file_input_mode": {
-        "enum": [
-          "disabled",
-          "chat_completions"
-        ],
         "type": "string"
       },
       "health_status": {
@@ -4863,13 +4864,13 @@ const contractSchemas = {
     },
     "required": [
       "api_key_masked",
+      "api_protocol",
       "base_url",
       "base_url_effective",
       "created_at",
       "enabled_model_count",
       "engine_type",
       "engine_type_name",
-      "file_input_mode",
       "health_status",
       "id",
       "last_check_error",

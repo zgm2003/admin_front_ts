@@ -100,8 +100,8 @@ const formatNativeLatency = (value: number | null | undefined) => (
         <dd>{{ formatFileSize(requestSummary.materialized_request_bytes ?? 0) }}</dd>
       </div>
       <div>
-        <dt>{{ t('aiRuns.detail.fileInputMode') }}</dt>
-        <dd>{{ requestSummary.file_input_mode || '--' }}</dd>
+        <dt>{{ t('aiRuns.detail.apiProtocol') }}</dt>
+        <dd>{{ requestSummary.api_protocol || '--' }}</dd>
       </div>
     </dl>
   </section>

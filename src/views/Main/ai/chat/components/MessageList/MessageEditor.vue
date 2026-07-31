@@ -82,7 +82,7 @@ const attachmentsChanged = computed(() => (
 ))
 const blockingMessage = computed(() => {
   switch (blockingReason.value) {
-    case 'provider_file_input_disabled': return t('aiChat.providerFileInputDisabled')
+    case 'provider_api_protocol_unsupported': return t('aiChat.providerApiProtocolUnsupported')
     case 'official_model_unsupported': return t('aiChat.modelFileInputUnsupported')
     case 'transport_unsupported': return t('aiChat.transportFileInputUnsupported')
     case 'upload_rule_unavailable': return t('aiChat.uploadRuleUnavailable')
