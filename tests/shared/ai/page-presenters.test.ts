@@ -15,6 +15,11 @@ describe('AI page presenters', () => {
     expect(createConversationTitle('x'.repeat(31))).toBe('x'.repeat(30))
   })
 
+  it('uses the first attachment name when the initial message has no text', () => {
+    expect(createConversationTitle('   ', '  quarterly\nreport.pdf  ')).toBe('quarterly report.pdf')
+    expect(createConversationTitle('', 'x'.repeat(31))).toBe('x'.repeat(30))
+  })
+
   it('emits only explicitly selected runtime parameters', () => {
     expect(createRuntimeParams({
       temperature: { enabled: false, value: 1 },

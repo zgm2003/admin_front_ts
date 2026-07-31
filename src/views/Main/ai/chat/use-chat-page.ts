@@ -387,14 +387,17 @@ export function useChatPage() {
     }
   }
 
-  async function ensureConversation(content: string) {
+  async function ensureConversation(content: string, attachments?: Attachment[]) {
     if (currentConversationId.value) return currentConversationId.value
 
     const agentId = selectedAgentId.value
     const agent = selectedAgent.value
     if (!agentId || !agent) throw new Error(t('aiChat.selectAgentFirst'))
 
-    const conversationId = await createConversation(agentId, createConversationTitle(content))
+    const conversationId = await createConversation(
+      agentId,
+      createConversationTitle(content, attachments?.[0]?.request.name),
+    )
     const created = conversations.value.find((item) => item.id === conversationId)
     if (!created) throw new Error('Created AI conversation is missing from the authoritative list')
     currentConversationId.value = conversationId
@@ -414,7 +417,7 @@ export function useChatPage() {
     const requestId = createAiRequestId()
     let conversationId = 0
     try {
-      conversationId = await ensureConversation(content)
+      conversationId = await ensureConversation(content, attachments)
       const requestAttachments = attachments?.map((attachment) => attachment.request)
       const previewAttachments = attachments?.map((attachment) => attachment.preview)
       const started = sessions.beginSend(
