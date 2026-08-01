@@ -26,6 +26,7 @@ import css from 'highlight.js/lib/languages/css'
 import scss from 'highlight.js/lib/languages/scss'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
 import nginx from 'highlight.js/lib/languages/nginx'
+import plaintext from 'highlight.js/lib/languages/plaintext'
 import 'highlight.js/styles/github-dark.css'
 import { vSafeHtml } from '@/shared/security/safe-html'
 
@@ -63,6 +64,7 @@ hljs.registerLanguage('css', css)
 hljs.registerLanguage('scss', scss)
 hljs.registerLanguage('dockerfile', dockerfile)
 hljs.registerLanguage('nginx', nginx)
+hljs.registerLanguage('plaintext', plaintext)
 
 const props = defineProps<{
   content: string
