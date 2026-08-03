@@ -59,7 +59,7 @@ export default {
       ai_providers: 'Providers',
       ai_agents: 'AI Agents',
       ai_official_models: 'Official Models',
-      ai_knowledge: 'Knowledge Base',
+      ai_context: 'Context Engineering',
       ai_chat: 'AI Chat',
       ai_runs: 'Run Monitor',
       ai_tools: 'AI Tools',

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
+// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -33,24 +33,6 @@ export interface paths {
         post?: never;
         /** DELETE /api/admin/v1/ai-agents/:id */
         delete: operations["delete_api_admin_v1_ai_agents_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-agents/{id}/knowledge-bases": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-agents/:id/knowledge-bases */
-        get: operations["get_api_admin_v1_ai_agents_id_knowledge_bases"];
-        /** PUT /api/admin/v1/ai-agents/:id/knowledge-bases */
-        put: operations["put_api_admin_v1_ai_agents_id_knowledge_bases"];
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -281,182 +263,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-bases */
-        get: operations["get_api_admin_v1_ai_knowledge_bases"];
-        put?: never;
-        /** POST /api/admin/v1/ai-knowledge-bases */
-        post: operations["post_api_admin_v1_ai_knowledge_bases"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-bases/:id */
-        get: operations["get_api_admin_v1_ai_knowledge_bases_id"];
-        /** PUT /api/admin/v1/ai-knowledge-bases/:id */
-        put: operations["put_api_admin_v1_ai_knowledge_bases_id"];
-        post?: never;
-        /** DELETE /api/admin/v1/ai-knowledge-bases/:id */
-        delete: operations["delete_api_admin_v1_ai_knowledge_bases_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases/{id}/documents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-bases/:id/documents */
-        get: operations["get_api_admin_v1_ai_knowledge_bases_id_documents"];
-        put?: never;
-        /** POST /api/admin/v1/ai-knowledge-bases/:id/documents */
-        post: operations["post_api_admin_v1_ai_knowledge_bases_id_documents"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases/{id}/retrieval-tests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** POST /api/admin/v1/ai-knowledge-bases/:id/retrieval-tests */
-        post: operations["post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** PATCH /api/admin/v1/ai-knowledge-bases/:id/status */
-        patch: operations["patch_api_admin_v1_ai_knowledge_bases_id_status"];
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-bases/page-init": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-bases/page-init */
-        get: operations["get_api_admin_v1_ai_knowledge_bases_page_init"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-documents/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-documents/:id */
-        get: operations["get_api_admin_v1_ai_knowledge_documents_id"];
-        /** PUT /api/admin/v1/ai-knowledge-documents/:id */
-        put: operations["put_api_admin_v1_ai_knowledge_documents_id"];
-        post?: never;
-        /** DELETE /api/admin/v1/ai-knowledge-documents/:id */
-        delete: operations["delete_api_admin_v1_ai_knowledge_documents_id"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-documents/{id}/chunks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** GET /api/admin/v1/ai-knowledge-documents/:id/chunks */
-        get: operations["get_api_admin_v1_ai_knowledge_documents_id_chunks"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-documents/{id}/reindex": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** POST /api/admin/v1/ai-knowledge-documents/:id/reindex */
-        post: operations["post_api_admin_v1_ai_knowledge_documents_id_reindex"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/v1/ai-knowledge-documents/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** PATCH /api/admin/v1/ai-knowledge-documents/:id/status */
-        patch: operations["patch_api_admin_v1_ai_knowledge_documents_id_status"];
         trace?: never;
     };
     "/api/admin/v1/ai-official-models": {
@@ -887,6 +693,254 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/agents/{id}/context-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/agents/:id/context-profile */
+        get: operations["ai_agent_context_profile_get"];
+        /** PUT /api/admin/v1/ai/agents/:id/context-profile */
+        put: operations["ai_agent_context_profile_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/agents/{id}/context-spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/agents/:id/context-spaces */
+        get: operations["ai_agent_context_spaces_get"];
+        /** PUT /api/admin/v1/ai/agents/:id/context-spaces */
+        put: operations["ai_agent_context_spaces_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-documents/:id */
+        get: operations["ai_context_document_get"];
+        put?: never;
+        post?: never;
+        /** DELETE /api/admin/v1/ai/context-documents/:id */
+        delete: operations["ai_context_document_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-documents/{id}/reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/ai/context-documents/:id/reindex */
+        post: operations["ai_context_document_reindex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-documents/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** PATCH /api/admin/v1/ai/context-documents/:id/status */
+        patch: operations["ai_context_document_change_status"];
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-documents/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-documents/:id/versions */
+        get: operations["ai_context_document_versions_list"];
+        put?: never;
+        /** POST /api/admin/v1/ai/context-documents/:id/versions */
+        post: operations["ai_context_document_version_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-evaluations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** POST /api/admin/v1/ai/context-evaluations */
+        post: operations["ai_context_evaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-profiles */
+        get: operations["ai_context_profiles_list"];
+        put?: never;
+        /** POST /api/admin/v1/ai/context-profiles */
+        post: operations["ai_context_profile_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-profiles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-profiles/:id */
+        get: operations["ai_context_profile_get"];
+        /** PUT /api/admin/v1/ai/context-profiles/:id */
+        put: operations["ai_context_profile_update_metadata"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-profiles/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** PATCH /api/admin/v1/ai/context-profiles/:id/status */
+        patch: operations["ai_context_profile_change_status"];
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-spaces */
+        get: operations["ai_context_spaces_list"];
+        put?: never;
+        /** POST /api/admin/v1/ai/context-spaces */
+        post: operations["ai_context_space_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-spaces/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-spaces/:id */
+        get: operations["ai_context_space_get"];
+        /** PUT /api/admin/v1/ai/context-spaces/:id */
+        put: operations["ai_context_space_update"];
+        post?: never;
+        /** DELETE /api/admin/v1/ai/context-spaces/:id */
+        delete: operations["ai_context_space_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-spaces/{id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context-spaces/:id/documents */
+        get: operations["ai_context_space_documents_list"];
+        put?: never;
+        /** POST /api/admin/v1/ai/context-spaces/:id/documents */
+        post: operations["ai_context_document_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context-spaces/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** PATCH /api/admin/v1/ai/context-spaces/:id/status */
+        patch: operations["ai_context_space_change_status"];
         trace?: never;
     };
     "/api/admin/v1/auth-platforms": {
@@ -3107,6 +3161,211 @@ export interface components {
             /** Format: int64 */
             value: number;
         };
+        ai_agent_context_profile_get_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_AgentContextProfileInput_Output"];
+            msg: string;
+        };
+        ai_agent_context_profile_update_Request: {
+            profile_id?: number | null;
+        };
+        ai_agent_context_profile_update_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_AgentContextProfileInput_Output"];
+            msg: string;
+        };
+        ai_agent_context_spaces_get_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output"];
+            msg: string;
+        };
+        ai_agent_context_spaces_update_Request: {
+            space_ids?: number[];
+        };
+        ai_agent_context_spaces_update_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output"];
+            msg: string;
+        };
+        ai_context_document_change_status_Request: {
+            status: string;
+        };
+        ai_context_document_change_status_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"];
+            msg: string;
+        };
+        ai_context_document_create_Request: {
+            source_etag: string;
+            source_filename: string;
+            source_object_key: string;
+            source_size_bytes: number;
+            source_storage_provider: string;
+            title: string;
+        };
+        ai_context_document_create_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"];
+            msg: string;
+        };
+        ai_context_document_delete_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
+            msg: string;
+        };
+        ai_context_document_get_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"];
+            msg: string;
+        };
+        ai_context_document_reindex_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"];
+            msg: string;
+        };
+        ai_context_document_version_create_Request: {
+            source_etag: string;
+            source_filename: string;
+            source_object_key: string;
+            source_size_bytes: number;
+            source_storage_provider: string;
+        };
+        ai_context_document_version_create_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"];
+            msg: string;
+        };
+        ai_context_document_versions_list_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentVersionListResponse_Output"];
+            msg: string;
+        };
+        ai_context_evaluate_Request: {
+            agent_id: number;
+            query: string;
+        };
+        ai_context_evaluate_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output"];
+            msg: string;
+        };
+        ai_context_profile_change_status_Request: {
+            status: string;
+        };
+        ai_context_profile_change_status_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"];
+            msg: string;
+        };
+        ai_context_profile_create_Request: {
+            dense_distance: string;
+            dense_min_score: string;
+            embedding_dimensions: number;
+            embedding_max_input_tokens: number;
+            embedding_provider_model_id: number;
+            embedding_token_counter_id: string;
+            memory_provider_model_id?: number | null;
+            name: string;
+            reranker_min_score?: string | null;
+            reranker_provider_model_id?: number | null;
+        };
+        ai_context_profile_create_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"];
+            msg: string;
+        };
+        ai_context_profile_get_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"];
+            msg: string;
+        };
+        ai_context_profile_update_metadata_Request: {
+            name: string;
+        };
+        ai_context_profile_update_metadata_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"];
+            msg: string;
+        };
+        ai_context_profiles_list_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ProfileListResponse_Output"];
+            msg: string;
+        };
+        ai_context_space_change_status_Request: {
+            status: string;
+        };
+        ai_context_space_change_status_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextSpace_Output"];
+            msg: string;
+        };
+        ai_context_space_create_Request: {
+            description?: string;
+            name: string;
+            profile_id: number;
+            status: string;
+        };
+        ai_context_space_create_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextSpace_Output"];
+            msg: string;
+        };
+        ai_context_space_delete_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
+            msg: string;
+        };
+        ai_context_space_documents_list_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_DocumentListResponse_Output"];
+            msg: string;
+        };
+        ai_context_space_get_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextSpace_Output"];
+            msg: string;
+        };
+        ai_context_space_update_Request: {
+            description?: string;
+            name: string;
+            profile_id: number;
+            status: string;
+        };
+        ai_context_space_update_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextSpace_Output"];
+            msg: string;
+        };
+        ai_context_spaces_list_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_SpaceListResponse_Output"];
+            msg: string;
+        };
         AIAttachmentRequest: {
             mime_type: string;
             name: string;
@@ -3116,6 +3375,117 @@ export interface components {
             /** @enum {string} */
             type: "image" | "file";
             url: string;
+        };
+        AIContextLocator: {
+            cell_end?: string | null;
+            cell_start?: string | null;
+            heading_path?: string[];
+            kind: string;
+            line_end?: number | null;
+            line_start?: number | null;
+            page?: number | null;
+            paragraph?: number | null;
+            row_end?: number | null;
+            row_start?: number | null;
+            /** @enum {string} */
+            schema: "context_locator_v1";
+            sheet?: string | null;
+        };
+        AIContextPlan: {
+            /** @enum {string} */
+            api_protocol: "chat_completions" | "responses";
+            budget: components["schemas"]["AIContextPlanBudget"];
+            error: components["schemas"]["AIContextPlanError"] | null;
+            /** Format: int64 */
+            id: number;
+            items: components["schemas"]["AIContextPlanItem"][];
+            metrics: components["schemas"]["AIContextPlanMetrics"];
+            policy_version: string;
+            profile: components["schemas"]["AIContextPlanProfile"] | null;
+            /** @enum {string} */
+            retrieval_outcome: "skipped" | "no_hit" | "hit" | "failed";
+            /** @enum {string} */
+            state: "ready" | "failed";
+            token_counter_id: string;
+        };
+        AIContextPlanBudget: {
+            /** Format: int64 */
+            context_window_tokens: number;
+            /** Format: int64 */
+            effective_output_tokens: number;
+            /** Format: int64 */
+            known_input_budget: number;
+            /** Format: int64 */
+            known_input_upper_bound: number;
+            /** Format: int64 */
+            policy_safety_margin: number;
+            /** @enum {string} */
+            proof: "exact" | "conservative" | "opaque_attachment";
+            /** Format: int64 */
+            provider_protocol_upper_bound: number;
+            /** Format: int64 */
+            tool_continuation_input_reserve: number;
+        };
+        AIContextPlanError: {
+            code: string;
+            message: string | null;
+            stage: string;
+        };
+        AIContextPlanItem: {
+            citation_key: string | null;
+            content_snapshot: string;
+            content_truncated: boolean;
+            /** @enum {string} */
+            decision: "selected" | "excluded";
+            /** Format: int64 */
+            document_id: number;
+            /** Format: int64 */
+            document_version_id: number;
+            exclusion_reason: ("budget_exceeded" | "duplicate_content" | "below_relevance_threshold" | "superseded_memory" | "inactive_source" | "permission_changed" | "unsupported_attachment") | null;
+            fusion_score: string | null;
+            /** @enum {string} */
+            kind: "system_instruction" | "current_user_message" | "current_attachment" | "recent_turn" | "recalled_turn" | "history_attachment" | "conversation_memory" | "document_evidence" | "tool_definition" | "tool_call" | "tool_result";
+            locator: components["schemas"]["AIContextLocator"] | null;
+            /** Format: int64 */
+            ordinal: number;
+            /** Format: int64 */
+            priority: number;
+            required: boolean;
+            rerank_score: string | null;
+            source_ref: string;
+            source_type: string;
+            title: string;
+            /** Format: int64 */
+            token_upper_bound: number;
+        };
+        AIContextPlanMetrics: {
+            /** Format: int64 */
+            authorization_ms?: number;
+            /** Format: int64 */
+            candidate_count?: number;
+            /** Format: int64 */
+            conversation_ms?: number;
+            /** Format: int64 */
+            packing_ms?: number;
+            /** Format: int64 */
+            query_embedding_ms?: number;
+            /** Format: int64 */
+            query_embedding_request_count?: number;
+            query_input_tokens?: number | null;
+            rerank_input_tokens?: number | null;
+            /** Format: int64 */
+            rerank_ms?: number;
+            /** Format: int64 */
+            rerank_request_count?: number;
+            /** Format: int64 */
+            retrieval_ms?: number;
+            /** @enum {string} */
+            schema: "context_plan_metrics_v1";
+        };
+        AIContextPlanProfile: {
+            /** Format: int64 */
+            id: number;
+            index_generation: number | null;
         };
         AIConversationCreateRequest: {
             /** Format: int64 */
@@ -3215,6 +3585,24 @@ export interface components {
             data: components["schemas"]["AIMessageCancelResult"];
             msg: string;
         };
+        AIMessageCitationSource: {
+            cited: boolean;
+            /** Format: int64 */
+            document_id: number;
+            /** Format: int64 */
+            document_version_id: number;
+            key: string;
+            locator: components["schemas"]["AIContextLocator"];
+            title: string;
+        };
+        AIMessageContext: {
+            invalid_keys: string[];
+            /** @enum {string} */
+            outcome: "skipped" | "no_hit" | "hit" | "failed";
+            /** Format: int64 */
+            plan_id: number;
+            sources: components["schemas"]["AIMessageCitationSource"][];
+        };
         AIMessageDeleteRequest: {
             ids: number[];
         };
@@ -3231,6 +3619,7 @@ export interface components {
         AIMessageItem: {
             content: string;
             content_type: string;
+            context: components["schemas"]["AIMessageContext"] | null;
             created_at: string;
             delivery_state: ("completed" | "stopped") | null;
             /** Format: int64 */
@@ -3549,6 +3938,7 @@ export interface components {
             billing_status: "pending" | "held" | "settled" | "released" | "unbilled";
             /** Format: int64 */
             completion_tokens: number;
+            context_plan: components["schemas"]["AIContextPlan"] | null;
             conversation_id: number | null;
             conversation_title: string;
             created_at: string;
@@ -3562,7 +3952,6 @@ export interface components {
             /** Format: int64 */
             id: number;
             input_snapshot: string;
-            knowledge_retrievals: components["schemas"]["AIRunKnowledgeRetrieval"][];
             latency: components["schemas"]["AIRunLatencyBreakdown"];
             liked: boolean;
             liked_at: string | null;
@@ -3611,48 +4000,6 @@ export interface components {
             message: string;
             /** Format: int64 */
             seq: number;
-        };
-        AIRunKnowledgeHit: {
-            /** Format: int64 */
-            chunk_id: number;
-            /** Format: int64 */
-            chunk_index: number;
-            content_snapshot: string;
-            created_at: string;
-            /** Format: int64 */
-            document_id: number;
-            document_title: string;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            knowledge_base_id: number;
-            knowledge_base_name: string;
-            /** Format: int64 */
-            rank_no: number;
-            score: number;
-            skip_reason: string;
-            /** @enum {integer} */
-            status: 1 | 2;
-            status_name: string;
-        };
-        AIRunKnowledgeRetrieval: {
-            created_at: string;
-            duration_ms: number | null;
-            duration_text: string;
-            error_message: string;
-            hits: components["schemas"]["AIRunKnowledgeHit"][];
-            /** Format: int64 */
-            id: number;
-            query: string;
-            /** Format: int64 */
-            run_id: number;
-            /** Format: int64 */
-            selected_hits: number;
-            /** @enum {string} */
-            status: "success" | "failed" | "skipped";
-            status_name: string;
-            /** Format: int64 */
-            total_hits: number;
         };
         AIRunLatencyBreakdown: {
             accept_ms: number | null;
@@ -3801,8 +4148,6 @@ export interface components {
             tool_call_count: number;
         };
         AIRuntimeParams: {
-            /** Format: int64 */
-            max_history?: number;
             temperature?: number;
         };
         AIRunToolCall: {
@@ -3853,18 +4198,6 @@ export interface components {
             msg: string;
         };
         delete_api_admin_v1_ai_agents_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        delete_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        delete_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
@@ -4158,12 +4491,6 @@ export interface components {
         GenericObject: {
             [key: string]: unknown;
         };
-        get_api_admin_v1_ai_agents_id_knowledge_bases_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output"];
-            msg: string;
-        };
         get_api_admin_v1_ai_agents_id_ResponseEnvelope: {
             /** @constant */
             code: 0;
@@ -4198,42 +4525,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_module_ai_agent_ListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_bases_id_documents_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_DocumentListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_BaseDetailResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_bases_page_init_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_InitResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_bases_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_BaseListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_documents_id_chunks_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_ChunkListResponse_Output"];
-            msg: string;
-        };
-        get_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_DocumentDetailResponse_Output"];
             msg: string;
         };
         get_api_admin_v1_ai_official_models_model_id_ResponseEnvelope: {
@@ -4646,6 +4937,7 @@ export interface components {
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
             catalog_version?: string;
+            context_profile_id: number | null;
             context_tier_threshold_tokens: number;
             created_at: string;
             engine_type: string;
@@ -4702,6 +4994,7 @@ export interface components {
             catalog_rates?: components["schemas"]["Go_internal_module_ai_agent_CatalogRateDTO_Output"][];
             catalog_vendor?: string;
             catalog_version?: string;
+            context_profile_id: number | null;
             context_tier_threshold_tokens: number;
             created_at: string;
             engine_type: string;
@@ -4759,13 +5052,6 @@ export interface components {
             list: components["schemas"]["Go_internal_module_ai_agent_AgentDTO_Output"][];
             page: components["schemas"]["Go_internal_module_ai_agent_Page_Output"];
         };
-        Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output: {
-            default: number;
-            max: number;
-            min: number;
-            supported: boolean;
-            transitional: boolean;
-        };
         Go_internal_module_ai_agent_ModelOption_Output: {
             billing_multiplier: string;
             capabilities?: components["schemas"]["Go_internal_module_ai_agent_EffectiveCapabilitiesDTO_Output"] | null;
@@ -4816,6 +5102,8 @@ export interface components {
             mapped_at: string;
             mapping_status: string;
             model_id: string;
+            /** @enum {string} */
+            model_kind: "chat" | "embedding" | "rerank";
             official_catalog_version: string;
             official_model_id: string;
             provider_id: number;
@@ -4827,7 +5115,6 @@ export interface components {
             list: components["schemas"]["Go_internal_module_ai_agent_ProviderModelDTO_Output"][];
         };
         Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output: {
-            max_history: components["schemas"]["Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output"];
             temperature: components["schemas"]["Go_internal_module_ai_agent_TemperatureParameterCapability_Output"];
         };
         Go_internal_module_ai_agent_TemperatureParameterCapability_Output: {
@@ -4836,170 +5123,180 @@ export interface components {
             min: number;
             supported: boolean;
         };
-        Go_internal_module_ai_knowledge_AgentKnowledgeBindingInput_Input: {
-            knowledge_base_id?: number;
-            max_context_chars?: number;
-            min_score?: number | null;
-            status?: number;
-            top_k?: number;
+        Go_internal_module_ai_contextengine_AgentContextProfileInput_Output: {
+            profile_id: number | null;
         };
-        Go_internal_module_ai_knowledge_AgentKnowledgeBindingItem_Output: {
-            id?: number;
-            knowledge_base_id: number;
-            knowledge_base_name: string;
-            max_context_chars: number;
-            min_score: number;
-            status: number;
-            status_name: string;
-            top_k: number;
+        Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output: {
+            space_ids: number[];
         };
-        Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output: {
-            agent_id: number;
-            base_options: components["schemas"]["Go_internal_module_ai_knowledge_KnowledgeBaseOption_Output"][];
-            bindings: components["schemas"]["Go_internal_module_ai_knowledge_AgentKnowledgeBindingItem_Output"][];
+        Go_internal_module_ai_contextengine_Budget_Output: {
+            context_window_tokens: number;
+            effective_output_tokens: number;
+            known_input_budget: number;
+            known_input_upper_bound: number;
+            policy_safety_margin: number;
+            proof: string;
+            provider_protocol_upper_bound: number;
+            tool_continuation_input_reserve: number;
         };
-        Go_internal_module_ai_knowledge_BaseDetailResponse_Output: {
-            chunk_overlap_chars: number;
-            chunk_size_chars: number;
-            code: string;
-            created_at: string;
-            default_max_context_chars: number;
-            default_min_score: number;
-            default_top_k: number;
-            description: string;
-            id: number;
-            name: string;
-            status: number;
-            status_name: string;
-            updated_at: string;
+        Go_internal_module_ai_contextengine_ContextAttachmentV1_Output: {
+            etag: string;
+            filename: string;
+            kind: string;
+            mime_type: string;
+            object_key: string;
+            size: number;
+            url?: string;
         };
-        Go_internal_module_ai_knowledge_BaseDTO_Output: {
-            chunk_overlap_chars: number;
-            chunk_size_chars: number;
-            code: string;
-            created_at: string;
-            default_max_context_chars: number;
-            default_min_score: number;
-            default_top_k: number;
-            description: string;
-            id: number;
-            name: string;
-            status: number;
-            status_name: string;
-            updated_at: string;
+        Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output: {
+            attachment?: components["schemas"]["Go_internal_module_ai_contextengine_ContextAttachmentV1_Output"] | null;
+            document?: components["schemas"]["Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output"] | null;
+            locator?: components["schemas"]["Go_internal_module_ai_contextengine_ContextLocatorV1_Output"] | null;
+            retrieval?: components["schemas"]["Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output"] | null;
+            schema: string;
         };
-        Go_internal_module_ai_knowledge_BaseListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_ai_knowledge_BaseDTO_Output"][];
-            page: components["schemas"]["Go_internal_module_ai_knowledge_Page_Output"];
-        };
-        Go_internal_module_ai_knowledge_ChunkDTO_Output: {
-            chunk_index: number;
-            content: string;
-            content_chars: number;
-            created_at: string;
+        Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output: {
+            chunk_ids: number[];
             document_id: number;
-            id: number;
-            knowledge_base_id: number;
-            status: number;
-            status_name: string;
+            document_version_id: number;
+            locators: components["schemas"]["Go_internal_module_ai_contextengine_ContextLocatorV1_Output"][];
             title: string;
-            updated_at: string;
         };
-        Go_internal_module_ai_knowledge_ChunkListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_ai_knowledge_ChunkDTO_Output"][];
+        Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output: {
+            budget: components["schemas"]["Go_internal_module_ai_contextengine_Budget_Output"];
+            excluded: components["schemas"]["Go_internal_module_ai_contextengine_EvaluationItemDTO_Output"][];
+            metrics: components["schemas"]["Go_internal_module_ai_contextengine_ContextPlanMetricsV1_Output"];
+            retrieval_outcome: string;
+            selected: components["schemas"]["Go_internal_module_ai_contextengine_EvaluationItemDTO_Output"][];
         };
-        Go_internal_module_ai_knowledge_DocumentDetailResponse_Output: {
-            content: string;
+        Go_internal_module_ai_contextengine_ContextLocatorV1_Output: {
+            cell_end?: string | null;
+            cell_start?: string | null;
+            heading_path?: string[];
+            kind: string;
+            line_end?: number | null;
+            line_start?: number | null;
+            page?: number | null;
+            paragraph?: number | null;
+            row_end?: number | null;
+            row_start?: number | null;
+            schema: string;
+            sheet?: string | null;
+        };
+        Go_internal_module_ai_contextengine_ContextPlanMetricsV1_Output: {
+            authorization_ms?: number;
+            candidate_count?: number;
+            conversation_ms?: number;
+            packing_ms?: number;
+            query_embedding_ms?: number;
+            query_embedding_request_count?: number;
+            query_input_tokens?: number | null;
+            rerank_input_tokens?: number | null;
+            rerank_ms?: number;
+            rerank_request_count?: number;
+            retrieval_ms?: number;
+            schema: string;
+        };
+        Go_internal_module_ai_contextengine_ContextProfile_Output: {
+            active_index_generation: number | null;
+            /** Format: date-time */
             created_at: string;
-            error_message: string;
+            created_by: number;
+            dense_distance: string;
+            dense_min_score: string;
+            embedding_dimensions: number;
+            embedding_max_input_tokens: number;
+            embedding_provider_model_id: number;
+            embedding_token_counter_id: string;
             id: number;
-            index_status: string;
-            index_status_name: string;
-            knowledge_base_id: number;
-            last_indexed_at: string;
-            source_ref: string;
-            source_type: string;
-            source_type_name: string;
-            status: number;
-            status_name: string;
-            title: string;
-            updated_at: string;
-        };
-        Go_internal_module_ai_knowledge_DocumentDTO_Output: {
-            created_at: string;
-            error_message: string;
-            id: number;
-            index_status: string;
-            index_status_name: string;
-            knowledge_base_id: number;
-            last_indexed_at: string;
-            source_ref: string;
-            source_type: string;
-            source_type_name: string;
-            status: number;
-            status_name: string;
-            title: string;
-            updated_at: string;
-        };
-        Go_internal_module_ai_knowledge_DocumentListResponse_Output: {
-            list: components["schemas"]["Go_internal_module_ai_knowledge_DocumentDTO_Output"][];
-            page: components["schemas"]["Go_internal_module_ai_knowledge_Page_Output"];
-        };
-        Go_internal_module_ai_knowledge_InitDict_Output: {
-            common_status_arr: components["schemas"]["Go_internal_shared_dict_Option_int_Output"][];
-            index_status_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
-            source_type_arr: components["schemas"]["Go_internal_shared_dict_Option_string_Output"][];
-        };
-        Go_internal_module_ai_knowledge_InitResponse_Output: {
-            dict: components["schemas"]["Go_internal_module_ai_knowledge_InitDict_Output"];
-        };
-        Go_internal_module_ai_knowledge_KnowledgeBaseOption_Output: {
-            default_max_context_chars: number;
-            default_min_score: number;
-            default_top_k: number;
-            description: string;
-            label: string;
-            value: number;
-        };
-        Go_internal_module_ai_knowledge_Page_Output: {
-            current_page: number;
-            page_size: number;
-            total: number;
-            total_page: number;
-        };
-        Go_internal_module_ai_knowledge_RetrievalHit_Output: {
-            chunk_id: number;
-            chunk_index: number;
-            content: string;
-            content_chars: number;
-            document_id: number;
-            document_title: string;
-            knowledge_base_id: number;
-            knowledge_base_name: string;
-            rank_no: number;
-            score: number;
-            skip_reason: string;
-            status: number;
-        };
-        Go_internal_module_ai_knowledge_RetrievalResult_Output: {
-            hits: components["schemas"]["Go_internal_module_ai_knowledge_RetrievalHit_Output"][];
-            query: string;
-            selected: components["schemas"]["Go_internal_module_ai_knowledge_SelectedHit_Output"][];
-            selected_hits: number;
+            index_error_code: string | null;
+            index_state: string;
+            index_verified_at: string | null;
+            memory_provider_model_id: number | null;
+            name: string;
+            reranker_min_score: string | null;
+            reranker_provider_model_id: number | null;
+            sparse_encoder: string;
+            sparse_encoder_version: string;
             status: string;
-            total_hits: number;
+            target_index_generation: number | null;
+            /** Format: date-time */
+            updated_at: string;
         };
-        Go_internal_module_ai_knowledge_SelectedHit_Output: {
-            chunk_id: number;
-            chunk_index: number;
-            content: string;
+        Go_internal_module_ai_contextengine_ContextSpace_Output: {
+            /** Format: date-time */
+            created_at: string;
+            created_by: number;
+            description: string;
+            id: number;
+            name: string;
+            platform: string;
+            profile_id: number;
+            status: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        Go_internal_module_ai_contextengine_DocumentAdminDTO_Output: {
+            active_version_id?: number | null;
+            conversation_id?: number | null;
+            id: number;
+            profile_id: number;
+            source_attachment_index?: number | null;
+            source_message_id?: number | null;
+            space_id?: number | null;
+            status: string;
+            title: string;
+            version: components["schemas"]["Go_internal_module_ai_contextengine_DocumentVersionDTO_Output"];
+        };
+        Go_internal_module_ai_contextengine_DocumentListResponse_Output: {
+            items: components["schemas"]["Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"][];
+        };
+        Go_internal_module_ai_contextengine_DocumentVersionDTO_Output: {
+            chunker_version: string;
             document_id: number;
-            document_title: string;
-            knowledge_base_id: number;
-            knowledge_base_name: string;
-            rank_no: number;
-            ref: string;
-            score: number;
+            id: number;
+            parser_name: string;
+            parser_version: string;
+            profile_id: number;
+            source_etag: string;
+            source_filename: string;
+            source_mime_type: string;
+            source_object_key: string;
+            source_size_bytes: number;
+            source_storage_provider: string;
+            state: string;
+        };
+        Go_internal_module_ai_contextengine_DocumentVersionListResponse_Output: {
+            items: components["schemas"]["Go_internal_module_ai_contextengine_DocumentVersionDTO_Output"][];
+        };
+        Go_internal_module_ai_contextengine_EvaluationItemDTO_Output: {
+            citation_key?: string | null;
+            decision: string;
+            exclusion_reason?: string | null;
+            fusion_score?: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"] | null;
+            metadata: components["schemas"]["Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output"];
+            ordinal: number;
+            rerank_score?: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"] | null;
+            source_ref: string;
+            source_type: string;
+            token_upper_bound: number;
+        };
+        Go_internal_module_ai_contextengine_FixedScore_Output: Record<string, never>;
+        Go_internal_module_ai_contextengine_ProfileListResponse_Output: {
+            items: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"][];
+        };
+        Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output: {
+            branches: components["schemas"]["Go_internal_module_ai_contextengine_RetrievalBranchV1_Output"][];
+            schema: string;
+        };
+        Go_internal_module_ai_contextengine_RetrievalBranchV1_Output: {
+            modality: string;
+            rank: number;
+            score: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"];
+            variant_id: string;
+        };
+        Go_internal_module_ai_contextengine_SpaceListResponse_Output: {
+            items: components["schemas"]["Go_internal_module_ai_contextengine_ContextSpace_Output"][];
         };
         Go_internal_module_ai_officialmodel_CapabilityDTO_Output: {
             image_input: components["schemas"]["Go_internal_module_ai_officialmodel_ImageInputCapability_Output"] | null;
@@ -5041,6 +5338,7 @@ export interface components {
             pricing_source_url: string;
             retrieved_at: string;
             review_after: string;
+            token_counter_id: string;
         };
         Go_internal_module_ai_officialmodel_OptionDTO_Output: {
             label: string;
@@ -5142,12 +5440,19 @@ export interface components {
             mapped_at: string;
             mapping_status: string;
             model_id: string;
+            /** @enum {string} */
+            model_kind: "chat" | "embedding" | "rerank";
             official_catalog_version: string;
             official_model_id: string;
             provider_id: number;
             status: number;
             status_name: string;
             updated_at: string;
+        };
+        Go_internal_module_ai_provider_ProviderModelInput_Input: {
+            model_id: string;
+            /** @enum {string} */
+            model_kind: "chat" | "embedding" | "rerank";
         };
         Go_internal_module_ai_provider_ProviderModelsResponse_Output: {
             list: components["schemas"]["Go_internal_module_ai_provider_ProviderModelDTO_Output"][];
@@ -6268,26 +6573,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        patch_api_admin_v1_ai_knowledge_bases_id_status_Request: {
-            /** @enum {integer} */
-            status: 1 | 2;
-        };
-        patch_api_admin_v1_ai_knowledge_bases_id_status_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        patch_api_admin_v1_ai_knowledge_documents_id_status_Request: {
-            /** @enum {integer} */
-            status: 1 | 2;
-        };
-        patch_api_admin_v1_ai_knowledge_documents_id_status_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         patch_api_admin_v1_ai_providers_id_status_Request: {
             /** @enum {integer} */
             status: 1 | 2;
@@ -6432,6 +6717,7 @@ export interface components {
         post_api_admin_v1_ai_agents_Request: {
             avatar?: string;
             billing_multiplier?: string;
+            context_profile_id?: number | null;
             model_id: string;
             name: string;
             provider_id: number;
@@ -6444,57 +6730,6 @@ export interface components {
             /** @constant */
             code: 0;
             data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_ai_knowledge_bases_id_documents_Request: {
-            content: string;
-            source_ref?: string;
-            /** @enum {string} */
-            source_type?: "text" | "markdown" | "file";
-            /** @enum {integer} */
-            status: 1 | 2;
-            title: string;
-        };
-        post_api_admin_v1_ai_knowledge_bases_id_documents_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests_Request: {
-            max_context_chars?: number;
-            min_score?: number | null;
-            query: string;
-            top_k?: number;
-        };
-        post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_module_ai_knowledge_RetrievalResult_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_ai_knowledge_bases_Request: {
-            chunk_overlap_chars?: number;
-            chunk_size_chars: number;
-            code: string;
-            default_max_context_chars: number;
-            default_min_score?: number;
-            default_top_k: number;
-            description?: string;
-            name: string;
-            /** @enum {integer} */
-            status: 1 | 2;
-        };
-        post_api_admin_v1_ai_knowledge_bases_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_IDData_Output"];
-            msg: string;
-        };
-        post_api_admin_v1_ai_knowledge_documents_id_reindex_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
         post_api_admin_v1_ai_providers_id_model_options_ResponseEnvelope: {
@@ -6538,6 +6773,7 @@ export interface components {
                 [key: string]: string;
             };
             model_ids: string[];
+            models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             name: string;
             /** @enum {integer} */
             status: 1 | 2;
@@ -6942,7 +7178,7 @@ export interface components {
             file_name: string;
             file_size: number;
             /** @enum {string} */
-            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "ai_chat_attachments" | "exports" | "reconcile_reports";
+            folder: "avatars" | "images" | "videos" | "cover_images" | "ai-agents" | "ai_chat_images" | "ai_chat_attachments" | "ai_context_documents" | "exports" | "reconcile_reports";
         };
         post_api_admin_v1_upload_tokens_ResponseEnvelope: {
             /** @constant */
@@ -6959,18 +7195,10 @@ export interface components {
             data: components["schemas"]["Go_internal_module_payment_redeemcode_transport_admin_redemptionResponse_Output"];
             msg: string;
         };
-        put_api_admin_v1_ai_agents_id_knowledge_bases_Request: {
-            bindings?: components["schemas"]["Go_internal_module_ai_knowledge_AgentKnowledgeBindingInput_Input"][];
-        };
-        put_api_admin_v1_ai_agents_id_knowledge_bases_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         put_api_admin_v1_ai_agents_id_Request: {
             avatar?: string;
             billing_multiplier?: string;
+            context_profile_id?: number | null;
             model_id: string;
             name: string;
             provider_id: number;
@@ -6994,39 +7222,6 @@ export interface components {
             data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
             msg: string;
         };
-        put_api_admin_v1_ai_knowledge_bases_id_Request: {
-            chunk_overlap_chars?: number;
-            chunk_size_chars: number;
-            code: string;
-            default_max_context_chars: number;
-            default_min_score?: number;
-            default_top_k: number;
-            description?: string;
-            name: string;
-            /** @enum {integer} */
-            status: 1 | 2;
-        };
-        put_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
-        put_api_admin_v1_ai_knowledge_documents_id_Request: {
-            content: string;
-            source_ref?: string;
-            /** @enum {string} */
-            source_type?: "text" | "markdown" | "file";
-            /** @enum {integer} */
-            status: 1 | 2;
-            title: string;
-        };
-        put_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope: {
-            /** @constant */
-            code: 0;
-            data: components["schemas"]["Go_internal_server_adminroute_EmptyData_Output"];
-            msg: string;
-        };
         put_api_admin_v1_ai_official_models_model_id_price_Request: {
             expected_version: number | null;
             rates: components["schemas"]["Go_internal_module_ai_officialmodel_transport_admin_rateRequest_Input"][];
@@ -7044,6 +7239,7 @@ export interface components {
                 [key: string]: string;
             };
             model_ids: string[];
+            models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             statuses?: {
                 [key: string]: number;
             };
@@ -7065,6 +7261,7 @@ export interface components {
                 [key: string]: string;
             };
             model_ids: string[];
+            models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             name: string;
             /** @enum {integer} */
             status: 1 | 2;
@@ -7658,72 +7855,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["delete_api_admin_v1_ai_agents_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_agents_id_knowledge_bases: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_agents_id_knowledge_bases_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    put_api_admin_v1_ai_agents_id_knowledge_bases: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["put_api_admin_v1_ai_agents_id_knowledge_bases_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_ai_agents_id_knowledge_bases_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -8363,535 +8494,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIConversationReadCursorSuccessEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_bases: {
-        parameters: {
-            query?: {
-                code?: string;
-                current_page?: number;
-                name?: string;
-                page_size?: number;
-                status?: 1 | 2;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_bases_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_ai_knowledge_bases: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_bases_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    put_api_admin_v1_ai_knowledge_bases_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["put_api_admin_v1_ai_knowledge_bases_id_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    delete_api_admin_v1_ai_knowledge_bases_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_ai_knowledge_bases_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_bases_id_documents: {
-        parameters: {
-            query?: {
-                current_page?: number;
-                page_size?: number;
-                status?: 1 | 2;
-                title?: string;
-            };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_bases_id_documents_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_ai_knowledge_bases_id_documents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_id_documents_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_id_documents_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    patch_api_admin_v1_ai_knowledge_bases_id_status: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["patch_api_admin_v1_ai_knowledge_bases_id_status_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["patch_api_admin_v1_ai_knowledge_bases_id_status_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_bases_page_init: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_bases_page_init_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_documents_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    put_api_admin_v1_ai_knowledge_documents_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["put_api_admin_v1_ai_knowledge_documents_id_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["put_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    delete_api_admin_v1_ai_knowledge_documents_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["delete_api_admin_v1_ai_knowledge_documents_id_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_api_admin_v1_ai_knowledge_documents_id_chunks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["get_api_admin_v1_ai_knowledge_documents_id_chunks_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    post_api_admin_v1_ai_knowledge_documents_id_reindex: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["post_api_admin_v1_ai_knowledge_documents_id_reindex_ResponseEnvelope"];
-                };
-            };
-            /** @description Classified safe error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    patch_api_admin_v1_ai_knowledge_documents_id_status: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["patch_api_admin_v1_ai_knowledge_documents_id_status_Request"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["patch_api_admin_v1_ai_knowledge_documents_id_status_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */
@@ -9918,6 +9520,795 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["get_api_admin_v1_ai_tools_page_init_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_agent_context_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_agent_context_profile_get_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_agent_context_profile_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_agent_context_profile_update_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_agent_context_profile_update_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_agent_context_spaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_agent_context_spaces_get_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_agent_context_spaces_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_agent_context_spaces_update_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_agent_context_spaces_update_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_get_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_delete_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_reindex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_reindex_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_change_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_document_change_status_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_change_status_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_versions_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_versions_list_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_version_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_document_version_create_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_version_create_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_evaluate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_evaluate_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_evaluate_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_profiles_list: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_profiles_list_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_profile_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_profile_create_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_profile_create_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_profile_get_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_profile_update_metadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_profile_update_metadata_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_profile_update_metadata_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_profile_change_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_profile_change_status_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_profile_change_status_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_spaces_list: {
+        parameters: {
+            query?: {
+                profile_id?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_spaces_list_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_space_create_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_create_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_get_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_space_update_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_update_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_delete_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_documents_list: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_documents_list_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_document_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_document_create_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_document_create_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_space_change_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ai_context_space_change_status_Request"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_space_change_status_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */

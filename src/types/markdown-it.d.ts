@@ -8,9 +8,20 @@ declare module 'markdown-it' {
 
   interface MarkdownIt {
     render(src: string): string
+    inline: {
+      ruler: {
+        before(beforeName: string, ruleName: string, rule: (state: MarkdownItInlineState, silent: boolean) => boolean): void
+      }
+    }
     utils: {
       escapeHtml(str: string): string
     }
+  }
+
+  interface MarkdownItInlineState {
+    src: string
+    pos: number
+    push(type: string, tag: string, nesting: number): { content: string }
   }
 
   interface MarkdownItConstructor {

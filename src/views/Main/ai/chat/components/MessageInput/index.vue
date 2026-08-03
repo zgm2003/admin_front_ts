@@ -37,14 +37,11 @@ const inputText = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 const showParamsPanel = ref(false)
 const runtimeTemperature = ref<RuntimeParameterDraft>(temperatureDefault())
-const runtimeMaxHistory = ref<RuntimeParameterDraft>(maxHistoryDefault())
 const hasCustomParams = computed(() => (
-  (props.capabilities?.runtime_parameters.temperature.supported === true && runtimeTemperature.value.enabled)
-  || (props.capabilities?.runtime_parameters.max_history.supported === true && runtimeMaxHistory.value.enabled)
+  props.capabilities?.runtime_parameters.temperature.supported === true && runtimeTemperature.value.enabled
 ))
 const hasRuntimeParams = computed(() => (
   props.capabilities?.runtime_parameters.temperature.supported === true
-  || props.capabilities?.runtime_parameters.max_history.supported === true
 ))
 const showCharCount = computed(() => inputText.value.length > MAX_CONTENT_LENGTH * 0.9)
 
@@ -52,8 +49,6 @@ function getRequestParams(): AIRuntimeParams {
   return createRuntimeParams({
     temperature: props.capabilities?.runtime_parameters.temperature.supported
       ? runtimeTemperature.value : undefined,
-    maxHistory: props.capabilities?.runtime_parameters.max_history.supported
-      ? runtimeMaxHistory.value : undefined,
   })
 }
 
@@ -64,16 +59,8 @@ function temperatureDefault(): RuntimeParameterDraft {
   }
 }
 
-function maxHistoryDefault(): RuntimeParameterDraft {
-  return {
-    enabled: false,
-    value: props.capabilities?.runtime_parameters.max_history.default ?? 20,
-  }
-}
-
 function resetParams() {
   runtimeTemperature.value = temperatureDefault()
-  runtimeMaxHistory.value = maxHistoryDefault()
 }
 
 watch(() => [props.agentId, props.conversationId] as const, () => {
@@ -221,7 +208,6 @@ defineExpose({
         v-if="showParamsPanel && capabilities"
         id="ai-chat-runtime-params"
         v-model:temperature="runtimeTemperature"
-        v-model:max-history="runtimeMaxHistory"
         :capabilities="capabilities"
         :has-custom-params="hasCustomParams"
         @reset="resetParams"

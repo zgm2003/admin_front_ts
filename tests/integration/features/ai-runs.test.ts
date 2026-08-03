@@ -58,7 +58,7 @@ const detail = (id: number): AiRunDetailResponse => ({
   user_message: null,
   assistant_message: null,
   events: [],
-  knowledge_retrievals: [],
+  context_plan: null,
   tool_calls: [],
   billing_status: 'unbilled',
   billing_reason: 'legacy_unpriced',

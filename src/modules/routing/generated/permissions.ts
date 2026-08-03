@@ -1,23 +1,17 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
+// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
 // Do not edit manually.
 
 export const permissionCodes = [
   "ai_agent_add",
-  "ai_agent_binding_add",
   "ai_agent_del",
   "ai_agent_edit",
   "ai_agent_status",
   "ai_agent_test",
-  "ai_knowledge_add",
-  "ai_knowledge_del",
-  "ai_knowledge_document_add",
-  "ai_knowledge_document_del",
-  "ai_knowledge_document_edit",
-  "ai_knowledge_document_status",
-  "ai_knowledge_edit",
-  "ai_knowledge_reindex",
-  "ai_knowledge_retrieval_test",
-  "ai_knowledge_status",
+  "ai_context_document_manage",
+  "ai_context_evaluate",
+  "ai_context_manage",
+  "ai_context_profile_manage",
+  "ai_context_view",
   "ai_official_model_list",
   "ai_official_model_price_sync",
   "ai_provider_add",

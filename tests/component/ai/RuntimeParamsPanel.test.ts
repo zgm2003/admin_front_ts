@@ -25,7 +25,6 @@ function capabilities(temperatureSupported = true): AiAgentEffectiveCapabilities
     supports_streaming: true, supports_structured_output: false,
     runtime_parameters: {
       temperature: { supported: temperatureSupported, default: 0.7, min: 0.2, max: 1.4 },
-      max_history: { supported: true, default: 12, min: 2, max: 30, transitional: true },
     },
     attachments: {
       image: { enabled: false, mime_types: [], max_files: 0, max_file_bytes: 0 },
@@ -58,24 +57,21 @@ describe('chat runtime parameters', () => {
   it('never constructs max_tokens and submits only enabled overrides', () => {
     expect(createRuntimeParams({
       temperature: { enabled: false, value: 0.7 },
-      maxHistory: { enabled: false, value: 12 },
     })).toEqual({})
 
     const params = createRuntimeParams({
       temperature: { enabled: true, value: 0.4 },
-      maxHistory: { enabled: true, value: 8 },
     })
-    expect(params).toEqual({ temperature: 0.4, max_history: 8 })
+    expect(params).toEqual({ temperature: 0.4 })
     expect(JSON.stringify(params)).not.toContain('max_tokens')
   })
 
-  it('hides unsupported temperature and marks max_history as transitional', () => {
+  it('hides unsupported temperature without inventing another runtime parameter', () => {
     const wrapper = mount(RuntimeParamsPanel, {
       props: {
         capabilities: capabilities(false),
         hasCustomParams: false,
         temperature: { enabled: false, value: 0.7 },
-        maxHistory: { enabled: false, value: 12 },
       },
       global: {
         stubs: {
@@ -88,8 +84,7 @@ describe('chat runtime parameters', () => {
     })
 
     expect(wrapper.find('[data-test="temperature-param"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="max-history-param"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('aiChat.transitionalParam')
+    expect(wrapper.find('.params-item').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('aiChat.maxTokens')
   })
 
@@ -144,7 +139,6 @@ describe('chat runtime parameters', () => {
 
   it('keeps local voice input and hides settings when the model has no runtime parameters', () => {
     const modelCapabilities = capabilities(false)
-    modelCapabilities.runtime_parameters.max_history.supported = false
     const wrapper = mount(MessageInput, {
       props: { sending: false, agentId: 1, capabilities: modelCapabilities },
       global: {

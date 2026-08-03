@@ -13,6 +13,10 @@ const retiredPaths = [
   'src/api/ai/assets.ts',
   'src/api/ai/model-prices.ts',
   'src/views/Main/ai/model-pricing',
+  'src/views/Main/ai/knowledge',
+  'src/views/Main/ai/agents/components/AgentKnowledgeDialog',
+  'src/api/ai/knowledge.ts',
+  'src/api/ai/knowledge.types.ts',
 ]
 
 describe('admin AI interactive surfaces are retired', () => {
@@ -62,5 +66,27 @@ describe('admin AI interactive surfaces are retired', () => {
     }
     expect(source).toContain('ai_official_model_price_sync')
     expect(source).toContain('aiOfficialModel')
+  })
+
+  test('physically retires the old knowledge and history override vocabulary', () => {
+    const roots = ['src', 'contracts/backend/admin', 'scripts/test-migration-manifest.json']
+    const files: string[] = []
+    function collect(path: string) {
+      if (!existsSync(join(root, path))) return
+      const entries = readdirSync(join(root, path), { withFileTypes: true })
+      for (const entry of entries) {
+        const relative = join(path, entry.name)
+        if (entry.isDirectory()) collect(relative)
+        else files.push(join(root, relative))
+      }
+    }
+    collect(roots[0]!)
+    collect(roots[1]!)
+    files.push(join(root, roots[2]!))
+    const source = files.map(file => readFileSync(file, 'utf8')).join('\n')
+    for (const token of [
+      'aiKnowledge', 'ai_knowledge', 'ai/knowledge', 'AgentKnowledge',
+      'maxHistory', 'max_history', 'knowledge_retrieval', 'knowledge_base',
+    ]) expect(source).not.toContain(token)
   })
 })

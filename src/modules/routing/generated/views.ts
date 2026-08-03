@@ -1,10 +1,10 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
+// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
 // Do not edit manually.
 
 export const backendViewKeys = [
   "ai/agents",
   "ai/chat",
-  "ai/knowledge",
+  "ai/context",
   "ai/official-models",
   "ai/providers",
   "ai/runs",
@@ -46,7 +46,7 @@ export const backendViewKeySet: ReadonlySet<BackendViewKey> = new Set(backendVie
 export const backendViewDescriptors = {
   "ai/agents": {"path":"/ai/agents","titleKey":"menu.ai_agents","showMenu":true,"permissionCodes":[]},
   "ai/chat": {"path":"/ai/chat","titleKey":"menu.ai_chat","showMenu":true,"permissionCodes":[]},
-  "ai/knowledge": {"path":"/ai/knowledge","titleKey":"menu.ai_knowledge","showMenu":true,"permissionCodes":[]},
+  "ai/context": {"path":"/ai/context","titleKey":"menu.ai_context","showMenu":true,"permissionCodes":["ai_context_document_manage","ai_context_evaluate","ai_context_manage","ai_context_profile_manage","ai_context_view"]},
   "ai/official-models": {"path":"/ai/official-models","titleKey":"menu.ai_official_models","showMenu":true,"permissionCodes":["ai_official_model_list"]},
   "ai/providers": {"path":"/ai/providers","titleKey":"menu.ai_providers","showMenu":true,"permissionCodes":[]},
   "ai/runs": {"path":"/ai/runs","titleKey":"menu.ai_runs","showMenu":true,"permissionCodes":["ai_run_list"]},

@@ -39,21 +39,6 @@ export function toolCallTagType(status: string) {
   }
 }
 
-export function knowledgeRetrievalTagType(status: string) {
-  switch (status) {
-    case 'success':
-      return 'success'
-    case 'failed':
-      return 'danger'
-    case 'skipped':
-      return 'info'
-    default:
-      return 'warning'
-  }
-}
-
-export const knowledgeHitTagType = (status: number) => status === 1 ? 'success' : 'info'
-
 export const formatRunTokens = (value: number) => value.toLocaleString()
 
 export function formatRunLatency(value: number | null | undefined): string {

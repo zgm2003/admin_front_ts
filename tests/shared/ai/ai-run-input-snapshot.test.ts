@@ -21,7 +21,6 @@ describe('AI run input snapshot parser', () => {
       runtime_params: {
         temperature: 0.7,
         max_tokens: 1024,
-        max_history: 8,
       },
     })
 
@@ -37,7 +36,6 @@ describe('AI run input snapshot parser', () => {
       runtimeParams: {
         temperature: 0.7,
         max_tokens: 1024,
-        max_history: 8,
       },
     })
   })

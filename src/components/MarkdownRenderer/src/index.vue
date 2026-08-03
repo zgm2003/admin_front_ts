@@ -68,7 +68,9 @@ hljs.registerLanguage('plaintext', plaintext)
 
 const props = defineProps<{
   content: string
+  citationKeys?: readonly string[]
 }>()
+const emit = defineEmits<{ citation: [key: string] }>()
 
 // 配置 markdown-it 与 highlight.js
 const md: MarkdownIt = new MarkdownIt({
@@ -88,6 +90,18 @@ const md: MarkdownIt = new MarkdownIt({
   }
 })
 
+md.inline.ruler.before('emphasis', 'citation', (state, silent) => {
+  const match = state.src.slice(state.pos).match(/^\[C([1-9][0-9]*)\]/)
+  if (!match) return false
+  const key = `C${match[1]}`
+  if (!props.citationKeys?.includes(key)) return false
+  if (silent) return true
+  const token = state.push('html_inline', '', 0)
+  token.content = `<button class="citation-token" type="button" data-citation-key="${key}">[${key}]</button>`
+  state.pos += match[0].length
+  return true
+})
+
 const renderedHtml = computed(() => {
   return md.render(props.content || '')
 })
@@ -105,6 +119,8 @@ const handleClick = (e: Event) => {
       }, 2000)
     })
   }
+  const citation = target.closest<HTMLElement>('[data-citation-key]')
+  if (citation?.dataset.citationKey) emit('citation', citation.dataset.citationKey)
 }
 
 </script>
@@ -161,6 +177,24 @@ const handleClick = (e: Event) => {
   border-radius: 4px;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   color: var(--el-color-danger);
+}
+
+.markdown-body :deep(.citation-token) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--el-color-primary-light-5);
+  background: transparent;
+  color: var(--el-color-primary);
+  font: inherit;
+  font-size: 0.86em;
+  cursor: pointer;
+}
+
+.markdown-body :deep(.citation-token:hover) {
+  background: var(--el-color-primary-light-9);
 }
 
 /* 代码块 - 暗色主题 */

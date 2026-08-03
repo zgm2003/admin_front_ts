@@ -18,7 +18,7 @@ interface CosAuthorization {
 interface CosClient {
   putObject(
     params: { Bucket: string; Region: string; Key: string; Body: File },
-    callback: (error: Error | null) => void
+    callback: (error: Error | null, data?: { ETag?: string }) => void
   ): void
 }
 
@@ -68,7 +68,7 @@ export const validateFile = (file: File, config: UploadConfig, type: UploadFileK
 export const uploadFileToCloud = async (
   file: File,
   config: UploadConfig
-): Promise<{ url: string; key: string }> => {
+): Promise<{ url: string; key: string; etag?: string }> => {
   if (config.provider !== 'cos') {
     throw new Error(t('uploadRuntime.ossUnsupported'))
   }
@@ -80,7 +80,7 @@ const uploadToCos = async (
   file: File,
   key: string,
   config: UploadConfig
-): Promise<{ url: string; key: string }> => {
+): Promise<{ url: string; key: string; etag?: string }> => {
   const { credentials, bucket, region } = config
   const COS = await loadCOS()
 
@@ -97,14 +97,14 @@ const uploadToCos = async (
   })
 
   return new Promise((resolve, reject) => {
-    cos.putObject({ Bucket: bucket, Region: region, Key: key, Body: file }, (error: Error | null) => {
+    cos.putObject({ Bucket: bucket, Region: region, Key: key, Body: file }, (error: Error | null, data) => {
       if (error) {
         reject(error)
         return
       }
 
       const url = buildPublicFileURL(config.bucket_domain, bucket, region, key)
-      resolve({ url, key })
+      resolve({ url, key, etag: data?.ETag })
     })
   })
 }
@@ -134,6 +134,7 @@ function isUploadFolder(value: string): value is UploadTokenRequest['folder'] {
     || value === 'ai-agents'
     || value === 'ai_chat_images'
     || value === 'ai_chat_attachments'
+    || value === 'ai_context_documents'
     || value === 'exports'
     || value === 'reconcile_reports'
 }

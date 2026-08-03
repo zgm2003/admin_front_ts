@@ -63,8 +63,8 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
   const editingModel = shallowRef<AiAgentProviderModelOption | null>(null)
   const toolDialogVisible = ref(false)
   const toolAgent = shallowRef<AiAgentItem | null>(null)
-  const knowledgeDialogVisible = ref(false)
-  const knowledgeAgent = shallowRef<AiAgentItem | null>(null)
+  const contextDialogVisible = ref(false)
+  const contextAgent = shallowRef<AiAgentItem | null>(null)
 
   function defaultForm(): AgentForm {
     return {
@@ -201,9 +201,9 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     toolDialogVisible.value = true
   }
 
-  function openKnowledge(row: AiAgentItem) {
-    knowledgeAgent.value = row
-    knowledgeDialogVisible.value = true
+  function openContext(row: AiAgentItem) {
+    contextAgent.value = row
+    contextDialogVisible.value = true
   }
 
   async function testConnection(row: AiAgentItem) {
@@ -244,9 +244,9 @@ export function useAgentAdminPage(formRef: Ref<FormInstance | null>) {
     t, isMobile, dict, searchForm, searchFields, columns,
     listLoading, listData, page, onSearch, onPageChange, refresh, getList, confirmDel, toggleStatus,
     dialogVisible, dialogMode, form, rules, modelOptions, toolDialogVisible, toolAgent,
-    knowledgeDialogVisible, knowledgeAgent, selectedModel, displayedCatalogRates,
+    contextDialogVisible, contextAgent, selectedModel, displayedCatalogRates,
     selectedModelRequiresChange, selectedModelSupportsTools, onModelChange,
-    add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText, modelCanUseTools,
+    add, edit, openTools, openContext, testConnection, confirmSubmit, sceneText, modelCanUseTools,
   }
 }
 

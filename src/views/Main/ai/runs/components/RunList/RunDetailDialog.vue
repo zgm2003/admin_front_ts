@@ -15,13 +15,12 @@ import {
 } from './detail-dialog'
 import {
   formatRunTokens,
-  knowledgeHitTagType,
-  knowledgeRetrievalTagType,
   prettyRunJson,
   runDictionaryLabel,
   runStatusTagType,
   toolCallTagType,
 } from './presenters'
+import RunContextPlan from './RunContextPlan.vue'
 
 const props = defineProps<{
   detailData: AiRunDetailResponse | null
@@ -424,73 +423,7 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
           </el-timeline>
         </template>
 
-        <!-- 知识库检索 -->
-        <template v-if="detailData.knowledge_retrievals && detailData.knowledge_retrievals.length > 0">
-          <el-divider content-position="left">
-            {{ t('aiRuns.detail.knowledgeRetrievals') }}
-          </el-divider>
-          <div class="knowledge-retrieval-list">
-            <div
-              v-for="retrieval in detailData.knowledge_retrievals"
-              :key="retrieval.id"
-              class="knowledge-retrieval-card"
-            >
-              <div class="knowledge-retrieval-header">
-                <div class="knowledge-retrieval-title">
-                  <span>{{ retrieval.query }}</span>
-                  <el-tag
-                    size="small"
-                    :type="knowledgeRetrievalTagType(retrieval.status)"
-                  >
-                    {{ retrieval.status_name || retrieval.status }}
-                  </el-tag>
-                </div>
-                <div class="knowledge-retrieval-meta">
-                  <span>{{ retrieval.selected_hits }} / {{ retrieval.total_hits }}</span>
-                  <span>{{ retrieval.duration_text }}</span>
-                  <span>{{ retrieval.created_at }}</span>
-                </div>
-              </div>
-              <div
-                v-if="retrieval.error_message"
-                class="knowledge-retrieval-error"
-              >
-                {{ retrieval.error_message }}
-              </div>
-              <el-collapse v-if="retrieval.hits.length > 0">
-                <el-collapse-item
-                  v-for="hit in retrieval.hits"
-                  :key="hit.id"
-                  :name="String(hit.id)"
-                >
-                  <template #title>
-                    <div class="knowledge-hit-title">
-                      <el-tag
-                        size="small"
-                        type="info"
-                      >
-                        #{{ hit.rank_no }}
-                      </el-tag>
-                      <span>{{ hit.knowledge_base_name }}</span>
-                      <span>{{ hit.document_title }} / {{ hit.chunk_index }}</span>
-                      <span>{{ hit.score.toFixed(4) }}</span>
-                      <el-tag
-                        size="small"
-                        :type="knowledgeHitTagType(hit.status)"
-                      >
-                        {{ hit.status_name }}
-                      </el-tag>
-                      <span v-if="hit.skip_reason">{{ hit.skip_reason }}</span>
-                    </div>
-                  </template>
-                  <div class="knowledge-hit-content">
-                    {{ hit.content_snapshot }}
-                  </div>
-                </el-collapse-item>
-              </el-collapse>
-            </div>
-          </div>
-        </template>
+        <RunContextPlan v-if="detailData.context_plan" :plan="detailData.context_plan" />
 
         <!-- 工具调用 -->
         <template v-if="detailData.tool_calls && detailData.tool_calls.length > 0">

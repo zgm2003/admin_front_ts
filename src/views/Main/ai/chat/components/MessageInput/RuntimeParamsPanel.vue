@@ -10,16 +10,12 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ reset: [] }>()
 const temperature = defineModel<RuntimeParameterDraft>('temperature', { required: true })
-const maxHistory = defineModel<RuntimeParameterDraft>('maxHistory', { required: true })
 const { t } = useI18n()
 
 function updateTemperature(patch: Partial<RuntimeParameterDraft>) {
   temperature.value = { ...temperature.value, ...patch }
 }
 
-function updateMaxHistory(patch: Partial<RuntimeParameterDraft>) {
-  maxHistory.value = { ...maxHistory.value, ...patch }
-}
 </script>
 
 <template>
@@ -69,46 +65,6 @@ function updateMaxHistory(patch: Partial<RuntimeParameterDraft>) {
           :show-tooltip="false"
           size="small"
           @update:model-value="(value: number | number[]) => updateTemperature({ value: value as number })"
-        />
-      </div>
-      <div
-        v-if="props.capabilities.runtime_parameters.max_history.supported"
-        class="params-item"
-        data-test="max-history-param"
-      >
-        <div class="params-item-header">
-          <span class="params-item-label">
-            {{ t('aiChat.maxHistory') }}
-            <el-tag
-              v-if="props.capabilities.runtime_parameters.max_history.transitional"
-              size="small"
-              type="info"
-            >
-              {{ t('aiChat.transitionalParam') }}
-            </el-tag>
-            <el-switch
-              data-test="max-history-enabled"
-              :model-value="maxHistory.enabled"
-              size="small"
-              @update:model-value="(value: string | number | boolean) => updateMaxHistory({ enabled: value === true })"
-            />
-          </span>
-          <span
-            class="params-item-value"
-            :class="{ custom: maxHistory.enabled }"
-          >
-            {{ maxHistory.enabled ? maxHistory.value : t('aiChat.useDefault') }}
-          </span>
-        </div>
-        <el-slider
-          :model-value="maxHistory.value"
-          :min="props.capabilities.runtime_parameters.max_history.min"
-          :max="props.capabilities.runtime_parameters.max_history.max"
-          :step="1"
-          :disabled="!maxHistory.enabled"
-          :show-tooltip="false"
-          size="small"
-          @update:model-value="(value: number | number[]) => updateMaxHistory({ value: value as number })"
         />
       </div>
     </div>

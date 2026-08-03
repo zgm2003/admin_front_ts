@@ -22,6 +22,7 @@ import type { Message } from '../../composables/types'
 import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
 import type { AiMessageAttachmentRequest } from '@/api/ai/messages'
 import MessageEditor from './MessageEditor.vue'
+import MessageCitationDrawer from './MessageCitationDrawer.vue'
 
 const { t } = useI18n()
 
@@ -62,6 +63,8 @@ const emit = defineEmits<{
 const previewVisible = ref(false)
 const previewImages = ref<string[]>([])
 const previewIndex = ref(0)
+const citationVisible = ref(false)
+const citationContext = ref<Message['context']>(null)
 const editingMessageId = ref<number | null>(null)
 const announcedTerminalMessages = new Set<string>()
 let historyInitialized = false
@@ -180,6 +183,16 @@ function speechLabel(message: Message) {
   if (props.speakingMessageId !== message.id) return t('aiChat.speakMessage')
   return props.speechPaused ? t('aiChat.resumeSpeech') : t('aiChat.pauseSpeech')
 }
+
+function citationKeys(message: Message) {
+  return message.context?.sources.map(source => source.key) ?? []
+}
+
+function openCitation(message: Message, key: string) {
+  if (!message.context?.sources.some(source => source.key === key)) return
+  citationContext.value = message.context
+  citationVisible.value = true
+}
 </script>
 
 <template>
@@ -289,7 +302,9 @@ function speechLabel(message: Message) {
           <MarkdownRenderer
             v-if="message.content"
             :content="message.content"
+            :citation-keys="citationKeys(message)"
             class="message-content"
+            @citation="openCitation(message, $event)"
           />
           <div
             v-else-if="isAssistant(message) && message.isStreaming"
@@ -467,6 +482,11 @@ function speechLabel(message: Message) {
       :url-list="previewImages"
       :initial-index="previewIndex"
       @close="previewVisible = false"
+    />
+    <MessageCitationDrawer
+      v-if="citationContext"
+      v-model="citationVisible"
+      :context="citationContext"
     />
   </div>
 </template>

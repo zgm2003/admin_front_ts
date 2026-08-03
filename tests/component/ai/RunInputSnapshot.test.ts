@@ -49,7 +49,7 @@ describe('RunInputSnapshot', () => {
             size: 0,
           },
         ],
-        runtime_params: { temperature: 0.6, max_tokens: 2048, max_history: 12 },
+        runtime_params: { temperature: 0.6, max_tokens: 2048 },
       }),
     })
 
@@ -72,8 +72,6 @@ describe('RunInputSnapshot', () => {
     expect(wrapper.text()).toContain('0.6')
     expect(wrapper.text()).toContain('max_tokens')
     expect(wrapper.text()).toContain('2048')
-    expect(wrapper.text()).toContain('max_history')
-    expect(wrapper.text()).toContain('12')
   })
 
   it('renders malformed and hostile raw input as escaped text', () => {

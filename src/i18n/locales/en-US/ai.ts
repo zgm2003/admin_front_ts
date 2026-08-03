@@ -67,9 +67,9 @@ export default {
         sources: { official: 'Official', override: 'Custom' }
       },
       scene: { chat: 'Chat', agentGenerate: 'Tool Generation', textGenerate: 'Text Generation', imageGenerate: 'Image Generation' },
-      actions: { test: 'Test', tools: 'Tool Config', knowledge: 'Knowledge' },
+      actions: { test: 'Test', tools: 'Tool Config', context: 'Context Config' },
       tools: { title: 'Configure Agent Tools', agent: 'Current Agent', tools: 'Enabled Tools', selectAgent: 'Select agent', selectTools: 'Select tools', activeTools: 'Available tools', lowRiskOnly: 'Only enabled low-risk tools can be bound', unsupported: 'The current official model or provider route does not support tools' },
-      knowledge: { title: 'Configure Agent Knowledge', agent: 'Current Agent', addBinding: 'Add Knowledge Base', base: 'Knowledge Base', topK: 'TopK', minScore: 'Min Score', contextChars: 'Context Chars', status: 'Status', selectBase: 'Select knowledge base', empty: 'No knowledge binding', saveNoPermission: 'No permission to save knowledge bindings' },
+      context: { title: 'Configure Agent Context', agent: 'Current Agent', profile: 'Index Profile', spaces: 'Context Spaces', pureChat: 'Pure chat (no context)', pureChatDescription: 'This agent uses conversation messages and attachments without document retrieval.', selectSpaces: 'Select available spaces', privateContext: 'With no shared spaces, the agent still retains private conversation context.' },
       addTitle: 'Add AI Agent',
       editTitle: 'Edit AI Agent',
       testDone: 'Agent connection test completed'
@@ -254,8 +254,6 @@ export default {
       // Runtime Params
       runtimeParams: 'Parameters',
       temperature: 'Temperature',
-      maxHistory: 'Included History Messages',
-      transitionalParam: 'Transitional',
       useDefault: 'Default',
       capabilitySwitchTitle: 'Switch Agent',
       capabilitySwitchConfirm: 'The target agent is incompatible with the current attachments or temperature override. Attachments stay visible and block sending; temperature resets.',
@@ -265,6 +263,7 @@ export default {
       // Tool calling
       toolCalling: 'Calling tool',
       toolDone: 'Tool call done',
+      citations: { title: 'Message Citations', outcome: 'Retrieval Outcome', cited: 'Cited in Response', unreferenced: 'Selected but Unreferenced', invalid: 'Invalid Citation Keys', empty: 'This message has no citation sources' },
     },
   aiRuns: {
       feedback: {
@@ -355,7 +354,6 @@ export default {
         error: 'Error',
         userMessage: 'User Message',
         assistantMessage: 'AI Response',
-        knowledgeRetrievals: 'Knowledge Retrievals',
         toolCalls: 'Tool Calls',
         toolArguments: 'Arguments',
         toolResult: 'Result',
@@ -391,6 +389,10 @@ export default {
         attemptState: 'State',
         usageStatus: 'Usage Status',
         providerRequestId: 'Provider Request ID'
+      },
+      contextPlan: {
+        title: 'Context Plan', outcome: 'Retrieval Outcome', state: 'Plan State', budget: 'Input Budget / Window', proof: 'Budget Proof', decision: 'Decision', kind: 'Context Kind', titleColumn: 'Title', citation: 'Citation', score: 'Score', tokens: 'Token Bound', exclusion: 'Exclusion Reason', unknownError: 'Context plan execution failed',
+        outcomes: { skipped: 'Skipped', no_hit: 'No Hit', hit: 'Hit', failed: 'Failed' }, states: { ready: 'Ready', failed: 'Failed' }, proofs: { exact: 'Exact', conservative: 'Conservative', opaque_attachment: 'Opaque Attachment' }, decisions: { selected: 'Selected', excluded: 'Excluded' }
       },
       tabs: {
         list: 'Run List',

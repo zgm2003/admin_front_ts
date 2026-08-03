@@ -59,7 +59,7 @@ export default {
       ai_providers: '供应商配置',
       ai_agents: '智能体配置',
       ai_official_models: '官方模型',
-      ai_knowledge: '知识库',
+      ai_context: '上下文工程',
       ai_chat: 'AI 对话',
       ai_runs: '运行监控',
       ai_tools: 'AI工具管理',

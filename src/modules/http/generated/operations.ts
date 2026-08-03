@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 4b85252131763552db9f331ae6bf64fa806ab815df19563ca009632ef44e0bbb
+// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -6,6 +6,570 @@ import { defineOperation } from '../operations'
 import type { operations } from './admin'
 
 const contractSchemas = {
+  "AIContextLocator": {
+    "additionalProperties": false,
+    "properties": {
+      "cell_end": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "cell_start": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "heading_path": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "kind": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "line_end": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "line_start": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "page": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "paragraph": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "row_end": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "row_start": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "schema": {
+        "enum": [
+          "context_locator_v1"
+        ],
+        "type": "string"
+      },
+      "sheet": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "schema",
+      "kind"
+    ],
+    "type": "object"
+  },
+  "AIContextPlan": {
+    "additionalProperties": false,
+    "properties": {
+      "api_protocol": {
+        "enum": [
+          "chat_completions",
+          "responses"
+        ],
+        "type": "string"
+      },
+      "budget": {
+        "$ref": "#/components/schemas/AIContextPlanBudget"
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIContextPlanError"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AIContextPlanItem"
+        },
+        "type": "array"
+      },
+      "metrics": {
+        "$ref": "#/components/schemas/AIContextPlanMetrics"
+      },
+      "policy_version": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "profile": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIContextPlanProfile"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "retrieval_outcome": {
+        "enum": [
+          "skipped",
+          "no_hit",
+          "hit",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "state": {
+        "enum": [
+          "ready",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "token_counter_id": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "api_protocol",
+      "budget",
+      "error",
+      "id",
+      "items",
+      "metrics",
+      "policy_version",
+      "profile",
+      "retrieval_outcome",
+      "state",
+      "token_counter_id"
+    ],
+    "type": "object"
+  },
+  "AIContextPlanBudget": {
+    "additionalProperties": false,
+    "properties": {
+      "context_window_tokens": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "effective_output_tokens": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "known_input_budget": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "known_input_upper_bound": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "policy_safety_margin": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "proof": {
+        "enum": [
+          "exact",
+          "conservative",
+          "opaque_attachment"
+        ],
+        "type": "string"
+      },
+      "provider_protocol_upper_bound": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "tool_continuation_input_reserve": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "context_window_tokens",
+      "effective_output_tokens",
+      "known_input_budget",
+      "known_input_upper_bound",
+      "policy_safety_margin",
+      "proof",
+      "provider_protocol_upper_bound",
+      "tool_continuation_input_reserve"
+    ],
+    "type": "object"
+  },
+  "AIContextPlanError": {
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "message": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "stage": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "code",
+      "message",
+      "stage"
+    ],
+    "type": "object"
+  },
+  "AIContextPlanItem": {
+    "additionalProperties": false,
+    "properties": {
+      "citation_key": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "content_snapshot": {
+        "type": "string"
+      },
+      "content_truncated": {
+        "type": "boolean"
+      },
+      "decision": {
+        "enum": [
+          "selected",
+          "excluded"
+        ],
+        "type": "string"
+      },
+      "document_id": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "document_version_id": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "exclusion_reason": {
+        "anyOf": [
+          {
+            "enum": [
+              "budget_exceeded",
+              "duplicate_content",
+              "below_relevance_threshold",
+              "superseded_memory",
+              "inactive_source",
+              "permission_changed",
+              "unsupported_attachment"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "fusion_score": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "kind": {
+        "enum": [
+          "system_instruction",
+          "current_user_message",
+          "current_attachment",
+          "recent_turn",
+          "recalled_turn",
+          "history_attachment",
+          "conversation_memory",
+          "document_evidence",
+          "tool_definition",
+          "tool_call",
+          "tool_result"
+        ],
+        "type": "string"
+      },
+      "locator": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIContextLocator"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "ordinal": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "priority": {
+        "format": "int64",
+        "type": "integer"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "rerank_score": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "source_ref": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "token_upper_bound": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "citation_key",
+      "content_snapshot",
+      "content_truncated",
+      "decision",
+      "document_id",
+      "document_version_id",
+      "exclusion_reason",
+      "fusion_score",
+      "kind",
+      "locator",
+      "ordinal",
+      "priority",
+      "required",
+      "rerank_score",
+      "source_ref",
+      "source_type",
+      "title",
+      "token_upper_bound"
+    ],
+    "type": "object"
+  },
+  "AIContextPlanMetrics": {
+    "additionalProperties": false,
+    "properties": {
+      "authorization_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "candidate_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "conversation_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "packing_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "query_embedding_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "query_embedding_request_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "query_input_tokens": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "rerank_input_tokens": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "rerank_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "rerank_request_count": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "retrieval_ms": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "schema": {
+        "enum": [
+          "context_plan_metrics_v1"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema"
+    ],
+    "type": "object"
+  },
+  "AIContextPlanProfile": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "index_generation": {
+        "anyOf": [
+          {
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "index_generation"
+    ],
+    "type": "object"
+  },
   "AIConversationCreateResult": {
     "additionalProperties": false,
     "properties": {
@@ -200,6 +764,80 @@ const contractSchemas = {
     ],
     "type": "object"
   },
+  "AIMessageCitationSource": {
+    "additionalProperties": false,
+    "properties": {
+      "cited": {
+        "type": "boolean"
+      },
+      "document_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "document_version_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "key": {
+        "type": "string"
+      },
+      "locator": {
+        "$ref": "#/components/schemas/AIContextLocator"
+      },
+      "title": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "cited",
+      "document_id",
+      "document_version_id",
+      "key",
+      "locator",
+      "title"
+    ],
+    "type": "object"
+  },
+  "AIMessageContext": {
+    "additionalProperties": false,
+    "properties": {
+      "invalid_keys": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "outcome": {
+        "enum": [
+          "skipped",
+          "no_hit",
+          "hit",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "plan_id": {
+        "format": "int64",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "sources": {
+        "items": {
+          "$ref": "#/components/schemas/AIMessageCitationSource"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "invalid_keys",
+      "outcome",
+      "plan_id",
+      "sources"
+    ],
+    "type": "object"
+  },
   "AIMessageDeleteResult": {
     "additionalProperties": false,
     "properties": {
@@ -228,6 +866,16 @@ const contractSchemas = {
       },
       "content_type": {
         "type": "string"
+      },
+      "context": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIMessageContext"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "created_at": {
         "type": "string"
@@ -306,6 +954,7 @@ const contractSchemas = {
       "liked",
       "delivery_state",
       "settlement_pending",
+      "context",
       "created_at",
       "updated_at"
     ],
@@ -1241,6 +1890,16 @@ const contractSchemas = {
         "minimum": 0,
         "type": "integer"
       },
+      "context_plan": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AIContextPlan"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "conversation_id": {
         "anyOf": [
           {
@@ -1300,12 +1959,6 @@ const contractSchemas = {
       },
       "input_snapshot": {
         "type": "string"
-      },
-      "knowledge_retrievals": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunKnowledgeRetrieval"
-        },
-        "type": "array"
       },
       "latency": {
         "$ref": "#/components/schemas/AIRunLatencyBreakdown"
@@ -1434,6 +2087,7 @@ const contractSchemas = {
       "billing_reason",
       "billing_status",
       "completion_tokens",
+      "context_plan",
       "conversation_id",
       "conversation_title",
       "created_at",
@@ -1446,7 +2100,6 @@ const contractSchemas = {
       "held_amount",
       "id",
       "input_snapshot",
-      "knowledge_retrievals",
       "latency",
       "liked",
       "liked_at",
@@ -1536,167 +2189,6 @@ const contractSchemas = {
       "id",
       "message",
       "seq"
-    ],
-    "type": "object"
-  },
-  "AIRunKnowledgeHit": {
-    "additionalProperties": false,
-    "properties": {
-      "chunk_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "chunk_index": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "content_snapshot": {
-        "type": "string"
-      },
-      "created_at": {
-        "type": "string"
-      },
-      "document_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "document_title": {
-        "type": "string"
-      },
-      "id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "knowledge_base_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "knowledge_base_name": {
-        "type": "string"
-      },
-      "rank_no": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "score": {
-        "type": "number"
-      },
-      "skip_reason": {
-        "type": "string"
-      },
-      "status": {
-        "enum": [
-          1,
-          2
-        ],
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "chunk_id",
-      "chunk_index",
-      "content_snapshot",
-      "created_at",
-      "document_id",
-      "document_title",
-      "id",
-      "knowledge_base_id",
-      "knowledge_base_name",
-      "rank_no",
-      "score",
-      "skip_reason",
-      "status",
-      "status_name"
-    ],
-    "type": "object"
-  },
-  "AIRunKnowledgeRetrieval": {
-    "additionalProperties": false,
-    "properties": {
-      "created_at": {
-        "type": "string"
-      },
-      "duration_ms": {
-        "anyOf": [
-          {
-            "format": "int64",
-            "minimum": 0,
-            "type": "integer"
-          },
-          {
-            "type": "null"
-          }
-        ]
-      },
-      "duration_text": {
-        "type": "string"
-      },
-      "error_message": {
-        "type": "string"
-      },
-      "hits": {
-        "items": {
-          "$ref": "#/components/schemas/AIRunKnowledgeHit"
-        },
-        "type": "array"
-      },
-      "id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "query": {
-        "type": "string"
-      },
-      "run_id": {
-        "format": "int64",
-        "minimum": 1,
-        "type": "integer"
-      },
-      "selected_hits": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      },
-      "status": {
-        "enum": [
-          "success",
-          "failed",
-          "skipped"
-        ],
-        "type": "string"
-      },
-      "status_name": {
-        "type": "string"
-      },
-      "total_hits": {
-        "format": "int64",
-        "minimum": 0,
-        "type": "integer"
-      }
-    },
-    "required": [
-      "created_at",
-      "duration_ms",
-      "duration_text",
-      "error_message",
-      "hits",
-      "id",
-      "query",
-      "run_id",
-      "selected_hits",
-      "status",
-      "status_name",
-      "total_hits"
     ],
     "type": "object"
   },
@@ -2555,12 +3047,6 @@ const contractSchemas = {
   "AIRuntimeParams": {
     "additionalProperties": false,
     "properties": {
-      "max_history": {
-        "format": "int64",
-        "maximum": 50,
-        "minimum": 1,
-        "type": "integer"
-      },
       "temperature": {
         "maximum": 2,
         "minimum": 0,
@@ -2819,6 +3305,16 @@ const contractSchemas = {
       "catalog_version": {
         "type": "string"
       },
+      "context_profile_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "context_tier_threshold_tokens": {
         "type": "integer"
       },
@@ -2902,6 +3398,7 @@ const contractSchemas = {
     "required": [
       "avatar",
       "billing_multiplier",
+      "context_profile_id",
       "context_tier_threshold_tokens",
       "created_at",
       "engine_type",
@@ -3073,6 +3570,16 @@ const contractSchemas = {
       "catalog_version": {
         "type": "string"
       },
+      "context_profile_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "context_tier_threshold_tokens": {
         "type": "integer"
       },
@@ -3156,6 +3663,7 @@ const contractSchemas = {
     "required": [
       "avatar",
       "billing_multiplier",
+      "context_profile_id",
       "context_tier_threshold_tokens",
       "created_at",
       "engine_type",
@@ -3333,34 +3841,6 @@ const contractSchemas = {
     "required": [
       "list",
       "page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "default": {
-        "type": "integer"
-      },
-      "max": {
-        "type": "integer"
-      },
-      "min": {
-        "type": "integer"
-      },
-      "supported": {
-        "type": "boolean"
-      },
-      "transitional": {
-        "type": "boolean"
-      }
-    },
-    "required": [
-      "default",
-      "max",
-      "min",
-      "supported",
-      "transitional"
     ],
     "type": "object"
   },
@@ -3567,6 +4047,14 @@ const contractSchemas = {
       "model_id": {
         "type": "string"
       },
+      "model_kind": {
+        "enum": [
+          "chat",
+          "embedding",
+          "rerank"
+        ],
+        "type": "string"
+      },
       "official_catalog_version": {
         "type": "string"
       },
@@ -3593,6 +4081,7 @@ const contractSchemas = {
       "mapped_at",
       "mapping_status",
       "model_id",
+      "model_kind",
       "official_catalog_version",
       "official_model_id",
       "provider_id",
@@ -3620,15 +4109,11 @@ const contractSchemas = {
   "Go_internal_module_ai_agent_RuntimeParameterCapabilities_Output": {
     "additionalProperties": false,
     "properties": {
-      "max_history": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_agent_MaxHistoryParameterCapability_Output"
-      },
       "temperature": {
         "$ref": "#/components/schemas/Go_internal_module_ai_agent_TemperatureParameterCapability_Output"
       }
     },
     "required": [
-      "max_history",
       "temperature"
     ],
     "type": "object"
@@ -3657,664 +4142,915 @@ const contractSchemas = {
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_AgentKnowledgeBindingItem_Output": {
+  "Go_internal_module_ai_contextengine_AgentContextProfileInput_Output": {
     "additionalProperties": false,
     "properties": {
-      "id": {
-        "type": "integer"
-      },
-      "knowledge_base_id": {
-        "type": "integer"
-      },
-      "knowledge_base_name": {
-        "type": "string"
-      },
-      "max_context_chars": {
-        "type": "integer"
-      },
-      "min_score": {
-        "type": "number"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
-      },
-      "top_k": {
-        "type": "integer"
+      "profile_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     },
     "required": [
-      "knowledge_base_id",
-      "knowledge_base_name",
-      "max_context_chars",
-      "min_score",
-      "status",
-      "status_name",
-      "top_k"
+      "profile_id"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output": {
+  "Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output": {
     "additionalProperties": false,
     "properties": {
-      "agent_id": {
-        "type": "integer"
-      },
-      "base_options": {
+      "space_ids": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_KnowledgeBaseOption_Output"
-        },
-        "type": "array"
-      },
-      "bindings": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_AgentKnowledgeBindingItem_Output"
+          "type": "integer"
         },
         "type": "array"
       }
     },
     "required": [
-      "agent_id",
-      "base_options",
-      "bindings"
+      "space_ids"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_BaseDTO_Output": {
+  "Go_internal_module_ai_contextengine_Budget_Output": {
     "additionalProperties": false,
     "properties": {
-      "chunk_overlap_chars": {
+      "context_window_tokens": {
         "type": "integer"
       },
-      "chunk_size_chars": {
+      "effective_output_tokens": {
         "type": "integer"
       },
-      "code": {
+      "known_input_budget": {
+        "type": "integer"
+      },
+      "known_input_upper_bound": {
+        "type": "integer"
+      },
+      "policy_safety_margin": {
+        "type": "integer"
+      },
+      "proof": {
         "type": "string"
       },
-      "created_at": {
-        "type": "string"
-      },
-      "default_max_context_chars": {
+      "provider_protocol_upper_bound": {
         "type": "integer"
       },
-      "default_min_score": {
-        "type": "number"
-      },
-      "default_top_k": {
+      "tool_continuation_input_reserve": {
         "type": "integer"
-      },
-      "description": {
+      }
+    },
+    "required": [
+      "context_window_tokens",
+      "effective_output_tokens",
+      "known_input_budget",
+      "known_input_upper_bound",
+      "policy_safety_margin",
+      "proof",
+      "provider_protocol_upper_bound",
+      "tool_continuation_input_reserve"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextAttachmentV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "etag": {
         "type": "string"
       },
-      "id": {
-        "type": "integer"
-      },
-      "name": {
+      "filename": {
         "type": "string"
       },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
+      "kind": {
         "type": "string"
       },
-      "updated_at": {
+      "mime_type": {
+        "type": "string"
+      },
+      "object_key": {
+        "type": "string"
+      },
+      "size": {
+        "type": "integer"
+      },
+      "url": {
         "type": "string"
       }
     },
     "required": [
-      "chunk_overlap_chars",
-      "chunk_size_chars",
-      "code",
-      "created_at",
-      "default_max_context_chars",
-      "default_min_score",
-      "default_top_k",
-      "description",
-      "id",
-      "name",
-      "status",
-      "status_name",
-      "updated_at"
+      "etag",
+      "filename",
+      "kind",
+      "mime_type",
+      "object_key",
+      "size"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_BaseDetailResponse_Output": {
+  "Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output": {
     "additionalProperties": false,
     "properties": {
-      "chunk_overlap_chars": {
-        "type": "integer"
+      "attachment": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextAttachmentV1_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
-      "chunk_size_chars": {
-        "type": "integer"
+      "document": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
-      "code": {
-        "type": "string"
+      "locator": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextLocatorV1_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
-      "created_at": {
-        "type": "string"
+      "retrieval": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
-      "default_max_context_chars": {
-        "type": "integer"
-      },
-      "default_min_score": {
-        "type": "number"
-      },
-      "default_top_k": {
-        "type": "integer"
-      },
-      "description": {
-        "type": "string"
-      },
-      "id": {
-        "type": "integer"
-      },
-      "name": {
-        "type": "string"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
-      },
-      "updated_at": {
+      "schema": {
         "type": "string"
       }
     },
     "required": [
-      "chunk_overlap_chars",
-      "chunk_size_chars",
-      "code",
-      "created_at",
-      "default_max_context_chars",
-      "default_min_score",
-      "default_top_k",
-      "description",
-      "id",
-      "name",
-      "status",
-      "status_name",
-      "updated_at"
+      "schema"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_BaseListResponse_Output": {
+  "Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output": {
     "additionalProperties": false,
     "properties": {
-      "list": {
+      "chunk_ids": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_BaseDTO_Output"
+          "type": "integer"
         },
         "type": "array"
-      },
-      "page": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_Page_Output"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_ChunkDTO_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "chunk_index": {
-        "type": "integer"
-      },
-      "content": {
-        "type": "string"
-      },
-      "content_chars": {
-        "type": "integer"
-      },
-      "created_at": {
-        "type": "string"
       },
       "document_id": {
         "type": "integer"
       },
-      "id": {
+      "document_version_id": {
         "type": "integer"
       },
-      "knowledge_base_id": {
-        "type": "integer"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
+      "locators": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextLocatorV1_Output"
+        },
+        "type": "array"
       },
       "title": {
-        "type": "string"
-      },
-      "updated_at": {
         "type": "string"
       }
     },
     "required": [
-      "chunk_index",
-      "content",
-      "content_chars",
-      "created_at",
+      "chunk_ids",
       "document_id",
-      "id",
-      "knowledge_base_id",
-      "status",
-      "status_name",
-      "title",
-      "updated_at"
+      "document_version_id",
+      "locators",
+      "title"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_ChunkListResponse_Output": {
+  "Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output": {
     "additionalProperties": false,
     "properties": {
-      "list": {
+      "budget": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_Budget_Output"
+      },
+      "excluded": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_ChunkDTO_Output"
-        },
-        "type": "array"
-      }
-    },
-    "required": [
-      "list"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_DocumentDTO_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "created_at": {
-        "type": "string"
-      },
-      "error_message": {
-        "type": "string"
-      },
-      "id": {
-        "type": "integer"
-      },
-      "index_status": {
-        "type": "string"
-      },
-      "index_status_name": {
-        "type": "string"
-      },
-      "knowledge_base_id": {
-        "type": "integer"
-      },
-      "last_indexed_at": {
-        "type": "string"
-      },
-      "source_ref": {
-        "type": "string"
-      },
-      "source_type": {
-        "type": "string"
-      },
-      "source_type_name": {
-        "type": "string"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
-      },
-      "title": {
-        "type": "string"
-      },
-      "updated_at": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "created_at",
-      "error_message",
-      "id",
-      "index_status",
-      "index_status_name",
-      "knowledge_base_id",
-      "last_indexed_at",
-      "source_ref",
-      "source_type",
-      "source_type_name",
-      "status",
-      "status_name",
-      "title",
-      "updated_at"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_DocumentDetailResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "content": {
-        "type": "string"
-      },
-      "created_at": {
-        "type": "string"
-      },
-      "error_message": {
-        "type": "string"
-      },
-      "id": {
-        "type": "integer"
-      },
-      "index_status": {
-        "type": "string"
-      },
-      "index_status_name": {
-        "type": "string"
-      },
-      "knowledge_base_id": {
-        "type": "integer"
-      },
-      "last_indexed_at": {
-        "type": "string"
-      },
-      "source_ref": {
-        "type": "string"
-      },
-      "source_type": {
-        "type": "string"
-      },
-      "source_type_name": {
-        "type": "string"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "status_name": {
-        "type": "string"
-      },
-      "title": {
-        "type": "string"
-      },
-      "updated_at": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "content",
-      "created_at",
-      "error_message",
-      "id",
-      "index_status",
-      "index_status_name",
-      "knowledge_base_id",
-      "last_indexed_at",
-      "source_ref",
-      "source_type",
-      "source_type_name",
-      "status",
-      "status_name",
-      "title",
-      "updated_at"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_DocumentListResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "list": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_DocumentDTO_Output"
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_EvaluationItemDTO_Output"
         },
         "type": "array"
       },
-      "page": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_Page_Output"
-      }
-    },
-    "required": [
-      "list",
-      "page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_InitDict_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "common_status_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_int_Output"
-        },
-        "type": "array"
+      "metrics": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextPlanMetricsV1_Output"
       },
-      "index_status_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
-        },
-        "type": "array"
-      },
-      "source_type_arr": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_shared_dict_Option_string_Output"
-        },
-        "type": "array"
-      }
-    },
-    "required": [
-      "common_status_arr",
-      "index_status_arr",
-      "source_type_arr"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_InitResponse_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "dict": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_InitDict_Output"
-      }
-    },
-    "required": [
-      "dict"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_KnowledgeBaseOption_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "default_max_context_chars": {
-        "type": "integer"
-      },
-      "default_min_score": {
-        "type": "number"
-      },
-      "default_top_k": {
-        "type": "integer"
-      },
-      "description": {
-        "type": "string"
-      },
-      "label": {
-        "type": "string"
-      },
-      "value": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "default_max_context_chars",
-      "default_min_score",
-      "default_top_k",
-      "description",
-      "label",
-      "value"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_Page_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "current_page": {
-        "type": "integer"
-      },
-      "page_size": {
-        "type": "integer"
-      },
-      "total": {
-        "type": "integer"
-      },
-      "total_page": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "current_page",
-      "page_size",
-      "total",
-      "total_page"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_RetrievalHit_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "chunk_id": {
-        "type": "integer"
-      },
-      "chunk_index": {
-        "type": "integer"
-      },
-      "content": {
-        "type": "string"
-      },
-      "content_chars": {
-        "type": "integer"
-      },
-      "document_id": {
-        "type": "integer"
-      },
-      "document_title": {
-        "type": "string"
-      },
-      "knowledge_base_id": {
-        "type": "integer"
-      },
-      "knowledge_base_name": {
-        "type": "string"
-      },
-      "rank_no": {
-        "type": "integer"
-      },
-      "score": {
-        "type": "number"
-      },
-      "skip_reason": {
-        "type": "string"
-      },
-      "status": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "chunk_id",
-      "chunk_index",
-      "content",
-      "content_chars",
-      "document_id",
-      "document_title",
-      "knowledge_base_id",
-      "knowledge_base_name",
-      "rank_no",
-      "score",
-      "skip_reason",
-      "status"
-    ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_knowledge_RetrievalResult_Output": {
-    "additionalProperties": false,
-    "properties": {
-      "hits": {
-        "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_RetrievalHit_Output"
-        },
-        "type": "array"
-      },
-      "query": {
+      "retrieval_outcome": {
         "type": "string"
       },
       "selected": {
         "items": {
-          "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_SelectedHit_Output"
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_EvaluationItemDTO_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "budget",
+      "excluded",
+      "metrics",
+      "retrieval_outcome",
+      "selected"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextLocatorV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "cell_end": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "cell_start": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "heading_path": {
+        "items": {
+          "type": "string"
         },
         "type": "array"
       },
-      "selected_hits": {
+      "kind": {
+        "type": "string"
+      },
+      "line_end": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "line_start": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "page": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "paragraph": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "row_end": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "row_start": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "schema": {
+        "type": "string"
+      },
+      "sheet": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "kind",
+      "schema"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextPlanMetricsV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "authorization_ms": {
+        "type": "integer"
+      },
+      "candidate_count": {
+        "type": "integer"
+      },
+      "conversation_ms": {
+        "type": "integer"
+      },
+      "packing_ms": {
+        "type": "integer"
+      },
+      "query_embedding_ms": {
+        "type": "integer"
+      },
+      "query_embedding_request_count": {
+        "type": "integer"
+      },
+      "query_input_tokens": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "rerank_input_tokens": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "rerank_ms": {
+        "type": "integer"
+      },
+      "rerank_request_count": {
+        "type": "integer"
+      },
+      "retrieval_ms": {
+        "type": "integer"
+      },
+      "schema": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextProfile_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "active_index_generation": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "created_at": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "created_by": {
+        "type": "integer"
+      },
+      "dense_distance": {
+        "type": "string"
+      },
+      "dense_min_score": {
+        "type": "string"
+      },
+      "embedding_dimensions": {
+        "type": "integer"
+      },
+      "embedding_max_input_tokens": {
+        "type": "integer"
+      },
+      "embedding_provider_model_id": {
+        "type": "integer"
+      },
+      "embedding_token_counter_id": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      },
+      "index_error_code": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "index_state": {
+        "type": "string"
+      },
+      "index_verified_at": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "memory_provider_model_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "name": {
+        "type": "string"
+      },
+      "reranker_min_score": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "reranker_provider_model_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "sparse_encoder": {
+        "type": "string"
+      },
+      "sparse_encoder_version": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "target_index_generation": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "updated_at": {
+        "format": "date-time",
+        "type": "string"
+      }
+    },
+    "required": [
+      "active_index_generation",
+      "created_at",
+      "created_by",
+      "dense_distance",
+      "dense_min_score",
+      "embedding_dimensions",
+      "embedding_max_input_tokens",
+      "embedding_provider_model_id",
+      "embedding_token_counter_id",
+      "id",
+      "index_error_code",
+      "index_state",
+      "index_verified_at",
+      "memory_provider_model_id",
+      "name",
+      "reranker_min_score",
+      "reranker_provider_model_id",
+      "sparse_encoder",
+      "sparse_encoder_version",
+      "status",
+      "target_index_generation",
+      "updated_at"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextSpace_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "created_at": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "created_by": {
+        "type": "integer"
+      },
+      "description": {
+        "type": "string"
+      },
+      "id": {
+        "type": "integer"
+      },
+      "name": {
+        "type": "string"
+      },
+      "platform": {
+        "type": "string"
+      },
+      "profile_id": {
         "type": "integer"
       },
       "status": {
         "type": "string"
       },
-      "total_hits": {
-        "type": "integer"
+      "updated_at": {
+        "format": "date-time",
+        "type": "string"
       }
     },
     "required": [
-      "hits",
-      "query",
-      "selected",
-      "selected_hits",
+      "created_at",
+      "created_by",
+      "description",
+      "id",
+      "name",
+      "platform",
+      "profile_id",
       "status",
-      "total_hits"
+      "updated_at"
     ],
     "type": "object"
   },
-  "Go_internal_module_ai_knowledge_SelectedHit_Output": {
+  "Go_internal_module_ai_contextengine_DocumentAdminDTO_Output": {
     "additionalProperties": false,
     "properties": {
-      "chunk_id": {
+      "active_version_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "conversation_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "id": {
         "type": "integer"
       },
-      "chunk_index": {
+      "profile_id": {
         "type": "integer"
       },
-      "content": {
+      "source_attachment_index": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "source_message_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "space_id": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "status": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "version": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentVersionDTO_Output"
+      }
+    },
+    "required": [
+      "id",
+      "profile_id",
+      "status",
+      "title",
+      "version"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_DocumentListResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "items"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_DocumentVersionDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "chunker_version": {
         "type": "string"
       },
       "document_id": {
         "type": "integer"
       },
-      "document_title": {
-        "type": "string"
-      },
-      "knowledge_base_id": {
+      "id": {
         "type": "integer"
       },
-      "knowledge_base_name": {
+      "parser_name": {
         "type": "string"
       },
-      "rank_no": {
+      "parser_version": {
+        "type": "string"
+      },
+      "profile_id": {
         "type": "integer"
       },
-      "ref": {
+      "source_etag": {
         "type": "string"
       },
-      "score": {
-        "type": "number"
+      "source_filename": {
+        "type": "string"
+      },
+      "source_mime_type": {
+        "type": "string"
+      },
+      "source_object_key": {
+        "type": "string"
+      },
+      "source_size_bytes": {
+        "type": "integer"
+      },
+      "source_storage_provider": {
+        "type": "string"
+      },
+      "state": {
+        "type": "string"
       }
     },
     "required": [
-      "chunk_id",
-      "chunk_index",
-      "content",
+      "chunker_version",
       "document_id",
-      "document_title",
-      "knowledge_base_id",
-      "knowledge_base_name",
-      "rank_no",
-      "ref",
-      "score"
+      "id",
+      "parser_name",
+      "parser_version",
+      "profile_id",
+      "source_etag",
+      "source_filename",
+      "source_mime_type",
+      "source_object_key",
+      "source_size_bytes",
+      "source_storage_provider",
+      "state"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_DocumentVersionListResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentVersionDTO_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "items"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_EvaluationItemDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "citation_key": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "decision": {
+        "type": "string"
+      },
+      "exclusion_reason": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "fusion_score": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "metadata": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output"
+      },
+      "ordinal": {
+        "type": "integer"
+      },
+      "rerank_score": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "source_ref": {
+        "type": "string"
+      },
+      "source_type": {
+        "type": "string"
+      },
+      "token_upper_bound": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "decision",
+      "metadata",
+      "ordinal",
+      "source_ref",
+      "source_type",
+      "token_upper_bound"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_FixedScore_Output": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ProfileListResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "items"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_RetrievalBranchV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "modality": {
+        "type": "string"
+      },
+      "rank": {
+        "type": "integer"
+      },
+      "score": {
+        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+      },
+      "variant_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "modality",
+      "rank",
+      "score",
+      "variant_id"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "branches": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_RetrievalBranchV1_Output"
+        },
+        "type": "array"
+      },
+      "schema": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "branches",
+      "schema"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_SpaceListResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextSpace_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "items"
     ],
     "type": "object"
   },
@@ -4484,6 +5220,9 @@ const contractSchemas = {
       },
       "review_after": {
         "type": "string"
+      },
+      "token_counter_id": {
+        "type": "string"
       }
     },
     "required": [
@@ -4503,7 +5242,8 @@ const contractSchemas = {
       "pricing_profile",
       "pricing_source_url",
       "retrieved_at",
-      "review_after"
+      "review_after",
+      "token_counter_id"
     ],
     "type": "object"
   },
@@ -4907,6 +5647,14 @@ const contractSchemas = {
       "model_id": {
         "type": "string"
       },
+      "model_kind": {
+        "enum": [
+          "chat",
+          "embedding",
+          "rerank"
+        ],
+        "type": "string"
+      },
       "official_catalog_version": {
         "type": "string"
       },
@@ -4933,6 +5681,7 @@ const contractSchemas = {
       "mapped_at",
       "mapping_status",
       "model_id",
+      "model_kind",
       "official_catalog_version",
       "official_model_id",
       "provider_id",
@@ -10168,6 +10917,78 @@ const contractSchemas = {
 } as const satisfies Readonly<Record<string, ContractSchema>>
 
 const responseDataSchemas = {
+  "ai_agent_context_profile_get": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_AgentContextProfileInput_Output"
+  },
+  "ai_agent_context_profile_update": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_AgentContextProfileInput_Output"
+  },
+  "ai_agent_context_spaces_get": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output"
+  },
+  "ai_agent_context_spaces_update": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_AgentContextSpacesInput_Output"
+  },
+  "ai_context_document_change_status": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+  },
+  "ai_context_document_create": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+  },
+  "ai_context_document_delete": {
+    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
+  },
+  "ai_context_document_get": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+  },
+  "ai_context_document_reindex": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+  },
+  "ai_context_document_version_create": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentAdminDTO_Output"
+  },
+  "ai_context_document_versions_list": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentVersionListResponse_Output"
+  },
+  "ai_context_evaluate": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output"
+  },
+  "ai_context_profile_change_status": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
+  },
+  "ai_context_profile_create": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
+  },
+  "ai_context_profile_get": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
+  },
+  "ai_context_profile_update_metadata": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
+  },
+  "ai_context_profiles_list": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ProfileListResponse_Output"
+  },
+  "ai_context_space_change_status": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextSpace_Output"
+  },
+  "ai_context_space_create": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextSpace_Output"
+  },
+  "ai_context_space_delete": {
+    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
+  },
+  "ai_context_space_documents_list": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_DocumentListResponse_Output"
+  },
+  "ai_context_space_get": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextSpace_Output"
+  },
+  "ai_context_space_update": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextSpace_Output"
+  },
+  "ai_context_spaces_list": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_SpaceListResponse_Output"
+  },
   "delete_api_admin_v1_ai_agents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -10178,12 +10999,6 @@ const responseDataSchemas = {
   },
   "delete_api_admin_v1_ai_conversations_id_messages": {
     "$ref": "#/components/schemas/AIMessageDeleteResult"
-  },
-  "delete_api_admin_v1_ai_knowledge_bases_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "delete_api_admin_v1_ai_knowledge_documents_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "delete_api_admin_v1_ai_official_models_model_id_price_override": {
     "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_MutationResponse_Output"
@@ -10314,9 +11129,6 @@ const responseDataSchemas = {
   "get_api_admin_v1_ai_agents_id": {
     "$ref": "#/components/schemas/Go_internal_module_ai_agent_DetailResponse_Output"
   },
-  "get_api_admin_v1_ai_agents_id_knowledge_bases": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output"
-  },
   "get_api_admin_v1_ai_agents_id_tools": {
     "$ref": "#/components/schemas/Go_internal_module_ai_tool_AgentToolsResponse_Output"
   },
@@ -10337,24 +11149,6 @@ const responseDataSchemas = {
   },
   "get_api_admin_v1_ai_conversations_id_messages": {
     "$ref": "#/components/schemas/AIMessageListResult"
-  },
-  "get_api_admin_v1_ai_knowledge_bases": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_BaseListResponse_Output"
-  },
-  "get_api_admin_v1_ai_knowledge_bases_id": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_BaseDetailResponse_Output"
-  },
-  "get_api_admin_v1_ai_knowledge_bases_id_documents": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_DocumentListResponse_Output"
-  },
-  "get_api_admin_v1_ai_knowledge_bases_page_init": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_InitResponse_Output"
-  },
-  "get_api_admin_v1_ai_knowledge_documents_id": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_DocumentDetailResponse_Output"
-  },
-  "get_api_admin_v1_ai_knowledge_documents_id_chunks": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_ChunkListResponse_Output"
   },
   "get_api_admin_v1_ai_official_models": {
     "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_ListResponse_Output"
@@ -10605,12 +11399,6 @@ const responseDataSchemas = {
   "patch_api_admin_v1_ai_agents_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "patch_api_admin_v1_ai_knowledge_bases_id_status": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "patch_api_admin_v1_ai_knowledge_documents_id_status": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "patch_api_admin_v1_ai_providers_id_status": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -10696,18 +11484,6 @@ const responseDataSchemas = {
   },
   "post_api_admin_v1_ai_conversations_id_messages_message_id_revisions": {
     "$ref": "#/components/schemas/AIMessageSendResult"
-  },
-  "post_api_admin_v1_ai_knowledge_bases": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
-  },
-  "post_api_admin_v1_ai_knowledge_bases_id_documents": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
-  },
-  "post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests": {
-    "$ref": "#/components/schemas/Go_internal_module_ai_knowledge_RetrievalResult_Output"
-  },
-  "post_api_admin_v1_ai_knowledge_documents_id_reindex": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "post_api_admin_v1_ai_providers": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_IDData_Output"
@@ -10851,9 +11627,6 @@ const responseDataSchemas = {
   "put_api_admin_v1_ai_agents_id": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
-  "put_api_admin_v1_ai_agents_id_knowledge_bases": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
   "put_api_admin_v1_ai_agents_id_tools": {
     "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
@@ -10864,12 +11637,6 @@ const responseDataSchemas = {
   },
   "put_api_admin_v1_ai_conversations_id_read_cursor": {
     "$ref": "#/components/schemas/AIConversationReadCursorResult"
-  },
-  "put_api_admin_v1_ai_knowledge_bases_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
-  },
-  "put_api_admin_v1_ai_knowledge_documents_id": {
-    "$ref": "#/components/schemas/Go_internal_server_adminroute_EmptyData_Output"
   },
   "put_api_admin_v1_ai_official_models_model_id_price": {
     "$ref": "#/components/schemas/Go_internal_module_ai_officialmodel_MutationResponse_Output"
@@ -10994,6 +11761,270 @@ function encode_post_api_admin_v1_payment_certificates_multipart(
 }
 
 export const adminOperations = {
+  "ai_agent_context_profile_get": defineOperation<AdminOperationInput<"ai_agent_context_profile_get">, AdminOperationOutput<"ai_agent_context_profile_get">>({
+    id: "ai_agent_context_profile_get",
+    method: "GET",
+    path: "/api/admin/v1/ai/agents/{id}/context-profile",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_agent_context_profile_get">>(responseDataSchemas["ai_agent_context_profile_get"]),
+    telemetryName: "admin.ai.agent.context.profile.get",
+    encode: (input) => input,
+  }),
+  "ai_agent_context_profile_update": defineOperation<AdminOperationInput<"ai_agent_context_profile_update">, AdminOperationOutput<"ai_agent_context_profile_update">>({
+    id: "ai_agent_context_profile_update",
+    method: "PUT",
+    path: "/api/admin/v1/ai/agents/{id}/context-profile",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_agent_context_profile_update">>(responseDataSchemas["ai_agent_context_profile_update"]),
+    telemetryName: "admin.ai.agent.context.profile.update",
+    encode: (input) => input,
+  }),
+  "ai_agent_context_spaces_get": defineOperation<AdminOperationInput<"ai_agent_context_spaces_get">, AdminOperationOutput<"ai_agent_context_spaces_get">>({
+    id: "ai_agent_context_spaces_get",
+    method: "GET",
+    path: "/api/admin/v1/ai/agents/{id}/context-spaces",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_agent_context_spaces_get">>(responseDataSchemas["ai_agent_context_spaces_get"]),
+    telemetryName: "admin.ai.agent.context.spaces.get",
+    encode: (input) => input,
+  }),
+  "ai_agent_context_spaces_update": defineOperation<AdminOperationInput<"ai_agent_context_spaces_update">, AdminOperationOutput<"ai_agent_context_spaces_update">>({
+    id: "ai_agent_context_spaces_update",
+    method: "PUT",
+    path: "/api/admin/v1/ai/agents/{id}/context-spaces",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_agent_context_spaces_update">>(responseDataSchemas["ai_agent_context_spaces_update"]),
+    telemetryName: "admin.ai.agent.context.spaces.update",
+    encode: (input) => input,
+  }),
+  "ai_context_document_change_status": defineOperation<AdminOperationInput<"ai_context_document_change_status">, AdminOperationOutput<"ai_context_document_change_status">>({
+    id: "ai_context_document_change_status",
+    method: "PATCH",
+    path: "/api/admin/v1/ai/context-documents/{id}/status",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_change_status">>(responseDataSchemas["ai_context_document_change_status"]),
+    telemetryName: "admin.ai.context.document.change.status",
+    encode: (input) => input,
+  }),
+  "ai_context_document_create": defineOperation<AdminOperationInput<"ai_context_document_create">, AdminOperationOutput<"ai_context_document_create">>({
+    id: "ai_context_document_create",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-spaces/{id}/documents",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_create">>(responseDataSchemas["ai_context_document_create"]),
+    telemetryName: "admin.ai.context.document.create",
+    encode: (input) => input,
+  }),
+  "ai_context_document_delete": defineOperation<AdminOperationInput<"ai_context_document_delete">, AdminOperationOutput<"ai_context_document_delete">>({
+    id: "ai_context_document_delete",
+    method: "DELETE",
+    path: "/api/admin/v1/ai/context-documents/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_delete">>(responseDataSchemas["ai_context_document_delete"]),
+    telemetryName: "admin.ai.context.document.delete",
+    encode: (input) => input,
+  }),
+  "ai_context_document_get": defineOperation<AdminOperationInput<"ai_context_document_get">, AdminOperationOutput<"ai_context_document_get">>({
+    id: "ai_context_document_get",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-documents/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_get">>(responseDataSchemas["ai_context_document_get"]),
+    telemetryName: "admin.ai.context.document.get",
+    encode: (input) => input,
+  }),
+  "ai_context_document_reindex": defineOperation<AdminOperationInput<"ai_context_document_reindex">, AdminOperationOutput<"ai_context_document_reindex">>({
+    id: "ai_context_document_reindex",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-documents/{id}/reindex",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_reindex">>(responseDataSchemas["ai_context_document_reindex"]),
+    telemetryName: "admin.ai.context.document.reindex",
+    encode: (input) => input,
+  }),
+  "ai_context_document_version_create": defineOperation<AdminOperationInput<"ai_context_document_version_create">, AdminOperationOutput<"ai_context_document_version_create">>({
+    id: "ai_context_document_version_create",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-documents/{id}/versions",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_version_create">>(responseDataSchemas["ai_context_document_version_create"]),
+    telemetryName: "admin.ai.context.document.version.create",
+    encode: (input) => input,
+  }),
+  "ai_context_document_versions_list": defineOperation<AdminOperationInput<"ai_context_document_versions_list">, AdminOperationOutput<"ai_context_document_versions_list">>({
+    id: "ai_context_document_versions_list",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-documents/{id}/versions",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_document_versions_list">>(responseDataSchemas["ai_context_document_versions_list"]),
+    telemetryName: "admin.ai.context.document.versions.list",
+    encode: (input) => input,
+  }),
+  "ai_context_evaluate": defineOperation<AdminOperationInput<"ai_context_evaluate">, AdminOperationOutput<"ai_context_evaluate">>({
+    id: "ai_context_evaluate",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-evaluations",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_evaluate">>(responseDataSchemas["ai_context_evaluate"]),
+    telemetryName: "admin.ai.context.evaluate",
+    encode: (input) => input,
+  }),
+  "ai_context_profile_change_status": defineOperation<AdminOperationInput<"ai_context_profile_change_status">, AdminOperationOutput<"ai_context_profile_change_status">>({
+    id: "ai_context_profile_change_status",
+    method: "PATCH",
+    path: "/api/admin/v1/ai/context-profiles/{id}/status",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_profile_change_status">>(responseDataSchemas["ai_context_profile_change_status"]),
+    telemetryName: "admin.ai.context.profile.change.status",
+    encode: (input) => input,
+  }),
+  "ai_context_profile_create": defineOperation<AdminOperationInput<"ai_context_profile_create">, AdminOperationOutput<"ai_context_profile_create">>({
+    id: "ai_context_profile_create",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-profiles",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_profile_create">>(responseDataSchemas["ai_context_profile_create"]),
+    telemetryName: "admin.ai.context.profile.create",
+    encode: (input) => input,
+  }),
+  "ai_context_profile_get": defineOperation<AdminOperationInput<"ai_context_profile_get">, AdminOperationOutput<"ai_context_profile_get">>({
+    id: "ai_context_profile_get",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-profiles/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_profile_get">>(responseDataSchemas["ai_context_profile_get"]),
+    telemetryName: "admin.ai.context.profile.get",
+    encode: (input) => input,
+  }),
+  "ai_context_profile_update_metadata": defineOperation<AdminOperationInput<"ai_context_profile_update_metadata">, AdminOperationOutput<"ai_context_profile_update_metadata">>({
+    id: "ai_context_profile_update_metadata",
+    method: "PUT",
+    path: "/api/admin/v1/ai/context-profiles/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_profile_update_metadata">>(responseDataSchemas["ai_context_profile_update_metadata"]),
+    telemetryName: "admin.ai.context.profile.update.metadata",
+    encode: (input) => input,
+  }),
+  "ai_context_profiles_list": defineOperation<AdminOperationInput<"ai_context_profiles_list">, AdminOperationOutput<"ai_context_profiles_list">>({
+    id: "ai_context_profiles_list",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-profiles",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_profiles_list">>(responseDataSchemas["ai_context_profiles_list"]),
+    telemetryName: "admin.ai.context.profiles.list",
+    encode: (input) => input,
+  }),
+  "ai_context_space_change_status": defineOperation<AdminOperationInput<"ai_context_space_change_status">, AdminOperationOutput<"ai_context_space_change_status">>({
+    id: "ai_context_space_change_status",
+    method: "PATCH",
+    path: "/api/admin/v1/ai/context-spaces/{id}/status",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_change_status">>(responseDataSchemas["ai_context_space_change_status"]),
+    telemetryName: "admin.ai.context.space.change.status",
+    encode: (input) => input,
+  }),
+  "ai_context_space_create": defineOperation<AdminOperationInput<"ai_context_space_create">, AdminOperationOutput<"ai_context_space_create">>({
+    id: "ai_context_space_create",
+    method: "POST",
+    path: "/api/admin/v1/ai/context-spaces",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_create">>(responseDataSchemas["ai_context_space_create"]),
+    telemetryName: "admin.ai.context.space.create",
+    encode: (input) => input,
+  }),
+  "ai_context_space_delete": defineOperation<AdminOperationInput<"ai_context_space_delete">, AdminOperationOutput<"ai_context_space_delete">>({
+    id: "ai_context_space_delete",
+    method: "DELETE",
+    path: "/api/admin/v1/ai/context-spaces/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_delete">>(responseDataSchemas["ai_context_space_delete"]),
+    telemetryName: "admin.ai.context.space.delete",
+    encode: (input) => input,
+  }),
+  "ai_context_space_documents_list": defineOperation<AdminOperationInput<"ai_context_space_documents_list">, AdminOperationOutput<"ai_context_space_documents_list">>({
+    id: "ai_context_space_documents_list",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-spaces/{id}/documents",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_documents_list">>(responseDataSchemas["ai_context_space_documents_list"]),
+    telemetryName: "admin.ai.context.space.documents.list",
+    encode: (input) => input,
+  }),
+  "ai_context_space_get": defineOperation<AdminOperationInput<"ai_context_space_get">, AdminOperationOutput<"ai_context_space_get">>({
+    id: "ai_context_space_get",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-spaces/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_get">>(responseDataSchemas["ai_context_space_get"]),
+    telemetryName: "admin.ai.context.space.get",
+    encode: (input) => input,
+  }),
+  "ai_context_space_update": defineOperation<AdminOperationInput<"ai_context_space_update">, AdminOperationOutput<"ai_context_space_update">>({
+    id: "ai_context_space_update",
+    method: "PUT",
+    path: "/api/admin/v1/ai/context-spaces/{id}",
+    auth: "required",
+    timeout: "interactive",
+    replay: "never",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_space_update">>(responseDataSchemas["ai_context_space_update"]),
+    telemetryName: "admin.ai.context.space.update",
+    encode: (input) => input,
+  }),
+  "ai_context_spaces_list": defineOperation<AdminOperationInput<"ai_context_spaces_list">, AdminOperationOutput<"ai_context_spaces_list">>({
+    id: "ai_context_spaces_list",
+    method: "GET",
+    path: "/api/admin/v1/ai/context-spaces",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_spaces_list">>(responseDataSchemas["ai_context_spaces_list"]),
+    telemetryName: "admin.ai.context.spaces.list",
+    encode: (input) => input,
+  }),
   "delete_api_admin_v1_ai_agents_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_agents_id">, AdminOperationOutput<"delete_api_admin_v1_ai_agents_id">>({
     id: "delete_api_admin_v1_ai_agents_id",
     method: "DELETE",
@@ -11025,28 +12056,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_conversations_id_messages">>(responseDataSchemas["delete_api_admin_v1_ai_conversations_id_messages"]),
     telemetryName: "admin.delete.api.admin.v1.ai.conversations.id.messages",
-    encode: (input) => input,
-  }),
-  "delete_api_admin_v1_ai_knowledge_bases_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_knowledge_bases_id">, AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_bases_id">>({
-    id: "delete_api_admin_v1_ai_knowledge_bases_id",
-    method: "DELETE",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_bases_id">>(responseDataSchemas["delete_api_admin_v1_ai_knowledge_bases_id"]),
-    telemetryName: "admin.delete.api.admin.v1.ai.knowledge.bases.id",
-    encode: (input) => input,
-  }),
-  "delete_api_admin_v1_ai_knowledge_documents_id": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_knowledge_documents_id">, AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_documents_id">>({
-    id: "delete_api_admin_v1_ai_knowledge_documents_id",
-    method: "DELETE",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"delete_api_admin_v1_ai_knowledge_documents_id">>(responseDataSchemas["delete_api_admin_v1_ai_knowledge_documents_id"]),
-    telemetryName: "admin.delete.api.admin.v1.ai.knowledge.documents.id",
     encode: (input) => input,
   }),
   "delete_api_admin_v1_ai_official_models_model_id_price_override": defineOperation<AdminOperationInput<"delete_api_admin_v1_ai_official_models_model_id_price_override">, AdminOperationOutput<"delete_api_admin_v1_ai_official_models_model_id_price_override">>({
@@ -11476,17 +12485,6 @@ export const adminOperations = {
     telemetryName: "admin.get.api.admin.v1.ai.agents.id",
     encode: (input) => input,
   }),
-  "get_api_admin_v1_ai_agents_id_knowledge_bases": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_agents_id_knowledge_bases">, AdminOperationOutput<"get_api_admin_v1_ai_agents_id_knowledge_bases">>({
-    id: "get_api_admin_v1_ai_agents_id_knowledge_bases",
-    method: "GET",
-    path: "/api/admin/v1/ai-agents/{id}/knowledge-bases",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_agents_id_knowledge_bases">>(responseDataSchemas["get_api_admin_v1_ai_agents_id_knowledge_bases"]),
-    telemetryName: "admin.get.api.admin.v1.ai.agents.id.knowledge.bases",
-    encode: (input) => input,
-  }),
   "get_api_admin_v1_ai_agents_id_tools": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_agents_id_tools">, AdminOperationOutput<"get_api_admin_v1_ai_agents_id_tools">>({
     id: "get_api_admin_v1_ai_agents_id_tools",
     method: "GET",
@@ -11561,71 +12559,6 @@ export const adminOperations = {
     replay: "safe",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_conversations_id_messages">>(responseDataSchemas["get_api_admin_v1_ai_conversations_id_messages"]),
     telemetryName: "admin.get.api.admin.v1.ai.conversations.id.messages",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_knowledge_bases": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_bases">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases">>({
-    id: "get_api_admin_v1_ai_knowledge_bases",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-bases",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_bases"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.bases",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_knowledge_bases_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_bases_id">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_id">>({
-    id: "get_api_admin_v1_ai_knowledge_bases_id",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_id">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_bases_id"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.bases.id",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_knowledge_bases_id_documents": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_bases_id_documents">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_id_documents">>({
-    id: "get_api_admin_v1_ai_knowledge_bases_id_documents",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}/documents",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_id_documents">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_bases_id_documents"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.bases.id.documents",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_knowledge_bases_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_bases_page_init">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_page_init">>({
-    id: "get_api_admin_v1_ai_knowledge_bases_page_init",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-bases/page-init",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_bases_page_init">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_bases_page_init"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.bases.page.init",
-  }),
-  "get_api_admin_v1_ai_knowledge_documents_id": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_documents_id">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_documents_id">>({
-    id: "get_api_admin_v1_ai_knowledge_documents_id",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_documents_id">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_documents_id"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.documents.id",
-    encode: (input) => input,
-  }),
-  "get_api_admin_v1_ai_knowledge_documents_id_chunks": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_knowledge_documents_id_chunks">, AdminOperationOutput<"get_api_admin_v1_ai_knowledge_documents_id_chunks">>({
-    id: "get_api_admin_v1_ai_knowledge_documents_id_chunks",
-    method: "GET",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}/chunks",
-    auth: "required",
-    timeout: "interactive",
-    replay: "safe",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_knowledge_documents_id_chunks">>(responseDataSchemas["get_api_admin_v1_ai_knowledge_documents_id_chunks"]),
-    telemetryName: "admin.get.api.admin.v1.ai.knowledge.documents.id.chunks",
     encode: (input) => input,
   }),
   "get_api_admin_v1_ai_official_models": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_official_models">, AdminOperationOutput<"get_api_admin_v1_ai_official_models">>({
@@ -12449,28 +13382,6 @@ export const adminOperations = {
     telemetryName: "admin.patch.api.admin.v1.ai.agents.id.status",
     encode: (input) => input,
   }),
-  "patch_api_admin_v1_ai_knowledge_bases_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_ai_knowledge_bases_id_status">, AdminOperationOutput<"patch_api_admin_v1_ai_knowledge_bases_id_status">>({
-    id: "patch_api_admin_v1_ai_knowledge_bases_id_status",
-    method: "PATCH",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}/status",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_ai_knowledge_bases_id_status">>(responseDataSchemas["patch_api_admin_v1_ai_knowledge_bases_id_status"]),
-    telemetryName: "admin.patch.api.admin.v1.ai.knowledge.bases.id.status",
-    encode: (input) => input,
-  }),
-  "patch_api_admin_v1_ai_knowledge_documents_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_ai_knowledge_documents_id_status">, AdminOperationOutput<"patch_api_admin_v1_ai_knowledge_documents_id_status">>({
-    id: "patch_api_admin_v1_ai_knowledge_documents_id_status",
-    method: "PATCH",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}/status",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"patch_api_admin_v1_ai_knowledge_documents_id_status">>(responseDataSchemas["patch_api_admin_v1_ai_knowledge_documents_id_status"]),
-    telemetryName: "admin.patch.api.admin.v1.ai.knowledge.documents.id.status",
-    encode: (input) => input,
-  }),
   "patch_api_admin_v1_ai_providers_id_status": defineOperation<AdminOperationInput<"patch_api_admin_v1_ai_providers_id_status">, AdminOperationOutput<"patch_api_admin_v1_ai_providers_id_status">>({
     id: "patch_api_admin_v1_ai_providers_id_status",
     method: "PATCH",
@@ -12755,50 +13666,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_conversations_id_messages_message_id_revisions">>(responseDataSchemas["post_api_admin_v1_ai_conversations_id_messages_message_id_revisions"]),
     telemetryName: "admin.post.api.admin.v1.ai.conversations.id.messages.message.id.revisions",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_ai_knowledge_bases": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_knowledge_bases">, AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases">>({
-    id: "post_api_admin_v1_ai_knowledge_bases",
-    method: "POST",
-    path: "/api/admin/v1/ai-knowledge-bases",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases">>(responseDataSchemas["post_api_admin_v1_ai_knowledge_bases"]),
-    telemetryName: "admin.post.api.admin.v1.ai.knowledge.bases",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_ai_knowledge_bases_id_documents": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_knowledge_bases_id_documents">, AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases_id_documents">>({
-    id: "post_api_admin_v1_ai_knowledge_bases_id_documents",
-    method: "POST",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}/documents",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases_id_documents">>(responseDataSchemas["post_api_admin_v1_ai_knowledge_bases_id_documents"]),
-    telemetryName: "admin.post.api.admin.v1.ai.knowledge.bases.id.documents",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests">, AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests">>({
-    id: "post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests",
-    method: "POST",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}/retrieval-tests",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests">>(responseDataSchemas["post_api_admin_v1_ai_knowledge_bases_id_retrieval_tests"]),
-    telemetryName: "admin.post.api.admin.v1.ai.knowledge.bases.id.retrieval.tests",
-    encode: (input) => input,
-  }),
-  "post_api_admin_v1_ai_knowledge_documents_id_reindex": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_knowledge_documents_id_reindex">, AdminOperationOutput<"post_api_admin_v1_ai_knowledge_documents_id_reindex">>({
-    id: "post_api_admin_v1_ai_knowledge_documents_id_reindex",
-    method: "POST",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}/reindex",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"post_api_admin_v1_ai_knowledge_documents_id_reindex">>(responseDataSchemas["post_api_admin_v1_ai_knowledge_documents_id_reindex"]),
-    telemetryName: "admin.post.api.admin.v1.ai.knowledge.documents.id.reindex",
     encode: (input) => input,
   }),
   "post_api_admin_v1_ai_providers": defineOperation<AdminOperationInput<"post_api_admin_v1_ai_providers">, AdminOperationOutput<"post_api_admin_v1_ai_providers">>({
@@ -13231,17 +14098,6 @@ export const adminOperations = {
     telemetryName: "admin.put.api.admin.v1.ai.agents.id",
     encode: (input) => input,
   }),
-  "put_api_admin_v1_ai_agents_id_knowledge_bases": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_agents_id_knowledge_bases">, AdminOperationOutput<"put_api_admin_v1_ai_agents_id_knowledge_bases">>({
-    id: "put_api_admin_v1_ai_agents_id_knowledge_bases",
-    method: "PUT",
-    path: "/api/admin/v1/ai-agents/{id}/knowledge-bases",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_agents_id_knowledge_bases">>(responseDataSchemas["put_api_admin_v1_ai_agents_id_knowledge_bases"]),
-    telemetryName: "admin.put.api.admin.v1.ai.agents.id.knowledge.bases",
-    encode: (input) => input,
-  }),
   "put_api_admin_v1_ai_agents_id_tools": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_agents_id_tools">, AdminOperationOutput<"put_api_admin_v1_ai_agents_id_tools">>({
     id: "put_api_admin_v1_ai_agents_id_tools",
     method: "PUT",
@@ -13273,28 +14129,6 @@ export const adminOperations = {
     replay: "never",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_conversations_id_read_cursor">>(responseDataSchemas["put_api_admin_v1_ai_conversations_id_read_cursor"]),
     telemetryName: "admin.put.api.admin.v1.ai.conversations.id.read.cursor",
-    encode: (input) => input,
-  }),
-  "put_api_admin_v1_ai_knowledge_bases_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_knowledge_bases_id">, AdminOperationOutput<"put_api_admin_v1_ai_knowledge_bases_id">>({
-    id: "put_api_admin_v1_ai_knowledge_bases_id",
-    method: "PUT",
-    path: "/api/admin/v1/ai-knowledge-bases/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_knowledge_bases_id">>(responseDataSchemas["put_api_admin_v1_ai_knowledge_bases_id"]),
-    telemetryName: "admin.put.api.admin.v1.ai.knowledge.bases.id",
-    encode: (input) => input,
-  }),
-  "put_api_admin_v1_ai_knowledge_documents_id": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_knowledge_documents_id">, AdminOperationOutput<"put_api_admin_v1_ai_knowledge_documents_id">>({
-    id: "put_api_admin_v1_ai_knowledge_documents_id",
-    method: "PUT",
-    path: "/api/admin/v1/ai-knowledge-documents/{id}",
-    auth: "required",
-    timeout: "interactive",
-    replay: "never",
-    responseSchema: schemaCompiler.compile<AdminOperationOutput<"put_api_admin_v1_ai_knowledge_documents_id">>(responseDataSchemas["put_api_admin_v1_ai_knowledge_documents_id"]),
-    telemetryName: "admin.put.api.admin.v1.ai.knowledge.documents.id",
     encode: (input) => input,
   }),
   "put_api_admin_v1_ai_official_models_model_id_price": defineOperation<AdminOperationInput<"put_api_admin_v1_ai_official_models_model_id_price">, AdminOperationOutput<"put_api_admin_v1_ai_official_models_model_id_price">>({

@@ -7,10 +7,8 @@ export interface RuntimeParameterDraft {
 
 export function createRuntimeParams(input: {
   temperature?: RuntimeParameterDraft
-  maxHistory?: RuntimeParameterDraft
 }): AIRuntimeParams {
   const result: AIRuntimeParams = {}
   if (input.temperature?.enabled) result.temperature = input.temperature.value
-  if (input.maxHistory?.enabled) result.max_history = input.maxHistory.value
   return result
 }

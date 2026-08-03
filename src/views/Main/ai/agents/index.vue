@@ -8,7 +8,7 @@ import { UpMedia } from '@/components/UpMedia'
 import { CommonEnum } from '@/enums'
 import { useUserStore } from '@/store/user'
 import AgentToolDialog from './components/AgentToolDialog/index.vue'
-import AgentKnowledgeDialog from './components/AgentKnowledgeDialog/index.vue'
+import AgentContextDialog from './components/AgentContextDialog.vue'
 import AgentOfficialModelSummary from './components/AgentOfficialModelSummary.vue'
 import { useAgentAdminPage } from './use-agent-admin-page'
 
@@ -19,10 +19,10 @@ const {
   listLoading, listData, page, onSearch, onPageChange, refresh, getList,
   confirmDel, toggleStatus, dialogVisible, dialogMode, form, rules,
   modelOptions, toolDialogVisible, toolAgent,
-  knowledgeDialogVisible, knowledgeAgent,
+  contextDialogVisible, contextAgent,
   selectedModel, displayedCatalogRates, onModelChange,
   selectedModelRequiresChange, modelCanUseTools,
-  add, edit, openTools, openKnowledge, testConnection, confirmSubmit, sceneText,
+  add, edit, openTools, openContext, testConnection, confirmSubmit, sceneText,
 } = useAgentAdminPage(formRef)
 </script>
 
@@ -108,9 +108,9 @@ const {
           <el-button
             type="success"
             text
-            @click="openKnowledge(row)"
+            @click="openContext(row)"
           >
-            {{ t('aiAgents.actions.knowledge') }}
+            {{ t('aiAgents.actions.context') }}
           </el-button>
           <el-button
             v-if="row.status === CommonEnum.NO"
@@ -321,9 +321,9 @@ const {
     @saved="getList"
   />
 
-  <AgentKnowledgeDialog
-    v-model="knowledgeDialogVisible"
-    :agent="knowledgeAgent"
+  <AgentContextDialog
+    v-model="contextDialogVisible"
+    :agent="contextAgent"
     @saved="getList"
   />
 </template>

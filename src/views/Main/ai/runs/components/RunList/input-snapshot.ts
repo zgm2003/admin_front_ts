@@ -8,7 +8,6 @@ export interface RunInputSnapshotAttachment {
 export interface RunInputSnapshotRuntimeParams {
   temperature?: number
   max_tokens?: number
-  max_history?: number
 }
 
 export type RunInputSnapshot =
@@ -23,7 +22,7 @@ export type RunInputSnapshot =
 const snapshotKeys = new Set(['content', 'attachments', 'runtime_params', 'meta_json', 'request_identity'])
 const metaKeys = new Set(['attachments', 'runtime_params'])
 const attachmentKeys = new Set(['type', 'object_key', 'mime_type', 'url', 'name', 'size'])
-const runtimeParamKeys = new Set(['temperature', 'max_tokens', 'max_history'])
+const runtimeParamKeys = new Set(['temperature', 'max_tokens'])
 const requestIdentityKeys = new Set(['operation', 'source_message_id'])
 
 export function parseRunInputSnapshot(text: string): RunInputSnapshot {
@@ -128,10 +127,6 @@ function parseRuntimeParams(
   if (hasOwn(params, 'max_tokens')) {
     if (!isIntegerInRange(params.max_tokens, 1, 200000)) return undefined
     runtimeParams.max_tokens = params.max_tokens
-  }
-  if (hasOwn(params, 'max_history')) {
-    if (!isIntegerInRange(params.max_history, 1, 50)) return undefined
-    runtimeParams.max_history = params.max_history
   }
   return runtimeParams
 }

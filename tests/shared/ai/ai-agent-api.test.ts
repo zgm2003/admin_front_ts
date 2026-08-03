@@ -10,7 +10,6 @@ const capabilities = {
   supports_streaming: true, supports_structured_output: false,
   runtime_parameters: {
     temperature: { supported: true, default: 1, min: 0, max: 2 },
-    max_history: { supported: true, default: 20, min: 1, max: 50, transitional: true },
   },
   attachments: {
     image: { enabled: true, mime_types: ['image/png'], max_files: 5, max_file_bytes: 10_485_760 },

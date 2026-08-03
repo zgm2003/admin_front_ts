@@ -1,4 +1,4 @@
-import type { AiMessageContentType, AiMessageMeta } from '@/api/ai/messages'
+import type { AiMessageContentType, AiMessageContext, AiMessageMeta } from '@/api/ai/messages'
 import type { AiAgentEffectiveCapabilities, AiAgentOfficialModelSummary } from '@/api/ai/agents'
 
 export interface Conversation {
@@ -20,6 +20,7 @@ export interface Message {
   created_at: string
   updated_at: string
   meta_json?: AiMessageMeta
+  context?: AiMessageContext | null
   paired_message_id: number | null
   run_id: number | null
   liked: boolean

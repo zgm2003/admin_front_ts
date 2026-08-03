@@ -44,10 +44,6 @@
       "replacement": "tests/shared/ai/ai-conversation-api.test.ts"
     },
     {
-      "source": "tests/shared/ai/ai-knowledge-api.test.ts",
-      "action": "delete"
-    },
-    {
       "source": "tests/shared/ai/ai-message-api.test.ts",
       "action": "delete"
     },

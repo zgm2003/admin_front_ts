@@ -24,7 +24,7 @@ vi.mock('@/components/Table', () => ({
 vi.mock('@/components/UpMedia', () => ({
   UpMedia: defineComponent({ setup: () => () => null }),
 }))
-vi.mock('@/views/Main/ai/agents/components/AgentKnowledgeDialog/index.vue', () => ({
+vi.mock('@/views/Main/ai/agents/components/AgentContextDialog.vue', () => ({
   default: defineComponent({ setup: () => () => null }),
 }))
 vi.mock('@/views/Main/ai/agents/components/AgentOfficialModelSummary.vue', () => ({
@@ -87,8 +87,8 @@ function pageState(systemPrompt: string) {
     modelOptions: ref([]),
     toolDialogVisible: ref(false),
     toolAgent: ref(null),
-    knowledgeDialogVisible: ref(false),
-    knowledgeAgent: ref(null),
+    contextDialogVisible: ref(false),
+    contextAgent: ref(null),
     selectedModel: ref(null),
     displayedCatalogRates: ref([]),
     onModelChange: noop,
@@ -97,7 +97,7 @@ function pageState(systemPrompt: string) {
     add: noop,
     edit: noop,
     openTools: noop,
-    openKnowledge: noop,
+    openContext: noop,
     testConnection: noop,
     confirmSubmit: noop,
     sceneText: () => '',
@@ -112,7 +112,7 @@ describe('agent system prompt editor', () => {
     const wrapper = mount(AgentPage, {
       global: {
         stubs: {
-          AgentKnowledgeDialog: true,
+          AgentContextDialog: true,
           AgentOfficialModelSummary: true,
           AgentToolDialog: true,
           AppDialog: PassThrough,

@@ -65,7 +65,6 @@ const capabilities: AiAgentEffectiveCapabilities = {
   supports_tools: false, supports_streaming: true, supports_structured_output: false,
   runtime_parameters: {
     temperature: { supported: true, default: 1, min: 0, max: 2 },
-    max_history: { supported: true, default: 20, min: 1, max: 50, transitional: true },
   },
   attachments: {
     max_attachments_per_message: 5,

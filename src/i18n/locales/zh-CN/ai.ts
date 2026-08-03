@@ -67,7 +67,7 @@ export default {
         sources: { official: '官方', override: '自定义' }
       },
       scene: { chat: '对话', agentGenerate: '工具生成', textGenerate: '文本生成', imageGenerate: '图片生成' },
-      actions: { test: '测试连接', tools: '工具配置', knowledge: '知识库' },
+      actions: { test: '测试连接', tools: '工具配置', context: '上下文配置' },
       tools: {
         title: '配置智能体工具',
         agent: '当前智能体',
@@ -78,19 +78,7 @@ export default {
         lowRiskOnly: '仅可绑定已启用的低风险工具',
         unsupported: '当前官方模型或渠道不支持工具调用'
       },
-      knowledge: {
-        title: '配置智能体知识库',
-        agent: '当前智能体',
-        addBinding: '添加知识库',
-        base: '知识库',
-        topK: 'TopK',
-        minScore: '最低分',
-        contextChars: '上下文字符',
-        status: '状态',
-        selectBase: '请选择知识库',
-        empty: '暂无知识库绑定',
-        saveNoPermission: '没有保存知识库绑定权限'
-      },
+      context: { title: '配置智能体上下文', agent: '当前智能体', profile: '索引配置', spaces: '上下文空间', pureChat: '纯对话（不启用上下文）', pureChatDescription: '该智能体只使用会话消息和附件，不进行文档检索。', selectSpaces: '选择可用空间', privateContext: '未绑定共享空间时仍保留该智能体的私有会话上下文。' },
       addTitle: '新增 AI 智能体',
       editTitle: '编辑 AI 智能体',
       testDone: '智能体连接测试完成'
@@ -275,8 +263,6 @@ export default {
       // 运行时参数
       runtimeParams: '参数设置',
       temperature: '温度',
-      maxHistory: '携带历史消息',
-      transitionalParam: '过渡设置',
       useDefault: '默认',
       capabilitySwitchTitle: '切换智能体',
       capabilitySwitchConfirm: '目标智能体与当前附件或温度设置不兼容。附件会保留并阻止发送，温度设置将重置。',
@@ -286,6 +272,7 @@ export default {
       // 工具调用
       toolCalling: '正在调用工具',
       toolDone: '工具调用完成',
+      citations: { title: '消息引用', outcome: '检索结果', cited: '正文已引用', unreferenced: '已选择但未引用', invalid: '无效引用键', empty: '本条消息没有引用来源' },
     },
   aiRuns: {
       feedback: {
@@ -376,7 +363,6 @@ export default {
         error: '错误信息',
         userMessage: '用户消息',
         assistantMessage: 'AI 回复',
-        knowledgeRetrievals: '知识库检索',
         toolCalls: '工具调用',
         toolArguments: '调用参数',
         toolResult: '调用结果',
@@ -412,6 +398,10 @@ export default {
         attemptState: '状态',
         usageStatus: '用量状态',
         providerRequestId: '上游 Request ID'
+      },
+      contextPlan: {
+        title: '上下文计划', outcome: '检索结果', state: '计划状态', budget: '输入预算 / 窗口', proof: '预算证明', decision: '决策', kind: '上下文类型', titleColumn: '标题', citation: '引用', score: '相关分', tokens: 'Token 上界', exclusion: '排除原因', unknownError: '上下文计划执行失败',
+        outcomes: { skipped: '已跳过', no_hit: '无命中', hit: '命中', failed: '失败' }, states: { ready: '就绪', failed: '失败' }, proofs: { exact: '精确', conservative: '保守上界', opaque_attachment: '不透明附件上界' }, decisions: { selected: '已选', excluded: '已排除' }
       },
       tabs: {
         list: '运行列表',

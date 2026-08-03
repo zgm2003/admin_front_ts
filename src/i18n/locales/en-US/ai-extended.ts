@@ -8,17 +8,17 @@ export default {
       addTitle: 'Add AI Tool',
       editTitle: 'Edit AI Tool'
     },
-  aiKnowledge: {
-      filter: { name: 'Knowledge Name', code: 'Knowledge Code', status: 'Status' },
-      nav: { title: 'Knowledge Bases', subtitle: 'Select a base, then manage documents, chunks, and retrieval on the right', total: '{count} knowledge bases', empty: 'No knowledge base', noDescription: 'No description', minScore: 'Min', more: 'More' },
-      table: { name: 'Knowledge', code: 'Code', description: 'Description', chunk: 'Chunk/Overlap', retrieval: 'Retrieval', status: 'Status', updatedAt: 'Updated At' },
-      actions: { reindex: 'Reindex', retrievalTest: 'Retrieval Test' },
-      initFailed: 'Failed to initialize knowledge module',
-      form: { name: 'Knowledge Name', code: 'Knowledge Code', description: 'Description', chunkSize: 'Chunk Chars', chunkOverlap: 'Overlap Chars', defaultTopK: 'Default TopK', defaultMinScore: 'Min Score', defaultContext: 'Context Chars', status: 'Status', chunkSizeRange: 'Chunk chars must be between 300 and 8000', topKRange: 'TopK must be between 1 and 20', minScoreRange: 'Min score must be between 0 and 100', contextRange: 'Context chars must be between 1000 and 30000', overlapLessThanSize: 'Overlap must be smaller than chunk size' },
-      document: { add: 'Add Document', edit: 'Edit Document', title: 'Document', selectBase: 'Select a knowledge base', selectBaseTip: 'Select a knowledge base from the left to manage documents', currentBase: 'Current Knowledge Base', sourceType: 'Source Type', sourceRef: 'Source Ref', content: 'Content', indexStatus: 'Index Status', error: 'Error', chunks: 'Chunks', reindexDone: 'Index rebuilt', chunkLoadFailed: 'Failed to load chunks' },
-      chunk: { index: 'Index', chars: 'Chars', content: 'Content' },
-      retrieval: { title: 'Knowledge Retrieval Test', query: 'Query', queryPlaceholder: 'Ask a question, e.g. what is the backend architecture?', queryRequired: 'Query is required', summary: 'Selected {selected} / total {total}', rank: 'Rank', score: 'Score', hitStatus: 'Hit Status', selected: 'Selected', skipped: 'Skipped' },
-      addTitle: 'Add Knowledge Base',
-      editTitle: 'Edit Knowledge Base'
-    }
+  aiContext: {
+    title: 'Context Engineering', subtitle: 'Manage index profiles, spaces, immutable document versions, and real context plans', contractMode: 'Closed contract',
+    tabs: { spaces: 'Spaces', documents: 'Documents', profiles: 'Index Profiles', evaluation: 'Evaluation' },
+    fields: { name: 'Name', title: 'Title', description: 'Description', status: 'Status', updatedAt: 'Updated At' },
+    status: { enabled: 'Enabled', disabled: 'Disabled', retired: 'Retired', provisioning: 'Provisioning', ready: 'Ready', rebuilding: 'Rebuilding', failed: 'Failed', queued: 'Queued', processing: 'Processing' },
+    empty: { spaces: 'No spaces for this profile', versions: 'No document versions', evaluation: 'Select an agent and enter a real query to evaluate' },
+    profile: { description: 'Index profiles define vector and rerank models. Policy fields stay read only after creation.', create: 'New Index Profile', rename: 'Rename Index Profile', embeddingModelID: 'Embedding Model ID', dimensions: 'Dimensions', maxInputTokens: 'Max Input Tokens', tokenCounter: 'Token Counter', distance: 'Distance', minScore: 'Dense Min Score', indexState: 'Index State', generation: 'Active Generation' },
+    space: { create: 'New Space', edit: 'Edit Space', selectProfile: 'Select index profile', confirmDelete: 'Deleting this space removes its document entry point. Continue?' },
+    document: { create: 'New Document', sourceFile: 'Source File', dropFile: 'Click or drag a file here', confirmDelete: 'Delete this document?', spaceSummary: '{count} documents' },
+    version: { create: 'Upload Version', history: 'Immutable Version History', state: 'Ingestion State' },
+    evaluation: { selectAgent: 'Select chat agent', query: 'Enter a real query to validate', run: 'Evaluate', outcome: 'Retrieval Outcome', inputBudget: 'Input Budget', selected: 'Selected', excluded: 'Excluded', sourceType: 'Source Type', source: 'Source', citation: 'Citation', tokens: 'Token Bound', decision: 'Decision', reason: 'Exclusion Reason' },
+    outcome: { skipped: 'Skipped', noHit: 'No Hit', hit: 'Hit', failed: 'Failed' }
+  }
 }

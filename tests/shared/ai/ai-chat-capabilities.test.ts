@@ -24,7 +24,6 @@ function capabilities(input: {
     supports_structured_output: false,
     runtime_parameters: {
       temperature: { supported: input.temperature ?? false, default: 1, min: 0, max: 2 },
-      max_history: { supported: true, default: 20, min: 1, max: 50, transitional: true },
     },
     attachments: {
       max_attachments_per_message: 5,
@@ -125,7 +124,7 @@ describe('AI chat effective capabilities', () => {
         type: 'image', object_key: 'ai_chat_attachments/input.png',
         url: 'https://files.example.test/input.png', mime_type: 'image/png', name: 'input.png', size: 4,
       }],
-      runtime_params: { temperature: 0.4, max_history: 8 },
+      runtime_params: { temperature: 0.4 },
     })
 
     expect(harness.requests[0]?.body).toEqual({
@@ -135,7 +134,7 @@ describe('AI chat effective capabilities', () => {
         type: 'image', object_key: 'ai_chat_attachments/input.png',
         url: 'https://files.example.test/input.png', mime_type: 'image/png', name: 'input.png', size: 4,
       }],
-      runtime_params: { temperature: 0.4, max_history: 8 },
+      runtime_params: { temperature: 0.4 },
     })
     expect(JSON.stringify(harness.requests[0]?.body)).not.toMatch(/max_tokens/)
   })

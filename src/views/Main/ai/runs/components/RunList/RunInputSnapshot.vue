@@ -21,7 +21,6 @@ const attachmentViews = computed(() => {
 const runtimeParamOrder: Array<keyof RunInputSnapshotRuntimeParams> = [
   'temperature',
   'max_tokens',
-  'max_history',
 ]
 const runtimeParamEntries = computed(() => {
   const view = snapshotView.value

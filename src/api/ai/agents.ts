@@ -143,43 +143,8 @@ export interface AiAgentCreateResponse { id: number }
 export type AiAgentTestResult = components['schemas']['Go_internal_infra_ai_TestConnectionResult_Output']
 export interface AiAgentToolBindingResponse { agent_id: number; tool_ids: number[]; active_tool_ids: number[] }
 
-export interface AiAgentKnowledgeBaseOption {
-  label: string
-  value: number
-  description: string
-  default_top_k: number
-  default_min_score: number
-  default_max_context_chars: number
-}
-
-export interface AiAgentKnowledgeBindingItem {
-  id?: number
-  knowledge_base_id: number
-  knowledge_base_name: string
-  top_k: number
-  min_score: number
-  max_context_chars: number
-  status: AiAgentStatus
-  status_name?: string
-}
-
-export interface AiAgentKnowledgeBindingResponse {
-  agent_id: number
-  bindings: AiAgentKnowledgeBindingItem[]
-  base_options: AiAgentKnowledgeBaseOption[]
-}
-
 export interface AiAgentUpdateToolsParams { agent_id: Id; tool_ids: Id[] }
 export interface AiAgentUpdateToolsBody { tool_ids: number[] }
-export interface AiAgentUpdateKnowledgeBasesParams { agent_id: Id; bindings: AiAgentKnowledgeBindingItem[] }
-export interface AiAgentKnowledgeBindingBodyItem {
-  knowledge_base_id: number
-  top_k: number
-  min_score: number
-  max_context_chars: number
-  status: AiAgentStatus
-}
-export interface AiAgentUpdateKnowledgeBasesBody { bindings: AiAgentKnowledgeBindingBodyItem[] }
 
 export function positiveID(value: Id | number, label: string): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) throw new Error(`${label} must be a positive integer`)
@@ -224,13 +189,6 @@ function normalizeToolIDs(values: Id[]): number[] {
   return Array.from(new Set(values.map((value) => positiveID(value, 'AI tool id')))).sort((left, right) => left - right)
 }
 
-function updateKnowledgeBasesBody(params: AiAgentUpdateKnowledgeBasesParams): AiAgentUpdateKnowledgeBasesBody {
-  return { bindings: params.bindings.map((item) => ({
-    knowledge_base_id: positiveID(item.knowledge_base_id, 'AI knowledge base id'),
-    top_k: item.top_k, min_score: item.min_score, max_context_chars: item.max_context_chars, status: item.status,
-  })) }
-}
-
 function isAgentScene(value: string): value is AiAgentScene {
   return value === 'chat' || value === 'agent_generate' || value === 'text_generate' || value === 'image_generate'
 }
@@ -259,16 +217,6 @@ function toAgentInit(response: AiAgentInitResponse): AiAgentInitResponse {
 
 function normalizeOption(item: RemoteAiAgentOption): AiAgentOption {
   return { ...item, description: item.system_prompt }
-}
-
-function toKnowledgeBindings(
-  response: components['schemas']['Go_internal_module_ai_knowledge_AgentKnowledgeBindingsResponse_Output'],
-): AiAgentKnowledgeBindingResponse {
-  const bindings = response.bindings.map((item) => {
-    if (!isAgentStatus(item.status)) throw new Error('AI agent knowledge binding status violates the contract')
-    return { ...item, status: item.status }
-  })
-  return { ...response, bindings }
 }
 
 const pageInit = async (options: ExecuteOptions = {}): Promise<AiAgentInitResponse> =>
@@ -308,17 +256,6 @@ export const AiAgentApi = {
   async updateTools(params: AiAgentUpdateToolsParams, options: ExecuteOptions = {}): Promise<void> {
     await executeAdminOperation(adminOperations.put_api_admin_v1_ai_agents_id_tools, {
       path: { id: positiveID(params.agent_id, 'AI agent id') }, body: { tool_ids: normalizeToolIDs(params.tool_ids) },
-    }, options)
-  },
-  knowledgeBases: async (params: { agent_id: Id }, options: ExecuteOptions = {}): Promise<AiAgentKnowledgeBindingResponse> => {
-    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_agents_id_knowledge_bases, {
-      path: { id: positiveID(params.agent_id, 'AI agent id') },
-    }, options)
-    return toKnowledgeBindings(response)
-  },
-  async updateKnowledgeBases(params: AiAgentUpdateKnowledgeBasesParams, options: ExecuteOptions = {}): Promise<void> {
-    await executeAdminOperation(adminOperations.put_api_admin_v1_ai_agents_id_knowledge_bases, {
-      path: { id: positiveID(params.agent_id, 'AI agent id') }, body: updateKnowledgeBasesBody(params),
     }, options)
   },
   create,
