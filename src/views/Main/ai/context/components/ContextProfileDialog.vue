@@ -15,7 +15,7 @@ const form = reactive<AiContextProfileCreateBody>({
   embedding_provider_model_id: 0,
   embedding_dimensions: 1536,
   embedding_max_input_tokens: 8191,
-  embedding_token_counter_id: 'cl100k_base',
+  embedding_token_counter_id: 'utf8_bytes_v1',
   dense_distance: 'cosine',
   dense_min_score: '0.200000',
   memory_provider_model_id: null,

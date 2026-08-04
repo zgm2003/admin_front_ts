@@ -88,7 +88,9 @@ const workspace = useContextWorkspace()
 
 <style scoped>
 .context-workspace {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
   padding: 20px 24px;
   background: var(--el-bg-color-page);
 }
