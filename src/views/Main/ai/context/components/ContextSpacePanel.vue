@@ -125,11 +125,14 @@ async function remove(row: AiContextSpace) {
           />
         </template>
       </el-table-column>
+      <template #empty>
+        <el-empty
+          data-test="context-spaces-empty"
+          :description="t('aiContext.empty.spaces')"
+          :image-size="96"
+        />
+      </template>
     </el-table>
-    <el-empty
-      v-if="!loading && spaces.length === 0"
-      :description="t('aiContext.empty.spaces')"
-    />
     <ContextSpaceDialog
       v-if="selectedProfileId !== null"
       v-model="dialogVisible"
