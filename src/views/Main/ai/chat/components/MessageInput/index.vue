@@ -63,11 +63,6 @@ function resetParams() {
   runtimeTemperature.value = temperatureDefault()
 }
 
-watch(() => [props.agentId, props.conversationId] as const, () => {
-  resetParams()
-  showParamsPanel.value = false
-})
-
 function adjustHeight() {
   const textarea = textareaRef.value
   if (!textarea) return
@@ -96,6 +91,12 @@ const {
   handleDragLeave,
   handleDrop,
 } = useAttachments(() => props.capabilities, () => Boolean(props.agentId) && !props.disabled)
+
+watch(() => [props.agentId, props.conversationId] as const, () => {
+  resetParams()
+  showParamsPanel.value = false
+  clearAttachments()
+})
 
 const attachmentBlockingMessage = computed(() => {
   switch (blockingReason.value) {

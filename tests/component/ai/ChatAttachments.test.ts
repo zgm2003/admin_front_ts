@@ -80,6 +80,16 @@ function uploadConfig(name: string) {
   }
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise
+    reject = rejectPromise
+  })
+  return { promise, resolve, reject }
+}
+
 function createHarness(agentCapabilities = capabilities()) {
   const scope = effectScope()
   const state = scope.run(() => useAttachments(() => agentCapabilities, () => true))
@@ -155,8 +165,147 @@ describe('AI chat attachments', () => {
     })
     expect(mocks.getUploadToken).toHaveBeenCalledWith(expect.objectContaining({
       folderName: 'ai_chat_attachments', fileKind: 'file', fileName: 'report.pdf',
-    }))
+    }), expect.any(AbortSignal))
     scope.stop()
+  })
+
+  it('does not start the cloud upload when a removed attachment receives a late token', async () => {
+    const token = deferred<ReturnType<typeof uploadConfig>>()
+    mocks.getUploadToken.mockReturnValueOnce(token.promise)
+    const { scope, state } = createHarness()
+    const adding = state.addFiles([
+      new File(['pdf'], 'removed.pdf', { type: 'application/pdf', lastModified: 1 }),
+    ])
+    await vi.waitFor(() => expect(mocks.getUploadToken).toHaveBeenCalledOnce())
+
+    const signal = mocks.getUploadToken.mock.calls[0]?.[1] as AbortSignal
+    state.removeAttachment(state.pendingAttachments.value[0]!.id)
+    expect(signal.aborted).toBe(true)
+    token.resolve(uploadConfig('removed.pdf'))
+    await adding
+
+    expect(state.pendingAttachments.value).toHaveLength(0)
+    expect(mocks.uploadFileToCloud).not.toHaveBeenCalled()
+    expect(mocks.error).not.toHaveBeenCalled()
+    scope.stop()
+  })
+
+  it('does not restore an attachment when a cleared cloud upload completes late', async () => {
+    const uploaded = deferred<{ url: string; key: string }>()
+    mocks.uploadFileToCloud.mockReturnValueOnce(uploaded.promise)
+    const { scope, state } = createHarness()
+    const adding = state.addFiles([
+      new File(['pdf'], 'cleared.pdf', { type: 'application/pdf', lastModified: 1 }),
+    ])
+    await vi.waitFor(() => expect(mocks.uploadFileToCloud).toHaveBeenCalledOnce())
+
+    const signal = mocks.uploadFileToCloud.mock.calls[0]?.[2] as AbortSignal
+    state.clearAttachments()
+    expect(signal.aborted).toBe(true)
+    uploaded.resolve({
+      url: 'https://files.example.test/cleared.pdf',
+      key: 'ai_chat_attachments/cleared.pdf',
+    })
+    await adding
+
+    expect(state.pendingAttachments.value).toHaveLength(0)
+    expect(mocks.error).not.toHaveBeenCalled()
+    scope.stop()
+  })
+
+  it('keeps seeded attachments isolated from an older upload generation', async () => {
+    const uploaded = deferred<{ url: string; key: string }>()
+    mocks.uploadFileToCloud.mockReturnValueOnce(uploaded.promise)
+    const { scope, state } = createHarness()
+    const adding = state.addFiles([
+      new File(['old'], 'old.pdf', { type: 'application/pdf', lastModified: 1 }),
+    ])
+    await vi.waitFor(() => expect(mocks.uploadFileToCloud).toHaveBeenCalledOnce())
+    const signal = mocks.uploadFileToCloud.mock.calls[0]?.[2] as AbortSignal
+
+    state.seedAttachments([{
+      type: 'file',
+      object_key: 'ai_chat_attachments/current.pdf',
+      url: 'https://files.example.test/current.pdf',
+      mime_type: 'application/pdf',
+      name: 'current.pdf',
+      size: 7,
+    }])
+    expect(signal.aborted).toBe(true)
+    uploaded.resolve({
+      url: 'https://files.example.test/old.pdf',
+      key: 'ai_chat_attachments/old.pdf',
+    })
+    await adding
+
+    expect(state.pendingAttachments.value).toHaveLength(1)
+    expect(state.pendingAttachments.value[0]).toMatchObject({
+      name: 'current.pdf',
+      objectKey: 'ai_chat_attachments/current.pdf',
+      status: 'uploaded',
+    })
+    expect(mocks.error).not.toHaveBeenCalled()
+    scope.stop()
+  })
+
+  it('does not report an upload error when removal aborts the request', async () => {
+    mocks.uploadFileToCloud.mockImplementation((
+      _file: File,
+      _config: ReturnType<typeof uploadConfig>,
+      signal: AbortSignal,
+    ) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => {
+        reject(new DOMException('Upload aborted', 'AbortError'))
+      }, { once: true })
+    }))
+    const { scope, state } = createHarness()
+    const adding = state.addFiles([
+      new File(['pdf'], 'cancelled.pdf', { type: 'application/pdf', lastModified: 1 }),
+    ])
+    await vi.waitFor(() => expect(mocks.uploadFileToCloud).toHaveBeenCalledOnce())
+
+    state.removeAttachment(state.pendingAttachments.value[0]!.id)
+    await adding
+
+    expect(state.pendingAttachments.value).toHaveLength(0)
+    expect(mocks.error).not.toHaveBeenCalled()
+    scope.stop()
+  })
+
+  it('cancels and clears an in-flight upload when the composer conversation changes', async () => {
+    const uploaded = deferred<{ url: string; key: string }>()
+    mocks.uploadFileToCloud.mockReturnValueOnce(uploaded.promise)
+    const wrapper = mount(MessageInput, {
+      props: { sending: false, agentId: 7, conversationId: 11, capabilities: capabilities() },
+      global: {
+        stubs: {
+          ElButton: ButtonStub,
+          ElIcon: { template: '<i><slot /></i>' },
+          ElPopover: { template: '<div><slot name="reference" /></div>' },
+          ElTooltip: { template: '<span><slot /></span>' },
+          RuntimeParamsPanel: true,
+        },
+      },
+    })
+    await wrapper.trigger('drop', {
+      dataTransfer: fileTransfer([
+        new File(['pdf'], 'old-conversation.pdf', { type: 'application/pdf', lastModified: 1 }),
+      ]),
+    })
+    await vi.waitFor(() => expect(mocks.uploadFileToCloud).toHaveBeenCalledOnce())
+
+    const signal = mocks.uploadFileToCloud.mock.calls[0]?.[2] as AbortSignal
+    await wrapper.setProps({ conversationId: 12 })
+    expect(signal.aborted).toBe(true)
+    expect(wrapper.find('[data-attachment-kind="file"]').exists()).toBe(false)
+
+    uploaded.resolve({
+      url: 'https://files.example.test/old-conversation.pdf',
+      key: 'ai_chat_attachments/old-conversation.pdf',
+    })
+    await flushPromises()
+    expect(wrapper.find('[data-attachment-kind="file"]').exists()).toBe(false)
+    expect(mocks.error).not.toHaveBeenCalled()
   })
 
   it('does not consume a plain text paste', () => {

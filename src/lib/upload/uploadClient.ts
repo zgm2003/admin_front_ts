@@ -17,9 +17,16 @@ interface CosAuthorization {
 
 interface CosClient {
   putObject(
-    params: { Bucket: string; Region: string; Key: string; Body: File },
+    params: {
+      Bucket: string
+      Region: string
+      Key: string
+      Body: File
+      onTaskReady?: (taskId: string) => void
+    },
     callback: (error: Error | null, data?: { ETag?: string }) => void
   ): void
+  cancelTask(taskId: string): void
 }
 
 type CosConstructor = new (options: {
@@ -43,8 +50,11 @@ export type UploadTokenParams = UploadTokenRequest | LegacyUploadTokenRequest
 const loadCOS = () => import('cos-js-sdk-v5/index.js').then(module => module.default as CosConstructor)
 const t = i18n.global.t
 
-export const getUploadToken = (params: UploadTokenParams): Promise<UploadTokenResponse> => {
-  return UploadTokenApi.create(normalizeTokenRequest(params))
+export const getUploadToken = (
+  params: UploadTokenParams,
+  signal?: AbortSignal,
+): Promise<UploadTokenResponse> => {
+  return UploadTokenApi.create(normalizeTokenRequest(params), { signal })
 }
 
 export const validateFile = (file: File, config: UploadConfig, type: UploadFileKind = 'image') => {
@@ -67,22 +77,26 @@ export const validateFile = (file: File, config: UploadConfig, type: UploadFileK
 
 export const uploadFileToCloud = async (
   file: File,
-  config: UploadConfig
+  config: UploadConfig,
+  signal?: AbortSignal,
 ): Promise<{ url: string; key: string; etag?: string }> => {
   if (config.provider !== 'cos') {
     throw new Error(t('uploadRuntime.ossUnsupported'))
   }
 
-  return uploadToCos(file, config.key, config)
+  return uploadToCos(file, config.key, config, signal)
 }
 
 const uploadToCos = async (
   file: File,
   key: string,
-  config: UploadConfig
+  config: UploadConfig,
+  signal?: AbortSignal,
 ): Promise<{ url: string; key: string; etag?: string }> => {
   const { credentials, bucket, region } = config
+  throwIfAborted(signal)
   const COS = await loadCOS()
+  throwIfAborted(signal)
 
   const cos = new COS({
     getAuthorization(_options: unknown, callback: (authorization: CosAuthorization) => void) {
@@ -97,16 +111,57 @@ const uploadToCos = async (
   })
 
   return new Promise((resolve, reject) => {
-    cos.putObject({ Bucket: bucket, Region: region, Key: key, Body: file }, (error: Error | null, data) => {
-      if (error) {
-        reject(error)
-        return
-      }
+    let taskId: string | undefined
+    let settled = false
 
-      const url = buildPublicFileURL(config.bucket_domain, bucket, region, key)
-      resolve({ url, key, etag: data?.ETag })
-    })
+    const finish = (complete: () => void) => {
+      if (settled) return
+      settled = true
+      signal?.removeEventListener('abort', handleAbort)
+      complete()
+    }
+    const handleAbort = () => {
+      if (taskId) cos.cancelTask(taskId)
+      finish(() => reject(uploadAbortedError()))
+    }
+
+    if (signal?.aborted) {
+      handleAbort()
+      return
+    }
+    signal?.addEventListener('abort', handleAbort, { once: true })
+
+    try {
+      cos.putObject({
+        Bucket: bucket,
+        Region: region,
+        Key: key,
+        Body: file,
+        onTaskReady(readyTaskId) {
+          taskId = readyTaskId
+          if (signal?.aborted) cos.cancelTask(readyTaskId)
+        },
+      }, (error: Error | null, data) => {
+        if (error) {
+          finish(() => reject(error))
+          return
+        }
+
+        const url = buildPublicFileURL(config.bucket_domain, bucket, region, key)
+        finish(() => resolve({ url, key, etag: data?.ETag }))
+      })
+    } catch (error) {
+      finish(() => reject(error))
+    }
   })
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) throw uploadAbortedError()
+}
+
+function uploadAbortedError() {
+  return new DOMException('Upload aborted', 'AbortError')
 }
 
 function normalizeTokenRequest(params: UploadTokenParams): UploadTokenRequest {

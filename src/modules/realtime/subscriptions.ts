@@ -18,6 +18,13 @@ export type RealtimeHandler<K extends RealtimeEventType> = (
 
 type AnyRealtimeHandler = (envelope: ServerEnvelope) => void | Promise<void>
 
+export class RealtimeHandlerError extends AggregateError {
+  constructor(errors: readonly unknown[]) {
+    super(errors, 'realtime handler failed')
+    this.name = 'RealtimeHandlerError'
+  }
+}
+
 export class RealtimeSubscriptions {
   private readonly handlers = new Map<RealtimeEventType, Set<AnyRealtimeHandler>>()
   private readonly onHandlerError: (error: unknown) => void
@@ -42,13 +49,15 @@ export class RealtimeSubscriptions {
 
   async publish<K extends RealtimeEventType>(envelope: Envelope<K>): Promise<void> {
     const handlers = [...(this.handlers.get(envelope.type) ?? [])]
-    await Promise.all(handlers.map(async (handler) => {
-      try {
-        await handler(envelope as ServerEnvelope)
-      } catch (error) {
-        this.onHandlerError(error)
-      }
-    }))
+    if (handlers.length === 0) return
+    const results = await Promise.allSettled(
+      handlers.map((handler) => Promise.resolve().then(() => handler(envelope as ServerEnvelope))),
+    )
+    const errors = results
+      .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      .map((result) => result.reason as unknown)
+    for (const error of errors) this.onHandlerError(error)
+    if (errors.length > 0) throw new RealtimeHandlerError(errors)
   }
 
   clear(): void {
@@ -198,14 +207,17 @@ export class EventIdLRU {
     return this.values.size
   }
 
-  accept(eventId: string): boolean {
-    if (this.values.has(eventId)) return false
+  has(eventId: string): boolean {
+    return this.values.has(eventId)
+  }
+
+  remember(eventId: string): void {
+    if (this.values.has(eventId)) return
     this.values.set(eventId, true)
     if (this.values.size > this.limit) {
       const oldest = this.values.keys().next().value
       if (oldest !== undefined) this.values.delete(oldest)
     }
-    return true
   }
 
   clear(): void {

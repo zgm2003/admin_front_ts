@@ -6,7 +6,6 @@ import {
   createClientEnvelope,
   isDurableEnvelope,
   parseServerEnvelope,
-  type Envelope,
   type RealtimeEventType,
   type ServerEnvelope,
 } from './protocol'
@@ -15,6 +14,7 @@ import {
   identityTopics,
   RecoveryRegistry,
   RealtimeControlChannel,
+  RealtimeHandlerError,
   RealtimeSubscriptions,
   SubscriptionRegistry,
   type RealtimeHandler,
@@ -39,17 +39,7 @@ import type { RealtimeConnection, RealtimeTransport } from './transport'
 const CONTROL_BUFFER_LIMIT = 32
 const DEDUPE_LIMIT = 512
 
-export { realtimeCursorCodec } from './cursor'
-export { computeReconnectDelay } from './policy'
-export type {
-  RealtimeAvailability,
-  RealtimeClientOptions,
-  RealtimeClock,
-  RealtimeIdentity,
-  RealtimeRecoveryContext,
-  RealtimeRecoveryHandler,
-  RealtimeState,
-} from './policy'
+export * from './public'
 
 export class RealtimeClient {
   readonly state: RealtimeStateRef
@@ -264,18 +254,18 @@ export class RealtimeClient {
 
   private handleMessage(payload: string, generation: number, connection: RealtimeConnection): void {
     this.messageTail = this.messageTail.then(async () => {
-      if (generation !== this.generation) return
+      if (!this.isCurrentConnection(connection, generation)) return
       try {
         const decoded: unknown = JSON.parse(payload)
         const envelope = parseServerEnvelope(decoded)
         await this.processEnvelope(envelope, generation, connection)
       } catch (error) {
         if (error instanceof PersistenceError) {
-          this.controls.close(this.connection)
-          this.connection = null
-          this.mutableState.value = { kind: 'failed', error }
+          if (this.dropCurrentConnection(connection, generation)) {
+            this.mutableState.value = { kind: 'failed', error }
+          }
         }
-        this.onProtocolError(error)
+        if (!(error instanceof RealtimeHandlerError)) this.onProtocolError(error)
       }
     })
   }
@@ -285,11 +275,11 @@ export class RealtimeClient {
     generation: number,
     connection: RealtimeConnection,
   ): Promise<void> {
-    if (generation !== this.generation || !this.identity) return
+    if (!this.isCurrentConnection(connection, generation) || !this.identity) return
     if (envelope.type !== 'realtime.connected.v1' && !this.authenticatedConnections.has(connection)) {
       throw new TypeError('realtime domain events require a completed connected handshake')
     }
-    if (!this.deduplicatedEventIds.accept(envelope.event_id)) return
+    if (this.deduplicatedEventIds.has(envelope.event_id)) return
 
     if (envelope.type === 'realtime.connected.v1') {
       if (envelope.data.user_id !== this.identity.userId || envelope.data.platform !== this.identity.platform) {
@@ -310,11 +300,15 @@ export class RealtimeClient {
       }))
       this.controls.flush()
       await this.eventSubscriptions.publish(envelope)
+      if (!this.isCurrentConnection(connection, generation)) return
+      this.deduplicatedEventIds.remember(envelope.event_id)
       return
     }
 
     if (envelope.type === 'realtime.error.v1') {
       await this.eventSubscriptions.publish(envelope)
+      if (!this.isCurrentConnection(connection, generation)) return
+      this.deduplicatedEventIds.remember(envelope.event_id)
       return
     }
 
@@ -326,39 +320,60 @@ export class RealtimeClient {
       let recoveredCursor: number
       try {
         recoveredCursor = this.recover ? await this.recover(recoveryContext) : await this.recoveryHandlers.recover(recoveryContext)
-        if (generation !== this.generation || recoveryContext.signal.aborted) return
+        if (!this.isCurrentConnection(connection, generation) || recoveryContext.signal.aborted) return
         if (!Number.isSafeInteger(recoveredCursor)
           || recoveredCursor < this.cursorStore.current
           || recoveredCursor > envelope.data.latest_sequence) {
           throw new TypeError('authoritative realtime recovery returned an invalid cursor')
         }
       } catch (error) {
-        this.controls.close(this.connection)
-        this.connection = null
-        this.reconnect.schedule()
+        if (this.dropCurrentConnection(connection, generation)) this.reconnect.schedule()
         throw error
       }
       this.cursorStore.set(recoveredCursor)
       await this.eventSubscriptions.publish(envelope)
+      if (!this.isCurrentConnection(connection, generation)) return
+      this.deduplicatedEventIds.remember(envelope.event_id)
       return
     }
 
     if (isDurableEnvelope(envelope)) {
       if (envelope.sequence <= this.cursorStore.current) return
-      await this.eventSubscriptions.publish(envelope)
-      if (generation !== this.generation) return
+      try {
+        await this.eventSubscriptions.publish(envelope)
+      } catch (error) {
+        if (this.dropCurrentConnection(connection, generation)) this.reconnect.schedule()
+        throw error
+      }
+      if (!this.isCurrentConnection(connection, generation)) return
       this.cursorStore.set(envelope.sequence)
+      this.deduplicatedEventIds.remember(envelope.event_id)
       return
     }
 
     await this.eventSubscriptions.publish(envelope)
+    if (!this.isCurrentConnection(connection, generation)) return
+    this.deduplicatedEventIds.remember(envelope.event_id)
   }
 
   private handleClose(connection: RealtimeConnection, generation: number): void {
     if (generation !== this.generation || this.connection !== connection) return
     this.connection = null
     this.controls.detach()
+    this.messageTail = Promise.resolve()
     this.reconnect.schedule()
+  }
+
+  private isCurrentConnection(connection: RealtimeConnection, generation: number): boolean {
+    return generation === this.generation && this.connection === connection
+  }
+
+  private dropCurrentConnection(connection: RealtimeConnection, generation: number): boolean {
+    if (!this.isCurrentConnection(connection, generation)) return false
+    this.connection = null
+    this.controls.close(connection)
+    this.messageTail = Promise.resolve()
+    return true
   }
 
   private sendCurrentTopics(): void {
@@ -368,5 +383,3 @@ export class RealtimeClient {
     this.controls.sendImmediate(createClientEnvelope('realtime.subscribe.v1', { topics }))
   }
 }
-
-export type { Envelope }

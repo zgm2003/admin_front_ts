@@ -1,222 +1,37 @@
-import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, onScopeDispose, ref, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElNotification } from 'element-plus'
 import { getUploadToken, uploadFileToCloud, validateFile, type UploadConfig } from '@/lib/upload'
 import type { AiAgentEffectiveCapabilities } from '@/api/ai/agents'
-import type { AiChatAttachment, AiMessageAttachmentRequest } from '@/api/ai/messages'
+import {
+  attachmentBlockingReason,
+  createImagePreview,
+  disabledCapabilities,
+  generateAttachmentId,
+  isCompletedAttachment,
+  revokeImagePreview,
+  selectAttachmentFiles,
+} from './attachment-files'
+import type {
+  Attachment,
+  AttachmentSelectionResult,
+  PendingAttachment,
+  SeededAttachment,
+} from './attachment-files'
 
-export type AttachmentKind = 'image' | 'file'
-export type AttachmentStatus = 'queued' | 'uploading' | 'uploaded' | 'failed' | 'retrying'
+export { attachmentIdentity, selectAttachmentFiles } from './attachment-files'
+export type {
+  Attachment,
+  AttachmentKind,
+  AttachmentSelectionResult,
+  AttachmentStatus,
+  PendingAttachment,
+  SeededAttachment,
+} from './attachment-files'
 
-export interface Attachment {
-  request: AiMessageAttachmentRequest
-  preview: AiChatAttachment
-}
-
-export interface PendingAttachment {
-  id: string
-  identity: string
-  kind: AttachmentKind
-  file: File
-  name: string
-  mimeType: string
-  size: number
-  preview?: string
-  status: AttachmentStatus
-  url?: string
-  objectKey?: string
-  error?: string
-}
-
-type CompletedAttachment = PendingAttachment & {
-  status: 'uploaded'
-  url: string
-  objectKey: string
-}
-
-function isCompletedAttachment(item: PendingAttachment): item is CompletedAttachment {
-  return item.status === 'uploaded' && Boolean(item.url) && Boolean(item.objectKey)
-}
-
-export interface SeededAttachment {
-  type: AttachmentKind
-  object_key: string
-  url: string
-  mime_type?: string
-  name: string
-  size: number
-}
-
-interface SelectionRejections {
-  unsupported: number
-  tooLarge: number
-  limit: number
-  duplicate: number
-  totalSize: number
-}
-
-interface SelectedFile {
-  file: File
-  kind: AttachmentKind
-  identity: string
-}
-
-export interface AttachmentSelectionResult {
-  accepted: SelectedFile[]
-  rejected: SelectionRejections
-}
-
-const disabledCapabilities: AiAgentEffectiveCapabilities['attachments'] = {
-  max_attachments_per_message: 0,
-  max_message_attachment_bytes: 0,
-  image: { enabled: false, mime_types: [], max_files: 0, max_file_bytes: 0 },
-  native_file: {
-    enabled: false,
-    disabled_reason: 'official_model_unsupported',
-    max_files_per_message: 0,
-    max_file_bytes_exclusive: 0,
-    max_request_file_bytes: 0,
-    accepted_extensions: [],
-  },
-}
-
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
-
-export const attachmentIdentity = (file: File) => (
-  [file.name, file.size, file.lastModified, file.type].join('\u0000')
-)
-
-function extension(name: string) {
-  const index = name.lastIndexOf('.')
-  return index > -1 ? name.slice(index + 1).toLowerCase() : ''
-}
-
-function classifyFile(
-  file: File,
-  capabilities: AiAgentEffectiveCapabilities['attachments'],
-): AttachmentKind | undefined {
-  if (file.type.startsWith('image/')) {
-    return capabilities.image.enabled && capabilities.image.mime_types.includes(file.type)
-      ? 'image'
-      : undefined
-  }
-  const ext = extension(file.name)
-  return capabilities.native_file.enabled
-    && ext.length > 0
-    && capabilities.native_file.accepted_extensions.includes(ext)
-    ? 'file'
-    : undefined
-}
-
-export function selectAttachmentFiles(
-  files: readonly File[],
-  capabilities: AiAgentEffectiveCapabilities['attachments'],
-  existing: readonly PendingAttachment[],
-): AttachmentSelectionResult {
-  const accepted: SelectedFile[] = []
-  const rejected: SelectionRejections = {
-    unsupported: 0,
-    tooLarge: 0,
-    limit: 0,
-    duplicate: 0,
-    totalSize: 0,
-  }
-  const identities = new Set(existing.map((item) => item.identity))
-  let imageCount = existing.filter((item) => item.kind === 'image').length
-  let nativeFileCount = existing.filter((item) => item.kind === 'file').length
-  let totalBytes = existing.reduce((sum, item) => sum + item.size, 0)
-
-  for (const file of files) {
-    const identity = attachmentIdentity(file)
-    if (identities.has(identity)) {
-      rejected.duplicate += 1
-      continue
-    }
-    const kind = classifyFile(file, capabilities)
-    if (!kind) {
-      rejected.unsupported += 1
-      continue
-    }
-    const tooLarge = kind === 'image'
-      ? file.size > capabilities.image.max_file_bytes
-      : file.size >= capabilities.native_file.max_file_bytes_exclusive
-    if (tooLarge) {
-      rejected.tooLarge += 1
-      continue
-    }
-    if (existing.length + accepted.length >= capabilities.max_attachments_per_message
-      || (kind === 'image' && imageCount >= capabilities.image.max_files)
-      || (kind === 'file' && nativeFileCount >= capabilities.native_file.max_files_per_message)) {
-      rejected.limit += 1
-      continue
-    }
-    if (file.size > capabilities.max_message_attachment_bytes - totalBytes) {
-      rejected.totalSize += 1
-      continue
-    }
-    identities.add(identity)
-    accepted.push({ file, kind, identity })
-    totalBytes += file.size
-    if (kind === 'image') imageCount += 1
-    else nativeFileCount += 1
-  }
-  return { accepted, rejected }
-}
-
-function createImagePreview(file: File): Promise<string> {
-  if (typeof URL.createObjectURL === 'function') return Promise.resolve(URL.createObjectURL(file))
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = (event) => resolve(String(event.target?.result ?? ''))
-    reader.readAsDataURL(file)
-  })
-}
-
-function revokeImagePreview(value?: string) {
-  if (value?.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') {
-    URL.revokeObjectURL(value)
-  }
-}
-
-function isCompatible(
-  item: PendingAttachment,
-  capabilities: AiAgentEffectiveCapabilities['attachments'],
-  index: number,
-  items: readonly PendingAttachment[],
-) {
-  if (items.length > capabilities.max_attachments_per_message) return false
-  const total = items.reduce((sum, candidate) => sum + candidate.size, 0)
-  if (total > capabilities.max_message_attachment_bytes) return false
-  if (item.kind === 'image') {
-    const imageIndex = items.slice(0, index + 1).filter((candidate) => candidate.kind === 'image').length
-    return capabilities.image.enabled
-      && capabilities.image.mime_types.includes(item.mimeType)
-      && item.size <= capabilities.image.max_file_bytes
-      && imageIndex <= capabilities.image.max_files
-  }
-  return capabilities.native_file.enabled
-    && capabilities.native_file.accepted_extensions.includes(extension(item.name))
-    && item.size < capabilities.native_file.max_file_bytes_exclusive
-    && items.slice(0, index + 1).filter((candidate) => candidate.kind === 'file').length
-      <= capabilities.native_file.max_files_per_message
-}
-
-function attachmentBlockingReason(
-  items: readonly PendingAttachment[],
-  capabilities: AiAgentEffectiveCapabilities['attachments'],
-) {
-  if (items.length > capabilities.max_attachments_per_message) return 'too_many'
-  const total = items.reduce((sum, item) => sum + item.size, 0)
-  if (total > capabilities.max_message_attachment_bytes) return 'message_total_too_large'
-  for (let index = 0; index < items.length; index += 1) {
-    const item = items[index]!
-    if (isCompatible(item, capabilities, index, items)) continue
-    if (item.kind === 'file' && !capabilities.native_file.enabled) {
-      return capabilities.native_file.disabled_reason || 'official_model_unsupported'
-    }
-    return item.kind === 'image' ? 'image_unsupported' : 'type_unsupported'
-  }
-  return ''
+interface UploadAttempt {
+  generation: number
+  controller: AbortController
 }
 
 export function useAttachments(
@@ -227,6 +42,8 @@ export function useAttachments(
   const fileInputRef = ref<HTMLInputElement>()
   const pendingAttachments = ref<PendingAttachment[]>([])
   const isDragging = ref(false)
+  const uploadAttempts = new Map<string, UploadAttempt>()
+  let generation = 0
   const attachmentCapabilities = computed(() => toValue(capabilities)?.attachments ?? disabledCapabilities)
   const isEnabled = computed(() => Boolean(toValue(enabled)))
   const supportsAttachments = computed(() => (
@@ -265,9 +82,43 @@ export function useAttachments(
     fileInputRef.value = element as HTMLInputElement | undefined
   }
 
+  function startUploadAttempt(id: string): UploadAttempt {
+    uploadAttempts.get(id)?.controller.abort()
+    const attempt = {
+      generation,
+      controller: new AbortController(),
+    }
+    uploadAttempts.set(id, attempt)
+    return attempt
+  }
+
+  function currentUploadItem(id: string, attempt: UploadAttempt) {
+    if (attempt.generation !== generation
+      || attempt.controller.signal.aborted
+      || uploadAttempts.get(id) !== attempt) {
+      return undefined
+    }
+    return pendingAttachments.value.find((attachment) => attachment.id === id)
+  }
+
+  function cancelUpload(id: string) {
+    const attempt = uploadAttempts.get(id)
+    if (!attempt) return
+    uploadAttempts.delete(id)
+    attempt.controller.abort()
+  }
+
+  function cancelAllUploads() {
+    generation += 1
+    const attempts = Array.from(uploadAttempts.values())
+    uploadAttempts.clear()
+    attempts.forEach((attempt) => attempt.controller.abort())
+  }
+
   async function uploadAttachment(id: string, retry = false) {
     const item = pendingAttachments.value.find((attachment) => attachment.id === id)
     if (!item) return
+    const attempt = startUploadAttempt(id)
     item.status = retry ? 'retrying' : 'uploading'
     item.error = undefined
     let config: UploadConfig
@@ -277,16 +128,24 @@ export function useAttachments(
         fileName: item.file.name,
         fileSize: item.file.size,
         fileKind: item.kind,
-      })
-      validateFile(item.file, config, item.kind)
-      const result = await uploadFileToCloud(item.file, config)
-      item.url = result.url
-      item.objectKey = result.key
-      item.status = 'uploaded'
+      }, attempt.controller.signal)
+      const tokenOwner = currentUploadItem(id, attempt)
+      if (!tokenOwner) return
+      validateFile(tokenOwner.file, config, tokenOwner.kind)
+      const result = await uploadFileToCloud(tokenOwner.file, config, attempt.controller.signal)
+      const uploadOwner = currentUploadItem(id, attempt)
+      if (!uploadOwner) return
+      uploadOwner.url = result.url
+      uploadOwner.objectKey = result.key
+      uploadOwner.status = 'uploaded'
     } catch {
-      item.status = 'failed'
-      item.error = t('aiChat.uploadFailed')
-      ElNotification.error({ message: item.error })
+      const failureOwner = currentUploadItem(id, attempt)
+      if (!failureOwner) return
+      failureOwner.status = 'failed'
+      failureOwner.error = t('aiChat.uploadFailed')
+      ElNotification.error({ message: failureOwner.error })
+    } finally {
+      if (uploadAttempts.get(id) === attempt) uploadAttempts.delete(id)
     }
   }
 
@@ -311,19 +170,30 @@ export function useAttachments(
       pendingAttachments.value,
     )
     notifySelection(result)
+    const selectionGeneration = generation
     const additions: PendingAttachment[] = []
     for (const candidate of result.accepted) {
+      const preview = candidate.kind === 'image' ? await createImagePreview(candidate.file) : undefined
+      if (selectionGeneration !== generation) {
+        revokeImagePreview(preview)
+        additions.forEach((item) => revokeImagePreview(item.preview))
+        return
+      }
       additions.push({
-        id: generateId(),
+        id: generateAttachmentId(),
         identity: candidate.identity,
         kind: candidate.kind,
         file: candidate.file,
         name: candidate.file.name,
         mimeType: candidate.file.type || 'application/octet-stream',
         size: candidate.file.size,
-        preview: candidate.kind === 'image' ? await createImagePreview(candidate.file) : undefined,
+        preview,
         status: 'queued',
       })
+    }
+    if (selectionGeneration !== generation) {
+      additions.forEach((item) => revokeImagePreview(item.preview))
+      return
     }
     pendingAttachments.value.push(...additions)
     await Promise.all(additions.map((item) => uploadAttachment(item.id)))
@@ -341,15 +211,20 @@ export function useAttachments(
   function removeAttachment(id: string) {
     const index = pendingAttachments.value.findIndex((attachment) => attachment.id === id)
     if (index < 0) return
+    cancelUpload(id)
     revokeImagePreview(pendingAttachments.value[index]?.preview)
     pendingAttachments.value.splice(index, 1)
   }
 
   function clearAttachments(ids?: readonly string[]) {
     const removed = ids ? new Set(ids) : undefined
+    if (!removed) cancelAllUploads()
     const kept: PendingAttachment[] = []
     for (const item of pendingAttachments.value) {
-      if (!removed || removed.has(item.id)) revokeImagePreview(item.preview)
+      if (!removed || removed.has(item.id)) {
+        if (removed) cancelUpload(item.id)
+        revokeImagePreview(item.preview)
+      }
       else kept.push(item)
     }
     pendingAttachments.value = kept
@@ -391,7 +266,7 @@ export function useAttachments(
   function seedAttachments(items: readonly SeededAttachment[]) {
     clearAttachments()
     pendingAttachments.value = items.map((item) => ({
-      id: generateId(),
+      id: generateAttachmentId(),
       identity: `${item.type}\u0000${item.object_key}\u0000${item.name}\u0000${item.size}`,
       kind: item.type,
       file: new File([], item.name, { type: item.mime_type ?? 'application/octet-stream' }),
@@ -427,6 +302,8 @@ export function useAttachments(
         },
       }))
   }
+
+  onScopeDispose(cancelAllUploads)
 
   return {
     setFileInputRef,

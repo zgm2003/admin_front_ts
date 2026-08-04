@@ -36,9 +36,10 @@ describe('SubscriptionRegistry', () => {
 
   it('bounds the event-id LRU to 512 entries', () => {
     const eventIds = new EventIdLRU(512)
-    for (let index = 0; index < 513; index++) eventIds.accept(String(index))
+    for (let index = 0; index < 513; index++) eventIds.remember(String(index))
     expect(eventIds.size).toBe(512)
-    expect(eventIds.accept('512')).toBe(false)
+    expect(eventIds.has('512')).toBe(true)
+    expect(eventIds.has('0')).toBe(false)
     eventIds.clear()
     expect(eventIds.size).toBe(0)
   })
@@ -60,7 +61,7 @@ describe('SubscriptionRegistry', () => {
 })
 
 describe('realtime subscription delivery', () => {
-  it('publishes to exact handlers, isolates errors, and unsubscribes cleanly', async () => {
+  it('runs every exact handler and rejects when any authoritative handler fails', async () => {
     const onError = vi.fn()
     const subscriptions = new RealtimeSubscriptions(onError)
     const received = vi.fn()
@@ -82,14 +83,14 @@ describe('realtime subscription delivery', () => {
       },
     }
 
-    await subscriptions.publish(envelope)
+    await expect(subscriptions.publish(envelope)).rejects.toThrow(/handler failed/i)
     expect(received).toHaveBeenCalledWith(envelope)
     expect(onError).toHaveBeenCalledTimes(1)
 
     release()
     release()
     subscriptions.clear()
-    await subscriptions.publish(envelope)
+    await expect(subscriptions.publish(envelope)).resolves.toBeUndefined()
     expect(received).toHaveBeenCalledTimes(1)
   })
 
