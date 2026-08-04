@@ -148,6 +148,8 @@ describe('accessible application layout', () => {
   it('keeps focus, reduced-motion, contrast, and forced-color rules explicit', () => {
     const stylesheet = readFileSync(resolve(process.cwd(), 'src/style.css'), 'utf8')
     expect(stylesheet).toContain(':focus-visible')
+    expect(stylesheet).toContain('[tabindex]:not(.el-tabs__item)')
+    expect(stylesheet).not.toMatch(/^\s*\.el-tabs__item:focus-visible/gm)
     expect(stylesheet).toContain('@media (prefers-reduced-motion: reduce)')
     expect(stylesheet).toContain('@media (prefers-contrast: more)')
     expect(stylesheet).toContain('@media (forced-colors: active)')

@@ -151,7 +151,7 @@ video {
   font-weight: 500;
 }
 
-:where(a, button, input, textarea, select, [role='button'], [tabindex]):focus-visible,
+:where(a, button, input, textarea, select, [role='button'], [tabindex]:not(.el-tabs__item)):focus-visible,
 .el-button:focus-visible {
   outline: 3px solid var(--shell-focus-ring);
   outline-offset: 2px;
@@ -253,7 +253,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     --app-link-hover-color: LinkText;
   }
 
-  :where(a, button, input, textarea, select, [role='button'], [tabindex]):focus-visible,
+  :where(a, button, input, textarea, select, [role='button'], [tabindex]:not(.el-tabs__item)):focus-visible,
   .el-button:focus-visible {
     outline-color: Highlight;
   }
