@@ -1,12 +1,14 @@
-import type {
-  ClientControlType,
-  ClientEnvelope,
-  Envelope,
-  RealtimeEventMap,
-  RealtimeEventType,
-  ServerEnvelope,
+import {
+  createClientEnvelope,
+  type ClientControlType,
+  type ClientEnvelope,
+  type Envelope,
+  type RealtimeEventMap,
+  type RealtimeEventType,
+  type ServerEnvelope,
 } from './protocol'
 import type {
+  RealtimeIdentity,
   RealtimeRecoveryContext,
   RealtimeRecoveryHandler,
 } from './policy'
@@ -18,10 +20,13 @@ export type RealtimeHandler<K extends RealtimeEventType> = (
 
 type AnyRealtimeHandler = (envelope: ServerEnvelope) => void | Promise<void>
 
-export class RealtimeHandlerError extends AggregateError {
+export class RealtimeHandlerError extends Error {
+  readonly errors: readonly unknown[]
+
   constructor(errors: readonly unknown[]) {
-    super(errors, 'realtime handler failed')
+    super('realtime handler failed')
     this.name = 'RealtimeHandlerError'
+    this.errors = [...errors]
   }
 }
 
@@ -193,6 +198,18 @@ export class RealtimeControlChannel {
     this.detach()
     this.buffer.clear()
   }
+}
+
+export function sendRealtimeTopics(
+  controls: RealtimeControlChannel,
+  registeredTopics: readonly string[],
+  identity: RealtimeIdentity | null,
+  ready: boolean,
+): void {
+  if (!ready) return
+  const topics = identityTopics(registeredTopics, identity)
+  if (topics.length === 0) return
+  controls.sendImmediate(createClientEnvelope('realtime.subscribe.v1', { topics }))
 }
 
 export class EventIdLRU {

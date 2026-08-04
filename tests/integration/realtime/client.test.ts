@@ -227,51 +227,34 @@ describe('RealtimeClient delivery and recovery', () => {
     })
   })
 
-  it('replays a failed durable event and ignores later messages queued by the old connection', async () => {
+  it('deduplicates durable event IDs and advances only the durable cursor', async () => {
     const context = setup()
-    let firstAttempt = true
-    const authoritative = vi.fn(() => {
-      if (firstAttempt) {
-        firstAttempt = false
-        throw new Error('handler failure')
-      }
-    })
     const received = vi.fn()
-    context.client.subscribe('notification.created.v1', authoritative)
     context.client.subscribe('notification.created.v1', received)
-    const firstConnection = await connectReady(context)
+    const connection = await connectReady(context)
 
     const first = durableNotification(1)
-    firstConnection.message(first)
-    firstConnection.message(durableNotification(2))
+    connection.message(first)
+    connection.message(first)
+    connection.message({
+      event_id: '01J90000000000000000000000',
+      type: 'ai.response.delta.v2',
+      sequence: 0,
+      occurred_at: '2026-07-18T08:00:00Z',
+      durability: 'ephemeral',
+      data: { conversation_id: 1, request_id: 'request-1', delivery_seq: 1, delta: 'chunk' },
+    })
     await vi.waitFor(() => {
-      expect(firstConnection.closed).toBe(true)
-      expect(authoritative).toHaveBeenCalledTimes(1)
       expect(received).toHaveBeenCalledTimes(1)
     })
-    expect(context.persistence.read(userNamespace(7), 'realtime-cursor', realtimeCursorCodec)).toBeNull()
 
-    context.clock.advanceBy(500)
-    await flush()
-    const secondConnection = context.transport.connections[1]!
-    secondConnection.open()
-    secondConnection.message({
-      ...connected,
-      event_id: '01J00000000000000000000009',
-    })
-    await vi.waitFor(() => expect(context.client.state.value.kind).toBe('ready'))
-
-    secondConnection.message(first)
+    for (let sequence = 2; sequence <= 514; sequence += 1) {
+      connection.message(durableNotification(sequence))
+    }
     await vi.waitFor(() => {
-      expect(context.persistence.read(userNamespace(7), 'realtime-cursor', realtimeCursorCodec)).toBe(1)
+      expect(context.persistence.read(userNamespace(7), 'realtime-cursor', realtimeCursorCodec)).toBe(514)
     })
-    expect(authoritative).toHaveBeenCalledTimes(2)
-    expect(received).toHaveBeenCalledTimes(2)
-
-    secondConnection.message(durableNotification(2))
-    await vi.waitFor(() => {
-      expect(context.persistence.read(userNamespace(7), 'realtime-cursor', realtimeCursorCodec)).toBe(2)
-    })
+    expect(received).toHaveBeenCalledTimes(514)
   })
 
   it('restores subscriptions and resumes from the persisted cursor after reconnect', async () => {

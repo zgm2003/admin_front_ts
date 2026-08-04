@@ -11,11 +11,11 @@ import {
 } from './protocol'
 import {
   EventIdLRU,
-  identityTopics,
   RecoveryRegistry,
   RealtimeControlChannel,
   RealtimeHandlerError,
   RealtimeSubscriptions,
+  sendRealtimeTopics,
   SubscriptionRegistry,
   type RealtimeHandler,
 } from './subscriptions'
@@ -36,8 +36,7 @@ import {
 } from './policy'
 import type { RealtimeConnection, RealtimeTransport } from './transport'
 
-const CONTROL_BUFFER_LIMIT = 32
-const DEDUPE_LIMIT = 512
+const realtimeLimits = { controlBuffer: 32, dedupe: 512 } as const
 
 export * from './public'
 
@@ -56,7 +55,7 @@ export class RealtimeClient {
   private readonly eventSubscriptions: RealtimeSubscriptions
   private readonly topicRegistry: SubscriptionRegistry
   private readonly controls: RealtimeControlChannel
-  private readonly deduplicatedEventIds = new EventIdLRU(DEDUPE_LIMIT)
+  private readonly deduplicatedEventIds = new EventIdLRU(realtimeLimits.dedupe)
   private readonly recoveryHandlers = new RecoveryRegistry()
   private readonly authenticatedConnections = new WeakSet<RealtimeConnection>()
 
@@ -69,6 +68,7 @@ export class RealtimeClient {
   private generation = 0
   private messageTail: Promise<void> = Promise.resolve()
   private disposed = false
+  private readonly sendCurrentTopics = () => sendRealtimeTopics(this.controls, this.topicRegistry.topics(), this.identity, this.mutableState.value.kind === 'ready')
 
   constructor(options: RealtimeClientOptions) {
     if (!Number.isSafeInteger(options.maxPermanentAuthAttempts ?? 3)
@@ -85,7 +85,7 @@ export class RealtimeClient {
     this.recover = options.recover
     this.maxPermanentAuthAttempts = options.maxPermanentAuthAttempts ?? 3
     this.onProtocolError = options.onProtocolError ?? (() => undefined)
-    this.controls = new RealtimeControlChannel(CONTROL_BUFFER_LIMIT, this.onProtocolError)
+    this.controls = new RealtimeControlChannel(realtimeLimits.controlBuffer, this.onProtocolError)
     this.eventSubscriptions = new RealtimeSubscriptions(this.onProtocolError)
     this.topicRegistry = new SubscriptionRegistry(() => this.sendCurrentTopics())
     this.state = readonly(this.mutableState)
@@ -376,10 +376,4 @@ export class RealtimeClient {
     return true
   }
 
-  private sendCurrentTopics(): void {
-    if (this.mutableState.value.kind !== 'ready') return
-    const topics = identityTopics(this.topicRegistry.topics(), this.identity)
-    if (topics.length === 0) return
-    this.controls.sendImmediate(createClientEnvelope('realtime.subscribe.v1', { topics }))
-  }
 }
