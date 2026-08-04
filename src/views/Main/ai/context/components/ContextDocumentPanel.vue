@@ -116,7 +116,7 @@ async function remove(row: AiContextDocument) {
               text
               @click.stop="toggle(row)"
             >
-              {{ row.status === 'enabled' ? t('common.status.disable') : t('common.status.enable') }}
+              {{ row.status === 'enabled' ? t('common.actions.disable') : t('common.actions.enable') }}
             </el-button>
             <el-button
               text
@@ -148,11 +148,14 @@ async function remove(row: AiContextDocument) {
             class="version-row"
             type="button"
           >
-            <span><strong>V{{ version.id }}</strong><el-tag
+            <span class="version-row__state"><strong>V{{ version.id }}</strong><el-tag
               size="small"
               effect="plain"
             >{{ statusLabel(version.state) }}</el-tag></span>
-            <span :title="version.source_filename">{{ version.source_filename }}</span>
+            <span
+              class="version-row__filename"
+              :title="version.source_filename"
+            >{{ version.source_filename }}</span>
             <small>{{ version.parser_name }} {{ version.parser_version }}</small>
           </button>
           <el-empty
@@ -179,7 +182,8 @@ async function remove(row: AiContextDocument) {
 .documents__list { min-width: 0; padding-right: 16px; }
 .versions { padding-left: 16px; border-left: 1px solid var(--el-border-color-lighter); }
 .version-row { width: 100%; display: flex; flex-direction: column; gap: 5px; padding: 10px 4px; border: 0; border-bottom: 1px solid var(--el-border-color-extra-light); background: transparent; color: inherit; text-align: left; }
-.version-row > span { min-width: 0; display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.version-row__state { display: flex; align-items: center; gap: 8px; }
+.version-row__filename { min-width: 0; max-width: 100%; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .version-row small { color: var(--el-text-color-secondary); }
 @media (max-width: 900px) { .documents__split { grid-template-columns: 1fr; } .documents__list { padding-right: 0; } .versions { padding: 12px 0 0; border: 0; } }
 </style>

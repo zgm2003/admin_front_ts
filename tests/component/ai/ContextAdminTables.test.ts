@@ -32,4 +32,20 @@ describe('context administration tables', () => {
     expect(source).toMatch(/prop:\s*'updated_at'[\s\S]*?width:\s*240/)
     expect(source).toMatch(/key:\s*'actions'[\s\S]*?width:\s*180/)
   })
+
+  it('uses registered action translations for document status commands', () => {
+    const source = readComponent('ContextDocumentPanel.vue')
+
+    expect(source).toContain("t('common.actions.disable')")
+    expect(source).toContain("t('common.actions.enable')")
+    expect(source).not.toContain("t('common.status.disable')")
+    expect(source).not.toContain("t('common.status.enable')")
+  })
+
+  it('truncates long document version filenames on one line', () => {
+    const source = readComponent('ContextDocumentPanel.vue')
+
+    expect(source).toContain('class="version-row__filename"')
+    expect(source).toMatch(/\.version-row__filename\s*\{[\s\S]*?overflow:\s*hidden;[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/)
+  })
 })
