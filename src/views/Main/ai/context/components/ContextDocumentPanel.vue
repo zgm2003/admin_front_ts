@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { Delete, Plus, Refresh, Upload } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { AppTable } from '@/components/Table'
+import type { TableColumn } from '@/components/Table'
 import {
   AiContextApi,
   type AiContextDocument,
@@ -24,6 +26,12 @@ const emit = defineEmits<{ select: [id: number]; changed: []; versionCreated: []
 const { t } = useI18n()
 const dialogVisible = shallowRef(false)
 const createDocument = shallowRef(true)
+const columns = computed<TableColumn<AiContextDocument>[]>(() => [
+  { prop: 'title', label: t('aiContext.fields.title'), minWidth: 320 },
+  { prop: 'status', label: t('aiContext.fields.status'), width: 120 },
+  { key: 'version_state', label: t('aiContext.version.state'), width: 140 },
+  { key: 'actions', label: t('common.actions.action'), width: 200, fixed: 'right' },
+])
 
 function statusLabel(status: string) {
   switch (status) {
@@ -74,67 +82,50 @@ async function remove(row: AiContextDocument) {
     </div>
     <div class="documents__split">
       <div class="documents__list">
-        <el-table
-          v-loading="loading"
+        <AppTable
+          :columns="columns"
           :data="[...documents]"
+          :loading="loading"
           row-key="id"
-          highlight-current-row
-          @current-change="$event && emit('select', $event.id)"
+          :fixed-footer="false"
+          :show-refresh="false"
+          :show-column-setting="false"
+          :table-props="{ highlightCurrentRow: true }"
+          @row-click="emit('select', $event.id)"
         >
-          <el-table-column
-            prop="title"
-            :label="t('aiContext.fields.title')"
-            min-width="180"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            :label="t('aiContext.fields.status')"
-            width="100"
-          >
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
-                {{ statusLabel(row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column
-            :label="t('aiContext.version.state')"
-            width="112"
-          >
-            <template #default="{ row }">
-              <el-tag
-                effect="plain"
-                :type="row.version.state === 'failed' ? 'danger' : row.version.state === 'ready' ? 'success' : 'warning'"
-              >
-                {{ statusLabel(row.version.state) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column
-            fixed="right"
-            width="142"
-          >
-            <template #default="{ row }">
-              <el-button
-                text
-                :icon="Refresh"
-                @click.stop="reindex(row)"
-              />
-              <el-button
-                text
-                @click.stop="toggle(row)"
-              >
-                {{ row.status === 'enabled' ? t('common.status.disable') : t('common.status.enable') }}
-              </el-button>
-              <el-button
-                text
-                type="danger"
-                :icon="Delete"
-                @click.stop="remove(row)"
-              />
-            </template>
-          </el-table-column>
-        </el-table>
+          <template #cell-status="{ row }">
+            <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
+              {{ statusLabel(row.status) }}
+            </el-tag>
+          </template>
+          <template #cell-version_state="{ row }">
+            <el-tag
+              effect="plain"
+              :type="row.version.state === 'failed' ? 'danger' : row.version.state === 'ready' ? 'success' : 'warning'"
+            >
+              {{ statusLabel(row.version.state) }}
+            </el-tag>
+          </template>
+          <template #cell-actions="{ row }">
+            <el-button
+              text
+              :icon="Refresh"
+              @click.stop="reindex(row)"
+            />
+            <el-button
+              text
+              @click.stop="toggle(row)"
+            >
+              {{ row.status === 'enabled' ? t('common.status.disable') : t('common.status.enable') }}
+            </el-button>
+            <el-button
+              text
+              type="danger"
+              :icon="Delete"
+              @click.stop="remove(row)"
+            />
+          </template>
+        </AppTable>
       </div>
       <aside class="versions">
         <div class="versions__header">

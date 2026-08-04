@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { Delete, Edit, Plus, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { AiContextApi, type AiContextProfile, type AiContextSpace, type AiContextSpaceMutationBody } from '@/api/ai/context'
+import { AppTable } from '@/components/Table'
+import type { TableColumn } from '@/components/Table'
 import ContextSpaceDialog from './ContextSpaceDialog.vue'
 
 defineProps<{
@@ -17,6 +19,13 @@ const emit = defineEmits<{ selectProfile: [id: number]; selectSpace: [id: number
 const { t } = useI18n()
 const dialogVisible = shallowRef(false)
 const editing = shallowRef<AiContextSpace | null>(null)
+const columns = computed<TableColumn<AiContextSpace>[]>(() => [
+  { prop: 'name', label: t('aiContext.fields.name'), minWidth: 280 },
+  { prop: 'description', label: t('aiContext.fields.description'), minWidth: 520 },
+  { prop: 'status', label: t('aiContext.fields.status'), width: 120 },
+  { prop: 'updated_at', label: t('aiContext.fields.updatedAt'), width: 240 },
+  { key: 'actions', label: t('common.actions.action'), width: 180, fixed: 'right' },
+])
 
 function statusLabel(status: string) {
   if (status === 'enabled') return t('aiContext.status.enabled')
@@ -68,63 +77,40 @@ async function remove(row: AiContextSpace) {
         {{ t('aiContext.space.create') }}
       </el-button>
     </div>
-    <el-table
-      v-loading="loading"
+    <AppTable
+      :columns="columns"
       :data="[...spaces]"
+      :loading="loading"
       row-key="id"
-      highlight-current-row
-      @current-change="$event && emit('selectSpace', $event.id)"
+      :fixed-footer="false"
+      :show-refresh="false"
+      :show-column-setting="false"
+      :table-props="{ highlightCurrentRow: true }"
+      @row-click="emit('selectSpace', $event.id)"
     >
-      <el-table-column
-        prop="name"
-        :label="t('aiContext.fields.name')"
-        min-width="180"
-      />
-      <el-table-column
-        prop="description"
-        :label="t('aiContext.fields.description')"
-        min-width="240"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        :label="t('aiContext.fields.status')"
-        width="110"
-      >
-        <template #default="{ row }">
-          <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
-            {{ statusLabel(row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="updated_at"
-        :label="t('aiContext.fields.updatedAt')"
-        width="190"
-      />
-      <el-table-column
-        fixed="right"
-        :label="t('common.actions.action')"
-        width="160"
-      >
-        <template #default="{ row }">
-          <el-button
-            text
-            :icon="Edit"
-            @click.stop="open(row)"
-          />
-          <el-button
-            text
-            :icon="SwitchButton"
-            @click.stop="toggle(row)"
-          />
-          <el-button
-            text
-            type="danger"
-            :icon="Delete"
-            @click.stop="remove(row)"
-          />
-        </template>
-      </el-table-column>
+      <template #cell-status="{ row }">
+        <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
+          {{ statusLabel(row.status) }}
+        </el-tag>
+      </template>
+      <template #cell-actions="{ row }">
+        <el-button
+          text
+          :icon="Edit"
+          @click.stop="open(row)"
+        />
+        <el-button
+          text
+          :icon="SwitchButton"
+          @click.stop="toggle(row)"
+        />
+        <el-button
+          text
+          type="danger"
+          :icon="Delete"
+          @click.stop="remove(row)"
+        />
+      </template>
       <template #empty>
         <el-empty
           data-test="context-spaces-empty"
@@ -132,7 +118,7 @@ async function remove(row: AiContextSpace) {
           :image-size="96"
         />
       </template>
-    </el-table>
+    </AppTable>
     <ContextSpaceDialog
       v-if="selectedProfileId !== null"
       v-model="dialogVisible"

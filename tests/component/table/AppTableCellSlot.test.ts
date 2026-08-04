@@ -1,3 +1,5 @@
+/* eslint-disable vue/one-component-per-file */
+
 import { defineComponent, h } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
@@ -50,6 +52,7 @@ describe('AppTable cell slot boundary', () => {
         },
       },
       global: {
+        directives: { loading: () => undefined },
         stubs: {
           ElTable: ElTableStub,
           ElTableColumn: ElTableColumnStub,
@@ -58,12 +61,82 @@ describe('AppTable cell slot boundary', () => {
           TableActions: true,
           ColumnSetting: true,
         },
-        directives: { loading: () => undefined },
       },
     })
 
     expect(indexes).toEqual([0])
     expect(wrapper.get('[data-test="column-registration"]').text()).toBe('')
     expect(wrapper.get('[data-test="real-cell"]').text()).toBe('pdf')
+  })
+
+  it('forwards row clicks without changing the existing selection behavior', async () => {
+    const row = { id: 1, name: 'alpha' }
+    const wrapper = mount(AppTable, {
+      props: {
+        columns: [{ prop: 'name', label: 'Name' }],
+        data: [row],
+        fixedFooter: false,
+      },
+      global: {
+        directives: { loading: () => undefined },
+        stubs: {
+          ElTable: {
+            name: 'ElTable',
+            emits: ['row-click', 'selection-change'],
+            template: '<div data-test="table" @click="$emit(\'row-click\', data[0])"><slot /></div>',
+            props: ['data'],
+          },
+          ElTableColumn: true,
+          ElSpace: { template: '<div><slot /></div>' },
+          TableActions: true,
+          ColumnSetting: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-test="table"]').trigger('click')
+
+    expect(wrapper.emitted('row-click')).toEqual([[row]])
+  })
+
+  it('forwards the empty slot to the underlying table', () => {
+    const wrapper = mount(AppTable, {
+      props: { fixedFooter: false },
+      slots: { empty: '<div data-test="custom-empty">No rows</div>' },
+      global: {
+        directives: { loading: () => undefined },
+        stubs: {
+          ElTable: { template: '<div><slot name="empty" /></div>' },
+          ElTableColumn: true,
+          ElSpace: { template: '<div><slot /></div>' },
+          TableActions: true,
+          ColumnSetting: true,
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-test="custom-empty"]').text()).toBe('No rows')
+  })
+
+  it('keeps the Element Plus empty state when no custom slot is provided', () => {
+    const wrapper = mount(AppTable, {
+      props: { fixedFooter: false },
+      global: {
+        directives: { loading: () => undefined },
+        stubs: {
+          ElTable: {
+            setup: (_, { slots }) => () => h('div', {
+              'data-test': 'empty-slot-present',
+            }, String(!!slots.empty)),
+          },
+          ElTableColumn: true,
+          ElSpace: { template: '<div><slot /></div>' },
+          TableActions: true,
+          ColumnSetting: true,
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-test="empty-slot-present"]').text()).toBe('false')
   })
 })

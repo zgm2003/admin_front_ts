@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { Edit, Plus, SwitchButton } from '@element-plus/icons-vue'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { AiContextApi, type AiContextProfile, type AiContextProfileCreateBody } from '@/api/ai/context'
+import { AppTable } from '@/components/Table'
+import type { TableColumn } from '@/components/Table'
 import ContextProfileDialog from './ContextProfileDialog.vue'
 
 defineProps<{ profiles: readonly AiContextProfile[]; selectedId: number | null; loading: boolean }>()
@@ -11,6 +13,15 @@ const emit = defineEmits<{ select: [id: number]; changed: [] }>()
 const { t } = useI18n()
 const dialogVisible = shallowRef(false)
 const editing = shallowRef<AiContextProfile | null>(null)
+const columns = computed<TableColumn<AiContextProfile>[]>(() => [
+  { prop: 'name', label: t('aiContext.fields.name'), minWidth: 280 },
+  { prop: 'status', label: t('aiContext.fields.status'), width: 120 },
+  { prop: 'index_state', label: t('aiContext.profile.indexState'), width: 150 },
+  { prop: 'active_index_generation', label: t('aiContext.profile.generation'), width: 140 },
+  { prop: 'embedding_dimensions', label: t('aiContext.profile.dimensions'), width: 140 },
+  { prop: 'embedding_token_counter_id', label: t('aiContext.profile.tokenCounter'), minWidth: 200 },
+  { key: 'actions', label: t('common.actions.action'), width: 140, fixed: 'right' },
+])
 
 function statusLabel(status: string) {
   if (status === 'enabled') return t('aiContext.status.enabled')
@@ -59,75 +70,43 @@ async function toggle(profile: AiContextProfile) {
         {{ t('aiContext.profile.create') }}
       </el-button>
     </div>
-    <el-table
-      v-loading="loading"
+    <AppTable
+      :columns="columns"
       :data="[...profiles]"
+      :loading="loading"
       row-key="id"
-      highlight-current-row
-      @current-change="$event && emit('select', $event.id)"
+      :fixed-footer="false"
+      :show-refresh="false"
+      :show-column-setting="false"
+      :table-props="{ highlightCurrentRow: true }"
+      @row-click="emit('select', $event.id)"
     >
-      <el-table-column
-        prop="name"
-        :label="t('aiContext.fields.name')"
-        min-width="170"
-      />
-      <el-table-column
-        :label="t('aiContext.fields.status')"
-        width="110"
-      >
-        <template #default="{ row }">
-          <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
-            {{ statusLabel(row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        :label="t('aiContext.profile.indexState')"
-        width="130"
-      >
-        <template #default="{ row }">
-          <el-tag
-            effect="plain"
-            :type="row.index_state === 'failed' ? 'danger' : row.index_state === 'ready' ? 'success' : 'warning'"
-          >
-            {{ indexLabel(row.index_state) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="active_index_generation"
-        :label="t('aiContext.profile.generation')"
-        width="110"
-      />
-      <el-table-column
-        prop="embedding_dimensions"
-        :label="t('aiContext.profile.dimensions')"
-        width="110"
-      />
-      <el-table-column
-        prop="embedding_token_counter_id"
-        :label="t('aiContext.profile.tokenCounter')"
-        min-width="140"
-      />
-      <el-table-column
-        fixed="right"
-        :label="t('common.actions.action')"
-        width="126"
-      >
-        <template #default="{ row }">
-          <el-button
-            text
-            :icon="Edit"
-            @click.stop="open(row)"
-          />
-          <el-button
-            text
-            :icon="SwitchButton"
-            @click.stop="toggle(row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+      <template #cell-status="{ row }">
+        <el-tag :type="row.status === 'enabled' ? 'success' : 'info'">
+          {{ statusLabel(row.status) }}
+        </el-tag>
+      </template>
+      <template #cell-index_state="{ row }">
+        <el-tag
+          effect="plain"
+          :type="row.index_state === 'failed' ? 'danger' : row.index_state === 'ready' ? 'success' : 'warning'"
+        >
+          {{ indexLabel(row.index_state) }}
+        </el-tag>
+      </template>
+      <template #cell-actions="{ row }">
+        <el-button
+          text
+          :icon="Edit"
+          @click.stop="open(row)"
+        />
+        <el-button
+          text
+          :icon="SwitchButton"
+          @click.stop="toggle(row)"
+        />
+      </template>
+    </AppTable>
     <ContextProfileDialog
       v-model="dialogVisible"
       :profile="editing"

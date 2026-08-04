@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { AiAgentApi, type AiAgentOption } from '@/api/ai/agents'
 import type { AiContextEvaluation } from '@/api/ai/context'
+import { AppTable } from '@/components/Table'
+import type { TableColumn } from '@/components/Table'
+
+type EvaluationRow = AiContextEvaluation['selected'][number]
 
 defineProps<{ result: AiContextEvaluation | null; loading: boolean }>()
 const emit = defineEmits<{ run: [payload: { agentID: number; query: string }] }>()
@@ -11,6 +15,15 @@ const { t } = useI18n()
 const agents = ref<AiAgentOption[]>([])
 const agentID = shallowRef<number | null>(null)
 const query = shallowRef('')
+const columns = computed<TableColumn<EvaluationRow>[]>(() => [
+  { prop: 'ordinal', label: '#', width: 80 },
+  { prop: 'source_type', label: t('aiContext.evaluation.sourceType'), width: 180 },
+  { prop: 'source_ref', label: t('aiContext.evaluation.source'), minWidth: 360 },
+  { prop: 'citation_key', label: t('aiContext.evaluation.citation'), width: 120 },
+  { prop: 'token_upper_bound', label: t('aiContext.evaluation.tokens'), width: 140 },
+  { prop: 'decision', label: t('aiContext.evaluation.decision'), width: 140 },
+  { prop: 'exclusion_reason', label: t('aiContext.evaluation.reason'), minWidth: 260 },
+])
 
 function outcomeLabel(outcome: string) {
   switch (outcome) {
@@ -69,52 +82,20 @@ onMounted(async () => {
         <div><span>{{ t('aiContext.evaluation.selected') }}</span><strong>{{ result.selected.length }}</strong></div>
         <div><span>{{ t('aiContext.evaluation.excluded') }}</span><strong>{{ result.excluded.length }}</strong></div>
       </div>
-      <el-table
+      <AppTable
+        :columns="columns"
         :data="[...result.selected, ...result.excluded]"
         row-key="ordinal"
+        :fixed-footer="false"
+        :show-refresh="false"
+        :show-column-setting="false"
       >
-        <el-table-column
-          prop="ordinal"
-          label="#"
-          width="64"
-        />
-        <el-table-column
-          prop="source_type"
-          :label="t('aiContext.evaluation.sourceType')"
-          width="150"
-        />
-        <el-table-column
-          prop="source_ref"
-          :label="t('aiContext.evaluation.source')"
-          min-width="210"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="citation_key"
-          :label="t('aiContext.evaluation.citation')"
-          width="100"
-        />
-        <el-table-column
-          prop="token_upper_bound"
-          :label="t('aiContext.evaluation.tokens')"
-          width="100"
-        />
-        <el-table-column
-          :label="t('aiContext.evaluation.decision')"
-          width="110"
-        >
-          <template #default="{ row }">
-            <el-tag :type="row.decision === 'selected' ? 'success' : 'info'">
-              {{ row.decision === 'selected' ? t('aiContext.evaluation.selected') : t('aiContext.evaluation.excluded') }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="exclusion_reason"
-          :label="t('aiContext.evaluation.reason')"
-          min-width="180"
-        />
-      </el-table>
+        <template #cell-decision="{ row }">
+          <el-tag :type="row.decision === 'selected' ? 'success' : 'info'">
+            {{ row.decision === 'selected' ? t('aiContext.evaluation.selected') : t('aiContext.evaluation.excluded') }}
+          </el-tag>
+        </template>
+      </AppTable>
     </template>
     <el-empty
       v-else-if="!loading"

@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="Row extends TableRow">
-import { computed, ref, useId, watch } from 'vue'
+import { computed, ref, useId, useSlots, watch } from 'vue'
 import { useIsMobile } from '@/hooks/useResponsive'
 import { ElTable, ElTableColumn, ElPagination, ElSpace } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -46,6 +46,7 @@ const props = withDefaults(defineProps<AppTableProps<Row>>(), {
   loading: false,
   rowKey: 'id',
   selectable: false,
+  selectionSelectable: undefined,
   rowClickSelect: true,
   pagination: null,
   tableProps: () => ({}),
@@ -62,10 +63,12 @@ const props = withDefaults(defineProps<AppTableProps<Row>>(), {
 const { t } = useI18n()
 const emit = defineEmits<{
   refresh: []
+  'row-click': [row: Row]
   'selection-change': [selection: Row[]]
   'update:pagination': [pagination: TablePaginationState]
   'column-change': [keys: TableColumnKey[]]
 }>()
+const slots = useSlots()
 const selectedColumnKeys = ref<TableColumnKey[]>([])
 const tableRef = ref<InstanceType<typeof ElTable> | null>(null)
 const page = ref<TablePaginationState | null>(props.pagination ? { ...props.pagination } : null)
@@ -97,6 +100,7 @@ const onCurrentChange = (cur: number) => {
   emit('update:pagination', { ...page.value })
 }
 const onRowClick = (row: Row) => {
+  emit('row-click', row)
   if (!props.selectable || props.rowClickSelect === false) return
   const index = props.data.indexOf(row)
   if (props.selectionSelectable && !props.selectionSelectable(row, index)) return
@@ -108,6 +112,10 @@ const pageSizes = computed(() => isMobile.value ? [10,20] : [10,20,30,40,50])
 const mergedTableProps = computed(() => props.fixedFooter ? { height: '100%', ...props.tableProps } : props.tableProps)
 const tableStatusId = `app-table-status-${useId()}`
 const accessibleLabel = computed(() => props.ariaLabel || t('accessibility.dataTable'))
+const showToolbar = computed(() => props.showRefresh
+  || props.showColumnSetting
+  || !!slots['toolbar-left']
+  || !!slots['toolbar-right'])
 const isFailureState = computed(() => props.resultState === 'missing' || props.resultState === 'error')
 const isBusy = computed(() => props.loading
   || props.resultState === 'loading'
@@ -151,6 +159,7 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
       {{ tableStatus }}
     </div>
     <div
+      v-if="showToolbar"
       class="table-toolbar"
       :class="{ 'table-toolbar--mobile': isMobile }"
     >
@@ -221,6 +230,12 @@ watch(() => [props.loading, props.data.length, props.resultState, props.statusMe
           </slot>
         </template>
       </ElTableColumn>
+      <template
+        v-if="slots.empty"
+        #empty
+      >
+        <slot name="empty" />
+      </template>
     </ElTable>
     <div
       v-if="page"
