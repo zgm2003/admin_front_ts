@@ -178,21 +178,33 @@ describe('Admin Contract Bundle consumer', () => {
       operations.map((operation) => operation.operationId),
     ))
 
-    const exactSchemas: Readonly<Record<string, readonly string[]>> = {
-      AIMessageRevisionRequest: ['content', 'request_id'],
-      AIMessageRegenerationRequest: ['request_id'],
-      AIMessageDeleteRequest: ['ids'],
-      AIMessageDeleteResult: ['deleted_ids'],
-      AIConversationReadCursorRequest: ['message_id'],
-      AIConversationReadCursorResult: ['conversation_id', 'last_read_message_id', 'unread_count'],
-      AIRunUserFeedbackRequest: ['liked'],
-      AIRunUserFeedbackResult: ['id', 'liked', 'liked_at'],
+    const exactSchemas: Readonly<Record<string, {
+      properties: readonly string[]
+      required: readonly string[]
+    }>> = {
+      AIMessageRevisionRequest: {
+        properties: ['attachments', 'content', 'request_id'],
+        required: ['content', 'request_id'],
+      },
+      AIMessageRegenerationRequest: { properties: ['request_id'], required: ['request_id'] },
+      AIMessageDeleteRequest: { properties: ['ids'], required: ['ids'] },
+      AIMessageDeleteResult: { properties: ['deleted_ids'], required: ['deleted_ids'] },
+      AIConversationReadCursorRequest: { properties: ['message_id'], required: ['message_id'] },
+      AIConversationReadCursorResult: {
+        properties: ['conversation_id', 'last_read_message_id', 'unread_count'],
+        required: ['conversation_id', 'last_read_message_id', 'unread_count'],
+      },
+      AIRunUserFeedbackRequest: { properties: ['liked'], required: ['liked'] },
+      AIRunUserFeedbackResult: {
+        properties: ['id', 'liked', 'liked_at'],
+        required: ['id', 'liked', 'liked_at'],
+      },
     }
-    for (const [schemaName, fields] of Object.entries(exactSchemas)) {
+    for (const [schemaName, expected] of Object.entries(exactSchemas)) {
       const schema = requiredObject(schemas[schemaName], `schema ${schemaName}`)
       expect(schema.additionalProperties).toBe(false)
-      expect(schemaProperties(schemas, schemaName).sort()).toEqual([...fields].sort())
-      expect([...(schema.required as string[])].sort()).toEqual([...fields].sort())
+      expect(schemaProperties(schemas, schemaName).sort()).toEqual([...expected.properties].sort())
+      expect([...(schema.required as string[])].sort()).toEqual([...expected.required].sort())
     }
 
     const conversation = requiredObject(schemas.AIConversationItem, 'AIConversationItem')
@@ -224,7 +236,8 @@ describe('Admin Contract Bundle consumer', () => {
 
     const cancel = requiredObject(schemas.AIMessageCancelResult, 'AIMessageCancelResult')
     const cancelProperties = requiredObject(cancel.properties, 'AIMessageCancelResult.properties')
-    expect(requiredObject(cancelProperties.status, 'AIMessageCancelResult.status').const).toBe('stopping')
+    expect(requiredObject(cancelProperties.status, 'AIMessageCancelResult.status').enum)
+      .toEqual(['stopped', 'already_terminal'])
 
     const recharge = requiredObject(
       schemas.Go_internal_module_payment_RechargePageInitResponse_Output,

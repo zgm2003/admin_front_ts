@@ -8,13 +8,14 @@ import { useIsMobile } from '@/hooks/useResponsive'
 import {
   AiProviderApi,
   type AiProviderInitResponse,
-  type AiModelOptionItem,
 } from '@/api/ai/providers'
 import {
   buildProviderMutationParams,
+  mergeProviderModelCandidates,
   type ProviderFormState,
   useProviderForm,
 } from '../composables/useProviderForm'
+import ProviderModelEditor from './ProviderModelEditor.vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -30,7 +31,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const isMobile = useIsMobile()
-const { form, rules, modelLoading, modelOptions, reset } = useProviderForm(t)
+const { form, rules, modelLoading, reset } = useProviderForm(t)
 const formRef = shallowRef<FormInstance | null>(null)
 
 const visible = computed({
@@ -39,12 +40,7 @@ const visible = computed({
 })
 
 const title = computed(() => (props.mode === 'add' ? t('aiProviders.addTitle') : t('aiProviders.editTitle')))
-const selectedModelCount = computed(() => form.model_ids.length)
-
-const selectModelOptions = computed(() => modelOptions.value.map((model) => ({
-  label: model.display_name || model.model_id,
-  value: model.model_id,
-})))
+const selectedModelCount = computed(() => form.models.length)
 
 watch(
   () => props.modelValue,
@@ -65,23 +61,10 @@ async function fetchModels() {
     const result = props.mode === 'edit' && !form.api_key.trim() && form.id
       ? await AiProviderApi.previewStoredModels({ id: form.id })
       : await AiProviderApi.previewModels({ engine_type: form.driver, base_url: form.base_url, api_key: form.api_key })
-    modelOptions.value = result.list
-    mergeDisplayNames(result.list)
-    const firstModel = result.list[0]
-    if (form.model_ids.length === 0 && firstModel) {
-      form.model_ids = [firstModel.model_id]
-    }
+    form.models = mergeProviderModelCandidates(form.models, result.list)
     ElNotification.success({ message: t('aiProviders.fetchModelsDone') })
   } finally {
     modelLoading.value = false
-  }
-}
-
-function mergeDisplayNames(options: AiModelOptionItem[]) {
-  for (const option of options) {
-    if (!form.model_display_names[option.model_id]) {
-      form.model_display_names[option.model_id] = option.display_name || option.model_id
-    }
   }
 }
 
@@ -107,7 +90,7 @@ async function confirmSubmit() {
 <template>
   <AppDialog
     v-model="visible"
-    width="760px"
+    width="min(1040px, 94vw)"
     :height="isMobile ? 'calc(88vh - 118px)' : 'calc(min(82vh, 720px) - 118px)'"
     body-padding="0"
     header-padding="0"
@@ -227,6 +210,7 @@ async function confirmSubmit() {
                 <div class="provider-form-dialog__api-key">
                   <el-input
                     v-model="form.api_key"
+                    class="provider-form-dialog__api-key-input"
                     type="password"
                     show-password
                     clearable
@@ -245,20 +229,11 @@ async function confirmSubmit() {
             </el-col>
             <el-col :span="24">
               <el-form-item
-                :label="t('aiProviders.form.modelIds')"
-                prop="model_ids"
+                :label="t('aiProviders.form.models')"
+                prop="models"
                 required
               >
-                <el-select-v2
-                  v-model="form.model_ids"
-                  :options="selectModelOptions"
-                  multiple
-                  filterable
-                  allow-create
-                  clearable
-                  style="width: 100%"
-                  :placeholder="t('aiProviders.form.modelIdsPlaceholder')"
-                />
+                <ProviderModelEditor v-model="form.models" />
               </el-form-item>
             </el-col>
             <el-col
@@ -279,30 +254,6 @@ async function confirmSubmit() {
             </el-col>
           </el-row>
 
-          <div
-            v-if="form.model_ids.length > 0"
-            class="provider-form-dialog__display-grid"
-          >
-            <div class="provider-form-dialog__display-title">
-              {{ t('aiProviders.dialog.displayNames') }}
-            </div>
-            <el-row :gutter="12">
-              <el-col
-                v-for="modelID in form.model_ids"
-                :key="modelID"
-                :md="12"
-                :span="24"
-              >
-                <el-form-item :label="modelID">
-                  <el-input
-                    v-model="form.model_display_names[modelID]"
-                    clearable
-                    :placeholder="t('aiProviders.form.modelDisplayName')"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-          </div>
         </section>
       </el-form>
     </div>

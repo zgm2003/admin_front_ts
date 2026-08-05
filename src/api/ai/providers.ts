@@ -8,12 +8,16 @@ import {
 import type { DictOption, Id, RequestPayload } from '@/types/common'
 
 type AiProviderMutationContractBody = NonNullable<AdminOperationInput<'post_api_admin_v1_ai_providers'>['body']>
+type AiProviderModelsUpdateContractBody = NonNullable<AdminOperationInput<'put_api_admin_v1_ai_providers_id_models'>['body']>
+type AiProviderModelContractItem = components['schemas']['Go_internal_module_ai_provider_ProviderModelDTO_Output']
 
 export type AiProviderDriver = AiProviderMutationContractBody['engine_type']
 export type AiProviderHealthStatus = 'unknown' | 'ok' | 'failed'
 export type AiModelSyncStatus = 'unknown' | 'ok' | 'failed'
 export type AiProviderStatus = 1 | 2
 export type AiProviderApiProtocol = AiProviderMutationContractBody['api_protocol']
+export type AiProviderModelInput = NonNullable<AiProviderMutationContractBody['models']>[number]
+export type AiProviderModelKind = AiProviderModelInput['model_kind']
 
 export interface AiProviderInitResponse {
   dict: {
@@ -37,8 +41,9 @@ export interface AiProviderModelItem {
   id: number
   provider_id: number
   model_id: string
+  model_kind: AiProviderModelKind
   display_name: string
-  status: number
+  status: AiProviderStatus
   status_name?: string
   created_at?: string
   updated_at?: string
@@ -59,11 +64,12 @@ export interface AiProviderModelsResponse {
 }
 
 type AiProviderContractItem = components['schemas']['Go_internal_module_ai_provider_ProviderDTO_Output']
-export interface AiProviderItem extends Omit<AiProviderContractItem, 'api_protocol' | 'engine_type' | 'health_status' | 'last_model_sync_status' | 'status'> {
+export interface AiProviderItem extends Omit<AiProviderContractItem, 'api_protocol' | 'engine_type' | 'health_status' | 'last_model_sync_status' | 'models' | 'status'> {
   api_protocol: AiProviderApiProtocol
   engine_type: AiProviderDriver
   health_status: AiProviderHealthStatus
   last_model_sync_status: AiModelSyncStatus
+  models: AiProviderModelItem[]
   status: AiProviderStatus
 }
 export interface AiProviderListResponse extends Omit<components['schemas']['Go_internal_module_ai_provider_ListResponse_Output'], 'list'> {
@@ -76,8 +82,9 @@ export interface AiProviderMutationParams {
   engine_type: AiProviderDriver
   base_url?: string
   api_key?: string
-  model_ids: string[]
-  model_display_names?: Record<string, string>
+  models: AiProviderModelInput[]
+  model_display_names: Record<string, string>
+  statuses: Record<string, AiProviderStatus>
   status: AiProviderStatus
   api_protocol: AiProviderApiProtocol
 }
@@ -98,16 +105,12 @@ export interface AiModelOptionsBody {
 
 export interface AiProviderModelsUpdateParams {
   id: Id
-  model_ids: string[]
-  model_display_names?: Record<string, string>
-  statuses?: Record<string, number>
+  models: AiProviderModelInput[]
+  model_display_names: Record<string, string>
+  statuses: Record<string, AiProviderStatus>
 }
 
-export interface AiProviderModelsUpdateBody {
-  model_ids: string[]
-  model_display_names?: Record<string, string>
-  statuses?: Record<string, number>
-}
+export type AiProviderModelsUpdateBody = AiProviderModelsUpdateContractBody
 
 export interface AiProviderCreateResponse {
   id: number
@@ -145,8 +148,9 @@ function mutationBody(params: AiProviderMutationParams): AiProviderMutationBody 
     engine_type: params.engine_type,
     base_url: params.base_url,
     api_key: params.api_key,
-    model_ids: params.model_ids,
+    models: params.models,
     model_display_names: params.model_display_names,
+    statuses: params.statuses,
     status: params.status,
     api_protocol: params.api_protocol,
   }
@@ -162,7 +166,7 @@ function modelOptionsBody(params: AiModelOptionsParams): AiModelOptionsBody {
 
 function updateModelsBody(params: AiProviderModelsUpdateParams): AiProviderModelsUpdateBody {
   return {
-    model_ids: params.model_ids,
+    models: params.models,
     model_display_names: params.model_display_names,
     statuses: params.statuses,
   }
@@ -190,6 +194,21 @@ function isApiProtocol(value: string): value is AiProviderApiProtocol {
   return value === 'chat_completions' || value === 'responses'
 }
 
+function isProviderModelKind(value: string): value is AiProviderModelKind {
+  return value === 'chat' || value === 'embedding' || value === 'rerank'
+}
+
+function toProviderModelItem(item: AiProviderModelContractItem): AiProviderModelItem {
+  if (!isProviderModelKind(item.model_kind) || !isProviderStatus(item.status)) {
+    throw new Error('AI provider model violates the editable contract')
+  }
+  return {
+    ...item,
+    model_kind: item.model_kind,
+    status: item.status,
+  }
+}
+
 function toProviderItem(item: AiProviderContractItem): AiProviderItem {
   const apiProtocol = item.api_protocol
   if (
@@ -206,6 +225,7 @@ function toProviderItem(item: AiProviderContractItem): AiProviderItem {
     engine_type: item.engine_type,
     health_status: item.health_status,
     last_model_sync_status: item.last_model_sync_status,
+    models: item.models.map(toProviderModelItem),
     status: item.status,
     api_protocol: apiProtocol,
   }
@@ -296,10 +316,12 @@ export const AiProviderApi = {
     executeAdminOperation(adminOperations.post_api_admin_v1_ai_providers_id_sync_models, {
       path: { id: positiveID(params.id, 'AI provider id') },
     }, options),
-  models: (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiProviderModelsResponse> =>
-    executeAdminOperation(adminOperations.get_api_admin_v1_ai_providers_id_models, {
+  models: async (params: { id: Id }, options: ExecuteOptions = {}): Promise<AiProviderModelsResponse> => {
+    const response = await executeAdminOperation(adminOperations.get_api_admin_v1_ai_providers_id_models, {
       path: { id: positiveID(params.id, 'AI provider id') },
-    }, options),
+    }, options)
+    return { list: response.list.map(toProviderModelItem) }
+  },
   updateModels: async (params: AiProviderModelsUpdateParams, options: ExecuteOptions = {}): Promise<void> => {
     const id = positiveID(params.id, 'AI provider id')
     await executeAdminOperation(adminOperations.put_api_admin_v1_ai_providers_id_models, {

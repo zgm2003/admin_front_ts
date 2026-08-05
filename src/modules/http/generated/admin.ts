@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 12dad33927063949e905313d56606d13d0e3ce483aaf5158260e2a25801004e8
+// Generated from Admin Contract Bundle manifest SHA-256: 739338ad55de978701fff21aff7e6b9941d76cbd9d0c43f2fa2c99893724dcc2
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -958,6 +958,23 @@ export interface paths {
         head?: never;
         /** PATCH /api/admin/v1/ai/context-spaces/:id/status */
         patch: operations["ai_context_space_change_status"];
+        trace?: never;
+    };
+    "/api/admin/v1/ai/context/page-init": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai/context/page-init */
+        get: operations["ai_context_page_init"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/v1/auth-platforms": {
@@ -3278,6 +3295,12 @@ export interface components {
             data: components["schemas"]["Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output"];
             msg: string;
         };
+        ai_context_page_init_ResponseEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["Go_internal_module_ai_contextengine_ContextPageInitResponse_Output"];
+            msg: string;
+        };
         ai_context_profile_change_status_Request: {
             status: string;
         };
@@ -3420,7 +3443,7 @@ export interface components {
             policy_version: string;
             profile: components["schemas"]["AIContextPlanProfile"] | null;
             /** @enum {string} */
-            retrieval_outcome: "skipped" | "no_hit" | "hit" | "failed";
+            retrieval_outcome: "skipped" | "no_hit" | "hit" | "degraded" | "failed";
             /** @enum {string} */
             state: "ready" | "failed";
             token_counter_id: string;
@@ -3615,7 +3638,7 @@ export interface components {
         AIMessageContext: {
             invalid_keys: string[];
             /** @enum {string} */
-            outcome: "skipped" | "no_hit" | "hit" | "failed";
+            outcome: "skipped" | "no_hit" | "hit" | "degraded" | "failed";
             /** Format: int64 */
             plan_id: number;
             sources: components["schemas"]["AIMessageCitationSource"][];
@@ -5180,10 +5203,19 @@ export interface components {
         };
         Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output: {
             attachment?: components["schemas"]["Go_internal_module_ai_contextengine_ContextAttachmentV1_Output"] | null;
+            conversation_turn?: components["schemas"]["Go_internal_module_ai_contextengine_ContextConversationTurnV1_Output"] | null;
             document?: components["schemas"]["Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output"] | null;
             locator?: components["schemas"]["Go_internal_module_ai_contextengine_ContextLocatorV1_Output"] | null;
             retrieval?: components["schemas"]["Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output"] | null;
             schema: string;
+        };
+        Go_internal_module_ai_contextengine_ContextConversationTurnV1_Output: {
+            assistant_context_byte_offset: number;
+            assistant_delivery: string;
+            assistant_message_id: number;
+            attachment_context_byte_offset: number;
+            tool_context_byte_offset: number;
+            user_message_id: number;
         };
         Go_internal_module_ai_contextengine_ContextDocumentEvidenceV1_Output: {
             chunk_ids: number[];
@@ -5212,6 +5244,11 @@ export interface components {
             row_start?: number | null;
             schema: string;
             sheet?: string | null;
+        };
+        Go_internal_module_ai_contextengine_ContextPageInitResponse_Output: {
+            embedding_model_options: components["schemas"]["Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"][];
+            memory_model_options: components["schemas"]["Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"][];
+            reranker_model_options: components["schemas"]["Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"][];
         };
         Go_internal_module_ai_contextengine_ContextPlanMetricsV1_Output: {
             authorization_ms?: number;
@@ -5314,6 +5351,12 @@ export interface components {
         Go_internal_module_ai_contextengine_FixedScore_Output: Record<string, never>;
         Go_internal_module_ai_contextengine_ProfileListResponse_Output: {
             items: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"][];
+        };
+        Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output: {
+            label: string;
+            model_id: string;
+            provider_name: string;
+            value: number;
         };
         Go_internal_module_ai_contextengine_RetrievalBranchesV1_Output: {
             branches: components["schemas"]["Go_internal_module_ai_contextengine_RetrievalBranchV1_Output"][];
@@ -6802,11 +6845,14 @@ export interface components {
             model_display_names?: {
                 [key: string]: string;
             };
-            model_ids: string[];
+            model_ids?: string[];
             models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             name: string;
             /** @enum {integer} */
             status: 1 | 2;
+            statuses?: {
+                [key: string]: number;
+            };
         };
         post_api_admin_v1_ai_providers_ResponseEnvelope: {
             /** @constant */
@@ -7268,7 +7314,7 @@ export interface components {
             model_display_names?: {
                 [key: string]: string;
             };
-            model_ids: string[];
+            model_ids?: string[];
             models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             statuses?: {
                 [key: string]: number;
@@ -7290,11 +7336,14 @@ export interface components {
             model_display_names?: {
                 [key: string]: string;
             };
-            model_ids: string[];
+            model_ids?: string[];
             models?: components["schemas"]["Go_internal_module_ai_provider_ProviderModelInput_Input"][];
             name: string;
             /** @enum {integer} */
             status: 1 | 2;
+            statuses?: {
+                [key: string]: number;
+            };
         };
         put_api_admin_v1_ai_providers_id_ResponseEnvelope: {
             /** @constant */
@@ -10371,6 +10420,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ai_context_space_change_status_ResponseEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    ai_context_page_init: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ai_context_page_init_ResponseEnvelope"];
                 };
             };
             /** @description Classified safe error response */

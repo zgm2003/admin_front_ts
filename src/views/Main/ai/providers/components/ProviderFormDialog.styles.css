@@ -87,8 +87,9 @@
   gap: 8px;
 }
 
-.provider-form-dialog__api-key :deep(.el-input) {
+.provider-form-dialog__api-key-input {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 .provider-form-dialog__fetch {
@@ -96,26 +97,11 @@
   font-weight: 500;
 }
 
-.provider-form-dialog__file-mode {
-  width: 100%;
-}
-
 .provider-form-dialog__field-hint {
   margin-top: 5px;
   color: var(--el-text-color-secondary);
   font-size: 11px;
   line-height: 16px;
-}
-
-.provider-form-dialog__display-grid {
-  padding-top: 2px;
-}
-
-.provider-form-dialog__display-title {
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #606266;
 }
 
 .provider-form-dialog__footer {
@@ -141,29 +127,6 @@
 .provider-form-dialog__submit {
   min-width: 88px;
   font-weight: 500;
-}
-
-.provider-form-dialog :deep(.el-form-item) {
-  margin-bottom: 13px;
-}
-
-.provider-form-dialog :deep(.el-form-item__label) {
-  padding-bottom: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.2;
-  color: #606266;
-}
-
-.provider-form-dialog :deep(.el-input__wrapper),
-.provider-form-dialog :deep(.el-select__wrapper) {
-  min-height: 32px;
-  border-radius: 6px;
-}
-
-.provider-form-dialog :deep(.el-input__wrapper:hover),
-.provider-form-dialog :deep(.el-select__wrapper:hover) {
-  box-shadow: 0 0 0 1px var(--el-color-primary-light-5) inset;
 }
 
 @media (max-width: 768px) {

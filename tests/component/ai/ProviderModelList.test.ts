@@ -1,7 +1,18 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
 import type { AiProviderModelItem } from '@/api/ai/providers'
 import ProviderModelList from '@/views/Main/ai/providers/components/ProviderModelList.vue'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => ({
+      'aiProviders.modelKinds.chat': 'Chat',
+      'aiProviders.modelKinds.embedding': 'Embedding',
+      'aiProviders.modelKinds.rerank': 'Rerank',
+    })[key] ?? key,
+  }),
+}))
 
 const ElTagStub = {
   name: 'ElTag',
@@ -31,11 +42,17 @@ const ElTextStub = {
   template: '<span><slot /></span>',
 }
 
-function providerModel(id: number, displayName: string, status = 1): AiProviderModelItem {
+function providerModel(
+  id: number,
+  displayName: string,
+  modelKind: AiProviderModelItem['model_kind'] = 'chat',
+  status: AiProviderModelItem['status'] = 1,
+): AiProviderModelItem {
   return {
     id,
     provider_id: 9,
     model_id: `model-${id}`,
+    model_kind: modelKind,
     display_name: displayName,
     status,
   }
@@ -47,11 +64,11 @@ describe('ProviderModelList', () => {
       props: {
         models: [
           providerModel(1, 'Model One'),
-          providerModel(2, 'Model Two'),
-          providerModel(3, ''),
-          providerModel(4, 'Model Four'),
-          providerModel(5, 'Model Five'),
-          providerModel(6, 'Disabled', 0),
+          providerModel(2, 'Model Two', 'embedding'),
+          providerModel(3, '', 'rerank'),
+          providerModel(4, 'Model Four', 'chat'),
+          providerModel(5, 'Model Five', 'embedding'),
+          providerModel(6, 'Disabled', 'chat', 2),
         ],
       },
       global: {
@@ -69,7 +86,10 @@ describe('ProviderModelList', () => {
     expect(visibleModels).toHaveLength(3)
     expect(visibleModels[0].text()).toContain('Model One')
     expect(visibleModels[0].text()).toContain('model-1')
-    expect(visibleModels[2].text()).toBe('model-3')
+    expect(visibleModels[0].text()).toContain('Chat')
+    expect(visibleModels[1].text()).toContain('Embedding')
+    expect(visibleModels[2].text()).toContain('model-3')
+    expect(visibleModels[2].text()).toContain('Rerank')
     expect(wrapper.get('[data-test="provider-model-overflow"]').text()).toBe('+2')
     expect(wrapper.findAll('[data-test="overflow-provider-model"]').map(item => item.text()))
       .toEqual(expect.arrayContaining([
@@ -86,5 +106,11 @@ describe('ProviderModelList', () => {
     expect(popover.props('popperStyle')).toEqual({ maxWidth: 'calc(100vw - 32px)' })
     expect(wrapper.getComponent({ name: 'ElScrollbar' }).props('maxHeight')).toBe('240px')
     expect(wrapper.get('[data-test="provider-model-overflow"]').attributes('tabindex')).toBe('0')
+  })
+
+  it('uses a plain bounded flex layout without styling Element Plus internals', () => {
+    const source = readFileSync('src/views/Main/ai/providers/components/ProviderModelList.vue', 'utf8')
+    expect(source).not.toContain(':deep')
+    expect(source).toContain('white-space: nowrap')
   })
 })

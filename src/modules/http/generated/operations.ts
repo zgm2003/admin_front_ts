@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 12dad33927063949e905313d56606d13d0e3ce483aaf5158260e2a25801004e8
+// Generated from Admin Contract Bundle manifest SHA-256: 739338ad55de978701fff21aff7e6b9941d76cbd9d0c43f2fa2c99893724dcc2
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -190,6 +190,7 @@ const contractSchemas = {
           "skipped",
           "no_hit",
           "hit",
+          "degraded",
           "failed"
         ],
         "type": "string"
@@ -814,6 +815,7 @@ const contractSchemas = {
           "skipped",
           "no_hit",
           "hit",
+          "degraded",
           "failed"
         ],
         "type": "string"
@@ -4291,6 +4293,16 @@ const contractSchemas = {
           }
         ]
       },
+      "conversation_turn": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextConversationTurnV1_Output"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "document": {
         "anyOf": [
           {
@@ -4327,6 +4339,38 @@ const contractSchemas = {
     },
     "required": [
       "schema"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextConversationTurnV1_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "assistant_context_byte_offset": {
+        "type": "integer"
+      },
+      "assistant_delivery": {
+        "type": "string"
+      },
+      "assistant_message_id": {
+        "type": "integer"
+      },
+      "attachment_context_byte_offset": {
+        "type": "integer"
+      },
+      "tool_context_byte_offset": {
+        "type": "integer"
+      },
+      "user_message_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "assistant_context_byte_offset",
+      "assistant_delivery",
+      "assistant_message_id",
+      "attachment_context_byte_offset",
+      "tool_context_byte_offset",
+      "user_message_id"
     ],
     "type": "object"
   },
@@ -4507,6 +4551,35 @@ const contractSchemas = {
     "required": [
       "kind",
       "schema"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ContextPageInitResponse_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "embedding_model_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"
+        },
+        "type": "array"
+      },
+      "memory_model_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"
+        },
+        "type": "array"
+      },
+      "reranker_model_options": {
+        "items": {
+          "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "embedding_model_options",
+      "memory_model_options",
+      "reranker_model_options"
     ],
     "type": "object"
   },
@@ -5020,6 +5093,30 @@ const contractSchemas = {
     },
     "required": [
       "items"
+    ],
+    "type": "object"
+  },
+  "Go_internal_module_ai_contextengine_ProviderModelOptionDTO_Output": {
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "type": "string"
+      },
+      "model_id": {
+        "type": "string"
+      },
+      "provider_name": {
+        "type": "string"
+      },
+      "value": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "label",
+      "model_id",
+      "provider_name",
+      "value"
     ],
     "type": "object"
   },
@@ -10980,6 +11077,9 @@ const responseDataSchemas = {
   "ai_context_evaluate": {
     "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextEvaluationResponse_Output"
   },
+  "ai_context_page_init": {
+    "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextPageInitResponse_Output"
+  },
   "ai_context_profile_change_status": {
     "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_ContextProfile_Output"
   },
@@ -11922,6 +12022,16 @@ export const adminOperations = {
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_evaluate">>(responseDataSchemas["ai_context_evaluate"]),
     telemetryName: "admin.ai.context.evaluate",
     encode: (input) => input,
+  }),
+  "ai_context_page_init": defineOperation<AdminOperationInput<"ai_context_page_init">, AdminOperationOutput<"ai_context_page_init">>({
+    id: "ai_context_page_init",
+    method: "GET",
+    path: "/api/admin/v1/ai/context/page-init",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"ai_context_page_init">>(responseDataSchemas["ai_context_page_init"]),
+    telemetryName: "admin.ai.context.page.init",
   }),
   "ai_context_profile_change_status": defineOperation<AdminOperationInput<"ai_context_profile_change_status">, AdminOperationOutput<"ai_context_profile_change_status">>({
     id: "ai_context_profile_change_status",
