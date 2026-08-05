@@ -348,7 +348,10 @@ const isTerminalRun = (status: AiRunStatus) => status !== 'running'
         <el-divider content-position="left">
           {{ t('aiRuns.detail.inputSnapshot') }}
         </el-divider>
-        <RunInputSnapshot :snapshot="detailData.input_snapshot" />
+        <RunInputSnapshot
+          :run-id="detailData.id"
+          :snapshot="detailData.input_snapshot"
+        />
 
         <!-- 错误信息 -->
         <template v-if="detailData.error_message">

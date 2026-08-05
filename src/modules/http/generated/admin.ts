@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 5c53e0a28d167595b8017a6c4b665e0410862194b241ac15e6aa763104e8969a
+// Generated from Admin Contract Bundle manifest SHA-256: 12dad33927063949e905313d56606d13d0e3ce483aaf5158260e2a25801004e8
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -532,6 +532,23 @@ export interface paths {
         };
         /** GET /api/admin/v1/ai-runs/:id */
         get: operations["get_api_admin_v1_ai_runs_id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/v1/ai-runs/{id}/input-attachments/{ordinal}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** GET /api/admin/v1/ai-runs/:id/input-attachments/:ordinal/preview */
+        get: operations["get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4001,6 +4018,18 @@ export interface components {
             message: string;
             /** Format: int64 */
             seq: number;
+        };
+        AIRunInputAttachmentPreview: {
+            /** Format: int64 */
+            expires_in: number;
+            /** Format: uri */
+            url: string;
+        };
+        AIRunInputAttachmentPreviewSuccessEnvelope: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AIRunInputAttachmentPreview"];
+            msg: string;
         };
         AIRunLatencyBreakdown: {
             accept_ms: number | null;
@@ -9147,6 +9176,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AIRunDetailSuccessEnvelope"];
+                };
+            };
+            /** @description Classified safe error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                ordinal: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunInputAttachmentPreviewSuccessEnvelope"];
                 };
             };
             /** @description Classified safe error response */

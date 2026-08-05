@@ -1,6 +1,7 @@
 export interface RunInputSnapshotAttachment {
+  ordinal: number
   type: 'image'
-  url: string
+  mimeType: string | null
   name: string
   size: number
 }
@@ -21,7 +22,7 @@ export type RunInputSnapshot =
 
 const snapshotKeys = new Set(['content', 'attachments', 'runtime_params', 'meta_json', 'request_identity'])
 const metaKeys = new Set(['attachments', 'runtime_params'])
-const attachmentKeys = new Set(['type', 'object_key', 'mime_type', 'url', 'name', 'size'])
+const attachmentKeys = new Set(['type', 'mime_type', 'name', 'size'])
 const runtimeParamKeys = new Set(['temperature', 'max_tokens'])
 const requestIdentityKeys = new Set(['operation', 'source_message_id'])
 
@@ -83,26 +84,40 @@ function parseAttachments(
   if (!Array.isArray(value.attachments)) return undefined
 
   const attachments: RunInputSnapshotAttachment[] = []
-  for (const item of value.attachments) {
+  for (const [index, item] of value.attachments.entries()) {
     if (!isRecord(item)
       || !hasOnlyKeys(item, attachmentKeys)
-      || item.type !== 'image'
-      || (hasOwn(item, 'object_key') && (typeof item.object_key !== 'string' || item.object_key.trim() === ''))
-      || (hasOwn(item, 'mime_type') && (typeof item.mime_type !== 'string' || item.mime_type.trim() === ''))
-      || typeof item.url !== 'string'
-      || item.url.trim() === ''
+      || (item.type !== 'image' && item.type !== 'file')
       || typeof item.name !== 'string'
       || !isNonNegativeInteger(item.size)) {
       return undefined
     }
+    if (item.type === 'file') {
+      if (hasOwn(item, 'mime_type') && !isMIMEType(item.mime_type)) return undefined
+      continue
+    }
+    let mimeType: string | null = null
+    if (hasOwn(item, 'mime_type')) {
+      if (!isImageMIMEType(item.mime_type)) return undefined
+      mimeType = item.mime_type
+    }
     attachments.push({
+      ordinal: index + 1,
       type: item.type,
-      url: item.url,
+      mimeType,
       name: item.name,
       size: item.size,
     })
   }
   return attachments
+}
+
+function isImageMIMEType(value: unknown): value is string {
+  return typeof value === 'string' && /^image\/[a-z0-9.+-]+$/i.test(value.trim())
+}
+
+function isMIMEType(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(value.trim())
 }
 
 function isHistoryRequestIdentity(value: unknown): boolean {

@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 5c53e0a28d167595b8017a6c4b665e0410862194b241ac15e6aa763104e8969a
+// Generated from Admin Contract Bundle manifest SHA-256: 12dad33927063949e905313d56606d13d0e3ce483aaf5158260e2a25801004e8
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -2196,6 +2196,26 @@ const contractSchemas = {
       "id",
       "message",
       "seq"
+    ],
+    "type": "object"
+  },
+  "AIRunInputAttachmentPreview": {
+    "additionalProperties": false,
+    "properties": {
+      "expires_in": {
+        "format": "int64",
+        "maximum": 300,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "url": {
+        "format": "uri",
+        "type": "string"
+      }
+    },
+    "required": [
+      "expires_in",
+      "url"
     ],
     "type": "object"
   },
@@ -11184,6 +11204,9 @@ const responseDataSchemas = {
   "get_api_admin_v1_ai_runs_id": {
     "$ref": "#/components/schemas/AIRunDetail"
   },
+  "get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview": {
+    "$ref": "#/components/schemas/AIRunInputAttachmentPreview"
+  },
   "get_api_admin_v1_ai_runs_page_init": {
     "$ref": "#/components/schemas/AIRunPageInit"
   },
@@ -12663,6 +12686,17 @@ export const adminOperations = {
     replay: "safe",
     responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_id">>(responseDataSchemas["get_api_admin_v1_ai_runs_id"]),
     telemetryName: "admin.get.api.admin.v1.ai.runs.id",
+    encode: (input) => input,
+  }),
+  "get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview">, AdminOperationOutput<"get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview">>({
+    id: "get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview",
+    method: "GET",
+    path: "/api/admin/v1/ai-runs/{id}/input-attachments/{ordinal}/preview",
+    auth: "required",
+    timeout: "interactive",
+    replay: "safe",
+    responseSchema: schemaCompiler.compile<AdminOperationOutput<"get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview">>(responseDataSchemas["get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview"]),
+    telemetryName: "admin.get.api.admin.v1.ai.runs.id.input.attachments.ordinal.preview",
     encode: (input) => input,
   }),
   "get_api_admin_v1_ai_runs_page_init": defineOperation<AdminOperationInput<"get_api_admin_v1_ai_runs_page_init">, AdminOperationOutput<"get_api_admin_v1_ai_runs_page_init">>({

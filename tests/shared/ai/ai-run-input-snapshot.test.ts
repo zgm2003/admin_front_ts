@@ -14,7 +14,7 @@ describe('AI run input snapshot parser', () => {
       content: 'describe the image',
       attachments: [{
         type: 'image',
-        url: 'https://cos.zgm2003.cn/chat/input.png',
+        mime_type: 'image/png',
         name: 'input.png',
         size: 1536,
       }],
@@ -28,8 +28,9 @@ describe('AI run input snapshot parser', () => {
       kind: 'structured',
       content: 'describe the image',
       attachments: [{
+        ordinal: 1,
         type: 'image',
-        url: 'https://cos.zgm2003.cn/chat/input.png',
+        mimeType: 'image/png',
         name: 'input.png',
         size: 1536,
       }],
@@ -46,7 +47,7 @@ describe('AI run input snapshot parser', () => {
       meta_json: JSON.stringify({
         attachments: [{
           type: 'image',
-          url: 'javascript:alert(1)',
+          mime_type: 'image/png',
           name: 'unsafe.png',
           size: 0,
         }],
@@ -57,8 +58,9 @@ describe('AI run input snapshot parser', () => {
       kind: 'structured',
       content: 'image only metadata follows',
       attachments: [{
+        ordinal: 1,
         type: 'image',
-        url: 'javascript:alert(1)',
+        mimeType: 'image/png',
         name: 'unsafe.png',
         size: 0,
       }],
@@ -73,14 +75,45 @@ describe('AI run input snapshot parser', () => {
     })
   })
 
+  it('keeps the original attachment ordinal when files precede an image', () => {
+    const snapshot = JSON.stringify({
+      content: 'compare the attachment and image',
+      attachments: [
+        {
+          type: 'file',
+          mime_type: 'application/pdf',
+          name: 'context.pdf',
+          size: 2048,
+        },
+        {
+          type: 'image',
+          mime_type: 'image/png',
+          name: 'reference.png',
+          size: 1536,
+        },
+      ],
+    })
+
+    expect(parseRunInputSnapshot(snapshot)).toEqual({
+      kind: 'structured',
+      content: 'compare the attachment and image',
+      attachments: [{
+        ordinal: 2,
+        type: 'image',
+        mimeType: 'image/png',
+        name: 'reference.png',
+        size: 1536,
+      }],
+      runtimeParams: null,
+    })
+  })
+
   it('keeps history request identity metadata internal while rendering its accepted image snapshot', () => {
     const snapshot = JSON.stringify({
       content: 'changed question',
       attachments: [{
         type: 'image',
-        object_key: 'ai_chat_images/2026/07/29/reference.png',
         mime_type: 'image/png',
-        url: 'https://cos.zgm2003.cn/ai_chat_images/2026/07/29/reference.png',
         name: 'reference.png',
         size: 1536,
       }],
@@ -94,8 +127,9 @@ describe('AI run input snapshot parser', () => {
       kind: 'structured',
       content: 'changed question',
       attachments: [{
+        ordinal: 1,
         type: 'image',
-        url: 'https://cos.zgm2003.cn/ai_chat_images/2026/07/29/reference.png',
+        mimeType: 'image/png',
         name: 'reference.png',
         size: 1536,
       }],
@@ -109,8 +143,9 @@ describe('AI run input snapshot parser', () => {
     '{"content":"keep me","meta_json":"\\"{\\\\\\"attachments\\\\\\":[]}\\""}',
     '{"prompt":"alias is forbidden"}',
     '{"content":"hello","runtime_params":{"top_p":0.9}}',
-    '{"attachments":[{"type":"image","url":"/image.png","name":"a.png","size":1},{"type":"file","url":"/file","name":"a.txt","size":1}]}',
-    '{"attachments":[{"type":"image","url":"/image.png","name":"a.png","size":-1}]}',
+    '{"attachments":[{"type":"image","mime_type":"image/png","name":"a.png","size":1},{"type":"audio","mime_type":"audio/mpeg","name":"a.mp3","size":1}]}',
+    '{"attachments":[{"type":"image","mime_type":"image/png","name":"a.png","size":-1}]}',
+    '{"attachments":[{"type":"image","url":"https://should-not-leak.example/a.png","name":"a.png","size":1}]}',
   ])('returns the complete raw input for malformed or unknown required shapes: %s', (text) => {
     expect(parseRunInputSnapshot(text)).toEqual({ kind: 'raw', text })
   })

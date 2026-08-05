@@ -22,6 +22,7 @@ export type AiRunMessageSummary = components['schemas']['AIRunMessageSummary']
 export type AiRunMessageMeta = components['schemas']['AIRunMessageSummary']['meta_json']
 export type AiRunToolCallItem = components['schemas']['AIRunToolCall']
 export type AiRunDetailResponse = components['schemas']['AIRunDetail']
+export type AiRunInputAttachmentPreview = components['schemas']['AIRunInputAttachmentPreview']
 export type AiRunContextPlan = NonNullable<AiRunDetailResponse['context_plan']>
 export type AiRunLatencyBreakdown = components['schemas']['AIRunLatencyBreakdown']
 export type AiRunClaimSource = AiRunLatencyBreakdown['claim_source']
@@ -76,6 +77,13 @@ export interface AiRunListParams {
 function positiveID(value: Id | number): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value <= 0) {
     throw new Error('AI run id must be a positive integer')
+  }
+  return value
+}
+
+function positiveOrdinal(value: number): number {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error('AI run input attachment ordinal must be a positive integer')
   }
   return value
 }
@@ -142,6 +150,15 @@ export const AiRunApi = {
   ): Promise<AiRunDetailResponse> => executeAdminOperation(
     adminOperations.get_api_admin_v1_ai_runs_id,
     { path: { id: positiveID(params.id) } },
+    options,
+  ),
+
+  inputAttachmentPreview: (
+    params: { id: Id; ordinal: number },
+    options: ExecuteOptions = {},
+  ): Promise<AiRunInputAttachmentPreview> => executeAdminOperation(
+    adminOperations.get_api_admin_v1_ai_runs_id_input_attachments_ordinal_preview,
+    { path: { id: positiveID(params.id), ordinal: positiveOrdinal(params.ordinal) } },
     options,
   ),
 

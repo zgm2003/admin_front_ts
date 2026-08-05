@@ -49,10 +49,23 @@ describe('AI run API behavior', () => {
     expect(Object.keys(AiRunApi).sort()).toEqual([
       'dashboard',
       'detail',
+      'inputAttachmentPreview',
       'list',
       'pageInit',
       'setUserFeedback',
     ])
+  })
+
+  it('requests one protected input attachment preview by run and ordinal', async () => {
+    const result = { url: 'https://signed.example/a.png?q-signature=proof', expires_in: 300 }
+    const harness = installApiClientHarness(result)
+    cleanups.push(harness.uninstall)
+
+    await expect(AiRunApi.inputAttachmentPreview({ id: 44, ordinal: 2 })).resolves.toEqual(result)
+    expect(harness.requests).toEqual([expect.objectContaining({
+      method: 'GET',
+      path: '/api/admin/v1/ai-runs/44/input-attachments/2/preview',
+    })])
   })
 
   it('serializes page-init dates and every list drilldown filter', async () => {

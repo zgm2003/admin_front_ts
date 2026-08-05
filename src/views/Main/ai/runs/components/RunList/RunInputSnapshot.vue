@@ -1,23 +1,42 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatFileSize, resolveTrustedFileURL } from '@/lib/browser/download'
+import { AiRunApi } from '@/api/ai/runs'
+import { formatFileSize } from '@/lib/browser/download'
 import {
   parseRunInputSnapshot,
+  type RunInputSnapshotAttachment,
   type RunInputSnapshotRuntimeParams,
 } from './input-snapshot'
 
-const props = defineProps<{ snapshot: string }>()
+type PreviewStatus = 'loading' | 'ready' | 'unavailable'
+type AttachmentView = RunInputSnapshotAttachment & {
+  previewStatus: PreviewStatus
+  previewUrl: string
+}
+
+const props = defineProps<{ runId: number; snapshot: string }>()
 const { t } = useI18n()
 const snapshotView = computed(() => parseRunInputSnapshot(props.snapshot))
-const attachmentViews = computed(() => {
-  const view = snapshotView.value
-  if (view.kind !== 'structured') return []
-  return view.attachments.map((attachment) => ({
+const attachmentViews = ref<AttachmentView[]>([])
+
+watch([() => props.runId, snapshotView], ([runId, view], _previous, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
+  if (view.kind !== 'structured') {
+    attachmentViews.value = []
+    return
+  }
+  attachmentViews.value = view.attachments.map((attachment) => ({
     ...attachment,
-    previewUrl: trustedFileURL(attachment.url),
+    previewStatus: 'loading',
+    previewUrl: '',
   }))
-})
+  for (const attachment of attachmentViews.value) {
+    void loadPreview(runId, attachment.ordinal, controller.signal)
+  }
+}, { immediate: true })
+
 const runtimeParamOrder: Array<keyof RunInputSnapshotRuntimeParams> = [
   'temperature',
   'max_tokens',
@@ -32,12 +51,33 @@ const runtimeParamEntries = computed(() => {
   })
 })
 
-function trustedFileURL(input: string): string {
+async function loadPreview(runId: number, ordinal: number, signal: AbortSignal): Promise<void> {
   try {
-    return resolveTrustedFileURL(input)
+    const result = await AiRunApi.inputAttachmentPreview({ id: runId, ordinal }, { signal })
+    const previewUrl = resolvePreviewURL(result.url)
+    if (signal.aborted) return
+    setPreviewState(ordinal, 'ready', previewUrl)
   } catch {
-    return ''
+    if (signal.aborted) return
+    setPreviewState(ordinal, 'unavailable', '')
   }
+}
+
+function resolvePreviewURL(input: string): string {
+  const base = new URL(globalThis.location.href)
+  const url = new URL(input, base)
+  if (url.username || url.password) throw new Error('AI run input attachment preview credentials are forbidden')
+  if (url.origin !== base.origin && url.protocol !== 'https:') {
+    throw new Error('AI run input attachment preview URL must use HTTPS')
+  }
+  return url.href
+}
+
+function setPreviewState(ordinal: number, previewStatus: PreviewStatus, previewUrl: string): void {
+  const index = attachmentViews.value.findIndex((attachment) => attachment.ordinal === ordinal)
+  const attachment = attachmentViews.value[index]
+  if (!attachment) throw new Error(`Missing AI run input attachment ordinal ${ordinal}`)
+  attachmentViews.value[index] = { ...attachment, previewStatus, previewUrl }
 }
 </script>
 
@@ -69,19 +109,32 @@ function trustedFileURL(input: string): string {
         <h4>{{ t('aiRuns.detail.attachments') }}</h4>
         <div class="run-input-snapshot__attachments">
           <article
-            v-for="(attachment, index) in attachmentViews"
-            :key="`${attachment.type}:${attachment.url}:${index}`"
+            v-for="attachment in attachmentViews"
+            :key="attachment.ordinal"
             class="run-input-snapshot__attachment"
-            :class="{ 'has-preview': attachment.previewUrl !== '' }"
           >
-            <el-image
-              v-if="attachment.previewUrl"
-              class="run-input-snapshot__preview"
-              :src="attachment.previewUrl"
-              :preview-src-list="[attachment.previewUrl]"
-              fit="cover"
-              preview-teleported
-            />
+            <div class="run-input-snapshot__preview-frame">
+              <el-skeleton-item
+                v-if="attachment.previewStatus === 'loading'"
+                class="run-input-snapshot__preview"
+                variant="image"
+              />
+              <el-image
+                v-else-if="attachment.previewStatus === 'ready'"
+                class="run-input-snapshot__preview"
+                :src="attachment.previewUrl"
+                :preview-src-list="[attachment.previewUrl]"
+                fit="cover"
+                preview-teleported
+              />
+              <div
+                v-else
+                data-testid="run-input-preview-unavailable"
+                class="run-input-snapshot__preview-unavailable"
+              >
+                {{ t('aiRuns.detail.previewUnavailable') }}
+              </div>
+            </div>
             <dl class="run-input-snapshot__facts">
               <div>
                 <dt>{{ t('aiRuns.detail.attachmentName') }}</dt>
@@ -91,13 +144,13 @@ function trustedFileURL(input: string): string {
                 <dt>{{ t('aiRuns.detail.attachmentType') }}</dt>
                 <dd>{{ attachment.type }}</dd>
               </div>
+              <div v-if="attachment.mimeType !== null">
+                <dt>{{ t('aiRuns.detail.attachmentMimeType') }}</dt>
+                <dd>{{ attachment.mimeType }}</dd>
+              </div>
               <div>
                 <dt>{{ t('aiRuns.detail.attachmentSize') }}</dt>
                 <dd>{{ formatFileSize(attachment.size) }}</dd>
-              </div>
-              <div class="run-input-snapshot__url">
-                <dt>{{ t('aiRuns.detail.attachmentUrl') }}</dt>
-                <dd><code>{{ attachment.url }}</code></dd>
               </div>
             </dl>
           </article>
@@ -119,6 +172,18 @@ function trustedFileURL(input: string): string {
           </div>
         </dl>
       </section>
+
+      <el-collapse class="run-input-snapshot__raw-collapse">
+        <el-collapse-item
+          name="raw"
+          :title="t('aiRuns.detail.rawSnapshot')"
+        >
+          <pre
+            data-testid="run-input-structured-raw"
+            class="run-input-snapshot__raw"
+          >{{ snapshot }}</pre>
+        </el-collapse-item>
+      </el-collapse>
     </template>
   </div>
 </template>
@@ -162,7 +227,7 @@ function trustedFileURL(input: string): string {
 
 .run-input-snapshot__attachment {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   padding: 10px 0;
@@ -174,15 +239,28 @@ function trustedFileURL(input: string): string {
   border-top: 0;
 }
 
-.run-input-snapshot__attachment.has-preview {
-  grid-template-columns: 72px minmax(0, 1fr);
-}
-
+.run-input-snapshot__preview-frame,
 .run-input-snapshot__preview {
   width: 72px;
   height: 72px;
+}
+
+.run-input-snapshot__preview-frame {
+  overflow: hidden;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
+}
+
+.run-input-snapshot__preview-unavailable {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  place-items: center;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .run-input-snapshot__facts,
@@ -217,28 +295,18 @@ function trustedFileURL(input: string): string {
   overflow-wrap: anywhere;
 }
 
-.run-input-snapshot__url {
-  grid-column: 1 / -1;
-}
-
-.run-input-snapshot__url code {
-  font-size: 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
 .run-input-snapshot__runtime {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.run-input-snapshot__raw-collapse {
+  margin-top: 12px;
 }
 
 @media (max-width: 720px) {
   .run-input-snapshot__facts,
   .run-input-snapshot__runtime {
     grid-template-columns: 1fr;
-  }
-
-  .run-input-snapshot__url {
-    grid-column: auto;
   }
 }
 </style>
