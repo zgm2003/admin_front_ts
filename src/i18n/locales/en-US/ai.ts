@@ -204,6 +204,7 @@ export default {
       userMessageNotFound: 'Cannot find corresponding user message',
       stopFailed: 'Stop failed',
       generationStopped: 'Generation stopped',
+      contextDegraded: 'Knowledge retrieval was unavailable for this turn; the answer did not use workspace or historical attachment sources',
       stopping: 'Stopping…',
       // Loading states
       loading: 'Loading...',
@@ -397,8 +398,8 @@ export default {
         providerRequestId: 'Provider Request ID'
       },
       contextPlan: {
-        title: 'Context Plan', outcome: 'Retrieval Outcome', state: 'Plan State', budget: 'Input Budget / Window', proof: 'Budget Proof', decision: 'Decision', kind: 'Context Kind', titleColumn: 'Title', citation: 'Citation', score: 'Score', tokens: 'Token Bound', exclusion: 'Exclusion Reason', unknownError: 'Context plan execution failed',
-        outcomes: { skipped: 'Skipped', no_hit: 'No Hit', hit: 'Hit', failed: 'Failed' }, states: { ready: 'Ready', failed: 'Failed' }, proofs: { exact: 'Exact', conservative: 'Conservative', opaque_attachment: 'Opaque Attachment' }, decisions: { selected: 'Selected', excluded: 'Excluded' }
+        title: 'Context Plan', outcome: 'Retrieval Outcome', state: 'Plan State', budget: 'Input Budget / Window', proof: 'Budget Proof', decision: 'Decision', kind: 'Context Kind', titleColumn: 'Title', citation: 'Citation', score: 'Score', tokens: 'Token Bound', exclusion: 'Exclusion Reason', unknownError: 'Context plan execution failed', degradedDiagnostic: 'Knowledge retrieval enhancement was unavailable; the main model response still completed.',
+        outcomes: { skipped: 'Skipped', no_hit: 'No Hit', hit: 'Hit', degraded: 'Degraded', failed: 'Failed' }, states: { ready: 'Ready', failed: 'Failed' }, proofs: { exact: 'Exact', conservative: 'Conservative', opaque_attachment: 'Opaque Attachment' }, decisions: { selected: 'Selected', excluded: 'Excluded' }
       },
       tabs: {
         list: 'Run List',

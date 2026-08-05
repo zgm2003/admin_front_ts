@@ -4,6 +4,7 @@ import {
   type AiContextDocument,
   type AiContextDocumentVersion,
   type AiContextEvaluation,
+  type AiContextPageInit,
   type AiContextProfile,
   type AiContextSpace,
 } from '@/api/ai/context'
@@ -13,6 +14,9 @@ export type ContextWorkspaceTab = 'spaces' | 'documents' | 'profiles' | 'evaluat
 export function useContextWorkspace() {
   const activeTab = shallowRef<ContextWorkspaceTab>('spaces')
   const profiles = ref<AiContextProfile[]>([])
+  const embeddingModelOptions = ref<AiContextPageInit['embedding_model_options']>([])
+  const memoryModelOptions = ref<AiContextPageInit['memory_model_options']>([])
+  const rerankerModelOptions = ref<AiContextPageInit['reranker_model_options']>([])
   const spaces = ref<AiContextSpace[]>([])
   const documents = ref<AiContextDocument[]>([])
   const versions = ref<AiContextDocumentVersion[]>([])
@@ -39,6 +43,13 @@ export function useContextWorkspace() {
   let profileRequest: AbortController | null = null
   let spaceRequest: AbortController | null = null
   let documentRequest: AbortController | null = null
+
+  async function loadPageInit() {
+    const response = await AiContextApi.pageInit()
+    embeddingModelOptions.value = response.embedding_model_options
+    memoryModelOptions.value = response.memory_model_options
+    rerankerModelOptions.value = response.reranker_model_options
+  }
 
   async function refreshProfiles() {
     profileRequest?.abort()
@@ -118,14 +129,21 @@ export function useContextWorkspace() {
     }
   }
 
+  async function initialize() {
+    await Promise.all([loadPageInit(), refreshProfiles()])
+  }
+
   watch(selectedProfileID, () => void refreshSpaces())
   watch(selectedSpaceID, () => void refreshDocuments())
   watch(selectedDocumentID, () => void refreshVersions())
-  onMounted(() => void refreshProfiles())
+  onMounted(() => void initialize())
 
   return {
     activeTab,
     profiles: readonly(profiles),
+    embeddingModelOptions: readonly(embeddingModelOptions),
+    memoryModelOptions: readonly(memoryModelOptions),
+    rerankerModelOptions: readonly(rerankerModelOptions),
     spaces: readonly(spaces),
     documents: readonly(documents),
     versions: readonly(versions),

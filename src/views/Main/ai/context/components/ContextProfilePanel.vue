@@ -3,12 +3,26 @@ import { computed, shallowRef } from 'vue'
 import { Edit, Plus, SwitchButton } from '@element-plus/icons-vue'
 import { ElNotification } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { AiContextApi, type AiContextProfile, type AiContextProfileCreateBody } from '@/api/ai/context'
+import {
+  AiContextApi,
+  type AiContextPageInit,
+  type AiContextProfile,
+  type AiContextProfileCreateBody,
+} from '@/api/ai/context'
 import { AppTable } from '@/components/Table'
 import type { TableColumn } from '@/components/Table'
 import ContextProfileDialog from './ContextProfileDialog.vue'
 
-defineProps<{ profiles: readonly AiContextProfile[]; selectedId: number | null; loading: boolean }>()
+type ContextModelOption = AiContextPageInit['embedding_model_options'][number]
+
+defineProps<{
+  profiles: readonly AiContextProfile[]
+  embeddingModelOptions: readonly ContextModelOption[]
+  memoryModelOptions: readonly ContextModelOption[]
+  rerankerModelOptions: readonly ContextModelOption[]
+  selectedId: number | null
+  loading: boolean
+}>()
 const emit = defineEmits<{ select: [id: number]; changed: [] }>()
 const { t } = useI18n()
 const dialogVisible = shallowRef(false)
@@ -110,6 +124,9 @@ async function toggle(profile: AiContextProfile) {
     <ContextProfileDialog
       v-model="dialogVisible"
       :profile="editing"
+      :embedding-model-options="embeddingModelOptions"
+      :memory-model-options="memoryModelOptions"
+      :reranker-model-options="rerankerModelOptions"
       @submit="submit"
     />
   </section>

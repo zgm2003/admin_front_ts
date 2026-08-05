@@ -75,8 +75,11 @@ describe('AI chat accessibility', () => {
           MarkdownRenderer: MarkdownRendererStub,
           ElIcon: true,
           ElButton: ElButtonStub,
+          ElCheckbox: true,
           ElImage: true,
           ElImageViewer: true,
+          ElText: true,
+          ElTooltip: { template: '<span><slot /></span>' },
         },
       },
     })
@@ -84,14 +87,25 @@ describe('AI chat accessibility', () => {
     expect(wrapper.get('[role="log"]').attributes('aria-label')).toBeTruthy()
     expect(mocks.announcePolite).not.toHaveBeenCalled()
     await wrapper.setProps({
-      messages: [{ ...streamingMessage, content: 'Finished', isStreaming: false }],
+      messages: [{
+        ...streamingMessage,
+        content: 'Finished',
+        isStreaming: false,
+        context: { plan_id: 31, outcome: 'degraded', invalid_keys: [], sources: [] },
+      }],
       sending: false,
     })
     await flushPromises()
     expect(mocks.announcePolite).toHaveBeenCalledTimes(1)
+    expect(wrapper.get('[data-test="context-degraded-status"]').attributes('role')).toBe('status')
 
     await wrapper.setProps({
-      messages: [{ ...streamingMessage, content: 'Finished', isStreaming: false }],
+      messages: [{
+        ...streamingMessage,
+        content: 'Finished',
+        isStreaming: false,
+        context: { plan_id: 31, outcome: 'degraded', invalid_keys: [], sources: [] },
+      }],
     })
     expect(mocks.announcePolite).toHaveBeenCalledTimes(1)
   })

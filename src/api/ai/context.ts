@@ -17,6 +17,7 @@ export type AiContextDocumentVersion = Output<'ai_context_document_versions_list
 export type AiContextEvaluation = Output<'ai_context_evaluate'>
 export type AiAgentContextProfile = Output<'ai_agent_context_profile_get'>
 export type AiAgentContextSpaces = Output<'ai_agent_context_spaces_get'>
+export type AiContextPageInit = Output<'ai_context_page_init'>
 
 export type AiContextProfileCreateBody = Input<'ai_context_profile_create'>['body']
 export type AiContextProfileUpdateBody = Input<'ai_context_profile_update_metadata'>['body']
@@ -36,6 +37,10 @@ function listProfiles(
   options: ExecuteOptions = {},
 ) {
   return executeAdminOperation(adminOperations.ai_context_profiles_list, { query }, options)
+}
+
+function pageInit(options: ExecuteOptions = {}): Promise<AiContextPageInit> {
+  return executeAdminOperation(adminOperations.ai_context_page_init, {}, options)
 }
 
 function listSpaces(
@@ -88,6 +93,7 @@ export async function uploadAiContextDocument(file: File): Promise<AiContextDocu
 }
 
 export const AiContextApi = {
+  pageInit,
   profiles: {
     list: listProfiles,
     detail: (id: number, options: ExecuteOptions = {}) => executeAdminOperation(

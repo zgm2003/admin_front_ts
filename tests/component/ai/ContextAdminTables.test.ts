@@ -48,4 +48,21 @@ describe('context administration tables', () => {
     expect(source).toContain('class="version-row__filename"')
     expect(source).toMatch(/\.version-row__filename\s*\{[\s\S]*?overflow:\s*hidden;[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/)
   })
+
+  it('loads Context Page Init once and passes its three typed option sets to the profile dialog', () => {
+    const api = readFileSync(resolve('src/api/ai/context.ts'), 'utf8')
+    const workspace = readFileSync(resolve('src/views/Main/ai/context/use-context-workspace.ts'), 'utf8')
+    const page = readFileSync(resolve('src/views/Main/ai/context/index.vue'), 'utf8')
+    const panel = readComponent('ContextProfilePanel.vue')
+    const dialog = readComponent('ContextProfileDialog.vue')
+
+    expect(api).toContain("export type AiContextPageInit = Output<'ai_context_page_init'>")
+    expect(api).toContain('adminOperations.ai_context_page_init')
+    expect(workspace.match(/AiContextApi\.pageInit\(\)/g)).toHaveLength(1)
+    expect(page).toContain(':embedding-model-options="workspace.embeddingModelOptions.value"')
+    expect(page).toContain(':reranker-model-options="workspace.rerankerModelOptions.value"')
+    expect(page).toContain(':memory-model-options="workspace.memoryModelOptions.value"')
+    expect(panel).toContain(':embedding-model-options="embeddingModelOptions"')
+    expect(dialog).not.toContain(':deep')
+  })
 })

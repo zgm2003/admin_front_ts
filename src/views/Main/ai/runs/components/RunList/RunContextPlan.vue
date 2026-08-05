@@ -1,10 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AiRunContextPlan } from '@/api/ai/runs'
+import { AppTable } from '@/components/Table'
+import type { TableColumn } from '@/components/Table'
 import { contextDecisionTagType, contextOutcomeTagType, contextScore } from './context-plan'
+
+type ContextPlanItem = AiRunContextPlan['items'][number]
 
 defineProps<{ plan: AiRunContextPlan }>()
 const { t } = useI18n()
+const columns = computed<TableColumn<ContextPlanItem>[]>(() => [
+  { prop: 'ordinal', label: '#', width: 58 },
+  { prop: 'decision', label: t('aiRuns.contextPlan.decision'), width: 110 },
+  { prop: 'kind', label: t('aiRuns.contextPlan.kind'), width: 190 },
+  { prop: 'title', label: t('aiRuns.contextPlan.titleColumn'), minWidth: 240, overflowTooltip: true },
+  { prop: 'citation_key', label: t('aiRuns.contextPlan.citation'), width: 100 },
+  { key: 'score', label: t('aiRuns.contextPlan.score'), width: 130 },
+  { prop: 'token_upper_bound', label: t('aiRuns.contextPlan.tokens'), width: 110 },
+  { prop: 'exclusion_reason', label: t('aiRuns.contextPlan.exclusion'), minWidth: 220, overflowTooltip: true },
+])
 </script>
 
 <template>
@@ -24,69 +39,34 @@ const { t } = useI18n()
     </div>
     <el-alert
       v-if="plan.error"
-      :title="plan.error.code"
-      :description="plan.error.message ?? t('aiRuns.contextPlan.unknownError')"
-      type="error"
+      :title="`${plan.error.stage} · ${plan.error.code}`"
+      :description="plan.state === 'failed'
+        ? (plan.error.message ?? t('aiRuns.contextPlan.unknownError'))
+        : t('aiRuns.contextPlan.degradedDiagnostic')"
+      :type="plan.state === 'failed' ? 'error' : 'warning'"
       :closable="false"
     />
-    <el-table
+    <AppTable
+      :columns="columns"
       :data="plan.items"
       row-key="ordinal"
-      size="small"
+      :fixed-footer="false"
+      :show-refresh="false"
+      :show-column-setting="false"
+      :table-props="{ size: 'small' }"
     >
-      <el-table-column
-        prop="ordinal"
-        label="#"
-        width="58"
-      />
-      <el-table-column
-        :label="t('aiRuns.contextPlan.decision')"
-        width="100"
-      >
-        <template #default="{ row }">
-          <el-tag
-            size="small"
-            :type="contextDecisionTagType(row.decision)"
-          >
-            {{ t(`aiRuns.contextPlan.decisions.${row.decision}`) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="kind"
-        :label="t('aiRuns.contextPlan.kind')"
-        width="170"
-      />
-      <el-table-column
-        prop="title"
-        :label="t('aiRuns.contextPlan.titleColumn')"
-        min-width="180"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="citation_key"
-        :label="t('aiRuns.contextPlan.citation')"
-        width="90"
-      />
-      <el-table-column
-        :label="t('aiRuns.contextPlan.score')"
-        width="120"
-      >
-        <template #default="{ row }">
-          {{ contextScore(row.rerank_score ?? row.fusion_score) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="token_upper_bound"
-        :label="t('aiRuns.contextPlan.tokens')"
-        width="90"
-      />
-      <el-table-column
-        prop="exclusion_reason"
-        :label="t('aiRuns.contextPlan.exclusion')"
-        min-width="170"
-      />
-    </el-table>
+      <template #cell-decision="{ row }">
+        <el-tag
+          size="small"
+          :type="contextDecisionTagType(row.decision)"
+        >
+          {{ t(`aiRuns.contextPlan.decisions.${row.decision}`) }}
+        </el-tag>
+      </template>
+      <template #cell-score="{ row }">
+        {{ contextScore(row.rerank_score ?? row.fusion_score) }}
+      </template>
+    </AppTable>
   </section>
 </template>
 

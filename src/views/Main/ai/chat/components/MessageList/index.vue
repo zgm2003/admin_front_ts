@@ -14,6 +14,7 @@ import {
   StarFilled,
   VideoPause,
   VideoPlay,
+  Warning,
 } from '@element-plus/icons-vue'
 import { MarkdownRenderer } from '@/components/MarkdownRenderer'
 import { AiRoleEnum } from '@/enums'
@@ -322,6 +323,16 @@ function openCitation(message: Message, key: string) {
           >...</span>
         </div>
 
+        <div
+          v-if="isAssistant(message) && !message.isStreaming && message.context?.outcome === 'degraded'"
+          class="message-context-status"
+          data-test="context-degraded-status"
+          role="status"
+        >
+          <el-icon><Warning /></el-icon>
+          <span>{{ t('aiChat.contextDegraded') }}</span>
+        </div>
+
         <el-text
           v-if="isAssistant(message) && message.delivery_state === 'stopped'"
           tag="div"
@@ -545,6 +556,15 @@ function openCitation(message: Message, key: string) {
   padding: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+.message-context-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--el-color-warning);
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .message-attachments {

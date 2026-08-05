@@ -213,6 +213,7 @@ export default {
       userMessageNotFound: '找不到对应的用户消息',
       stopFailed: '停止失败',
       generationStopped: '已停止生成',
+      contextDegraded: '本轮知识检索暂不可用，回答未引用空间或历史附件资料',
       stopping: '正在停止…',
       // 加载状态
       loading: '加载中...',
@@ -406,8 +407,8 @@ export default {
         providerRequestId: '上游 Request ID'
       },
       contextPlan: {
-        title: '上下文计划', outcome: '检索结果', state: '计划状态', budget: '输入预算 / 窗口', proof: '预算证明', decision: '决策', kind: '上下文类型', titleColumn: '标题', citation: '引用', score: '相关分', tokens: 'Token 上界', exclusion: '排除原因', unknownError: '上下文计划执行失败',
-        outcomes: { skipped: '已跳过', no_hit: '无命中', hit: '命中', failed: '失败' }, states: { ready: '就绪', failed: '失败' }, proofs: { exact: '精确', conservative: '保守上界', opaque_attachment: '不透明附件上界' }, decisions: { selected: '已选', excluded: '已排除' }
+        title: '上下文计划', outcome: '检索结果', state: '计划状态', budget: '输入预算 / 窗口', proof: '预算证明', decision: '决策', kind: '上下文类型', titleColumn: '标题', citation: '引用', score: '相关分', tokens: 'Token 上界', exclusion: '排除原因', unknownError: '上下文计划执行失败', degradedDiagnostic: '知识检索增强不可用，主模型回答仍已正常完成。',
+        outcomes: { skipped: '已跳过', no_hit: '无命中', hit: '命中', degraded: '已降级', failed: '失败' }, states: { ready: '就绪', failed: '失败' }, proofs: { exact: '精确', conservative: '保守上界', opaque_attachment: '不透明附件上界' }, decisions: { selected: '已选', excluded: '已排除' }
       },
       tabs: {
         list: '运行列表',

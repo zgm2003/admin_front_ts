@@ -66,6 +66,9 @@ const workspace = useContextWorkspace()
       >
         <ContextProfilePanel
           :profiles="workspace.profiles.value"
+          :embedding-model-options="workspace.embeddingModelOptions.value"
+          :memory-model-options="workspace.memoryModelOptions.value"
+          :reranker-model-options="workspace.rerankerModelOptions.value"
           :selected-id="workspace.selectedProfileID.value"
           :loading="workspace.profilesLoading.value"
           @select="workspace.selectedProfileID.value = $event"

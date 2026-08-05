@@ -4,6 +4,7 @@ export function contextOutcomeTagType(outcome: AiRunContextPlan['retrieval_outco
   switch (outcome) {
     case 'hit': return 'success'
     case 'failed': return 'danger'
+    case 'degraded': return 'warning'
     case 'no_hit': return 'warning'
     case 'skipped': return 'info'
   }

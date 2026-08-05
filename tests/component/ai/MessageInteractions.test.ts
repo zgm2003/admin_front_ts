@@ -182,6 +182,26 @@ describe('message interactions', () => {
     expect(rows[1]!.find('button[aria-label="aiChat.editMessage"]').exists()).toBe(false)
   })
 
+  it('renders persisted degraded context outside assistant content after a remount', () => {
+    const degradedMessages: Message[] = [
+      messages[0]!,
+      {
+        ...messages[1]!,
+        context: { plan_id: 901, outcome: 'degraded', invalid_keys: [], sources: [] },
+      },
+    ]
+    const first = mountList({ messages: degradedMessages })
+    const status = first.get('[data-test="context-degraded-status"]')
+
+    expect(status.attributes('role')).toBe('status')
+    expect(status.text()).toBe('aiChat.contextDegraded')
+    expect(first.findAll('.message-card')[1]!.text()).not.toContain('aiChat.contextDegraded')
+    first.unmount()
+
+    const restored = mountList({ messages: degradedMessages.map(message => ({ ...message })) })
+    expect(restored.get('[data-test="context-degraded-status"]').text()).toBe('aiChat.contextDegraded')
+  })
+
   it('distinguishes unchanged attachments from explicitly removing every attachment', async () => {
     const wrapper = mountList()
 
