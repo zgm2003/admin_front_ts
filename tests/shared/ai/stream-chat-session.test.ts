@@ -29,4 +29,20 @@ describe('useConversationSessions conversation-scoped cache', () => {
     expect(session?.messages[1]?.content).toBe('answer')
     expect(session?.isStreaming).toBe(false)
   })
+
+  it('keeps an already delivered prefix when the provider stream fails', async () => {
+    const { useConversationSessions } = await import('../../../src/views/Main/ai/chat/composables/useConversationSessions')
+    const sessions = useConversationSessions()
+
+    sessions.beginSend(7, 'req-failed', 'question with image')
+    sessions.markUserMessage(7, 'req-failed', 70)
+    sessions.appendDelta(7, 'req-failed', 1, 'partial ')
+    sessions.appendDelta(7, 'req-failed', 2, 'answer')
+    sessions.fail(7, 'req-failed', 'AI generation failed')
+
+    const assistant = sessions.get(7)?.messages[1]
+    expect(assistant?.content).toBe('partial answer')
+    expect(assistant?.delivery_state).toBe('stopped')
+    expect(assistant?.isStreaming).toBe(false)
+  })
 })

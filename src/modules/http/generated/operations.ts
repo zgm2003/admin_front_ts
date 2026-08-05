@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
+// Generated from Admin Contract Bundle manifest SHA-256: 5c53e0a28d167595b8017a6c4b665e0410862194b241ac15e6aa763104e8969a
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -1918,6 +1918,12 @@ const contractSchemas = {
       "created_at": {
         "type": "string"
       },
+      "diagnostic_codes": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
       "duration_ms": {
         "anyOf": [
           {
@@ -2091,6 +2097,7 @@ const contractSchemas = {
       "conversation_id",
       "conversation_title",
       "created_at",
+      "diagnostic_codes",
       "duration_ms",
       "duration_text",
       "error_code",

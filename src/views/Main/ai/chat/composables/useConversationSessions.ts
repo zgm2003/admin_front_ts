@@ -478,12 +478,13 @@ export function useConversationSessions() {
     }
     if (!canApplyAssistantTerminalEvent(current, requestId)) return 'ignored'
 
+    const hasDeliveredPrefix = current.lastContinuousDeliverySeq > 0
     const messages = current.messages.map((message) => {
       if (message.role === AiRoleEnum.ASSISTANT && message.request_id === requestId) {
         return {
           ...message,
-          content: messageText,
-          delivery_state: null,
+          content: hasDeliveredPrefix ? current.streamingContent : messageText,
+          delivery_state: hasDeliveredPrefix ? 'stopped' as const : null,
           settlement_pending: false,
           isStreaming: false,
           request_id: requestId,

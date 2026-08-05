@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 7a4644cf5fd1cc4b176679eeee05ad4b7e4d79fa97fb3f4f7defd4999c15b1a3
+// Generated from Admin Contract Bundle manifest SHA-256: 5c53e0a28d167595b8017a6c4b665e0410862194b241ac15e6aa763104e8969a
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -3942,6 +3942,7 @@ export interface components {
             conversation_id: number | null;
             conversation_title: string;
             created_at: string;
+            diagnostic_codes: string[];
             duration_ms: number | null;
             duration_text: string;
             error_code: string;
