@@ -12,5 +12,6 @@ describe('Context workspace layout', () => {
     expect(source).toMatch(/\.context-workspace\s*\{[^}]*height:\s*100%;/s)
     expect(source).toMatch(/\.context-workspace\s*\{[^}]*min-height:\s*0;/s)
     expect(source).toMatch(/\.context-workspace\s*\{[^}]*overflow:\s*auto;/s)
+    expect(source).not.toContain('background: var(--el-bg-color-page)')
   })
 })

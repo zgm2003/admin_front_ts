@@ -95,7 +95,6 @@ const workspace = useContextWorkspace()
   min-height: 0;
   overflow: auto;
   padding: 20px 24px;
-  background: var(--el-bg-color-page);
 }
 
 .context-workspace__header {

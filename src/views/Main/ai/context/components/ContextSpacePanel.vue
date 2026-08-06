@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { AiContextApi, type AiContextProfile, type AiContextSpace, type AiContextSpaceMutationBody } from '@/api/ai/context'
 import { AppTable } from '@/components/Table'
 import type { TableColumn } from '@/components/Table'
+import { formatDateTime } from '@/utils/date'
 import ContextSpaceDialog from './ContextSpaceDialog.vue'
 
 defineProps<{
@@ -23,7 +24,12 @@ const columns = computed<TableColumn<AiContextSpace>[]>(() => [
   { prop: 'name', label: t('aiContext.fields.name'), minWidth: 280 },
   { prop: 'description', label: t('aiContext.fields.description'), minWidth: 520 },
   { prop: 'status', label: t('aiContext.fields.status'), width: 120 },
-  { prop: 'updated_at', label: t('aiContext.fields.updatedAt'), width: 240 },
+  {
+    prop: 'updated_at',
+    label: t('aiContext.fields.updatedAt'),
+    width: 240,
+    formatter: (_row, _column, value) => formatDateTime(value),
+  },
   { key: 'actions', label: t('common.actions.action'), width: 180, fixed: 'right' },
 ])
 
