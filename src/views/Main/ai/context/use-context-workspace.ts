@@ -1,4 +1,5 @@
 import { computed, onMounted, readonly, ref, shallowRef, watch } from 'vue'
+import { ElNotification } from 'element-plus'
 import {
   AiContextApi,
   type AiContextDocument,
@@ -8,6 +9,7 @@ import {
   type AiContextProfile,
   type AiContextSpace,
 } from '@/api/ai/context'
+import { isApiError } from '@/modules/http/error'
 
 export type ContextWorkspaceTab = 'spaces' | 'documents' | 'profiles' | 'evaluation'
 
@@ -124,6 +126,12 @@ export function useContextWorkspace() {
     evaluation.value = null
     try {
       evaluation.value = await AiContextApi.evaluations.run({ agent_id: agentID, query })
+    } catch (error: unknown) {
+      if (isApiError(error) && error.kind === 'canceled') return
+      if (!(error instanceof Error) || error.message.trim() === '') {
+        throw error
+      }
+      ElNotification.error({ message: error.message })
     } finally {
       evaluationLoading.value = false
     }
