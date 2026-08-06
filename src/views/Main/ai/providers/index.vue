@@ -67,7 +67,7 @@ const columns = computed(() => [
   { key: 'engine_type', label: t('aiProviders.table.driver'), width: 120 },
   { key: 'base_url', label: t('aiProviders.table.baseUrl'), minWidth: 240 },
   { key: 'api_key_masked', label: t('aiProviders.table.apiKeyMasked'), width: 140 },
-  { key: 'models', label: t('aiProviders.table.models'), minWidth: 260 },
+  { key: 'models', label: t('aiProviders.table.models'), minWidth: 260, overflowTooltip: false },
   { key: 'health_status', label: t('aiProviders.table.health'), width: 110 },
   { key: 'last_model_sync_status', label: t('aiProviders.table.modelSync'), width: 120 },
   { key: 'status', label: t('aiProviders.table.status'), width: 90 },

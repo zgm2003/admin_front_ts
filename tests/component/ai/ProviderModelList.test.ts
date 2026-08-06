@@ -59,7 +59,7 @@ function providerModel(
 }
 
 describe('ProviderModelList', () => {
-  it('keeps three enabled models inline and puts the rest in a bounded teleported popover', () => {
+  it('keeps one enabled model summary inline and puts every remaining model in a bounded popover', () => {
     const wrapper = mount(ProviderModelList, {
       props: {
         models: [
@@ -83,16 +83,15 @@ describe('ProviderModelList', () => {
     })
 
     const visibleModels = wrapper.findAll('[data-test="visible-provider-model"]')
-    expect(visibleModels).toHaveLength(3)
+    expect(visibleModels).toHaveLength(1)
     expect(visibleModels[0].text()).toContain('Model One')
     expect(visibleModels[0].text()).toContain('model-1')
     expect(visibleModels[0].text()).toContain('Chat')
-    expect(visibleModels[1].text()).toContain('Embedding')
-    expect(visibleModels[2].text()).toContain('model-3')
-    expect(visibleModels[2].text()).toContain('Rerank')
-    expect(wrapper.get('[data-test="provider-model-overflow"]').text()).toBe('+2')
+    expect(wrapper.get('[data-test="provider-model-overflow"]').text()).toBe('+4')
     expect(wrapper.findAll('[data-test="overflow-provider-model"]').map(item => item.text()))
       .toEqual(expect.arrayContaining([
+        expect.stringContaining('Model Two'),
+        expect.stringContaining('model-3'),
         expect.stringContaining('Model Four'),
         expect.stringContaining('Model Five'),
       ]))
@@ -112,5 +111,11 @@ describe('ProviderModelList', () => {
     const source = readFileSync('src/views/Main/ai/providers/components/ProviderModelList.vue', 'utf8')
     expect(source).not.toContain(':deep')
     expect(source).toContain('white-space: nowrap')
+    expect(source).toMatch(/\.provider-model-list__summary\s*\{[\s\S]*?flex:\s*1 1 0;[\s\S]*?overflow:\s*hidden;/)
+  })
+
+  it('disables the AppTable overflow tooltip for the model column', () => {
+    const source = readFileSync('src/views/Main/ai/providers/index.vue', 'utf8')
+    expect(source).toMatch(/\{\s*key:\s*'models',[^\r\n]*overflowTooltip:\s*false[^\r\n]*\}/)
   })
 })

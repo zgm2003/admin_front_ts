@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 const { t } = useI18n()
 
-const visibleLimit = 3
+const visibleLimit = 1
 const enabledModels = computed(() => props.models.filter((model) => model.status === 1))
 const visibleModels = computed(() => enabledModels.value.slice(0, visibleLimit))
 const overflowModels = computed(() => enabledModels.value.slice(visibleLimit))
@@ -27,23 +27,25 @@ function modelKindLabel(model: AiProviderModelItem): string {
     v-if="enabledModels.length > 0"
     class="provider-model-list"
   >
-    <el-tag
-      v-for="model in visibleModels"
-      :key="model.model_id"
-      class="provider-model-list__tag"
-      data-test="visible-provider-model"
-      size="small"
-      type="info"
-    >
-      <span class="provider-model-list__content">
-        <span class="provider-model-list__kind">{{ modelKindLabel(model) }}</span>
-        <span class="provider-model-list__label">{{ modelLabel(model) }}</span>
-        <span
-          v-if="model.display_name"
-          class="provider-model-list__id"
-        >{{ model.model_id }}</span>
-      </span>
-    </el-tag>
+    <div class="provider-model-list__summary">
+      <el-tag
+        v-for="model in visibleModels"
+        :key="model.model_id"
+        class="provider-model-list__tag provider-model-list__tag--summary"
+        data-test="visible-provider-model"
+        size="small"
+        type="info"
+      >
+        <span class="provider-model-list__content">
+          <span class="provider-model-list__kind">{{ modelKindLabel(model) }}</span>
+          <span class="provider-model-list__label">{{ modelLabel(model) }}</span>
+          <span
+            v-if="model.display_name"
+            class="provider-model-list__id"
+          >{{ model.model_id }}</span>
+        </span>
+      </el-tag>
+    </div>
     <el-popover
       v-if="overflowModels.length > 0"
       :trigger="['hover', 'focus']"
@@ -110,6 +112,16 @@ function modelKindLabel(model: AiProviderModelItem): string {
 .provider-model-list__tag {
   min-width: 0;
   max-width: 300px;
+}
+
+.provider-model-list__summary {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.provider-model-list__tag--summary {
+  max-width: 100%;
 }
 
 .provider-model-list__content {
