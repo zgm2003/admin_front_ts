@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 739338ad55de978701fff21aff7e6b9941d76cbd9d0c43f2fa2c99893724dcc2
+// Generated from Admin Contract Bundle manifest SHA-256: bc9c4f1a3f21b30dd323547792bf43574ece651af6130894114e176cba8a516a
 // Do not edit manually.
 
 import { createContractSchemaCompiler, type ContractSchema } from '../contract-schema'
@@ -5033,7 +5033,7 @@ const contractSchemas = {
       "fusion_score": {
         "anyOf": [
           {
-            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+            "type": "string"
           },
           {
             "type": "null"
@@ -5049,7 +5049,7 @@ const contractSchemas = {
       "rerank_score": {
         "anyOf": [
           {
-            "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+            "type": "string"
           },
           {
             "type": "null"
@@ -5074,11 +5074,6 @@ const contractSchemas = {
       "source_type",
       "token_upper_bound"
     ],
-    "type": "object"
-  },
-  "Go_internal_module_ai_contextengine_FixedScore_Output": {
-    "additionalProperties": false,
-    "properties": {},
     "type": "object"
   },
   "Go_internal_module_ai_contextengine_ProfileListResponse_Output": {
@@ -5130,7 +5125,7 @@ const contractSchemas = {
         "type": "integer"
       },
       "score": {
-        "$ref": "#/components/schemas/Go_internal_module_ai_contextengine_FixedScore_Output"
+        "type": "string"
       },
       "variant_id": {
         "type": "string"

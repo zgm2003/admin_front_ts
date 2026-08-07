@@ -1,4 +1,4 @@
-// Generated from Admin Contract Bundle manifest SHA-256: 739338ad55de978701fff21aff7e6b9941d76cbd9d0c43f2fa2c99893724dcc2
+// Generated from Admin Contract Bundle manifest SHA-256: bc9c4f1a3f21b30dd323547792bf43574ece651af6130894114e176cba8a516a
 // Do not edit manually.
 export interface paths {
     "/api/admin/v1/ai-agents": {
@@ -5340,15 +5340,14 @@ export interface components {
             citation_key?: string | null;
             decision: string;
             exclusion_reason?: string | null;
-            fusion_score?: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"] | null;
+            fusion_score?: string | null;
             metadata: components["schemas"]["Go_internal_module_ai_contextengine_ContextBlockMetadataV1_Output"];
             ordinal: number;
-            rerank_score?: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"] | null;
+            rerank_score?: string | null;
             source_ref: string;
             source_type: string;
             token_upper_bound: number;
         };
-        Go_internal_module_ai_contextengine_FixedScore_Output: Record<string, never>;
         Go_internal_module_ai_contextengine_ProfileListResponse_Output: {
             items: components["schemas"]["Go_internal_module_ai_contextengine_ContextProfile_Output"][];
         };
@@ -5365,7 +5364,7 @@ export interface components {
         Go_internal_module_ai_contextengine_RetrievalBranchV1_Output: {
             modality: string;
             rank: number;
-            score: components["schemas"]["Go_internal_module_ai_contextengine_FixedScore_Output"];
+            score: string;
             variant_id: string;
         };
         Go_internal_module_ai_contextengine_SpaceListResponse_Output: {
