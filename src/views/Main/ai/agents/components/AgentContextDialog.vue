@@ -55,7 +55,9 @@ async function load() {
   }
 }
 
-async function changeProfile(id: number | null) {
+async function changeProfile(value: number | null | undefined) {
+  // Element Plus emits undefined when a clearable select is cleared.
+  const id = value === undefined ? null : value
   profileID.value = id
   spaceIDs.value = []
   await loadSpaces(id)
@@ -70,7 +72,9 @@ async function save() {
       persistedProfileID.value = persisted.profile_id
       await loadSpaces(persisted.profile_id)
     }
-    await AiContextApi.agents.updateSpaces(props.agent.id, spaceIDs.value)
+    if (profileID.value !== null) {
+      await AiContextApi.agents.updateSpaces(props.agent.id, spaceIDs.value)
+    }
     ElNotification.success({ message: t('common.success.operation') })
     emit('saved')
     visible.value = false
